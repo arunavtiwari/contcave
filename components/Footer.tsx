@@ -61,8 +61,8 @@ function Footer({ }: Props) {
           <div className="md:col-span-1 flex flex-col px-4 space-y-2">
             <p className="text-xl font-bold text-black mb-4">Company</p>
             <a onClick={() => { router.push("/about") }} className="cursor-pointer text-black">About</a>
-            <a onClick={() => { router.push("/about") }} className="cursor-pointer text-black">Privacy Policy</a>
-            <a onClick={() => { router.push("/about") }} className="cursor-pointer text-black">Terms & Conditions</a>
+            <a href="#" className="cursor-pointer text-black">Privacy Policy</a>
+            <a href="#" className="cursor-pointer text-black">Terms & Conditions</a>
           </div>
 
           <div className="md:col-span-1 flex flex-col px-4  space-y-2">
