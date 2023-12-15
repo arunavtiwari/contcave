@@ -1,6 +1,6 @@
 "use client";
 
-import useCountries from "@/hook/useCountries";
+import useCountries from "@/hook/useCities";
 import useSearchModal from "@/hook/useSearchModal";
 import { differenceInDays } from "date-fns";
 import { useSearchParams } from "next/navigation";
@@ -9,7 +9,7 @@ import { BiSearch } from "react-icons/bi";
 
 type Props = {};
 
-function Search({}: Props) {
+function Search({ }: Props) {
   const searchModel = useSearchModal();
   const params = useSearchParams();
   const { getByValue } = useCountries();

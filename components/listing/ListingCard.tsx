@@ -1,6 +1,6 @@
 "use client";
 
-import useCountries from "@/hook/useCountries";
+import useCities from "@/hook/useCities";
 import { SafeReservation, SafeUser, safeListing } from "@/types";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -30,7 +30,7 @@ function ListingCard({
   currentUser,
 }: Props) {
   const router = useRouter();
-  const { getByValue } = useCountries();
+  const { getByValue } = useCities();
 
   const location = getByValue(data.locationValue);
 
@@ -53,17 +53,6 @@ function ListingCard({
     return data.price;
   }, [reservation, data.price]);
 
-  const reservationDate = useMemo(() => {
-    if (!reservation) {
-      return null;
-    }
-
-    const start = new Date(reservation.startDate);
-    const end = new Date(reservation.endDate);
-
-    return `${format(start, "PP")} - ${format(end, "PP")}`;
-  }, [reservation]);
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.5 }}
@@ -81,7 +70,7 @@ function ListingCard({
           <Image
             fill
             className="object-cover h-full w-full group-hover:scale-110 transition"
-            src={data.imageSrc}
+            src={data.imageSrc[0]}
             alt="listing"
           />
           <div className="absolute top-3 right-3">
@@ -89,14 +78,14 @@ function ListingCard({
           </div>
         </div>
         <div className="font-semibold text-lg">
-          {location?.region}, {location?.label}
+          {data.title}
         </div>
         <div className="font-light text-neutral-500">
-          {reservationDate || data.category}
+          {data.category} | {location?.label}
         </div>
         <div className="flex flex-row items-center gap-">
           <div className="flex gap-1 font-semibold">
-            ${price} {!reservation && <div className="font-light"> Night</div>}
+            ₹{price} {!reservation && <div className="font-light"> Hour</div>}
           </div>
         </div>
         {onAction && actionLabel && (

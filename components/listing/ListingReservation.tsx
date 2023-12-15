@@ -1,15 +1,20 @@
 "use client";
 
 import React from "react";
-import { Range } from "react-date-range";
+import "@/styles/globals.css";
+import { formatISO } from "date-fns";
 import Calendar from "../inputs/Calendar";
 import Button from "../Button";
+import TimeRangePicker from '@wojtekmaj/react-timerange-picker';
+import '@wojtekmaj/react-timerange-picker/dist/TimeRangePicker.css';
 
 type Props = {
   price: number;
-  dateRange: Range;
   totalPrice: number;
-  onChangeDate: (value: Range) => void;
+  setSelectDate: (value: Date) => void;
+  selectedDate: Date;
+  setSelectTime: (value: [string, string]) => void;
+  selectedTime: [string, string];
   onSubmit: () => void;
   disabled?: boolean;
   disabledDates: Date[];
@@ -17,26 +22,40 @@ type Props = {
 
 function ListingReservation({
   price,
-  dateRange,
   totalPrice,
-  onChangeDate,
+  setSelectDate,
+  selectedDate,
+  setSelectTime,
+  selectedTime,
   onSubmit,
   disabled,
-  disabledDates,
+  disabledDates
 }: Props) {
   return (
     <div className="bg-white rounded-xl border-[1px] border-neutral-200 overflow-hidden">
       <div className="flex flex-row items-center gap-1 p-4">
         <p className="flex gap-1 text-2xl font-semibold">
-          $ {price} <p className="font-light text-neutral-600">night</p>
+          ₹ {price} <p className="font-light text-neutral-600">/hour</p>
         </p>
       </div>
       <hr />
+      <div className="p-4 flex flex-row items-center justify-between font-semibold text-lg"><h1>Select Date for Booking</h1></div>
+
       <Calendar
-        value={dateRange}
+        value={selectedDate}
         disabledDates={disabledDates}
-        onChange={(value) => onChangeDate(value.selection)}
+        onChange={(value) => setSelectDate(value)}
       />
+      <hr />
+      <div className="p-4 flex flex-row items-center justify-between font-semibold text-lg"><h1>Pick your Time Slot</h1></div>
+      <TimeRangePicker
+        value={selectedTime}
+        onChange={(value) => setSelectTime(value as [string, string])}
+        rangeDivider=" to "
+        className="w-full my-custom-timepicker "
+        autoFocus={true}
+      />
+
       <hr />
       <div className="p-4">
         <Button disabled={disabled} label="Reserve" onClick={onSubmit} />
@@ -44,7 +63,7 @@ function ListingReservation({
       <hr />
       <div className="p-4 flex flex-row items-center justify-between font-semibold text-lg">
         <p>Total</p>
-        <p> $ {totalPrice}</p>
+        <p> ₹ {totalPrice}</p>
       </div>
     </div>
   );
