@@ -1,30 +1,26 @@
-"user client"
-
 import { motion } from "framer-motion";
 
-type Props = {
-    index: number;
-    data: Array<string>;
-  };
+import React from "react";
 
-function FooterColumn({ index, data }: Props) {
-    const columnItems = data.map((item, index) => 
-        index === 0 
-        ? <h5 className="font-bold">{item}</h5>
-        : <p>{item}</p>);
+type FooterColumnProps = {
+  title: string;
+  link: string;
+};
 
-    return (<motion.div
-        initial={{
-          x: index % 2 === 0 ? -200 : 200,
-          opacity: 0,
-        }}
-        transition={{ duration: 1 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        className="space-y-4 text-xs text-gray-800"
-      >
-        {columnItems}
-      </motion.div>
-    );
-}
+const FooterColumn: React.FC<FooterColumnProps> = ({ title, link }) => {
+  return (
+    <motion.div>
+      <div className="md:col-span-1 flex items-center space-x-4">
+        <p className="text-lg font-semibold">
+          <a href={link} className="text-blue-500 underline">
+            {title}
+          </a>
+        </p>
+      </div>
+    </motion.div>
+  );
+};
 
 export default FooterColumn;
+
+
