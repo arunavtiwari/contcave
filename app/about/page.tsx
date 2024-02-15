@@ -27,10 +27,10 @@ const About = async (props: Props) => {
                             Our vision is to revolutionize the way content is created, shared, and experienced. By simplifying access to high-quality studios, cutting-edge equipment, and exceptional talent, we aim to eliminate the barriers that creators face, enabling them to focus on what they do best: creating inspiring and impactful content.
                         </p>
                         <p className="text-gray-700 mt-4">
-                            At Contcave, we're not just about providing services; we're about building connections. We connect creators with the resources they need, from studio bookings and equipment rentals to talent hiring. But beyond that, we strive to connect ideas with opportunities, vision with execution, and creativity with audiences worldwide.
+                            At Contcave, we&apos;re not just about providing services; we&apos;re about building connections. We connect creators with the resources they need, from studio bookings and equipment rentals to talent hiring. But beyond that, we strive to connect ideas with opportunities, vision with execution, and creativity with audiences worldwide.
                         </p>
                         <p className="text-gray-700 mt-4">
-                            Join us on this journey of innovation and creativity. Whether you're a seasoned content creator or just starting out, Contcave is here to support you every step of the way. Together, we can redefine the creative process and celebrate the power of storytelling in all its forms.
+                            Join us on this journey of innovation and creativity. Whether you&apos;re a seasoned content creator or just starting out, Contcave is here to support you every step of the way. Together, we can redefine the creative process and celebrate the power of storytelling in all its forms.
                         </p>
                     </div>
                 </div>
