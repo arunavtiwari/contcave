@@ -7,7 +7,6 @@ import React from "react";
 import { IconType } from "react-icons";
 import Avatar from "../Avatar";
 import ListingCategory from "./ListingCategory";
-import Sleep from "../Sleep";
 import Offers from "../Offers";
 
 const Map = dynamic(() => import("../Map"), {
@@ -54,7 +53,6 @@ function ListingInfo({
           description={category?.description}
         />
       )}
-
       <p className="text-lg font-light text-neutral-500">{description}</p>
       <hr />
       <Offers />
