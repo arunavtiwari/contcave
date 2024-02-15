@@ -98,12 +98,12 @@ function LoginModal({ }: Props) {
       /> */}
       <div className="text-neutral-500 text-center mt-4 font-light">
         <div>
-          {`Didn't have an Account?`}{" "}
+          {`Don't have an Account?`}{" "}
           <span
             onClick={toggle}
             className="text-neutral-800 cursor-pointer hover:underline"
           >
-            Create an Account
+            Create Account
           </span>
         </div>
       </div>

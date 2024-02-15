@@ -8,7 +8,7 @@ import { RiTwitterFill } from "react-icons/ri";
 
 type Props = {};
 
-function Footer({ }: Props) {
+function Footer() {
   const [country, setCountry] = useState("India");
   const router = useRouter();
 
@@ -63,6 +63,8 @@ function Footer({ }: Props) {
             <a onClick={() => { router.push("/about") }} className="cursor-pointer text-black">About</a>
             <a href="#" className="cursor-pointer text-black">Privacy Policy</a>
             <a href="#" className="cursor-pointer text-black">Terms & Conditions</a>
+            <a href="#" className="cursor-pointer text-black">Blogs</a>
+
           </div>
 
           <div className="md:col-span-1 flex flex-col px-4  space-y-2">

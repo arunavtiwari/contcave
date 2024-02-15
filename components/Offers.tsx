@@ -62,7 +62,7 @@ type Props = {};
 function Offers({}: Props) {
   return (
     <div>
-      <p className="text-xl font-semibold">What this place offers</p>
+      <p className="text-xl font-semibold">What this space offers</p>
       <div className="flex justify-start space-x-12 pt-6">
         <div className="flex flex-col gap-2">
           {offersRowOne.map((item, index) => (
@@ -81,7 +81,6 @@ function Offers({}: Props) {
             </motion.div>
           ))}
         </div>
-        {/* another row */}
         <div className="flex flex-col gap-2">
           {offersRowTwo.map((item, index) => (
             <motion.div
@@ -99,6 +98,7 @@ function Offers({}: Props) {
             </motion.div>
           ))}
         </div>
+        
       </div>
     </div>
   );
