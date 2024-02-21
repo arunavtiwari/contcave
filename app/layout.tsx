@@ -9,6 +9,7 @@ import Navbar from "@/components/navbar/Navbar";
 import { Nunito } from "next/font/google";
 import "../styles/globals.css";
 import getCurrentUser from "./actions/getCurrentUser";
+import { CategoryProvider } from "./context/CategoryContext";
 
 export const metadata = {
   title: "ContCave",

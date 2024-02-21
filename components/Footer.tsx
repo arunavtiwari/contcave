@@ -63,7 +63,7 @@ function Footer() {
             <a onClick={() => { router.push("/about") }} className="cursor-pointer text-black">About</a>
             <a href="#" className="cursor-pointer text-black">Privacy Policy</a>
             <a href="#" className="cursor-pointer text-black">Terms & Conditions</a>
-            <a href="#" className="cursor-pointer text-black">Blogs</a>
+            <a onClick={() => { router.push("/blogs") }} className="cursor-pointer text-black">Blogs</a>
 
           </div>
 
