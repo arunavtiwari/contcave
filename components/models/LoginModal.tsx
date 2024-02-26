@@ -1,10 +1,10 @@
-"use client";
-
+"use client"
+import { useState } from "react";
 import useLoginModel from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { AiFillFacebook } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
@@ -22,6 +22,7 @@ function LoginModal({ }: Props) {
   const registerModel = useRegisterModal();
   const loginModel = useLoginModel();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -58,57 +59,6 @@ function LoginModal({ }: Props) {
     registerModel.onOpen();
   }, [loginModel, registerModel]);
 
-  const bodyContent = (
-    <div className="flex flex-col gap-4">
-      <Heading title="Welcome Back" subtitle="Login to your Account!" center />
-      <Input
-        id="email"
-        label="Email Address"
-        disabled={isLoading}
-        register={register}
-        errors={errors}
-        required
-      />
-      <Input
-        id="password"
-        label="Password"
-        disabled={isLoading}
-        register={register}
-        errors={errors}
-        required
-      />
-    </div>
-  );
-
-  const footerContent = (
-    <div className="flex flex-col gap-4 mt-3">
-      <hr />
-      <Button
-        outline
-        label="Continue with Google"
-        icon={FcGoogle}
-        onClick={() => signIn("google")}
-      />
-      {/* <Button
-        outline
-        label="Continue with Facebook"
-        icon={AiFillFacebook}
-        onClick={() => signIn("facebook")}
-        isColor
-      /> */}
-      <div className="text-neutral-500 text-center mt-4 font-light">
-        <div>
-          {`Don't have an Account?`}{" "}
-          <span
-            onClick={toggle}
-            className="text-neutral-800 cursor-pointer hover:underline"
-          >
-            Create Account
-          </span>
-        </div>
-      </div>
-    </div>
-  );
   return (
     <Modal
       disabled={isLoading}
@@ -117,8 +67,64 @@ function LoginModal({ }: Props) {
       actionLabel="Continue"
       onClose={loginModel.onClose}
       onSubmit={handleSubmit(onSubmit)}
-      body={bodyContent}
-      footer={footerContent}
+      body={
+        <div className="flex flex-col gap-4">
+          <Heading title="Welcome Back" subtitle="Login to your Account!" center />
+          <Input
+            id="email"
+            label="Email Address"
+            disabled={isLoading}
+            register={register}
+            errors={errors}
+            required
+          />
+          <Input
+            id="password"
+            label="Password"
+            disabled={isLoading}
+            register={register}
+            errors={errors}
+            required
+            type={showPassword ? "text" : "password"}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="text-sm text-neutral-600 focus:outline-none"
+          >
+            {showPassword ? "Hide" : "Show"} Password
+          </button>
+        </div>
+      }
+      footer={
+        <div className="flex flex-col gap-4 mt-3">
+          <hr />
+          <Button
+            outline
+            label="Continue with Google"
+            icon={FcGoogle}
+            onClick={() => signIn("google")}
+          />
+          {/* <Button
+            outline
+            label="Continue with Facebook"
+            icon={AiFillFacebook}
+            onClick={() => signIn("facebook")}
+            isColor
+          /> */}
+          <div className="text-neutral-500 text-center mt-4 font-light">
+            <div>
+              {"Don't have an Account? "}
+              <span
+                onClick={toggle}
+                className="text-neutral-800 cursor-pointer hover:underline"
+              >
+                Create Account
+              </span>
+            </div>
+          </div>
+        </div>
+      }
     />
   );
 }
