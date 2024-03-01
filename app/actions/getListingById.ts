@@ -13,7 +13,7 @@ export default async function getListingById(params: IParams) {
         id: listingId,
       },
       include: {
-        user: true,
+        user: true
       },
     });
 

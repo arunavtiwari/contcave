@@ -17,7 +17,27 @@ type Props = {
 function PropertiesClient({ listings, currentUser }: Props) {
   const router = useRouter();
   const [deletingId, setDeletingId] = useState("");
+  const [editingId, setEditingId] = useState("");
 
+  const onEdit = useCallback(
+    (id: string) => {
+      setEditingId(id);
+
+      axios
+        .patch(`/api/listings/${id}`)
+        .then(() => {
+          toast.info("Listing deleted");
+          router.refresh();
+        })
+        .catch((error) => {
+          toast.error(error?.response?.data?.error);
+        })
+        .finally(() => {
+          setEditingId("");
+        });
+    },
+    [router]
+  );
   const onDelete = useCallback(
     (id: string) => {
       setDeletingId(id);
@@ -48,6 +68,8 @@ function PropertiesClient({ listings, currentUser }: Props) {
             data={listing}
             actionId={listing.id}
             onAction={onDelete}
+            onDelete={onDelete}
+            onEdit={onEdit}
             disabled={deletingId === listing.id}
             actionLabel="Delete property"
             currentUser={currentUser}

@@ -11,18 +11,19 @@ datasource db {
 }
 
 model User {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  name           String?
-  email          String?       @unique
-  emailVerified  DateTime?
-  image          String?
-  hashedPassword String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  favoriteIds    String[]      @db.ObjectId
-  accounts       Account[]
-  listings       Listing[]
-  reservations   Reservation[]
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  name            String?
+  email           String?           @unique
+  emailVerified   DateTime?
+  image           String?
+  hashedPassword  String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  favoriteIds     String[]          @db.ObjectId
+  accounts        Account[]
+  listings        Listing[]
+  reservations    Reservation[]
+  CustomAmenities CustomAmenities[]
 }
 
 model Account {
@@ -44,18 +45,32 @@ model Account {
 }
 
 model Listing {
-  id            String        @id @default(auto()) @map("_id") @db.ObjectId
-  title         String
-  description   String
-  imageSrc      String[]
-  createdAt     DateTime      @default(now())
-  category      String
-  locationValue String
-  userId        String        @db.ObjectId
-  price         Int
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reservations  Reservation[]
-  selectedAmenities String[]
+  id                   String        @id @default(auto()) @map("_id") @db.ObjectId
+  title                String
+  description          String
+  imageSrc             String[]
+  createdAt            DateTime      @default(now())
+  category             String
+  locationValue        String
+  userId               String        @db.ObjectId
+  price                Int
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reservations         Reservation[]
+  amenities            String[]
+  otherAmenities       String[]
+  addons               Json?
+  carpetArea           String?
+  operationalDays      String?
+  openingHours         String?
+  minimumBookingHours  String?
+  maximumPax           Int?
+  instantBooking       Int?
+  type                 String[]
+  bookingApprovalCount Int?
+  otherDetails         Json?
+  verifications        Json?
+  terms                Boolean?
+  Addons               Addons[]
 }
 
 model Reservation {
@@ -65,8 +80,33 @@ model Reservation {
   startDate  DateTime @default(now())
   startTime  DateTime @default(now())
   endTime    DateTime @default(now())
-  totalPrice Int
+  totalPrice Float
+  selectedAddons Json?
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Amenities {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  createdAt DateTime @default(now())
+}
+
+model CustomAmenities {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+}
+
+model Addons {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  image     String?
+  price     Int
+  createdAt DateTime @default(now())
+  Listing   Listing? @relation(fields: [listingId], references: [id])
+  listingId String?  @db.ObjectId
 }

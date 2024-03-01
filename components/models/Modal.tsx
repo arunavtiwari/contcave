@@ -13,8 +13,14 @@ type Props = {
   footer?: React.ReactElement;
   actionLabel: string;
   disabled?: boolean;
+  autoWidth?:boolean;
+  customWidth?:string;
+  fixedHeight?:boolean;
+  selfActionButton?:boolean; //button inside the component which is being rendered in the modal
+  verificationBtn?:boolean;
   secondaryAction?: () => void;
   secondaryActionLabel?: string;
+  termsAndConditionsAccept?:boolean;
 };
 
 function Modal({
@@ -27,7 +33,13 @@ function Modal({
   footer,
   disabled,
   secondaryAction,
+  verificationBtn,
+  autoWidth,
+  customWidth,
+  fixedHeight,
+  selfActionButton,
   secondaryActionLabel,
+  termsAndConditionsAccept
 }: Props) {
   const [showModal, setShowModal] = useState(isOpen);
 
@@ -69,7 +81,7 @@ function Modal({
   return (
     <>
       <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none bg-neutral-800/70">
-        <div className="relative w-full md:w-4/6 lg:w-3/6 xl:w-2/5 my-6 mx-auto h-full lg:h-auto md:h-auto">
+        <div className={`relative my-6 mx-auto h-full lg:h-auto md:h-auto ${autoWidth? '':'w-full  lg:w-3/6 xl:w-2/5  md:w-4/6'} ${customWidth}`}>
           <div
             className={`translate duration-300 h-full ${showModal ? "translate-y-0" : "translate-y-full"
               } ${showModal ? "opacity-100" : "opacity-0"}`}
@@ -84,23 +96,39 @@ function Modal({
                 </button>
                 <div className="text-lg font-semibold">{title}</div>
               </div>
-              <div className="relative p-6 flex-auto">{body}</div>
-              <div className="flex flex-col gap-2 p-6">
-                <div className="flex flex-row items-center gap-4 w-full">
-                  {secondaryAction && secondaryActionLabel && (
+              <div className={`flex-auto p-6 relative scrollbar-thin ${fixedHeight?' overflow-y-auto h-[70vh]':''}`}>{body}</div>
+              <div className={`flex flex-col gap-2 ${!verificationBtn? 'p-6':'p-6 pt-0'}`}>
+                {
+                  !selfActionButton && !verificationBtn && (
+                    <div className="flex flex-row items-center gap-4 w-full">
+                    {secondaryAction && secondaryActionLabel && (
+                      <Button
+                        outline
+                        disabled={disabled}
+                        label={secondaryActionLabel}
+                        onClick={handleSecondAction}
+                      />
+                    )}
                     <Button
-                      outline
                       disabled={disabled}
-                      label={secondaryActionLabel}
-                      onClick={handleSecondAction}
+                      label={actionLabel}
+                      onClick={handleSubmit}
                     />
-                  )}
-                  <Button
-                    disabled={disabled}
-                    label={actionLabel}
-                    onClick={handleSubmit}
-                  />
-                </div>
+                  </div>
+                  )
+                }
+                {
+                  verificationBtn && (
+                    <div className="flex flex-row items-center gap-4 w-full">
+                    
+                    <Button
+                      disabled={!termsAndConditionsAccept}
+                      label="Complete Listing"
+                      onClick={handleSubmit}
+                    />
+                  </div>
+                  )
+                }
                 {footer}
               </div>
             </div>
