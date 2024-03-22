@@ -42,6 +42,9 @@
     "react-slick": "^0.29.0",
     "react-toastify": "^9.1.2",
     "react-world-flags": "^1.5.1",
+    "remark": "^15.0.1",
+    "remark-gfm": "^4.0.0",
+    "remark-html": "^16.0.1",
     "slick-carousel": "^1.8.1",
     "tailwind-scrollbar": "^3.0.0",
     "typescript": "5.0.3",
@@ -55,6 +58,8 @@
     "@types/react-date-range": "^1.4.4",
     "@types/react-slick": "^0.23.12",
     "@types/react-world-flags": "^1.4.2",
+    "@types/node-fetch": "^2.6.11",
+    "@types/qs": "^6.9.11",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6"
