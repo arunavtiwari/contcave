@@ -1,23 +1,26 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import "@/styles/globals.css";
 import { formatISO } from "date-fns";
 import Calendar from "../inputs/Calendar";
 import Button from "../Button";
 import TimeRangePicker from '@wojtekmaj/react-timerange-picker';
 import '@wojtekmaj/react-timerange-picker/dist/TimeRangePicker.css';
+import TimeSlotPicker from "../inputs/TimeSlotPicker";
 
 type Props = {
   price: number;
   totalPrice: number;
   setSelectDate: (value: Date) => void;
   selectedDate: Date;
-  setSelectTime: (value: [string, string]) => void;
+  setSelectTimeSlots:(value:any) =>void;
   selectedTime: [string, string];
   onSubmit: () => void;
   disabled?: boolean;
   disabledDates: Date[];
+  disabledStartTimes:any[];
+  disabledEndTimes:any[];
 };
 
 function ListingReservation({
@@ -25,12 +28,29 @@ function ListingReservation({
   totalPrice,
   setSelectDate,
   selectedDate,
-  setSelectTime,
   selectedTime,
   onSubmit,
   disabled,
-  disabledDates
+  disabledDates,
+  setSelectTimeSlots,
+  disabledStartTimes,
+  disabledEndTimes
 }: Props) {
+  const [selectedTimes, setSelectedTimes] = useState({ start: null, end: null });
+
+  const setSelectTime = (selectedTime: any, field: 'start' | 'end') => {
+    // Set the start time if the 'start' button is active
+    if (field === 'start') {
+      setSelectedTimes({ start: selectedTime, end: null });
+    }
+    // Set the end time if the 'end' button is active and the selected time is after the start time
+    else if (field === 'end' ) {
+      setSelectedTimes({ ...selectedTimes, end: selectedTime });
+      selectedTime = [selectedTimes.start, selectedTime];
+      setSelectTimeSlots(selectedTime)
+    }
+  };
+  
   return (
     <div className="bg-white rounded-xl border-[1px] border-neutral-200 overflow-hidden">
       <div className="flex flex-row items-center gap-1 p-4">
@@ -43,19 +63,18 @@ function ListingReservation({
 
       <Calendar
         value={selectedDate}
-        disabledDates={disabledDates}
         onChange={(value) => setSelectDate(value)}
       />
       <hr />
       <div className="p-4 flex flex-row items-center justify-between font-semibold text-lg"><h1>Pick your Time Slot</h1></div>
-      <TimeRangePicker
-        value={selectedTime}
-        onChange={(value) => setSelectTime(value as [string, string])}
-        rangeDivider=" to "
-        className="w-full my-custom-timepicker "
-        autoFocus={true}
-      />
-
+      <TimeSlotPicker
+        onTimeSelect={setSelectTime}
+        selectedStart={selectedTimes.start}
+        selectedEnd={selectedTimes.end}
+        disabledStartTimes={disabledStartTimes}
+        disabledEndTimes={disabledEndTimes}
+        selectedDate={selectedDate}
+      ></TimeSlotPicker>
       <hr />
       <div className="p-4">
         <Button disabled={disabled} label="Reserve" onClick={onSubmit} />
@@ -70,3 +89,5 @@ function ListingReservation({
 }
 
 export default ListingReservation;
+
+

@@ -14,6 +14,9 @@ type Props = {
   data: safeListing;
   reservation?: SafeReservation;
   onAction?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onApproveBookings?:(id: string) => void;
   disabled?: boolean;
   actionLabel?: string;
   actionId?: string;
@@ -24,9 +27,12 @@ function ListingCard({
   data,
   reservation,
   onAction,
+  onEdit,
+  onDelete,
   disabled,
   actionLabel,
   actionId = "",
+  onApproveBookings,
   currentUser,
 }: Props) {
   const router = useRouter();
@@ -88,14 +94,42 @@ function ListingCard({
             ₹{price} {!reservation && <div className="font-light"> Hour</div>}
           </div>
         </div>
-        {onAction && actionLabel && (
+        <div className="flex justify-between items-center">
+        {onEdit && (
+          <Button
+            label="Edit"
+            onClick={() => onEdit(data.id)}
+          />
+        )}
+        {onDelete && (
+            <Button
+            label="Delete"
+            classNames="text-md font-semibold py-3 border-2 border-red-500 text-red-600 ml-2"
+            onClick={() => onDelete(data.id)}
+          />
+        )}
+
+          
+        </div>
+        {/* {(
+            <div className="flex items-center">
+              <Button
+                label="Bookings Approval"
+                onClick={() => {}}
+              />
+              <span className="ml-2 text-base font-semibold">
+                {data.bookingApprovalCount ?? 0}
+              </span>
+            </div>
+          )} */}
+     {/*    {onAction && actionLabel && (
           <Button
             disabled={disabled}
             small
             label={actionLabel}
             onClick={handleCancel}
           />
-        )}
+        )} */}
       </div>
     </motion.div>
   );

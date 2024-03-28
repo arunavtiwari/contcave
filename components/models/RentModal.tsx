@@ -4,7 +4,7 @@ import useRentModal from "@/hook/useRentModal";
 import axios from "axios";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
@@ -16,6 +16,15 @@ import ImageUpload from "../inputs/ImageUpload";
 import Input from "../inputs/Input";
 import { categories } from "../navbar/Categories";
 import Modal from "./Modal";
+import AmenitiesCheckbox from "../inputs/AmenityCheckbox";
+import getAmenities from "@/app/actions/getAmenities";
+import { Addons, Amenities,CustomAmenities } from '@prisma/client';
+import getAddons from "@/app/actions/getAddons";
+import AddonsSelection, { Addon } from "../inputs/AddonsSelection";
+import OtherListingDetails, { ListingDetails } from "../inputs/OtherListingDetails";
+import UserVerification from "../inputs/UserVerification";
+import SpaceVerification from "../inputs/SpaceVerification";
+import TermsAndConditionsModal from "../inputs/TermsAndConditions";
 
 type Props = {};
 
@@ -25,6 +34,11 @@ enum STEPS {
   IMAGES = 2,
   DESCRIPTION = 3,
   PRICE = 4,
+  AMENITIES = 5,
+  ADDONS = 6,
+  OTHERDETAILS = 7,
+  VERIFICATION = 8,
+  TERMS = 9
 }
 
 function RentModal({ }: Props) {
@@ -32,7 +46,61 @@ function RentModal({ }: Props) {
   const rentModel = useRentModal();
   const [step, setStep] = useState(STEPS.CATEGORY);
   const [isLoading, setIsLoading] = useState(false);
+  const [amenities, setAmenities] = useState<Amenities[]>([]);  // Explicitly specify the type
+  const [listingDetails, setListigDetails] = useState<ListingDetails>();  // Explicitly specify the type
 
+  const [customAmenities, setCustomAmenities] = useState<CustomAmenities[]>([]);  // Explicitly specify the type
+
+  const [verifications, setVerifications]    = useState();
+  const [terms, setTerms]    = useState(Boolean);
+  const [addons, setAddons] = useState<any[]>([]);  // Explicitly specify the type
+  
+  const [selectedAmenities, setSelectedAmenities] = useState<{ [key: string]: boolean }>({});
+  const [selectedAddons, setSelectedAddons] = useState<{}>({});
+
+  const handleTermsAndConditions = (accept:any) => {
+    setTerms(accept);
+  };
+
+  const handleVerificationChange = (verifications:any) => {
+    setVerifications(verifications);
+  };
+  const handleAmenitiesChange = (updatedAmenities: { [key: string]: boolean }) => {
+    setSelectedAmenities(updatedAmenities);
+  };
+  const handleAddonChange = (updatedAddons:Addon[]) => {
+    console.log(updatedAddons);
+    setSelectedAddons(updatedAddons);
+  };
+  const handleDetailsChange = (newDetails: ListingDetails) => {
+    // Handle the updated details here, e.g., set state or pass up further
+    console.log(newDetails);
+    setListigDetails(newDetails)
+  };
+  useEffect(() => {
+
+    // Fetch amenities data
+    const fetchAmenitiesData = async () => {
+      try {
+        const amenitiesData = await getAmenities();
+        setAmenities(amenitiesData);
+      } catch (error) {
+        console.error('Error fetching amenities:', error);
+      }
+    };
+
+    fetchAmenitiesData();
+    const fetchAddonsData = async () => {
+      try {
+        const addonsData = await getAddons();
+        setAddons(addonsData);
+      } catch (error) {
+        console.error('Error fetching amenities:', error);
+      }
+    };
+
+    fetchAddonsData();
+  }, []);
   const {
     register,
     handleSubmit,
@@ -48,6 +116,8 @@ function RentModal({ }: Props) {
       price: 1,
       title: "",
       description: "",
+      amenities: [],
+      addons: []
     },
   });
 
@@ -80,13 +150,18 @@ function RentModal({ }: Props) {
   };
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
-    if (step !== STEPS.PRICE) {
+    if (step !== STEPS.TERMS) {
       return onNext();
     }
+    data.amenities = Object.keys(selectedAmenities).filter((key) => selectedAmenities[key]),
+    data.addons = selectedAddons;
+    data.otherDetails = listingDetails;
+    data.verifications = verifications;
+    data.terms         = terms;
 
     setIsLoading(true);
-
-    axios
+   // console.log(data)
+     axios
       .post("/api/listings", data)
       .then(() => {
         toast.success("Listing Created!");
@@ -94,18 +169,19 @@ function RentModal({ }: Props) {
         reset();
         setStep(STEPS.CATEGORY);
         rentModel.onClose();
+       
       })
       .catch(() => {
         toast.error("Something Went Wrong");
       })
       .finally(() => {
         setIsLoading(false);
-      });
+      }); 
   };
 
   const actionLabel = useMemo(() => {
-    if (step === STEPS.PRICE) {
-      return "Create";
+    if (step === STEPS.OTHERDETAILS) {
+      return "Verification";
     }
 
     return "Next";
@@ -221,17 +297,76 @@ function RentModal({ }: Props) {
     );
   }
 
+  if (step == STEPS.AMENITIES) {
+
+    bodyContent = (
+      <div className="flex flex-col gap-8">
+        <Heading
+          title="Select the amenities at your property"
+          subtitle="Add the amenities available at the shoot space"
+        />
+        <AmenitiesCheckbox amenities={amenities} onChange={handleAmenitiesChange}></AmenitiesCheckbox>
+      </div>
+    );
+  }
+
+  if (step == STEPS.ADDONS) {
+    bodyContent = (
+      <div className="flex flex-col gap-8">
+        <Heading
+          title="Select the add-ons, if available at your property"
+          subtitle="Additonal chargeable services/facilities"
+        />
+        <AddonsSelection addons={addons} onSelectedAddonsChange={handleAddonChange}></AddonsSelection>
+        
+      </div>
+    );
+  }
+
+  if (step == STEPS.OTHERDETAILS) {
+    bodyContent = (
+      <div className="flex flex-col gap-8">
+        <Heading
+          title="Other details of the listing"
+        />
+        <OtherListingDetails onDetailsChange={handleDetailsChange}></OtherListingDetails>
+      </div>
+    );
+  }
+  if (step == STEPS.VERIFICATION) {
+    bodyContent = (
+      <div className="flex flex-col gap-8">
+        
+        <SpaceVerification onVerification={handleVerificationChange}></SpaceVerification>
+       {/*  <UserVerification  onSubmit={handleSubmit(onSubmit)}></UserVerification> */}
+      </div>
+    );
+  }
+  if (step == STEPS.TERMS) {
+    bodyContent = (
+      <div className="flex flex-col gap-8">
+        <TermsAndConditionsModal onChange={handleTermsAndConditions}></TermsAndConditionsModal>
+       {/*  <UserVerification  onSubmit={handleSubmit(onSubmit)}></UserVerification> */}
+      </div>
+    );
+  }
   return (
     <Modal
       disabled={isLoading}
       isOpen={rentModel.isOpen}
-      title="List your space!"
+      title={step == STEPS.VERIFICATION ? "Space Verification": step == STEPS.TERMS ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS": "List your space!"}
       actionLabel={actionLabel}
       onSubmit={handleSubmit(onSubmit)}
       secondaryActionLabel={secondActionLabel}
       secondaryAction={step === STEPS.CATEGORY ? undefined : onBack}
       onClose={rentModel.onClose}
+      selfActionButton={false}
+      autoWidth={step === STEPS.VERIFICATION ? true : false}
+      customWidth={step === STEPS.VERIFICATION ? 'w-1/2': ''}
       body={bodyContent}
+      verificationBtn={step === STEPS.TERMS}
+      fixedHeight={step == STEPS.ADDONS ? true: false}
+      termsAndConditionsAccept={terms}
     />
   );
 }

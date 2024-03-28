@@ -1,6 +1,8 @@
 "use client";
 
+import getAmenities from "@/app/actions/getAmenities";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { AiOutlineCar, AiOutlineWifi } from "react-icons/ai";
 import { BiCctv } from "react-icons/bi";
 import { BsFire } from "react-icons/bs";
@@ -57,50 +59,82 @@ const offersRowTwo = [
   },
 ];
 
-type Props = {};
+type Props = {
+  amenities?:Array<any>;
+  definedAmenities?:Array<any>;
+};
 
-function Offers({}: Props) {
+function Offers({ amenities,definedAmenities }: Props) {
+
   return (
-    <div>
-      <p className="text-xl font-semibold">What this space offers</p>
-      <div className="flex justify-start space-x-12 pt-6">
-        <div className="flex flex-col gap-2">
-          {offersRowOne.map((item, index) => (
-            <motion.div
-              initial={{
-                x: -200,
-                opacity: 0,
-              }}
-              transition={{ duration: 1 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              key={index}
-              className="flex justify-start items-center text-center gap-4 my-1 cursor-pointer"
-            >
-              <item.icon size={25} className="text-gray-700" />
-              <p className="text-neutral-500">{item.label}</p>
-            </motion.div>
-          ))}
+    <>
+      <div>
+        <p className="text-xl font-semibold">What this space offers</p>
+        <div className="flex justify-start space-x-12 pt-6">
+          <div className="flex flex-col gap-2">
+            {offersRowOne.map((item, index) => (
+              <motion.div
+                initial={{
+                  x: -200,
+                  opacity: 0,
+                }}
+                transition={{ duration: 1 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                key={index}
+                className="flex justify-start items-center text-center gap-4 my-1 cursor-pointer"
+              >
+                <item.icon size={25} className="text-gray-700" />
+                <p className="text-neutral-500">{item.label}</p>
+              </motion.div>
+            ))}
+          </div>
+          {/* another row */}
+          <div className="flex flex-col gap-2">
+            {offersRowTwo.map((item, index) => (
+              <motion.div
+                initial={{
+                  x: 200,
+                  opacity: 0,
+                }}
+                transition={{ duration: 1 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                key={index}
+                className="flex justify-start items-center text-center gap-4 my-1 cursor-pointer"
+              >
+                <item.icon size={25} className="text-gray-700" />
+                <p className="text-neutral-500">{item.label}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
-          {offersRowTwo.map((item, index) => (
-            <motion.div
-              initial={{
-                x: 200,
-                opacity: 0,
-              }}
-              transition={{ duration: 1 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              key={index}
-              className="flex justify-start items-center text-center gap-4 my-1 cursor-pointer"
-            >
-              <item.icon size={25} className="text-gray-700" />
-              <p className="text-neutral-500">{item.label}</p>
-            </motion.div>
-          ))}
-        </div>
-        
       </div>
-    </div>
+
+      <div>
+        <hr/>
+        <p className="text-xl font-semibold mt-3">Amenities</p>
+        <div className="flex justify-start space-x-12 pt-6">
+          <div className="gap-2 grid grid-cols-2">
+            {amenities?.map((item, index) => 
+            (
+              <motion.div
+                initial={{
+                  x: -200,
+                  opacity: 0,
+                }}
+                transition={{ duration: 1 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                key={index}
+                className="flex justify-start items-center text-center gap-4 my-1 cursor-pointer"
+              >
+                &bull; <p className="text-neutral-500">{definedAmenities?.find((ele:any) => ele.id == item)?.name}</p>
+              </motion.div>
+            ))}
+          </div>
+          {/* another row */}
+       
+        </div>
+      </div>
+    </>
   );
 }
 

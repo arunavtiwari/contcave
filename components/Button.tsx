@@ -11,6 +11,7 @@ type Props = {
   small?: boolean;
   icon?: IconType;
   isColor?: boolean;
+  classNames?:string
 };
 
 function Button({
@@ -21,18 +22,17 @@ function Button({
   small,
   icon: Icon,
   isColor,
+  classNames,
 }: Props) {
   return (
     <button
       disabled={disabled}
       onClick={onClick}
-      className={`relative disabled:opacity-70 disabled:cursor-not-allowed rounded-lg hover:opacity-80 transition w-full ${
-        outline ? "bg-white" : "bg-rose-500"
-      } ${outline ? "border-black" : "border-rose-500"} ${
-        outline ? "text-black" : "text-white"
-      } ${small ? "text-sm" : "text-md"} ${small ? "py-1" : "py-3"} ${
-        small ? "font-light" : "font-semibold"
-      } ${small ? "border-[1px]" : "border-2"}`}
+      className={`relative disabled:opacity-70 disabled:cursor-not-allowed rounded-lg hover:opacity-80 transition w-full  ${
+       !classNames? (outline ? "bg-white border-black text-black" : "bg-rose-500 border-rose-500 text-white"): classNames
+      }  ${ !classNames ? (small ? "text-sm font-light py-1 border-[1px]" : "text-md font-semibold py-3 border-2"):classNames} 
+      
+      `}
     >
       {Icon && (
         <Icon
