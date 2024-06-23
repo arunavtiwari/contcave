@@ -9,7 +9,7 @@ const AutoComplete = ({ value, onChange }: any) => {
   const searchBoxRef:any = useRef();
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: 'AIzaSyBEruwwnOyCLP9Al1y8a2a2Q6pRu50es0g', 
+    googleMapsApiKey: '', 
     libraries,
   });
 
