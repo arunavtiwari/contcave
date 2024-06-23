@@ -142,6 +142,7 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
                 disabledDates={disableDates}   
                 disabledStartTimes={disabledStartTimes}
                 disabledEndTimes={disabledEndTimes}
+                operationalTimings={listing.otherDetails}
                 />
             </div>
           </div>

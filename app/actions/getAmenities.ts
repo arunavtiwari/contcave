@@ -71,11 +71,6 @@ export default async function getAmenities(): Promise<Amenities[]> {
         "id": "65b2ad3c16d8d0003b5c6e1e",
         "name": "Restrooms",
         "createdAt": "2024-01-25T18:49:32.544Z"
-      },
-      {
-        "id": "65b2ad4b16d8d0003b5c6e1f",
-        "name": "Others",
-        "createdAt": "2024-01-25T18:49:47.584Z"
       }
     ]
     if (!amenities || !amenities.length) {

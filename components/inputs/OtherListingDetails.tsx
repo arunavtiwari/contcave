@@ -70,14 +70,32 @@ export type ListingDetails = {
                             <input type="text" placeholder="Mon" className="border rounded w-30 py-1 text-center"
                             value={details.operationalDays.start}
                             onChange={(e) => handleInputChange('operationalDays',{ ...details.operationalDays, start: e.target.value})}
-
+                            list="days"
                             />
+                            <datalist id="days">
+                                <option value="Mon"></option>
+                                <option value="Tue"></option>
+                                <option value="Wed"></option>
+                                <option value="Thu"></option>
+                                <option value="Fri"></option>
+                                <option value="Sat"></option>
+                                <option value="Sun"></option>
+                            </datalist>
                             <span>-</span>
                             <input type="text" placeholder="Sun" className="border rounded  w-30 py-1 text-center" 
                              value={details.operationalDays.end}
                              onChange={(e) => handleInputChange('operationalDays',{ ...details.operationalDays, end: e.target.value})}
-                     
-                            />
+                             list="days"
+                             />
+                             <datalist id="days">
+                                 <option value="Mon"></option>
+                                 <option value="Tue"></option>
+                                 <option value="Wed"></option>
+                                 <option value="Thu"></option>
+                                 <option value="Fri"></option>
+                                 <option value="Sat"></option>
+                                 <option value="Sun"></option>
+                             </datalist>
                         </div>
                     </div>
 

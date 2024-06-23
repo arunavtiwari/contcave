@@ -21,6 +21,7 @@ type Props = {
   disabledDates: Date[];
   disabledStartTimes:any[];
   disabledEndTimes:any[];
+  operationalTimings:any;
 };
 
 function ListingReservation({
@@ -34,7 +35,8 @@ function ListingReservation({
   disabledDates,
   setSelectTimeSlots,
   disabledStartTimes,
-  disabledEndTimes
+  disabledEndTimes,
+  operationalTimings,
 }: Props) {
   const [selectedTimes, setSelectedTimes] = useState({ start: null, end: null });
 
@@ -63,6 +65,7 @@ function ListingReservation({
 
       <Calendar
         value={selectedDate}
+        allowedDays={[operationalTimings.operationalDays?.start??"", operationalTimings.operationalDays?.end??""]}
         onChange={(value) => setSelectDate(value)}
       />
       <hr />
@@ -74,6 +77,7 @@ function ListingReservation({
         disabledStartTimes={disabledStartTimes}
         disabledEndTimes={disabledEndTimes}
         selectedDate={selectedDate}
+        operationalTimings={operationalTimings}
       ></TimeSlotPicker>
       <hr />
       <div className="p-4">

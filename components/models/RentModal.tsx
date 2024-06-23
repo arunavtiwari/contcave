@@ -10,7 +10,6 @@ import { toast } from "react-toastify";
 
 import Heading from "../Heading";
 import CategoryInput from "../inputs/CategoryInput";
-import Counter from "../inputs/Counter";
 import CitySelect from "../inputs/CitySelect";
 import ImageUpload from "../inputs/ImageUpload";
 import Input from "../inputs/Input";
@@ -22,9 +21,10 @@ import { Addons, Amenities,CustomAmenities } from '@prisma/client';
 import getAddons from "@/app/actions/getAddons";
 import AddonsSelection, { Addon } from "../inputs/AddonsSelection";
 import OtherListingDetails, { ListingDetails } from "../inputs/OtherListingDetails";
-import UserVerification from "../inputs/UserVerification";
 import SpaceVerification from "../inputs/SpaceVerification";
 import TermsAndConditionsModal from "../inputs/TermsAndConditions";
+import CustomAddonModal from "./CustomAddonModal";
+import AutoComplete from "../inputs/AutoComlete";
 
 type Props = {};
 
@@ -112,6 +112,7 @@ function RentModal({ }: Props) {
     defaultValues: {
       category: "",
       location: null,
+      actualLocation:null,
       imageSrc: [],
       price: 1,
       title: "",
@@ -123,6 +124,8 @@ function RentModal({ }: Props) {
 
   const category = watch("category");
   const location = watch("location");
+  const actualLocation = watch("actualLocation");
+
   const imageSrc = watch("imageSrc");
 
   const Map = useMemo(
@@ -160,7 +163,8 @@ function RentModal({ }: Props) {
     data.terms         = terms;
 
     setIsLoading(true);
-   // console.log(data)
+   console.log(data);
+
      axios
       .post("/api/listings", data)
       .then(() => {
@@ -227,7 +231,17 @@ function RentModal({ }: Props) {
           value={location}
           onChange={(value) => setCustomValue("location", value)}
         />
-        <Map center={location?.latlng} />
+        <AutoComplete
+          value={location ? location.display_name : ''}
+          onChange={(selected:any) => {
+            const latlng = [
+            selected.latlng.lat,
+             selected.latlng.lon
+            ];
+            setCustomValue("actualLocation", { display_name: selected.display_name, latlng: latlng });
+          }}
+        />
+        <Map center={actualLocation?.latlng?? location?.latlng} />
       </div>
     );
   }
@@ -318,7 +332,8 @@ function RentModal({ }: Props) {
           subtitle="Additonal chargeable services/facilities"
         />
         <AddonsSelection addons={addons} onSelectedAddonsChange={handleAddonChange}></AddonsSelection>
-        
+        <CustomAddonModal save={(value:any)=>{ addons.push(value) ; setAddons(addons)}} />
+
       </div>
     );
   }

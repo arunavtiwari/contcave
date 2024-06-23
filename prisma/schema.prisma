@@ -24,6 +24,7 @@ model User {
   listings        Listing[]
   reservations    Reservation[]
   CustomAmenities CustomAmenities[]
+  Review          Review[]
 }
 
 model Account {
@@ -52,6 +53,7 @@ model Listing {
   createdAt            DateTime      @default(now())
   category             String
   locationValue        String
+  actualLocation       Json?
   userId               String        @db.ObjectId
   price                Int
   user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -71,20 +73,22 @@ model Listing {
   verifications        Json?
   terms                Boolean?
   Addons               Addons[]
+  reviews              Review[]
 }
 
 model Reservation {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  listingId  String   @db.ObjectId
-  startDate  DateTime @default(now())
-  startTime  DateTime @default(now())
-  endTime    DateTime @default(now())
-  totalPrice Float
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
+  listingId      String   @db.ObjectId
+  startDate      DateTime @default(now())
+  startTime      DateTime @default(now())
+  endTime        DateTime @default(now())
+  totalPrice     Float
   selectedAddons Json?
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing        Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  Review         Review[]
 }
 
 model Amenities {
@@ -109,4 +113,17 @@ model Addons {
   createdAt DateTime @default(now())
   Listing   Listing? @relation(fields: [listingId], references: [id])
   listingId String?  @db.ObjectId
+}
+
+model Review {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String      @db.ObjectId
+  listingId     String      @db.ObjectId
+  reservationId String      @db.ObjectId
+  rating        Int
+  comment       String
+  createdAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing       Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
 }

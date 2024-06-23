@@ -35,12 +35,35 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ onTimeSelect, selectedS
     const handleTimeSlotClick = (time: TimeSlot) => {
         onTimeSelect(time, activeSegment);
     };
-
+    const getModifiedTime = (time:string) => {
+      let newtime = "";
+      if(time.includes(":")) {
+        let times = time.split(":");
+        if(times[0].length == 1) {
+          times[0] = times[0];
+        }
+        if(times[1].length == 1) {
+          times[1] = times[1]+"0";
+        }
+        newtime = times.join(":");
+      }
+      else {
+        if(time.length == 2) {
+          newtime = time+":00";
+        }
+        else {
+          newtime = time+":00";
+        }
+      }
+      return newtime
+    }
     const compareDates = (time:string) => {
+      let newtime = time;
+
       let isReserved = false;
       isReserved = 
-      disabledStartTimes.some((item) => item.toISOString() <=new Date(`${selectedDate.toISOString().split('T')[0]} ${time}`).toISOString())
-      &&  disabledEndTimes.some((item) => item.toISOString() >=new Date(`${selectedDate.toISOString().split('T')[0]} ${time}`).toISOString())
+      disabledStartTimes.some((item) => item.toISOString() <=new Date(`${selectedDate.toISOString().split('T')[0]} ${newtime}`).toISOString())
+      &&  disabledEndTimes.some((item) => item.toISOString() >=new Date(`${selectedDate.toISOString().split('T')[0]} ${newtime}`).toISOString())
       return isReserved;
     }
     return (
@@ -68,7 +91,10 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ onTimeSelect, selectedS
             </div>
           </div>
           <div className="gap-4 grid grid-cols-3 h-[35vh] mb-4 overflow-y-auto scrollbar-thin">
-            {timeSlots.map((time, index) => (
+            {timeSlots.filter((t,idx) => 
+            idx >= timeSlots.indexOf(getModifiedTime(operationalTimings?.operationalHours?.start)+" AM") 
+            && idx <= timeSlots.indexOf(getModifiedTime(operationalTimings?.operationalHours?.end)+" PM") 
+          ).map((time, index) => (
               <button
                 key={index}
                 onClick={() => handleTimeSlotClick(time)}

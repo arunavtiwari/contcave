@@ -3,13 +3,16 @@
 import useCities from "@/hook/useCities";
 import { SafeUser, safeListing } from "@/types";
 import dynamic from "next/dynamic";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { IconType } from "react-icons";
 import Avatar from "../Avatar";
 import ListingCategory from "./ListingCategory";
 import Offers from "../Offers";
 import AddonsList from "./AddonList";
+import { IoIosStar } from "react-icons/io";
 import { Listing } from "@prisma/client";
+import Image from "next/image";
+import axios from "axios";
 
 const Map = dynamic(() => import("../Map"), {
   ssr: false,
@@ -27,8 +30,8 @@ type Props = {
   | undefined;
   locationValue: string;
   fullListing: any;
-  definedAmenities?:Array<any>,
-  onAddonChange:(addons:any) =>void;
+  definedAmenities?: Array<any>,
+  onAddonChange: (addons: any) => void;
 };
 
 function ListingInfo({
@@ -42,9 +45,51 @@ function ListingInfo({
 }: Props) {
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
-  const handleAddonChange = (addons:any) =>{
-      onAddonChange(addons);
+  const handleAddonChange = (addons: any) => {
+    onAddonChange(addons);
   }
+  const [reviews, setReviews] = useState<any>([]);
+  const [canReview, setCanReview] = useState(false);
+  const [latestReservationId, setLatestReservationId] = useState("");
+
+  const [review, setReview] = useState({ rating: 5, comment: "" });
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const response = await axios.get(`/api/reviews/list/${fullListing.id}`);
+      setReviews(response.data);
+    };
+
+    const checkBooking = async () => {
+      try {
+        const response = await axios.get(`/api/checkbooking/${fullListing.id}`);
+        setCanReview(response.data.canReview);
+        setLatestReservationId(response.data.latestReservationId);
+      } catch (error) {
+        setCanReview(false);
+      }
+    };
+
+    fetchReviews();
+    checkBooking();
+  }, [fullListing.id]);
+
+  const handleReviewSubmit = async () => {
+    try {
+      const response = await axios.post("/api/reviews", {
+        listingId: fullListing.id,
+        reservationId: latestReservationId, // This should be dynamic
+        rating: review.rating,
+        comment: review.comment,
+      });
+      const reviews = await axios.get(`/api/reviews/list/${fullListing.id}`);
+      setReviews(reviews.data);
+      setReview({ rating: 5, comment: "" });
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+    }
+  };
+
   return (
     <div className="col-span-4 flex flex-col gap-8">
       <div className="flex flex-col gap-2">
@@ -60,18 +105,24 @@ function ListingInfo({
         <ListingCategory
           icon={category.icon}
           label={category?.label}
+          address={fullListing.actualLocation ? fullListing.actualLocation.display_name : ""}
           description={category?.description}
         />
       )}
 
       <p className="text-lg font-light text-neutral-500">{description}</p>
       <hr />
-      <Offers amenities={fullListing.amenities} definedAmenities={definedAmenities}/>
+      <p className="text-xl font-semibold">{`Address`}</p>
+
+      <p className="text-neutral-500 font-light">{fullListing.actualLocation ? fullListing.actualLocation.display_name : ""}</p>
+      <hr />
+      <Offers amenities={fullListing.amenities} definedAmenities={definedAmenities} />
       <hr />
       <AddonsList addons={fullListing.addons} onChange={handleAddonChange} />
       <hr />
+
       <p className="text-xl font-semibold">{`Where you’ll be`}</p>
-      <Map center={coordinates} locationValue={locationValue} />
+      <Map center={fullListing.actualLocation ? (fullListing.actualLocation.latlng ?? coordinates) : coordinates} locationValue={locationValue} />
       <hr />
       <p className="text-xl font-semibold">{`Operational Timings`}</p>
       <div className="flex gap-10" >
@@ -100,13 +151,13 @@ function ListingInfo({
                 <strong>Carpet Area</strong>
               </div>
               <div className="text-gray-500">
-                {fullListing.otherDetails?.carpetArea ?? 0 } sqft 
+                {fullListing.otherDetails?.carpetArea ?? 0} sqft
               </div>
             </>
           )
         }
-        </div>
-        <div className="flex gap-10" >
+      </div>
+      <div className="flex gap-10" >
         {
           fullListing.otherDetails && (
             <>
@@ -114,13 +165,13 @@ function ListingInfo({
                 <strong>Maximum People</strong>
               </div>
               <div className="text-gray-500">
-                {fullListing.otherDetails?.maximumPax ?? 0 } People
-              </div> 
+                {fullListing.otherDetails?.maximumPax ?? 0} People
+              </div>
             </>
           )
         }
-        </div>
-        <div className="flex gap-10" >
+      </div>
+      <div className="flex gap-10" >
         {
           fullListing.otherDetails && (
             <>
@@ -128,12 +179,81 @@ function ListingInfo({
                 <strong>Minimum Booking Hours</strong>
               </div>
               <div className="text-gray-500">
-                {fullListing.otherDetails?.minimumBookingHours ?? 0 } Hrs
+                {fullListing.otherDetails?.minimumBookingHours ?? 0} Hrs
               </div>
             </>
           )
         }
+      </div>
+      <div className="relative mt-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="text-xl font-bold">Reviews</div>
+          <div className="text-lg font-bold"><span className="pr-2">{reviews.length}</span> Ratings</div>
         </div>
+        <div className="relative space-y-8">
+          {reviews.map((review:any) => (
+            <div className="flex" key={review.id}>
+              <div className="w-16 h-16">
+                <Image src="/assets/user-review.svg" height={64} width={64} alt="" className="w-full h-full object-cover" />
+              </div>
+              <div className="w-[calc(100%-64px)] pl-4">
+                <div className="text-base font-bold">{review.user.name}</div>
+                <div className="space-x-2 flex">
+                  {[...Array(5)].map((_, i) => (
+                    <IoIosStar key={i} size={18} color={i < review.rating ? "#E4E846" : "black"} />
+                  ))}
+                </div>
+                <div className="text-sm mt-2">
+                  <p>{review.comment}</p>
+                </div>
+                <div className="text-xs italic mt-2">{new Date(review.createdAt).toLocaleDateString('en-GB')}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {canReview && (
+          <div className="mt-10">
+            <div className="text-xl capitalize mb-8 font-semibold">Submit your review</div>
+            <div className="relative mb-6">
+              <div className="text-sm font-bold mb-2">Write your message</div>
+              <div className="flex w-full bg-white border border-slate-400 items-end px-2 py-2 rounded-md">
+                <textarea
+                  value={review.comment}
+                  onChange={(e) => setReview({ ...review, comment: e.target.value })}
+                  className="w-[calc(100%-16px)] h-[120px] resize-none text-left border-0 text-sm bg-transparent focus:ring-0"
+                />
+                <div className="w-4 h-4">
+                  <Image src="/assets/edit.svg" height={18} width={18} className="w-full h-full object-contain" alt="" />
+                </div>
+              </div>
+            </div>
+            <div className="relative mb-6">
+              <div className="text-sm font-bold flex items-center mb-2"><IoIosStar size={18} color="#E4E846" /><span className="pl-2">Rating</span></div>
+              <div className="flex w-full h-10 bg-white border border-slate-400 items-center px-2 rounded-md">
+                <select
+                  value={review.rating}
+                  onChange={(e) => setReview({ ...review, rating: parseInt(e.target.value, 10) })}
+                  className="block appearance-none w-full bg-transparent border-0 text-gray-700 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-0 focus:ring-0"
+                  id="rating"
+                >
+                  <option value="5">5 - Excellent</option>
+                  <option value="4">4 - Very Good</option>
+                  <option value="3">3 - Good</option>
+                  <option value="2">2 - Average</option>
+                  <option value="1">1 - Unsatisfactory</option>
+                </select>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleReviewSubmit}
+              className="bg-[#5D15B9] h-[44px] flex items-center justify-start mt-8 text-white xl:px-6 lg:px-4 md:px-4 px-4 font-bold shadow-lg rounded-xl text-center"
+            >
+              <span className="xl:text-lg lg:text-sm md:text-sm text-base">Submit</span>
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
