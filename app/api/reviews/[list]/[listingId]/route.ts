@@ -12,10 +12,6 @@ export async function GET(
 ) {
   const currentUser = await getCurrentUser();
 
-  if (!currentUser) {
-    return NextResponse.error();
-  }
-
   const { listingId } = params;
 
   if (!listingId || typeof listingId !== "string") {

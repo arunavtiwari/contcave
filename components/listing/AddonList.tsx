@@ -71,7 +71,7 @@ const AddonsList = ({ addons,onChange }:any) => {
     <div>
       <h2 className="text-xl font-semibold mb-4">Add-ons</h2>
       <div className="flex flex-wrap">
-        {addons.map((addon:any, index:number) => (
+        {addons && addons.length &&  addons.map((addon:any, index:number) => (
           <AddonItem key={index} addon={addon} onChange={(quantity:number) => handleQuantity(addon, quantity)} />
         ))}
       </div>

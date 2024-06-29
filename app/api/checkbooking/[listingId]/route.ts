@@ -13,7 +13,9 @@ export async function GET(
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    return NextResponse.error();
+    return NextResponse.json({
+      canReview:false
+    });
   }
 
   const { listingId } = params;
@@ -26,19 +28,19 @@ export async function GET(
   const reservationCount = await prisma.reservation.count({
     where: {
       listingId,
-      userId: currentUser.id,
+      userId: currentUser?.id,
     },
   });
 
-  if (reservationCount === 0) {
-    return NextResponse.error();
-  }
+  // if (reservationCount === 0) {
+  //   return NextResponse.error();
+  // }
 
   // Get the latest reservation for the given listing
   const latestReservation = await prisma.reservation.findFirst({
     where: {
       listingId,
-      userId: currentUser.id,
+      userId: currentUser?.id,
     },
     orderBy: {
       createdAt: 'desc',
