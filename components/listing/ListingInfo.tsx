@@ -266,6 +266,17 @@ function ListingInfo({
           </div>
         )}
       </div>
+      <hr/>
+      <p className="text-xl font-semibold">{`Cancellation Policy`}</p>
+
+      <div className="flex flex-wrap gap-2">
+
+Full refund for cancellations made at least 48 hours before the scheduled booking, partial refund for cancellations made between 24 and 48 hours
+before the scheduled booking, and no refund for cancellations made within 24 hours of the scheduled booking.
+      </div>
+      <a href="javascript:void(0)" className="text-blue-500 underline">
+      Know more about Cancellation Policy
+      </a>
     </div>
   );
 }
