@@ -12,21 +12,27 @@ import TimeSlotPicker from "../inputs/TimeSlotPicker";
 type Props = {
   price: number;
   totalPrice: number;
+  addons: number;
+  platformFee: number;
+  time:any;
   setSelectDate: (value: Date) => void;
   selectedDate: Date;
-  setSelectTimeSlots:(value:any) =>void;
+  setSelectTimeSlots: (value: any) => void;
   selectedTime: [string, string];
   onSubmit: () => void;
   disabled?: boolean;
   disabledDates: Date[];
-  disabledStartTimes:any[];
-  disabledEndTimes:any[];
-  operationalTimings:any;
+  disabledStartTimes: any[];
+  disabledEndTimes: any[];
+  operationalTimings: any;
 };
 
 function ListingReservation({
   price,
   totalPrice,
+  addons,
+  platformFee,
+  time,
   setSelectDate,
   selectedDate,
   selectedTime,
@@ -41,18 +47,21 @@ function ListingReservation({
   const [selectedTimes, setSelectedTimes] = useState({ start: null, end: null });
 
   const setSelectTime = (selectedTime: any, field: 'start' | 'end') => {
-    // Set the start time if the 'start' button is active
     if (field === 'start') {
       setSelectedTimes({ start: selectedTime, end: null });
-    }
-    // Set the end time if the 'end' button is active and the selected time is after the start time
-    else if (field === 'end' ) {
+    } else if (field === 'end') {
       setSelectedTimes({ ...selectedTimes, end: selectedTime });
       selectedTime = [selectedTimes.start, selectedTime];
-      setSelectTimeSlots(selectedTime)
+      setSelectTimeSlots(selectedTime);
     }
   };
-  
+
+  const calculateTotalPrice = () => {
+    
+    const bookingFee = price * time; // assuming 4 hours as shown in the example
+    return bookingFee + addons + platformFee;
+  };
+
   return (
     <div className="bg-white rounded-xl border-[1px] border-neutral-200 overflow-hidden">
       <div className="flex flex-row items-center gap-1 p-4">
@@ -61,15 +70,19 @@ function ListingReservation({
         </p>
       </div>
       <hr />
-      <div className="p-4 flex flex-row items-center justify-between font-semibold text-lg"><h1>Select Date for Booking</h1></div>
+      <div className="p-4 flex flex-row items-center justify-between font-semibold text-lg">
+        <h1>Select Date for Booking</h1>
+      </div>
 
       <Calendar
         value={selectedDate}
-        allowedDays={[operationalTimings.operationalDays?.start??"", operationalTimings.operationalDays?.end??""]}
+        allowedDays={[operationalTimings.operationalDays?.start ?? "", operationalTimings.operationalDays?.end ?? ""]}
         onChange={(value) => setSelectDate(value)}
       />
       <hr />
-      <div className="p-4 flex flex-row items-center justify-between font-semibold text-lg"><h1>Pick your Time Slot</h1></div>
+      <div className="p-4 flex flex-row items-center justify-between font-semibold text-lg">
+        <h1>Pick your Time Slot</h1>
+      </div>
       <TimeSlotPicker
         onTimeSelect={setSelectTime}
         selectedStart={selectedTimes.start}
@@ -78,20 +91,34 @@ function ListingReservation({
         disabledEndTimes={disabledEndTimes}
         selectedDate={selectedDate}
         operationalTimings={operationalTimings}
-      ></TimeSlotPicker>
+      />
       <hr />
       <div className="p-4">
         <Button disabled={disabled} label="Reserve" onClick={onSubmit} />
       </div>
       <hr />
-      <div className="p-4 flex flex-row items-center justify-between font-semibold text-lg">
-        <p>Total</p>
-        <p> ₹ {totalPrice}</p>
+      <div className="p-4 flex flex-col font-semibold text-lg" style={{fontWeight:100, fontSize:"medium"}}>
+        <div className="flex justify-end">
+          <p>Base booking fee {price} x {time} hrs</p>
+          <p className="ps-5"  style={{fontWeight:300}}> {price * time}</p>
+        </div>
+        <div className="flex justify-end">
+          <p>Addons</p>
+          <p className="ps-5"  style={{fontWeight:300}}> {addons}</p>
+        </div>
+        <div className="flex justify-end pb-3">
+          <p>Platform fee</p>
+          <p className="ps-5"  style={{fontWeight:300}}> {platformFee}</p>
+        </div>
+        <hr />
+        <div className="flex justify-between pt-4">
+          
+          <p><strong>Total</strong></p>
+          <p> <strong>₹{calculateTotalPrice()}</strong></p>
+        </div>
       </div>
     </div>
   );
 }
 
 export default ListingReservation;
-
-

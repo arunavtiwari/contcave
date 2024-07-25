@@ -1,5 +1,8 @@
 import prisma from "@/lib/prismadb";
 import { Amenities, Prisma } from '@prisma/client';
+import { FaChair, FaLightbulb, FaSun, FaWifi } from "react-icons/fa";
+import { MdTableRestaurant } from "react-icons/md";
+import { TbAirConditioning } from "react-icons/tb";
 
 
 
@@ -10,11 +13,13 @@ export default async function getAmenities(): Promise<Amenities[]> {
       {
         "id": "65b2ac4116d8d0003b5c6e12",
         "name": "Lighting Equipment",
+        "icon":FaLightbulb,
         "createdAt": "2024-01-25T18:45:21.478Z"
       },
       {
         "id": "65b2ac9616d8d0003b5c6e13",
         "name": "Blackout blinds",
+        "icon":"",
         "createdAt": "2024-01-25T18:46:46.102Z"
       },
       {
@@ -30,11 +35,13 @@ export default async function getAmenities(): Promise<Amenities[]> {
       {
         "id": "65b2acc816d8d0003b5c6e16",
         "name": "Tables",
+        "icon":MdTableRestaurant,
         "createdAt": "2024-01-25T18:47:36.521Z"
       },
       {
         "id": "65b2acd616d8d0003b5c6e17",
         "name": "Chairs",
+        "icons":FaChair,
         "createdAt": "2024-01-25T18:47:50.113Z"
       },
       {
@@ -55,6 +62,7 @@ export default async function getAmenities(): Promise<Amenities[]> {
       {
         "id": "65b2ad1016d8d0003b5c6e1b",
         "name": "WiFi",
+        "icon":FaWifi,
         "createdAt": "2024-01-25T18:48:48.509Z"
       },
       {
@@ -65,11 +73,13 @@ export default async function getAmenities(): Promise<Amenities[]> {
       {
         "id": "65b2ad2e16d8d0003b5c6e1d",
         "name": "Natural Light",
+        "icon":FaSun,
         "createdAt": "2024-01-25T18:49:18.076Z"
       },
       {
         "id": "65b2ad3c16d8d0003b5c6e1e",
         "name": "Restrooms",
+        "icon":TbAirConditioning,
         "createdAt": "2024-01-25T18:49:32.544Z"
       }
     ]

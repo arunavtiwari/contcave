@@ -15,16 +15,16 @@ const PaymentDetails = async (props: Props) => {
         <div className="flex py-10">
           <div className="xl:w-20 lg:w-20 md:w-20 w-16 flex flex-col items-center justify-center h-max bg-[#B0AFAF] p-4 rounded-xl space-y-4">
             <div className="w-[30px] h-10 flex items-center justify-center">
-              <Image src="assets/user-white.svg" alt="" className="w-full h-full object-contain" />
+              <Image src="assets/user-white.svg" width={30} height={10} alt="" className="w-full h-full object-contain" />
             </div>
             <div className="w-[30px] h-10 flex items-center justify-center">
-              <Image src="assets/faCreditCard-black.svg" alt="" className="w-full h-full object-contain" />
+              <Image src="assets/faCreditCard-black.svg" width={30} height={10} alt="" className="w-full h-full object-contain" />
             </div>
             <div className="w-[30px] h-10 flex items-center justify-center">
-              <Image src="assets/faUserPlus.svg" alt="" className="w-full h-full object-contain" />
+              <Image src="assets/faUserPlus.svg" width={30} height={10} alt="" className="w-full h-full object-contain" />
             </div>
             <div className="w-[30px] h-10 flex items-center justify-center">
-              <Image src="assets/faSettings.svg" alt="" className="w-full h-full object-contain" />
+              <Image src="assets/faSettings.svg" width={30} height={10} alt="" className="w-full h-full object-contain" />
             </div>
           </div>
           <div className="xl:w-[calc(100%-80px)] lg:w-[calc(100%-80px)] md:w-[calc(100%-80px)] w-[calc(100%-64px)] xl:px-10 lg:px-10 md:px-6 px-6">
@@ -42,7 +42,7 @@ const PaymentDetails = async (props: Props) => {
                     <input type="text" name="name" id="name" value="ADAM LEWIS"
                       className="w-[calc(100%-16px)] h-10 border-0 bg-transparent focus:ring-0" />
                     <div className="w-4 h-4">
-                      <Image src="assets/edit.svg" alt="" className="w-full h-full object-contain" />
+                      <Image src="assets/edit.svg"  width={4} height={4} alt="" className="w-full h-full object-contain" />
                     </div>
                   </div>
                 </div>
@@ -52,7 +52,7 @@ const PaymentDetails = async (props: Props) => {
                     <input type="text" name="name" id="name" value="HDFC"
                       className="w-[calc(100%-16px)] h-10 border-0 bg-transparent focus:ring-0" />
                     <div className="w-4 h-4">
-                      <Image src="assets/edit.svg" alt="" className="w-full h-full object-contain" />
+                      <Image src="assets/edit.svg"  width={4} height={4} alt="" className="w-full h-full object-contain" />
                     </div>
                   </div>
                 </div>
@@ -62,7 +62,7 @@ const PaymentDetails = async (props: Props) => {
                     <input type="text" name="name" id="name" value="XXXX-XXXX-XXXX"
                       className="w-[calc(100%-16px)] h-10 border-0 bg-transparent focus:ring-0" />
                     <div className="w-4 h-4">
-                      <Image src="assets/edit.svg" alt="" className="w-full h-full object-contain" />
+                      <Image src="assets/edit.svg" width={4} height={4} alt="" className="w-full h-full object-contain" />
                     </div>
                   </div>
                 </div>
@@ -72,7 +72,7 @@ const PaymentDetails = async (props: Props) => {
                     <input type="text" name="name" id="name" value="XXXX-XXXX-XXXX"
                       className="w-[calc(100%-16px)] h-10 border-0 bg-transparent focus:ring-0" />
                     <div className="w-4 h-4">
-                      <Image src="assets/edit.svg" alt="" className="w-full h-full object-contain" />
+                      <Image src="assets/edit.svg" width={4} height={4} alt="" className="w-full h-full object-contain" />
                     </div>
                   </div>
                 </div>
@@ -82,7 +82,7 @@ const PaymentDetails = async (props: Props) => {
                     <input type="text" name="name" id="name" value="HDFC12345678"
                       className="w-[calc(100%-16px)] h-10 border-0 bg-transparent focus:ring-0" />
                     <div className="w-4 h-4">
-                      <Image src="assets/edit.svg" alt="" className="w-full h-full object-contain" />
+                      <Image src="assets/edit.svg"  width={4} height={4} alt="" className="w-full h-full object-contain" />
                     </div>
                   </div>
                 </div>
@@ -95,7 +95,7 @@ const PaymentDetails = async (props: Props) => {
                     <input type="text" name="name" id="name" value="XYZXYX"
                       className="w-[calc(100%-16px)] h-10 border-0 bg-transparent focus:ring-0" />
                     <div className="w-4 h-4">
-                      <Image src="assets/edit.svg" alt="" className="w-full h-full object-contain" />
+                      <Image src="assets/edit.svg" width={4} height={4} alt="" className="w-full h-full object-contain" />
                     </div>
                   </div>
                 </div>
@@ -105,7 +105,7 @@ const PaymentDetails = async (props: Props) => {
                     <input type="text" name="name" id="name" value="XYZXYX"
                       className="w-[calc(100%-16px)] h-10 border-0 bg-transparent focus:ring-0" />
                     <div className="w-4 h-4">
-                      <Image src="assets/edit.svg" alt="" className="w-full h-full object-contain" />
+                      <Image src="assets/edit.svg" width={4} height={4}  alt="" className="w-full h-full object-contain" />
                     </div>
                   </div>
                 </div>

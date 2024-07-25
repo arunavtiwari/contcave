@@ -133,6 +133,9 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
               <ListingReservation
                 price={listing.price}
                 totalPrice={totalPrice}
+                platformFee={0}
+                time={timeDifferenceInHours}
+                addons={selectedAddons.reduce((acc: number, value: { price: number; quantity: any; }) => acc + (value.price * (value.quantity ?? 0)), 0)}
                 setSelectDate={(value) => setSelectedDate(value)}
                 selectedDate={selectedDate}
                 setSelectTimeSlots={(value) => setSelectedTimeSlot(value)}

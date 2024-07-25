@@ -12,9 +12,11 @@ declare global {
 type Props = {
   onChange: (value: string[]) => void;
   values: string[];
+  height?:number,
+  width?:number
 };
 
-function ImageUpload({ onChange, values }: Props) {
+function ImageUpload({ onChange, values, height, width }: Props) {
   const handleCallback = useCallback(
     (result: any) => {
       const urls = Array.isArray(result.info.secure_url)
@@ -46,13 +48,26 @@ function ImageUpload({ onChange, values }: Props) {
             {values.length > 0 && (
               <div className=" absolute inset-0 w-full h-full">
                 {values.map((url, index) => (
-                  <Image
-                    key={index}
-                    alt={`upload-${index}`}
-                    fill
-                    style={{ objectFit: "cover" }}
-                    src={url}
-                  />
+                  
+                    height ? (
+                      <Image
+                      key={index}
+                      height={height}
+                      width={width}
+                      alt={`upload-${index}`}
+                      style={{ objectFit: "cover" }}
+                      src={url}
+                    />
+                    ): (
+                      <Image
+                      key={index}
+                      alt={`upload-${index}`}
+                      fill
+                      style={{ objectFit: "cover" }}
+                      src={url}
+                    />
+                    )
+                
                 ))}
               </div>
             )}

@@ -30,8 +30,9 @@ type Props = {
   | undefined;
   locationValue: string;
   fullListing: any;
-  definedAmenities?: Array<any>,
+  definedAmenities?: Array<any>;
   onAddonChange: (addons: any) => void;
+  services: string[];
 };
 
 function ListingInfo({
@@ -41,13 +42,14 @@ function ListingInfo({
   locationValue,
   fullListing,
   definedAmenities,
-  onAddonChange
+  onAddonChange,
+  services,
 }: Props) {
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
   const handleAddonChange = (addons: any) => {
     onAddonChange(addons);
-  }
+  };
   const [reviews, setReviews] = useState<any>([]);
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
@@ -78,7 +80,7 @@ function ListingInfo({
     try {
       const response = await axios.post("/api/reviews", {
         listingId: fullListing.id,
-        reservationId: latestReservationId, // This should be dynamic
+        reservationId: latestReservationId,
         rating: review.rating,
         comment: review.comment,
       });
@@ -93,7 +95,7 @@ function ListingInfo({
   return (
     <div className="col-span-4 flex flex-col gap-8">
       <div className="flex flex-col gap-2">
-        <div className=" text-xl font-semibold flex flex-row items-center gap-2">
+        <div className="text-xl font-semibold flex flex-row items-center gap-2">
           <div>Hosted by {user?.name}</div>
           <Avatar src={user?.image} userName={user?.name} />
         </div>
@@ -113,13 +115,14 @@ function ListingInfo({
       <p className="text-lg font-light text-neutral-500">{description}</p>
       <hr />
       <p className="text-xl font-semibold">{`Address`}</p>
-
       <p className="text-neutral-500 font-light">{fullListing.actualLocation ? fullListing.actualLocation.display_name : ""}</p>
       <hr />
       <Offers amenities={fullListing.amenities} definedAmenities={definedAmenities} />
       <hr />
       <AddonsList addons={fullListing.addons} onChange={handleAddonChange} />
       <hr />
+      
+   
 
       <p className="text-xl font-semibold">{`Where you’ll be`}</p>
       <Map center={fullListing.actualLocation ? (fullListing.actualLocation.latlng ?? coordinates) : coordinates} locationValue={locationValue} />
@@ -138,7 +141,6 @@ function ListingInfo({
             </>
           )
         }
-
       </div>
       <hr />
 
@@ -185,6 +187,16 @@ function ListingInfo({
           )
         }
       </div>
+      <p className="text-xl font-semibold">{`Listed Services`}</p>
+      <div className="flex flex-wrap gap-2">
+        {fullListing.otherDetails && fullListing.otherDetails.selectedTypes && fullListing.otherDetails.selectedTypes.map((service, index) => (
+          <div key={index} className="bg-rose-500 text-white px-3 py-1 rounded-full">
+            {service}
+          </div>
+        ))}
+        <p className="text-gray-500 mt-3">*Please utilize this space for its intended activities to make the most of your experience.</p>
+      </div>
+      <hr />
       <div className="relative mt-6">
         <div className="flex items-center justify-between mb-6">
           <div className="text-xl font-bold">Reviews</div>
