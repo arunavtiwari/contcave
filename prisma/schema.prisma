@@ -11,27 +11,27 @@ datasource db {
 }
 
 model User {
-  id              String            @id @default(auto()) @map("_id") @db.ObjectId
-  name            String?
-  email           String?           @unique
-  phone           String?
-  language        String?
-  location        String?
-  description     String?
-  profileImage    String?
-  title           String?
-  emailVerified   DateTime?
-  image           String?
-  hashedPassword  String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  favoriteIds     String[]          @db.ObjectId
-  accounts        Account[]
-  listings        Listing[]
-  reservations    Reservation[]
-  CustomAmenities CustomAmenities[]
-  Review          Review[]
-  paymentDetails  PaymentDetails?  @relation(fields: [paymentDetailsId], references: [id])
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
+  name             String?
+  email            String?           @unique
+  phone            String?
+  language         String?
+  location         String?
+  description      String?
+  profileImage     String?
+  title            String?
+  emailVerified    DateTime?
+  image            String?
+  hashedPassword   String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  favoriteIds      String[]          @db.ObjectId
+  accounts         Account[]
+  listings         Listing[]
+  reservations     Reservation[]
+  CustomAmenities  CustomAmenities[]
+  Review           Review[]
+  paymentDetails   PaymentDetails?   @relation(fields: [paymentDetailsId], references: [id])
   paymentDetailsId String?
 }
 
@@ -102,6 +102,7 @@ model Reservation {
 model Amenities {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
+  icon      Json?
   createdAt DateTime @default(now())
 }
 
@@ -135,17 +136,17 @@ model Review {
   listing       Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
   reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
 }
-model PaymentDetails {
-  id                        String  @id @default(cuid())
-  userId                    String  @unique
-  accountHolderName         String
-  bankName                  String
-  accountNumber             String
-  ifscCode                  String
-  taxIdentificationNumber   String
-  taxResidencyInformation   String
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
 
-  user  User  @relation(fields: [userId], references: [id])
+model PaymentDetails {
+  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId                  String   @db.ObjectId
+  accountHolderName       String
+  bankName                String
+  accountNumber           String
+  ifscCode                String
+  taxIdentificationNumber String
+  taxResidencyInformation String
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  User                    User[]
 }

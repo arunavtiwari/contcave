@@ -1,7 +1,13 @@
 import prisma from "@/lib/prismadb";
 import { Amenities, Prisma } from '@prisma/client';
-import { FaChair, FaLightbulb, FaSun, FaWifi } from "react-icons/fa";
-import { MdTableRestaurant } from "react-icons/md";
+import { AiOutlineCar, AiOutlineWifi } from "react-icons/ai";
+import { BiCctv } from "react-icons/bi";
+import { BsFire } from "react-icons/bs";
+import { FaChair, FaFireExtinguisher, FaLightbulb, FaSun, FaWifi } from "react-icons/fa";
+import { GiButterflyFlower } from "react-icons/gi";
+import { GrWorkshop } from "react-icons/gr";
+import { MdOutlineBathtub, MdOutlineCoffeeMaker, MdTableRestaurant } from "react-icons/md";
+import { RiSafeLine } from "react-icons/ri";
 import { TbAirConditioning } from "react-icons/tb";
 
 
@@ -25,11 +31,13 @@ export default async function getAmenities(): Promise<Amenities[]> {
       {
         "id": "65b2aca316d8d0003b5c6e14",
         "name": "White Backdrop",
+        "icon":"",
         "createdAt": "2024-01-25T18:46:59.811Z"
       },
       {
         "id": "65b2acb316d8d0003b5c6e15",
         "name": "Sandbags",
+        "icon":"",
         "createdAt": "2024-01-25T18:47:15.764Z"
       },
       {
@@ -47,11 +55,13 @@ export default async function getAmenities(): Promise<Amenities[]> {
       {
         "id": "65b2ace316d8d0003b5c6e18",
         "name": "Wardrobe Rack",
+        "icon":"",
         "createdAt": "2024-01-25T18:48:03.358Z"
       },
       {
         "id": "65b2acf116d8d0003b5c6e19",
         "name": "Video Equipment",
+        "icon":"",
         "createdAt": "2024-01-25T18:48:17.044Z"
       },
       {
@@ -68,6 +78,7 @@ export default async function getAmenities(): Promise<Amenities[]> {
       {
         "id": "65b2ad2016d8d0003b5c6e1c",
         "name": "Steamer",
+        "icon":"",
         "createdAt": "2024-01-25T18:49:04.352Z"
       },
       {
@@ -81,7 +92,58 @@ export default async function getAmenities(): Promise<Amenities[]> {
         "name": "Restrooms",
         "icon":TbAirConditioning,
         "createdAt": "2024-01-25T18:49:32.544Z"
-      }
+      },
+      {
+        "id":2,
+        "name": "Garden view",
+        icon: GiButterflyFlower,
+      },
+      {
+        "id":3,
+        "name": "Hot water",
+        icon: BsFire,
+      },
+    
+      {
+        "id":4,
+        "name": "Wifi",
+        icon: AiOutlineWifi,
+      },
+      {
+        "id":5,
+        "name": "Coffee",
+        icon: MdOutlineCoffeeMaker,
+      },
+      {
+        "id":6,
+        "name": "Security cameras",
+        icon: BiCctv,
+      },
+      {
+        "id":7,
+        "name": "Bathtub",
+        icon: MdOutlineBathtub,
+      },
+      {
+        "id":8,
+        "name": "Dedicated workspace",
+        icon: GrWorkshop,
+      },
+      {
+        "id":9,
+        "name": "Safe",
+        icon: RiSafeLine,
+      },
+      {
+        "id":10,
+        "name": "Free parking",
+        icon: AiOutlineCar,
+      },
+      {
+        "id":11,
+        "name": "Fire extinguisher",
+        icon: FaFireExtinguisher,
+      },
     ]
     if (!amenities || !amenities.length) {
       return [];
