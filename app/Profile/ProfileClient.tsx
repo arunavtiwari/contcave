@@ -7,10 +7,12 @@ import getCurrentUser from "../actions/getCurrentUser";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import useRentModal from "@/hook/useRentModal";
 import useLoginModel from "@/hook/useLoginModal";
+import { useRouter } from "next/navigation";
 
 type Props = {};
 
 const ProfileClient = ({profile}) => {
+  const router = useRouter();
   const rentModel = useRentModal();
   const loginModel = useLoginModel();
   const [currentUser, setCurrentUser] = useState<any>();
@@ -72,16 +74,16 @@ const ProfileClient = ({profile}) => {
     <div>
       <div className="flex py-10">
         <div className="xl:w-20 lg:w-20 md:w-20 w-16 flex flex-col items-center justify-center h-max bg-[#B0AFAF] p-4 rounded-xl space-y-4">
-          <div className="w-[30px] h-10 flex items-center justify-center">
+          <div className="w-[30px] h-10 flex items-center justify-center"  onClick={() => router.push("/Profile")}>
             <Image src="/assets/user.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center">
+          <div className="w-[30px] h-10 flex items-center justify-center"  onClick={() => router.push("/payment-details")}>
             <Image src="/assets/faCreditCard.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center">
+          <div className="w-[30px] h-10 flex items-center justify-center" onClick={() => router.push("/profile-share")}>
             <Image src="/assets/faUserPlus.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center">
+          <div className="w-[30px] h-10 flex items-center justify-center" onClick={() => router.push("/profile-settings")}>
             <Image src="/assets/faSettings.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
         </div>
@@ -119,7 +121,6 @@ const ProfileClient = ({profile}) => {
                     </div>
                  
                   </div>
-                  <div className="text-sm italic mt-10">Member since 2023</div>
                 </div>
                 <form className="xl:w-[calc(100%-96px)] lg:w-[calc(100%-96px)] md:w-full w-full xl:pl-5 lg:pl-5 md:pl-0 md:pt-5 space-y-4">
                   <div className="flex w-full h-10 bg-white border border-slate-400 items-center px-2 rounded-md">
