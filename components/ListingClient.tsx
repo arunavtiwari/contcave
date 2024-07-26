@@ -127,8 +127,7 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
               description={listing.description}
               locationValue={listing.locationValue}
               fullListing={listing}
-              onAddonChange={handleAddonChange}
-            />
+              onAddonChange={handleAddonChange} services={[]}            />
             <div className="order-first mb-10 md:order-last md:col-span-3">
               <ListingReservation
                 price={listing.price}

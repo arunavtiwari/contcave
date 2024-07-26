@@ -151,6 +151,7 @@ export default async function getAmenities(): Promise<Amenities[]> {
     const safeAmenities: Amenities[] = amenities.map((list) => ({
       id: list.id,
       name: list.name,
+      icon:list.icon,
       createdAt: list.createdAt instanceof Date ? list.createdAt.toISOString() : list.createdAt as string,
     }));
 
