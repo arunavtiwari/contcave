@@ -9,22 +9,21 @@ type Props = {};
 
 const ProfileShare = async (props: Props) => {
   const currentUser = await getCurrentUser();
-  const router = useRouter();
   return (
     <ClientOnly>
       <Container>
         <div className="flex py-10">
         <div className="xl:w-20 lg:w-20 md:w-20 w-16 flex flex-col items-center justify-center h-max bg-[#B0AFAF] p-4 rounded-xl space-y-4">
-          <div className="w-[30px] h-10 flex items-center justify-center"  onClick={() => router.push("/Profile")}>
+          <div className="w-[30px] h-10 flex items-center justify-center"  >
             <Image src="/assets/user.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center"  onClick={() => router.push("/payment-details")}>
+          <div className="w-[30px] h-10 flex items-center justify-center"  >
             <Image src="/assets/faCreditCard.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center" onClick={() => router.push("/profile-share")}>
+          <div className="w-[30px] h-10 flex items-center justify-center" >
             <Image src="/assets/faUserPlus.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center" onClick={() => router.push("/profile-settings")}>
+          <div className="w-[30px] h-10 flex items-center justify-center" >
             <Image src="/assets/faSettings.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
         </div>

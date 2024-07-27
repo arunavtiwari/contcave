@@ -6,7 +6,7 @@ import { useState } from "react";
 import { AiOutlineCar, AiOutlineWifi } from "react-icons/ai";
 import { BiCctv } from "react-icons/bi";
 import { BsFire } from "react-icons/bs";
-import { FaChair, FaFireExtinguisher, FaLightbulb, FaSun, FaWifi } from "react-icons/fa";
+import { FaChair, FaFireExtinguisher, FaLightbulb, FaPlus, FaSun, FaWifi } from "react-icons/fa";
 import { GiButterflyFlower } from "react-icons/gi";
 import { GrWorkshop } from "react-icons/gr";
 import { MdOutlineBathtub, MdOutlineCoffeeMaker, MdTableRestaurant } from "react-icons/md";
@@ -31,19 +31,19 @@ const getIconByName = (name) => {
     {
       "id": "65b2ac9616d8d0003b5c6e13",
       "name": "Blackout blinds",
-      "icon": "",
+      "icon": FaPlus,
       "createdAt": "2024-01-25T18:46:46.102Z"
     },
     {
       "id": "65b2aca316d8d0003b5c6e14",
       "name": "White Backdrop",
-      "icon": "",
+      "icon": FaPlus,
       "createdAt": "2024-01-25T18:46:59.811Z"
     },
     {
       "id": "65b2acb316d8d0003b5c6e15",
       "name": "Sandbags",
-      "icon": "",
+      "icon": FaPlus,
       "createdAt": "2024-01-25T18:47:15.764Z"
     },
     {
@@ -61,13 +61,13 @@ const getIconByName = (name) => {
     {
       "id": "65b2ace316d8d0003b5c6e18",
       "name": "Wardrobe Rack",
-      "icon": "",
+      "icon": FaPlus,
       "createdAt": "2024-01-25T18:48:03.358Z"
     },
     {
       "id": "65b2acf116d8d0003b5c6e19",
       "name": "Video Equipment",
-      "icon": "",
+      "icon": FaPlus,
       "createdAt": "2024-01-25T18:48:17.044Z"
     },
     {
@@ -84,7 +84,7 @@ const getIconByName = (name) => {
     {
       "id": "65b2ad2016d8d0003b5c6e1c",
       "name": "Steamer",
-      "icon": "",
+      "icon": FaPlus,
       "createdAt": "2024-01-25T18:49:04.352Z"
     },
     {

@@ -152,7 +152,7 @@ export default async function getAmenities(): Promise<Amenities[]> {
       id: list.id,
       name: list.name,
       icon:list.icon,
-      createdAt: list.createdAt instanceof Date ? list.createdAt.toISOString() : list.createdAt as string,
+      createdAt: list.createdAt instanceof Date ? list.createdAt : list.createdAt as string,
     }));
 
     return safeAmenities;

@@ -14,7 +14,7 @@ type Props = {
   totalPrice: number;
   addons: number;
   platformFee: number;
-  time:any;
+  time:number;
   setSelectDate: (value: Date) => void;
   selectedDate: Date;
   setSelectTimeSlots: (value: any) => void;
@@ -58,7 +58,7 @@ function ListingReservation({
 
   const calculateTotalPrice = () => {
     
-    const bookingFee = price * time; // assuming 4 hours as shown in the example
+    const bookingFee = price * (isNaN(time) ? 0 : time); // assuming 4 hours as shown in the example
     return bookingFee + addons + platformFee;
   };
 
@@ -99,8 +99,8 @@ function ListingReservation({
       <hr />
       <div className="p-4 flex flex-col font-semibold text-lg" style={{fontWeight:100, fontSize:"medium"}}>
         <div className="flex justify-end">
-          <p>Base booking fee {price} x {time} hrs</p>
-          <p className="ps-5"  style={{fontWeight:300}}> {price * time}</p>
+          <p>Base booking fee {price} x {isNaN(time) ? 0 : time} hrs</p>
+          <p className="ps-5"  style={{fontWeight:300}}> {price * (isNaN(time) ? 0 : time)}</p>
         </div>
         <div className="flex justify-end">
           <p>Addons</p>
@@ -108,7 +108,7 @@ function ListingReservation({
         </div>
         <div className="flex justify-end pb-3">
           <p>Platform fee</p>
-          <p className="ps-5"  style={{fontWeight:300}}> {platformFee}</p>
+          <p className="ps-5"  style={{fontWeight:300}}> <s>100</s> {platformFee}</p>
         </div>
         <hr />
         <div className="flex justify-between pt-4">

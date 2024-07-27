@@ -80,17 +80,52 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
       });
     }
     if (selectedDate && selectedTimeSlot) {
-      const [startTime, endTime] = selectedTimeSlot;
-      
-      const startDate = new Date(`${selectedDate.toISOString().split('T')[0]} ${startTime}`);
-      const endDate = new Date(`${selectedDate.toISOString().split('T')[0]} ${endTime}`);
+    const [startTime, endTime] = selectedTimeSlot;
 
-      const timeDifferenceInMilliseconds = endDate.getTime() - startDate.getTime();
-      const timeDifferenceInHours = timeDifferenceInMilliseconds / (1000 * 60 * 60);
-      const totalPrice = calculateTotalPrice(selectedAddons, timeDifferenceInHours);
-      setTimeDifferenceInHours(timeDifferenceInHours);
-      setTotalPrice(totalPrice);
-    }
+    const parseTime = (time) => {
+      if(time) {
+        const [hourString, minuteString, period] = time.match(/(\d+):(\d+) (AM|PM)/).slice(1);
+        let hours = parseInt(hourString, 10);
+        const minutes = parseInt(minuteString, 10);
+
+        if (period === "PM" && hours < 12) {
+            hours += 12;
+        }
+        if (period === "AM" && hours === 12) {
+            hours = 0;
+        }
+
+        return { hours, minutes };
+      }
+      return {hours:0,minutes:0}
+    };
+
+    const { hours: startHours, minutes: startMinutes } = parseTime(startTime);
+    const { hours: endHours, minutes: endMinutes } = parseTime(endTime);
+
+    const startDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        startHours,
+        startMinutes
+    );
+
+    const endDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        endHours,
+        endMinutes
+    );
+
+    const timeDifferenceInMilliseconds = endDate.getTime() - startDate.getTime();
+    const timeDifferenceInHours = timeDifferenceInMilliseconds / (1000 * 60 * 60);
+    const totalPrice = calculateTotalPrice(selectedAddons, timeDifferenceInHours);
+    setTimeDifferenceInHours(timeDifferenceInHours);
+    setTotalPrice(totalPrice);
+}
+
   }, [selectedDate, selectedTimeSlot, listing.price]);
 
 
