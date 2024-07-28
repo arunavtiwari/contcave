@@ -11,19 +11,28 @@ datasource db {
 }
 
 model User {
-  id              String            @id @default(auto()) @map("_id") @db.ObjectId
-  name            String?
-  email           String?           @unique
-  emailVerified   DateTime?
-  image           String?
-  hashedPassword  String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  favoriteIds     String[]          @db.ObjectId
-  accounts        Account[]
-  listings        Listing[]
-  reservations    Reservation[]
-  CustomAmenities CustomAmenities[]
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
+  name             String?
+  email            String?           @unique
+  phone            String?
+  language         String?
+  location         String?
+  description      String?
+  profileImage     String?
+  title            String?
+  emailVerified    DateTime?
+  image            String?
+  hashedPassword   String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  favoriteIds      String[]          @db.ObjectId
+  accounts         Account[]
+  listings         Listing[]
+  reservations     Reservation[]
+  CustomAmenities  CustomAmenities[]
+  Review           Review[]
+  paymentDetails   PaymentDetails?   @relation(fields: [paymentDetailsId], references: [id])
+  paymentDetailsId String?
 }
 
 model Account {
@@ -52,6 +61,7 @@ model Listing {
   createdAt            DateTime      @default(now())
   category             String
   locationValue        String
+  actualLocation       Json?
   userId               String        @db.ObjectId
   price                Int
   user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -71,25 +81,28 @@ model Listing {
   verifications        Json?
   terms                Boolean?
   Addons               Addons[]
+  reviews              Review[]
 }
 
 model Reservation {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  listingId  String   @db.ObjectId
-  startDate  DateTime @default(now())
-  startTime  DateTime @default(now())
-  endTime    DateTime @default(now())
-  totalPrice Float
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
+  listingId      String   @db.ObjectId
+  startDate      DateTime @default(now())
+  startTime      DateTime @default(now())
+  endTime        DateTime @default(now())
+  totalPrice     Float
   selectedAddons Json?
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing        Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  Review         Review[]
 }
 
 model Amenities {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
+  icon      Json?
   createdAt DateTime @default(now())
 }
 
@@ -109,4 +122,31 @@ model Addons {
   createdAt DateTime @default(now())
   Listing   Listing? @relation(fields: [listingId], references: [id])
   listingId String?  @db.ObjectId
+}
+
+model Review {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String      @db.ObjectId
+  listingId     String      @db.ObjectId
+  reservationId String      @db.ObjectId
+  rating        Int
+  comment       String
+  createdAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing       Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+}
+
+model PaymentDetails {
+  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId                  String   @db.ObjectId
+  accountHolderName       String
+  bankName                String
+  accountNumber           String
+  ifscCode                String
+  taxIdentificationNumber String
+  taxResidencyInformation String
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  User                    User[]
 }

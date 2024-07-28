@@ -8,10 +8,21 @@ type Props = {
   value: Date; // Change the type to Date for single date
   onChange: (value: Date) => void; // Adjust the onChange function
   disabledDates?: Date[];
+  allowedDays?:any[];
 };
 
-function Calendar({ value, onChange, disabledDates }: Props) {
+function Calendar({ value, onChange, disabledDates,allowedDays }: Props) {
   // Use the Calendar component directly from 'react-date-range'
+  const isDayDisabled = (value:Date) => {
+     const days = ["mon","tue","wed","thu","fri","sat","sun"];
+     if(allowedDays && allowedDays?.filter((item) => item).length) {
+      let getDay = value.getDay();
+      let startDayIndex = days.indexOf(allowedDays[0].toLowerCase().trim());
+      let endDayIndex = days.indexOf(allowedDays[1].toLowerCase().trim());
+      return getDay <startDayIndex+1 || getDay >endDayIndex+1;
+     }
+     return false; 
+  }
   return (
     <ReactDateRangeCalendar
       date={value} // Set the selected date
@@ -19,6 +30,7 @@ function Calendar({ value, onChange, disabledDates }: Props) {
       showDateDisplay={false}
       minDate={new Date()}
       disabledDates={disabledDates}
+      disabledDay={(d)=>isDayDisabled(d)}
     />
   );
 }

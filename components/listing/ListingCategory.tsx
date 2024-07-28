@@ -7,9 +7,11 @@ type Props = {
   icon: IconType;
   label: string;
   description: string;
+  address?:string;
+
 };
 
-function ListingCategory({ icon: Icon, label, description }: Props) {
+function ListingCategory({ icon: Icon, label, description, address }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-row items-center gap-4">

@@ -4,10 +4,11 @@ import { Amenities } from '@prisma/client';
 
 interface AmenitiesCheckboxProps {
   amenities: Amenities[];
+  checked?:Array<string>;
   onChange: (updatedAmenities: { [key: number | string]: boolean }) => void;
 }
 
-const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({ amenities, onChange }) => {
+const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({ amenities, checked ,onChange }) => {
   const [checkedItems, setCheckedItems] = useState<{ [key: number | string]: boolean }>({});
   const [otherAmenity, setOtherAmenity] = useState('');
   const [amenitiesList, setAmenitiesList] = useState<string[]>([]);
@@ -19,8 +20,13 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({ amenities, onChan
     }));
   };
 
-  const handleCheckboxChange = (id: number | string) => {
+  const handleCheckboxChange = (id: any) => {
     handleChange(id);
+    if(checked && checked.length) {
+      if(checked.includes(id)) {
+        checked.splice(checked.indexOf(id),1)
+      }
+    }
     onChange({ ...checkedItems, [id]: !checkedItems[id] });
   };
 
@@ -42,7 +48,7 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({ amenities, onChan
           <Checkbox
             key={id}
             label={name}
-            isChecked={checkedItems[id] || false}
+            isChecked={checkedItems[id] || checked?.includes(id) || false}
             onChange={() => handleCheckboxChange(id)}
           />
         ))}
