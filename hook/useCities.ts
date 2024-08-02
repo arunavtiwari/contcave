@@ -221,7 +221,7 @@ const formattedIndianCities = indianCities.map((city, index) => ({
   label: city.name,
   state: city.state,
   latlng: city.latlng,
-
+ name:city.name
 }));
 
 const useIndianCities = () => {

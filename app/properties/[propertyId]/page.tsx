@@ -17,7 +17,7 @@ const EditPropertyComponent = async ({ params }: { params: IParams }) => {
   // Add any state management or handlers you may need for form submission or image uploads
   const currentUser = await getCurrentUser();
   const listing = await getListingById({ listingId: params.propertyId }) as any;
-  const amenitiesData = await getAmenities();
+  const amenitiesData = await getAmenities(true);
   let addonsData = await getAddons();
   let updatedAddons:any = [];
   if (listing && listing.addons && listing.addons.length) {
@@ -54,7 +54,6 @@ const EditPropertyComponent = async ({ params }: { params: IParams }) => {
     // You would proceed to use updatedAddons for your state update or any other logic.
 
   }
-  console.log(updatedAddons);
   if (!listing) {
     return (
       <ClientOnly>
