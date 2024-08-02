@@ -25,6 +25,7 @@ type Props = {
   disabledStartTimes: any[];
   disabledEndTimes: any[];
   operationalTimings: any;
+  instantBooking:number;
 };
 
 function ListingReservation({
@@ -43,6 +44,7 @@ function ListingReservation({
   disabledStartTimes,
   disabledEndTimes,
   operationalTimings,
+  instantBooking,
 }: Props) {
   const [selectedTimes, setSelectedTimes] = useState({ start: null, end: null });
 

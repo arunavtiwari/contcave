@@ -33,7 +33,6 @@ const ImageCheckbox = ({ imageUrl, label,hideCheckbox, hideInputFields, checked,
     // Call onChange only if the checkbox is checked
     if (isChecked) {
       setIsChecked(isChecked);
-      console.log(newPrice);
       onChange({ checked: true, price: newPrice !== '' ? newPrice : undefined , qty: qty});
     
     }
@@ -44,7 +43,6 @@ const ImageCheckbox = ({ imageUrl, label,hideCheckbox, hideInputFields, checked,
     // Call onChange only if the checkbox is checked
     if (isChecked) {
       setIsChecked(isChecked);
-      console.log(newQty);
       onChange({ checked: true, price: price, qty: newQty!== '' ? newQty: undefined });
     }
   };

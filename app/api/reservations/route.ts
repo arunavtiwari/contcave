@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   const body = await request.json();
 
-  const { listingId, startDate, startTime, endTime, totalPrice, selectedAddons } = body;
+  const { listingId, startDate, startTime, endTime, totalPrice, selectedAddons, instantBooking } = body;
 
   if (!listingId || !startDate || !startTime || !endTime || !totalPrice) {
     return NextResponse.error();
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       reservations: {
         create: {
           userId: currentUser.id,
+          isApproved: instantBooking ? 1 : 0,
           startDate,
           startTime,
           endTime,

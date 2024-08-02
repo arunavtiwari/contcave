@@ -39,6 +39,50 @@ function ReservationsClient({ reservations, currentUser }: Props) {
     [router]
   );
 
+  const onApprove = useCallback(
+    (id: string) => {
+      setDeletingId(id);
+
+      axios
+        .patch(`/api/reservations/${id}`,{isApproved:1})
+        .then(() => {
+          toast.success("Reservation approved");
+          let rItem = reservations.find((item) => item.id == id);
+          if(rItem) {
+            rItem.isApproved = 1;
+          }
+         // router.refresh();
+        })
+        .catch((error) => {
+          toast.error(error?.response?.data?.error);
+        })
+        .finally(() => {
+          setDeletingId("");
+        });
+    },
+    [router]
+  );
+
+  
+  const onReject = useCallback(
+    (id: string) => {
+      setDeletingId(id);
+
+      axios
+        .patch(`/api/reservations/${id}`,{isRejected:1})
+        .then(() => {
+          toast.info("Reservation rejected");
+          router.refresh();
+        })
+        .catch((error) => {
+          toast.error(error?.response?.data?.error);
+        })
+        .finally(() => {
+          setDeletingId("");
+        });
+    },
+    [router]
+  );
   return (
     <Container>
       <Heading title="Reservations" subtitle="Bookings on your properties" />
@@ -50,6 +94,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
             reservation={reservation}
             actionId={reservation.id}
             onAction={onCancel}
+            onApprove={onApprove}
             disabled={deletingId === reservation.id}
             actionLabel="Cancel reservation"
             currentUser={currentUser}

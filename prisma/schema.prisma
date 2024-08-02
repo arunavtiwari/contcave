@@ -97,6 +97,8 @@ model Reservation {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   listing        Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
   Review         Review[]
+  isApproved     Int?
+  isRejected     Int?
 }
 
 model Amenities {

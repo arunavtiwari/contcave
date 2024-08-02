@@ -69,12 +69,10 @@ function RentModal({ }: Props) {
     setSelectedAmenities(updatedAmenities);
   };
   const handleAddonChange = (updatedAddons:Addon[]) => {
-    console.log(updatedAddons);
     setSelectedAddons(updatedAddons);
   };
   const handleDetailsChange = (newDetails: ListingDetails) => {
     // Handle the updated details here, e.g., set state or pass up further
-    console.log(newDetails);
     setListigDetails(newDetails)
   };
   useEffect(() => {
@@ -163,7 +161,6 @@ function RentModal({ }: Props) {
     data.terms         = terms;
 
     setIsLoading(true);
-   console.log(data);
 
      axios
       .post("/api/listings", data)
