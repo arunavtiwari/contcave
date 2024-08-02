@@ -1,6 +1,7 @@
+import getAddons from '@/app/actions/getAddons';
 import React, { useCallback, useState } from 'react';
 
-const AddonItem = ({ addon , onChange }:any) => {
+const AddonItem = ({ addon , onChange, addonList }:any) => {
   const [quantity, setQuantity] = useState(0);
 
   const handleIncrement = useCallback(() => {
@@ -23,7 +24,7 @@ const AddonItem = ({ addon , onChange }:any) => {
     <div className="items-center space-x-2">
       <div className='flex'>
       <div className="rounded p-2 shadow-lg border mx-2">
-        <img src={addon.imageUrl} alt="Lights" className="h-16 w-16 rounded" />
+        <img src={addonList.find((item:any) => item.name == addon.name)?.imageUrl ?? addon.imageUrl} alt="Lights" className="h-16 w-16 rounded" />
       </div>
       <div className='text-sm ml-2'>
         <p><strong>{addon.name}</strong></p>
@@ -61,7 +62,7 @@ const AddonItem = ({ addon , onChange }:any) => {
   );
 };
 
-const AddonsList = ({ addons,onChange }:any) => {
+const AddonsList = ({ addons,onChange,addonList }:any) => {
   const handleQuantity = ((addon:any,quantity:number) => {
     addon.quantity = quantity;
     addons[addons.findIndex((item:any) => item.name == addon.name)] = addon;
@@ -72,7 +73,7 @@ const AddonsList = ({ addons,onChange }:any) => {
       <h2 className="text-xl font-semibold mb-4">Add-ons</h2>
       <div className="flex flex-wrap">
         {addons && addons.length &&  addons.map((addon:any, index:number) => (
-          <AddonItem key={index} addon={addon} onChange={(quantity:number) => handleQuantity(addon, quantity)} />
+          <AddonItem key={index} addon={addon} onChange={(quantity:number) => handleQuantity(addon, quantity)} addonList={addonList} />
         ))}
       </div>
     </div>

@@ -13,6 +13,7 @@ import { IoIosStar } from "react-icons/io";
 import { Listing } from "@prisma/client";
 import Image from "next/image";
 import axios from "axios";
+import getAddons from "@/app/actions/getAddons";
 
 const Map = dynamic(() => import("../Map"), {
   ssr: false,
@@ -50,6 +51,8 @@ function ListingInfo({
   const handleAddonChange = (addons: any) => {
     onAddonChange(addons);
   };
+  const [addonList, setAddonList] = useState<any>([]);
+
   const [reviews, setReviews] = useState<any>([]);
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
@@ -58,6 +61,8 @@ function ListingInfo({
 
   useEffect(() => {
     const fetchReviews = async () => {
+      let addonList:any = await getAddons();
+      setAddonList(addonList)
       const response = await axios.get(`/api/reviews/list/${fullListing.id}`);
       setReviews(response.data);
     };
@@ -128,7 +133,7 @@ function ListingInfo({
 
       {fullListing.addons && fullListing.addons.length && (
         <>
-          <AddonsList addons={fullListing.addons} onChange={handleAddonChange} />
+          <AddonsList addons={fullListing.addons} onChange={handleAddonChange} addonList={addonList} />
           <hr />
         </>
       )}
