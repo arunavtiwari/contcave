@@ -111,7 +111,7 @@ export async function POST(request: Request) {
           name: currentUser.name || "Customer"
         }
       ],
-      subject: "New Reservation Created",
+      subject: `Your Studio Booking with at ${studio?.title || "Studio Name"}  is Confirmed!`,
       html: `
       <p>Hi ${currentUser.name || "Customer"},</p>
 
