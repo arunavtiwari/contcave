@@ -17,6 +17,7 @@ type Props = {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   onApprove?: (id: string) => void;
+  onChat?: (id: string) => void;
   onApproveBookings?:(id: string) => void;
   disabled?: boolean;
   actionLabel?: string;
@@ -31,6 +32,7 @@ function ListingCard({
   onEdit,
   onDelete,
   onApprove,
+  onChat,
   disabled,
   actionLabel,
   actionId = "",
@@ -124,12 +126,19 @@ function ListingCard({
             onClick={() => onApprove(reservation?.id??"")}
           />
         )}
-        {reservation?.isApproved && (
+        {reservation && reservation?.isApproved !=0 && onChat && (
+          <>
             <Button
             label="Approved"
             classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
             onClick={() =>  reservation.isApproved}
           />
+          <Button
+            label="Chat"
+            classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
+            onClick={() => onChat(reservation?.id??"")}
+          />
+          </>
         )}    
         </div>
         {/* {(

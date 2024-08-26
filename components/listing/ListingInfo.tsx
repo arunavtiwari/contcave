@@ -225,7 +225,21 @@ function ListingInfo({
                 {reviews.map((review: any) => (
                   <div className="flex" key={review.id}>
                     <div className="w-16 h-16">
-                      <Image src="/assets/user-review.svg" height={64} width={64} alt="" className="w-full h-full object-cover" />
+                      {
+                        review && review.user?.image && (
+                          <Avatar src={review.user?.image} userName={review.user?.name} />
+
+                        )
+                      }
+
+{
+                        review && !review.user?.image && (
+                          <Image src="/assets/user-review.svg" height={64} width={64} alt="" className="w-full h-full object-cover" 
+                      
+                          />
+                        )
+                      }
+                  
                     </div>
                     <div className="w-[calc(100%-64px)] pl-4">
                       <div className="text-base font-bold">{review.user.name}</div>

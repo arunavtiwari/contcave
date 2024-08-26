@@ -83,6 +83,13 @@ function ReservationsClient({ reservations, currentUser }: Props) {
     },
     [router]
   );
+  const onChat = useCallback(
+    (id: string) => {
+      window.open(`/chat/${id}`,"_blank")
+
+    },
+    [router]
+  );
   return (
     <Container>
       <Heading title="Reservations" subtitle="Bookings on your properties" />
@@ -94,6 +101,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
             reservation={reservation}
             actionId={reservation.id}
             onAction={onCancel}
+            onChat={onChat}
             onApprove={onApprove}
             disabled={deletingId === reservation.id}
             actionLabel="Cancel reservation"

@@ -57,7 +57,13 @@ function PropertiesClient({ listings, currentUser }: Props) {
     },
     [router]
   );
+  const onChat = useCallback(
+    (id: string) => {
+      router.push(`/chat/${id}`)
 
+    },
+    [router]
+  );
   return (
     <Container>
       <Heading title="Properties" subtitle="List of your properties" />
@@ -70,6 +76,7 @@ function PropertiesClient({ listings, currentUser }: Props) {
             onAction={onDelete}
             onDelete={onDelete}
             onEdit={onEdit}
+            onChat={onChat}
             disabled={deletingId === listing.id}
             actionLabel="Delete property"
             currentUser={currentUser}
