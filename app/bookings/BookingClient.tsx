@@ -18,6 +18,9 @@ function BookingClient({ reservations, currentUser }: Props) {
   const router = useRouter();
   const [deletingId, setDeletingId] = useState("");
 
+  const onChat  = useCallback((id:string) => {
+    window.open(`/chat/${id}`,"_blank")
+  },[router]);
   const onCancel = useCallback(
     (id: string) => {
       setDeletingId(id);
@@ -52,6 +55,7 @@ function BookingClient({ reservations, currentUser }: Props) {
             reservation={reservation}
             actionId={reservation.id}
             onAction={onCancel}
+            onChat={onChat}
             disabled={deletingId === reservation.id}
             actionLabel="Cancel reservation"
             currentUser={currentUser}

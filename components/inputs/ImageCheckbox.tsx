@@ -33,7 +33,6 @@ const ImageCheckbox = ({ imageUrl, label,hideCheckbox, hideInputFields, checked,
     // Call onChange only if the checkbox is checked
     if (isChecked) {
       setIsChecked(isChecked);
-      console.log(newPrice);
       onChange({ checked: true, price: newPrice !== '' ? newPrice : undefined , qty: qty});
     
     }
@@ -44,7 +43,6 @@ const ImageCheckbox = ({ imageUrl, label,hideCheckbox, hideInputFields, checked,
     // Call onChange only if the checkbox is checked
     if (isChecked) {
       setIsChecked(isChecked);
-      console.log(newQty);
       onChange({ checked: true, price: price, qty: newQty!== '' ? newQty: undefined });
     }
   };
@@ -61,7 +59,7 @@ const ImageCheckbox = ({ imageUrl, label,hideCheckbox, hideInputFields, checked,
       {hideCheckbox && <img src={imageUrl} alt={label} className="rounded-md  w-20 mt-6 mb-2"
       onClick={onClickChange}
       />}
-      {!hideCheckbox && <img src={imageUrl} alt={label} className="rounded-md" style={{width:"97px"}}/>}
+      {!hideCheckbox && <img src={imageUrl} alt={label} className="rounded-md" style={{width: addon.width? addon.width+"px":"97px"}}/>}
    
       <div className="items-center">
         <span className="addon-name text-ellipsis truncate">{label}</span>

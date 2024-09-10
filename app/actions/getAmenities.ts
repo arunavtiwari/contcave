@@ -12,10 +12,10 @@ import { TbAirConditioning } from "react-icons/tb";
 
 
 
-export default async function getAmenities(): Promise<Amenities[]> {
+export default async function getAmenities(fromPropertyClient:boolean = false): Promise<Amenities[]> {
   try {
     let query: Prisma.AmenitiesWhereInput = {}; // Use Prisma type for query
-    const amenities: any[] = [
+   const  amenities: any[] = [
       {
         "id": "65b2ac4116d8d0003b5c6e12",
         "name": "Lighting Equipment",
@@ -151,7 +151,7 @@ export default async function getAmenities(): Promise<Amenities[]> {
     const safeAmenities: Amenities[] = amenities.map((list) => ({
       id: list.id,
       name: list.name,
-      icon:list.icon,
+      icon: fromPropertyClient ? null : list.icon,
       createdAt: list.createdAt instanceof Date ? list.createdAt : list.createdAt as string,
     }));
 

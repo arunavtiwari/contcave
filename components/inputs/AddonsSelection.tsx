@@ -30,7 +30,6 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({ addons, onSelectedAddo
         addonModal.onOpen();
     }, [CustomAddonModal]);
     const handleAddonChange = (index: number, price?: any, qty?:number, checked?: boolean) => {
-        console.log(price)
         setSelectedAddons((prevSelectedAddons) => {
             const addonToUpdate = addons[index];
 

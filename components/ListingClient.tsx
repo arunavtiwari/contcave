@@ -58,6 +58,7 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
       startTime: new Date(`${selectedDate.toISOString().split('T')[0]} ${selectedTimeSlot[0]}`),
       endTime: new Date(`${selectedDate.toISOString().split('T')[0]} ${selectedTimeSlot[1]}`),
       listingId: listing.id,
+      instantBooking: listing.instantBooking,
       selectedAddons: selectedAddons
     })
       .then(() => {
@@ -176,6 +177,7 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
                 selectedTime={selectedTimeSlot}
                 onSubmit={onCreateReservation}
                 disabled={isLoading}
+                instantBooking={listing.instantBooking??0}
                 disabledDates={disableDates}   
                 disabledStartTimes={disabledStartTimes}
                 disabledEndTimes={disabledEndTimes}

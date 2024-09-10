@@ -1,12 +1,12 @@
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import ClientOnly from "@/components/ClientOnly";
-import getCurrentUser from "../actions/getCurrentUser";
 import EmptyState from "@/components/EmptyState";
-import ProfileTransactionClient from "./ProfileTransactionClient";
+import ChatClient from "../ChatClient";
 
 
 type Props = {};
 
-const ProfileTransaction = async (props: Props) => {
+const Profile = async (props: Props) => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -18,9 +18,9 @@ const ProfileTransaction = async (props: Props) => {
   }
   return (
     <ClientOnly>
-      <ProfileTransactionClient profile={currentUser} />
+      <ChatClient profile={currentUser} />
     </ClientOnly>
   );
 };
 
-export default ProfileTransaction;
+export default Profile;

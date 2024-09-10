@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   const body = await request.json();
 
-  const { listingId, startDate, startTime, endTime, totalPrice, selectedAddons } = body;
+  const { listingId, startDate, startTime, endTime, totalPrice, selectedAddons, instantBooking } = body;
 
   if (!listingId || !startDate || !startTime || !endTime || !totalPrice) {
     return NextResponse.error();
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       reservations: {
         create: {
           userId: currentUser.id,
+          isApproved: instantBooking ? 1 : 0,
           startDate,
           startTime,
           endTime,
@@ -35,6 +36,16 @@ export async function POST(request: Request) {
         },
       },
     },
+    include: {
+      user: true, // Include the user (business owner) related to the listing
+    },
+  });
+
+  const studio = await prisma.listing.findFirst({
+    where: {
+      id: listingId,
+    },
+
     include: {
       user: true, // Include the user (business owner) related to the listing
     },
@@ -73,6 +84,64 @@ export async function POST(request: Request) {
       <p>Thank you!</p>
       `
     };
+
+
+
+    try {
+      await axios.post('https://api.mailersend.com/v1/email', emailData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer mlsn.1c4f0b03ea83778b9404adde67de248c6501d4eec3f3d9b040efa630f3ff163a`  // Replace with your MailerSend API key
+        }
+      });
+    } catch (error) {
+      console.error('Failed to send email:', error);
+    }
+  }
+
+
+  if (currentUser && currentUser.email) {
+    const emailData = {
+      from: {
+        email: "MS_d3w7dy@trial-z3m5jgry3mz4dpyo.mlsender.net",  // Your verified sender email
+        name: "Contcave"
+      },
+      to: [
+        {
+          email: currentUser.email,
+          name: currentUser.name || "Customer"
+        }
+      ],
+      subject: `Your Studio Booking with at ${studio?.title || "Studio Name"}  is Confirmed!`,
+      html: `
+      <p>Hi ${currentUser.name || "Customer"},</p>
+
+      <p>This email confirms your booking for ${studio?.title || "Studio Name"} on ${formattedStartDate} from ${formattedStartTime} to ${formattedEndTime}. We're thrilled you chose ContCave to find the perfect space for your creative project!</p>
+      
+      <p><strong>Booking Details:</strong></p>
+      <ul>
+        <li>Studio: ${studio?.title || "Studio Name"}</li>
+        <li>Date: ${formattedStartDate}</li>
+        <li>Time: ${formattedStartTime} - ${formattedEndTime}</li>
+      </ul>
+      
+      <p><strong>Next Steps:</strong></p>
+      <ul>
+        <li>Review Studio Guidelines: Please take a moment to review the studio's specific guidelines. These guidelines may include information about parking, equipment usage, and access procedures.</li>
+      </ul>
+      
+      <p><strong>Need Help?</strong></p>
+      <p>If you have any questions about your booking or need assistance with anything else, please don't hesitate to contact ContCave support at <a href="mailto:support@contcave.tech">support@contcave.tech</a></p>
+      
+      <p>We're here to ensure you have a smooth and successful shoot!</p>
+      
+      <p>Sincerely,</p>
+      <p>The ContCave Team</p>
+      
+      `
+    };
+
+    
 
     try {
       await axios.post('https://api.mailersend.com/v1/email', emailData, {

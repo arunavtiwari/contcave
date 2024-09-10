@@ -10,9 +10,15 @@ type Props = {};
 
 function Footer() {
   const [country, setCountry] = useState("India");
+  const [isChatPage, setIsChatPage] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
+    if (window.location.href.includes("chat")) {
+      setIsChatPage(true);
+    }
+
     fetch(`https://extreme-ip-lookup.com/json/?key=${process.env.NEXT_PUBLIC_LOOKUP_KEY}`)
       .then((res) => res.json())
       .then((data) => setCountry(data.country));
@@ -20,8 +26,9 @@ function Footer() {
 
   return (
     <ClientOnly>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 px-10 py-10 bg-gray-100 text-gray-600">
-        <div>
+   <div
+      className={`grid grid-cols-1 md:grid-cols-2 gap-y-10 px-10 py-10 bg-gray-100 text-gray-600 ${isChatPage ? '' : 'mt-20'}`}
+    >        <div>
 
           <div className="md:col-span-1 grid grid-rows-auto-1 gap-y-4">
             <div className="md:col-span-1">
