@@ -204,6 +204,7 @@ function ListingInfo({
           )
         }
       </div>
+      <hr />
       <p className="text-xl font-semibold">{`Listed Services`}</p>
       <div className="flex flex-wrap gap-2">
         {fullListing.otherDetails && fullListing.otherDetails.selectedTypes && fullListing.otherDetails.selectedTypes.map((service, index) => (
