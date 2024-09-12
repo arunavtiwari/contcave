@@ -23,7 +23,7 @@ function Navbar({ currentUser }: Props) {
           </div>
         </Container>
       </div>
-      <Categories />
+      {/* <Categories /> */}
     </div>
   );
 }
