@@ -20,7 +20,7 @@ interface HomeProps {
 export default async function Home({ searchParams }: HomeProps) {
   const listing = await getListings(searchParams);
   const currentUser = await getCurrentUser();
-
+  const BlogComponent = await Blog();
   if (listing.length === 0) {
     return (
       <ClientOnly>
@@ -40,7 +40,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <CTA />
         {/* <Testimonial /> */}
         <Contact />
-        <Blog />
+        {BlogComponent}
       </main>
     </ClientOnly>
   );
