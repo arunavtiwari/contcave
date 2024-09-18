@@ -64,9 +64,8 @@ const Hero = () => {
           <p className="text-lg opacity-70 mt-4">
             Whether you’re telling a story or capturing a moment, find the space that elevates your vision.
           </p>
-          {/* Todo: To increase z-index of button */}
           <Link href="/home" passHref>
-            <button className="bg-white mt-10 text-blue-500 px-6 py-3 rounded-full font-semibold text-lg shadow-md hover:bg-gray-100 transition duration-300">
+            <button className="bg-white mt-10 text-blue-500 px-6 py-3 rounded-full font-semibold text-lg shadow-md hover:bg-gray-100 transition duration-300 relative z-30">
               Explore now
             </button>
           </Link>
