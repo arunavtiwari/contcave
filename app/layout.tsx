@@ -7,7 +7,7 @@ import RentModal from "@/components/models/RentModal";
 import SearchModal from "@/components/models/SearchModal";
 import Navbar from "@/components/navbar/Navbar";
 import { Nunito } from "next/font/google";
-// import "../styles/globals.css";
+import "../styles/globals.css";
 import getCurrentUser from "./actions/getCurrentUser";
 import { CategoryProvider } from "./context/CategoryContext";
 import CustomAddonModal from "@/components/models/CustomAddonModal";

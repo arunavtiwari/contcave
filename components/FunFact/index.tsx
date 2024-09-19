@@ -9,7 +9,7 @@ const FunFact = () => {
     <>
       {/* */}
       <section className="px-4 py-20 md:px-8 lg:py-22.5 2xl:px-0">
-        <div className="relative z-1 mx-auto max-w-c-1390 rounded-lg bg-gradient-to-t from-[#F8F9FF] to-[#DEE7FF] py-22.5 dark:bg-blacksection dark:bg-gradient-to-t dark:from-transparent dark:to-transparent dark:stroke-strokedark xl:py-27.5">
+        <div className="relative z-1 mx-auto max-w-c-1390 rounded-lg bg-gradient-to-t from-[#F8F9FF] to-[#DEE7FF] py-22.5  xl:py-27.5">
           <Image
             width={335}
             height={384}
@@ -29,13 +29,13 @@ const FunFact = () => {
             fill
             src="/images/shape/shape-dotted-light-02.svg"
             alt="Dotted"
-            className="absolute left-0 top-0 -z-1 dark:hidden"
+            className="absolute left-0 top-0 -z-1"
           />
           <Image
             fill
             src="/images/shape/shape-dotted-dark-02.svg"
             alt="Dotted"
-            className="absolute left-0 top-0 -z-1 hidden dark:block"
+            className="absolute left-0 top-0 -z-1 hidden"
           />
 
           <motion.div
@@ -56,7 +56,7 @@ const FunFact = () => {
             viewport={{ once: true }}
             className="animate_top mx-auto mb-12.5 px-4 text-center md:w-4/5 md:px-0 lg:mb-17.5 lg:w-2/3 xl:w-1/2"
           >
-            <h2 className="mb-4 text-3xl font-bold text-black dark:text-white xl:text-sectiontitle3">
+            <h2 className="mb-4 text-3xl font-bold text-black xl:text-sectiontitle3">
               The Next Big Project Awaits. Start Here
             </h2>
             <p className="mx-auto lg:w-11/12">
@@ -65,7 +65,7 @@ const FunFact = () => {
 
           </motion.div>
           <div className="flex justify-center">
-            <Link href="/home" className="flex rounded-full bg-black px-7.5 py-2.5 text-white duration-300 ease-in-out hover:bg-blackho dark:bg-btndark dark:hover:bg-blackho">
+            <Link href="/home" className="flex rounded-full bg-black px-7.5 py-2.5 text-white duration-300 ease-in-out hover:bg-blackho">
               <button aria-label="get started button">Get Started</button>
             </Link>
           </div>

@@ -65,7 +65,7 @@ const router = useRouter();
                 </li>
               </ul>
             </div>
-            <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
+            <hr className="h-px my-8 bg-gray-200 border-0 " />
 
               <div className="relative mt-8">
                 <div className="text-xl font-bold text-slate-950">Promote and Earn 🎉</div>
