@@ -38,7 +38,6 @@ export default async function Home({ searchParams }: HomeProps) {
         <FunFact />
         <FAQ />
         <CTA />
-        {/* <Testimonial /> */}
         <Contact />
         {BlogComponent}
       </main>
