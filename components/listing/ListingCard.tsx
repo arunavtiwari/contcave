@@ -93,7 +93,7 @@ function ListingCard({
         <div className="font-light text-neutral-500">
           {data.category} | {location?.label}
         </div>
-        <div className="flex flex-row items-center gap-">
+        <div className="flex flex-row items-center">
           <div className="flex gap-1 font-semibold">
             ₹{price} {!reservation && <div className="font-light"> Hour</div>}
           </div>

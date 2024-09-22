@@ -13,8 +13,7 @@ const Hero = () => {
         trigger: '#hero-anim-track',
         start: 'top top+=100px',
         end: '+=50px',
-        scrub: 1.5,
-        markers: true,
+        scrub: 1.5
       },
     });
 
