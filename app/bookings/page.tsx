@@ -4,6 +4,7 @@ import React from "react";
 import getCurrentUser from "../actions/getCurrentUser";
 import getReservation from "../actions/getReservations";
 import BookingClient from "./BookingClient";
+export const dynamic = "force-dynamic"
 
 type Props = {};
 

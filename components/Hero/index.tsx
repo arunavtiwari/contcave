@@ -40,7 +40,7 @@ const Hero = () => {
 
   return (
     <div id="hero-anim-track" className="overflow-hidden shadow-lg">
-      <div className="hero flex items-end min-h-screen bg-gradient-to-r from-purple-600 to-blue-500 text-white relative">
+      <div className="hero flex items-end min-h-screen bg-black text-white relative">
         <div className="txt w-full px-4 py-8 m-10 flex flex-col">
           <h1 className="text-4xl font-bold">
             Discover the perfect <span id="changing-text">Studio</span>

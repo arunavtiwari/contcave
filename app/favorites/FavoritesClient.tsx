@@ -2,6 +2,7 @@ import Container from "@/components/Container";
 import Heading from "@/components/Heading";
 import ListingCard from "@/components/listing/ListingCard";
 import { SafeUser, safeListing } from "@/types";
+export const dynamic = "force-dynamic"
 
 type Props = {
   listings: safeListing[];

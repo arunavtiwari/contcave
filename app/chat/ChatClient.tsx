@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FC, useState, useEffect } from "react";
 import Ably from "ably";
 import { Reservation } from "@prisma/client";
+export const dynamic = "force-dynamic"
 
 interface ChatClientProps {
   profile: any;

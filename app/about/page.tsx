@@ -2,6 +2,7 @@ import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import React from "react";
 import getCurrentUser from "../actions/getCurrentUser";
+export const dynamic = "force-dynamic"
 
 type Props = {};
 
