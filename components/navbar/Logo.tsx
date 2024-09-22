@@ -18,14 +18,9 @@ function Logo({ }: Props) {
           height="100"
           width="200"
           src="/assets/logo.png"
+          className="cursor-pointer"
         />
       </div>
-      <style jsx>{`
-        .logo-container {
-          max-width: 200px; /* Set the maximum width of the logo container */
-          width: 100%; /* Make sure it takes up the full width of its container */
-        }
-      `}</style>
     </div>
   );
 }

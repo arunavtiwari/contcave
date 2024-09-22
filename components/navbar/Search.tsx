@@ -2,7 +2,7 @@
 
 import useCountries from "@/hook/useCities";
 import useSearchModal from "@/hook/useSearchModal";
-import { differenceInDays } from "date-fns";
+// import { differenceInDays } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { BiSearch } from "react-icons/bi";
@@ -16,7 +16,7 @@ function Search({ }: Props) {
 
   const locationValue = params?.get("locationValue");
   const startDate = params?.get("selectedDate");
-  const timeSlot = params?.get("timeSlot");
+  // const timeSlot = params?.get("timeSlot");
 
   const locationLabel = useMemo(() => {
     if (locationValue) {
@@ -40,27 +40,27 @@ function Search({ }: Props) {
     return "Date";
   }, [startDate]);
 
-  const timeSlotLabel = useMemo(() => {
-    if (timeSlot) {
-      return `${timeSlot}`;
-    }
+  // const timeSlotLabel = useMemo(() => {
+  //   if (timeSlot) {
+  //     return `${timeSlot}`;
+  //   }
 
-    return "Time";
-  }, []);
+  //   return "Time";
+  // }, []);
 
   return (
     <div
       onClick={searchModel.onOpen}
-      className="border-[1px] md:w-auto py-2 rounded-full shadow-sm hover:shadow-md transition cursor-pointer"
+      className="border-[2px] md:w-auto py-2 rounded-full shadow-sm hover:shadow-md transition cursor-pointer"
     >
       <div className="flex flex-row items-center justify-between">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>
-        <div className="hidden sm:block text-losm font-semibold px-6 border-x-[1px] flex-1 text-center">
+        <div className="hidden sm:block text-losm font-semibold px-6 border-s-[1px] flex-1 text-center">
           {dateLabel}
         </div>
         <div className="text-sm pl-6 pr-2 text-gray-600 flex flex-row items-center gap-3">
-          <div className="hidden sm:block text-center">{timeSlotLabel}</div>
-          <div className="p-2 bg-yellow-700 rounded-full text-white">
+          {/* <div className="hidden sm:block text-center">{timeSlotLabel}</div> */}
+          <div className="p-2 bg-black rounded-full text-white">
             <BiSearch size={18} />
           </div>
         </div>

@@ -11,9 +11,9 @@ const Hero = () => {
     let tl = gsap.timeline({
       scrollTrigger: {
         trigger: '#hero-anim-track',
-        start: 'top top+=100px',
-        end: '+=50px',
-        scrub: 1.5
+        start: '50% 50%',
+        end: '+=200px',
+        scrub: 1,
       },
     });
 
@@ -39,8 +39,11 @@ const Hero = () => {
 
   return (
     <div id="hero-anim-track" className="overflow-hidden shadow-lg">
-      <div className="hero flex items-end min-h-screen bg-black text-white relative">
-        <div className="txt w-full px-4 py-8 m-10 flex flex-col">
+      <div className="hero flex items-end min-h-screen text-white relative">
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black opacity-70 z-10"></div>
+
+        <div className="txt w-full px-4 py-8 m-10 flex flex-col relative z-20 align-middle">
           <h1 className="text-4xl font-bold">
             Discover the perfect <span id="changing-text">Studio</span>
           </h1>
@@ -48,21 +51,20 @@ const Hero = () => {
             Whether you’re telling a story or capturing a moment, find the space that elevates your vision.
           </p>
           <Link href="/home" passHref>
-            <button className="bg-white mt-10 text-blue-500 px-6 py-3 rounded-full font-semibold text-lg shadow-md hover:bg-gray-100 transition duration-300 relative z-30">
+            <button className="bg-white mt-10 text-black px-6 py-3 rounded-full font-semibold text-lg shadow-md hover:bg-gray-100 transition duration-300 relative z-20">
               Explore now
             </button>
           </Link>
-          <svg viewBox="0 0 320 512" width="100" className="mx-auto mt-6 opacity-25">
-            <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9l22.6-22.6c9.4-9.4 24.6-9.4 33.9 0l96.4 96.4 96.4-96.4c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9l-136 136c-9.2 9.4-24.4 9.4-33.8 0z" />
-          </svg>
         </div>
+
         <img
-          src="https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea?q=80&w=3132&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src="https://plus.unsplash.com/premium_photo-1663091946297-8050202e1a63?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           alt="Hero background"
-          className="absolute left-0 top-0 w-full h-full object-cover opacity-20"
+          className="absolute left-0 top-0 w-full h-full object-cover"
         />
       </div>
     </div>
+
   );
 };
 

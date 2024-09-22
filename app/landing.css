@@ -32,12 +32,6 @@
   }
 }
 
-@media (max-width: 1280px) {
-  .navbar {
-    @apply max-h-[400px] overflow-y-scroll;
-  }
-}
-
 @layer utilities {
   .img-white {
     filter: invert(0%) sepia(96%) saturate(15%) hue-rotate(249deg) brightness(100%) contrast(105%);
