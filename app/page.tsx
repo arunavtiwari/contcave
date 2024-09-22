@@ -10,14 +10,14 @@ import FeaturesTab from "@/components/FeaturesTab";
 import FunFact from "@/components/FunFact";
 import Hero from "@/components/Hero";
 // import ListingCard from "@/components/listing/ListingCard";
-import getCurrentUser from "./actions/getCurrentUser";
-import getListings, { IListingsParams } from "./actions/getListings";
-import "app/landing.css";
-interface HomeProps {
-  searchParams: IListingsParams;
-}
+// import getCurrentUser from "./actions/getCurrentUser";
+// import getListings, { IListingsParams } from "./actions/getListings";
+import "./landing.css";
+// interface HomeProps {
+//   searchParams: IListingsParams;
+// }
 
-export default async function Home({ searchParams }: HomeProps) {
+export default async function Home() {
   // const listing = await getListings(searchParams);
   // const currentUser = await getCurrentUser();
   const BlogComponent = await Blog();
