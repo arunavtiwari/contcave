@@ -2,7 +2,7 @@ import ClientOnly from "@/components/ClientOnly";
 import ProfileClient from "./ProfileClient";
 import getCurrentUser from "../actions/getCurrentUser";
 import EmptyState from "@/components/EmptyState";
-
+export const dynamic = "force-dynamic"
 
 type Props = {};
 

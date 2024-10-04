@@ -6,7 +6,7 @@ import getListingById from '@/app/actions/getListingById';
 import ClientOnly from '@/components/ClientOnly';
 import EmptyState from '@/components/EmptyState';
 import PropertyClient from '@/components/PropertyClient';
-
+export const dynamic = "force-dynamic"
 import React from 'react';
 
 

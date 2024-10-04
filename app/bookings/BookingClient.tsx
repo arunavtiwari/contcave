@@ -8,6 +8,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import { toast } from "react-toastify";
+export const dynamic = "force-dynamic"
 
 type Props = {
   reservations: SafeReservation[];

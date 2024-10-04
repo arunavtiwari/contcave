@@ -149,7 +149,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 <input
                     type="text"
                     id="listingName"
-                    className="border py-1 pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
+                    className="border pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
                     placeholder="Enter the listing name"
                     value={initialListing.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
@@ -160,7 +160,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 </label>
                 <textarea
                     id="listingDescription"
-                    className="border py-1 pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
+                    className="border pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
                     placeholder="Enter the description"
                     style={{ width: "100%" }}
                     value={initialListing.description}
@@ -171,7 +171,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     Category
                 </label>
                 <select
-                    className="border py-1 pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
+                    className="border pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
                     value={initialListing.category}
                     onChange={(e) => handleInputChange("category", e.target.value)}
                 >
@@ -186,7 +186,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     Location
                 </label>
                 <select
-                    className="border py-1 pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
+                    className="border pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
                     onChange={(e) => handleInputChange("location", e.target.value)}
                 >
                     {indianCities.map((item, index) => (
@@ -243,7 +243,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 <input
                     type="text"
                     id="carpetArea"
-                    className="border py-1 pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
+                    className="border pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
                     placeholder="Enter the carpet area"
                     value={initialListing.otherDetails?.carpetArea ?? ""}
                     onChange={(e) => handleInputChange("otherDetails.carpetArea", e.target.value)}
@@ -308,7 +308,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 <input
                     type="text"
                     id="minBookingHours"
-                    className="border py-1 pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
+                    className="border pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
                     placeholder="Enter the minimum booking hours"
                     value={initialListing.otherDetails?.minimumBookingHours ?? ""}
                     onChange={(e) => handleInputChange("otherDetails.minimumBookingHours", e.target.value)}
@@ -320,7 +320,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 <input
                     type="text"
                     id="maxPax"
-                    className="border py-1 pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
+                    className="border pr-3 rounded text-start pl-3 py-2 shadow-sm col-span-2"
                     placeholder="Enter the maximum PAX"
                     value={initialListing.otherDetails?.maximumPax ?? ""}
                     onChange={(e) => handleInputChange("otherDetails.maximumPax", e.target.value)}

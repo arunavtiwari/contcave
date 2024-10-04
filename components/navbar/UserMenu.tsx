@@ -5,10 +5,9 @@ import useRegisterModal from "@/hook/useRegisterModal";
 import useRentModal from "@/hook/useRentModal";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
 import { SafeUser } from "@/types";
 import { signOut } from "next-auth/react";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
 import { AiOutlineMenu } from "react-icons/ai";
 import Avatar from "../Avatar";
 import MenuItem from "./MenuItem";
@@ -23,25 +22,46 @@ function UserMenu({ currentUser }: Props) {
   const loginModel = useLoginModel();
   const rentModel = useRentModal();
   const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const toggleOpen = useCallback(() => {
-    setIsOpen((value) => !value);
+    setIsOpen((isOpen) => !isOpen);
   }, []);
 
-  const onRentEquip = useCallback(() => {
+  const closeMenu = useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
+  // Handle outside click to close the menu
+  useEffect(() => {
+    const handleClickOutside = (event: PointerEvent) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        !(event.target as HTMLElement).closest('.ai-outline-menu')
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleClickOutside);
+    };
+  }, [closeMenu]);
+
+  const onRentEquip = useCallback(() => {
     window.alert("Coming soon");
-  }, [currentUser, loginModel]);
+  }, []);
 
   const onHireTalent = useCallback(() => {
     window.alert("Coming soon");
   }, []);
 
   const onRent = useCallback(() => {
-
-
     rentModel.onOpen();
-  }, [currentUser, loginModel, rentModel]);
+  }, [rentModel]);
 
   return (
     <div className="relative">
@@ -68,7 +88,7 @@ function UserMenu({ currentUser }: Props) {
         </div>
         <div
           onClick={toggleOpen}
-          className="p-4 md:py-1 md:px-2 border-[1px] flex flex-row items-center gap-3 rounded-full cursor-pointer hover:shadow-md transition"
+          className="ai-outline-menu p-4 md:py-1 md:px-2 border-[2px] flex flex-row items-center gap-3 rounded-full cursor-pointer hover:shadow-md transition"
         >
           <AiOutlineMenu />
           <div className="hidden md:block">
@@ -87,7 +107,10 @@ function UserMenu({ currentUser }: Props) {
         </div>
       </div>
       {isOpen && (
-        <div className="absolute rounded-xl shadow-md w-[40vw] md:w-3/4 bg-white overflow-hidden right-0 top-12 text-sm">
+        <div
+          ref={menuRef}
+          className="absolute rounded-xl shadow-md w-[40vw] md:w-3/4 bg-white overflow-hidden right-0 top-15 text-sm"
+        >
           <div className="flex flex-col cursor-pointer">
             {currentUser ? (
               <>
@@ -108,8 +131,10 @@ function UserMenu({ currentUser }: Props) {
                   label="My properties"
                 />
                 <MenuItem onClick={onRent} label="List your space" />
-
-                <MenuItem  onClick={() => router.push("/Profile")} label="My Profile" />
+                <MenuItem
+                  onClick={() => router.push("/Profile")}
+                  label="My Profile"
+                />
                 <hr />
                 <MenuItem onClick={() => signOut()} label="Logout" />
               </>

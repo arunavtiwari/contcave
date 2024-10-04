@@ -4,6 +4,7 @@ import React from "react";
 import getCurrentUser from "../actions/getCurrentUser";
 import getFavoriteListings from "../actions/getFavoriteListings";
 import FavoritesClient from "./FavoritesClient";
+export const dynamic = "force-dynamic"
 
 type Props = {};
 

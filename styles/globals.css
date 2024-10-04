@@ -2,16 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply !scrollbar-thin !scrollbar-track-transparent !scrollbar-thumb-[#FF5A5F];
-  }
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
 }
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: black;
+  border-radius: 10px;
+}
+
+
 
 html,
 body,
 :root {
   height: 100%;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .leaflet-bottom,
@@ -35,37 +49,49 @@ body,
   right: 0;
   border-color: #68D391;
 }
-.toggle-checkbox:checked + .toggle-label {
+
+.toggle-checkbox:checked+.toggle-label {
   @apply: bg-green-400;
   background-color: #68D391;
 }
+
 .toggle-label {
   @apply: block overflow-hidden h-6 rounded-full bg-gray-300;
   background-color: #D1D5DB;
 }
+
 .toggle-checkbox {
   @apply: absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer;
   border-color: #D1D5DB;
 }
 
-.otherListingWrapper input{
-    font-style: italic;
-    font-size: 13px;
+.otherListingWrapper input {
+  font-style: italic;
+  font-size: 13px;
 
 }
-.w-30 {
-  width:30%;
+
+.logo-container {
+  max-width: 200px;
+  width: 100%;
 }
+
+.w-30 {
+  width: 30%;
+}
+
 .addon-box {
-  border-radius:15px;
+  border-radius: 15px;
   border-top: solid rgba(217, 217, 217, 0.6) 1px;
 }
+
 .image-checkbox {
   /* display: flex; */
   align-items: center;
   cursor: pointer;
-/*   border: 1px solid #ccc;
- */  border-radius: 15px;
+  /*   border: 1px solid #ccc;
+ */
+  border-radius: 15px;
   padding: 10px;
 }
 
@@ -73,17 +99,18 @@ body,
   /* display: none; */
   /* position: absolute;
   margin: 5px; */
-  
+
   width: 75px;
   background: rgba(217, 217, 217, 0.6);
   font-style: italic;
   border-radius: 5px;
-  margin-left:5px;
-  font-size:12px;
+  margin-left: 5px;
+  font-size: 12px;
 }
+
 .image-checkbox .addon-name {
   font-weight: bold;
-  font-size:13px;
+  font-size: 13px;
 }
 
 .image-checkbox input[type="checkbox"] {

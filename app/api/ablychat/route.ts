@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Ably from "ably";
 import getCurrentUser from "@/app/actions/getCurrentUser";
-
+export const dynamic = "force-dynamic"
 export async function POST(request: Request) {
   // Get the current user
   const currentUser = await getCurrentUser();
