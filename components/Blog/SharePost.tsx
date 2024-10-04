@@ -1,6 +1,6 @@
-import { Blog } from "@/types/blog";
+import { BlogPost } from "@/types/blog";
 
-const SharePost = ({ tags }: Partial<Blog>) => {
+const SharePost = ({ tags }: Partial<BlogPost>) => {
   return (
     <>
       <div className="mt-11 flex flex-wrap gap-4 md:items-center md:justify-between md:gap-0">

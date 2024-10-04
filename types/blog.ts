@@ -69,4 +69,5 @@ export interface BlogPost {
     name: string;
   }[];
   premiumContent: any[];
+  tags: string[]
 }
