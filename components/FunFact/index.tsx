@@ -11,9 +11,9 @@ const FunFact = () => {
       <section className="px-4 py-20 md:px-8 lg:py-22.5 2xl:px-0">
         <div className="relative z-1 mx-auto max-w-c-1390 rounded-lg bg-gradient-to-t from-[#F8F9FF] to-[#DEE7FF] py-22.5  xl:py-27.5">
           <Image
-            width={335}
-            height={384}
-            src="/images/shape/shape-04.png"
+            width={235}
+            height={284}
+            src="/images/shape/camera.png"
             alt="Man"
             className="absolute -left-15 -top-25 -z-1 lg:left-0"
           />

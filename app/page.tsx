@@ -20,7 +20,6 @@ import "./landing.css";
 export default async function Home() {
   // const listing = await getListings(searchParams);
   // const currentUser = await getCurrentUser();
-  const BlogComponent = await Blog();
   // if (listing.length === 0) {
   //   return (
   //     <ClientOnly>
@@ -38,8 +37,8 @@ export default async function Home() {
         <FunFact />
         <FAQ />
         <CTA />
-        <Contact />
-        {BlogComponent}
+        {/* <Contact /> */}
+        {/* <Blog/> */}
       </main>
     </ClientOnly>
   );
