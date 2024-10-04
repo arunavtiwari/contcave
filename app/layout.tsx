@@ -6,7 +6,7 @@ import RegisterModal from "@/components/models/RegisterModal";
 import RentModal from "@/components/models/RentModal";
 import SearchModal from "@/components/models/SearchModal";
 import Navbar from "@/components/navbar/Navbar";
-import { Nunito } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "../styles/globals.css";
 import getCurrentUser from "./actions/getCurrentUser";
 import { CategoryProvider } from "./context/CategoryContext";
@@ -17,7 +17,7 @@ export const metadata = {
   description: "Marketplace for booking shoot spaces",
   icons: "https://i.ibb.co/4JdrGHS/Screenshot-2023-11-22-at-3-52-33-AM.png",
 };
-const font = Nunito({
+const font = Montserrat({
   subsets: ["latin"],
 });
 

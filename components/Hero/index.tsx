@@ -43,11 +43,12 @@ const Hero = () => {
         {/* Overlay */}
         <div className="absolute inset-0 bg-black opacity-70 z-10"></div>
 
-        <div className="txt w-full px-4 py-8 m-10 flex flex-col relative z-20 align-middle">
-          <h1 className="text-4xl font-bold">
-            Discover the perfect <span id="changing-text">Studio</span>
+        <div className="txt w-full px-4 py-35 m-10 flex flex-col relative z-20 align-middle">
+          <h1 className="text-7xl font-bold">
+            Discover the perfect
           </h1>
-          <p className="text-lg opacity-70 mt-4">
+          <h1 className="text-7xl font-bold"><span id="changing-text">Studio</span></h1>
+          <p className="text-2xl opacity-70 mt-4">
             Whether you’re telling a story or capturing a moment, find the space that elevates your vision.
           </p>
           <Link href="/home" passHref>
