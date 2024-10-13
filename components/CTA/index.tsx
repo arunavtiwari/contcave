@@ -7,18 +7,16 @@ import Link from "next/link";
 const CTA = () => {
   return (
     <>
-      {/* CTA Section */}
       <section className="px-4 py-20 md:px-8 lg:py-22.5 2xl:px-0">
         <div className="relative z-1 mx-auto max-w-c-1390 rounded-lg bg-gradient-to-t from-[#F8F9FF] to-[#DEE7FF] py-12.5 xl:py-17.5">
-          {/* Decorative Images */}
+
           <Image
             width={310}
             height={299}
             src="/images/shape/open_banner.png"
             alt="Listing"
-            className="absolute -right-15 -top-25 -z-1 lg:right-0"
+            className="absolute bottom-0 right-0 transform translate-x-0 translate-y-0 lg:-right-15 lg:-top-25 lg:translate-y-0 lg:translate-x-0 w-[180px] md:w-[240px] lg:w-[310px] -z-10"
           />
-
           <motion.div
             variants={{
               hidden: {
@@ -44,7 +42,7 @@ const CTA = () => {
             </p>
           </motion.div>
 
-          {/* Button Section */}
+
           <div className="flex justify-center">
             <Link href="/home" className="flex rounded-full bg-black px-7.5 py-2.5 text-white duration-300 ease-in-out hover:bg-blackho">
               <button aria-label="list your space button">List Your Space</button>
@@ -52,7 +50,7 @@ const CTA = () => {
           </div>
         </div>
       </section>
-      {/* CTA End */}
+
     </>
   );
 };

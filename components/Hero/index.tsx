@@ -44,11 +44,13 @@ const Hero = () => {
         <div className="absolute inset-0 bg-black opacity-70 z-10"></div>
 
         <div className="txt w-full px-4 py-35 m-10 flex flex-col relative z-20 align-middle">
-          <h1 className="text-7xl font-bold">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
             Discover the perfect
           </h1>
-          <h1 className="text-7xl font-bold"><span id="changing-text">Studio</span></h1>
-          <p className="text-2xl opacity-70 mt-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
+            <span id="changing-text">Studio</span>
+          </h1>
+          <p className="text-lg sm:text-xl md:text-2xl opacity-70 mt-4">
             Whether you’re telling a story or capturing a moment, find the space that elevates your vision.
           </p>
           <Link href="/home" passHref>
@@ -57,6 +59,7 @@ const Hero = () => {
             </button>
           </Link>
         </div>
+
 
         <img
           src="https://plus.unsplash.com/premium_photo-1663091946297-8050202e1a63?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
