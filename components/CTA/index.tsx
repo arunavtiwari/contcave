@@ -15,7 +15,7 @@ const CTA = () => {
             height={299}
             src="/images/shape/open_banner.png"
             alt="Listing"
-            className="absolute bottom-0 right-0 transform translate-x-0 translate-y-0 lg:-right-15 lg:-top-25 lg:translate-y-0 lg:translate-x-0 w-[180px] md:w-[240px] lg:w-[310px] -z-10"
+            className="absolute bottom-0 right-0 transform translate-x-0 translate-y-0 lg:-top-25 lg:translate-y-0 lg:translate-x-0 w-[180px] md:w-[240px] lg:w-[310px] -z-10"
           />
           <motion.div
             variants={{
