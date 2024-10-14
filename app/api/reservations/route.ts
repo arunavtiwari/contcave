@@ -8,15 +8,22 @@ export async function POST(request: Request) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    return NextResponse.error();
+    return NextResponse.json({
+      message: 'Unauthorized',
+    }, { status: 401 });
   }
+
 
   const body = await request.json();
 
   const { listingId, startDate, startTime, endTime, totalPrice, selectedAddons, instantBooking } = body;
 
+
+
   if (!listingId || !startDate || !startTime || !endTime || !totalPrice) {
-    return NextResponse.error();
+    return NextResponse.json({
+      message: 'Invalid data provided',
+    }, { status: 400 });
   }
 
   const listenAndReservation = await prisma.listing.update({
@@ -60,20 +67,20 @@ export async function POST(request: Request) {
   if (businessOwner && businessOwner.email) {
     const emailData = {
       from: {
-        email: "MS_d3w7dy@trial-z3m5jgry3mz4dpyo.mlsender.net",  // Your verified sender email
+        email: "MS_8Knbaw@contcave.com",
         name: "Contcave"
       },
       to: [
         {
           email: businessOwner.email,
-          name: businessOwner.name || "Business Owner"
+          name: businessOwner.name || "Dear Studio Owner"
         }
       ],
-      subject: "New Reservation Created",
+      subject: "New Reservation for Your Listing!",
       html: `
-      <p>Dear ${businessOwner.name || "Business Owner"},</p>
-      <p>A new reservation has been created for your listing by ${currentUser.name}.</p>
-      <p>Details:</p>
+      <p>Hi ${businessOwner.name || "Business Owner"},</p>
+      <p>Great news! You have a new reservation for your listing from ${currentUser.name}.</p>
+      <p>Here are the reservation details:</p>
       <ul>
         <li>Start Date: ${formattedStartDate}</li>
         <li>Start Time: ${formattedStartTime}</li>
@@ -81,7 +88,9 @@ export async function POST(request: Request) {
         <li>Total Price: ${totalPrice}</li>
         <li>Selected Add-ons: ${selectedAddonsList}</li>
       </ul>
-      <p>Thank you!</p>
+      <p>We recommend you contact ${currentUser.name} (their contact information might be available in the reservation details) to confirm any additional details.</p>
+      <p>Thanks,</p>
+      <p>The Contcave Team</p>
       `
     };
 
@@ -91,7 +100,7 @@ export async function POST(request: Request) {
       await axios.post('https://api.mailersend.com/v1/email', emailData, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer mlsn.1c4f0b03ea83778b9404adde67de248c6501d4eec3f3d9b040efa630f3ff163a`  // Replace with your MailerSend API key
+          'Authorization': `Bearer ${process.env.MAILERSEND_KEY}` 
         }
       });
     } catch (error) {
@@ -103,7 +112,7 @@ export async function POST(request: Request) {
   if (currentUser && currentUser.email) {
     const emailData = {
       from: {
-        email: "MS_d3w7dy@trial-z3m5jgry3mz4dpyo.mlsender.net",  // Your verified sender email
+        email: "MS_8Knbaw@contcave.com",
         name: "Contcave"
       },
       to: [
@@ -131,7 +140,7 @@ export async function POST(request: Request) {
       </ul>
       
       <p><strong>Need Help?</strong></p>
-      <p>If you have any questions about your booking or need assistance with anything else, please don't hesitate to contact ContCave support at <a href="mailto:support@contcave.tech">support@contcave.tech</a></p>
+      <p>If you have any questions about your booking or need assistance with anything else, please don't hesitate to contact ContCave support at <a href="mailto:info@contcave.com">info@contcave.com</a></p>
       
       <p>We're here to ensure you have a smooth and successful shoot!</p>
       
@@ -141,13 +150,13 @@ export async function POST(request: Request) {
       `
     };
 
-    
+
 
     try {
       await axios.post('https://api.mailersend.com/v1/email', emailData, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer mlsn.1c4f0b03ea83778b9404adde67de248c6501d4eec3f3d9b040efa630f3ff163a`  // Replace with your MailerSend API key
+          'Authorization': `Bearer ${process.env.MAILERSEND_KEY}` 
         }
       });
     } catch (error) {

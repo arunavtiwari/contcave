@@ -58,7 +58,7 @@ function Footer() {
               <p className="text-lg font-semibold">
                 Have a question? Feel free to reach out to us at{" "}
                 <a href="mailto:support@contcave.tech" className="text-blue-500 underline">
-                  support@contcave.tech
+                  info@contcave.com
                 </a>
               </p>
             </div>

@@ -71,7 +71,7 @@ function SearchModal({ }: Props) {
 
     const url = qs.stringifyUrl(
       {
-        url: "/",
+        url: "/home",
         query: updatedQuery,
       },
       { skipNull: true }

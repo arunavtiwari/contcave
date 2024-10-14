@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 
 type Props = {};
 
-const ProfileClient = ({profile}) => {
+const ProfileClient = ({ profile }) => {
   const router = useRouter();
   const rentModel = useRentModal();
   const loginModel = useLoginModel();
@@ -25,7 +25,7 @@ const ProfileClient = ({profile}) => {
     title: "",
     email: "",
     phone: "",
-    profileImage:""
+    profileImage: ""
   });
   const onRent = useCallback(() => {
 
@@ -34,7 +34,7 @@ const ProfileClient = ({profile}) => {
   }, [currentUser, loginModel, rentModel]);
   useEffect(() => {
     const fetchUser = async () => {
-      const user:any = profile;
+      const user: any = profile;
       if (user) {
         setCurrentUser(user);
         setUserData({
@@ -45,7 +45,7 @@ const ProfileClient = ({profile}) => {
           title: user.title || "",
           email: user.email || "",
           phone: user.phone || "",
-          profileImage:user.profileImage || "/assets/default-profile.svg"
+          profileImage: user.profileImage || "/assets/default-profile.svg"
         });
       }
     };
@@ -73,17 +73,17 @@ const ProfileClient = ({profile}) => {
   return (
     <div>
       <div className="flex py-10">
-        <div className="xl:w-20 lg:w-20 md:w-20 w-16 flex flex-col items-center justify-center h-max bg-[#B0AFAF] p-4 rounded-xl space-y-4">
-          <div className="w-[30px] h-10 flex items-center justify-center"  onClick={() => router.push("/Profile")}>
+        <div className="xl:w-20 lg:w-20 md:w-20 w-16 flex flex-col items-center justify-center h-max bg-[#12121291] backdrop-blur-xl ms-2 p-4 rounded-xl space-y-4">
+          <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/Profile")}>
             <Image src="/assets/user.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center"  onClick={() => router.push("/payment-details")}>
+          <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/payment-details")}>
             <Image src="/assets/faCreditCard.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center" onClick={() => router.push("/profile-share")}>
+          <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-share")}>
             <Image src="/assets/faUserPlus.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center" onClick={() => router.push("/profile-settings")}>
+          <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-settings")}>
             <Image src="/assets/faSettings.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
           </div>
         </div>
@@ -97,18 +97,18 @@ const ProfileClient = ({profile}) => {
                     <div className="w-full h-full">
                       {!editMode && (
                         <Image src={userData.profileImage} width={110} height={125} alt="" className="object-cover"
-                        style={{"height":"125px"}}
-                        /> 
-                      )}
-                      { editMode && (
-                        <ImageUpload
-                        width={110}
-                        height={125}
-                        onChange={(value) =>{setUserData({...userData, profileImage: value[value.length - 1]})}}
-                        values={[userData.profileImage]}
+                          style={{ "height": "125px" }}
                         />
                       )}
-                  
+                      {editMode && (
+                        <ImageUpload
+                          width={110}
+                          height={125}
+                          onChange={(value) => { setUserData({ ...userData, profileImage: value[value.length - 1] }) }}
+                          values={[userData.profileImage]}
+                        />
+                      )}
+
                     </div>
                     <div className="absolute bottom-0 flex mx-auto right-0 w-full h-6 overflow-hidden shadow bg-gray-500 ">
                       <input type="file" className="absolute top-0 right-0 w-full h-full z-10 opacity-0 cursor-pointer"
@@ -119,7 +119,7 @@ const ProfileClient = ({profile}) => {
                         </span>
                       </div>
                     </div>
-                 
+
                   </div>
                 </div>
                 <form className="xl:w-[calc(100%-96px)] lg:w-[calc(100%-96px)] md:w-full w-full xl:pl-5 lg:pl-5 md:pl-0 md:pt-5 space-y-4">
@@ -177,7 +177,7 @@ const ProfileClient = ({profile}) => {
                 </div>
               </div>
               <div className="relative mt-8">
-                <div className="text-2xl font-bold text-[#7D1087]">Private Details</div>
+                <div className="text-2xl font-bold text-[#7D1087]">Personal Details</div>
                 <div className="relative space-y-3 mt-3">
                   <div className="flex justify-between items-center ">
                     <div className="xl:text-xl lg:text-xl md:text-xl text-base font-bold text-slate-950">Title</div>
@@ -226,21 +226,21 @@ const ProfileClient = ({profile}) => {
                   >
                     Save Changes
                   </button>
-               
+
                 </div>
               )}
-                {!editMode && (<div className="mt-4">
-                    <button
-                        type="button"
-                        onClick={() => setEditMode(!editMode)}
-                        className="bg-[#5D15B9] h-[44px] flex items-center justify-center mx-auto mt-4 text-white px-6 font-bold shadow-lg rounded-xl text-center"
-                    >
-                    Edit Profile
-                  </button>
-               
-                </div>
-                )}
-            
+              {!editMode && (<div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => setEditMode(!editMode)}
+                  className="bg-[#5D15B9] h-[44px] flex items-center justify-center mx-auto mt-4 text-white px-6 font-bold shadow-lg rounded-xl text-center"
+                >
+                  Edit Profile
+                </button>
+
+              </div>
+              )}
+
             </div>
             <div className="realtive xl:pt-8 lg:pt-8 md:pt-8 pt-24 space-y-20">
               <div className="border border-x-slate-300 p-6 rounded-2xl">
@@ -272,8 +272,8 @@ const ProfileClient = ({profile}) => {
                     list your space and add payment details
                   </p>
                   <div className="flex xl:flex-nowrap lg:flex-nowrap md:flex-wrap flex-wrap">
-                    <button type="button" 
-                    onClick={onRent} 
+                    <button type="button"
+                      onClick={onRent}
                       className="bg-[#5D15B9] h-[44px] flex items-center justify-center mx-auto mt-4 text-white px-6 font-bold shadow-lg rounded-xl text-center">
                       <span className="xl:text-lg lg:text-sm md:text-sm text-base">List Your Space</span>
                     </button>

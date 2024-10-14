@@ -15,7 +15,7 @@ const Feature = () => {
             headerInfo={{
               title: "For Creators, By Creators",
               subtitle: "Together, Let's Redefine Content Creation",
-              description: `Whether you're a seasoned professional or a budding creative, Contcave empowers you to:`,
+              description: `Whether you're a seasoned professional or a budding creative, Contcave empowers you`,
             }}
           />
           {/* <!-- Section Title End --> */}
