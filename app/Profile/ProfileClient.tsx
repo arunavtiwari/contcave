@@ -177,7 +177,7 @@ const ProfileClient = ({ profile }) => {
                 </div>
               </div>
               <div className="relative mt-8">
-                <div className="text-2xl font-bold text-[#7D1087]">Private Details</div>
+                <div className="text-2xl font-bold text-[#7D1087]">Personal Details</div>
                 <div className="relative space-y-3 mt-3">
                   <div className="flex justify-between items-center ">
                     <div className="xl:text-xl lg:text-xl md:text-xl text-base font-bold text-slate-950">Title</div>
