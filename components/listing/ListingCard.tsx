@@ -141,25 +141,6 @@ function ListingCard({
           </>
         )}    
         </div>
-        {/* {(
-            <div className="flex items-center">
-              <Button
-                label="Bookings Approval"
-                onClick={() => {}}
-              />
-              <span className="ml-2 text-base font-semibold">
-                {data.bookingApprovalCount ?? 0}
-              </span>
-            </div>
-          )} */}
-     {/*    {onAction && actionLabel && (
-          <Button
-            disabled={disabled}
-            small
-            label={actionLabel}
-            onClick={handleCancel}
-          />
-        )} */}
       </div>
     </motion.div>
   );

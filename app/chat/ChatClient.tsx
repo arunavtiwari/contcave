@@ -140,7 +140,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
         {/* Booking Details Section */}
         <div className="w-1/3 p-4 border-l bg-white flex-none">
           <Image
-            src={booking?.listing.imageSrc[0]} // Replace with the actual path to the property image
+            src={booking?.listing.imageSrc[0]}
             alt="Property Image"
             width={200}
             height={200}
