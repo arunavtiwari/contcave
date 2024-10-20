@@ -274,15 +274,15 @@ const ProfileClient = ({ profile }) => {
                 <div className="w-24 h-2w-24 flex justify-center mx-auto mt-[-65px]">
                   <Image src="/assets/check.svg" width={24} height={24} alt="" className="w-full h-full" />
                 </div>
-                <div className="pt-4 text-center">
+                <div className="text-center space-y-5">
                   <div className="text-xl text-center font-bold text-slate-950">User Verification</div>
-                  <p className="text-base leading-tight pt-3">
+                  <p className="text-base leading-tight">
                     Get verified effortlessly. We prioritize genuine listings, which is why
                     hosts are required to verify their identity to list spaces and
                     add payment details to receive payments.
                   </p>
                   <button type="button"
-                    className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
+                    className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
                     Get Verified
                   </button>
                 </div>
@@ -293,20 +293,20 @@ const ProfileClient = ({ profile }) => {
                 <div className="w-24 h-2w-24 flex justify-center mx-auto mt-[-65px]">
                   <Image src="/assets/check.svg" width={24} height={24} alt="" className="w-full h-full" />
                 </div>
-                <div className="pt-4 text-center">
+                <div className="text-center space-y-5">
                   <div className="text-xl text-center font-bold text-slate-950">User Verified</div>
-                  <p className="text-base leading-tight pt-3">
+                  <p className="text-base leading-tight">
                     Your profile is verified, you can now
                     list your space and add payment details
                   </p>
                   <div className="flex xl:flex-nowrap lg:flex-nowrap md:flex-wrap flex-wrap">
                     <button type="button"
                       onClick={onRent}
-                      className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
+                      className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
                       List Your Space
                     </button>
                     <button type="button"
-                      className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
+                      className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
                       Add Payment Details
                     </button>
                   </div>

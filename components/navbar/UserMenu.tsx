@@ -109,7 +109,7 @@ function UserMenu({ currentUser }: Props) {
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute rounded-xl shadow-solid-6 w-[40vw] md:w-3/4 bg-white overflow-hidden right-0 top-16 text-sm p-3"
+          className="absolute rounded-xl shadow-solid-6 w-[40vw] md:w-3/4 bg-white overflow-hidden right-0 top-[3.2rem] text-sm p-3"
         >
           <div className="flex flex-col cursor-pointer">
             {currentUser ? (
@@ -128,14 +128,14 @@ function UserMenu({ currentUser }: Props) {
                 />
                 <MenuItem
                   onClick={() => router.push("/properties")}
-                  label="My properties"
+                  label="My Properties"
                 />
                 <MenuItem onClick={onRent} label="List your space" />
                 <MenuItem
                   onClick={() => router.push("/Profile")}
                   label="My Profile"
                 />
-                <hr />
+                <hr className="my-2" />
                 <MenuItem onClick={() => signOut()} label="Logout" />
               </>
             ) : (
