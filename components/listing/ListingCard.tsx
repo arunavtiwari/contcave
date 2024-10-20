@@ -18,7 +18,7 @@ type Props = {
   onDelete?: (id: string) => void;
   onApprove?: (id: string) => void;
   onChat?: (id: string) => void;
-  onApproveBookings?:(id: string) => void;
+  onApproveBookings?: (id: string) => void;
   disabled?: boolean;
   actionLabel?: string;
   actionId?: string;
@@ -80,7 +80,7 @@ function ListingCard({
           <Image
             fill
             className="object-cover h-full w-full group-hover:scale-110 transition"
-            src={data.imageSrc[0]}
+            src={data.imageSrc[0] || "/assets/listing-image-default.png"}
             alt="listing"
           />
           <div className="absolute top-3 right-3">
@@ -99,47 +99,47 @@ function ListingCard({
           </div>
         </div>
         <div className="flex justify-between items-center">
-        {onEdit && (
-          <Button
-            label="Edit"
-            onClick={() => onEdit(data.id)}
-          />
-        )}
-        {onDelete && (
+          {onEdit && (
             <Button
-            label="Delete"
-            classNames="text-md font-semibold py-3 border-2 border-red-500 text-red-600 ml-2"
-            onClick={() => onDelete(data.id)}
-          />
-        )}
-        {!reservation?.isApproved  && onApprove && (
+              label="Edit"
+              onClick={() => onEdit(data.id)}
+            />
+          )}
+          {onDelete && (
             <Button
-            label="Approve"
-            classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
-            onClick={() => onApprove(reservation?.id??"")}
-          />
-        )}
-        {!reservation?.isApproved  &&  onApprove && (
+              label="Delete"
+              classNames="text-md font-semibold py-3 border-2 border-red-500 text-red-600 ml-2"
+              onClick={() => onDelete(data.id)}
+            />
+          )}
+          {!reservation?.isApproved && onApprove && (
             <Button
-            label="Cancel"
-            classNames="text-md font-semibold py-3 border-2  bg-rose-500 border-rose-500 text-white ml-2"
-            onClick={() => onApprove(reservation?.id??"")}
-          />
-        )}
-        {reservation && reservation?.isApproved !=0 && onChat && (
-          <>
+              label="Approve"
+              classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
+              onClick={() => onApprove(reservation?.id ?? "")}
+            />
+          )}
+          {!reservation?.isApproved && onApprove && (
             <Button
-            label="Approved"
-            classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
-            onClick={() =>  reservation.isApproved}
-          />
-          <Button
-            label="Chat"
-            classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
-            onClick={() => onChat(reservation?.id??"")}
-          />
-          </>
-        )}    
+              label="Cancel"
+              classNames="text-md font-semibold py-3 border-2  bg-rose-500 border-rose-500 text-white ml-2"
+              onClick={() => onApprove(reservation?.id ?? "")}
+            />
+          )}
+          {reservation && reservation?.isApproved != 0 && onChat && (
+            <>
+              <Button
+                label="Approved"
+                classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
+                onClick={() => reservation.isApproved}
+              />
+              <Button
+                label="Chat"
+                classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
+                onClick={() => onChat(reservation?.id ?? "")}
+              />
+            </>
+          )}
         </div>
       </div>
     </motion.div>
