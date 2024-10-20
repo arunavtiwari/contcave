@@ -13,7 +13,7 @@ const ProfileSettingsClient = ({ profile }) => {
   return (
 
     <div className="flex py-10">
-      <div className="w-14 flex flex-col items-center justify-center h-max p-4 rounded-full space-y-10 bg-[#12121291] backdrop-blur-xl ms-3">
+      <div className="w-14 sticky top-50 flex flex-col items-center justify-center h-max p-4 rounded-full space-y-10 bg-[#12121291] backdrop-blur-xl ms-3">
         <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/Profile")}>
           <Image src="/assets/user-white.svg" width={25} height={25} alt="" className="object-contain" />
         </div>

@@ -10,7 +10,7 @@ function Loader({ }: Props) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="h-[80vh] flex flex-col justify-center items-center overflow-hidden bg-gray-100"
+      className="h-[100vh] flex flex-col justify-center items-center overflow-hidden bg-gray-100"
     >
       {/* Custom Loader Animation */}
       <div className="relative flex justify-center items-center">
