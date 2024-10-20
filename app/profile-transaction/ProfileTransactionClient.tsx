@@ -14,18 +14,18 @@ const router = useRouter();
   return (
   
         <div className="flex py-10">
-        <div className="xl:w-20 lg:w-20 md:w-20 w-16 flex flex-col items-center justify-center h-max bg-[#B0AFAF] p-4 rounded-xl space-y-4">
-          <div className="w-[30px] h-10 flex items-center justify-center"  onClick={() => router.push("/Profile")}>
-            <Image src="/assets/user.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+      <div className="w-14 flex flex-col items-center justify-center h-max p-4 rounded-full space-y-10 bg-[#12121291] backdrop-blur-xl ms-3">
+          <div className="flex items-center justify-center"  onClick={() => router.push("/Profile")}>
+            <Image src="/assets/user.svg" width={25} height={25} alt="" className="object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center"  onClick={() => router.push("/payment-details")}>
-            <Image src="/assets/faCreditCard.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+          <div className="flex items-center justify-center"  onClick={() => router.push("/payment-details")}>
+            <Image src="/assets/faCreditCard.svg" width={25} height={25} alt="" className="object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center" onClick={() => router.push("/profile-share")}>
-            <Image src="/assets/faUserPlus.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+          <div className="flex items-center justify-center" onClick={() => router.push("/profile-share")}>
+            <Image src="/assets/faUserPlus.svg" width={25} height={25} alt="" className="object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center" onClick={() => router.push("/profile-settings")}>
-            <Image src="/assets/faSettings.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+          <div className="flex items-center justify-center" onClick={() => router.push("/profile-settings")}>
+            <Image src="/assets/faSettings.svg" width={25} height={25} alt="" className="object-contain" />
           </div>
         </div>
           <div className="xl:w-[calc(100%-80px)] lg:w-[calc(100%-80px)] md:w-[calc(100%-80px)] w-[calc(100%-64px)] xl:px-10 lg:px-10 md:px-6 px-6">

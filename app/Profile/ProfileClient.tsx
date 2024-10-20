@@ -45,10 +45,12 @@ const ProfileClient = ({ profile }) => {
           title: user.title || "",
           email: user.email || "",
           phone: user.phone || "",
-          profileImage: user.profileImage || "/assets/default-profile.svg"
+          profileImage: user.profileImage || user.image || "/assets/default-profile.svg"
         });
       }
     };
+
+
 
     fetchUser();
   }, []);
@@ -73,20 +75,21 @@ const ProfileClient = ({ profile }) => {
   return (
     <div>
       <div className="flex py-10">
-        <div className="xl:w-20 lg:w-20 md:w-20 w-16 flex flex-col items-center justify-center h-max bg-[#12121291] backdrop-blur-xl ms-2 p-4 rounded-xl space-y-4">
-          <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/Profile")}>
-            <Image src="/assets/user.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+        <div className="w-14 flex flex-col items-center justify-center h-max bg-[#12121291] backdrop-blur-xl ms-3 p-4 rounded-full space-y-10">
+          <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/Profile")}>
+            <Image src="/assets/user.svg" width={25} height={25} alt="" className="object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/payment-details")}>
-            <Image src="/assets/faCreditCard.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+          <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/payment-details")}>
+            <Image src="/assets/faCreditCard.svg" width={25} height={25} alt="" className="object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-share")}>
-            <Image src="/assets/faUserPlus.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+          <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-share")}>
+            <Image src="/assets/faUserPlus.svg" width={25} height={25} alt="" className="object-contain" />
           </div>
-          <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-settings")}>
-            <Image src="/assets/faSettings.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+          <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-settings")}>
+            <Image src="/assets/faSettings.svg" width={25} height={25} alt="" className="object-contain" />
           </div>
         </div>
+
         <div className="xl:w-[calc(100%-80px)] lg:w-[calc(100%-80px)] md:w-[calc(100%-80px)] w-[calc(100%-64px)] xl:px-10 lg:px-10 md:px-6 px-6">
           <h2 className="xl:text-center lg:text-center md:text-center text-left xl:text-2xl text-xl text-slate-950 font-bold mb-10">User Profile</h2>
           <div className="xl:grid lg:grid xl:grid-cols-2 lg:grid-cols-2 md:flex gap-10">
@@ -97,7 +100,6 @@ const ProfileClient = ({ profile }) => {
                     <div className="w-full h-full">
                       {!editMode && (
                         <Image src={userData.profileImage} width={110} height={125} alt="" className="object-cover"
-                          style={{ "height": "125px" }}
                         />
                       )}
                       {editMode && (
@@ -200,7 +202,7 @@ const ProfileClient = ({ profile }) => {
                       value={userData.email}
                       onChange={handleChange}
                       disabled={true}
-                      className="text-lg font-normal text-slate-600 bg-transparent border-0 focus:ring-0 xl:text-right lg:text-right text-left px-0"
+                      className="text-lg font-normal text-slate-600 bg-transparent border-0 focus:ring-0 xl:text-right lg:text-right text-left px-0 w-full"
                     />
                   </div>
                   <div className="flex justify-between items-center ">
