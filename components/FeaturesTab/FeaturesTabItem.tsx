@@ -23,13 +23,7 @@ const FeaturesTabItem = ({ featureTab }: { featureTab: FeatureTab }) => {
             src={image}
             alt={title}
             fill
-            className="rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-          />
-          <Image
-            src={imageDark}
-            alt={title}
-            fill
-            className="absolute top-0 left-0 rounded-lg shadow-lg opacity-0 hover:opacity-100 transition-opacity duration-300"
+            className="rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
           />
         </div>
 
