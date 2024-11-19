@@ -31,7 +31,7 @@ const FAQ = () => {
               className="hidden "
             />
           </div>
-          <div className="flex flex-wrap gap-8 md:flex-nowrap md:items-center xl:gap-32.5">
+          <div className="flex flex-wrap gap-8 md:flex-nowrap  xl:gap-32.5">
             <motion.div
               variants={{
                 hidden: {
@@ -97,7 +97,7 @@ const FAQ = () => {
               viewport={{ once: true }}
               className="animate_right md:w-3/5 lg:w-1/2"
             >
-              <div className="rounded-lg bg-white shadow-solid-8">
+              <div className="rounded-xl bg-white shadow-solid-8 border">
                 {faqData.map((faq, key) => (
                   <FAQItem
                     key={key}

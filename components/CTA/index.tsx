@@ -44,7 +44,7 @@ const CTA = () => {
 
 
           <div className="flex justify-center">
-            <Link href="/home" className="flex rounded-full bg-black px-7.5 py-2.5 text-white duration-300 ease-in-out hover:bg-blackho">
+            <Link href="/home" className="flex rounded-full bg-black px-6 py-2.5 text-white hover:scale-105 duration-300">
               <button aria-label="list your space button">List Your Space</button>
             </Link>
           </div>

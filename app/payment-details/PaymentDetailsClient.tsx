@@ -44,11 +44,11 @@ const PaymentDetailsClient = ({ profile }) => {
               {/* Buttons */}
               <div className="flex h-fit gap-15">
                 <button type="button"
-                  className="bg-black flex items-center justify-center text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
+                  className="bg-black flex items-center justify-center text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center hover:opacity-90">
                   Modify
                 </button>
                 <button type="button"
-                  className="bg-black flex items-center justify-center text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
+                  className="bg-black flex items-center justify-center text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center hover:opacity-90">
                   Save
                 </button>
               </div>

@@ -246,7 +246,7 @@ const ProfileClient = ({ profile }) => {
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85"
+                    className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center hover:opacity-90"
                   >
                     Save Changes
                   </button>
@@ -257,7 +257,7 @@ const ProfileClient = ({ profile }) => {
                 <button
                   type="button"
                   onClick={() => setEditMode(!editMode)}
-                  className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2.5 font-semibold shadow-solid-6 rounded-full text-center hover:opacity-85"
+                  className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2 font-semibold shadow-solid-6 rounded-full text-center hover:opacity-90"
                 >
                   Edit Profile
                 </button>
@@ -282,7 +282,7 @@ const ProfileClient = ({ profile }) => {
                     add payment details to receive payments.
                   </p>
                   <button type="button"
-                    className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
+                    className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center hover:opacity-90">
                     Get Verified
                   </button>
                 </div>
@@ -302,11 +302,11 @@ const ProfileClient = ({ profile }) => {
                   <div className="flex xl:flex-nowrap lg:flex-nowrap md:flex-wrap flex-wrap">
                     <button type="button"
                       onClick={onRent}
-                      className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
+                      className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center hover:opacity-90">
                       List Your Space
                     </button>
                     <button type="button"
-                      className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85">
+                      className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center hover:opacity-90">
                       Add Payment Details
                     </button>
                   </div>
