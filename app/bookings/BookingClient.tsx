@@ -3,7 +3,6 @@
 import Container from "@/components/Container";
 import Heading from "@/components/Heading";
 import BookingCard from "@/components/listing/BookingCard";
-import ListingCard from "@/components/listing/ListingCard";
 import { SafeReservation, SafeUser } from "@/types";
 import axios from "axios";
 import { useRouter } from "next/navigation";

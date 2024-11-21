@@ -32,7 +32,6 @@ function UserMenu({ currentUser }: Props) {
     setIsOpen(false);
   }, []);
 
-  // Handle outside click to close the menu
   useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
       if (
