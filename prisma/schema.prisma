@@ -33,6 +33,7 @@ model User {
   Review           Review[]
   paymentDetails   PaymentDetails?   @relation(fields: [paymentDetailsId], references: [id])
   paymentDetailsId String?
+  is_owner         Boolean           @default(false)
 }
 
 model Account {

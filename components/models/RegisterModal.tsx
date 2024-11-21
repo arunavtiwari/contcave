@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import useLoginModel from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";
@@ -8,8 +8,8 @@ import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { AiFillFacebook } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
-
-import { signIn } from "next-auth/react";
+import useOwnerModal from "@/hook/useOwnerModal";
+import { signIn } from "next-auth/react"; 
 import Button from "../Button";
 import Heading from "../Heading";
 import Input from "../inputs/Input";
@@ -19,9 +19,10 @@ type Props = {};
 
 function RegisterModal({ }: Props) {
   const registerModel = useRegisterModal();
-  const loginModel = useLoginModel();
+  const loginModel = useLoginModel(); 
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // State to track password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const ownerModal = useOwnerModal();
 
   const {
     register,
@@ -41,14 +42,25 @@ function RegisterModal({ }: Props) {
     axios
       .post("/api/register", data)
       .then(() => {
-        toast.success("Success!");
-        loginModel.onOpen();
-        registerModel.onClose();
+        signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
+        }).then((callback) => {
+          if (callback?.ok) {
+            toast.success("Successfully registered and logged in!");
+            registerModel.onClose();
+            ownerModal.onOpen();
+          } else if (callback?.error) {
+            toast.error("Login failed");
+          }
+        });
       })
-      .catch((err: any) => toast.error("Something Went Wrong"))
+      .catch((err: any) => {
+        toast.error("Something went wrong during registration.");
+      })
       .finally(() => {
         setIsLoading(false);
-        toast.success("Register Successfully");
       });
   };
 
@@ -91,11 +103,11 @@ function RegisterModal({ }: Props) {
             register={register}
             errors={errors}
             required
-            type={showPassword ? "text" : "password"} // Toggle input type based on showPassword state
+            type={showPassword ? "text" : "password"}
           />
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)} // Toggle password visibility
+            onClick={() => setShowPassword(!showPassword)}
             className="text-sm text-neutral-600 focus:outline-none"
           >
             {showPassword ? "Hide" : "Show"} Password
