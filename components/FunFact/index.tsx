@@ -14,7 +14,7 @@ const FunFact = () => {
             height={284}
             src="/images/shape/camera.png"
             alt="Camera"
-            className="absolute bottom-0 left-0 transform translate-y-0 lg:left-0 lg:top-0 lg:translate-y-0 w-[150px] md:w-[200px] lg:w-[300px]" // Positioned at bottom left on mobile
+            className="absolute bottom-0 left-0 transform translate-y-0 lg:left-0 lg:top-0 lg:translate-y-0 w-[150px] md:w-[200px] lg:w-[300px] hidden xl:block"
           />
 
           <Image
