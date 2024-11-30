@@ -54,7 +54,7 @@ const Hero = () => {
             Whether you’re telling a story or capturing a moment, find the space that elevates your vision.
           </p>
           <Link href="/home" passHref>
-            <button className="bg-white mt-10 text-black px-6 py-3 rounded-full font-semibold text-lg shadow-md hover:bg-gray-100 transition duration-300 relative z-20">
+            <button className="bg-white mt-10 text-black px-6 py-2.5 rounded-full font-semibold text-lg shadow-md hover:scale-105 duration-300 relative z-20">
               Explore now
             </button>
           </Link>

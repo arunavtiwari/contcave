@@ -13,22 +13,22 @@ const ProfileSettingsClient = ({ profile }) => {
   return (
 
     <div className="flex py-10">
-      <div className="xl:w-20 lg:w-20 md:w-20 w-16 flex flex-col items-center justify-center h-max bg-[#12121291] backdrop-blur-xl ms-2 p-4 rounded-xl space-y-4">
-        <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/Profile")}>
-          <Image src="/assets/user-white.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+      <div className="w-14 sticky top-50 flex flex-col items-center justify-center h-max p-4 rounded-full space-y-10 bg-[#12121291] backdrop-blur-xl ms-3">
+        <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/Profile")}>
+          <Image src="/assets/user-white.svg" width={25} height={25} alt="" className="object-contain" />
         </div>
-        <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/payment-details")}>
-          <Image src="/assets/faCreditCard.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+        <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/payment-details")}>
+          <Image src="/assets/faCreditCard.svg" width={25} height={25} alt="" className="object-contain" />
         </div>
-        <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-share")}>
-          <Image src="/assets/faUserPlus.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+        <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-share")}>
+          <Image src="/assets/faUserPlus.svg" width={25} height={25} alt="" className="object-contain" />
         </div>
-        <div className="w-[30px] h-10 flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-settings")}>
-          <Image src="/assets/settings-black.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+        <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-settings")}>
+          <Image src="/assets/settings-black.svg" width={25} height={25} alt="" className="object-contain" />
         </div>
       </div>
       <div className="xl:w-[calc(100%-80px)] lg:w-[calc(100%-80px)] md:w-[calc(100%-80px)] w-[calc(100%-64px)] xl:px-10 lg:px-10 md:px-6 px-6">
-        <h2 className="xl:text-center lg:text-center md:text-center text-left text-2xl text-slate-950 font-bold mb-10">Settings</h2>
+        <h2 className="xl:text-center lg:text-center md:text-center text-left xl:text-3xl text-xl text-slate-950 font-bold mb-10">Settings</h2>
         <div className="mt-8">
           <ul className="list-decimal space-y-3">
             <li>

@@ -15,7 +15,7 @@ const CTA = () => {
             height={299}
             src="/images/shape/open_banner.png"
             alt="Listing"
-            className="absolute bottom-0 right-0 transform translate-x-0 translate-y-0 lg:-top-25 lg:translate-y-0 lg:translate-x-0 w-[180px] md:w-[240px] lg:w-[310px] -z-10"
+            className="absolute bottom-0 right-0 transform translate-x-0 translate-y-0 lg:-top-25 lg:translate-y-0 lg:translate-x-0 w-[180px] md:w-[240px] lg:w-[310px] -z-10 hidden xl:block"
           />
           <motion.div
             variants={{
@@ -44,7 +44,7 @@ const CTA = () => {
 
 
           <div className="flex justify-center">
-            <Link href="/home" className="flex rounded-full bg-black px-7.5 py-2.5 text-white duration-300 ease-in-out hover:bg-blackho">
+            <Link href="/home" className="flex rounded-full bg-black px-6 py-2.5 text-white hover:scale-105 duration-300">
               <button aria-label="list your space button">List Your Space</button>
             </Link>
           </div>

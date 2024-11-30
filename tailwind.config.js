@@ -113,7 +113,7 @@ module.exports = {
         "solid-3": "0px 6px 90px rgba(8, 14, 40, 0.04)",
         "solid-4": "0px 6px 90px rgba(8, 14, 40, 0.1)",
         "solid-5": "0px 8px 24px rgba(45, 74, 170, 0.08)",
-        "solid-6": "0px 8px 24px rgba(10, 16, 35, 0.08)",
+        "solid-6": "0px 0px 24px rgba(10, 16, 35, 0.08)",
         "solid-7": "0px 30px 50px rgba(45, 74, 170, 0.1)",
         "solid-8": "0px 12px 120px rgba(45, 74, 170, 0.06)",
         "solid-9": "0px 12px 30px rgba(45, 74, 170, 0.06)",

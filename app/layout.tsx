@@ -39,7 +39,7 @@ export default async function RootLayout({
           <RentModal />
           <Navbar currentUser={currentUser} />
         </ClientOnly>
-        <div className="pt-28">{children}</div>
+        <div className="pt-[85px]">{children}</div>
         <Footer />
       </body>
     </html>

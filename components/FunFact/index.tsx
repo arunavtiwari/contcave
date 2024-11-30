@@ -14,7 +14,7 @@ const FunFact = () => {
             height={284}
             src="/images/shape/camera.png"
             alt="Camera"
-            className="absolute bottom-0 left-0 transform translate-y-0 lg:left-0 lg:top-0 lg:translate-y-0 w-[150px] md:w-[200px] lg:w-[300px]" // Positioned at bottom left on mobile
+            className="absolute bottom-0 left-0 transform translate-y-0 lg:left-0 lg:top-0 lg:translate-y-0 w-[150px] md:w-[200px] lg:w-[300px] hidden xl:block"
           />
 
           <Image
@@ -68,7 +68,7 @@ const FunFact = () => {
           <div className="flex justify-center">
             <Link
               href="/home"
-              className="flex rounded-full bg-black px-7.5 py-2.5 text-white duration-300 ease-in-out hover:bg-blackho"
+              className="flex rounded-full bg-black px-6 py-2.5 text-white hover:scale-105 duration-300"
             >
               <button aria-label="get started button">Get Started</button>
             </Link>

@@ -68,19 +68,19 @@ function UserMenu({ currentUser }: Props) {
       <div className="flex flex-row items-center gap-3">
         <div className="flex flex-row items-center gap-1">
           <div
-            className="hidden md:block text-sm font-semibold py-7 px-2 rounded-full hover:bg-neutral-100 transition cursor-pointer"
+            className="hidden md:block text-sm font-semibold p-3 rounded-full hover:bg-neutral-100 transition cursor-pointer"
             onClick={onRent}
           >
             List Your Space
           </div>
           <div
-            className="hidden md:block text-sm font-semibold py-7 px-2 rounded-full hover:bg-neutral-100 transition cursor-pointer"
+            className="hidden md:block text-sm font-semibold p-3 rounded-full hover:bg-neutral-100 transition cursor-pointer"
             onClick={onRentEquip}
           >
             Rent Equipment
           </div>
           <div
-            className="hidden md:block text-sm font-semibold py-7 px-1 rounded-full hover:bg-neutral-100 transition cursor-pointer"
+            className="hidden md:block text-sm font-semibold p-3 rounded-full hover:bg-neutral-100 transition cursor-pointer"
             onClick={onHireTalent}
           >
             Hire Talent
@@ -109,7 +109,7 @@ function UserMenu({ currentUser }: Props) {
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute rounded-xl shadow-md w-[40vw] md:w-3/4 bg-white overflow-hidden right-0 top-15 text-sm"
+          className="absolute rounded-xl shadow-solid-6 w-[40vw] md:w-3/4 bg-white overflow-hidden right-0 top-[3.2rem] text-sm p-3"
         >
           <div className="flex flex-col cursor-pointer">
             {currentUser ? (
@@ -128,14 +128,14 @@ function UserMenu({ currentUser }: Props) {
                 />
                 <MenuItem
                   onClick={() => router.push("/properties")}
-                  label="My properties"
+                  label="My Properties"
                 />
                 <MenuItem onClick={onRent} label="List your space" />
                 <MenuItem
                   onClick={() => router.push("/Profile")}
                   label="My Profile"
                 />
-                <hr />
+                <hr className="my-2" />
                 <MenuItem onClick={() => signOut()} label="Logout" />
               </>
             ) : (
