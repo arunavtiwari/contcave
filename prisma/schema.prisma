@@ -34,6 +34,7 @@ model User {
   paymentDetails   PaymentDetails?   @relation(fields: [paymentDetailsId], references: [id])
   paymentDetailsId String?
   is_owner         Boolean           @default(false)
+  is_verified      Boolean           @default(false)
 }
 
 model Account {
