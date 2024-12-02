@@ -39,6 +39,7 @@ export default async function Home() {
         <CTA />
         {/* <Contact /> */}
         {/* <Blog/> */}
+        
       </main>
     </ClientOnly>
   );
