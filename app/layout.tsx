@@ -12,6 +12,7 @@ import getCurrentUser from "./actions/getCurrentUser";
 import { CategoryProvider } from "./context/CategoryContext";
 import CustomAddonModal from "@/components/models/CustomAddonModal";
 import OwnerModal from "@/components/models/OwnerModal";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata = {
   title: "ContCave",
@@ -43,6 +44,7 @@ export default async function RootLayout({
           <Navbar currentUser={currentUser} />
         </ClientOnly>
         <div className="pt-[85px]">{children}</div>
+        <ScrollToTop />
         <Footer />
 
       </body>
