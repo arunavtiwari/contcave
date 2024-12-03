@@ -14,7 +14,7 @@ const FAQ = () => {
 
   return (
     <>
-      {/* <!-- ===== FAQ Start ===== --> */}
+      {/* <!-- ===== FAQ Start ==== --> */}
       <section className="overflow-hidden pb-20 lg:pb-25 xl:pb-30">
         <div className="relative mx-auto max-w-c-1235 px-4 md:px-8 xl:px-0">
           <div className="absolute -bottom-16 -z-1 h-full w-full">
@@ -31,7 +31,7 @@ const FAQ = () => {
               className="hidden "
             />
           </div>
-          <div className="flex flex-wrap gap-8 md:flex-nowrap md:items-center xl:gap-32.5">
+          <div className="flex flex-wrap gap-8 md:flex-nowrap  xl:gap-32.5">
             <motion.div
               variants={{
                 hidden: {
@@ -62,7 +62,7 @@ const FAQ = () => {
 
               <a
                 href="#"
-                className="group mt-7.5 inline-flex items-center gap-2.5 text-black hover:text-primary"
+                className="group mt-7.5 inline-flex items-center gap-2.5 text-black hover:font-bold"
               >
                 <span className="duration-300 group-hover:pr-2">Know More</span>
                 <svg
@@ -97,7 +97,7 @@ const FAQ = () => {
               viewport={{ once: true }}
               className="animate_right md:w-3/5 lg:w-1/2"
             >
-              <div className="rounded-lg bg-white shadow-solid-8">
+              <div className="rounded-xl bg-white shadow-solid-8 border">
                 {faqData.map((faq, key) => (
                   <FAQItem
                     key={key}

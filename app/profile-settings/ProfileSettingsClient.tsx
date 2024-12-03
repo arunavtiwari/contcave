@@ -28,7 +28,7 @@ const ProfileSettingsClient = ({ profile }) => {
         </div>
       </div>
       <div className="xl:w-[calc(100%-80px)] lg:w-[calc(100%-80px)] md:w-[calc(100%-80px)] w-[calc(100%-64px)] xl:px-10 lg:px-10 md:px-6 px-6">
-        <h2 className="xl:text-center lg:text-center md:text-center text-left text-2xl text-slate-950 font-bold mb-10">Settings</h2>
+        <h2 className="xl:text-center lg:text-center md:text-center text-left xl:text-3xl text-xl text-slate-950 font-bold mb-10">Settings</h2>
         <div className="mt-8">
           <ul className="list-decimal space-y-3">
             <li>

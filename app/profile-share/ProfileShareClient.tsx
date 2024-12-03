@@ -6,11 +6,23 @@ import React from "react";
 import Image from "next/image";
 import getCurrentUser from "../actions/getCurrentUser";
 import { useRouter } from "next/navigation";
+import { useState } from 'react';
 
 type Props = {};
 
 const ProfileShareClient = ({ profile }) => {
   const router = useRouter();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    const textToCopy = "This is the text to copy";
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(err => console.error("Failed to copy text: ", err));
+  };
   return (
 
     <div className="flex py-10">
@@ -29,7 +41,7 @@ const ProfileShareClient = ({ profile }) => {
         </div>
       </div>
       <div className="xl:w-[calc(100%-80px)] lg:w-[calc(100%-80px)] md:w-[calc(100%-80px)] w-[calc(100%-64px)] xl:px-10 lg:px-10 md:px-6 px-6">
-        <h2 className="xl:text-center lg:text-center md:text-center text-left text-2xl text-slate-950 font-bold">Share with Friends and Earn Rewards  🙌</h2>
+        <h2 className="xl:text-center lg:text-center md:text-center text-left xl:text-3xl text-xl text-slate-950 font-bold mb-10">Share with Friends and Earn Rewards  🙌</h2>
         <p className="text-base text-slate-600 font-medium mb-8">Refer your friends to ContCave and both of you can earn
           rewards.</p>
         <div className="space-y-12">
@@ -43,25 +55,28 @@ const ProfileShareClient = ({ profile }) => {
           </div>
           <div className="relative">
             <div className="text-base font-semibold text-slate-950">Your Referral Link:</div>
-            <div className="flex items-center bg-gray-200 w-full px-3 py-2 mt-4">
-              <div className="w-6 h-6">
-                <Image src="assets/Invite.svg" alt="" width={30} height={40} className="w-full h-full object-contain" />
+            <div className="flex">
+              <div className="flex items-center bg-gray-200 w-2/4 py-2.5 px-5 mt-4 rounded-full justify-between">
+                <div className="text-base">[Your Unique Referral Link]</div>
+                <div className="w-6 h-6 cursor-pointer hover:scale-105" onClick={handleCopy}>
+                  <Image src="/assets/share.svg" alt="Share" width={40} height={40} className="w-full h-full object-contain" />
+                </div>
               </div>
-              <div className="text-base pl-4">[Your Unique Referral Link]</div>
+              {copied && <span className="font-bold flex items-center py-2.5 px-4 mt-3">Copied!</span>}
             </div>
           </div>
         </div>
         <div className="flex items-center xl:justify-end lg:justify-end md:justify-end justify-between xl:text-right lg:text-right md:text-right text-left mt-10 xl:flex-nowrap lg:flex-nowrap md:flex-wrap flex-wrap">
           <div className="text-lg pr-4"> Copy and share it with your friends now!</div>
-          <ul className="flex items-center space-x-2">
-            <li className="w-8 h-8">
-              <Image src="assets/Messages.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+          <ul className="flex items-center space-x-4">
+            <li className="w-7 h-7 cursor-pointer hover:scale-105">
+              <Image src="/assets/messages.png" width={30} height={30} alt="" className="w-full h-full object-contain" />
             </li>
-            <li className="w-8 h-8">
-              <Image src="assets/Instagram.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+            <li className="w-7 h-7 cursor-pointer hover:scale-105">
+              <Image src="assets/Instagram.svg" width={30} height={30} alt="" className="w-full h-full object-contain" />
             </li>
-            <li className="w-8 h-8">
-              <Image src="assets/WhatsApp.svg" width={30} height={40} alt="" className="w-full h-full object-contain" />
+            <li className="w-7 h-7 cursor-pointer hover:scale-105">
+              <Image src="assets/WhatsApp.svg" width={30} height={30} alt="" className="w-full h-full object-contain" />
             </li>
           </ul>
         </div>
@@ -89,6 +104,7 @@ const ProfileShareClient = ({ profile }) => {
             </div>
           </div>
         </div>
+
         <div className="flex items-center xl:justify-end lg:justify-end md:justify-end justify-between xl:text-right lg:text-right md:text-right text-left mt-16  xl:flex-nowrap lg:flex-nowrap md:flex-wrap flex-wrap">
           <div className="text-lg pr-4"> Follow and Tag Us Now!</div>
           <ul className="flex items-center space-x-2">
