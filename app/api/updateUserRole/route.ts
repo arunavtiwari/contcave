@@ -1,18 +1,44 @@
-import prisma from "@/lib/prismadb";
 import { NextResponse } from "next/server";
+import prisma from "@/lib/prismadb";
+import getCurrentUser from "@/app/actions/getCurrentUser";
 
 export async function POST(request: Request) {
-    const body = await request.json();
-    const { id, is_owner } = body;
-
     try {
-        const user = await prisma.user.update({
-            where: { id },
-            data: { is_owner: is_owner },
+        // Get the authenticated user
+        const currentUser = await getCurrentUser();
+
+        // If the user is not authenticated, return a 401 response
+        if (!currentUser) {
+            return NextResponse.json(
+                { error: "User not authenticated" },
+                { status: 401 }
+            );
+        }
+
+        // Parse the request body
+        const { is_owner } = await request.json();
+
+        // Ensure `is_owner` is provided in the request body
+        if (typeof is_owner !== "boolean") {
+            return NextResponse.json(
+                { error: "Invalid or missing 'is_owner' field" },
+                { status: 400 }
+            );
+        }
+
+        // Update the user's role
+        const updatedUser = await prisma.user.update({
+            where: { id: currentUser.id },
+            data: { is_owner },
         });
 
-        return NextResponse.json(user);
+        // Return the updated user object
+        return NextResponse.json(updatedUser);
     } catch (error) {
-        return NextResponse.error();
+        console.error("Error updating user role:", error);
+        return NextResponse.json(
+            { error: "Internal Server Error" },
+            { status: 500 }
+        );
     }
 }

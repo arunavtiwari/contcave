@@ -8,8 +8,7 @@ import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { AiFillFacebook } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
-import useOwnerModal from "@/hook/useOwnerModal";
-import { signIn } from "next-auth/react"; 
+import { signIn } from "next-auth/react";
 import Button from "../Button";
 import Heading from "../Heading";
 import Input from "../inputs/Input";
@@ -19,10 +18,9 @@ type Props = {};
 
 function RegisterModal({ }: Props) {
   const registerModel = useRegisterModal();
-  const loginModel = useLoginModel(); 
+  const loginModel = useLoginModel();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const ownerModal = useOwnerModal();
 
   const {
     register,
@@ -50,7 +48,6 @@ function RegisterModal({ }: Props) {
           if (callback?.ok) {
             toast.success("Successfully registered and logged in!");
             registerModel.onClose();
-            ownerModal.onOpen();
           } else if (callback?.error) {
             toast.error("Login failed");
           }
@@ -138,6 +135,17 @@ function RegisterModal({ }: Props) {
                 className="text-neutral-800 cursor-pointer hover:underline"
               >
                 Log in
+              </span>
+            </div>
+          </div>
+          <div className="text-neutral-500 text-center mt-4 font-light">
+            <div>
+              Are you a space owner?{" "}
+              <span
+                onClick={toggle}
+                className="text-neutral-800 cursor-pointer hover:underline"
+              >
+                Register here
               </span>
             </div>
           </div>

@@ -14,7 +14,7 @@ const faqData: FAQ[] = [
   {
     id: 3,
     quest: "What does ContCave mean?",
-    ans: "The name combines \"content\" and \"cave\", symbolizing a treasure trove for creative expression."
+    ans: "The name combines \"content\" and \"cave\", we were just trying to be creative XD"
   },
 ];
 

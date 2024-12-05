@@ -11,7 +11,6 @@ import "../styles/globals.css";
 import getCurrentUser from "./actions/getCurrentUser";
 import { CategoryProvider } from "./context/CategoryContext";
 import CustomAddonModal from "@/components/models/CustomAddonModal";
-import OwnerModal from "@/components/models/OwnerModal";
 import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata = {
@@ -39,7 +38,6 @@ export default async function RootLayout({
           <SearchModal />
           <RegisterModal />
           <LoginModal />
-          <OwnerModal />
           <RentModal />
           <Navbar currentUser={currentUser} />
         </ClientOnly>

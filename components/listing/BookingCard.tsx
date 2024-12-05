@@ -70,8 +70,7 @@ function BookingCard({
         return data.price;
     }, [reservation, data.price]);
 
-    // Determine Booking Status
-    const bookingStatus = reservation?.isApproved; // Assuming `status` can be 'approved', 'pending', or 'cancelled'
+    const bookingStatus = reservation?.isApproved; // `status` can be 'approved', 'pending', or 'cancelled'
 
     const getStatusBanner = () => {
         if (bookingStatus == 1) {
@@ -129,15 +128,6 @@ function BookingCard({
 
                     {/* Property Title */}
                     <div className="font-semibold text-lg">{data.title}</div>
-                    <div className="font-light text-neutral-500">
-                        {data.category} | {location?.label}
-                    </div>
-
-                    <div className="flex flex-row items-center">
-                        <div className="flex gap-1 font-semibold">
-                            ₹{price} {!reservation && <div className="font-light"> / Hour</div>}
-                        </div>
-                    </div>
                     {!reservation?.isApproved && onApprove && (
                         <Button
                             label="Approve"
