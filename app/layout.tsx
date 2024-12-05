@@ -12,6 +12,7 @@ import getCurrentUser from "./actions/getCurrentUser";
 import { CategoryProvider } from "./context/CategoryContext";
 import CustomAddonModal from "@/components/models/CustomAddonModal";
 import ScrollToTop from "@/components/ScrollToTop";
+import CookieConsent from "@/components/CookieConsentBanner";
 
 export const metadata = {
   title: "ContCave",
@@ -40,6 +41,7 @@ export default async function RootLayout({
           <LoginModal />
           <RentModal />
           <Navbar currentUser={currentUser} />
+          <CookieConsent />
         </ClientOnly>
         <div className="pt-[85px]">{children}</div>
         <ScrollToTop />
