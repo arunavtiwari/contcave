@@ -8,8 +8,6 @@ import ImageUpload from "@/components/inputs/ImageUpload";
 import useRentModal from "@/hook/useRentModal";
 import useLoginModel from "@/hook/useLoginModal";
 import { useRouter } from "next/navigation";
-import OwnerModal from "@/components/models/OwnerModal";
-import useOwnerModal from "@/hook/useOwnerModal";
 
 type Props = {};
 
@@ -17,7 +15,6 @@ const ProfileClient = ({ profile }) => {
   const router = useRouter();
   const rentModel = useRentModal();
   const loginModel = useLoginModel();
-  const ownerModal = useOwnerModal();
   const [currentUser, setCurrentUser] = useState<any>();
   const [editMode, setEditMode] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
@@ -293,13 +290,7 @@ const ProfileClient = ({ profile }) => {
                     <p className="text-base leading-tight">
                       Let us know if you are a space owner by verifying your identity and submitting required documents.
                     </p>
-                    <button
-                      type="button"
-                      onClick={ownerModal.onOpen} // Open Owner Modal
-                      className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85"
-                    >
-                      Yes, I am a Space Owner
-                    </button>
+
                   </div>
                 </div>
               )}

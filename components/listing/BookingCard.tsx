@@ -87,12 +87,12 @@ function BookingCard({
 
     const getBannerColor = () => {
         if (bookingStatus == 1) {
-            return "bg-green-500";
+            return "#27AE60";
         }
         if (bookingStatus == 0) {
-            return "bg-yellow-500";
+            return "#e4b400";
         }
-        return "bg-red-500";
+        return "#E74C3C";
     };
 
     const toggleReceiptModal = () => setShowReceipt(!showReceipt);
@@ -120,7 +120,7 @@ function BookingCard({
                         />
                         {/* Status Banner */}
                         <div
-                            className={`absolute top-3 right-3 px-3 py-1 rounded-lg text-white text-sm font-semibold ${getBannerColor()}`}
+                            className={`absolute top-3 right-3 px-3 py-1 rounded-lg text-white text-sm bg-[${getBannerColor()}]`}
                         >
                             {getStatusBanner()}
                         </div>
@@ -131,14 +131,14 @@ function BookingCard({
                     {!reservation?.isApproved && onApprove && (
                         <Button
                             label="Approve"
-                            classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
+                            classNames="text-md font-semibold py-3 border-2 bg-[#27AE60] border-[#27AE60] text-white ml-2 rounded-md"
                             onClick={() => onApprove(reservation?.id ?? "")}
                         />
                     )}
                     {!reservation?.isApproved && onReject && (
                         <Button
                             label="Reject"
-                            classNames="text-md font-semibold py-3 border-2  bg-rose-500 border-rose-500 text-white ml-2"
+                            classNames="text-md font-semibold py-3 border-2 bg-[#E74C3C] border-[#E74C3C] text-white ml-2 rounded-md"
                             onClick={() => onReject(reservation?.id ?? "")}
                         />
                     )}
@@ -148,7 +148,7 @@ function BookingCard({
                             <div className="flex items-center gap-2">
                                 {/* "i" Button */}
                                 <div className="w-1/4">
-                                    <div className="flex items-center p-4 justify-center bg-rose-500 h-full rounded-md">
+                                    <div className="flex items-center p-4 justify-center bg-[#4682B4] h-full rounded-md">
                                         <IconButton
                                             icon={<FaCircleInfo />}
                                             aria-label="Info"
@@ -163,10 +163,10 @@ function BookingCard({
                                 {/* Message the Host Button */}
                                 <div className="w-3/4">
                                     <Button
-                                        label={onApprove ? "Message Client" : "Message the Host"}
+                                        label={onApprove ? "Message Client" : "Message Host"}
                                         onClick={() => onChat?.(reservation?.id ?? "")}
                                         disabled={bookingStatus != 1} // Disable if not approved
-                                        classNames={`text-md font-semibold py-3 border-2 ${bookingStatus == 1
+                                        classNames={`button button-rounded text-md font-semibold ${bookingStatus == 1
                                             ? "bg-gray-700 text-white"
                                             : "bg-gray-200 text-gray-500 cursor-not-allowed"
                                             }`}
@@ -178,7 +178,7 @@ function BookingCard({
                                 <Button
                                     label="Cancel Reservation"
                                     onClick={handleCancel}
-                                    classNames="text-md font-semibold py-3 border-2 bg-white border-rose-500 text-rose-500"
+                                    classNames="text-md font-semibold py-3 border-2 bg-white border-[#E74C3C] text-[#E74C3C] rounded-md"
                                 />
                             )}
 

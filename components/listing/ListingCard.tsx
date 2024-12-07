@@ -103,8 +103,10 @@ function ListingCard({
             <Button
               label="Manage"
               onClick={() => onEdit(data.id)}
+              classNames="button button-rounded"
             />
           )}
+
           {/* {onDelete && (
             <Button
               label="Delete"

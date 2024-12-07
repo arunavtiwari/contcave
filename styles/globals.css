@@ -176,3 +176,21 @@ body,
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
+
+.button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  background-color: #353839;
+  color: #FFFFFF;
+  transition: background-color 0.3s ease;
+}
+
+.button-rounded {
+  border-radius: 8px;
+}
+
+.button:hover {
+  background-color: #000000;
+}
