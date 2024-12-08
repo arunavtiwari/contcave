@@ -165,6 +165,7 @@ function Offers({ amenities, definedAmenities }: Props) {
           {definedAmenities?.map((item, index) =>
           (
             <motion.div
+              key={item.id}
               initial={{
                 x: -200,
                 opacity: 0,
