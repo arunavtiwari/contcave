@@ -62,7 +62,7 @@ function Footer() {
             </a>
           </div>
 
-          <div className="flex space-x-4">
+          <div className="flex space-x-4 justify-center text-center md:text-left">
             <p className="text-base text-black">
               Have a question? Feel free to reach out to us at{" "}
               <a href="mailto:support@contcave.tech" className="text-blue-500 underline">
@@ -70,6 +70,7 @@ function Footer() {
               </a>
             </p>
           </div>
+
         </div>
 
         {/* Right Part */}
