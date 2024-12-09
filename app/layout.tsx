@@ -13,6 +13,7 @@ import { CategoryProvider } from "./context/CategoryContext";
 import CustomAddonModal from "@/components/models/CustomAddonModal";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsentBanner";
+import OwnerRegisterModal from "@/components/models/OwnerRegisterModal";
 
 export const metadata = {
   title: "ContCave",
@@ -39,6 +40,7 @@ export default async function RootLayout({
           <SearchModal />
           <RegisterModal />
           <LoginModal />
+          <OwnerRegisterModal />
           <RentModal />
           <Navbar currentUser={currentUser} />
           <CookieConsent />

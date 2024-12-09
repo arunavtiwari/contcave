@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import useLoginModel from "@/hook/useLoginModal";
+import useLoginModal from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";
+import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
 import axios from "axios";
 import { useCallback, useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import { AiFillFacebook } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 import { signIn } from "next-auth/react";
@@ -14,11 +14,10 @@ import Heading from "../Heading";
 import Input from "../inputs/Input";
 import Modal from "./Modal";
 
-type Props = {};
-
-function RegisterModal({ }: Props) {
-  const registerModel = useRegisterModal();
-  const loginModel = useLoginModel();
+function RegisterModal() {
+  const registerModal = useRegisterModal();
+  const loginModal = useLoginModal();
+  const ownerRegisterModal = useOwnerRegisterModal();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -34,99 +33,126 @@ function RegisterModal({ }: Props) {
     },
   });
 
-  const onSubmit: SubmitHandler<FieldValues> = (data) => {
+  const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     setIsLoading(true);
 
-    axios
-      .post("/api/register", data)
-      .then(() => {
-        signIn("credentials", {
-          email: data.email,
-          password: data.password,
-          redirect: false,
-        }).then((callback) => {
-          if (callback?.ok) {
-            toast.success("Successfully registered and logged in!");
-            registerModel.onClose();
-          } else if (callback?.error) {
-            toast.error("Login failed");
-          }
-        });
-      })
-      .catch((err: any) => {
-        toast.error("Something went wrong during registration.");
-      })
-      .finally(() => {
-        setIsLoading(false);
+    try {
+      await axios.post("/api/register", data);
+      const callback = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
       });
+
+      if (callback?.ok) {
+        toast.success("Successfully registered and logged in!");
+        registerModal.onClose();
+      } else if (callback?.error) {
+        toast.error("Login failed");
+      }
+    } catch (err) {
+      toast.error("Something went wrong during registration.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggle = useCallback(() => {
-    loginModel.onOpen();
-    registerModel.onClose();
-  }, [loginModel, registerModel]);
+    loginModal.onOpen();
+    registerModal.onClose();
+  }, [loginModal, registerModal]);
+
+  const ownertoggle = useCallback(() => {
+    ownerRegisterModal.onOpen();
+    registerModal.onClose();
+  }, [ownerRegisterModal, registerModal]);
 
   return (
     <Modal
       disabled={isLoading}
-      isOpen={registerModel.isOpen}
+      isOpen={registerModal.isOpen}
       title="Register"
       actionLabel="Continue"
-      onClose={registerModel.onClose}
+      onClose={registerModal.onClose}
       onSubmit={handleSubmit(onSubmit)}
       body={
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           <Heading title="Welcome to ContCave" subtitle="Create an Account!" center />
+
+
           <Input
             id="email"
             label="Email Address"
             disabled={isLoading}
-            register={register}
+            register={register("email", {
+              required: "Email is required",
+              pattern: {
+                value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
+                message: "Enter a valid email address",
+              },
+            })}
             errors={errors}
-            required
           />
+
+          {/* Name Validation */}
           <Input
             id="name"
             label="User Name"
             disabled={isLoading}
-            register={register}
+            register={register("name", {
+              required: "Username is required",
+              minLength: {
+                value: 3,
+                message: "Username must be at least 3 characters",
+              },
+              maxLength: {
+                value: 20,
+                message: "Username cannot exceed 20 characters",
+              },
+            })}
             errors={errors}
-            required
           />
+
+          {/* Password Validation */}
           <Input
             id="password"
             label="Password"
-            disabled={isLoading}
-            register={register}
-            errors={errors}
-            required
             type={showPassword ? "text" : "password"}
+            disabled={isLoading}
+            register={register("password", {
+              required: "Password is required",
+              minLength: {
+                value: 6,
+                message: "Password must be at least 6 characters",
+              },
+              // pattern: {
+              //   value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/,
+              //   message: "Password must contain letters and numbers",
+              // },
+            })}
+            errors={errors}
           />
+
+          {/* Show Password Toggle */}
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="text-sm text-neutral-600 focus:outline-none"
+            className="text-sm text-neutral-600 focus:outline-none mt-2"
           >
             {showPassword ? "Hide" : "Show"} Password
           </button>
         </div>
       }
       footer={
-        <div className="flex flex-col gap-4 mt-3">
-          <hr />
+        <div className="flex flex-col gap-4 mt-6">
+          <hr className="border-neutral-300" />
           <Button
             outline
+            classNames="w-full py-3 bg-white border border-neutral-300 hover:bg-neutral-100 rounded-full flex items-center justify-center space-x-3"
             label="Continue with Google"
             icon={FcGoogle}
             onClick={() => signIn("google")}
           />
-          {/* <Button
-            outline
-            label="Continue with Facebook"
-            icon={AiFillFacebook}
-            onClick={() => signIn("facebook")}
-            isColor
-          /> */}
           <div className="text-neutral-500 text-center mt-4 font-light">
             <div>
               Already have an account?{" "}
@@ -142,7 +168,7 @@ function RegisterModal({ }: Props) {
             <div>
               Are you a space owner?{" "}
               <span
-                onClick={toggle}
+                onClick={ownertoggle}
                 className="text-neutral-800 cursor-pointer hover:underline"
               >
                 Register here
