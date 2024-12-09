@@ -13,13 +13,13 @@ import useAddonModal from "@/hook/useAddonModal";
 import ImageUpload from "../inputs/ImageUpload";
 
 type Props = {
-    save:(value:{imageUrl?:string,name:string})=>void;
+  save: (value: { imageUrl?: string, name: string }) => void;
 };
 
-function CustomAddonModal({ save}: Props) {
+function CustomAddonModal({ save }: Props) {
   const addonModel = useAddonModal();
   const [isLoading, setIsLoading] = useState(false);
-  const [image, setImage] = useState<any>([]); // State to track password visibility
+  const [image, setImage] = useState<any>([]);
 
   const {
     register,
@@ -27,14 +27,14 @@ function CustomAddonModal({ save}: Props) {
     formState: { errors },
   } = useForm<FieldValues>({
     defaultValues: {
- 
+
       name: ""
     },
   });
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     addonModel.onClose();
-    save({name : data.name,imageUrl:image[0]});
+    save({ name: data.name, imageUrl: image[0] });
     setImage([]);
   };
 
@@ -52,21 +52,23 @@ function CustomAddonModal({ save}: Props) {
       onSubmit={handleSubmit(onSubmit)}
       body={
         <>
-        <Input
+          <Input
             id="name"
-            label="Name of addon"
+            label="Name of Add-on"
             disabled={isLoading}
-            register={register}
+            register={register("name", {
+              required: "Name of Add-on required",
+            })}
             errors={errors}
             required
-        />
-        <br/>
-        <ImageUpload
-              onChange={(value) => { setImage(value); } }
-              values={image} />
-              </>
+          />
+          <br />
+          <ImageUpload
+            onChange={(value) => { setImage(value); }}
+            values={image} />
+        </>
       }
-    
+
     />
   );
 }
