@@ -182,15 +182,15 @@ body,
   border: none;
   cursor: pointer;
   font-size: 16px;
-  background-color: #353839;
+  background-color: #000000;
   color: #FFFFFF;
   transition: background-color 0.3s ease;
 }
 
 .button-rounded {
-  border-radius: 8px;
+  border-radius: 5px;
 }
 
 .button:hover {
-  background-color: #000000;
+  background-color: #353839;
 }

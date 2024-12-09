@@ -90,7 +90,7 @@ function BookingCard({
             return "#27AE60";
         }
         if (bookingStatus == 0) {
-            return "#e4b400";
+            return "#FCD34D";
         }
         return "#E74C3C";
     };

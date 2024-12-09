@@ -31,9 +31,9 @@ function Button({
       className={`relative 
         disabled:opacity-70 
         disabled:cursor-not-allowed 
-        rounded-full 
         hover:opacity-80 
-        py-2 
+        rounded-md
+        py-3 
         transition 
         w-full 
         ${classNames || (outline ? "bg-white border-black text-black" : "bg-black border-red-500 text-white")}
