@@ -78,8 +78,8 @@ function Footer() {
           <div className="flex flex-col space-y-2">
             <p className="text-xl font-bold text-black">Company</p>
             <a onClick={() => { router.push("/about") }} className="cursor-pointer text-btndark/80 hover:text-black transition-all">About</a>
-            <a onClick={() => { router.push("/policy") }} className="cursor-pointer text-btndark/80 hover:text-black transition-all">Privacy Policy</a>
-            <a onClick={() => { router.push("/terms") }} className="cursor-pointer text-btndark/80 hover:text-black transition-all">Terms & Conditions</a>
+            <a onClick={() => { router.push("/privacy-policy") }} className="cursor-pointer text-btndark/80 hover:text-black transition-all">Privacy Policy</a>
+            <a onClick={() => { router.push("/terms-and-conditions") }} className="cursor-pointer text-btndark/80 hover:text-black transition-all">Terms & Conditions</a>
             <a onClick={() => { router.push("/blogs") }} className="cursor-pointer text-btndark/80 hover:text-black transition-all">Blogs</a>
           </div>
 
