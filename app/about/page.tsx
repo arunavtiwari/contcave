@@ -12,7 +12,7 @@ const About = async (props: Props) => {
     return (
         <ClientOnly>
             <div className="banner">
-                <img src="https://anandamclarksinn.com/upload/8724.jpg" alt="Banner Image" />
+                <img src="/assets/footer-banner.jpg" alt="Banner Image" />
                 <div className="overlay">
                     <h1 className="banner-text">About Us</h1>
                 </div>
