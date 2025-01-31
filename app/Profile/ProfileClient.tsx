@@ -17,6 +17,20 @@ const ProfileClient = ({ profile }) => {
   const loginModel = useLoginModel();
   const [currentUser, setCurrentUser] = useState<any>();
   const [editMode, setEditMode] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user: any = profile;
+      if (user) {
+        setCurrentUser(user);
+        setIsVerified(user.is_verified || false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   const [userData, setUserData] = useState({
     name: "",
     description: "",
@@ -25,7 +39,8 @@ const ProfileClient = ({ profile }) => {
     title: "",
     email: "",
     phone: "",
-    profileImage: ""
+    profileImage: "",
+    isVerified
   });
   const onRent = useCallback(() => {
 
@@ -45,12 +60,11 @@ const ProfileClient = ({ profile }) => {
           title: user.title || "",
           email: user.email || "",
           phone: user.phone || "",
-          profileImage: user.profileImage || user.image || "/assets/default-profile.svg"
+          profileImage: user.profileImage || user.image || "/assets/default-profile.svg",
+          isVerified: user.is_verified
         });
       }
     };
-
-
 
     fetchUser();
   }, []);
@@ -246,7 +260,7 @@ const ProfileClient = ({ profile }) => {
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center hover:opacity-90"
+                    className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85"
                   >
                     Save Changes
                   </button>
@@ -257,7 +271,7 @@ const ProfileClient = ({ profile }) => {
                 <button
                   type="button"
                   onClick={() => setEditMode(!editMode)}
-                  className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2 font-semibold shadow-solid-6 rounded-full text-center hover:opacity-90"
+                  className="bg-black flex items-center justify-center mx-auto mt-4 text-white px-6 py-2.5 font-semibold shadow-solid-6 rounded-full text-center hover:opacity-85"
                 >
                   Edit Profile
                 </button>
@@ -268,51 +282,45 @@ const ProfileClient = ({ profile }) => {
             </div>
 
             {/* Right */}
-            <div className="realtive xl:pt-8 lg:pt-8 md:pt-8 pt-24 space-y-20">
-              {/* User Verification */}
-              <div className="border border-x-slate-300 p-6 rounded-2xl">
-                <div className="w-24 h-2w-24 flex justify-center mx-auto mt-[-65px]">
-                  <Image src="/assets/check.svg" width={24} height={24} alt="" className="w-full h-full" />
-                </div>
-                <div className="text-center space-y-5">
-                  <div className="text-xl text-center font-bold text-slate-950">User Verification</div>
-                  <p className="text-base leading-tight">
-                    Get verified effortlessly. We prioritize genuine listings, which is why
-                    hosts are required to verify their identity to list spaces and
-                    add payment details to receive payments.
-                  </p>
-                  <button type="button"
-                    className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center hover:opacity-90">
-                    Get Verified
-                  </button>
-                </div>
-              </div>
+            <div className="relative xl:pt-8 lg:pt-8 md:pt-8 pt-24 space-y-20">
+              {!isVerified && (
+                <div className="border border-x-slate-300 p-6 rounded-2xl">
+                  <div className="text-center space-y-5">
+                    <div className="text-xl font-bold text-slate-950">Are you a space owner?</div>
+                    <p className="text-base leading-tight">
+                      Let us know if you are a space owner by verifying your identity and submitting required documents.
+                    </p>
 
-              {/* User Verified */}
-              <div className="border border-x-slate-300 p-6 rounded-2xl">
-                <div className="w-24 h-2w-24 flex justify-center mx-auto mt-[-65px]">
-                  <Image src="/assets/check.svg" width={24} height={24} alt="" className="w-full h-full" />
-                </div>
-                <div className="text-center space-y-5">
-                  <div className="text-xl text-center font-bold text-slate-950">User Verified</div>
-                  <p className="text-base leading-tight">
-                    Your profile is verified, you can now
-                    list your space and add payment details
-                  </p>
-                  <div className="flex xl:flex-nowrap lg:flex-nowrap md:flex-wrap flex-wrap">
-                    <button type="button"
-                      onClick={onRent}
-                      className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center hover:opacity-90">
-                      List Your Space
-                    </button>
-                    <button type="button"
-                      className="bg-black flex items-center justify-center mx-auto text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center hover:opacity-90">
-                      Add Payment Details
-                    </button>
                   </div>
-
                 </div>
-              </div>
+              )}
+
+              {isVerified && (
+                <div className="border border-x-slate-300 p-6 rounded-2xl">
+                  <div className="text-center space-y-5">
+                    <div className="text-xl font-bold text-slate-950">User Verified</div>
+                    <p className="text-base leading-tight">
+                      Your profile is verified. You can now list your space and add payment details.
+                    </p>
+                    <div className="flex xl:flex-nowrap lg:flex-nowrap md:flex-wrap flex-wrap space-x-4">
+                      <button
+                        type="button"
+                        onClick={onRent}
+                        className="bg-black text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85"
+                      >
+                        List Your Space
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => router.push("/payment-details")}
+                        className="bg-black text-white px-6 py-2.5 font-semibold shadow-lg rounded-full text-center hover:opacity-85"
+                      >
+                        Add Payment Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

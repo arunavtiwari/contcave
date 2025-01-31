@@ -70,23 +70,36 @@ function LoginModal({ }: Props) {
       body={
         <div className="flex flex-col gap-4">
           <Heading title="Welcome Back" subtitle="Login to your Account!" center />
+
           <Input
             id="email"
             label="Email Address"
             disabled={isLoading}
-            register={register}
+            register={register("email", {
+              required: "Email is required",
+              pattern: {
+                value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
+                message: "Enter a valid email address",
+              },
+            })}
             errors={errors}
-            required
           />
+
           <Input
             id="password"
             label="Password"
             disabled={isLoading}
-            register={register}
+            register={register("password", {
+              required: "Password is required",
+              minLength: {
+                value: 6,
+                message: "Password must be at least 6 characters",
+              },
+            })}
             errors={errors}
-            required
             type={showPassword ? "text" : "password"}
           />
+
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
@@ -101,17 +114,11 @@ function LoginModal({ }: Props) {
           <hr />
           <Button
             outline
+            classNames="w-full py-3 bg-white border border-neutral-300 hover:bg-neutral-100 rounded-full flex items-center justify-center space-x-3"
             label="Continue with Google"
             icon={FcGoogle}
             onClick={() => signIn("google")}
           />
-          {/* <Button
-            outline
-            label="Continue with Facebook"
-            icon={AiFillFacebook}
-            onClick={() => signIn("facebook")}
-            isColor
-          /> */}
           <div className="text-neutral-500 text-center mt-4 font-light">
             <div>
               {"Don't have an Account? "}

@@ -38,16 +38,16 @@ const Hero = () => {
   }, []);
 
   return (
-    <div id="hero-anim-track" className="overflow-hidden shadow-lg">
-      <div className="hero flex items-end min-h-screen text-white relative">
+    <div id="hero-anim-track" className="overflow-hidden">
+      <div className="hero flex items-center text-white relative h-[90vh]">
         {/* Overlay */}
         <div className="absolute inset-0 bg-black opacity-70 z-10"></div>
 
-        <div className="txt w-full px-4 py-35 m-10 flex flex-col relative z-20 align-middle">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
+        <div className="w-full m-10 flex flex-col z-20">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
             Discover the perfect
           </h1>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
             <span id="changing-text">Studio</span>
           </h1>
           <p className="text-lg sm:text-xl md:text-2xl opacity-70 mt-4">

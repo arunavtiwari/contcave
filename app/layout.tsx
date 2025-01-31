@@ -11,6 +11,9 @@ import "../styles/globals.css";
 import getCurrentUser from "./actions/getCurrentUser";
 import { CategoryProvider } from "./context/CategoryContext";
 import CustomAddonModal from "@/components/models/CustomAddonModal";
+import ScrollToTop from "@/components/ScrollToTop";
+import CookieConsent from "@/components/CookieConsentBanner";
+import OwnerRegisterModal from "@/components/models/OwnerRegisterModal";
 
 export const metadata = {
   title: "ContCave",
@@ -31,16 +34,21 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={font.className}>
+
         <ClientOnly>
           <ToastContainerBar />
           <SearchModal />
           <RegisterModal />
           <LoginModal />
+          <OwnerRegisterModal />
           <RentModal />
           <Navbar currentUser={currentUser} />
+          <CookieConsent />
         </ClientOnly>
         <div className="pt-[85px]">{children}</div>
+        <ScrollToTop />
         <Footer />
+
       </body>
     </html>
   );

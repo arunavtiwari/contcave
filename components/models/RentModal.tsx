@@ -17,7 +17,7 @@ import { categories } from "../navbar/Categories";
 import Modal from "./Modal";
 import AmenitiesCheckbox from "../inputs/AmenityCheckbox";
 import getAmenities from "@/app/actions/getAmenities";
-import { Addons, Amenities,CustomAmenities } from '@prisma/client';
+import { Addons, Amenities, CustomAmenities } from '@prisma/client';
 import getAddons from "@/app/actions/getAddons";
 import AddonsSelection, { Addon } from "../inputs/AddonsSelection";
 import OtherListingDetails, { ListingDetails } from "../inputs/OtherListingDetails";
@@ -51,24 +51,24 @@ function RentModal({ }: Props) {
 
   const [customAmenities, setCustomAmenities] = useState<CustomAmenities[]>([]);  // Explicitly specify the type
 
-  const [verifications, setVerifications]    = useState();
-  const [terms, setTerms]    = useState(Boolean);
+  const [verifications, setVerifications] = useState();
+  const [terms, setTerms] = useState(Boolean);
   const [addons, setAddons] = useState<any[]>([]);  // Explicitly specify the type
-  
+
   const [selectedAmenities, setSelectedAmenities] = useState<{ [key: string]: boolean }>({});
   const [selectedAddons, setSelectedAddons] = useState<{}>({});
 
-  const handleTermsAndConditions = (accept:any) => {
+  const handleTermsAndConditions = (accept: any) => {
     setTerms(accept);
   };
 
-  const handleVerificationChange = (verifications:any) => {
+  const handleVerificationChange = (verifications: any) => {
     setVerifications(verifications);
   };
   const handleAmenitiesChange = (updatedAmenities: { [key: string]: boolean }) => {
     setSelectedAmenities(updatedAmenities);
   };
-  const handleAddonChange = (updatedAddons:Addon[]) => {
+  const handleAddonChange = (updatedAddons: Addon[]) => {
     setSelectedAddons(updatedAddons);
   };
   const handleDetailsChange = (newDetails: ListingDetails) => {
@@ -110,7 +110,7 @@ function RentModal({ }: Props) {
     defaultValues: {
       category: "",
       location: null,
-      actualLocation:null,
+      actualLocation: null,
       imageSrc: [],
       price: 1,
       title: "",
@@ -155,14 +155,14 @@ function RentModal({ }: Props) {
       return onNext();
     }
     data.amenities = Object.keys(selectedAmenities).filter((key) => selectedAmenities[key]),
-    data.addons = selectedAddons;
+      data.addons = selectedAddons;
     data.otherDetails = listingDetails;
     data.verifications = verifications;
-    data.terms         = terms;
+    data.terms = terms;
 
     setIsLoading(true);
 
-     axios
+    axios
       .post("/api/listings", data)
       .then(() => {
         toast.success("Listing Created!");
@@ -170,14 +170,14 @@ function RentModal({ }: Props) {
         reset();
         setStep(STEPS.CATEGORY);
         rentModel.onClose();
-       
+
       })
       .catch(() => {
         toast.error("Something Went Wrong");
       })
       .finally(() => {
         setIsLoading(false);
-      }); 
+      });
   };
 
   const actionLabel = useMemo(() => {
@@ -230,15 +230,15 @@ function RentModal({ }: Props) {
         />
         <AutoComplete
           value={location ? location.display_name : ''}
-          onChange={(selected:any) => {
+          onChange={(selected: any) => {
             const latlng = [
-            selected.latlng.lat,
-             selected.latlng.lon
+              selected.latlng.lat,
+              selected.latlng.lon
             ];
             setCustomValue("actualLocation", { display_name: selected.display_name, latlng: latlng });
           }}
         />
-        <Map center={actualLocation?.latlng?? location?.latlng} />
+        <Map center={actualLocation?.latlng ?? location?.latlng} />
       </div>
     );
   }
@@ -270,7 +270,9 @@ function RentModal({ }: Props) {
           id="title"
           label="Title"
           disabled={isLoading}
-          register={register}
+          register={register("title", {
+            required: "Name of your property",
+          })}
           errors={errors}
           required
         />
@@ -279,7 +281,9 @@ function RentModal({ }: Props) {
           id="description"
           label="Description"
           disabled={isLoading}
-          register={register}
+          register={register("Description", {
+            required: "Describe your property",
+          })}
           errors={errors}
           required
         />
@@ -300,7 +304,9 @@ function RentModal({ }: Props) {
           formatPrice
           type="number"
           disabled={isLoading}
-          register={register}
+          register={register("Price", {
+            required: "Price of your property",
+          })}
           errors={errors}
           required
         />
@@ -329,7 +335,7 @@ function RentModal({ }: Props) {
           subtitle="Additonal chargeable services/facilities"
         />
         <AddonsSelection addons={addons} onSelectedAddonsChange={handleAddonChange}></AddonsSelection>
-        <CustomAddonModal save={(value:any)=>{ addons.push(value) ; setAddons(addons)}} />
+        <CustomAddonModal save={(value: any) => { addons.push(value); setAddons(addons) }} />
 
       </div>
     );
@@ -348,9 +354,9 @@ function RentModal({ }: Props) {
   if (step == STEPS.VERIFICATION) {
     bodyContent = (
       <div className="flex flex-col gap-8">
-        
+
         <SpaceVerification onVerification={handleVerificationChange}></SpaceVerification>
-       {/*  <UserVerification  onSubmit={handleSubmit(onSubmit)}></UserVerification> */}
+        {/*  <UserVerification  onSubmit={handleSubmit(onSubmit)}></UserVerification> */}
       </div>
     );
   }
@@ -358,7 +364,7 @@ function RentModal({ }: Props) {
     bodyContent = (
       <div className="flex flex-col gap-8">
         <TermsAndConditionsModal onChange={handleTermsAndConditions}></TermsAndConditionsModal>
-       {/*  <UserVerification  onSubmit={handleSubmit(onSubmit)}></UserVerification> */}
+        {/*  <UserVerification  onSubmit={handleSubmit(onSubmit)}></UserVerification> */}
       </div>
     );
   }
@@ -366,7 +372,7 @@ function RentModal({ }: Props) {
     <Modal
       disabled={isLoading}
       isOpen={rentModel.isOpen}
-      title={step == STEPS.VERIFICATION ? "Space Verification": step == STEPS.TERMS ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS": "List your space!"}
+      title={step == STEPS.VERIFICATION ? "Space Verification" : step == STEPS.TERMS ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS" : "List your space!"}
       actionLabel={actionLabel}
       onSubmit={handleSubmit(onSubmit)}
       secondaryActionLabel={secondActionLabel}
@@ -374,10 +380,10 @@ function RentModal({ }: Props) {
       onClose={rentModel.onClose}
       selfActionButton={false}
       autoWidth={step === STEPS.VERIFICATION ? true : false}
-      customWidth={step === STEPS.VERIFICATION ? 'w-1/2': ''}
+      customWidth={step === STEPS.VERIFICATION ? 'w-1/2' : ''}
       body={bodyContent}
       verificationBtn={step === STEPS.TERMS}
-      fixedHeight={step == STEPS.ADDONS ? true: false}
+      fixedHeight={step == STEPS.ADDONS ? true : false}
       termsAndConditionsAccept={terms}
     />
   );

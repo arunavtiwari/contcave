@@ -118,11 +118,6 @@ body,
 
 }
 
-.image-checkbox img {
-  /* width: 100px;
-  height: 100px;  */
-}
-
 .chip {
   padding: 8px 12px;
   border: 1px solid #ddd;
@@ -180,4 +175,22 @@ body,
   max-height: 0 !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
+}
+
+.button {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  background-color: #000000;
+  color: #FFFFFF;
+  transition: background-color 0.3s ease;
+}
+
+.button-rounded {
+  border-radius: 5px;
+}
+
+.button:hover {
+  background-color: #353839;
 }
