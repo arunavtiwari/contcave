@@ -12,14 +12,14 @@ const About = async (props: Props) => {
     return (
         <ClientOnly>
             <div className="banner">
-                <img src="https://anandamclarksinn.com/upload/8724.jpg" alt="Banner Image" />
+                <img src="images/banner.svg" alt="Banner sImage" />
                 <div className="overlay">
                     <h1 className="banner-text">About Us</h1>
                 </div>
             </div>
             <Container>
                 <div className="pt-10 pb-60">
-                    <div className="container mx-auto mt-8 p-8 bg-white shadow-lg">
+                    <div className="container mx-auto mt-8 p-8 bg-white shadow-lg border-2 border-gray-200 rounded-lg">
 
                         <p className="text-gray-700">
                             Welcome to Contcave, a beacon of creativity and innovation in the digital content creation landscape. Our platform is designed to empower content creators, offering them the tools, spaces, and connections needed to bring their visions to life. At the heart of our mission lies the commitment to fostering a vibrant community where storytelling and visual creativity flourish.

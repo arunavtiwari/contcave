@@ -30,11 +30,15 @@ function ReservationsClient({ reservations, currentUser }: Props) {
       axios
         .patch(`/api/reservations/${id}`, { isApproved: 3 })
         .then(() => {
-          toast.success("Reservation cancelled");
+          toast.success("Reservation cancelled", {
+            toastId: "Reservation_Cancelled"
+          });
           router.refresh();
         })
         .catch((error) => {
-          toast.error(error?.response?.data?.error);
+          toast.error(error?.response?.data?.error, {
+            toastId: "Reservation_Error_1"
+          });
         })
         .finally(() => {
           setDeletingId("");
@@ -50,11 +54,15 @@ function ReservationsClient({ reservations, currentUser }: Props) {
       axios
         .delete(`/api/reservations/${id}`)
         .then(() => {
-          toast.info("Reservation deleted");
+          toast.info("Reservation deleted", {
+            toastId: "Reservation_Deleted"
+          });
           router.refresh();
         })
         .catch((error) => {
-          toast.error(error?.response?.data?.error);
+          toast.error(error?.response?.data?.error, {
+            toastId: "Reservation_Error_2"
+          });
         })
         .finally(() => {
           setDeletingId("");
@@ -70,7 +78,9 @@ function ReservationsClient({ reservations, currentUser }: Props) {
       axios
         .patch(`/api/reservations/${id}`, { isApproved: 1 })
         .then(() => {
-          toast.success("Reservation approved");
+          toast.success("Reservation approved", {
+            toastId: "Reservation_Approved"
+          });
           let rItem = reservations.find((item) => item.id == id);
           if (rItem) {
             rItem.isApproved = 1;
@@ -78,7 +88,9 @@ function ReservationsClient({ reservations, currentUser }: Props) {
           router.refresh();
         })
         .catch((error) => {
-          toast.error(error?.response?.data?.error);
+          toast.error(error?.response?.data?.error, {
+            toastId: "Reservation_Error_3"
+          });
         })
         .finally(() => {
           setDeletingId("");
@@ -95,11 +107,15 @@ function ReservationsClient({ reservations, currentUser }: Props) {
       axios
         .patch(`/api/reservations/${id}`, { isApproved: 2 })
         .then(() => {
-          toast.info("Reservation rejected");
+          toast.info("Reservation rejected", {
+            toastId: "Reservation_Rejected"
+          });
           router.refresh();
         })
         .catch((error) => {
-          toast.error(error?.response?.data?.error);
+          toast.error(error?.response?.data?.error, {
+            toastId: "Reservation_Error_4"
+          });
         })
         .finally(() => {
           setDeletingId("");

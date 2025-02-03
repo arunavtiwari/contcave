@@ -5,7 +5,7 @@ const libraries:Libraries = ['places'];
 
 const AutoComplete = ({ value, onChange }: any) => {
   const [query, setQuery] = useState(value || '');
-  const [isActive, setIsActive] = useState(false); // To control the display of suggestions
+  const [isActive, setIsActive] = useState(false); 
   const searchBoxRef:any = useRef();
 
   const { isLoaded, loadError } = useLoadScript({
@@ -42,9 +42,9 @@ const AutoComplete = ({ value, onChange }: any) => {
           type="text"
           placeholder="Search for a location"
           value={query}
-          className="peer w-full p-4 pt-6 font-light bg-white border-2 rounded-md outline-none transition disabled:opacity-70 disabled:cursor-not-allowed"
+          className="peer w-full py-3 px-3 font-light bg-white border-2 border-gray-300	 focus:border-black transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
           onChange={e => setQuery(e.target.value)}
-          onFocus={() => setIsActive(true)} // Show suggestions when the input is focused
+          onFocus={() => setIsActive(true)}
         />
       </StandaloneSearchBox>
     </div>

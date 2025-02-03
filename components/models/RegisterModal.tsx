@@ -13,6 +13,7 @@ import Button from "../Button";
 import Heading from "../Heading";
 import Input from "../inputs/Input";
 import Modal from "./Modal";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function RegisterModal() {
   const registerModal = useRegisterModal();
@@ -45,13 +46,19 @@ function RegisterModal() {
       });
 
       if (callback?.ok) {
-        toast.success("Successfully registered and logged in!");
+        toast.success("Successfully registered and logged in!", {
+          toastId: "Registered"
+        });
         registerModal.onClose();
       } else if (callback?.error) {
-        toast.error("Login failed");
+        toast.error("Login failed", {
+          toastId: "Login_Error_1"
+        });
       }
     } catch (err) {
-      toast.error("Something went wrong during registration.");
+      toast.error("Something went wrong during registration.", {
+        toastId: "Registration_Error_1"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +89,7 @@ function RegisterModal() {
 
           <Input
             id="email"
-            label="Email Address"
+            label="Email"
             disabled={isLoading}
             register={register("email", {
               required: "Email is required",
@@ -114,33 +121,33 @@ function RegisterModal() {
           />
 
           {/* Password Validation */}
-          <Input
-            id="password"
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            disabled={isLoading}
-            register={register("password", {
-              required: "Password is required",
-              minLength: {
-                value: 6,
-                message: "Password must be at least 6 characters",
-              },
-              // pattern: {
-              //   value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/,
-              //   message: "Password must contain letters and numbers",
-              // },
-            })}
-            errors={errors}
-          />
-
-          {/* Show Password Toggle */}
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="text-sm text-neutral-600 focus:outline-none mt-2"
-          >
-            {showPassword ? "Hide" : "Show"} Password
-          </button>
+          <div className="relative">
+            <Input
+              id="password"
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              disabled={isLoading}
+              register={register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
+                // pattern: {
+                //   value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/,
+                //   message: "Password must contain letters and numbers",
+                // },
+              })}
+              errors={errors}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-4 flex items-center text-black focus:outline-none"
+            >
+              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+            </button>
+          </div>
         </div>
       }
       footer={

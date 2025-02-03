@@ -29,11 +29,15 @@ function BookingClient({ reservations, currentUser }: Props) {
       axios
         .delete(`/api/reservations/${id}`)
         .then(() => {
-          toast.info("Reservation deleted");
+          toast.info("Reservation Deleted", {
+            toastId: "Reservation_Deleted"
+          });
           router.refresh();
         })
         .catch((error) => {
-          toast.error(error?.response?.data?.error);
+          toast.error(error?.response?.data?.error, {
+            toastId: "Reservation_Error_1"
+          });
         })
         .finally(() => {
           setDeletingId("");
@@ -49,11 +53,15 @@ function BookingClient({ reservations, currentUser }: Props) {
       axios
         .patch(`/api/reservations/${id}`, { isApproved: 3 })
         .then(() => {
-          toast.success("Reservation cancelled");
+          toast.success("Reservation cancelled", {
+            toastId: "Reservation_Cancelled"
+          });
           router.refresh();
         })
         .catch((error) => {
-          toast.error(error?.response?.data?.error);
+          toast.error(error?.response?.data?.error, {
+            toastId: "Reservation_Error_2"
+          });
         })
         .finally(() => {
           setDeletingId("");

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { IoMdClose } from "react-icons/io";
+import { IoMdCloseCircle } from "react-icons/io";
 import Button from "../Button";
 
 type Props = {
@@ -80,56 +80,64 @@ function Modal({
 
   return (
     <>
-      <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none bg-neutral-800/70">
-        <div className={`relative my-6 mx-auto h-full lg:h-auto md:h-auto ${autoWidth ? '' : 'w-full  lg:w-3/6 xl:w-2/5  md:w-4/6'} ${customWidth}`}>
+      <div className="justify-center items-center flex fixed inset-0 z-[999] bg-neutral-800/70 p-2">
+        <div className={`relative mx-auto h-full ${autoWidth ? '' : 'w-full  lg:w-3/6 xl:w-2/5  md:w-4/6'} ${customWidth}`}>
           <div
-            className={`translate duration-300 h-full ${showModal ? "translate-y-0" : "translate-y-full"
+            className={`translate duration-300 ${showModal ? "translate-y-0" : "translate-y-full"
               } ${showModal ? "opacity-100" : "opacity-0"}`}
           >
-            <div className="translate h-full lg:h-auto md:h-auto border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
-              <div className="flex items-center p-6 rounded-t justify-center relative border-b-[1px]">
+            <div className="translate h-fit border-0 rounded-xl shadow-lg relative flex flex-col w-full bg-white">
+              {/* Header */}
+              <div className="flex items-center p-4 rounded-t-xl justify-between relative border-b-[1px] bg-slate-100/40">
                 <button
-                  className="p-1 border-0 hover:opacity-70 transition absolute left-9"
+                  className="hover:opacity-70 transition absolute"
                   onClick={handleClose}
                 >
-                  <IoMdClose size={18} />
+                  <IoMdCloseCircle size={24} />
                 </button>
-                <div className="text-lg font-semibold">{title}</div>
+                <div className="text-lg font-semibold w-full text-center">{title}</div>
               </div>
-              <div className={`flex-auto p-6 relative scrollbar-thin ${fixedHeight ? ' overflow-y-auto h-[70vh]' : ''}`}>{body}</div>
-              <div className={`flex flex-col gap-2 ${!verificationBtn ? 'p-6' : 'p-6 pt-0'}`}>
-                {
-                  !selfActionButton && !verificationBtn && (
-                    <div className="flex flex-row items-center gap-4 w-full">
-                      {secondaryAction && secondaryActionLabel && (
-                        <Button
-                          outline
-                          disabled={disabled}
-                          label={secondaryActionLabel}
-                          onClick={handleSecondAction}
-                        />
-                      )}
-                      <Button
-                        disabled={disabled}
-                        label={actionLabel}
-                        onClick={handleSubmit}
-                      />
-                    </div>
-                  )
-                }
-                {
-                  verificationBtn && (
-                    <div className="flex flex-row items-center gap-4 w-full">
 
-                      <Button
-                        disabled={!termsAndConditionsAccept}
-                        label="Complete Listing"
-                        onClick={handleSubmit}
-                      />
-                    </div>
-                  )
-                }
-                {footer}
+              {/* Body */}
+              <div className="overflow-y-auto max-h-[calc(100vh-20px)]">
+                <div className={`flex-auto p-6 pb-3 relative ${fixedHeight ? ' overflow-y-auto ' : ''}`}>{body}</div>
+                <div className={`flex flex-col gap-2 ${!verificationBtn ? 'p-6 pt-2' : 'p-6 pt-0'}`}>
+                  {
+                    !selfActionButton && !verificationBtn && (
+                      <div className="flex flex-row items-center gap-4 w-full">
+                        {secondaryAction && secondaryActionLabel && (
+                          <Button
+                            outline
+                            rounded
+                            disabled={disabled}
+                            label={secondaryActionLabel}
+                            onClick={handleSecondAction}
+
+                          />
+                        )}
+                        <Button
+                          rounded
+                          disabled={disabled}
+                          label={actionLabel}
+                          onClick={handleSubmit}
+                        />
+                      </div>
+                    )
+                  }
+                  {
+                    verificationBtn && (
+                      <div className="flex flex-row items-center gap-4 w-full">
+
+                        <Button
+                          disabled={!termsAndConditionsAccept}
+                          label="Complete Listing"
+                          onClick={handleSubmit}
+                        />
+                      </div>
+                    )
+                  }
+                  {footer}
+                </div>
               </div>
             </div>
           </div>

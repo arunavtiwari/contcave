@@ -3,6 +3,7 @@ import ClientOnly from "@/components/ClientOnly";
 import Contact from "@/components/Contact";
 // import Container from "@/components/Container";
 import CTA from "@/components/CTA";
+import Cover from "@/components/Cover";
 // import EmptyState from "@/components/EmptyState";
 import FAQ from "@/components/FAQ";
 import Feature from "@/components/Features";
@@ -37,9 +38,9 @@ export default async function Home() {
         <FunFact />
         <FAQ />
         <CTA />
+        <Cover />
         {/* <Contact /> */}
         {/* <Blog/> */}
-        
       </main>
     </ClientOnly>
   );

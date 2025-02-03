@@ -30,11 +30,11 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
   const loginModal = useLoginModel();
 
   //disable time to be implented instead of disable date
-  const disableDates  = reservations.map((reservation) => new Date(reservation.startDate));
+  const disableDates = reservations.map((reservation) => new Date(reservation.startDate));
 
   const disabledStartTimes = reservations.map((reservations) => new Date(reservations.startTime));
-  const disabledEndTimes   = reservations.map((reservations) => new Date(reservations.endTime));
-  
+  const disabledEndTimes = reservations.map((reservations) => new Date(reservations.endTime));
+
   const [isLoading, setIsLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(listing.price);
   const [selectedDate, setSelectedDate] = useState<Date>(initialDate);
@@ -62,12 +62,16 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
       selectedAddons: selectedAddons
     })
       .then(() => {
-        toast.success("Reservation Successful!");
+        toast.success("Reservation Successful!", {
+          toastId: "Reservation_Successfull"
+        });
         setSelectedDate(initialDate);
         router.push("/bookings");
       })
       .catch(() => {
-        toast.error("Error in Reservation");
+        toast.error("Error in Reservation", {
+          toastId: "Reservation_Error_1"
+        });
       })
       .finally(() => {
         setIsLoading(false);
@@ -75,74 +79,74 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
   }, [totalPrice, selectedDate, selectedTimeSlot, listing?.id, router, currentUser, loginModal]);
 
   useEffect(() => {
-    if(definedAmenities.length == 0){
-      getAmenities().then((data:any)=>{
-          setDefinedAmenities(data);
+    if (definedAmenities.length == 0) {
+      getAmenities().then((data: any) => {
+        setDefinedAmenities(data);
       });
     }
     if (selectedDate && selectedTimeSlot) {
-    const [startTime, endTime] = selectedTimeSlot;
+      const [startTime, endTime] = selectedTimeSlot;
 
-    const parseTime = (time) => {
-      if(time) {
-        const [hourString, minuteString, period] = time.match(/(\d+):(\d+) (AM|PM)/).slice(1);
-        let hours = parseInt(hourString, 10);
-        const minutes = parseInt(minuteString, 10);
+      const parseTime = (time) => {
+        if (time) {
+          const [hourString, minuteString, period] = time.match(/(\d+):(\d+) (AM|PM)/).slice(1);
+          let hours = parseInt(hourString, 10);
+          const minutes = parseInt(minuteString, 10);
 
-        if (period === "PM" && hours < 12) {
+          if (period === "PM" && hours < 12) {
             hours += 12;
-        }
-        if (period === "AM" && hours === 12) {
+          }
+          if (period === "AM" && hours === 12) {
             hours = 0;
+          }
+
+          return { hours, minutes };
         }
+        return { hours: 0, minutes: 0 }
+      };
 
-        return { hours, minutes };
-      }
-      return {hours:0,minutes:0}
-    };
+      const { hours: startHours, minutes: startMinutes } = parseTime(startTime);
+      const { hours: endHours, minutes: endMinutes } = parseTime(endTime);
 
-    const { hours: startHours, minutes: startMinutes } = parseTime(startTime);
-    const { hours: endHours, minutes: endMinutes } = parseTime(endTime);
-
-    const startDate = new Date(
+      const startDate = new Date(
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
         selectedDate.getDate(),
         startHours,
         startMinutes
-    );
+      );
 
-    const endDate = new Date(
+      const endDate = new Date(
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
         selectedDate.getDate(),
         endHours,
         endMinutes
-    );
+      );
 
-    const timeDifferenceInMilliseconds = endDate.getTime() - startDate.getTime();
-    const timeDifferenceInHours = timeDifferenceInMilliseconds / (1000 * 60 * 60);
-    const totalPrice = calculateTotalPrice(selectedAddons, timeDifferenceInHours);
-    setTimeDifferenceInHours(timeDifferenceInHours);
-    setTotalPrice(totalPrice);
-}
+      const timeDifferenceInMilliseconds = endDate.getTime() - startDate.getTime();
+      const timeDifferenceInHours = timeDifferenceInMilliseconds / (1000 * 60 * 60);
+      const totalPrice = calculateTotalPrice(selectedAddons, timeDifferenceInHours);
+      setTimeDifferenceInHours(timeDifferenceInHours);
+      setTotalPrice(totalPrice);
+    }
 
   }, [selectedDate, selectedTimeSlot, listing.price]);
 
 
-  const calculateTotalPrice = (addons: any, timeDifference:number = timeDifferenceInHours) => {
-    return (timeDifference * listing.price) +  addons.reduce((acc: number, value: { price: number; quantity: any; }) => acc + (value.price * (value.quantity ?? 0)), 0);
+  const calculateTotalPrice = (addons: any, timeDifference: number = timeDifferenceInHours) => {
+    return (timeDifference * listing.price) + addons.reduce((acc: number, value: { price: number; quantity: any; }) => acc + (value.price * (value.quantity ?? 0)), 0);
   }
 
   const category = useMemo(() => {
     return categories.find((item) => item.label === listing.category);
   }, [listing.category]);
 
-  const handleAddonChange =(addons:any)=>{
-    setTotalPrice((price:number) =>{
+  const handleAddonChange = (addons: any) => {
+    setTotalPrice((price: number) => {
       return calculateTotalPrice(addons)
     });
-   setSelectedAddons(addons);
+    setSelectedAddons(addons);
   };
   return (
     <Container>
@@ -163,7 +167,7 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
               description={listing.description}
               locationValue={listing.locationValue}
               fullListing={listing}
-              onAddonChange={handleAddonChange} services={[]}            />
+              onAddonChange={handleAddonChange} services={[]} />
             <div className="order-first mb-10 md:order-last md:col-span-3">
               <ListingReservation
                 price={listing.price}
@@ -177,12 +181,12 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
                 selectedTime={selectedTimeSlot}
                 onSubmit={onCreateReservation}
                 disabled={isLoading}
-                instantBooking={listing.instantBooking??0}
-                disabledDates={disableDates}   
+                instantBooking={listing.instantBooking ?? 0}
+                disabledDates={disableDates}
                 disabledStartTimes={disabledStartTimes}
                 disabledEndTimes={disabledEndTimes}
                 operationalTimings={listing.otherDetails}
-                />
+              />
             </div>
           </div>
         </div>

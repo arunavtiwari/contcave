@@ -8,7 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import PropertyClient from '@/components/PropertyClient';
 export const dynamic = "force-dynamic"
 import React from 'react';
-
+import Container from '@/components/Container';
 
 interface IParams {
   propertyId?: string;
@@ -19,12 +19,12 @@ const EditPropertyComponent = async ({ params }: { params: IParams }) => {
   const listing = await getListingById({ listingId: params.propertyId }) as any;
   const amenitiesData = await getAmenities(true);
   let addonsData = await getAddons();
-  let updatedAddons:any = [];
+  let updatedAddons: any = [];
   if (listing && listing.addons && listing.addons.length) {
 
     // Assuming addonsData is an array and listing.addons is an array or undefined
     updatedAddons = addonsData.map((item) => {
-      let addon = listing.addons?.find((listitem:any) => listitem.name === item.name);
+      let addon = listing.addons?.find((listitem: any) => listitem.name === item.name);
       if (addon) {
         // Update existing item
         return {
@@ -40,7 +40,7 @@ const EditPropertyComponent = async ({ params }: { params: IParams }) => {
     });
 
     // Now, add any new addons from listing.addons that aren't in addonsData
-    listing.addons?.forEach((addon:any) => {
+    listing.addons?.forEach((addon: any) => {
       let exists = addonsData.some((item) => item.name === addon.name);
       if (!exists) {
         updatedAddons.push({
@@ -69,9 +69,11 @@ const EditPropertyComponent = async ({ params }: { params: IParams }) => {
     );
   }
   return (
-    <ClientOnly>
-      <PropertyClient listing={listing} predefinedAmenities={amenitiesData} predefinedAddons={updatedAddons}></PropertyClient>
-    </ClientOnly>
+    <Container>
+      <ClientOnly>
+        <PropertyClient listing={listing} predefinedAmenities={amenitiesData} predefinedAddons={updatedAddons}></PropertyClient>
+      </ClientOnly>
+    </Container>
   );
 };
 

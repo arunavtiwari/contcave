@@ -113,34 +113,19 @@ function UserMenu({ currentUser }: Props) {
           <div className="flex flex-col cursor-pointer">
             {currentUser ? (
               <>
-                <MenuItem
-                  onClick={() => router.push("/bookings")}
-                  label="My Bookings"
-                />
-                <MenuItem
-                  onClick={() => router.push("/favorites")}
-                  label="My Favorites"
-                />
-                <MenuItem
-                  onClick={() => router.push("/reservations")}
-                  label="Guest Reservations"
-                />
-                <MenuItem
-                  onClick={() => router.push("/properties")}
-                  label="My Properties"
-                />
-                <MenuItem onClick={onRent} label="List your space" />
-                <MenuItem
-                  onClick={() => router.push("/Profile")}
-                  label="My Profile"
-                />
-                <hr className="my-2" />
-                <MenuItem onClick={() => signOut()} label="Logout" />
+                <MenuItem onClick={() => { router.push("/bookings"); closeMenu(); }} label="My Bookings" />
+                <MenuItem onClick={() => { router.push("/favorites"); closeMenu(); }} label="My Favorites" />
+                <MenuItem onClick={() => { router.push("/reservations"); closeMenu(); }} label="Guest Reservations" />
+                <MenuItem onClick={() => { router.push("/properties"); closeMenu(); }} label="My Properties" />
+                <MenuItem onClick={() => { onRent(); closeMenu(); }} label="List your space" />
+                <MenuItem onClick={() => { router.push("/Profile"); closeMenu(); }} label="My Profile" />
+                <MenuItem onClick={() => { signOut(); closeMenu(); }} label="Logout" />
               </>
             ) : (
               <>
-                <MenuItem onClick={loginModel.onOpen} label="Login" />
-                <MenuItem onClick={registerModel.onOpen} label="Sign up" />
+                <MenuItem onClick={() => { loginModel.onOpen(); closeMenu(); }} label="Login" />
+                <MenuItem onClick={() => { registerModel.onOpen(); closeMenu(); }} label="Sign up" />
+
               </>
             )}
           </div>

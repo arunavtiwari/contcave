@@ -1,5 +1,5 @@
 "use client";
-import Logo from "@/components/navbar/Logo";
+// import Logo from "@/components/navbar/Logo";
 import React, { useEffect, useState } from "react";
 import ClientOnly from "../components/ClientOnly";
 import { useRouter } from "next/navigation";
@@ -9,24 +9,24 @@ type Props = {};
 
 function Footer() {
   const [country, setCountry] = useState("India");
-  const [isChatPage, setIsChatPage] = useState(false);
+  // const [isChatPage, setIsChatPage] = useState(false);
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (window.location.href.includes("chat")) {
-      setIsChatPage(true);
-    }
+  // useEffect(() => {
+  //   if (window.location.href.includes("chat")) {
+  //     setIsChatPage(true);
+  //   }
 
-    fetch(`https://extreme-ip-lookup.com/json/?key=${process.env.NEXT_PUBLIC_LOOKUP_KEY}`)
-      .then((res) => res.json())
-      .then((data) => setCountry(data.country));
-  }, []);
+  //   fetch(`https://extreme-ip-lookup.com/json/?key=${process.env.NEXT_PUBLIC_LOOKUP_KEY}`)
+  //     .then((res) => res.json())
+  //     .then((data) => setCountry(data.country));
+  // }, []);
 
   return (
     <ClientOnly>
       <div
-        className={`grid grid-cols-1 md:grid-cols-2 gap-10 px-10 lg:px-20 py-15 bg-gray-100 text-gray-600 ${isChatPage ? '' : 'mt-20'}`}
+        className="grid grid-cols-1 md:grid-cols-2 gap-10 px-10 lg:px-20 py-15 bg-gray-100 text-gray-600"
       >
         {/* Left Part */}
         <div className="grid place-items-center md:place-items-start gap-8">
@@ -109,7 +109,7 @@ function Footer() {
           </div>
         </div>
 
-        <p className="text-sm md:col-span-5 hidden">{country}</p>
+        {/* <p className="text-sm md:col-span-5 hidden">{country}</p> */}
       </div>
       <div className="bg-black text-white py-2 text-sm text-center">
         © 2024 Contcave. All rights reserved.

@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
+import Image from 'next/image'
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -39,7 +41,7 @@ const Hero = () => {
 
   return (
     <div id="hero-anim-track" className="overflow-hidden">
-      <div className="hero flex items-center text-white relative h-[90vh]">
+      <div className="hero flex items-center text-white relative h-[calc(100vh-80px)]">
         {/* Overlay */}
         <div className="absolute inset-0 bg-black opacity-70 z-10"></div>
 
@@ -60,11 +62,11 @@ const Hero = () => {
           </Link>
         </div>
 
-
-        <img
-          src="https://plus.unsplash.com/premium_photo-1663091946297-8050202e1a63?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        <Image
+          src="/images/hero/bg-hero.avif"
           alt="Hero background"
-          className="absolute left-0 top-0 w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
       </div>
     </div>

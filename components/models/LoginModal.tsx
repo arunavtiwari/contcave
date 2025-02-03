@@ -45,11 +45,15 @@ function LoginModal({ }: Props) {
       setIsLoading(false);
 
       if (callback?.ok) {
-        toast.success("Login Successfully");
+        toast.success("Login Successfully", {
+          toastId: "Login_Successfully"
+        });
         router.refresh();
         loginModel.onClose();
       } else if (callback?.error) {
-        toast.error("Something Went Wrong");
+        toast.error("Something Went Wrong", {
+          toastId: "Login_Error_1"
+        });
       }
     });
   };

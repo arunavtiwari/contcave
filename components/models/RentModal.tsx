@@ -147,6 +147,25 @@ function RentModal({ }: Props) {
   };
 
   const onNext = () => {
+    if (step === STEPS.CATEGORY && !category) {
+      toast.error("Please Select a Category", {
+        toastId: "Category"
+      });
+      return;
+    }
+    if (step === STEPS.LOCATION && !location) {
+      toast.error("Please Add the Location", {
+        toastId: "Location"
+      });
+      return;
+    }
+
+    // if (step === STEPS.IMAGES && (!imageSrc || imageSrc.length === 0)) {
+    //   toast.error("Please Upload an Image", {
+    //     toastId: "Image"
+    //   });
+    //   return;
+    // }
     setStep((value) => value + 1);
   };
 
@@ -165,7 +184,9 @@ function RentModal({ }: Props) {
     axios
       .post("/api/listings", data)
       .then(() => {
-        toast.success("Listing Created!");
+        toast.success("Listing Created!", {
+          toastId: "Listing_Created"
+        });
         router.refresh();
         reset();
         setStep(STEPS.CATEGORY);
@@ -173,7 +194,9 @@ function RentModal({ }: Props) {
 
       })
       .catch(() => {
-        toast.error("Something Went Wrong");
+        toast.error("Something Went Wrong", {
+          toastId: "Listing_Error_1"
+        });
       })
       .finally(() => {
         setIsLoading(false);
@@ -197,12 +220,12 @@ function RentModal({ }: Props) {
   }, [step]);
 
   let bodyContent = (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <Heading
         title="Which of these best describes your place?"
         subtitle="Pick a category"
       />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-[#FF5A5F]">
+      <div className="grid grid-cols-2 md-grid-cols-3 gap-3 max-h-[calc(100vh-42vh)] overflow-y-auto pr-2">
         {categories.map((item, index) => (
           <div key={index} className="col-span-1">
             <CategoryInput
@@ -219,7 +242,7 @@ function RentModal({ }: Props) {
 
   if (step === STEPS.LOCATION) {
     bodyContent = (
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-4">
         <Heading
           title="Where is your place located?"
           subtitle="Help content creators find you!"
@@ -253,11 +276,12 @@ function RentModal({ }: Props) {
         />
         <ImageUpload
           onChange={(value) => setCustomValue("imageSrc", value)}
-          values={imageSrc}
+          values={imageSrc} height={200} width={200}
         />
       </div>
     );
   }
+
 
   if (step === STEPS.DESCRIPTION) {
     bodyContent = (
@@ -372,7 +396,7 @@ function RentModal({ }: Props) {
     <Modal
       disabled={isLoading}
       isOpen={rentModel.isOpen}
-      title={step == STEPS.VERIFICATION ? "Space Verification" : step == STEPS.TERMS ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS" : "List your space!"}
+      title={step == STEPS.VERIFICATION ? "Space Verification" : step == STEPS.TERMS ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS" : "List Your Space!"}
       actionLabel={actionLabel}
       onSubmit={handleSubmit(onSubmit)}
       secondaryActionLabel={secondActionLabel}

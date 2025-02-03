@@ -33,10 +33,14 @@ function OwnerRegisterModal() {
 
         try {
             await axios.post("/api/register", { ...data, is_owner: true });
-            toast.success("Owner registered successfully!");
+            toast.success("Owner registered successfully!", {
+                toastId: "Owner_Registered"
+            });
             ownerRegisterModal.onClose();
         } catch (error) {
-            toast.error("Something went wrong during registration.");
+            toast.error("Something went wrong during registration.", {
+                toastId: "Owner_Error_1"
+            });
         } finally {
             setIsLoading(false);
         }

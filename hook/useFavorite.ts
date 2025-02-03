@@ -39,9 +39,13 @@ function useFavorite({ listingId, currentUser }: Props) {
 
         await request();
         router.refresh();
-        toast.success("Success");
+        toast.success("Success", {
+            toastId: "Favorites"
+          });
       } catch (error: any) {
-        toast.error("Something Went Wrong");
+        toast.error("Something Went Wrong", {
+            toastId: "Favorites_Error_1"
+          });
       }
     },
     [currentUser, hasFavorite, listingId, loginModel]

@@ -38,16 +38,13 @@ function CustomAddonModal({ save }: Props) {
     setImage([]);
   };
 
-
-
   return (
     <Modal
       disabled={isLoading}
       isOpen={addonModel.isOpen}
-      title="Create your own"
-      actionLabel="Continue"
+      title="Create Add-On"
+      actionLabel="Create"
       autoWidth={true}
-      customWidth="w-full"
       onClose={addonModel.onClose}
       onSubmit={handleSubmit(onSubmit)}
       body={
@@ -66,6 +63,7 @@ function CustomAddonModal({ save }: Props) {
           <ImageUpload
             onChange={(value) => { setImage(value); }}
             values={image} />
+          {console.log(image)}
         </>
       }
 

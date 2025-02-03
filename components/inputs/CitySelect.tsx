@@ -38,17 +38,18 @@ function CitySelect({ value, onChange }: Props) {
           </div>
         )}
         classNames={{
-          control: () => "p-3 border-2",
+          control: () => "p-1 border-2",
           input: () => "text-lg",
           option: () => "text-lg",
         }}
         theme={(theme) => ({
           ...theme,
-          borderRadius: 6,
+          borderRadius: 10,
           colors: {
             ...theme.colors,
             primary: "black",
-            primary25: "#ffe4e6",
+            primary25: "#F3F4F6",
+            primary50: "#E5E7EB",
           },
         })}
       />

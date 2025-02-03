@@ -26,11 +26,15 @@ function PropertiesClient({ listings, currentUser }: Props) {
       axios
         .patch(`/api/listings/${id}`)
         .then(() => {
-          toast.info("Listing deleted");
+          toast.info("Listing deleted", {
+            toastId: "Listing_Deleted"
+          });
           router.refresh();
         })
         .catch((error) => {
-          toast.error(error?.response?.data?.error);
+          toast.error(error?.response?.data?.error, {
+            toastId: "Listing_Error_1"
+          });
         })
         .finally(() => {
           setEditingId("");
@@ -45,11 +49,15 @@ function PropertiesClient({ listings, currentUser }: Props) {
       axios
         .delete(`/api/listings/${id}`)
         .then(() => {
-          toast.info("Listing deleted");
+          toast.info("Listing deleted", {
+            toastId: "Listing_Deleted"
+          });
           router.refresh();
         })
         .catch((error) => {
-          toast.error(error?.response?.data?.error);
+          toast.error(error?.response?.data?.error, {
+            toastId: "Listing_Error_2"
+          });
         })
         .finally(() => {
           setDeletingId("");

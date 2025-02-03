@@ -7,7 +7,7 @@ export interface Addon {
     name: string;
     price: number;
     imageUrl: string;
-    qty:number;
+    qty: number;
 }
 
 interface AddonsCheckboxProps {
@@ -29,16 +29,16 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({ addons, onSelectedAddo
 
         addonModal.onOpen();
     }, [CustomAddonModal]);
-    const handleAddonChange = (index: number, price?: any, qty?:number, checked?: boolean) => {
+    const handleAddonChange = (index: number, price?: any, qty?: number, checked?: boolean) => {
         setSelectedAddons((prevSelectedAddons) => {
             const addonToUpdate = addons[index];
 
             // Create a copy of the addon with the updated price.
-            let addonCopy = { ...addonToUpdate};
-            if(qty){
+            let addonCopy = { ...addonToUpdate };
+            if (qty) {
                 addonCopy.qty = qty;
             }
-            if(price) {
+            if (price) {
                 addonCopy.price = price;
             }
             // Create a new array for the selected addons.
@@ -57,25 +57,25 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({ addons, onSelectedAddo
 
     return (
         <>
-        <div className='flex flex-wrap gap-6'>
-            {addons.map((addon, index) => (
-                <div key={addon.name} className='addon-box border-0 rounded shadow-lg w-30'>
-                    <ImageCheckbox
-                         addon={addon}
-                        imageUrl={addon.imageUrl}
-                        label={addon.name}
-                        onChange={(item) => handleAddonChange(index, item.price, item.qty, item.checked)}
-                        checked={selectedAddons.includes(addon)} />
-                </div>
-            ))}
-            <ImageCheckbox
-                imageUrl={"https://cdn-icons-png.flaticon.com/512/992/992651.png"}
-                label="Create your own"
-                hideCheckbox={true}
-                hideInputFields={true}
-                onChange={onCreation}
-                onClickChange={onCreation} />
-        </div>
+            <div className='flex flex-wrap gap-6'>
+                {addons.map((addon, index) => (
+                    <div key={addon.name} className='border-0 rounded shadow-lg w-30'>
+                        <ImageCheckbox
+                            addon={addon}
+                            imageUrl={addon.imageUrl}
+                            label={addon.name}
+                            onChange={(item) => handleAddonChange(index, item.price, item.qty, item.checked)}
+                            checked={selectedAddons.includes(addon)} />
+                    </div>
+                ))}
+                <ImageCheckbox
+                    imageUrl={"https://cdn-icons-png.flaticon.com/512/992/992651.png"}
+                    label="Create your own"
+                    hideCheckbox={true}
+                    hideInputFields={true}
+                    onChange={onCreation}
+                    onClickChange={onCreation} />
+            </div>
         </>
     );
 };
