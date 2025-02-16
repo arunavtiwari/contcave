@@ -8,14 +8,54 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { FaBolt } from "react-icons/fa";
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
 
-export default function CalendarComponent({ listingId }) {
+// Map abbreviated day names to Day.js day indices (0 = Sunday, 1 = Monday, …)
+const dayNameToIndex = {
+    sun: 0,
+    mon: 1,
+    tue: 2,
+    wed: 3,
+    thu: 4,
+    fri: 5,
+    sat: 6,
+};
+
+export default function CalendarComponent({
+    listingId,
+    defaultStartTime,
+    defaultEndTime,
+    defaultStartDay, // e.g., "mon"
+    defaultEndDay,   // e.g., "wed"
+}) {
+    function formatTime(timeStr, period = "AM") {
+        let hour = parseInt(timeStr, 10);
+        if (period === "PM" && hour < 12) {
+            hour += 12;
+        }
+        return `${hour.toString().padStart(2, "0")}:00`;
+    }
+
+    // Helper to check if a given date falls on an enabled day (between defaultStartDay and defaultEndDay)
+    const isDayEnabled = (date) => {
+        const dayIndex = date.day();
+        const startIndex = dayNameToIndex[defaultStartDay.toLowerCase()];
+        const endIndex = dayNameToIndex[defaultEndDay.toLowerCase()];
+        if (startIndex <= endIndex) {
+            // Range does not wrap around the week (e.g., Mon to Wed)
+            return dayIndex >= startIndex && dayIndex <= endIndex;
+        } else {
+            // Range wraps around (e.g., Fri to Tue)
+            return dayIndex >= startIndex || dayIndex <= endIndex;
+        }
+    };
+
     const [selectedDate, setSelectedDate] = useState(dayjs());
     const [isListingActive, setIsListingActive] = useState(true);
-    const [startTime, setStartTime] = useState("");
-    const [endTime, setEndTime] = useState("");
+    const [startTime, setStartTime] = useState(formatTime(defaultStartTime, "AM"));
+    const [endTime, setEndTime] = useState(formatTime(defaultEndTime, "PM"));
     const [loading, setLoading] = useState(false);
-    const lastFetchedDate = useRef<string>("");
+    const lastFetchedDate = useRef("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -26,28 +66,41 @@ export default function CalendarComponent({ listingId }) {
 
             setLoading(true);
             try {
-                const res = await fetch(`/api/dayStatus?listingId=${listingId}&date=${formattedDate}`);
+                const res = await fetch(
+                    `/api/dayStatus?listingId=${listingId}&date=${formattedDate}`
+                );
 
                 if (!res.ok) {
                     throw new Error("Failed to fetch data");
                 }
 
                 const data = await res.json();
-                setIsListingActive(data.listingActive || false);
-                setStartTime(data.startTime || "");
-                setEndTime(data.endTime || "");
+                setIsListingActive(data.listingActive ?? true);
+                setStartTime(
+                    data.startTime
+                        ? formatTime(data.startTime, "AM")
+                        : formatTime(defaultStartTime, "AM")
+                );
+                setEndTime(
+                    data.endTime
+                        ? formatTime(data.endTime, "PM")
+                        : formatTime(defaultEndTime, "PM")
+                );
             } catch (error) {
                 console.error("Error fetching data:", error);
+                setIsListingActive(true);
+                setStartTime(formatTime(defaultStartTime, "AM"));
+                setEndTime(formatTime(defaultEndTime, "PM"));
             } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, [selectedDate, listingId]);
+    }, [selectedDate, listingId, defaultStartTime, defaultEndTime]);
 
     const handleDateChange = (newDate) => {
-        if (!newDate || selectedDate.isSame(newDate, "day")) return; // Prevent redundant updates
+        if (!newDate || selectedDate.isSame(newDate, "day")) return;
         setSelectedDate(newDate);
     };
 
@@ -77,8 +130,10 @@ export default function CalendarComponent({ listingId }) {
 
             const data = await res.json();
             console.log("Saved Data:", data);
+            toast.success("Data saved successfully!");
         } catch (error) {
             console.error("Error saving day status:", error);
+            toast.error("Error saving day status");
         }
     };
 
@@ -89,6 +144,13 @@ export default function CalendarComponent({ listingId }) {
                     <DateCalendar
                         value={selectedDate}
                         onChange={handleDateChange}
+                        // Disable past dates and any dates not falling within the allowed days
+                        shouldDisableDate={(date) => {
+                            // Disable past days
+                            if (date.isBefore(dayjs(), "day")) return true;
+                            // Disable dates outside the specified day range
+                            return !isDayEnabled(date);
+                        }}
                         sx={{
                             ".Mui-selected": {
                                 color: "white",

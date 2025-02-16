@@ -81,7 +81,7 @@ function Modal({
   return (
     <>
       <div className="justify-center items-center flex fixed inset-0 z-[999] bg-neutral-800/70 p-2">
-        <div className={`relative mx-auto h-full ${autoWidth ? '' : 'w-full  lg:w-3/6 xl:w-2/5  md:w-4/6'} ${customWidth}`}>
+        <div className={`relative mx-auto h-fit ${autoWidth ? '' : 'w-full  lg:w-3/6 xl:w-2/5  md:w-4/6'} ${customWidth}`}>
           <div
             className={`translate duration-300 ${showModal ? "translate-y-0" : "translate-y-full"
               } ${showModal ? "opacity-100" : "opacity-0"}`}
@@ -100,44 +100,46 @@ function Modal({
 
               {/* Body */}
               <div className="overflow-y-auto max-h-[calc(100vh-20px)]">
-                <div className={`flex-auto p-6 pb-3 relative ${fixedHeight ? ' overflow-y-auto ' : ''}`}>{body}</div>
-                <div className={`flex flex-col gap-2 ${!verificationBtn ? 'p-6 pt-2' : 'p-6 pt-0'}`}>
-                  {
-                    !selfActionButton && !verificationBtn && (
-                      <div className="flex flex-row items-center gap-4 w-full">
-                        {secondaryAction && secondaryActionLabel && (
+                <div className={`flex-auto p-4 relative ${fixedHeight ? ' overflow-y-auto ' : ''}`}>{body}</div>
+                {!selfActionButton && (
+                  <div className={`flex flex-col gap-2 ${!verificationBtn ? 'p-6 pt-2' : 'p-6 pt-0'}`}>
+                    {
+                      !selfActionButton && !verificationBtn && (
+                        <div className="flex flex-row items-center gap-4 w-full">
+                          {secondaryAction && secondaryActionLabel && (
+                            <Button
+                              outline
+                              rounded
+                              disabled={disabled}
+                              label={secondaryActionLabel}
+                              onClick={handleSecondAction}
+
+                            />
+                          )}
                           <Button
-                            outline
                             rounded
                             disabled={disabled}
-                            label={secondaryActionLabel}
-                            onClick={handleSecondAction}
-
+                            label={actionLabel}
+                            onClick={handleSubmit}
                           />
-                        )}
-                        <Button
-                          rounded
-                          disabled={disabled}
-                          label={actionLabel}
-                          onClick={handleSubmit}
-                        />
-                      </div>
-                    )
-                  }
-                  {
-                    verificationBtn && (
-                      <div className="flex flex-row items-center gap-4 w-full">
+                        </div>
+                      )
+                    }
+                    {
+                      verificationBtn && (
+                        <div className="flex flex-row items-center gap-4 w-full">
 
-                        <Button
-                          disabled={!termsAndConditionsAccept}
-                          label="Complete Listing"
-                          onClick={handleSubmit}
-                        />
-                      </div>
-                    )
-                  }
-                  {footer}
-                </div>
+                          <Button
+                            disabled={!termsAndConditionsAccept}
+                            label="Complete Listing"
+                            onClick={handleSubmit}
+                          />
+                        </div>
+                      )
+                    }
+                    {footer}
+                  </div>
+                )}
               </div>
             </div>
           </div>

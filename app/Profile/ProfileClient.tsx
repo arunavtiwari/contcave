@@ -121,8 +121,6 @@ const ProfileClient = ({ profile }) => {
                       )}
                       {editMode && (
                         <ImageUpload
-                          width={110}
-                          height={125}
                           onChange={(value) => { setUserData({ ...userData, profileImage: value[value.length - 1] }) }}
                           values={[userData.profileImage]}
                         />

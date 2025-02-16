@@ -214,7 +214,8 @@ input[type="text"]:focus {
 
 /* Calendar */
 .fc-button {
-	padding: 0.5rem 2rem !important;
+	padding: 0.4rem 1.5rem !important;
+	text-transform: capitalize !important;
 }
 
 .fc-button-primary {
@@ -222,20 +223,15 @@ input[type="text"]:focus {
 	border-radius: 9999px !important;
 }
 
-.fc-next-button {
+.fc-next-button,
+.fc-timeGridDay-button {
 	border-top-left-radius: 0 !important;
 	border-bottom-left-radius: 0 !important;
 	border-top-right-radius: 9999px !important;
 	border-bottom-right-radius: 9999px !important;
 }
 
-.fc-prev-button {
-	border-top-left-radius: 9999px !important;
-	border-bottom-left-radius: 9999px !important;
-	border-top-right-radius: 0 !important;
-	border-bottom-right-radius: 0 !important;
-}
-
+.fc-prev-button,
 .fc-dayGridMonth-button {
 	border-top-left-radius: 9999px !important;
 	border-bottom-left-radius: 9999px !important;
@@ -244,15 +240,18 @@ input[type="text"]:focus {
 }
 
 .fc-timeGridWeek-button {
-	border-top-left-radius: 9999px !important;
-	border-bottom-left-radius: 9999px !important;
-	border-top-right-radius: 0 !important;
-	border-bottom-right-radius: 0 !important;
+	border-radius: 0 !important;
 }
 
-.fc-timeGridDay-button {
-	border-top-left-radius: 9999px !important;
-	border-bottom-left-radius: 9999px !important;
-	border-top-right-radius: 0 !important;
-	border-bottom-right-radius: 0 !important;
+.fc-daygrid-event {
+	border-radius: 9999px !important;
+	text-align: center;
+	cursor: pointer !important;
+	background-color: #000000!important;
+	color: #ffffff !important;
+}
+
+.fc-button:focus {
+	box-shadow: none !important;
+
 }

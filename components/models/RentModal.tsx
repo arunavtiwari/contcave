@@ -276,7 +276,7 @@ function RentModal({ }: Props) {
         />
         <ImageUpload
           onChange={(value) => setCustomValue("imageSrc", value)}
-          values={imageSrc} height={200} width={200}
+          values={imageSrc}
         />
       </div>
     );
@@ -358,7 +358,7 @@ function RentModal({ }: Props) {
           title="Select the add-ons, if available at your property"
           subtitle="Additonal chargeable services/facilities"
         />
-        <AddonsSelection addons={addons} onSelectedAddonsChange={handleAddonChange}></AddonsSelection>
+        <AddonsSelection addons={addons} initialSelectedAddons={[]} onSelectedAddonsChange={handleAddonChange}></AddonsSelection>
         <CustomAddonModal save={(value: any) => { addons.push(value); setAddons(addons) }} />
 
       </div>

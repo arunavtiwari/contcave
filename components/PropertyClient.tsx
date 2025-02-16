@@ -30,9 +30,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     const [selectedMenu, setSelectedMenu] = useState("Edit Property");
     const [initialListing, setListing] = useState(listing);
 
-    // Add any state management or handlers you may need for form submission or image uploads
-    const [amenities, setAmenities] = useState<Amenities[]>(predefinedAmenities);  // Explicitly specify the type
-    const [addons, setAddons] = useState<any[]>(predefinedAddons);  // Explicitly specify the type
+    const [amenities, setAmenities] = useState<Amenities[]>(predefinedAmenities);
+    const [addons, setAddons] = useState<any[]>(predefinedAddons);
 
     const [selectedAmenities, setSelectedAmenities] = useState<{ [key: string]: boolean }>({});
     const [selectedAddons, setSelectedAddons] = useState<{}>({});
@@ -153,15 +152,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         //update();
     };
 
-
-
     return (
         <SessionProvider>
             <div className='flex justify-center'>
                 {/* Sidebar */}
-                <Sidebar selectedMenu={selectedMenu} setSelectedMenu={setSelectedMenu} />
+                <Sidebar selectedMenu={selectedMenu} setSelectedMenu={setSelectedMenu} listingId={initialListing.id} />
                 {/* Main Content */}
-                <div className="bg-white flex flex-col sm:p-8 sm:pt-0 mt-20 sm:mt-10 w-full gap-5">
+                <div className="bg-white flex flex-col sm:p-8 sm:pt-0 w-full gap-5 sm:border-l-2 border-gray-200">
                     <Heading title={selectedMenu} />
                     {/* Edit Property */}
                     <div className={selectedMenu === "Edit Property" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
@@ -190,6 +187,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 placeholder="Enter the description"
                                 value={initialListing.description}
                                 onChange={(e) => handleInputChange("description", e.target.value)}
+                                rows={5}
                             />
                         </div>
                         {/* Category */}
@@ -408,12 +406,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                     {/* Calendar */}
                     <div className={selectedMenu === "Sync Calendar" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
-                        <Calendar />
+                        <Calendar operationalStart={initialListing.otherDetails?.operationalDays?.start} operationalEnd={initialListing.otherDetails?.operationalDays?.end} />
                     </div>
 
                     {/* Manage Timings */}
                     <div className={selectedMenu === "Manage Timings" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
-                        <ManageTimings listingId={listing.id} />
+                        <ManageTimings listingId={listing.id} defaultStartTime={initialListing.otherDetails?.operationalHours?.start} defaultEndTime={initialListing.otherDetails?.operationalHours?.end} defaultStartDay={initialListing.otherDetails?.operationalDays?.start} defaultEndDay={initialListing.otherDetails?.operationalDays?.end} />
                     </div>
 
                     {/* Settings */}
@@ -425,6 +423,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     </div>
                 </div>
             </div>
+
         </SessionProvider>
     );
 };
