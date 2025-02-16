@@ -9,8 +9,6 @@ import Navbar from "@/components/navbar/Navbar";
 import { Montserrat } from "next/font/google";
 import "../styles/globals.css";
 import getCurrentUser from "./actions/getCurrentUser";
-// import { CategoryProvider } from "./context/CategoryContext";
-// import CustomAddonModal from "@/components/models/CustomAddonModal";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsentBanner";
 import OwnerRegisterModal from "@/components/models/OwnerRegisterModal";
@@ -71,7 +69,7 @@ export default async function RootLayout({
           <Navbar currentUser={currentUser} />
           <CookieConsent />
         </ClientOnly>
-        <div className="pt-[85px]">{children}</div>
+        <div className="min-h-[100vh] pt-[84px]">{children}</div>
         <ScrollToTop />
         <Footer />
 

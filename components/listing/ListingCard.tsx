@@ -73,7 +73,7 @@ function ListingCard({
         ease: [0, 0.71, 0.2, 1.01],
       }}
       onClick={() => onEdit ? router.push(`/properties/${data.id}`) : router.push(`/listings/${data.id}`)}
-      className="col-span-1 cursor-pointer group p-5 shadow-solid-6 rounded-2xl"
+      className="col-span-1 cursor-pointer group p-5 shadow-md rounded-2xl border border-neutral-200"
     >
       <div className="flex flex-col gap-2 w-full">
         <div className="aspect-square w-full relative overflow-hidden rounded-xl">

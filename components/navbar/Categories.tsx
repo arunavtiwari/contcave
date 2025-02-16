@@ -1,14 +1,9 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
-import { BsSnow } from "react-icons/bs";
-import { FaSkiing } from "react-icons/fa";
+import { useSearchParams } from "next/navigation";
 import {
-  GiBarn,
-  GiCastle,
   GiCaveEntrance,
-  GiForestCamp,
-  GiIsland, GiAncientRuins, GiPineTree, GiFactory, GiPhotoCamera,
+  GiPineTree, GiPhotoCamera,
   GiSunflower, GiCube, GiLighthouse, GiMountainCave,
   GiArtificialIntelligence, GiFruitBowl
 } from "react-icons/gi";
@@ -16,7 +11,6 @@ import { IoDiamond } from "react-icons/io5";
 import { MdOutlineVilla } from "react-icons/md";
 import CategoryBox from "../CategoryBox";
 import Container from "../Container";
-import Search from "./Search";
 
 
 
@@ -31,26 +25,11 @@ export const categories = [
     icon: MdOutlineVilla,
     description: "This location is in the heart of the city!",
   },
-  // {
-  //   label: "Historic",
-  //   icon: GiAncientRuins,
-  //   description: "Capture the charm of history in this location!",
-  // },
   {
     label: "Nature",
     icon: GiPineTree,
     description: "Surrounded by natural beauty, perfect for outdoor shoots!",
   },
-  // {
-  //   label: "Industrial",
-  //   icon: GiFactory,
-  //   description: "An industrial setting, ideal for unique and edgy shoots!",
-  // },
-  // {
-  //   label: "Rural",
-  //   icon: GiBarn,
-  //   description: "Escape to the countryside for a rustic shoot!",
-  // },
   {
     label: "Open Spaces",
     icon: GiSunflower,
@@ -61,11 +40,6 @@ export const categories = [
     icon: GiCube,
     description: "Simplicity at its best, perfect for minimalist aesthetics!",
   },
-  // {
-  //   label: "Architectural Marvel",
-  //   icon: GiCastle,
-  //   description: "Explore this architectural marvel for striking compositions!",
-  // },
   {
     label: "Seaside",
     icon: GiLighthouse,
@@ -104,29 +78,22 @@ type Props = {};
 function Categories({ }: Props) {
   const params = useSearchParams();
   const category = params?.get("category");
-  const pathname = usePathname();
-
-  const isMainPage = pathname === "/";
-
-  if (!isMainPage) {
-    return null;
-  }
 
   return (
-    <Container>
-      <div className="pt-4 flex flex-row items-center justify-between overflow-x-auto">
-        {categories.map((items, index) => (
-          <CategoryBox
-            key={index}
-            icon={items.icon}
-            label={items.label}
-            selected={category === items.label}
-          />
-        ))}
-
-      </div>
-
-    </Container>
+    <div className="fixed w-full bg-white z-20 left-0 top-[80px]">
+      <Container>
+        <div className="pt-2 w-full flex flex-row items-center justify-between overflow-x-auto hide-scrollbar gap-5">
+          {categories.map((item, index) => (
+            <CategoryBox
+              key={index}
+              icon={item.icon}
+              label={item.label}
+              selected={category === item.label}
+            />
+          ))}
+        </div>
+      </Container>
+    </div>
   );
 }
 

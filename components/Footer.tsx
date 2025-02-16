@@ -49,7 +49,7 @@ function Footer() {
           </div>
 
           {/* Social Media */}
-          <div className="flex space-x-4">
+          <div className="flex flex-wrap justify-center sm:justify-normal gap-4 items-center w-full">
             <p className="text-base font-semibold">Follow Us</p>
             <a href="https://www.linkedin.com/company/contcave/?viewAsMember=true" target="_blank" rel="noopener noreferrer">
               <Image src="/images/icon/Linkedin.svg" width={25} height={25} alt="linkedin" className="object-cover hover:scale-105 transition-all" />
@@ -60,6 +60,7 @@ function Footer() {
             <a href="https://www.instagram.com/contcave/" target="_blank" rel="noopener noreferrer">
               <Image src="/images/icon/Instagram.svg" width={25} height={25} alt="instagram" className="object-cover hover:scale-105 transition-all" />
             </a>
+            <a href="https://www.producthunt.com/posts/contcave?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-contcave" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=480635&theme=dark&t=1738752353649" alt="ContCave - We&#0032;Help&#0032;creators&#0032;and&#0032;brands&#0032;Shoot&#0032;Better&#0032;Content | Product Hunt" width="200" height="auto" className="rounded-full" /></a>
           </div>
 
           <div className="flex space-x-4 justify-center text-center md:text-left">
@@ -112,7 +113,7 @@ function Footer() {
         {/* <p className="text-sm md:col-span-5 hidden">{country}</p> */}
       </div>
       <div className="bg-black text-white py-2 text-sm text-center">
-        © 2024 Contcave. All rights reserved.
+        © 2025 Contcave. All rights reserved.
       </div>
     </ClientOnly>
   );

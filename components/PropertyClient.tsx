@@ -1,32 +1,24 @@
 "use client";
 
-import getAddons from '@/app/actions/getAddons';
-import getAmenities from '@/app/actions/getAmenities';
-import getCurrentUser from '@/app/actions/getCurrentUser';
-import ClientOnly from '@/components/ClientOnly';
-import EmptyState from '@/components/EmptyState';
 import AmenitiesCheckbox from '@/components/inputs/AmenityCheckbox';
 import { Amenities } from '@prisma/client';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { GiPhotoCamera, GiPineTree, GiSunflower, GiCube, GiLighthouse, GiMountainCave, GiArtificialIntelligence, GiCaveEntrance, GiFruitBowl } from 'react-icons/gi';
 import { IoDiamond } from 'react-icons/io5';
-import { MdOutlineVilla } from 'react-icons/md';
+import { MdOutlineVilla, MdClose } from 'react-icons/md';
 import AddonsSelection, { Addon } from './inputs/AddonsSelection';
 import CustomAddonModal from './models/CustomAddonModal';
-import { SafeUser, safeListing } from '@/types';
 import axios from 'axios';
-import { id } from 'date-fns/locale';
-import router from 'next/router';
 import { toast } from 'react-toastify';
 import ImageUpload from './inputs/ImageUpload';
 import useIndianCities from '@/hook/useCities';
-import { FaHome, FaCogs, FaCalendar, FaBolt } from "react-icons/fa";
-import { FaArrowUpRightDots, FaClock } from "react-icons/fa6";
-import Link from 'next/link';
+import { FaBolt } from "react-icons/fa";
 import ReactSwitch from 'react-switch';
 import Heading from "@/components/Heading";
 import Calendar from '@/components/Calendar';
 import { SessionProvider } from 'next-auth/react';
+import Sidebar from '@/components/Sidebar';
+import ManageTimings from './ManageTimings';
 
 type Props = {
     listing: any;
@@ -44,6 +36,10 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
     const [selectedAmenities, setSelectedAmenities] = useState<{ [key: string]: boolean }>({});
     const [selectedAddons, setSelectedAddons] = useState<{}>({});
+
+    useEffect(() => {
+        window.scrollTo({ top: 0 });
+    }, [selectedMenu]);
 
     const update = () => {
         axios
@@ -83,8 +79,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     };
 
     const handleAddonChange = (updatedAddons: Addon[]) => {
-        setSelectedAddons(updatedAddons);
-        handleInputChange("addons", updatedAddons);
+        setSelectedAddons((prevSelected) => {
+            if (JSON.stringify(prevSelected) !== JSON.stringify(updatedAddons)) {
+                handleInputChange("addons", updatedAddons);
+                return updatedAddons;
+            }
+            return prevSelected;
+        });
     };
 
     const indianCities = useIndianCities().getAll();
@@ -152,42 +153,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         //update();
     };
 
-    const sidebarMenuItems = [
-        { name: "Edit Property", icon: <FaHome size={22} className="hover:text-white sm:hover:text-black transition" /> },
-        { name: "Sync Calendar", icon: <FaCalendar size={22} className="hover:text-white sm:hover:text-black transition" /> },
-        { name: "Manage Timings", icon: <FaClock size={22} className="hover:text-white sm:hover:text-black transition" /> },
-        { name: "Settings", path: "/services", icon: <FaCogs size={22} className="hover:text-white sm:hover:text-black transition" /> },
-    ];
+
 
     return (
         <SessionProvider>
             <div className='flex justify-center'>
                 {/* Sidebar */}
-                <div className="flex fixed flex-col sm:sticky sm:h-screen top-[90px] sm:top-[85px] sm:border-r-2 border-gray-200 px-4 py-1.5 sm:py-10 min-w-[250px] bg-black/30 sm:bg-white h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
-                    <nav>
-                        <ul className="flex sm:flex-col sm:gap-2 gap-2">
-                            {sidebarMenuItems.map((item, index) => (
-                                <li
-                                    key={index}
-                                    className={`px-4 py-3 flex items-center gap-3 sm:hover:bg-gray-100 rounded-full cursor-pointer group ${selectedMenu === item.name ? "bg-gray-200" : ""
-                                        }`}
-                                    onClick={() => setSelectedMenu(item.name)}
-                                >
-                                    <span >{item.icon}</span>
-                                    <span className="hidden sm:block">{item.name}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
-
-                    <div className="mt-5">
-                        <Link href="/reservations" className='px-4 py-2.5 gap-3 flex items-center bg-black text-white hover:opacity-90 rounded-full cursor-pointer group'>
-                            <span><FaArrowUpRightDots size={22} className="" /></span>
-                            <a className="">Check Bookings</a>
-                        </Link>
-                    </div>
-                </div>
-
+                <Sidebar selectedMenu={selectedMenu} setSelectedMenu={setSelectedMenu} />
                 {/* Main Content */}
                 <div className="bg-white flex flex-col sm:p-8 sm:pt-0 mt-20 sm:mt-10 w-full gap-5">
                     <Heading title={selectedMenu} />
@@ -254,21 +226,21 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </select>
                         </div>
                         {/* Images */}
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
+                        <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
                                 Images (Max 8 Pictures)
                             </label>
-                            <div className="mt-1 flex space-x-6 w-full">
+                            <div className="flex gap-6 w-full flex-wrap justify-center sm:justify-normal mt-2 sm:mt-0">
                                 {initialListing.imageSrc.map((item: any, index: number) => (
                                     <div key={index} className="relative">
-                                        <div className="h-32 w-32 rounded-lg border-2 border-gray-300 border-dashed flex items-center">
-                                            <img src={item} alt={`Image ${index}`} className="h-full w-full object-cover rounded-lg" />
+                                        <div className="h-32 w-32 rounded-xl flex items-center">
+                                            <img src={item} alt={`Image ${index}`} className="h-full w-full object-cover rounded-xl" />
                                         </div>
                                         <button
                                             onClick={() => removeImage(index)}
-                                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 text-sm"
+                                            className="absolute top-2 right-2 rounded-full"
                                         >
-                                            Remove
+                                            <MdClose size={20} className="text-white bg-black rounded-full hover:bg-white hover:text-black border-solid border-2 border-black transition-colors ease-in-out duration-300" />
                                         </button>
                                     </div>
                                 ))}
@@ -291,12 +263,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
                         {/* Addons */}
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
+                        <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
                                 Addons
                             </label>
-                            <div className="flex flex-col space-y-2 w-full">
-                                <AddonsSelection addons={addons} onSelectedAddonsChange={handleAddonChange} />
+                            <div className="flex flex-col w-full">
+                                <AddonsSelection initialSelectedAddons={initialListing.addons} addons={addons} onSelectedAddonsChange={handleAddonChange} />
                                 <CustomAddonModal save={(value) => { addons.push(value); setAddons(addons); }} />
                             </div>
                         </div>
@@ -306,7 +278,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 Carpet Area
                             </label>
                             <input
-                                type="text"
+                                type="number"
                                 id="carpetArea"
                                 className="border rounded-full  pl-3 py-2 shadow-sm w-full"
                                 placeholder="Enter the carpet area"
@@ -437,6 +409,19 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     {/* Calendar */}
                     <div className={selectedMenu === "Sync Calendar" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
                         <Calendar />
+                    </div>
+
+                    {/* Manage Timings */}
+                    <div className={selectedMenu === "Manage Timings" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
+                        <ManageTimings listingId={listing.id} />
+                    </div>
+
+                    {/* Settings */}
+                    <div className={selectedMenu === "Settings" ? "flex flex-col gap-5" : "hidden"}>
+                        <button className='border-2 border-red px-6 py-2 rounded-full hover:opacity-85 text-red w-fit shadow-sm'>
+                            DELETE PROPERTY
+                        </button>
+                        <p><span className='font-semibold'>Warning:</span> Deleting your property will permanently remove all your data and cannot be undone. </p>
                     </div>
                 </div>
             </div>

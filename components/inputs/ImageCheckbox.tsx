@@ -48,7 +48,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
   return (
     <>
 
-      <label className="cursor-pointer flex flex-col items-center" data-tooltip-target="tooltip-default">
+      <label className="w-full cursor-pointer flex flex-col items-center" data-tooltip-target="tooltip-default">
         {!hideCheckbox && (<input
           type="checkbox"
           checked={isChecked}
@@ -58,35 +58,44 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
         {hideCheckbox && <img src={imageUrl} alt={label} className="rounded-md w-20 mt-6 mb-2"
           onClick={onClickChange}
         />}
-        {!hideCheckbox && <img src={imageUrl} alt={label} className="rounded-md" style={{ width: addon.width ? addon.width + "px" : "97px" }} />}
+        {!hideCheckbox && <img src={imageUrl} alt={label} className="rounded-md mt-2" style={{ width: addon.width ? addon.width + "px" : "97px" }} />}
 
-        {/* Price */}
-        <div className="items-center">
-          <span className="addon-name text-ellipsis truncate">{label}</span>
+
+        <div className="w-full flex flex-col items-center gap-3">
+          <span className="addon-name truncate mt-2">{label}</span>
+          {/* Price */}
           {!hideInputFields && (
+            <div className='flex items-center gap-4 w-full justify-between'>
+              <label className="text-sm">Price</label>
+              <div className="relative flex items-center">
+                <span className="absolute left-2 text-gray-500 border-r pr-2">₹</span>
+                <input
+                  type="number"
+                  value={addon.price ? addon.price : price}
+                  onChange={handlePriceChange}
+                  className="w-[150px] text-center border rounded-xl py-1 pl-10"
+                  placeholder="Price"
+                  disabled={!isChecked}
+                />
+              </div>
+            </div>
+          )}
 
-            <input
-              type="text"
-              value={addon.price ? addon.price : price}
-              onChange={handlePriceChange}
-              className="w-20 text-center border rounded-md px-2 py-1"
-              placeholder="₹ Price"
-              disabled={!isChecked}
-            />
+          {/* Quantity */}
+          {!hideInputFields && (
+            <div className='flex items-center gap-4 w-full justify-between'>
+              <label className="text-sm">Quantity</label>
+              <input
+                type="number"
+                value={addon.qty ? addon.qty : qty}
+                onChange={handleQtyChange}
+                className="w-[150px] text-center border rounded-xl py-1 pl-7"
+                placeholder="Quantity"
+                disabled={!isChecked}
+              />
+            </div>
           )}
         </div>
-        {/* Quantity */}
-        {!hideInputFields && (
-          <input
-            type="text"
-            value={addon.qty ? addon.qty : qty}
-            onChange={handleQtyChange}
-            className="w-20 text-center border rounded-md px-2 py-1"
-            placeholder="Qty Available"
-            disabled={!isChecked} // Disable if not checked
-            style={{ "width": "96%", "marginTop": "10px" }}
-          />
-        )}
       </label>
     </>
   );

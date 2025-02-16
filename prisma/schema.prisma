@@ -32,7 +32,7 @@ model User {
   CustomAmenities  CustomAmenities[]
   Review           Review[]
   paymentDetails   PaymentDetails?   @relation(fields: [paymentDetailsId], references: [id])
-  paymentDetailsId String?
+  paymentDetailsId String?           @db.ObjectId
   is_owner         Boolean           @default(false)
   is_verified      Boolean           @default(false)
 }
@@ -84,6 +84,21 @@ model Listing {
   terms                Boolean?
   Addons               Addons[]
   reviews              Review[]
+  DayStatus            DayStatus[]
+}
+
+model DayStatus {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  date          DateTime
+  listingActive Boolean
+  startTime     String
+  endTime       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  listingId     String   @db.ObjectId
+  listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, date])
 }
 
 model Reservation {

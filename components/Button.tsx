@@ -34,10 +34,10 @@ function Button({
         disabled:opacity-70 
         disabled:cursor-not-allowed 
         hover:opacity-90 
-        py-3 
+        py-2 
         transition 
         w-full 
-        ${rounded ? " rounded-full" : "rounde-md"}
+        ${rounded ? " rounded-full" : "rounded-md"}
         ${classNames || (outline ? "bg-white border border-black text-black" : "bg-black border-red-500 text-white")}
       `}
     >

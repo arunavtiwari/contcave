@@ -198,3 +198,61 @@ input[type="text"]:focus {
 .Toastify__close-button {
 	align-self: center !important;
 }
+
+.hide-scrollbar {
+	&::-webkit-scrollbar {
+		display: none;
+	}
+
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.slick-list {
+	border-radius: 1rem;
+}
+
+/* Calendar */
+.fc-button {
+	padding: 0.5rem 2rem !important;
+}
+
+.fc-button-primary {
+	background-color: #000000 !important;
+	border-radius: 9999px !important;
+}
+
+.fc-next-button {
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+	border-top-right-radius: 9999px !important;
+	border-bottom-right-radius: 9999px !important;
+}
+
+.fc-prev-button {
+	border-top-left-radius: 9999px !important;
+	border-bottom-left-radius: 9999px !important;
+	border-top-right-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+}
+
+.fc-dayGridMonth-button {
+	border-top-left-radius: 9999px !important;
+	border-bottom-left-radius: 9999px !important;
+	border-top-right-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+}
+
+.fc-timeGridWeek-button {
+	border-top-left-radius: 9999px !important;
+	border-bottom-left-radius: 9999px !important;
+	border-top-right-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+}
+
+.fc-timeGridDay-button {
+	border-top-left-radius: 9999px !important;
+	border-bottom-left-radius: 9999px !important;
+	border-top-right-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+}

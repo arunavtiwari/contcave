@@ -29,16 +29,18 @@ const AddonItem = ({ addon, onChange, addonList }: any) => {
       }}
       transition={{ duration: 1 }}
       whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }} className="flex space-x-4 items-center">
-      <div className="rounded shadow-lg border h-fit w-fit">
-        <img
-          src={addonList.find((item: { name: string; imageUrl: string }) => item.name === addon.name)?.imageUrl || addon.imageUrl}
-          alt={`${addon.name}`}
-          className="h-16 w-16 rounded"
-        />
+      viewport={{ once: true }} className="flex space-x-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200">
+      <div className="rounded-lg h-fit w-fit">
+        <div
+          className="h-16 w-16 rounded-lg bg-neutral-100 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${addonList.find((item) => item.name === addon.name)?.imageUrl || addon.imageUrl})`,
+            backgroundBlendMode: 'multiply',
+          }}
+        ></div>
       </div>
-      <div className='text-sm'>
-        <p><strong>{addon.name}</strong></p>
+      <div className='text-sm overflow-hidden'>
+        <p className='truncate w-full' title={addon.name}><strong >{addon.name}</strong></p>
         <p>₹ {addon.price}</p>
 
 

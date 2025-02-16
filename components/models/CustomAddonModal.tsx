@@ -1,16 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import { FcGoogle } from "react-icons/fc";
-
-import { signIn } from "next-auth/react";
-import Button from "../Button";
-import Heading from "../Heading";
 import Input from "../inputs/Input";
 import Modal from "./Modal";
 import useAddonModal from "@/hook/useAddonModal";
 import ImageUpload from "../inputs/ImageUpload";
+import Image from "next/image";
 
 type Props = {
   save: (value: { imageUrl?: string, name: string }) => void;
@@ -34,7 +30,7 @@ function CustomAddonModal({ save }: Props) {
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     addonModel.onClose();
-    save({ name: data.name, imageUrl: image[0] });
+    save({ name: data.name, imageUrl: image[image.length - 1] });
     setImage([]);
   };
 
@@ -49,22 +45,36 @@ function CustomAddonModal({ save }: Props) {
       onSubmit={handleSubmit(onSubmit)}
       body={
         <>
-          <Input
-            id="name"
-            label="Name of Add-on"
-            disabled={isLoading}
-            register={register("name", {
-              required: "Name of Add-on required",
-            })}
-            errors={errors}
-            required
-          />
-          <br />
-          <ImageUpload
-            onChange={(value) => { setImage(value); }}
-            values={image} />
-          {console.log(image)}
+          <div className="flex flex-col gap-4 items-center">
+            <Input
+              id="name"
+              label="Name of Add-on"
+              disabled={isLoading}
+              register={register("name", {
+                required: "Name of Add-on required",
+              })}
+              errors={errors}
+              required
+            />
+            <div className="flex items-center gap-4">
+              {image.length > 0 && (
+                <Image
+                  src={image[image.length - 1]}
+                  alt="Uploaded Add-on"
+                  width={128}
+                  height={128}
+                  className="rounded-xl border border-neutral-300"
+                />
+              )}
+
+              <ImageUpload
+                onChange={(value) => setImage(value)}
+                values={image}
+              />
+            </div>
+          </div>
         </>
+
       }
 
     />
