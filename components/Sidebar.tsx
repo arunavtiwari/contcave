@@ -20,7 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedMenu, setSelectedMenu, listin
         { name: "Edit Property", icon: <FaHome size={22} className="hover:text-white sm:hover:text-black transition" /> },
         { name: "Sync Calendar", icon: <FaCalendar size={22} className="hover:text-white sm:hover:text-black transition" /> },
         { name: "Manage Timings", icon: <FaClock size={22} className="hover:text-white sm:hover:text-black transition" /> },
-        { name: "Settings", icon: <FaCogs size={22} className="hover:text-white sm:hover:text-black transition" />, path: "/services" },
+        { name: "Settings", icon: <FaCogs size={22} className="hover:text-white sm:hover:text-black transition" />},
         {
             name: "Profile",
             icon: <Image src="/assets/user.svg" width={22} height={22} alt="Profile" className="object-contain" />,

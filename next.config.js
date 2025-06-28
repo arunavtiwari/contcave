@@ -1,11 +1,10 @@
-// next.config.cjs
 import { withPayload } from '@payloadcms/next/withPayload'
 
 const nextConfig = {
-  experimental: {
-    reactCompiler: false,
-    esmExternals: false,
-  },
+  // experimental: {
+  //   reactCompiler: false,
+  //   esmExternals: false,
+  // },
   images: {
     remotePatterns: [
       {

@@ -174,7 +174,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="text"
                                 id="listingName"
-                                className="border rounded-full py-2 shadow-sm w-full"
+                                className="border rounded-full pl-3 py-2 shadow-sm w-full"
                                 placeholder="Enter the listing name"
                                 value={initialListing.title}
                                 onChange={(e) => handleInputChange("title", e.target.value)}

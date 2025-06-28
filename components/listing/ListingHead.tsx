@@ -7,6 +7,11 @@ import Image from "next/image";
 import Heading from "../Heading";
 import HeartButton from "../HeartButton";
 import Modal from "../modals/Modal";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import Slider from "react-slick";
+import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
+
 
 type Props = {
   title: string;
@@ -41,6 +46,37 @@ function ListingHead({
       updated[index] = true;
       return updated;
     });
+  };
+
+  const NextArrow = ({ onClick }) => (
+    <div
+      className="absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-md border border-[rgba(255,255,255,0.5)]"
+      onClick={onClick}
+    >
+      <HiOutlineChevronRight className="text-white" size={20} />
+    </div>
+  );
+
+  const PrevArrow = ({ onClick }) => (
+    <div
+      className="absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-md border border-[rgba(255,255,255,0.5)]"
+      onClick={onClick}
+    >
+      <HiOutlineChevronLeft className="text-white" size={20} />
+    </div>
+  );
+
+  const slickSettings = {
+    infinite: true,
+    speed: 1000,
+    slidesToShow: 1,
+    autoplay: true,
+    autoplaySpeed: 10000,
+    slidesToScroll: 1,
+    arrows: true,
+    fade: true,
+    nextArrow: <NextArrow onClick={() => { }} />,
+    prevArrow: <PrevArrow onClick={() => { }} />,
   };
 
   const handleImageClick = (index: number) => {
@@ -110,8 +146,8 @@ function ListingHead({
         <HeartButton listingId={id} currentUser={currentUser} />
       </div>
 
-      {/* Image Grid */}
-      <div className="grid grid-cols-2 gap-2 mt-4">
+      {/* Image Grid Screens above Desktop */}
+      <div className="hidden lg:grid lg:grid-cols-2 gap-2 mt-4">
         <div className="relative h-[455px] cursor-pointer" onClick={() => handleImageClick(0)}>
           {!loaded[0] && (
             <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-l-lg"></div>
@@ -155,6 +191,21 @@ function ListingHead({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Carousal Mobile */}
+      <div className="lg:hidden mt-4">
+        <Slider {...slickSettings}>
+          {imageSrc.map((url, index) => (
+            <div key={index} className="w-full h-[60vh] overflow-hidden rounded-xl relative">
+              <Image
+                src={url}
+                alt={`image-${index}`}
+                fill
+                className="object-cover w-full"
+              /></div>
+          ))}
+        </Slider>
       </div>
 
       {/* Modal for All Photos */}
