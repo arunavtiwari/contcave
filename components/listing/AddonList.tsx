@@ -57,7 +57,7 @@ const AddonItem = ({ addon, onChange, addonList }: any) => {
             >
               -
             </button>
-            <span className="px-5 bg-neutral-300 py-1.5">{qty}</span>
+            <span className="px-5 bg-neutral-300 py-1.5 w-13">{qty}</span>
             <button
               onClick={handleIncrement}
               className="text-white bg-green-500 h-8 w-8 rounded-r-xl text-xl leading-none"

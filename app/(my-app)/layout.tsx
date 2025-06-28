@@ -15,62 +15,29 @@ import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 
 export const metadata = {
   metadataBase: new URL("https://www.contcave.com"),
-  title: "ContCave | Find the Perfect Shoot Space with Ease",
+  title: {
+    default: "ContCave | Find the Perfect Shoot Space with Ease",
+    template: "%s | ContCave",
+  },
   description:
-    "Book the ideal shoot space for your next project on ContCave – the leading platform for creative studio and event space rentals.",
-  icons: "https://i.ibb.co/4JdrGHS/Screenshot-2023-11-22-at-3-52-33-AM.png",
+    "ContCave is a platform for booking creative shoot spaces, photography studios, and event rentals across India.",
+  icons: {
+    icon: "https://i.ibb.co/4JdrGHS/Screenshot-2023-11-22-at-3-52-33-AM.png",
+  },
   keywords: [
     "studio booking",
-    "photography spaces",
+    "creative studio rental",
     "event spaces",
-    "contcave",
-    "shoot space rental",
-    "creative space booking",
-    "photography studio rental",
-    "video production space",
-    "book studio",
-    "photo studio hire",
-    "event space rental",
-    "shoot location"
+    "shoot location",
+    "photography studio",
+    "video shoot location",
+    "ContCave",
   ],
   authors: [{ name: "ContCave" }],
   robots: "index, follow",
-  canonical: "https://www.contcave.com",
-  openGraph: {
-    title: "ContCave | Find the Perfect Shoot Space with Ease",
-    description:
-      "Book the ideal shoot space for your next project on ContCave – the leading platform for creative studio and event space rentals.",
-    url: "https://www.contcave.com",
-    siteName: "ContCave",
-    type: "website",
-    images: [
-      {
-        url: "https://www.contcave.com/images/logo/logo-dark.png",
-        width: 1200,
-        height: 630,
-        alt: "ContCave Logo"
-      }
-    ]
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "ContCave | Find the Perfect Shoot Space with Ease",
-    description:
-      "Book the ideal shoot space for your next project on ContCave – the leading platform for creative studio and event space rentals.",
-    site: "@ContCave",
-    images: [
-      {
-        url: "https://www.contcave.com/images/logo/logo-dark.png",
-        alt: "ContCave Logo"
-      }
-    ]
-  }
 };
 
-
-const font = Montserrat({
-  subsets: ["latin"],
-});
+const font = Montserrat({ subsets: ["latin"] });
 
 export default async function RootLayout({
   children,
