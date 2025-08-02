@@ -5,7 +5,7 @@ import { Amenities } from '@prisma/client';
 import React, { useCallback, useEffect, useState } from 'react';
 import { GiPhotoCamera, GiPineTree, GiSunflower, GiCube, GiLighthouse, GiMountainCave, GiArtificialIntelligence, GiCaveEntrance, GiFruitBowl } from 'react-icons/gi';
 import { IoDiamond } from 'react-icons/io5';
-import { MdOutlineVilla, MdClose } from 'react-icons/md';
+import { MdOutlineVilla, MdClose, MdOutlineCurrencyRupee} from 'react-icons/md';
 import AddonsSelection, { Addon } from './inputs/AddonsSelection';
 import CustomAddonModal from './modals/CustomAddonModal';
 import axios from 'axios';
@@ -19,7 +19,6 @@ import Calendar from '@/components/Calendar';
 import { SessionProvider, signIn } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
 import ManageTimings from './ManageTimings';
-import { MdOutlineCurrencyRupee } from "react-icons/md";
 
 type Props = {
     listing: any;
