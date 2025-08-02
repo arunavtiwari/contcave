@@ -7,14 +7,17 @@ type Props = {
   subtitle?: string;
   center?: boolean;
   topPadding?: boolean;
+  headingSmall?: boolean;
 };
 
-function Heading({ title, subtitle, center, topPadding }: Props) {
+function Heading({ title, subtitle, center, topPadding, headingSmall }: Props) {
   return (
     <div className={`${center ? "text-center" : "text-start"} ${topPadding ? "pt-10" : "pt-0"}`}>
-      <div className="text-xl font-bold">{title}</div>
+      <h1 className={`${headingSmall ? "text-xl" : "text-3xl"} font-bold text-gray-900`}>
+        {title}
+      </h1>
       {subtitle && (
-        <div className="font-light text-neutral-500 mt-1">{subtitle}</div>
+        <p className="text-gray-600 mt-1">{subtitle}</p>
       )}
     </div>
   );

@@ -32,6 +32,7 @@ model User {
   paymentDetailsId String?           @db.ObjectId
   is_owner         Boolean           @default(false)
   is_verified      Boolean           @default(false)
+  transactions     Transaction[]
 }
 
 model Account {
@@ -83,6 +84,7 @@ model Listing {
   reviews              Review[]
   DayStatus            DayStatus[]
   avgReviewRating      Float?
+  Transaction          Transaction[]
 }
 
 model DayStatus {
@@ -100,20 +102,21 @@ model DayStatus {
 }
 
 model Reservation {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId         String   @db.ObjectId
-  listingId      String   @db.ObjectId
-  startDate      DateTime @default(now())
-  startTime      DateTime @default(now())
-  endTime        DateTime @default(now())
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String        @db.ObjectId
+  listingId      String        @db.ObjectId
+  startDate      DateTime      @default(now())
+  startTime      DateTime      @default(now())
+  endTime        DateTime      @default(now())
   totalPrice     Float
   selectedAddons Json?
-  createdAt      DateTime @default(now())
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listing        Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt      DateTime      @default(now())
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing        Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
   Review         Review[]
   isApproved     Int?
   isRejected     Int?
+  Transaction    Transaction[]
 }
 
 model Amenities {
@@ -156,7 +159,7 @@ model Review {
 
 model PaymentDetails {
   id                      String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId                  String   @db.ObjectId
+  userId                  String   @unique @db.ObjectId
   accountHolderName       String
   bankName                String
   accountNumber           String
@@ -166,4 +169,44 @@ model PaymentDetails {
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   User                    User[]
+}
+
+model Transaction {
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String            @db.ObjectId
+  reservationId String?           @db.ObjectId
+  listingId     String?           @db.ObjectId
+  amount        Float
+  currency      String            @default("INR")
+  status        TransactionStatus @default(PENDING)
+  description   String?
+  paymentMethod String            @default("PhonePe")
+
+  // PhonePe specific fields
+  merchantTransactionId String  @unique
+  phonePeTransactionId  String?
+  phonePeOrderId        String?
+  phonePeResponse       Json?
+  callbackUrl           String?
+  redirectUrl           String?
+
+  // Additional fields
+  customerPhone String?
+  customerEmail String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reservation Reservation? @relation(fields: [reservationId], references: [id])
+  listing     Listing?     @relation(fields: [listingId], references: [id])
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+  REFUNDED
+  EXPIRED
 }

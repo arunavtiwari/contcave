@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FaCalendar, FaClock, FaArrowUpRightDots } from "react-icons/fa6";
 import { FaHome, FaCogs } from "react-icons/fa";
+import React from "react";
 
 interface SidebarProps {
     selectedMenu: string;
@@ -13,37 +14,40 @@ interface SidebarProps {
     menuType?: "main" | "profile";
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ selectedMenu, setSelectedMenu, listingId, menuType = "main" }) => {
+const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedMenu, listingId, menuType = "main" }) => {
     const router = useRouter();
 
-    const sidebarMenuItems = [
+    const sidebarMenuItems = React.useMemo(() => [
         { name: "Edit Property", icon: <FaHome size={22} className="hover:text-white sm:hover:text-black transition" /> },
         { name: "Sync Calendar", icon: <FaCalendar size={22} className="hover:text-white sm:hover:text-black transition" /> },
         { name: "Manage Timings", icon: <FaClock size={22} className="hover:text-white sm:hover:text-black transition" /> },
-        { name: "Settings", icon: <FaCogs size={22} className="hover:text-white sm:hover:text-black transition" />},
+        { name: "Settings", icon: <FaCogs size={22} className="hover:text-white sm:hover:text-black transition" /> },
         {
             name: "Profile",
             icon: <Image src="/assets/user.svg" width={22} height={22} alt="Profile" className="object-contain" />,
-            path: "/Profile",
         },
         {
             name: "Manage Payments",
             icon: <Image src="/assets/faCreditCard-black.svg" width={22} height={22} alt="Payment Details" className="object-contain" />,
-            path: "/profile-transaction",
         },
         {
-            name: "Share and Refer",
+            name: "Share & Refer",
             icon: <Image src="/assets/faUserPlus-black.svg" width={22} height={22} alt="Profile Share" className="object-contain" />,
-            path: "/profile-share",
         },
         {
             name: "Settings",
             icon: <Image src="/assets/settings-black.svg" width={22} height={22} alt="Profile Settings" className="object-contain" />,
-            path: "/profile-settings",
         },
-    ];
+    ], []);
 
-    const itemsToDisplay = menuType === "profile" ? sidebarMenuItems.slice(4) : sidebarMenuItems.slice(0, 4);
+    const itemsToDisplay = React.useMemo(() =>
+        menuType === "profile" ? sidebarMenuItems.slice(4) : sidebarMenuItems.slice(0, 4),
+        [sidebarMenuItems, menuType]
+    );
+
+    const handleMenuClick = React.useCallback((item: typeof sidebarMenuItems[0]) => {
+        setSelectedMenu(item.name);
+    }, [setSelectedMenu]);
 
     return (
         <div className="flex fixed flex-col sm:sticky top-[90px] sm:top-[85px] pr-4 pl-0 py-1.5 sm:py-10 min-w-[250px] bg-black/30 sm:bg-white h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
@@ -54,13 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedMenu, setSelectedMenu, listin
                             key={index}
                             className={`px-4 py-3 flex items-center gap-3 sm:hover:bg-gray-100 rounded-full cursor-pointer group ${selectedMenu === item.name ? "bg-gray-200" : ""
                                 }`}
-                            onClick={() => {
-                                if (item.path) {
-                                    router.push(item.path);
-                                } else {
-                                    setSelectedMenu(item.name);
-                                }
-                            }}
+                            onClick={() => handleMenuClick(item)}
                         >
                             <span>{item.icon}</span>
                             <span className="hidden sm:block">{item.name}</span>
@@ -102,6 +100,8 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedMenu, setSelectedMenu, listin
             )}
         </div>
     );
-};
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;
