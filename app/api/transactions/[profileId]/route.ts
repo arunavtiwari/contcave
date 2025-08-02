@@ -5,21 +5,18 @@ const prisma = new PrismaClient();
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { userId: string } }
+    context: { params: Promise<{ profileId: string }> }
 ) {
+    const { profileId } = await context.params;
     try {
-        const { userId } = params;
-
         const transactions = await prisma.transaction.findMany({
-            where: {
-                userId
-            },
+            where: { userId: profileId },
             include: {
                 user: {
                     select: {
                         name: true,
-                        email: true
-                    }
+                        email: true,
+                    },
                 },
                 reservation: {
                     select: {
@@ -27,38 +24,40 @@ export async function GET(
                         startDate: true,
                         listing: {
                             select: {
-                                title: true
-                            }
-                        }
-                    }
+                                title: true,
+                            },
+                        },
+                    },
                 },
                 listing: {
                     select: {
-                        title: true
-                    }
-                }
+                        title: true,
+                    },
+                },
             },
             orderBy: {
-                createdAt: 'desc'
-            }
+                createdAt: 'desc',
+            },
         });
 
         const transformedTransactions = transactions.map((transaction) => ({
             id: transaction.id,
             businessName:
-                transaction.listing?.title || transaction.reservation?.listing?.title || 'N/A',
+                transaction.listing?.title ||
+                transaction.reservation?.listing?.title ||
+                'N/A',
             merchant: transaction.paymentMethod || 'PhonePe',
             date: transaction.createdAt,
             guestName: transaction.user?.name || 'N/A',
             customerName: transaction.user?.name || 'N/A',
             amount: transaction.amount,
             currency: '₹',
-            status: mapTransactionStatus(transaction.status)
+            status: mapTransactionStatus(transaction.status),
         }));
 
         return NextResponse.json({
             success: true,
-            transactions: transformedTransactions
+            transactions: transformedTransactions,
         });
     } catch (error) {
         console.error('Error fetching transactions:', error);
