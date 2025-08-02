@@ -11,7 +11,7 @@ import {
     FaInstagram,
     FaWhatsapp
 } from "react-icons/fa";
-import Heading from "../Heading";
+import Heading from "@/components/Heading";
 
 interface Profile {
     id: string;
