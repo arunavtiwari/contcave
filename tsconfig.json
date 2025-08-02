@@ -23,29 +23,19 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
     "paths": {
-      // "@payload/*": [
-      //   "./(payload)/*"
-      // ],
-      "@app/*": [
-        "app/(my-app)/*"
-      ],
       "@/*": [
         "./*"
-      ],
-      "@payload-config": [
-        "./payload.config.ts"
       ]
     },
     "strictNullChecks": true
   },
   "include": [
+    ".next/types//*.ts",
+    "/*.ts",
+    "/*.tsx",
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "components/OperationalDays"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

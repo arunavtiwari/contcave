@@ -2,13 +2,12 @@
 
 import { useSearchParams } from "next/navigation";
 import {
-  GiCaveEntrance,
+  GiMusicalNotes,
   GiPineTree, GiPhotoCamera,
-  GiSunflower, GiCube, GiLighthouse, GiMountainCave,
-  GiArtificialIntelligence, GiFruitBowl
 } from "react-icons/gi";
-import { IoDiamond } from "react-icons/io5";
-import { MdOutlineVilla } from "react-icons/md";
+import { IoIosPartlySunny } from "react-icons/io";
+import { FaPodcast, FaBuilding } from "react-icons/fa";
+import { MdOutlineRoofing, MdHomeWork, MdLocalCafe, MdCelebration } from "react-icons/md";
 import CategoryBox from "../CategoryBox";
 import Container from "../Container";
 
@@ -16,59 +15,66 @@ import Container from "../Container";
 
 export const categories = [
   {
-    label: "Studios",
+    label: "Indoor Studio",
     icon: GiPhotoCamera,
-    description: "For a modern touch, explore futuristic and contemporary spaces!",
+    description: "Controlled environment with backdrops and lighting setups.",
   },
   {
-    label: "Urban",
-    icon: MdOutlineVilla,
-    description: "This location is in the heart of the city!",
+    label: "Outdoor Studio",
+    icon: IoIosPartlySunny,
+    description: "Natural lighting and outdoor scenery for dynamic shoots.",
   },
   {
-    label: "Nature",
-    icon: GiPineTree,
-    description: "Surrounded by natural beauty, perfect for outdoor shoots!",
+    label: "Podcast Studio",
+    icon: FaPodcast,
+    description: "Set up for audio/video podcast productions.",
+  },
+
+  // {
+  //   label: "Rooftop / Terrace",
+  //   icon: MdOutlineRoofing,
+  //   description: "Urban rooftops with stunning skyline views.",
+  // },
+  {
+    label: "Café / Restaurant",
+    icon: MdLocalCafe,
+    description: "Stylish eateries perfect for cozy, lifestyle photos.",
+  },
+
+  // {
+  //   label: "Cyclorama Studio",
+  //   icon: GiCycle,
+  //   description: "Infinity walls for seamless product and fashion shoots.",
+  // },
+  // {
+  //   label: "Themed Studio",
+  //   icon: GiPerspectiveDiceSixFacesRandom,
+  //   description: "Stylized, pre-set environments for creative projects.",
+  // },
+  // {
+  //   label: "Green Screen Studio",
+  //   icon: GiGreenPower,
+  //   description: "Perfect for VFX, digital compositing, and YouTube content.",
+  // },
+  {
+    label: "Recording Studio",
+    icon: GiMusicalNotes,
+    description: "Soundproof and acoustically treated spaces for music shoots.",
   },
   {
-    label: "Open Spaces",
-    icon: GiSunflower,
-    description: "A location with expansive open space, great for creative shots!",
+    label: "Home-Style Setup",
+    icon: MdHomeWork,
+    description: "Designed like a cozy living space or apartment.",
   },
   {
-    label: "Minimalist",
-    icon: GiCube,
-    description: "Simplicity at its best, perfect for minimalist aesthetics!",
+    label: "Event Space",
+    icon: MdCelebration,
+    description: "Versatile venues ideal for shoots with more space.",
   },
   {
-    label: "Seaside",
-    icon: GiLighthouse,
-    description: "Shoot by the sea, with breathtaking views and natural lighting!",
-  },
-  {
-    label: "Mountain",
-    icon: GiMountainCave,
-    description: "Find serenity in the mountains, an ideal retreat for your shoot!",
-  },
-  {
-    label: "Artistic",
-    icon: GiArtificialIntelligence,
-    description: "Discover studios designed for artistic and creative photography!",
-  },
-  {
-    label: "Vintage",
-    icon: GiCaveEntrance,
-    description: "Step into the past with locations exuding vintage vibes!",
-  },
-  {
-    label: "Chic & Trendy",
-    icon: IoDiamond,
-    description: "Stay on-trend with chic and stylish shoot locations!",
-  },
-  {
-    label: "Public Spaces",
-    icon: GiFruitBowl,
-    description: "Capture the essence of vibrant open-air markets in your shoot!",
+    label: "Co-working Space",
+    icon: FaBuilding,
+    description: "Modern collaborative spaces repurposed for shoots.",
   },
 ];
 

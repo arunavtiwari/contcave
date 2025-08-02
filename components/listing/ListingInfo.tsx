@@ -12,7 +12,7 @@ import AddonsList from "./AddonList";
 import { IoIosStar } from "react-icons/io";
 import Image from "next/image";
 import axios from "axios";
-import getAddons from "@app/actions/getAddons";
+import getAddons from "@/app/actions/getAddons";
 import { useRouter } from "next/navigation";
 import { FaStar } from "react-icons/fa6";
 

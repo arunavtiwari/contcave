@@ -1,10 +1,4 @@
-import { withPayload } from '@payloadcms/next/withPayload'
-
 const nextConfig = {
-  // experimental: {
-  //   reactCompiler: false,
-  //   esmExternals: false,
-  // },
   images: {
     remotePatterns: [
       {
@@ -21,6 +15,6 @@ const nextConfig = {
       },
     ],
   },
-}
+};
 
-export default withPayload(nextConfig)
+module.exports = nextConfig;

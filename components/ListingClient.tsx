@@ -12,7 +12,7 @@ import ListingHead from "./listing/ListingHead";
 import ListingInfo from "./listing/ListingInfo";
 import ListingReservation from "./listing/ListingReservation";
 import { categories } from "./navbar/Categories";
-import getAmenities from "@app/actions/getAmenities";
+import getAmenities from "@/app/actions/getAmenities";
 
 const IST_TIMEZONE = "Asia/Kolkata";
 const initialDate = new Date();

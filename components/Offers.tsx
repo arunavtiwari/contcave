@@ -1,6 +1,6 @@
 "use client";
 
-import getAmenities from "@app/actions/getAmenities";
+import getAmenities from "@/app/actions/getAmenities";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { AiOutlineCar, AiOutlineWifi } from "react-icons/ai";

@@ -1,4 +1,4 @@
-import getAddons from '@app/actions/getAddons';
+import getAddons from '@/app/actions/getAddons';
 import React, { useCallback, useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 
