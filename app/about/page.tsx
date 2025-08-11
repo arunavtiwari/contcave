@@ -3,7 +3,7 @@ import Container from "@/components/Container";
 import React from "react";
 import getCurrentUser from "../actions/getCurrentUser";
 export const dynamic = "force-dynamic"
-
+import Image from "next/image";
 type Props = {};
 
 const About = async (props: Props) => {
@@ -12,11 +12,12 @@ const About = async (props: Props) => {
     return (
         <ClientOnly>
             <div className="banner">
-                <img src="/assets/footer-banner.jpg" alt="Banner Image" />
+                <Image src="/assets/footer-banner.jpg" fill alt="Banner Image" />
                 <div className="overlay">
                     <h1 className="banner-text">About Us</h1>
                 </div>
             </div>
+            
             <Container>
                 <div className="pt-10 pb-60">
                     <div className="container mx-auto mt-8 p-8 bg-white shadow-lg border-2 border-gray-200 rounded-lg">
