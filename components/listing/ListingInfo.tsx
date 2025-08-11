@@ -255,7 +255,7 @@ function ListingInfo({
       <div className="flex flex-col gap-4">
         <p className="text-xl font-semibold">{`Listed Services`}</p>
         <div className="flex flex-wrap gap-2">
-          {fullListing.otherDetails && fullListing.otherDetails.selectedTypes && fullListing.otherDetails.selectedTypes.map((service, index) => (
+          {fullListing.otherDetails && fullListing.type && fullListing.type.map((service, index) => (
             <div key={index} className="bg-black text-white px-3 py-1 rounded-full">
               {service}
             </div>
