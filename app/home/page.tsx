@@ -98,7 +98,7 @@ export default async function Home(props: HomeProps) {
             <ClientOnly>
                 <Container>
                     <Categories />
-                    <div className="py-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 overflow-x-hidden">
+                    <div className="pb-24 pt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 overflow-x-hidden">
                         {listing.map((item) => (
                             <ListingCard key={item.id} data={item} currentUser={currentUser} />
                         ))}

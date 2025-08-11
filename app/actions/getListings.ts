@@ -6,6 +6,7 @@ export interface IListingsParams {
   endDate?: string;
   locationValue?: string;
   category?: string;
+  type?: string;
 }
 
 export default async function getListings(params: IListingsParams) {
@@ -16,6 +17,7 @@ export default async function getListings(params: IListingsParams) {
       startDate,
       endDate,
       category,
+      type,
     } = params;
 
     let query: any = {};
@@ -31,6 +33,11 @@ export default async function getListings(params: IListingsParams) {
     if (locationValue) {
       query.locationValue = locationValue;
     }
+    if (type) {
+      query.type = { has: type };
+    }
+    
+    
 
     if (startDate && endDate) {
       query.NOT = {
