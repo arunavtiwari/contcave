@@ -36,7 +36,7 @@
 		"dayjs": "^1.11.13",
 		"eslint": "9.21.0",
 		"eslint-config-next": "15.2.1",
-		"framer-motion": "^12.4.10",
+		"framer-motion": "^12.23.12",
 		"googleapis": "^146.0.0",
 		"graphql": "^16.10.0",
 		"gray-matter": "^4.0.3",
