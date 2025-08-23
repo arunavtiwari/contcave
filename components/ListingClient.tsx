@@ -17,6 +17,80 @@ import getAmenities from "@/app/actions/getAmenities";
 const IST_TIMEZONE = "Asia/Kolkata";
 const initialDate = new Date();
 
+type TimeHM = `${number}${number}:${number}${number}`;
+
+type ReservationOperationalTimings = {
+  operationalHours: { start: string; end: string };
+  operationalDays: { start: string; end: string };
+};
+
+const toHHMM = (d: Date): TimeHM => {
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}` as TimeHM;
+};
+
+const parseLabel = (label: string) => {
+  const m = label.match(/(\d+):(\d+)\s(AM|PM)/i);
+  if (!m) return { hours: 0, minutes: 0 };
+  let h = parseInt(m[1], 10);
+  const min = parseInt(m[2], 10);
+  const period = m[3].toUpperCase();
+  if (period === "PM" && h < 12) h += 12;
+  if (period === "AM" && h === 12) h = 0;
+  return { hours: h, minutes: min };
+};
+
+const dateFromLabel = (base: Date, label: string) => {
+  const { hours, minutes } = parseLabel(label);
+  return new Date(
+    base.getFullYear(),
+    base.getMonth(),
+    base.getDate(),
+    hours,
+    minutes,
+    0,
+    0
+  );
+};
+
+const ensureOps = (val: unknown): ReservationOperationalTimings => {
+  const defaults: ReservationOperationalTimings = {
+    operationalDays: { start: "mon", end: "sun" },
+    operationalHours: { start: "06:00", end: "22:00" },
+  };
+
+  if (!val || typeof val !== "object") return defaults;
+
+  const obj = val as Partial<ReservationOperationalTimings> & {
+    operationalDays?: { start?: unknown; end?: unknown };
+    operationalHours?: { start?: unknown; end?: unknown };
+  };
+
+  const startDay =
+    typeof obj.operationalDays?.start === "string"
+      ? obj.operationalDays!.start
+      : defaults.operationalDays.start;
+  const endDay =
+    typeof obj.operationalDays?.end === "string"
+      ? obj.operationalDays!.end
+      : defaults.operationalDays.end;
+
+  const startHour =
+    typeof obj.operationalHours?.start === "string"
+      ? obj.operationalHours!.start
+      : defaults.operationalHours.start;
+  const endHour =
+    typeof obj.operationalHours?.end === "string"
+      ? obj.operationalHours!.end
+      : defaults.operationalHours.end;
+
+  return {
+    operationalDays: { start: startDay, end: endDay },
+    operationalHours: { start: startHour, end: endHour },
+  };
+};
+
 type Props = {
   reservations?: SafeReservation[];
   listing: safeListing & {
@@ -30,31 +104,49 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
   const loginModal = useLoginModel();
 
   const [selectedDate, setSelectedDate] = useState<Date>(initialDate);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<[string, string]>(["", ""]);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<[string | null, string | null]>([null, null]);
+
   const [selectedAddons, setSelectedAddons] = useState<[]>([]);
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
   const [definedAmenities, setDefinedAmenities] = useState<any>([]);
   const [totalPrice, setTotalPrice] = useState(listing.price);
   const [isLoading, setIsLoading] = useState(false);
-  const [googleCalendarEvents, setGoogleCalendarEvents] = useState<any[]>([]);
 
-  const localDisabledDates = reservations.map(
-    (reservation) => new Date(reservation.startDate)
+  // Google events are fetched only when owner connected
+  const [googleCalendarEvents, setGoogleCalendarEvents] = useState<any[]>([]);
+  const ownerHasGoogleCalendar = !!listing?.user?.googleCalendarConnected;
+
+  const localDisabledDates = useMemo(
+    () => reservations.map((r) => new Date(r.startDate)),
+    [reservations]
   );
 
+  // fetch Google Calendar events ONLY if connected
   useEffect(() => {
-    const fetchGoogleCalendarEvents = async () => {
+    const controller = new AbortController();
+
+    async function fetchGoogleCalendarEvents() {
+      if (!ownerHasGoogleCalendar) {
+        setGoogleCalendarEvents([]);
+        return;
+      }
       try {
         const response = await axios.get("/api/calendar/events", {
           params: { listingId: listing.id },
+          signal: controller.signal as any,
         });
-        setGoogleCalendarEvents(response.data);
-      } catch (error) {
-        console.error("Failed to fetch Google Calendar events", error);
+        setGoogleCalendarEvents(Array.isArray(response.data) ? response.data : []);
+      } catch (error: any) {
+        if (error?.name !== "CanceledError") {
+          console.error("Failed to fetch Google Calendar events", error);
+          setGoogleCalendarEvents([]);
+        }
       }
-    };
+    }
+
     fetchGoogleCalendarEvents();
-  }, [listing.id]);
+    return () => controller.abort();
+  }, [listing.id, ownerHasGoogleCalendar]);
 
   const disabledDates = useMemo(() => {
     const googleDates = googleCalendarEvents
@@ -63,85 +155,92 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
     return [...localDisabledDates, ...googleDates];
   }, [localDisabledDates, googleCalendarEvents]);
 
+  const selectedDateStr = selectedDate.toDateString();
+
   const disabledStartTimes = useMemo(() => {
     const reservationStartTimes = reservations
-      .filter(
-        (reservation) =>
-          new Date(reservation.startDate).toDateString() ===
-          selectedDate.toDateString()
-      )
-      .map((reservation) => new Date(reservation.startTime));
+      .filter((r) => new Date(r.startDate).toDateString() === selectedDateStr)
+      .map((r) => toHHMM(new Date(r.startTime)));
+
     const googleStartTimes = googleCalendarEvents
       .filter(
-        (event) =>
-          event.start?.dateTime &&
-          new Date(event.start.dateTime).toDateString() ===
-          selectedDate.toDateString()
+        (e) =>
+          e.start?.dateTime &&
+          new Date(e.start.dateTime).toDateString() === selectedDateStr
       )
-      .map((event) => new Date(event.start.dateTime));
-    return [...reservationStartTimes, ...googleStartTimes];
-  }, [reservations, googleCalendarEvents, selectedDate]);
+      .map((e) => toHHMM(new Date(e.start.dateTime)));
+
+    return [...reservationStartTimes, ...googleStartTimes] as readonly TimeHM[];
+  }, [reservations, googleCalendarEvents, selectedDateStr]);
 
   const disabledEndTimes = useMemo(() => {
     const reservationEndTimes = reservations
-      .filter(
-        (reservation) =>
-          new Date(reservation.startDate).toDateString() ===
-          selectedDate.toDateString()
-      )
-      .map((reservation) => new Date(reservation.endTime));
+      .filter((r) => new Date(r.startDate).toDateString() === selectedDateStr)
+      .map((r) => toHHMM(new Date(r.endTime)));
+
     const googleEndTimes = googleCalendarEvents
       .filter(
-        (event) =>
-          event.end?.dateTime &&
-          new Date(event.end.dateTime).toDateString() ===
-          selectedDate.toDateString()
+        (e) =>
+          e.end?.dateTime &&
+          new Date(e.end.dateTime).toDateString() === selectedDateStr
       )
-      .map((event) => new Date(event.end.dateTime));
-    return [...reservationEndTimes, ...googleEndTimes];
-  }, [reservations, googleCalendarEvents, selectedDate]);
+      .map((e) => toHHMM(new Date(e.end.dateTime)));
 
-  const calculateTotalPrice = (
-    addons: any,
-    timeDifference: number = timeDifferenceInHours
-  ) => {
-    return (
-      timeDifference * listing.price +
-      addons.reduce(
-        (acc: number, value: { price: number; qty: any }) =>
-          acc + value.price * (value.qty ?? 0),
-        0
-      )
-    );
-  };
+    return [...reservationEndTimes, ...googleEndTimes] as readonly TimeHM[];
+  }, [reservations, googleCalendarEvents, selectedDateStr]);
+
+  const calculateTotalPrice = useCallback(
+    (addons: any, timeDifference: number = timeDifferenceInHours) => {
+      return (
+        timeDifference * listing.price +
+        addons.reduce(
+          (acc: number, value: { price: number; qty: any }) =>
+            acc + value.price * (value.qty ?? 0),
+          0
+        )
+      );
+    },
+    [listing.price, timeDifferenceInHours]
+  );
 
   const onCreateReservation = useCallback(() => {
     if (!currentUser) {
       loginModal.onOpen();
       return;
     }
+
+    const [startSlot, endSlot] = selectedTimeSlot;
+    if (!startSlot || !endSlot) {
+      toast.error("Please select a valid start and end time.");
+      return;
+    }
+
     setIsLoading(true);
 
-    const dateString = formatInTimeZone(selectedDate, IST_TIMEZONE, "yyyy-MM-dd");
-    const startDateTimeStr = `${dateString} ${selectedTimeSlot[0]}`;
-    const endDateTimeStr = `${dateString} ${selectedTimeSlot[1]}`;
-
+    const startDt = dateFromLabel(selectedDate, startSlot);
+    const endDt = dateFromLabel(selectedDate, endSlot);
 
     const formattedStartTime = formatInTimeZone(
-      new Date(startDateTimeStr),
+      startDt,
       IST_TIMEZONE,
       "yyyy-MM-dd'T'HH:mm:ssXXX"
     );
     const formattedEndTime = formatInTimeZone(
-      new Date(endDateTimeStr),
+      endDt,
       IST_TIMEZONE,
       "yyyy-MM-dd'T'HH:mm:ssXXX"
+    );
+
+    const startDateOnly = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate()
     );
 
     axios
       .post("/api/reservations", {
         totalPrice,
-        startDate: new Date(dateString),
+        startDate: startDateOnly,
         startTime: formattedStartTime,
         endTime: formattedEndTime,
         listingId: listing.id,
@@ -149,83 +248,53 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
         selectedAddons: selectedAddons,
       })
       .then(() => {
-        toast.success("Reservation Successful!", {
-          toastId: "Reservation_Successfull",
-        });
+        toast.success("Reservation Successful!", { toastId: "Reservation_Successfull" });
         setSelectedDate(initialDate);
         router.push("/bookings");
       })
       .catch(() => {
-        toast.error("Error in Reservation", {
-          toastId: "Reservation_Error_1",
-        });
+        toast.error("Error in Reservation", { toastId: "Reservation_Error_1" });
       })
       .finally(() => {
         setIsLoading(false);
       });
   }, [
-    totalPrice,
-    selectedDate,
-    selectedTimeSlot,
-    listing?.id,
-    router,
     currentUser,
     loginModal,
+    selectedTimeSlot,
+    selectedDate,
+    totalPrice,
+    listing.id,
+    listing.instantBooking,
     selectedAddons,
+    router,
   ]);
 
   useEffect(() => {
     if (definedAmenities.length === 0) {
-      getAmenities().then((data: any) => {
-        setDefinedAmenities(data);
-      });
+      getAmenities().then((data: any) => setDefinedAmenities(data));
     }
-    if (selectedDate && selectedTimeSlot) {
-      const [startTime, endTime] = selectedTimeSlot;
-      const parseTime = (time: string) => {
-        const match = time.match(/(\d+):(\d+) (AM|PM)/);
-        if (match) {
-          let hours = parseInt(match[1], 10);
-          const minutes = parseInt(match[2], 10);
-          const period = match[3];
-          if (period === "PM" && hours < 12) {
-            hours += 12;
-          }
-          if (period === "AM" && hours === 12) {
-            hours = 0;
-          }
-          return { hours, minutes };
-        }
-        return { hours: 0, minutes: 0 };
-      };
 
-      const { hours: startHours, minutes: startMinutes } = parseTime(startTime);
-      const { hours: endHours, minutes: endMinutes } = parseTime(endTime);
+    const [startTime, endTime] = selectedTimeSlot;
+    if (!selectedDate || !startTime || !endTime) return;
 
-      const startDateTime = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        selectedDate.getDate(),
-        startHours,
-        startMinutes
-      );
-      const endDateTime = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        selectedDate.getDate(),
-        endHours,
-        endMinutes
-      );
+    const startDateTime = dateFromLabel(selectedDate, startTime);
+    const endDateTime = dateFromLabel(selectedDate, endTime);
 
-      const timeDifferenceInMilliseconds =
-        endDateTime.getTime() - startDateTime.getTime();
-      const calculatedTimeDifferenceInHours =
-        timeDifferenceInMilliseconds / (1000 * 60 * 60);
-      const newTotalPrice = calculateTotalPrice(selectedAddons, calculatedTimeDifferenceInHours);
-      setTimeDifferenceInHours(calculatedTimeDifferenceInHours);
-      setTotalPrice(newTotalPrice);
-    }
-  }, [selectedDate, selectedTimeSlot, listing.price, selectedAddons, definedAmenities]);
+    const diffMs = endDateTime.getTime() - startDateTime.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    const newTotalPrice = calculateTotalPrice(selectedAddons, diffHours);
+
+    setTimeDifferenceInHours(diffHours);
+    setTotalPrice(newTotalPrice);
+  }, [
+    selectedDate,
+    selectedTimeSlot,
+    listing.price,
+    selectedAddons,
+    definedAmenities,
+    calculateTotalPrice,
+  ]);
 
   const category = useMemo(() => {
     return categories.find((item) => item.label === listing.category);
@@ -261,6 +330,7 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
               />
               <div className="order-first mb-10 md:order-last md:col-span-3">
                 <ListingReservation
+                  listingId={listing.id}
                   price={listing.price}
                   totalPrice={totalPrice}
                   platformFee={0}
@@ -270,17 +340,17 @@ function ListingClient({ reservations = [], listing, currentUser }: Props) {
                       acc + value.price * (value.qty ?? 0),
                     0
                   )}
-                  setSelectDate={(value) => setSelectedDate(value)}
+                  setSelectDate={setSelectedDate}
                   selectedDate={selectedDate}
-                  setSelectTimeSlots={(value) => setSelectedTimeSlot(value)}
-                  selectedTime={selectedTimeSlot}
+                  setSelectTimeSlots={setSelectedTimeSlot}
+                  selectedTime={selectedTimeSlot as [string, string]}
                   onSubmit={onCreateReservation}
                   disabled={isLoading}
                   instantBooking={listing.instantBooking ?? 0}
                   disabledDates={disabledDates}
                   disabledStartTimes={disabledStartTimes}
                   disabledEndTimes={disabledEndTimes}
-                  operationalTimings={listing.otherDetails}
+                  operationalTimings={ensureOps(listing.otherDetails)}
                 />
               </div>
             </div>

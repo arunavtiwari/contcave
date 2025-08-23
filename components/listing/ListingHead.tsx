@@ -143,7 +143,9 @@ function ListingHead({
       {/* Title & Heart Button */}
       <div className="flex gap-2">
         <Heading title={title} subtitle={`India, ${location?.label}`} />
-        <HeartButton listingId={id} currentUser={currentUser} />
+        <div className="pt-[6px]">
+          <HeartButton listingId={id} currentUser={currentUser} />
+        </div>
       </div>
 
       {/* Image Grid Screens above Desktop */}

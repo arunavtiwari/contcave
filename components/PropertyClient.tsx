@@ -440,9 +440,26 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     {/* Calendar */}
                     <div className={selectedMenu === "Sync Calendar" ? "flex flex-col gap-5 sm:gap-8 items-center" : "hidden"}>
                         <div className='flex justify-between w-full items-center'>
-                            <Heading title='Connect Your Google Calendar' subtitle='Sync offline and Contcave bookings to keep your availability up to date—automatically' />
-                            <button className='bg-black text-white px-15 h-fit py-2 rounded-full hover:opacity-90 flex gap-4 justify-center items-center' onClick={() => signIn("google-calendar")}><img src="/images/icon/google_calendar.png" alt="Girl in a jacket" width="30" className="bg-white rounded-full" /> Sync Google Calendar</button>
+                            <Heading
+                                title='Connect Your Google Calendar'
+                                subtitle='Sync offline and Contcave bookings to keep your availability up to date—automatically'
+                            />
+                            {!listing.user.googleCalendarConnected && (
+                                <button
+                                    className='bg-black text-white px-15 h-fit py-2 rounded-full hover:opacity-90 flex gap-4 justify-center items-center'
+                                    onClick={() => signIn("google-calendar")}
+                                >
+                                    <img
+                                        src="/images/icon/google_calendar.png"
+                                        alt="Google Calendar"
+                                        width="30"
+                                        className="bg-white rounded-full"
+                                    />
+                                    Sync Google Calendar
+                                </button>
+                            )}
                         </div>
+
                         <Calendar operationalStart={initialListing.otherDetails?.operationalDays?.start} operationalEnd={initialListing.otherDetails?.operationalDays?.end} listingId={listing.id} />
                     </div>
 

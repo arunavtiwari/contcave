@@ -33,6 +33,7 @@ model User {
   is_owner         Boolean           @default(false)
   is_verified      Boolean           @default(false)
   transactions     Transaction[]
+  googleCalendarConnected Boolean  @default(false)
 }
 
 model Account {

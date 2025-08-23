@@ -155,10 +155,13 @@ export const authOptions: AuthOptions = {
         try {
           await prisma.user.update({
             where: { id: message.user.id },
-            data: { is_owner: true },
+            data: {
+              is_owner: true,
+              googleCalendarConnected: true,
+            },
           });
         } catch (error) {
-          console.error("Error updating owner field in signIn event:", error);
+          console.error("Error updating fields in signIn event:", error);
         }
       }
     },

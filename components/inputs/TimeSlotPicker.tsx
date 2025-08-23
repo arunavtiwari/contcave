@@ -1,127 +1,191 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
-type TimeSlot = string | null;
+type TimeLabel = string;
+type TimeSlot = TimeLabel | null;
+type TimeHM = `${number}${number}:${number}${number}`;
+
+type ReservationOperationalTimings = {
+    operationalHours?: {
+        start?: string;
+        end?: string;
+    };
+};
 
 interface TimeSlotPickerProps {
-    onTimeSelect: (time: TimeSlot, field: 'start' | 'end') => void;
+    onTimeSelect: (time: TimeSlot, field: "start" | "end") => void;
     selectedStart: TimeSlot;
     selectedEnd: TimeSlot;
-    disabledStartTimes: any[];
-    disabledEndTimes: any[];
-    selectedDate: any;
-    operationalTimings?: any;
+
+    disabledStartTimes: readonly TimeHM[];
+    disabledEndTimes: readonly TimeHM[];
+
+    selectedDate: Date;
+    operationalTimings?: ReservationOperationalTimings;
 }
 
-const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ onTimeSelect, selectedStart, selectedEnd, disabledStartTimes, disabledEndTimes, selectedDate, operationalTimings }) => {
-    const [activeSegment, setActiveSegment] = useState<'start' | 'end'>('start');
+const TIME_SLOTS: TimeLabel[] = [
+    "6:00 AM", "6:30 AM", "7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM",
+    "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+    "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
+    "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM",
+    "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM", "8:30 PM",
+    "9:00 PM", "9:30 PM", "10:00 PM",
+];
 
-    const timeSlots = [
-        "6:00 AM", "6:30 AM", "7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM",
-        "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-        "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
-        "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM",
-        "6:00 PM", "6:30 PM", "7:00 PM", "8:00 PM", "8:30 PM", "9:00 PM", "9:30 PM", "10:00 PM"
-    ];
 
-    const handleSegmentChange = (segment: 'start' | 'end') => {
-        setActiveSegment(segment);
+const ampmToMinutes = (label: TimeLabel): number => {
+    const m = label.match(/^(\d{1,2}):(\d{2})\s(AM|PM)$/i);
+    if (!m) return NaN;
+    let h = Number(m[1]);
+    const min = Number(m[2]);
+    const period = m[3].toUpperCase();
+    if (period === "PM" && h < 12) h += 12;
+    if (period === "AM" && h === 12) h = 0;
+    return h * 60 + min;
+};
+
+const hhmmToMinutes = (hhmm: string): number => {
+    const m = hhmm.match(/^(\d{2}):(\d{2})$/);
+    if (!m) return NaN;
+    const h = Number(m[1]);
+    const min = Number(m[2]);
+    if (h > 23 || min > 59) return NaN;
+    return h * 60 + min;
+};
+
+function resolveOperationalRange(ops?: ReservationOperationalTimings) {
+    const rawStart = ops?.operationalHours?.start?.trim();
+    const rawEnd = ops?.operationalHours?.end?.trim();
+
+    const labelMinutes = TIME_SLOTS.map(ampmToMinutes);
+
+    const toMinutes = (s?: string): number | null => {
+        if (!s) return null;
+        const S = s.toUpperCase();
+        const idx = TIME_SLOTS.indexOf(S);
+        if (idx >= 0) return labelMinutes[idx];
+        const m24 = hhmmToMinutes(S);
+        if (!Number.isNaN(m24)) return m24;
+        const m12 = ampmToMinutes(S);
+        if (!Number.isNaN(m12)) return m12;
+        return null;
     };
 
-    const handleTimeSlotClick = (time: TimeSlot) => {
-        onTimeSelect(time, activeSegment);
-    };
+    const startMin = toMinutes(rawStart) ?? labelMinutes[0];
+    const endMin = toMinutes(rawEnd) ?? labelMinutes[labelMinutes.length - 1];
 
-    const getModifiedTime = (time: string) => {
-        let newtime = "";
-        if (time.includes(":")) {
-            let times = time.split(":");
-            if (times[0].length === 1) {
-                times[0] = times[0];
-            }
-            if (times[1].length === 1) {
-                times[1] = times[1] + "0";
-            }
-            newtime = times.join(":");
-        } else {
-            if (time.length === 2) {
-                newtime = time + ":00";
-            } else {
-                newtime = time + ":00";
-            }
+    let startIdx = 0;
+    while (startIdx < labelMinutes.length && labelMinutes[startIdx] < startMin) startIdx++;
+    let endIdx = labelMinutes.length - 1;
+    while (endIdx >= 0 && labelMinutes[endIdx] > endMin) endIdx--;
+
+    if (endIdx < startIdx) {
+        startIdx = 0;
+        endIdx = labelMinutes.length - 1;
+    }
+    return { startIdx, endIdx };
+}
+
+const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
+    onTimeSelect,
+    selectedStart,
+    selectedEnd,
+    disabledStartTimes,
+    disabledEndTimes,
+    selectedDate,
+    operationalTimings,
+}) => {
+    const [activeSegment, setActiveSegment] = useState<"start" | "end">("start");
+
+    const disabledIntervals = useMemo(() => {
+        const n = Math.min(disabledStartTimes.length, disabledEndTimes.length);
+        const out: Array<{ s: number; e: number }> = [];
+        for (let i = 0; i < n; i++) {
+            const s = hhmmToMinutes(disabledStartTimes[i]);
+            const e = hhmmToMinutes(disabledEndTimes[i]);
+            if (!Number.isNaN(s) && !Number.isNaN(e) && s < e) out.push({ s, e });
         }
-        return newtime;
+        return out;
+    }, [disabledStartTimes, disabledEndTimes]);
+
+    const { startIdx, endIdx } = useMemo(
+        () => resolveOperationalRange(operationalTimings),
+        [operationalTimings]
+    );
+
+    const visible = useMemo(
+        () => TIME_SLOTS.slice(startIdx, endIdx + 1),
+        [startIdx, endIdx]
+    );
+
+    const isReserved = (label: TimeLabel): boolean => {
+        const m = ampmToMinutes(label);
+        if (Number.isNaN(m)) return false;
+        return disabledIntervals.some(({ s, e }) => m >= s && m < e);
     };
 
-    const compareDates = (time: string) => {
-        let newtime = time;
+    const violatesEndBeforeStart = (label: TimeLabel): boolean => {
+        if (activeSegment !== "end" || !selectedStart) return false;
+        return ampmToMinutes(label) <= ampmToMinutes(selectedStart);
+    };
 
-        if (newtime.length < 8) {
-            newtime = "0" + newtime;
-        }
-
-        const parseDateTime = (date, time) => {
-            const [hourString, minuteString, period] = time.match(/(\d+):(\d+) (AM|PM)/).slice(1);
-            let hours = parseInt(hourString, 10);
-            const minutes = parseInt(minuteString, 10);
-
-            if (period === "PM" && hours < 12) {
-                hours += 12;
-            }
-            if (period === "AM" && hours === 12) {
-                hours = 0;
-            }
-
-            return new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes);
-        };
-
-        let isReserved = false;
-
-        const newDateTime = parseDateTime(selectedDate, newtime);
-
-        isReserved =
-            disabledStartTimes.some((item) => item <= newDateTime) &&
-            disabledEndTimes.some((item) => item >= newDateTime);
-
-        return isReserved;
+    const handleClick = (label: TimeLabel) => {
+        onTimeSelect(label, activeSegment);
     };
 
     return (
-        <div className="p-4">
+        <div className="p-4 pb-0">
             <div className="mb-4">
                 <div className="flex justify-between bg-gray-200 p-1.5 rounded-xl">
                     <button
-                        className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === 'start' ? "bg-white shadow-md" : "bg-transparent"}`}
-                        onClick={() => handleSegmentChange('start')}
+                        type="button"
+                        className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-white shadow-md" : "bg-transparent"
+                            }`}
+                        onClick={() => setActiveSegment("start")}
                     >
                         Start
-                        <span className="block text-xs text-gray-500">{selectedStart || "Please select"}</span>
+                        <span className="block text-xs text-gray-500">
+                            {selectedStart || "Please select"}
+                        </span>
                     </button>
                     <button
-                        className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === 'end' ? "bg-white shadow-md" : "bg-transparent"}`}
-                        onClick={() => handleSegmentChange('end')}
+                        type="button"
+                        className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "end" ? "bg-white shadow-md" : "bg-transparent"
+                            }`}
+                        onClick={() => setActiveSegment("end")}
                     >
                         End
-                        <span className="block text-xs text-gray-500">{selectedEnd || "Please select"}</span>
+                        <span className="block text-xs text-gray-500">
+                            {selectedEnd || "Please select"}
+                        </span>
                     </button>
                 </div>
             </div>
-            <div className="gap-4 grid grid-cols-3 h-[30vh] mb-4 pr-1 overflow-y-auto scrollbar-thin">
-                {timeSlots.filter((t, idx) =>
-                    idx >= timeSlots.indexOf(getModifiedTime(operationalTimings?.operationalHours?.start) + " AM") &&
-                    idx <= timeSlots.indexOf(getModifiedTime(operationalTimings?.operationalHours?.end) + " PM")
-                ).map((time, index) => {
-                    const isReserved = compareDates(time);
-                    const isDisabledBasedOnStart = activeSegment === 'end' && selectedStart && timeSlots.indexOf(time) <= timeSlots.indexOf(selectedStart);
-                    const isDisabled = isReserved || isDisabledBasedOnStart;
+
+            <div className="gap-4 grid grid-cols-3 h-[30vh] pr-1 overflow-y-auto pb-4">
+                {visible.map((label) => {
+                    const reserved = isReserved(label);
+                    const orderBad = violatesEndBeforeStart(label);
+                    const disabled = reserved || orderBad;
+                    const isSelected =
+                        (activeSegment === "start" && label === selectedStart) ||
+                        (activeSegment === "end" && label === selectedEnd);
+
                     return (
                         <button
-                            key={index}
-                            onClick={() => handleTimeSlotClick(time)}
-                            disabled={isDisabled || undefined}
-                            className={`rounded-xl px-4 py-2 text-sm ${isReserved ? 'disabled:opacity-70' : ''} ${(activeSegment === 'start' && time === selectedStart) || (activeSegment === 'end' && time === selectedEnd) ? 'border-black bg-black text-white' : 'bg-transparent'}`}
+                            key={label}
+                            type="button"
+                            onClick={() => handleClick(label)}
+                            disabled={disabled}
+                            className={`rounded-xl px-4 py-2 text-sm border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isSelected
+                                ? "border-black bg-black text-white"
+                                : "border-neutral-300 bg-transparent hover:border-black"
+                                }`}
                         >
-                            <span className={isDisabledBasedOnStart && !isReserved ? 'line-through' : ''}>{time}</span>
-                            {isReserved && (<p className="text-xs py-0">Not available</p>)}
+                            <span className={orderBad && !reserved ? "line-through" : ""}>
+                                {label}
+                            </span>
+                            {reserved && <p className="text-xs py-0">Not available</p>}
                         </button>
                     );
                 })}
