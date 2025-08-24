@@ -3,7 +3,7 @@
 import useCities from "@/hook/useCities";
 import { SafeUser } from "@/types";
 import dynamic from "next/dynamic";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IconType } from "react-icons";
 import Avatar from "../Avatar";
 import ListingCategory from "./ListingCategory";
@@ -12,6 +12,7 @@ import AddonsList from "./AddonList";
 import Image from "next/image";
 import axios from "axios";
 import getAddons from "@/app/actions/getAddons";
+import getAmenities from "@/app/actions/getAmenities";
 import { useRouter } from "next/navigation";
 
 const Map = dynamic(() => import("../Map"), { ssr: false });
@@ -44,14 +45,18 @@ function ListingInfo({
 }: Props) {
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
+
   const relayAddons = useCallback((addons: any) => onAddonChange(addons), [onAddonChange]);
-  const [addonList, setAddonList] = useState<any>([]);
-  const [reviews, setReviews] = useState<any>([]);
+
+  const [addonList, setAddonList] = useState<any[]>([]);
+  const [amenityDefs, setAmenityDefs] = useState<any[]>(definedAmenities ?? []);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
   const [review, setReview] = useState({ rating: 5, comment: "" });
   const [isExpanded, setIsExpanded] = useState(false);
-  const toggleExpand = () => setIsExpanded(prev => !prev);
+  const toggleExpand = () => setIsExpanded((prev) => !prev);
+
   const limit = 250;
   const shouldTruncate = description.length > limit;
   const displayedText = isExpanded || !shouldTruncate ? description : description.slice(0, limit) + "...";
@@ -76,19 +81,58 @@ function ListingInfo({
     checkBooking();
   }, [fullListing.id]);
 
-  const handleReviewSubmit = async () => {
+  useEffect(() => {
+    if (definedAmenities && definedAmenities.length > 0) {
+      setAmenityDefs(definedAmenities);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const defs = await getAmenities();
+        if (!cancelled) setAmenityDefs(defs || []);
+      } catch {
+        if (!cancelled) setAmenityDefs([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [definedAmenities]);
+
+  const normalizeSelectedAmenityKeys = useCallback((raw: any): string[] => {
     try {
-      await axios.post("/api/reviews", {
-        listingId: fullListing.id,
-        reservationId: latestReservationId,
-        rating: review.rating,
-        comment: review.comment,
-      });
-      const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
-      setReviews(res.data);
-      setReview({ rating: 5, comment: "" });
+      if (typeof raw === "string") {
+        const trimmed = raw.trim();
+        if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}"))) {
+          raw = JSON.parse(trimmed);
+        }
+      }
     } catch { }
-  };
+    const out: string[] = [];
+    const pushKey = (k: any) => {
+      if (k == null) return;
+      const s = String(k).trim();
+      if (!s) return;
+      out.push(s);
+    };
+    if (Array.isArray(raw)) {
+      raw.forEach((item) => {
+        if (typeof item === "string") pushKey(item);
+        else if (item && typeof item === "object") pushKey(item.key ?? item.slug ?? item.name ?? item.id);
+      });
+    } else if (raw && typeof raw === "object") {
+      Object.entries(raw).forEach(([k, v]) => {
+        if (v) pushKey(k);
+      });
+    }
+    return Array.from(new Set(out));
+  }, []);
+
+  const selectedAmenityKeys = useMemo(
+    () => normalizeSelectedAmenityKeys(fullListing?.amenities ?? []),
+    [fullListing?.amenities, normalizeSelectedAmenityKeys]
+  );
 
   const router = useRouter();
 
@@ -100,6 +144,21 @@ function ListingInfo({
   const maximumPax = fullListing?.maximumPax ?? 0;
   const minimumBookingHours = fullListing?.minimumBookingHours ?? "";
   const type = Array.isArray(fullListing?.type) ? fullListing.type : [];
+
+  const handleReviewSubmit = async () => {
+  try {
+    await axios.post("/api/reviews", {
+      listingId: fullListing.id,
+      reservationId: latestReservationId,
+      rating: review.rating,
+      comment: review.comment,
+    });
+    const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
+    setReviews(res.data);
+    setReview({ rating: 5, comment: "" });
+  } catch {
+  }
+};
 
   return (
     <div className="col-span-4 flex flex-col gap-8">
@@ -142,9 +201,9 @@ function ListingInfo({
 
       <hr />
 
-      {Array.isArray(fullListing.amenities) && fullListing.amenities.length > 0 && (
+      {selectedAmenityKeys.length > 0 && amenityDefs.length > 0 && (
         <>
-          <Offers amenities={fullListing.amenities} definedAmenities={definedAmenities} />
+          <Offers amenities={selectedAmenityKeys} definedAmenities={amenityDefs} />
           <hr />
         </>
       )}
@@ -284,7 +343,7 @@ function ListingInfo({
                 <div className="flex gap-2 items-center">
                   <span className="font-semibold">Rate</span>
                   <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map(v => (
+                    {[1, 2, 3, 4, 5].map((v) => (
                       <button
                         key={v}
                         type="button"

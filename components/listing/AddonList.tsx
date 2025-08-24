@@ -1,14 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
-type Addon = {
-  id?: string;
-  name: string;
-  price: number | string;
-  imageUrl?: string;
-  qty?: number;
-};
-
+type Addon = { id?: string; name: string; price: number | string; imageUrl?: string; qty?: number };
 type AddonListItem = { name: string; imageUrl?: string };
 
 type AddonItemProps = {
@@ -18,9 +11,6 @@ type AddonItemProps = {
   onQtyChange: (nextQty: number) => void;
 };
 
-const sig = (arr: Addon[]) =>
-  arr.map(a => `${a.name}|${a.price}|${a.qty ?? 0}`).sort().join(",");
-
 const toPrice = (v: number | string | undefined) => {
   if (typeof v === "number") return v;
   if (typeof v === "string") {
@@ -29,6 +19,8 @@ const toPrice = (v: number | string | undefined) => {
   }
   return 0;
 };
+
+const sig = (arr: Addon[]) => arr.map(a => `${a.name}|${toPrice(a.price)}|${a.qty ?? 0}`).sort().join(",");
 
 const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }) => {
   const inc = useCallback(() => onQtyChange(qty + 1), [qty, onQtyChange]);
@@ -46,10 +38,7 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
       <div className="rounded-lg h-fit w-fit">
         <div
           className="h-16 w-16 rounded-lg bg-neutral-100 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${imgUrl || addon.imageUrl || ""})`,
-            backgroundBlendMode: "multiply",
-          }}
+          style={{ backgroundImage: `url(${imgUrl || addon.imageUrl || ""})`, backgroundBlendMode: "multiply" }}
         />
       </div>
 
@@ -81,7 +70,7 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
 
 type AddonsListProps = {
   addons: Addon[];
-  onChange: (next: Addon[]) => void;
+  onChange: (selected: Addon[]) => void;
   addonList?: AddonListItem[];
 };
 
@@ -91,22 +80,14 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
 
   useEffect(() => {
     const next: Record<string, number> = {};
-    addons.forEach(a => {
-      if (a?.name) next[a.name] = 0;
-    });
+    addons.forEach(a => { if (a?.name) next[a.name] = 0; });
     setQuantities(next);
     lastSigRef.current = "";
   }, [addons]);
 
   useEffect(() => {
-    const withQty = addons.map(a => ({
-      ...a,
-      qty: quantities[a.name] ?? 0,
-      price: toPrice(a.price),
-    }));
-
+    const withQty = addons.map(a => ({ ...a, qty: quantities[a.name] ?? 0, price: toPrice(a.price) }));
     const selected = withQty.filter(a => (a.qty ?? 0) > 0 && toPrice(a.price) > 0);
-
     const nextSig = sig(selected);
     if (nextSig !== lastSigRef.current) {
       lastSigRef.current = nextSig;
