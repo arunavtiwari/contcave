@@ -136,7 +136,6 @@ model Reservation {
   listing        Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
   Review         Review[]
   isApproved     Int?
-  isRejected     Int?
   Transaction    Transaction[]
 
   @@index([userId])

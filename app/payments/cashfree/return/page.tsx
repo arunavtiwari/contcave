@@ -1,41 +1,19 @@
 import getReservation from "@/app/actions/getReservation";
+import getTransaction from "@/app/actions/getTransaction";
 
-type Search = { [key: string]: string | string[] | undefined };
+type Search = Record<string, string | string[] | undefined>;
 type Props = { searchParams: Promise<Search> };
 
-function pickFirst(v: string | string[] | undefined) {
-    if (!v) return "";
-    return typeof v === "string" ? v : v[0] ?? "";
-}
+const pickFirst = (v: string | string[] | undefined) =>
+    typeof v === "string" ? v : v?.[0] ?? "";
 
-function classifyStatus(b: any) {
-    const raw =
-        (b?.status ??
-            b?.paymentStatus ??
-            b?.confirmationStatus ??
-            b?.reservationStatus ??
-            "").toString();
-
-    const s = raw.toUpperCase();
-
-    const isConfirmed =
-        b?.isConfirmed === true ||
-        ["CONFIRMED", "APPROVED", "SUCCESS", "PAID"].includes(s);
-
-    const isFailed =
-        ["FAILED", "DECLINED", "CANCELED", "CANCELLED", "EXPIRED"].includes(s) ||
-        b?.paymentFailed === true;
-
-    const isPending =
-        !isConfirmed &&
-        !isFailed &&
-        (["PENDING", "REQUESTED", "AWAITING_CONFIRMATION", "PROCESSING"].includes(
-            s
-        ) ||
-            true);
-
-    return { isConfirmed, isPending, isFailed, rawStatus: raw };
-}
+// isApprove: 0 = Pending, 1 = Approved
+const getApproveCode = (r: any) => {
+    const v = r?.isApproved ?? r?.isApprove;
+    if (v === 0 || v === 1) return v;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+};
 
 export default async function CashfreeReturnPage({ searchParams }: Props) {
     const sp = await searchParams;
@@ -44,30 +22,41 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
     if (!tid) {
         return (
             <main className="max-w-xl mx-auto p-6">
-                <h1 className="text-2xl font-bold">Your Booking</h1>
-                <p className="mt-4 text-red-600">
+                <h1 className="text-3xl font-bold">Your Reservation</h1>
+                <p className="mt-4 text-xl text-red-600">
                     Missing <code>order_id</code> (or <code>tid</code>) in URL.
                 </p>
             </main>
         );
     }
 
-    const booking = await getReservation({ tid });
+    const transaction = await getTransaction({ tid });
+    const reservation =
+        transaction?.reservation ?? (await getReservation({ tid }));
 
-    if (!booking) {
+    if (!reservation) {
         return (
-            <main className="max-w-xl mx-auto p-6">
-                <h1 className="text-2xl font-bold">Your Booking</h1>
-                <div className="mt-4 rounded-lg border p-4">
-                    <p className="text-sm text-neutral-600">Order ID</p>
-                    <p className="font-mono">{tid}</p>
+            <main className="max-w-xl mx-auto p-6 flex items-center justify-center">
+                <div className="flex flex-col items-center space-y-6">
+                    {/* Spinner */}
+                    <div className="w-14 h-14 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
+
+                    <h2 className="text-2xl font-bold text-center">Verifying your payment...</h2>
+                    <p className="text-lg text-neutral-600 text-center">
+                        This may take a few seconds. Please wait while we confirm your reservation.
+                    </p>
                 </div>
-                <p className="mt-6 text-red-600">
-                    No reservation linked to this order yet. Please refresh in a moment.
-                </p>
             </main>
         );
     }
+
+    const approval = getApproveCode(reservation);
+    const txnFailed =
+        String(transaction?.status ?? "").toUpperCase() === "FAILED";
+
+    const isFailed = txnFailed;
+    const isConfirmed = !isFailed && approval === 1;
+    const isPending = !isFailed && approval === 0;
 
     const inr = new Intl.NumberFormat("en-IN", {
         style: "currency",
@@ -75,151 +64,132 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
         maximumFractionDigits: 0,
     });
     const dateFmt = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
-    const { isConfirmed, isPending, isFailed } = classifyStatus(booking);
 
-    const ListingBlock = (
+    const venueTitle = reservation.listing?.title ?? "—";
+    const venueAddress =
+        reservation.listing?.actualLocation &&
+            typeof reservation.listing.actualLocation === "object" &&
+            (reservation.listing.actualLocation as { display_name?: string })
+                .display_name
+            ? (reservation.listing.actualLocation as { display_name?: string })
+                .display_name!
+            : "";
+
+    const heading = isConfirmed
+        ? "Your reservation has been confirmed!"
+        : isPending
+            ? "Your reservation request has been sent to the studio!"
+            : "Your reservation could not be completed";
+
+    const subtext = isPending
+        ? "We'll notify you as soon as it's confirmed."
+        : isFailed
+            ? "Don’t worry, you can try again with the same or a different payment method."
+            : undefined;
+
+    const listingHref = reservation.listing?.id
+        ? `/listings/${reservation.listing.id}`
+        : "/";
+    const primaryCtaHref = isFailed ? listingHref : "/bookings";
+    const primaryCtaLabel = isFailed ? "BACK TO STUDIO" : "GO TO MY BOOKINGS";
+
+    const ReservationBlock = (
         <>
-            <div>
-                <p className="text-sm text-neutral-600">Booking ID</p>
-                <p className="font-mono">#{booking.id}</p>
-            </div>
-            <ul className="mt-3 list-disc pl-5 space-y-1 text-sm">
+            <p className="text-base text-center font-bold">
+                Reservation ID: #{reservation.id}
+            </p>
+            <ul className="mt-3 list-disc pl-4 space-y-1 text-base">
                 <li>
-                    <span className="font-medium">Studio:</span>{" "}
-                    {booking.listing?.title ?? "—"}
-                    {booking.listing?.locationValue ? (
-                        <span className="text-neutral-600">
-                            {" "}
-                            — {booking.listing.locationValue}
-                        </span>
-                    ) : null}
+                    <span className="font-medium">Venue:</span> {venueTitle}
+                    {venueAddress && <span> — {venueAddress}</span>}
                 </li>
                 <li>
                     <span className="font-medium">Date:</span>{" "}
-                    {dateFmt.format(new Date(booking.startDate))}
+                    {dateFmt.format(new Date(reservation.startDate))}
                 </li>
                 <li>
-                    <span className="font-medium">Time:</span>{" "}
-                    {booking.startTime} – {booking.endTime}
+                    <span className="font-medium">Time:</span> {reservation.startTime} -{" "}
+                    {reservation.endTime}
                 </li>
                 <li>
                     <span className="font-medium">Amount:</span>{" "}
-                    {inr.format(booking.totalPrice)}
+                    {inr.format(reservation.totalPrice)}
                 </li>
             </ul>
         </>
     );
 
     return (
-        <main className="max-w-3xl mx-auto p-6">
-            {/* Card */}
-            <div className="mx-auto max-w-2xl rounded-xl border bg-white/90 backdrop-blur p-6 shadow-sm">
-                {/* CONFIRMED */}
+        <main className="max-w-3xl mx-auto p-6 flex items-center min-h-[calc(100vh-85px)]">
+            <div className="mx-auto rounded-xl border bg-white/90 backdrop-blur p-6 shadow-sm">
+                <h2 className="text-3xl font-bold text-center">{heading}</h2>
+                {subtext && (
+                    <p className="mt-1 text-lg text-neutral-800 text-center">{subtext}</p>
+                )}
+
+                {!isFailed && (
+                    <div className="mt-4 rounded-lg border p-4">{ReservationBlock}</div>
+                )}
+
                 {isConfirmed && (
-                    <>
-                        <h2 className="text-xl font-bold">Your booking has been confirmed!</h2>
-                        <p className="mt-1 text-sm text-neutral-600">
-                            Booking ID: <span className="font-mono">#{booking.id}</span>
-                        </p>
-
-                        <div className="mt-4 rounded-lg border p-4">{ListingBlock}</div>
-
-                        <div className="mt-4 space-y-2 text-sm">
-                            <p className="font-medium">Venue Guidelines:</p>
-                            <ul className="list-disc pl-5 space-y-1">
-                                <li>Arrive 10 minutes early.</li>
-                                <li>Maintain cleanliness; pay for any damages.</li>
-                                <li>Respect staff and follow studio rules.</li>
-                            </ul>
-                        </div>
-
-                        <div className="mt-6">
-                            <a
-                                href="/trips"
-                                className="inline-flex items-center justify-center rounded-md bg-black px-4 py-2 text-white hover:bg-black/90"
-                            >
-                                GO TO MY BOOKINGS
-                            </a>
-                        </div>
-                    </>
+                    <div className="mt-4 space-y-2 text-base">
+                        <p className="font-bold">Venue Guidelines:</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                            <li>Please arrive at least 15 minutes early.</li>
+                            <li>Handle all equipment &amp; property with care.</li>
+                            <li>Keep noise levels mindful of the surroundings.</li>
+                        </ul>
+                    </div>
                 )}
 
-                {/* PENDING */}
-                {isPending && !isConfirmed && !isFailed && (
-                    <>
-                        <h2 className="text-xl font-bold">
-                            Your booking request has been sent to the studio!
-                        </h2>
-                        <p className="mt-1 text-sm text-neutral-600">
-                            We’ll notify you as soon as it’s confirmed.
-                        </p>
-
-                        <div className="mt-4 rounded-lg border p-4">{ListingBlock}</div>
-
-                        <div className="mt-4 space-y-2 text-sm">
-                            <p className="font-medium">What happens next?</p>
-                            <ul className="list-disc pl-5 space-y-1">
-                                <li>Most requests are approved within 24 hours.</li>
-                                <li>
-                                    You may receive a call/SMS for any additional details or KYC.
-                                </li>
-                                <li>
-                                    Payment will only be processed after confirmation (if not
-                                    already captured).
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div className="mt-6">
-                            <a
-                                href="/trips"
-                                className="inline-flex items-center justify-center rounded-md bg-black px-4 py-2 text-white hover:bg-black/90"
-                            >
-                                GO TO MY BOOKINGS
-                            </a>
-                        </div>
-                    </>
+                {isPending && (
+                    <div className="mt-4 space-y-2 text-base">
+                        <p className="font-bold">What happens next:</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                            <li>Your request has been sent to the studio.</li>
+                            <li>We&apos;ll notify you as soon as it&apos;s confirmed.</li>
+                            <li>You can track status anytime on the My Bookings page.</li>
+                        </ul>
+                    </div>
                 )}
 
-                {/* FAILED */}
                 {isFailed && (
-                    <>
-                        <h2 className="text-xl font-bold">
-                            Your payment could not be processed!
-                        </h2>
-                        <p className="mt-1 text-sm text-neutral-600">
-                            Don’t worry, you can try again with the same or a different payment
-                            method.
-                        </p>
+                    <div className="mt-4 space-y-2 text-base">
+                        <p className="font-bold">Payment failed</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                            <li>
+                                Your payment didn&apos;t go through, so this reservation isn&apos;t
+                                completed.
+                            </li>
+                            <li>No charges were captured for this attempt.</li>
+                            <li>
+                                Go back to the studio to try again with the same or a different
+                                payment method.
+                            </li>
+                        </ul>
+                    </div>
+                )}
 
-                        <div className="mt-4 rounded-lg border p-4">{ListingBlock}</div>
+                <div className="mt-8 text-center flex">
+                    <a
+                        href={primaryCtaHref}
+                        className="rounded-xl bg-black px-6 py-3 text-white hover:opacity-90 w-full"
+                    >
+                        {primaryCtaLabel}
+                    </a>
+                </div>
 
-                        <div className="mt-6 flex gap-3">
-                            <a
-                                href={`/payments/retry?tid=${encodeURIComponent(tid)}`}
-                                className="inline-flex items-center justify-center rounded-md bg-black px-4 py-2 text-white hover:bg-black/90"
-                            >
-                                RETRY PAYMENT
-                            </a>
-                            <a
-                                href="/"
-                                className="inline-flex items-center justify-center rounded-md border px-4 py-2 hover:bg-neutral-50"
-                            >
-                                BACK TO STUDIO
-                            </a>
-                        </div>
-
-                        <p className="mt-3 text-xs text-neutral-500">
-                            Need help? Write to{" "}
-                            <a
-                                href="mailto:support@contcave.com"
-                                className="underline underline-offset-2"
-                            >
-                                support@contcave.com
-                            </a>
-                            .
-                        </p>
-                    </>
+                {isFailed && (
+                    <p className="mt-3 text-sm text-neutral-500">
+                        Need help? Write to{" "}
+                        <a
+                            href="mailto:info@contcave.com"
+                            className="underline underline-offset-2"
+                        >
+                            info@contcave.com
+                        </a>
+                        .
+                    </p>
                 )}
             </div>
         </main>
