@@ -1,4 +1,3 @@
-// types/scheduling.ts
 export const DAY_KEYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 export type DayKey = typeof DAY_KEYS[number];
 
@@ -47,7 +46,6 @@ export const normalizeOpeningHours = (input: any): OpeningHours | undefined => {
     };
 };
 
-/** Build the exact prop `ListingReservation` expects */
 export const buildOperationalTimings = (listing: any): ReservationOperationalTimings => {
     const operationalDays =
         normalizeOperationalDays(listing?.operationalDays) ??

@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { FaBolt } from "react-icons/fa";
 import Select from "react-select";
 import ReactSwitch from "react-switch";
@@ -8,21 +8,71 @@ export type ListingDetails = {
     operationalDays: { start?: string; end?: string };
     operationalHours: { start?: string; end?: string };
     minimumBookingHours: string;
-    maximumPax: number | "";             
-    instantBooking: boolean;               
-    type: string[];                      
-    bookingApprovalCount?: boolean;       
+    maximumPax: string;
+    instantBooking: boolean;
+    type: string[];
+    bookingApprovalCount?: boolean;
 };
 
 type Props = {
     onDetailsChange: (details: ListingDetails) => void;
 };
 
+const types = [
+    "Fashion shoot",
+    "Product shoot",
+    "Podcast",
+    "Recording Studio",
+    "Film Shoot",
+    "Outdoor Event",
+    "Content shoot",
+    "Pre-Wedding",
+    "Meetings",
+    "Workshops",
+    "Photo Shoot",
+];
+
+const dayOptions = [
+    { value: "Mon", label: "Monday" },
+    { value: "Tue", label: "Tuesday" },
+    { value: "Wed", label: "Wednesday" },
+    { value: "Thu", label: "Thursday" },
+    { value: "Fri", label: "Friday" },
+    { value: "Sat", label: "Saturday" },
+    { value: "Sun", label: "Sunday" },
+];
+
+const buildTimeOptions = (stepMinutes = 30) => {
+    const out: { value: string; label: string }[] = [];
+    for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += stepMinutes) {
+            const am = h < 12;
+            const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+            const mm = String(m).padStart(2, "0");
+            const label = `${h12}:${mm} ${am ? "AM" : "PM"}`;
+            out.push({ value: label, label });
+        }
+    }
+    return out;
+};
+
+const selectTheme = (theme: any) => ({
+    ...theme,
+    borderRadius: 10,
+    colors: { ...theme.colors, primary: "black", primary25: "#F3F4F6", primary50: "#E5E7EB" },
+});
+
+const selectClasses = {
+    input: () => "text-lg cursor-pointer",
+    option: () => "text-lg cursor-pointer",
+};
+
 const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
+    const timeOptions = useMemo(() => buildTimeOptions(30), []);
     const [details, setDetails] = useState<ListingDetails>({
         carpetArea: "",
-        operationalDays: { start: "mon", end: "sun" },
-        operationalHours: { start: "06:00", end: "22:00" },
+        operationalDays: { start: "Mon", end: "Sun" },
+        operationalHours: { start: "9:00 AM", end: "9:00 PM" },
         minimumBookingHours: "",
         maximumPax: "",
         instantBooking: false,
@@ -45,33 +95,8 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
         });
     };
 
-    const types = [
-        "Fashion shoot",
-        "Product shoot",
-        "Podcast",
-        "Recording Studio",
-        "Film Shoot",
-        "Outdoor Event",
-        "Content shoot",
-        "Pre-Wedding",
-        "Meetings",
-        "Workshops",
-        "Photo Shoot",
-    ];
-
-    const dayOptions = [
-        { value: "mon", label: "Monday" },
-        { value: "tue", label: "Tuesday" },
-        { value: "wed", label: "Wednesday" },
-        { value: "thu", label: "Thursday" },
-        { value: "fri", label: "Friday" },
-        { value: "sat", label: "Saturday" },
-        { value: "sun", label: "Sunday" },
-    ];
-
     return (
         <div className="space-y-4">
-            {/* Property Specifications */}
             <div className="flex justify-between items-center">
                 <label className="text-sm font-medium w-[40vw]">
                     <strong>PROPERTY SPECIFICATIONS</strong>
@@ -89,7 +114,6 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
 
             <hr />
 
-            {/* Timings */}
             <div className="space-y-4">
                 <div className="flex items-center">
                     <label className="font-medium text-sm w-[40vw]">
@@ -108,12 +132,8 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
                                 })
                             }
                             placeholder="Start Day"
-                            classNames={{ input: () => "text-lg cursor-pointer", option: () => "text-lg cursor-pointer" }}
-                            theme={(theme) => ({
-                                ...theme,
-                                borderRadius: 10,
-                                colors: { ...theme.colors, primary: "black", primary25: "#F3F4F6", primary50: "#E5E7EB" },
-                            })}
+                            classNames={selectClasses}
+                            theme={selectTheme}
                         />
                         <span>-</span>
                         <Select
@@ -126,43 +146,41 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
                                 })
                             }
                             placeholder="End Day"
-                            classNames={{ input: () => "text-lg cursor-pointer", option: () => "text-lg cursor-pointer" }}
-                            theme={(theme) => ({
-                                ...theme,
-                                borderRadius: 10,
-                                colors: { ...theme.colors, primary: "black", primary25: "#F3F4F6", primary50: "#E5E7EB" },
-                            })}
+                            classNames={selectClasses}
+                            theme={selectTheme}
                         />
                     </div>
                 </div>
 
                 <div className="flex items-center">
                     <label className="font-medium text-sm w-[40vw]">Opening Hours</label>
-                    <div className="flex items-center space-x-2 justify-end">
-                        <input
-                            type="text"
-                            placeholder="HH:MM"
-                            className="border rounded-full w-30 py-2 text-center"
-                            value={details.operationalHours.start || ""}
-                            onChange={(e) =>
+                    <div className="flex items-center space-x-2 justify-end w-full">
+                        <Select
+                            options={timeOptions}
+                            value={timeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
+                            onChange={(sel) =>
                                 handleInputChange("operationalHours", {
                                     ...details.operationalHours,
-                                    start: e.target.value,
+                                    start: sel?.value || "",
                                 })
                             }
+                            placeholder="Start Time"
+                            classNames={selectClasses}
+                            theme={selectTheme}
                         />
                         <span>-</span>
-                        <input
-                            type="text"
-                            placeholder="HH:MM"
-                            className="border rounded-full w-30 py-2 text-center"
-                            value={details.operationalHours.end || ""}
-                            onChange={(e) =>
+                        <Select
+                            options={timeOptions}
+                            value={timeOptions.find((t) => t.value === (details.operationalHours.end || "")) || null}
+                            onChange={(sel) =>
                                 handleInputChange("operationalHours", {
                                     ...details.operationalHours,
-                                    end: e.target.value,
+                                    end: sel?.value || "",
                                 })
                             }
+                            placeholder="End Time"
+                            classNames={selectClasses}
+                            theme={selectTheme}
                         />
                     </div>
                 </div>
@@ -181,7 +199,6 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
 
             <hr />
 
-            {/* Accommodation */}
             <div className="flex justify-between items-center">
                 <label className="text-sm font-medium w-[40vw]">
                     <strong>ACCOMMODATION</strong>
@@ -189,20 +206,22 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
                     Maximum Pax
                 </label>
                 <input
-                    type="number"
+                    type="text"
                     placeholder="6"
                     className="border rounded-full w-1/3 py-2 pr-3 text-center"
-                    value={details.maximumPax}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="off"
+                    value={details.maximumPax ?? ""}
                     onChange={(e) => {
-                        const v = e.target.value;
-                        handleInputChange("maximumPax", v === "" ? "" : Number(v));
+                        const onlyDigits = e.target.value.replace(/\D/g, "");
+                        handleInputChange("maximumPax", onlyDigits);
                     }}
                 />
             </div>
 
             <hr />
 
-            {/* Booking */}
             <div className="flex justify-between items-center">
                 <label className="text-sm font-medium mb-1 w-[40vw]">
                     <strong>BOOKING</strong>
@@ -241,7 +260,6 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
 
             <hr />
 
-            {/* Type */}
             <div className="justify-between items-center">
                 <label className="text-sm font-medium mb-1 w-[40vw]">
                     <strong>TYPE</strong>
