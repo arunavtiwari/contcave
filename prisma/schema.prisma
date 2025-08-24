@@ -7,33 +7,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/**
+ * ----------------------------- Enums -----------------------------
+ */
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+  REFUNDED
+  EXPIRED
+}
+
+/**
+ * ---------------------------- Models -----------------------------
+ */
+
 model User {
-  id               String            @id @default(auto()) @map("_id") @db.ObjectId
-  name             String?
-  email            String?           @unique
-  phone            String?
-  languages        String[]          @default([])
-  location         String?
-  description      String?
-  profileImage     String?
-  title            String?
-  emailVerified    DateTime?
-  image            String?
-  hashedPassword   String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  favoriteIds      String[]          @db.ObjectId
-  accounts         Account[]
-  listings         Listing[]
-  reservations     Reservation[]
-  CustomAmenities  CustomAmenities[]
-  Review           Review[]
-  paymentDetails   PaymentDetails?   @relation(fields: [paymentDetailsId], references: [id])
-  paymentDetailsId String?           @db.ObjectId
-  is_owner         Boolean           @default(false)
-  is_verified      Boolean           @default(false)
-  transactions     Transaction[]
-  googleCalendarConnected Boolean  @default(false)
+  id                      String            @id @default(auto()) @map("_id") @db.ObjectId
+  name                    String?
+  email                   String?           @unique
+  phone                   String?
+  languages               String[]          @default([])
+  location                String?
+  description             String?
+  profileImage            String?
+  title                   String?
+  emailVerified           DateTime?
+  image                   String?
+  hashedPassword          String?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  favoriteIds             String[]          @db.ObjectId
+  accounts                Account[]
+  listings                Listing[]
+  reservations            Reservation[]
+  CustomAmenities         CustomAmenities[]
+  Review                  Review[]
+  paymentDetails          PaymentDetails?   @relation(fields: [paymentDetailsId], references: [id])
+  paymentDetailsId        String?           @db.ObjectId
+  is_owner                Boolean           @default(false)
+  is_verified             Boolean           @default(false)
+  transactions            Transaction[]
+  googleCalendarConnected Boolean           @default(false)
 }
 
 model Account {
@@ -52,6 +69,7 @@ model Account {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Listing {
@@ -71,14 +89,13 @@ model Listing {
   otherAmenities       String[]
   addons               Json?
   carpetArea           String?
-  operationalDays      String?
-  openingHours         String?
+  operationalDays      Json?
+  operationalHours     Json?
   minimumBookingHours  String?
-  maximumPax           Int?
-  instantBooking       Int?
+  maximumPax           String?
+  instantBooking       Boolean?
   type                 String[]
-  bookingApprovalCount Int?
-  otherDetails         Json?
+  bookingApprovalCount Boolean?
   verifications        Json?
   terms                Boolean?
   Addons               Addons[]
@@ -86,6 +103,8 @@ model Listing {
   DayStatus            DayStatus[]
   avgReviewRating      Float?
   Transaction          Transaction[]
+
+  @@index([userId])
 }
 
 model DayStatus {
@@ -100,6 +119,7 @@ model DayStatus {
   listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([listingId, date])
+  @@index([listingId])
 }
 
 model Reservation {
@@ -118,6 +138,9 @@ model Reservation {
   isApproved     Int?
   isRejected     Int?
   Transaction    Transaction[]
+
+  @@index([userId])
+  @@index([listingId])
 }
 
 model Amenities {
@@ -133,6 +156,8 @@ model CustomAmenities {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Addons {
@@ -143,6 +168,8 @@ model Addons {
   createdAt DateTime @default(now())
   Listing   Listing? @relation(fields: [listingId], references: [id])
   listingId String?  @db.ObjectId
+
+  @@index([listingId])
 }
 
 model Review {
@@ -155,7 +182,11 @@ model Review {
   createdAt     DateTime    @default(now())
   user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   listing       Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+
+  @@index([userId])
+  @@index([listingId])
+  @@index([reservationId])
 }
 
 model PaymentDetails {
@@ -167,6 +198,7 @@ model PaymentDetails {
   ifscCode                String
   taxIdentificationNumber String
   taxResidencyInformation String
+  cashfreeVendorId        String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   User                    User[]
@@ -181,17 +213,20 @@ model Transaction {
   currency      String            @default("INR")
   status        TransactionStatus @default(PENDING)
   description   String?
-  paymentMethod String            @default("PhonePe")
+  paymentMethod String            @default("Cashfree")
 
-  // PhonePe specific fields
-  merchantTransactionId String  @unique
-  phonePeTransactionId  String?
-  phonePeOrderId        String?
-  phonePeResponse       Json?
-  callbackUrl           String?
-  redirectUrl           String?
+  // -------- Cashfree PG fields ----------
+  cfOrderId            String    @unique
+  cfPaymentId          String?
+  cfPaymentSessionId   String?
+  cfWebhookPayload     Json?
+  cfSignature          String?
+  vendorId             String?
+  payoutPercentToOwner Float?    @default(80)
+  payoutDueAt          DateTime?
+  payoutDoneAt         DateTime?
 
-  // Additional fields
+  // -------- Common ----------
   customerPhone String?
   customerEmail String?
   metadata      Json?
@@ -201,13 +236,10 @@ model Transaction {
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   reservation Reservation? @relation(fields: [reservationId], references: [id])
   listing     Listing?     @relation(fields: [listingId], references: [id])
-}
 
-enum TransactionStatus {
-  PENDING
-  SUCCESS
-  FAILED
-  CANCELLED
-  REFUNDED
-  EXPIRED
+  @@index([userId])
+  @@index([reservationId])
+  @@index([listingId])
+  @@index([status])
+  @@index([payoutDueAt])
 }

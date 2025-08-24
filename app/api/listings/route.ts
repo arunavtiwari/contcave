@@ -4,10 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const currentUser = await getCurrentUser();
-
-  if (!currentUser) {
-    return NextResponse.error();
-  }
+  if (!currentUser) return NextResponse.error();
 
   const body = await request.json();
   const {
@@ -15,39 +12,60 @@ export async function POST(request: Request) {
     description,
     imageSrc,
     category,
-    location,
+    locationValue,
     actualLocation,
     price,
     amenities,
+    otherAmenities,
     addons,
-    otherDetails,
+    carpetArea,
+    operationalDays,
+    operationalHours,
+    minimumBookingHours,
+    maximumPax,
+    instantBooking,
+    type,
+    bookingApprovalCount,
     verifications,
     terms
   } = body;
 
-  Object.keys(body).forEach((value: any) => {
-    if (!body[value]) {
-      NextResponse.error();
-    }
-  });
+  if (
+    !title ||
+    !description ||
+    !imageSrc ||
+    !category ||
+    !locationValue ||
+    !price
+  ) {
+    return NextResponse.error();
+  }
 
-  const listen = await prisma.listing.create({
+  const listing = await prisma.listing.create({
     data: {
       title,
       description,
       imageSrc,
       category,
-      locationValue: location.value,
+      locationValue,
       actualLocation,
       price: parseInt(price, 10),
       userId: currentUser.id,
       amenities,
+      otherAmenities,
       addons,
-      otherDetails,
+      carpetArea,
+      operationalDays,
+      operationalHours,
+      minimumBookingHours,
+      maximumPax,
+      instantBooking,
+      type,
+      bookingApprovalCount,
       verifications,
       terms
-    },
+    }
   });
 
-  return NextResponse.json(listen);
+  return NextResponse.json(listing);
 }

@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       reservations: {
         create: {
           userId: currentUser.id,
-          isApproved: instantBooking ? 1 : 0,
+          isApproved: instantBooking,
           startDate,
           startTime,
           endTime,
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   if (businessOwner && businessOwner.email) {
     const emailData = {
       from: {
-        email: "MS_8Knbaw@contcave.com",
+        email: `${process.env.MAILERSEND_EMAIL}`,
         name: "Contcave"
       },
       to: [

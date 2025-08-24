@@ -73,7 +73,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
             fri: 5,
             sat: 6,
         };
-        return days[day.toLowerCase()];
+        return days[day?.toLowerCase()];
     };
 
     const businessDays = useMemo(() => {

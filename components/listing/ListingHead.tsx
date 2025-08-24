@@ -9,9 +9,8 @@ import HeartButton from "../HeartButton";
 import Modal from "../modals/Modal";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import Slider from "react-slick";
+import Slider, { Settings } from "react-slick";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
-
 
 type Props = {
   title: string;
@@ -21,19 +20,39 @@ type Props = {
   currentUser?: SafeUser | null;
 };
 
-function ListingHead({
-  title,
-  locationValue,
-  imageSrc,
-  id,
-  currentUser,
-}: Props) {
+const ArrowBase: React.FC<{ onClick?: () => void; position: "left" | "right"; children: React.ReactNode }> = ({
+  onClick,
+  position,
+  children,
+}) => (
+  <div
+    className={`absolute top-1/2 ${position === "right" ? "right-3" : "left-3"} transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-md border border-[rgba(255,255,255,0.5)]`}
+    onClick={onClick}
+    role="button"
+    aria-label={position === "right" ? "Next image" : "Previous image"}
+  >
+    {children}
+  </div>
+);
+
+const NextArrow: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
+  <ArrowBase onClick={onClick} position="right">
+    <HiOutlineChevronRight className="text-white" size={20} />
+  </ArrowBase>
+);
+
+const PrevArrow: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
+  <ArrowBase onClick={onClick} position="left">
+    <HiOutlineChevronLeft className="text-white" size={20} />
+  </ArrowBase>
+);
+
+function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props) {
   const { getByValue } = useCities();
   const location = getByValue(locationValue);
   const [showModal, setShowModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const selectedImageRef = useRef<HTMLDivElement>(null);
-
   const [loaded, setLoaded] = useState<boolean[]>(new Array(imageSrc.length).fill(false));
 
   useEffect(() => {
@@ -41,32 +60,14 @@ function ListingHead({
   }, [imageSrc]);
 
   const handleImageLoad = (index: number) => {
-    setLoaded((prev) => {
+    setLoaded(prev => {
       const updated = [...prev];
       updated[index] = true;
       return updated;
     });
   };
 
-  const NextArrow = ({ onClick }) => (
-    <div
-      className="absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-md border border-[rgba(255,255,255,0.5)]"
-      onClick={onClick}
-    >
-      <HiOutlineChevronRight className="text-white" size={20} />
-    </div>
-  );
-
-  const PrevArrow = ({ onClick }) => (
-    <div
-      className="absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-md border border-[rgba(255,255,255,0.5)]"
-      onClick={onClick}
-    >
-      <HiOutlineChevronLeft className="text-white" size={20} />
-    </div>
-  );
-
-  const slickSettings = {
+  const slickSettings: Settings = {
     infinite: true,
     speed: 1000,
     slidesToShow: 1,
@@ -75,8 +76,8 @@ function ListingHead({
     slidesToScroll: 1,
     arrows: true,
     fade: true,
-    nextArrow: <NextArrow onClick={() => { }} />,
-    prevArrow: <PrevArrow onClick={() => { }} />,
+    nextArrow: <NextArrow />,
+    prevArrow: <PrevArrow />,
   };
 
   const handleImageClick = (index: number) => {
@@ -90,22 +91,16 @@ function ListingHead({
     }
   }, [showModal, selectedImageIndex]);
 
-  const renderImageWithSkeleton = (
-    src: string,
-    index: number,
-    extraClasses: string = ""
-  ) => (
+  const renderImageWithSkeleton = (src: string, index: number, extraClasses = "") => (
     <div className="relative w-full h-full cursor-pointer" onClick={() => handleImageClick(index)}>
-      {!loaded[index] && (
-        <div className={`absolute inset-0 bg-gray-300 animate-pulse rounded-lg`}></div>
-      )}
+      {!loaded[index] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-lg" />}
       <Image
         src={src}
         alt={`image-${index}`}
         fill
+        sizes="(max-width: 1024px) 100vw, 50vw"
         onLoadingComplete={() => handleImageLoad(index)}
-        className={`object-cover hover:brightness-[90%] ${extraClasses} ${loaded[index] ? "opacity-100" : "opacity-0"
-          } transition-opacity duration-500`}
+        className={`object-cover hover:brightness-[90%] ${extraClasses} ${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
       />
     </div>
   );
@@ -121,16 +116,14 @@ function ListingHead({
             className={`relative ${isFeatured ? "col-span-2" : ""} h-[300px] cursor-pointer`}
             onClick={() => handleImageClick(index)}
           >
-            {!loaded[index] && (
-              <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-lg"></div>
-            )}
+            {!loaded[index] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-lg" />}
             <Image
               src={url}
               alt={`image-${index}`}
               fill
+              sizes="100vw"
               onLoadingComplete={() => handleImageLoad(index)}
-              className={`object-cover rounded-lg ${loaded[index] ? "opacity-100" : "opacity-0"
-                } transition-opacity duration-500`}
+              className={`object-cover rounded-lg ${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
             />
           </div>
         );
@@ -140,7 +133,6 @@ function ListingHead({
 
   return (
     <>
-      {/* Title & Heart Button */}
       <div className="flex gap-2">
         <Heading title={title} subtitle={`India, ${location?.label}`} />
         <div className="pt-[6px]">
@@ -148,40 +140,34 @@ function ListingHead({
         </div>
       </div>
 
-      {/* Image Grid Screens above Desktop */}
       <div className="hidden lg:grid lg:grid-cols-2 gap-2 mt-4">
         <div className="relative h-[455px] cursor-pointer" onClick={() => handleImageClick(0)}>
-          {!loaded[0] && (
-            <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-l-lg"></div>
-          )}
+          {!loaded[0] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-l-lg" />}
           {imageSrc[0] && (
             <Image
               src={imageSrc[0]}
               alt="image-0"
               fill
+              sizes="50vw"
               onLoadingComplete={() => handleImageLoad(0)}
-              className={`object-cover rounded-l-lg hover:brightness-[90%] ${loaded[0] ? "opacity-100" : "opacity-0"
-                } transition-opacity duration-500`}
+              className={`object-cover rounded-l-lg hover:brightness-[90%] ${loaded[0] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
             />
           )}
         </div>
-
         <div className="grid grid-rows-2 grid-cols-2 gap-2 h-[455px]">
           {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
           {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-r-lg")}
           {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
           {imageSrc[4] && (
             <div className="relative w-full h-full">
-              {!loaded[4] && (
-                <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-r-lg"></div>
-              )}
+              {!loaded[4] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-r-lg" />}
               <Image
                 src={imageSrc[4]}
                 alt="image-4"
                 fill
+                sizes="50vw"
                 onLoadingComplete={() => handleImageLoad(4)}
-                className={`object-cover rounded-r-lg hover:brightness-[90%] ${loaded[4] ? "opacity-100" : "opacity-0"
-                  } transition-opacity duration-500`}
+                className={`object-cover rounded-r-lg hover:brightness-[90%] ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
                 onClick={() => handleImageClick(4)}
               />
               <button
@@ -195,31 +181,17 @@ function ListingHead({
         </div>
       </div>
 
-      {/* Carousal Mobile */}
       <div className="lg:hidden mt-4">
         <Slider {...slickSettings}>
           {imageSrc.map((url, index) => (
             <div key={index} className="w-full h-[60vh] overflow-hidden rounded-xl relative">
-              <Image
-                src={url}
-                alt={`image-${index}`}
-                fill
-                className="object-cover w-full"
-              /></div>
+              <Image src={url} alt={`image-${index}`} fill sizes="100vw" className="object-cover w-full" />
+            </div>
           ))}
         </Slider>
       </div>
 
-      {/* Modal for All Photos */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={() => { }}
-        title="All Photos"
-        body={modalContent}
-        actionLabel=""
-        selfActionButton={true}
-      />
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} onSubmit={() => { }} title="All Photos" body={modalContent} actionLabel="" selfActionButton />
     </>
   );
 }

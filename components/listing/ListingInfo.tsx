@@ -3,22 +3,18 @@
 import useCities from "@/hook/useCities";
 import { SafeUser } from "@/types";
 import dynamic from "next/dynamic";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { IconType } from "react-icons";
 import Avatar from "../Avatar";
 import ListingCategory from "./ListingCategory";
 import Offers from "../Offers";
 import AddonsList from "./AddonList";
-import { IoIosStar } from "react-icons/io";
 import Image from "next/image";
 import axios from "axios";
 import getAddons from "@/app/actions/getAddons";
 import { useRouter } from "next/navigation";
-import { FaStar } from "react-icons/fa6";
 
-const Map = dynamic(() => import("../Map"), {
-  ssr: false,
-});
+const Map = dynamic(() => import("../Map"), { ssr: false });
 
 type Props = {
   user: SafeUser;
@@ -45,68 +41,65 @@ function ListingInfo({
   fullListing,
   definedAmenities,
   onAddonChange,
-  services,
 }: Props) {
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
-  const handleAddonChange = (addons: any) => {
-    onAddonChange(addons);
-  };
+  const relayAddons = useCallback((addons: any) => onAddonChange(addons), [onAddonChange]);
   const [addonList, setAddonList] = useState<any>([]);
-
   const [reviews, setReviews] = useState<any>([]);
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
-
   const [review, setReview] = useState({ rating: 5, comment: "" });
-
   const [isExpanded, setIsExpanded] = useState(false);
-  const toggleExpand = () => setIsExpanded((prev) => !prev);
-
+  const toggleExpand = () => setIsExpanded(prev => !prev);
   const limit = 250;
   const shouldTruncate = description.length > limit;
-  const displayedText = isExpanded || !shouldTruncate
-    ? description
-    : description.slice(0, limit) + "...";
+  const displayedText = isExpanded || !shouldTruncate ? description : description.slice(0, limit) + "...";
 
   useEffect(() => {
-    const fetchReviews = async () => {
-      let addonList: any = await getAddons();
-      setAddonList(addonList)
-      const response = await axios.get(`/api/reviews/list/${fullListing.id}`);
-      setReviews(response.data);
+    const fetchData = async () => {
+      const list = await getAddons();
+      setAddonList(list);
+      const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
+      setReviews(res.data);
     };
-
     const checkBooking = async () => {
       try {
-        const response = await axios.get(`/api/checkbooking/${fullListing.id}`);
-        setCanReview(response.data.canReview);
-        setLatestReservationId(response.data.latestReservationId);
-      } catch (error) {
+        const res = await axios.get(`/api/checkbooking/${fullListing.id}`);
+        setCanReview(res.data.canReview);
+        setLatestReservationId(res.data.latestReservationId);
+      } catch {
         setCanReview(false);
       }
     };
-
-    fetchReviews();
+    fetchData();
     checkBooking();
   }, [fullListing.id]);
 
   const handleReviewSubmit = async () => {
     try {
-      const response = await axios.post("/api/reviews", {
+      await axios.post("/api/reviews", {
         listingId: fullListing.id,
         reservationId: latestReservationId,
         rating: review.rating,
         comment: review.comment,
       });
-      const reviews = await axios.get(`/api/reviews/list/${fullListing.id}`);
-      setReviews(reviews.data);
+      const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
+      setReviews(res.data);
       setReview({ rating: 5, comment: "" });
-    } catch (error) {
-      console.error("Failed to submit review:", error);
-    }
+    } catch { }
   };
+
   const router = useRouter();
+
+  const opDaysStart = fullListing?.operationalDays?.start ?? "";
+  const opDaysEnd = fullListing?.operationalDays?.end ?? "";
+  const opHoursStart = fullListing?.operationalHours?.start ?? "";
+  const opHoursEnd = fullListing?.operationalHours?.end ?? "";
+  const carpetArea = fullListing?.carpetArea ?? "";
+  const maximumPax = fullListing?.maximumPax ?? 0;
+  const minimumBookingHours = fullListing?.minimumBookingHours ?? "";
+  const type = Array.isArray(fullListing?.type) ? fullListing.type : [];
 
   return (
     <div className="col-span-4 flex flex-col gap-8">
@@ -115,10 +108,8 @@ function ListingInfo({
           <div>Hosted by {user?.name}</div>
           <Avatar src={user?.image} userName={user?.name} />
         </div>
-        {fullListing.avgReviewRating && fullListing.avgReviewRating != 0 && (
-          <div className="font-semibold text-md flex items-center gap-1.5">
-            {/* <FaStar size={18} color="gold" /> {fullListing.avgReviewRating.toFixed(1)} */}
-          </div>
+        {fullListing.avgReviewRating && fullListing.avgReviewRating !== 0 && (
+          <div className="font-semibold text-md flex items-center gap-1.5">{fullListing.avgReviewRating.toFixed(1)}</div>
         )}
       </div>
 
@@ -127,20 +118,16 @@ function ListingInfo({
       {category && (
         <ListingCategory
           icon={category.icon}
-          label={category?.label}
-          address={fullListing.actualLocation ? fullListing.actualLocation.display_name : ""}
-          description={category?.description}
+          label={category.label}
+          address={fullListing.actualLocation?.display_name ?? ""}
+          description={category.description}
         />
       )}
 
-      {/* Description */}
       <div className="text-base font-normal">
         <p>{displayedText}</p>
         {shouldTruncate && (
-          <button
-            onClick={toggleExpand}
-            className="underline font-medium text-sm mt-1"
-          >
+          <button onClick={toggleExpand} className="underline font-medium text-sm mt-1">
             {isExpanded ? "See less" : "See more"}
           </button>
         )}
@@ -148,157 +135,126 @@ function ListingInfo({
 
       <hr />
 
-      {/* Address */}
       <div className="flex flex-col gap-2">
         <p className="text-xl font-semibold">Address</p>
-        <p className="font-normal">{fullListing.actualLocation ? fullListing.actualLocation.display_name : ""}</p>
+        <p className="font-normal">{fullListing.actualLocation?.display_name ?? ""}</p>
       </div>
+
       <hr />
 
-      {/* Offers */}
-      {
-        fullListing.amenities && fullListing.amenities.length && (
-          <>
-            <Offers amenities={fullListing.amenities} definedAmenities={definedAmenities} />
-            <hr />
-          </>
-        )
-      }
-
-      {/* Add-ons */}
-      {fullListing.addons && fullListing.addons.length && (
+      {Array.isArray(fullListing.amenities) && fullListing.amenities.length > 0 && (
         <>
-          <AddonsList addons={fullListing.addons} onChange={handleAddonChange} addonList={addonList} />
+          <Offers amenities={fullListing.amenities} definedAmenities={definedAmenities} />
           <hr />
         </>
       )}
 
-      {/* Map */}
+      {Array.isArray(fullListing.addons) && fullListing.addons.length > 0 && (
+        <>
+          <AddonsList addons={fullListing.addons} onChange={relayAddons} addonList={addonList} />
+          <hr />
+        </>
+      )}
+
       <div className="flex flex-col gap-4">
-        <p className="text-xl font-semibold">{`Where you’ll be`}</p>
-        <Map center={fullListing.actualLocation ? (fullListing.actualLocation.latlng ?? coordinates) : coordinates} locationValue={locationValue} />
+        <p className="text-xl font-semibold">Where you’ll be</p>
+        <Map center={fullListing.actualLocation ? fullListing.actualLocation.latlng ?? coordinates : coordinates} locationValue={locationValue} />
       </div>
 
       <hr />
 
-      {/* Operational Timings */}
       <div className="flex flex-col gap-4">
         <p className="text-xl font-semibold">Operational Timings</p>
-        <div className="flex gap-10" >
-          {
-            fullListing.otherDetails && (
-              <>
-                <div className="">
-                  <strong>{fullListing.otherDetails?.operationalDays?.start} - {fullListing.otherDetails?.operationalDays?.end}</strong>
-                </div>
-                <div className="">
-                  {fullListing.otherDetails?.operationalHours?.start} AM - {fullListing.otherDetails?.operationalHours?.end} PM
-                </div>
-              </>
-            )
-          }
+        <div className="flex gap-10">
+          {(opDaysStart || opDaysEnd) && (
+            <div>
+              <strong>
+                {opDaysStart} {opDaysStart && opDaysEnd && "-"} {opDaysEnd}
+              </strong>
+            </div>
+          )}
+          {(opHoursStart || opHoursEnd) && (
+            <div>
+              {opHoursStart} {opHoursStart && opHoursEnd && "-"} {opHoursEnd}
+            </div>
+          )}
         </div>
       </div>
 
       <hr />
 
-      {/* Additional Information */}
       <div className="flex flex-col gap-4">
         <p className="text-xl font-semibold">Additional Information</p>
-        <div className="flex gap-10">
-          {
-            fullListing.otherDetails && (
-              <>
-                <div className="w-1/2">
-                  <strong>Carpet Area</strong>
-                </div>
-                <div className="">
-                  {fullListing.otherDetails?.carpetArea ?? 0} sqft
-                </div>
-              </>
-            )
-          }
-        </div>
-        <div className="flex gap-10" >
-          {
-            fullListing.otherDetails && (
-              <>
-                <div className="w-1/2">
-                  <strong>Max People</strong>
-                </div>
-                <div className="">
-                  {fullListing.otherDetails?.maximumPax ?? 0} People
-                </div>
-              </>
-            )
-          }
-        </div>
-        <div className="flex gap-10" >
-          {
-            fullListing.otherDetails && (
-              <>
-                <div className="w-1/2">
-                  <strong>Min Booking Hours</strong>
-                </div>
-                <div className="">
-                  {fullListing.otherDetails?.minimumBookingHours ?? 0} Hrs
-                </div>
-              </>
-            )
-          }
-        </div>
+        {(carpetArea || carpetArea === 0) && (
+          <div className="flex gap-10">
+            <div className="w-1/2">
+              <strong>Carpet Area</strong>
+            </div>
+            <div>{carpetArea || 0} sqft</div>
+          </div>
+        )}
+        {(maximumPax || maximumPax === 0) && (
+          <div className="flex gap-10">
+            <div className="w-1/2">
+              <strong>Max People</strong>
+            </div>
+            <div>{maximumPax} People</div>
+          </div>
+        )}
+        {(minimumBookingHours || minimumBookingHours === 0) && (
+          <div className="flex gap-10">
+            <div className="w-1/2">
+              <strong>Min Booking Hours</strong>
+            </div>
+            <div>{minimumBookingHours || 0} Hrs</div>
+          </div>
+        )}
       </div>
 
       <hr />
 
-      {/* Listed Services */}
       <div className="flex flex-col gap-4">
-        <p className="text-xl font-semibold">{`Listed Services`}</p>
+        <p className="text-xl font-semibold">Listed Services</p>
         <div className="flex flex-wrap gap-2">
-          {fullListing.otherDetails && fullListing.type && fullListing.type.map((service, index) => (
+          {type.map((service: string, index: number) => (
             <div key={index} className="bg-black text-white px-3 py-1 rounded-full">
               {service}
             </div>
           ))}
-          <p className="text-gray-500 mt-3"><strong className="text-black">Note:</strong> Please utilize this space for its intended activities to make the most of your experience.</p>
+          <p className="text-gray-500 mt-3">
+            <strong className="text-black">Note:</strong> Please utilize this space for its intended activities to make the most of your experience.
+          </p>
         </div>
       </div>
 
       <hr />
 
-      {/* Reviews */}
       {(reviews.length > 0 || canReview) && (
         <div className="flex flex-col gap-8">
           <div className="flex items-center justify-between">
             <p className="text-xl font-semibold">Reviews</p>
-            <p className="text-lg font-semibold"><span className="pr-1">{reviews.length}</span> Ratings</p>
+            <p className="text-lg font-semibold">
+              <span className="pr-1">{reviews.length}</span> Ratings
+            </p>
           </div>
 
           {reviews.length > 0 && (
             <>
               <div className="flex flex-col relative gap-4 pb-4">
-                {reviews.map((review: any) => (
-                  <div className="flex items-center p-5 shadow-md rounded-2xl border" key={review.id}>
+                {reviews.map((rv: any) => (
+                  <div className="flex items-center p-5 shadow-md rounded-2xl border" key={rv.id}>
                     <div className="h-fit">
-                      <Avatar src={review.user?.image} userName={review.user?.name} size={45} />
+                      <Avatar src={rv.user?.image} userName={rv.user?.name} size={45} />
                     </div>
                     <div className="pl-4 flex flex-col w-full">
                       <div className="flex justify-between items-center">
-                        <div className="text-base font-bold">{review.user.name}</div>
-                        <div className="flex h-fit">
-                          {/* {[...Array(5)].map((_, i) => (
-                            <IoIosStar key={i} size={20} color={i < review.rating ? "#FFD700" : "#e4e5e9"} />
-                          ))} */}
-                        </div>
+                        <div className="text-base font-bold">{rv.user?.name}</div>
                       </div>
-                      <div className="">
-                        <p>{review.comment}</p>
+                      <div>
+                        <p>{rv.comment}</p>
                       </div>
-                      <div className="text-sm text-neutral-500"> {new Date(review.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
+                      <div className="text-sm text-neutral-500">
+                        {new Date(rv.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </div>
                     </div>
                   </div>
@@ -306,8 +262,7 @@ function ListingInfo({
               </div>
               <hr />
             </>
-          )
-          }
+          )}
 
           {canReview && (
             <>
@@ -327,50 +282,38 @@ function ListingInfo({
                   </div>
                 </div>
                 <div className="flex gap-2 items-center">
-                  <span className="text-semibold">Rate</span>
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((starValue) => (
+                  <span className="font-semibold">Rate</span>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map(v => (
                       <button
-                        key={starValue}
+                        key={v}
                         type="button"
-                        onClick={() => setReview({ ...review, rating: starValue })}
-                        className="focus:outline-none"
+                        onClick={() => setReview({ ...review, rating: v })}
+                        className={`text-xl ${review.rating >= v ? "text-yellow-500" : "text-neutral-400"}`}
+                        aria-label={`${v} star`}
                       >
-                        {/* <IoIosStar
-                          size={24}
-                          color={starValue <= review.rating ? "#FFD700" : "#e4e5e9"}
-                        /> */}
+                        ★
                       </button>
                     ))}
                   </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={handleReviewSubmit}
-                  className="rounded-full bg-black w-full py-2.5 text-white hover:opacity-90"
-                >
+                <button type="button" onClick={handleReviewSubmit} className="rounded-full bg-black w-full py-2.5 text-white hover:opacity-90">
                   Submit
                 </button>
               </div>
               <hr />
             </>
           )}
-
         </div>
       )}
 
-      {/* Cancellation Policy */}
       <div className="flex flex-col gap-4">
-        <p className="text-xl font-semibold">{`Cancellation Policy`}</p>
+        <p className="text-xl font-semibold">Cancellation Policy</p>
         <p className="flex flex-wrap">
-          Full refund for cancellations made at least 48 hours before the scheduled booking, partial refund for cancellations made between 24 and 48 hours
-          before the scheduled booking, and no refund for cancellations made within 24 hours of the scheduled booking.
+          Full refund for cancellations made at least 48 hours before the scheduled booking, partial refund for cancellations made
+          between 24 and 48 hours before the scheduled booking, and no refund for cancellations made within 24 hours of the scheduled booking.
         </p>
-        <a
-          onClick={() => router.push("/cancellation")}
-          className="text-blue-500 underline cursor-pointer w-fit"
-        >
+        <a onClick={() => router.push("/cancellation")} className="text-blue-500 underline cursor-pointer w-fit">
           Know more about Cancellation Policy
         </a>
       </div>

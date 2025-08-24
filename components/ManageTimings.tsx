@@ -1,93 +1,81 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import ReactSwitch from "react-switch";
 import * as React from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { FaBolt } from "react-icons/fa";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { toast } from "react-toastify";
 
-// Map abbreviated day names to Day.js day indices (0 = Sunday, 1 = Monday, …)
-const dayNameToIndex = {
-    sun: 0,
-    mon: 1,
-    tue: 2,
-    wed: 3,
-    thu: 4,
-    fri: 5,
-    sat: 6,
+const dayNameToIndex: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+
+type Props = {
+    listingId: string;
+    defaultStartTime: string;
+    defaultEndTime: string;
+    defaultStartDay?: string;
+    defaultEndDay?: string;
 };
+
+function normalizeDayKey(key?: string): string | null {
+    if (!key) return null;
+    const k = key.trim().slice(0, 3).toLowerCase();
+    return k in dayNameToIndex ? k : null;
+}
+
+function formatTime(input: string, period?: "AM" | "PM"): string {
+    const s = String(input).trim();
+    if (/^\d{1,2}:\d{2}$/.test(s)) return s;
+    let hour = parseInt(s, 10);
+    if (Number.isNaN(hour)) hour = 0;
+    if (period === "PM" && hour < 12) hour += 12;
+    if (period === "AM" && hour === 12) hour = 0;
+    return `${String(hour).padStart(2, "0")}:00`;
+}
 
 export default function CalendarComponent({
     listingId,
     defaultStartTime,
     defaultEndTime,
-    defaultStartDay, // e.g., "mon"
-    defaultEndDay,   // e.g., "wed"
-}) {
-    function formatTime(timeStr, period = "AM") {
-        let hour = parseInt(timeStr, 10);
-        if (period === "PM" && hour < 12) {
-            hour += 12;
-        }
-        return `${hour.toString().padStart(2, "0")}:00`;
-    }
+    defaultStartDay,
+    defaultEndDay,
+}: Props) {
+    const startKey = useMemo(() => normalizeDayKey(defaultStartDay), [defaultStartDay]);
+    const endKey = useMemo(() => normalizeDayKey(defaultEndDay), [defaultEndDay]);
 
-    // Helper to check if a given date falls on an enabled day (between defaultStartDay and defaultEndDay)
-    const isDayEnabled = (date) => {
+    const isDayEnabled = (date: Dayjs) => {
+        if (!startKey || !endKey) return true;
         const dayIndex = date.day();
-        const startIndex = dayNameToIndex[defaultStartDay.toLowerCase()];
-        const endIndex = dayNameToIndex[defaultEndDay.toLowerCase()];
-        if (startIndex <= endIndex) {
-            // Range does not wrap around the week (e.g., Mon to Wed)
-            return dayIndex >= startIndex && dayIndex <= endIndex;
-        } else {
-            // Range wraps around (e.g., Fri to Tue)
-            return dayIndex >= startIndex || dayIndex <= endIndex;
-        }
+        const startIndex = dayNameToIndex[startKey];
+        const endIndex = dayNameToIndex[endKey];
+        if (startIndex <= endIndex) return dayIndex >= startIndex && dayIndex <= endIndex;
+        return dayIndex >= startIndex || dayIndex <= endIndex;
     };
 
-    const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [isListingActive, setIsListingActive] = useState(true);
-    const [startTime, setStartTime] = useState(formatTime(defaultStartTime, "AM"));
-    const [endTime, setEndTime] = useState(formatTime(defaultEndTime, "PM"));
+    const [startTime, setStartTime] = useState<string>(formatTime(defaultStartTime, "AM"));
+    const [endTime, setEndTime] = useState<string>(formatTime(defaultEndTime, "PM"));
     const [loading, setLoading] = useState(false);
-    const lastFetchedDate = useRef("");
+    const lastFetchedDate = useRef<string>("");
 
     useEffect(() => {
         const fetchData = async () => {
             const formattedDate = selectedDate.format("YYYY-MM-DD");
-
             if (lastFetchedDate.current === formattedDate) return;
             lastFetchedDate.current = formattedDate;
-
             setLoading(true);
             try {
-                const res = await fetch(
-                    `/api/dayStatus?listingId=${listingId}&date=${formattedDate}`
-                );
-
-                if (!res.ok) {
-                    throw new Error("Failed to fetch data");
-                }
-
+                const res = await fetch(`/api/dayStatus?listingId=${encodeURIComponent(listingId)}&date=${formattedDate}`);
+                if (!res.ok) throw new Error("Failed to fetch data");
                 const data = await res.json();
                 setIsListingActive(data.listingActive ?? true);
-                setStartTime(
-                    data.startTime
-                        ? formatTime(data.startTime, "AM")
-                        : formatTime(defaultStartTime, "AM")
-                );
-                setEndTime(
-                    data.endTime
-                        ? formatTime(data.endTime, "PM")
-                        : formatTime(defaultEndTime, "PM")
-                );
-            } catch (error) {
-                console.error("Error fetching data:", error);
+                setStartTime(formatTime(data.startTime ?? defaultStartTime, "AM"));
+                setEndTime(formatTime(data.endTime ?? defaultEndTime, "PM"));
+            } catch {
                 setIsListingActive(true);
                 setStartTime(formatTime(defaultStartTime, "AM"));
                 setEndTime(formatTime(defaultEndTime, "PM"));
@@ -95,44 +83,32 @@ export default function CalendarComponent({
                 setLoading(false);
             }
         };
-
         fetchData();
     }, [selectedDate, listingId, defaultStartTime, defaultEndTime]);
 
-    const handleDateChange = (newDate) => {
+    const handleDateChange = (newDate: Dayjs | null) => {
         if (!newDate || selectedDate.isSame(newDate, "day")) return;
         setSelectedDate(newDate);
     };
 
     const handleSave = async () => {
-        const formattedDate = selectedDate.format("YYYY-MM-DD");
-
         const payload = {
             listingId,
-            date: formattedDate,
+            date: selectedDate.format("YYYY-MM-DD"),
             listingActive: isListingActive,
             startTime,
             endTime,
         };
-
         try {
             const res = await fetch("/api/dayStatus", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
-
-            if (!res.ok) {
-                throw new Error("Error saving day status");
-            }
-
-            const data = await res.json();
-            console.log("Saved Data:", data);
+            if (!res.ok) throw new Error("Save failed");
+            await res.json();
             toast.success("Data saved successfully!");
-        } catch (error) {
-            console.error("Error saving day status:", error);
+        } catch {
             toast.error("Error saving day status");
         }
     };
@@ -144,27 +120,14 @@ export default function CalendarComponent({
                     <DateCalendar
                         value={selectedDate}
                         onChange={handleDateChange}
-                        // Disable past dates and any dates not falling within the allowed days
                         shouldDisableDate={(date) => {
-                            // Disable past days
-                            if (date.isBefore(dayjs(), "day")) return true;
-                            // Disable dates outside the specified day range
+                            if (date.isBefore(dayjs().startOf("day"), "day")) return true;
                             return !isDayEnabled(date);
                         }}
                         sx={{
-                            ".Mui-selected": {
-                                color: "white",
-                                backgroundColor: "black!important",
-                            },
-                            ".Mui-selected:hover": {
-                                color: "white",
-                                backgroundColor: "black!important",
-                            },
-                            ".Mui-selected:focus, .Mui-selected:focus-visible": {
-                                color: "white",
-                                backgroundColor: "black!important",
-                                outline: "none",
-                            },
+                            ".Mui-selected": { color: "white", backgroundColor: "black!important" },
+                            ".Mui-selected:hover": { color: "white", backgroundColor: "black!important" },
+                            ".Mui-selected:focus, .Mui-selected:focus-visible": { color: "white", backgroundColor: "black!important", outline: "none" },
                         }}
                     />
                 </LocalizationProvider>
@@ -184,9 +147,7 @@ export default function CalendarComponent({
                         checkedIcon={false}
                         height={30}
                         handleDiameter={20}
-                        checkedHandleIcon={
-                            <FaBolt color="#FFD700" className="w-full h-full py-[2px]" />
-                        }
+                        checkedHandleIcon={<FaBolt color="#FFD700" className="w-full h-full py-[2px]" />}
                     />
                 </div>
 
@@ -195,12 +156,12 @@ export default function CalendarComponent({
                     {loading ? (
                         <div className="flex space-x-4 mt-2">
                             <div className="flex flex-col w-1/2 gap-2">
-                                <div className="w-24 h-[23px] bg-gray-200 rounded-full animate-pulse"></div>
-                                <div className="w-full h-10 bg-gray-200 rounded-full animate-pulse"></div>
+                                <div className="w-24 h-[23px] bg-gray-200 rounded-full animate-pulse" />
+                                <div className="w-full h-10 bg-gray-200 rounded-full animate-pulse" />
                             </div>
                             <div className="flex flex-col w-1/2 gap-2">
-                                <div className="w-24 h-[23px] bg-gray-200 rounded-full animate-pulse"></div>
-                                <div className="w-full h-10 bg-gray-200 rounded-full animate-pulse"></div>
+                                <div className="w-24 h-[23px] bg-gray-200 rounded-full animate-pulse" />
+                                <div className="w-full h-10 bg-gray-200 rounded-full animate-pulse" />
                             </div>
                         </div>
                     ) : (
@@ -227,10 +188,7 @@ export default function CalendarComponent({
                     )}
                 </div>
 
-                <button
-                    onClick={handleSave}
-                    className="w-full bg-black text-white py-3 rounded-full text-sm font-medium hover:opacity-90"
-                >
+                <button onClick={handleSave} className="w-full bg-black text-white py-3 rounded-full text-sm font-medium hover:opacity-90">
                     SAVE
                 </button>
             </div>

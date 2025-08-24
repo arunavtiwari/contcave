@@ -11,6 +11,7 @@
 		"payload": "payload dev"
 	},
 	"dependencies": {
+		"@cashfreepayments/cashfree-js": "^1.0.5",
 		"@chakra-ui/button": "^2.1.0",
 		"@emotion/react": "^11.14.0",
 		"@emotion/styled": "^11.14.0",
@@ -31,6 +32,7 @@
 		"ably": "^2.6.3",
 		"axios": "^1.8.2",
 		"bcryptjs": "^3.0.2",
+		"cashfree-pg": "^5.0.8",
 		"date-fns": "^4.1.0",
 		"date-fns-tz": "^3.2.0",
 		"dayjs": "^1.11.13",
@@ -66,6 +68,7 @@
 		"slick-carousel": "^1.8.1",
 		"socket.io": "^4.8.1",
 		"typescript": "5.8.2",
+		"zod": "^4.1.0",
 		"zustand": "^5.0.3"
 	},
 	"devDependencies": {

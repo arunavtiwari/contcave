@@ -57,7 +57,7 @@ function Footer() {
           <div className="flex space-x-4 justify-center text-center md:text-left">
             <p className="text-base text-black">
               Have a question? Feel free to reach out to us at{" "}
-              <a href="mailto:support@contcave.tech" className="text-blue-500 underline">
+              <a href="mailto:info@contcave.com" className="text-blue-500 underline">
                 info@contcave.com
               </a>
             </p>
