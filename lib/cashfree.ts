@@ -31,7 +31,7 @@ export function cfHeaders(): Record<string, string> {
 }
 
 export async function cfCreateOrder(input: {
-    reservation_id: string;
+    transaction_id: string;
     order_amount: number;
     customer_id: string;
     return_url: string;
@@ -45,7 +45,7 @@ export async function cfCreateOrder(input: {
         method: "POST",
         headers: cfHeaders(),
         body: JSON.stringify({
-            reservation_id: input.reservation_id,
+            transaction_id: input.transaction_id,
             order_amount: input.order_amount,
             order_currency: "INR",
             customer_details: {
@@ -55,7 +55,7 @@ export async function cfCreateOrder(input: {
                 customer_phone: input.customer_phone,
             },
             order_meta: {
-                return_url: input.return_url.replace("{reservation_id}", input.reservation_id),
+                return_url: input.return_url.replace("{transaction_id}", input.transaction_id),
                 notify_url: input.notify_url,
             },
         }),

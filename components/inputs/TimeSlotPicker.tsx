@@ -5,20 +5,15 @@ type TimeSlot = TimeLabel | null;
 type TimeHM = `${number}${number}:${number}${number}`;
 
 type ReservationOperationalTimings = {
-    operationalHours?: {
-        start?: string;
-        end?: string;
-    };
+    operationalHours?: { start?: string; end?: string };
 };
 
 interface TimeSlotPickerProps {
     onTimeSelect: (time: TimeSlot, field: "start" | "end") => void;
     selectedStart: TimeSlot;
     selectedEnd: TimeSlot;
-
     disabledStartTimes: readonly TimeHM[];
     disabledEndTimes: readonly TimeHM[];
-
     selectedDate: Date;
     operationalTimings?: ReservationOperationalTimings;
 }
@@ -32,9 +27,8 @@ const TIME_SLOTS: TimeLabel[] = [
     "9:00 PM", "9:30 PM", "10:00 PM",
 ];
 
-
-const ampmToMinutes = (label: TimeLabel): number => {
-    const m = label.match(/^(\d{1,2}):(\d{2})\s(AM|PM)$/i);
+const ampmToMinutes = (label: string): number => {
+    const m = label.match(/^(\d{1,2}):([0-5]\d)\s*(AM|PM)$/i);
     if (!m) return NaN;
     let h = Number(m[1]);
     const min = Number(m[2]);
@@ -45,12 +39,42 @@ const ampmToMinutes = (label: TimeLabel): number => {
 };
 
 const hhmmToMinutes = (hhmm: string): number => {
-    const m = hhmm.match(/^(\d{2}):(\d{2})$/);
+    const m = hhmm.match(/^(\d{1,2}):([0-5]\d)$/);
     if (!m) return NaN;
     const h = Number(m[1]);
     const min = Number(m[2]);
     if (h > 23 || min > 59) return NaN;
     return h * 60 + min;
+};
+
+const toMinutes = (s?: string | null): number => {
+    if (!s) return NaN;
+    const m12 = ampmToMinutes(s);
+    if (!Number.isNaN(m12)) return m12;
+    const m24 = hhmmToMinutes(s);
+    return m24;
+};
+
+const to12hLabel = (input?: string | null): string => {
+    const s = String(input ?? "").trim();
+    if (!s) return "";
+    const got12 = s.match(/^(\d{1,2}):([0-5]\d)\s*([AP]M)$/i);
+    if (got12) {
+        const h = String(parseInt(got12[1], 10));
+        const m = got12[2];
+        const ap = got12[3].toUpperCase();
+        return `${h}:${m} ${ap}`;
+    }
+    const got24 = s.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+    if (got24) {
+        let h = parseInt(got24[1], 10);
+        const m = got24[2];
+        const ap = h >= 12 ? "PM" : "AM";
+        h = h % 12;
+        if (h === 0) h = 12;
+        return `${h}:${m} ${ap}`;
+    }
+    return s;
 };
 
 function resolveOperationalRange(ops?: ReservationOperationalTimings) {
@@ -59,20 +83,16 @@ function resolveOperationalRange(ops?: ReservationOperationalTimings) {
 
     const labelMinutes = TIME_SLOTS.map(ampmToMinutes);
 
-    const toMinutes = (s?: string): number | null => {
+    const toMin = (s?: string): number | null => {
         if (!s) return null;
-        const S = s.toUpperCase();
-        const idx = TIME_SLOTS.indexOf(S);
+        const idx = TIME_SLOTS.indexOf(to12hLabel(s));
         if (idx >= 0) return labelMinutes[idx];
-        const m24 = hhmmToMinutes(S);
-        if (!Number.isNaN(m24)) return m24;
-        const m12 = ampmToMinutes(S);
-        if (!Number.isNaN(m12)) return m12;
-        return null;
+        const m = toMinutes(s);
+        return Number.isNaN(m) ? null : m;
     };
 
-    const startMin = toMinutes(rawStart) ?? labelMinutes[0];
-    const endMin = toMinutes(rawEnd) ?? labelMinutes[labelMinutes.length - 1];
+    const startMin = toMin(rawStart) ?? labelMinutes[0];
+    const endMin = toMin(rawEnd) ?? labelMinutes[labelMinutes.length - 1];
 
     let startIdx = 0;
     while (startIdx < labelMinutes.length && labelMinutes[startIdx] < startMin) startIdx++;
@@ -101,8 +121,8 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
         const n = Math.min(disabledStartTimes.length, disabledEndTimes.length);
         const out: Array<{ s: number; e: number }> = [];
         for (let i = 0; i < n; i++) {
-            const s = hhmmToMinutes(disabledStartTimes[i]);
-            const e = hhmmToMinutes(disabledEndTimes[i]);
+            const s = toMinutes(disabledStartTimes[i]);
+            const e = toMinutes(disabledEndTimes[i]);
             if (!Number.isNaN(s) && !Number.isNaN(e) && s < e) out.push({ s, e });
         }
         return out;
@@ -113,25 +133,28 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
         [operationalTimings]
     );
 
-    const visible = useMemo(
-        () => TIME_SLOTS.slice(startIdx, endIdx + 1),
-        [startIdx, endIdx]
-    );
+    const visible = useMemo(() => TIME_SLOTS.slice(startIdx, endIdx + 1), [startIdx, endIdx]);
 
     const isReserved = (label: TimeLabel): boolean => {
-        const m = ampmToMinutes(label);
+        const m = toMinutes(label);
         if (Number.isNaN(m)) return false;
         return disabledIntervals.some(({ s, e }) => m >= s && m < e);
     };
 
     const violatesEndBeforeStart = (label: TimeLabel): boolean => {
         if (activeSegment !== "end" || !selectedStart) return false;
-        return ampmToMinutes(label) <= ampmToMinutes(selectedStart);
+        const endM = toMinutes(label);
+        const startM = toMinutes(selectedStart);
+        if (Number.isNaN(endM) || Number.isNaN(startM)) return false;
+        return endM <= startM;
     };
 
     const handleClick = (label: TimeLabel) => {
-        onTimeSelect(label, activeSegment);
+        onTimeSelect(to12hLabel(label), activeSegment);
     };
+
+    const normStart = to12hLabel(selectedStart);
+    const normEnd = to12hLabel(selectedEnd);
 
     return (
         <div className="p-4 pb-0">
@@ -145,7 +168,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                     >
                         Start
                         <span className="block text-xs text-gray-500">
-                            {selectedStart || "Please select"}
+                            {normStart || "Please select"}
                         </span>
                     </button>
                     <button
@@ -156,7 +179,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                     >
                         End
                         <span className="block text-xs text-gray-500">
-                            {selectedEnd || "Please select"}
+                            {normEnd || "Please select"}
                         </span>
                     </button>
                 </div>
@@ -168,8 +191,8 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                     const orderBad = violatesEndBeforeStart(label);
                     const disabled = reserved || orderBad;
                     const isSelected =
-                        (activeSegment === "start" && label === selectedStart) ||
-                        (activeSegment === "end" && label === selectedEnd);
+                        (activeSegment === "start" && to12hLabel(label) === normStart) ||
+                        (activeSegment === "end" && to12hLabel(label) === normEnd);
 
                     return (
                         <button
@@ -177,9 +200,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                             type="button"
                             onClick={() => handleClick(label)}
                             disabled={disabled}
-                            className={`rounded-xl px-4 py-2 text-sm border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isSelected
-                                ? "border-black bg-black text-white"
-                                : "border-neutral-300 bg-transparent hover:border-black"
+                            className={`rounded-xl px-4 py-2 text-sm border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isSelected ? "border-black bg-black text-white" : "border-neutral-300 bg-transparent hover:border-black"
                                 }`}
                         >
                             <span className={orderBad && !reserved ? "line-through" : ""}>

@@ -6,7 +6,6 @@ import TimeSlotPicker from "../inputs/TimeSlotPicker";
 import { load, Cashfree } from "@cashfreepayments/cashfree-js";
 import { ReservationOperationalTimings, TimeHM, TimeLabel, DayKey } from "@/types/scheduling";
 
-const IST_TIMEZONE = "Asia/Kolkata";
 const INR = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 
 type Props = {
@@ -33,7 +32,10 @@ type LocalTimes = { start: TimeLabel | null; end: TimeLabel | null };
 let cashfreePromise: Promise<Cashfree | null> | null = null;
 function getCashfree() {
   if (!cashfreePromise) {
-    const mode = (process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox").toLowerCase() === "production" ? "production" : "sandbox";
+    const mode =
+      (process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox").toLowerCase() === "production"
+        ? "production"
+        : "sandbox";
     cashfreePromise = load({ mode });
   }
   return cashfreePromise;
@@ -59,7 +61,10 @@ export default function ListingReservation({
   instantBooking,
   selectedAddons = [],
 }: Props) {
-  const [localTimes, setLocalTimes] = useState<LocalTimes>({ start: selectedTime?.[0] ?? null, end: selectedTime?.[1] ?? null });
+  const [localTimes, setLocalTimes] = useState<LocalTimes>({
+    start: selectedTime?.[0] ?? null,
+    end: selectedTime?.[1] ?? null,
+  });
   const [hasPickedDate, setHasPickedDate] = useState(Boolean(selectedDate));
   const [isPaying, setIsPaying] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -83,7 +88,12 @@ export default function ListingReservation({
   const bookingFee = useMemo(() => price * safeHours, [price, safeHours]);
 
   const addonsSum = useMemo(
-    () => selectedAddons.reduce((sum, a) => sum + Math.max(0, Number(a.price) || 0) * Math.max(0, Number(a.qty ?? 0)), 0),
+    () =>
+      selectedAddons.reduce(
+        (sum, a) =>
+          sum + Math.max(0, Number(a.price) || 0) * Math.max(0, Number(a.qty ?? 0)),
+        0
+      ),
     [selectedAddons]
   );
 
@@ -92,7 +102,10 @@ export default function ListingReservation({
     [bookingFee, addonsSum, platformFee]
   );
 
-  const finalTotal = useMemo(() => clampRound(typeof totalPrice === "number" ? totalPrice : computedTotal), [totalPrice, computedTotal]);
+  const finalTotal = useMemo(
+    () => clampRound(typeof totalPrice === "number" ? totalPrice : computedTotal),
+    [totalPrice, computedTotal]
+  );
 
   const hasValidTime = useMemo(
     () => Boolean(localTimes.start && localTimes.end),
@@ -117,6 +130,13 @@ export default function ListingReservation({
     return [];
   }, [operationalTimings.operationalDays]);
 
+  const formatLocalYmd = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
   const handleReserve = useCallback(async () => {
     if (!ready || !listingId || !selectedDate || !localTimes.start || !localTimes.end) return;
     setIsPaying(true);
@@ -126,7 +146,7 @@ export default function ListingReservation({
     inflight.current = controller;
 
     try {
-      const startDateStr = new Intl.DateTimeFormat("sv-SE", { timeZone: IST_TIMEZONE }).format(selectedDate);
+      const startDateStr = formatLocalYmd(selectedDate);
       const payload = {
         listingId,
         startDate: startDateStr,
@@ -159,7 +179,12 @@ export default function ListingReservation({
   }, [ready, listingId, selectedDate, localTimes.start, localTimes.end, finalTotal, selectedAddons, instantBooking]);
 
   return (
-    <section className="bg-white rounded-xl border border-neutral-200 overflow-hidden" role="region" aria-labelledby={`${sectionId}-title`} data-component="ListingReservation">
+    <section
+      className="bg-white rounded-xl border border-neutral-200 overflow-hidden"
+      role="region"
+      aria-labelledby={`${sectionId}-title`}
+      data-component="ListingReservation"
+    >
       <div className="flex items-center gap-1 p-4">
         <p className="flex gap-1 text-2xl font-semibold" id={`${sectionId}-title`}>
           {INR.format(price)} <span className="text-neutral-600 font-normal">/ hour</span>
@@ -210,20 +235,27 @@ export default function ListingReservation({
           type="button"
           disabled={!ready}
           aria-disabled={!ready}
-          className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
+          className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"
+            }`}
           onClick={handleReserve}
           data-testid="reserve-pay-btn"
         >
           {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
         </button>
-        {!!err && <p className="mt-2 text-sm text-red-600" role="alert">{err}</p>}
+        {!!err && (
+          <p className="mt-2 text-sm text-red-600" role="alert">
+            {err}
+          </p>
+        )}
       </div>
 
       <hr />
 
       <div className="p-4 flex flex-col text-neutral-600 gap-1" aria-live="polite">
         <div className="flex justify-between">
-          <p>Base booking fee {INR.format(price)} × {safeHours} hr{safeHours === 1 ? "" : "s"}</p>
+          <p>
+            Base booking fee {INR.format(price)} × {safeHours} hr{safeHours === 1 ? "" : "s"}
+          </p>
           <p>{INR.format(clampRound(bookingFee))}</p>
         </div>
         <div className="flex justify-between">

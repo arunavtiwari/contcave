@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       reservations: {
         create: {
           userId: currentUser.id,
-          isApproved: instantBooking,
+          isApproved: instantBooking ? 1 : 0,
           startDate,
           startTime,
           endTime,

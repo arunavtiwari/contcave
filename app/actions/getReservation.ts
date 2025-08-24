@@ -1,21 +1,21 @@
 import prisma from "@/lib/prismadb";
 
 interface IParams {
-  rid: string;
+  tid: string;
 }
 
 export default async function getReservation(params: IParams) {
-  const { rid } = params || ({} as IParams);
+  const { tid } = params || ({} as IParams);
 
-  if (!rid) {
-    throw new Error("rid (cfOrderId) is required");
+  if (!tid) {
+    throw new Error("tid (cfOrderId) is required");
   }
 
   try {
     const reservation = await prisma.reservation.findFirst({
       where: {
         Transaction: {
-          some: { cfOrderId: rid },
+          some: { cfOrderId: tid },
         },
       },
       include: {
@@ -32,8 +32,8 @@ export default async function getReservation(params: IParams) {
       ...reservation,
       createdAt: reservation.createdAt.toISOString(),
       startDate: reservation.startDate.toISOString(),
-      startTime: reservation.startTime.toISOString(),
-      endTime: reservation.endTime.toISOString(),
+      startTime: reservation.startTime,
+      endTime: reservation.endTime,
       listing: reservation.listing
         ? {
           ...reservation.listing,

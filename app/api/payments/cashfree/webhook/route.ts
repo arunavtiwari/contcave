@@ -47,13 +47,11 @@ function pickPaymentId(payload: any): string | undefined {
     return raw != null ? String(raw) : undefined;
 }
 
-function buildSlotDates(startDateISO?: string, startHHmm?: string, endHHmm?: string) {
-    const startBase = new Date(startDateISO || Date.now());
-    const yyyyMmDd = startBase.toISOString().slice(0, 10);
-    const norm = (hhmm?: string) => (/^\d{2}:\d{2}$/.test(String(hhmm)) ? String(hhmm) : "00:00");
-    const startIso = `${yyyyMmDd}T${norm(startHHmm)}:00.000Z`;
-    const endIso = `${yyyyMmDd}T${norm(endHHmm)}:00.000Z`;
-    return { startDate: startBase, startTime: new Date(startIso), endTime: new Date(endIso) };
+function localMidnightFromYmd(ymd?: string): Date {
+    if (typeof ymd === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+        return new Date(`${ymd}T00:00:00`);
+    }
+    return new Date();
 }
 
 export async function POST(req: NextRequest) {
@@ -89,8 +87,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    const rId = pickOrderId(payload);
-    if (!rId) {
+    const tId = pickOrderId(payload);
+    if (!tId) {
         log.warn("missing order_id; acking");
         return NextResponse.json({ ok: true }, { status: 200 });
     }
@@ -100,7 +98,7 @@ export async function POST(req: NextRequest) {
     try {
         const txn = await retry(() =>
             prisma.transaction.findFirst({
-                where: { cfOrderId: rId },
+                where: { cfOrderId: tId },
                 select: {
                     id: true,
                     status: true,
@@ -114,7 +112,7 @@ export async function POST(req: NextRequest) {
         );
 
         if (!txn) {
-            log.warn("txn not found for order", rId);
+            log.warn("txn not found for order", tId);
             return NextResponse.json({ ok: true }, { status: 200 });
         }
 
@@ -138,9 +136,12 @@ export async function POST(req: NextRequest) {
                 })
             );
 
-            const isInstant = listing?.instantBooking;
+            const isInstant = !!listing?.instantBooking;
             const md: any = txn.metadata || {};
-            const { startDate, startTime, endTime } = buildSlotDates(md.startDate, md.startTime, md.endTime);
+
+            const startDate = localMidnightFromYmd(md.startDate);
+            const startTime: string = String(md.startTime ?? "");
+            const endTime: string = String(md.endTime ?? "");
 
             const reservation = await retry(() =>
                 prisma.reservation.create({

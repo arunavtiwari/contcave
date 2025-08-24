@@ -5,28 +5,6 @@ import { randomUUID } from "crypto";
 import { cfCreateOrder } from "@/lib/cashfree";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 
-/** ----------------- Helpers ----------------- **/
-
-function normalizeTimeLabel(label: unknown): string | null {
-    if (!label) return null;
-    const s = String(label).trim();
-    const m = s.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
-    if (!m) return null;
-
-    let h = Number(m[1]);
-    const min = Number(m[2]);
-    const ampm = m[3].toUpperCase();
-
-    if (min < 0 || min > 59 || h < 1 || h > 12) return null;
-
-    if (ampm === "AM") {
-        if (h === 12) h = 0;
-    } else {
-        if (h !== 12) h += 12;
-    }
-    return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
-}
-
 function normalizePhone(phone?: string | null) {
     if (!phone) return null;
     const digits = phone.replace(/\D/g, "");
@@ -37,13 +15,24 @@ function normalizePhone(phone?: string | null) {
 const toNum = (v: unknown) => (typeof v === "string" ? Number(v) : v);
 const trimStr = (v: unknown) => (typeof v === "string" ? v.trim() : v);
 
-/** ----------------- Schema ----------------- **/
+function sanitizeAddons(input: any): Array<{ price: number; qty?: number; name?: string; id?: string }> {
+    if (!input) return [];
+    const arr = Array.isArray(input) ? input : Object.values(input);
+    return arr
+        .map((a: any) => ({
+            name: typeof a?.name === "string" ? a.name : undefined,
+            id: typeof a?.id === "string" ? a.id : undefined,
+            price: Math.max(0, Number(a?.price) || 0),
+            qty: Math.max(0, Number(a?.qty ?? 0)),
+        }))
+        .filter((a) => a.price > 0 && a.qty > 0);
+}
 
 const Body = z.object({
     listingId: z.preprocess(trimStr, z.string().min(1, "listingId required")),
     startDate: z
         .preprocess(trimStr, z.string().min(1, "startDate required"))
-        .refine((s) => !Number.isNaN(new Date(String(s)).getTime()), "startDate must be a valid date"),
+        .refine((s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s)), "startDate must be YYYY-MM-DD"),
     startTime: z.preprocess(trimStr, z.string().min(1, "startTime required")),
     endTime: z.preprocess(trimStr, z.string().min(1, "endTime required")),
 
@@ -59,8 +48,6 @@ const Body = z.object({
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** ----------------- Handler ----------------- **/
-
 export async function POST(req: NextRequest) {
     try {
         if (!req.headers.get("content-type")?.includes("application/json")) {
@@ -74,15 +61,6 @@ export async function POST(req: NextRequest) {
         }
         const data = parsed.data;
 
-        const normStart = normalizeTimeLabel(data.startTime);
-        const normEnd = normalizeTimeLabel(data.endTime);
-        if (!normStart || !normEnd) {
-            return NextResponse.json(
-                { message: "Invalid time format. Must match one of the predefined slots like '6:00 AM', '12:30 PM'." },
-                { status: 400 }
-            );
-        }
-
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -92,16 +70,14 @@ export async function POST(req: NextRequest) {
             normalizePhone(currentUser.phone) || normalizePhone(data.customerPhone) || null;
         if (!customerPhone) {
             return NextResponse.json(
-                {
-                    message:
-                        "A valid 10-digit phone number is required. Add your phone in profile or pass `customerPhone` (e.g., 9876543210).",
-                },
+                { message: "A valid 10-digit phone number is required (e.g., 9876543210)." },
                 { status: 400 }
             );
         }
 
-        const rId = "rid_" + randomUUID().replace(/-/g, "").slice(0, 20);
+        const tId = "tid_" + randomUUID().replace(/-/g, "").slice(0, 20);
         const amount = Math.round(Number(data.totalPrice));
+        const cleanedAddons = sanitizeAddons(data.selectedAddons);
 
         const txn = await prisma.transaction.create({
             data: {
@@ -112,22 +88,22 @@ export async function POST(req: NextRequest) {
                 status: "PENDING",
                 description: "Listing reservation",
                 paymentMethod: "Cashfree",
-                cfOrderId: rId,
+                cfOrderId: tId,
                 metadata: {
                     startDate: data.startDate,
-                    startTime: normStart,
-                    endTime: normEnd,
-                    selectedAddons: data.selectedAddons ?? null,
-                    instantBooking: data.instantBooking ?? false,
+                    startTime: data.startTime,
+                    endTime: data.endTime,  
+                    selectedAddons: cleanedAddons,
+                    instantBooking: !!data.instantBooking,
                 },
             },
         });
 
         const { payment_session_id } = await cfCreateOrder({
-            reservation_id: rId,
+            transaction_id: tId,
             order_amount: amount,
             customer_id: txn.userId,
-            return_url: `${process.env.APP_URL}/payments/cashfree/return?rid={reservation_id}`,
+            return_url: `${process.env.APP_URL}/payments/cashfree/return?tid={transaction_id}`,
             notify_url: `${process.env.APP_URL}/api/payments/cashfree/webhook`,
             customer_name: currentUser.name || data.customerName || "Customer",
             customer_email: currentUser.email || data.customerEmail || undefined,
@@ -140,7 +116,7 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json({
-            rId,
+            tId,
             paymentSessionId: payment_session_id,
         });
     } catch (err: any) {

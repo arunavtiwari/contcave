@@ -127,8 +127,8 @@ model Reservation {
   userId         String        @db.ObjectId
   listingId      String        @db.ObjectId
   startDate      DateTime      @default(now())
-  startTime      DateTime      @default(now())
-  endTime        DateTime      @default(now())
+  startTime      String
+  endTime        String
   totalPrice     Float
   selectedAddons Json?
   createdAt      DateTime      @default(now())
