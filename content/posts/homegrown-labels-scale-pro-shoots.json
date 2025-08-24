@@ -1,0 +1,105 @@
+{
+    "id": "homegrown-labels-scale-pro-shoots",
+    "title": "How Homegrown Labels Can Scale with Professional Shoots",
+    "categories": [
+      {
+        "id": "business-branding",
+        "title": "Business & Branding",
+        "breadcrumbs": [],
+        "createdAt": "2025-08-24T12:00:00.000Z",
+        "updatedAt": "2025-08-24T12:00:00.000Z"
+      }
+    ],
+    "publishedAt": "2025-08-24T12:00:00.000Z",
+    "authors": ["ContCave Editorial"],
+    "hero": {"type": "image", "richText": [], "links": []},
+    "layout": [
+      {"id": "p1", "blockType": "paragraph", "content": "India’s D2C and small brand ecosystem is crowded, fast moving, and visual first. Professional shoots give homegrown labels the repeatable system they need to scale output, improve conversion, and look premium across marketplaces and social platforms."},
+  
+      {"id": "h1", "blockType": "heading", "content": "1) Shift from ad hoc shoots to a production system"},
+      {"id": "p2", "blockType": "paragraph", "content": "Treat every shoot as part of a pipeline. Define recurring formats, pre build lighting diagrams, and standardize framing so assets look consistent across Instagram, YouTube, Amazon, Flipkart, and Myntra."},
+  
+      {"id": "h2", "blockType": "heading", "content": "2) Build a brand shoot kit"},
+      {"id": "l1", "blockType": "list", "items": [
+        "Lighting style: soft key plus controlled fill plus gentle backlight for product separation",
+        "Backdrop set: white sweep, neutral textured wall, lifestyle corner that matches brand palette",
+        "Framing rules: hero at eye level, 3 by 4 for fashion catalog, 1 by 1 for feed, 9 by 16 for Reels and Shorts",
+        "Color and materials: keep props and wardrobe on brand, avoid pattern clashes"
+      ]},
+  
+      {"id": "h3", "blockType": "heading", "content": "3) Marketplace readiness checklist"},
+      {"id": "l2", "blockType": "list", "items": [
+        "Amazon India: white background RGB 255,255,255 and product fills about 85 percent of the frame. Minimum 1001 px on the longest side",
+        "Flipkart: white or light backdrop preferred and no watermarks or text",
+        "Myntra fashion: 3 by 4 aspect with at least 1080 by 1440 pixels and clean white or light grey background",
+        "All marketplaces: multiple angles, detail close ups, and accurate color representation"
+      ]},
+  
+      {"id": "h4", "blockType": "heading", "content": "4) Performance creative that scales"},
+      {"id": "p3", "blockType": "paragraph", "content": "Creative quality is a top driver of ad results on Meta and Google. Plan batches that deliver a hero concept plus four to six variants. Change hook, background, angle, and copy to test quickly without changing the whole set."},
+  
+      {"id": "h5", "blockType": "heading", "content": "5) Asset bank and tagging"},
+      {"id": "p4", "blockType": "paragraph", "content": "Store every file with searchable tags like category, color, angle, model, and lighting setup. Keep a shortlist of top performers by CTR and CVR. Re cut winning scenes for new campaigns while maintaining brand consistency."},
+  
+      {"id": "h6", "blockType": "heading", "content": "6) Budget and ROI model"},
+      {"id": "p5", "blockType": "paragraph", "content": "Estimate return before you shoot. Use this simple model: ROI equals incremental profit from assets divided by shoot cost. Incremental profit equals (traffic times CTR times CVR times AOV times margin) minus media cost. Improve quality and you usually lift CTR and CVR without raising media cost."},
+      {"id": "p6", "blockType": "paragraph", "content": "Example: a one day studio shoot produces 12 master scenes that expand to 48 deliverables. If improved creative raises CTR from 1.0 percent to 1.3 percent and raises CVR from 2.0 percent to 2.4 percent at the same CPC, the lift in orders often pays back the shoot in weeks, not months."},
+  
+      {"id": "h7", "blockType": "heading", "content": "7) City by city playbook for homegrown labels"},
+      {"id": "l3", "blockType": "list", "items": [
+        "Plan monthly shoot sprints for Mumbai, Delhi NCR, Bangalore, Hyderabad, Chennai, Pune, Ahmedabad, and Kolkata",
+        "Lock a professional studio near your creator or brand team to reduce logistics time",
+        "Pre light the key set and save the lighting diagram for reuse",
+        "Batch shoot product plus lifestyle plus UGC style talking head for ads and organic",
+        "Export platform specific cuts and upload with a consistent naming scheme"
+      ]},
+  
+      {"id": "h8", "blockType": "heading", "content": "8) Where ContCave fits"},
+      {"id": "p7", "blockType": "paragraph", "content": "ContCave gives you high quality studios by the hour across Indian cities. For brand teams and creators, this means predictable lighting, controlled sound, and quick access to modular sets without long leases."},
+  
+      {"id": "h9", "blockType": "heading", "content": "FAQ"},
+      {"id": "p8", "blockType": "paragraph", "content": "Q: Do professional shoots only help large brands?"},
+      {"id": "p9", "blockType": "paragraph", "content": "A: No. Smaller labels see faster gains because better creative fixes weak product pages and ads at the same time. The same assets serve marketplaces, D2C sites, and social ads."},
+      {"id": "p10", "blockType": "paragraph", "content": "Q: How often should we shoot?"},
+      {"id": "p11", "blockType": "paragraph", "content": "A: Plan a one day sprint every four to six weeks per category. Refresh hooks more often during festival periods."},
+      {"id": "p12", "blockType": "paragraph", "content": "Q: What is the ideal team for a one day sprint?"},
+      {"id": "p13", "blockType": "paragraph", "content": "A: Creative lead, photographer or DOP, assistant, stylist, and one editor on site to create first cuts for testing."},
+  
+      {"id": "h10", "blockType": "heading", "content": "Final note"},
+      {"id": "p14", "blockType": "paragraph", "content": "Scaling a homegrown label is a content problem. Professional shoots turn that problem into a repeatable system so you can publish more, test faster, and look premium everywhere your customer shops."}
+    ],
+    "slug": "homegrown-labels-scale-pro-shoots",
+    "meta": {
+      "title": "How Homegrown Labels Can Scale with Professional Shoots",
+      "description": "A practical India focused playbook for D2C and SME brands on using professional studios to scale content output, improve conversion, and boost ROAS.",
+      "image": {
+        "id": "img-hl-1",
+        "alt": "Homegrown Indian label running a professional product shoot",
+        "filename": "homegrown-pro-shoots.png",
+        "mimeType": "image/png",
+        "filesize": 160000,
+        "width": 1920,
+        "height": 1080,
+        "focalX": 0,
+        "focalY": 0,
+        "createdAt": "2025-08-24T12:00:00.000Z",
+        "updatedAt": "2025-08-24T12:00:00.000Z",
+        "url": "/images/blogs/homegrown-pro-shoots.png"
+      }
+    },
+    "_status": "published",
+    "createdAt": "2025-08-24T12:00:00.000Z",
+    "updatedAt": "2025-08-24T12:00:00.000Z",
+    "enablePremiumContent": false,
+    "populatedAuthors": [],
+    "premiumContent": [],
+    "tags": [
+      "D2C India",
+      "studio booking India",
+      "product photography",
+      "ecommerce images",
+      "Amazon Flipkart Myntra",
+      "ROAS",
+      "creative testing"
+    ]
+  }

@@ -1,0 +1,108 @@
+{
+    "id": "lighting-mistakes-creators",
+    "title": "Top 5 Mistakes New Creators Make with Lighting — And How to Avoid Them",
+    "categories": [
+      {
+        "id": "content-guides",
+        "title": "Content Creation Guides",
+        "breadcrumbs": [],
+        "createdAt": "2025-08-22T12:00:00.000Z",
+        "updatedAt": "2025-08-22T12:00:00.000Z"
+      }
+    ],
+    "publishedAt": "2025-08-22T12:00:00.000Z",
+    "authors": ["ContCave Editorial"],
+    "hero": {
+      "type": "image",
+      "richText": [],
+      "links": []
+    },
+    "layout": [
+      {
+        "id": "p1",
+        "blockType": "paragraph",
+        "content": "Lighting can make or break your content. For creators, the difference between an average video and a professional-looking one often comes down to how well the subject is lit. Here are the five most common mistakes new creators in India make with lighting—and how to avoid them."
+      },
+      {
+        "id": "h1",
+        "blockType": "heading",
+        "content": "1. Relying Only on Overhead Lights"
+      },
+      {
+        "id": "p2",
+        "blockType": "paragraph",
+        "content": "Ceiling lights create harsh shadows and uneven tones. Instead, use directional lighting—like a ring light or softbox—that highlights the subject evenly. Many professional studios on ContCave already come equipped with these setups."
+      },
+      {
+        "id": "h2",
+        "blockType": "heading",
+        "content": "2. Ignoring Natural Light"
+      },
+      {
+        "id": "p3",
+        "blockType": "paragraph",
+        "content": "Natural light is free, but uncontrolled. Shooting at noon in Delhi or Mumbai often results in harsh contrast. The trick is to shoot during golden hours (early morning or late afternoon) or use spaces with diffused natural light—something our listed studios optimize for."
+      },
+      {
+        "id": "h3",
+        "blockType": "heading",
+        "content": "3. Mixing Different Light Temperatures"
+      },
+      {
+        "id": "p4",
+        "blockType": "paragraph",
+        "content": "Combining daylight bulbs with warm yellow lights creates inconsistency. Always stick to one light temperature. Professional studios in Bangalore, for example, allow you to control lighting setups for consistency across shots."
+      },
+      {
+        "id": "h4",
+        "blockType": "heading",
+        "content": "4. Forgetting About Background Lighting"
+      },
+      {
+        "id": "p5",
+        "blockType": "paragraph",
+        "content": "New creators often focus only on the subject and ignore the background. Adding subtle backlights or accent lights makes the content look cinematic and polished—especially for product shoots or reels."
+      },
+      {
+        "id": "h5",
+        "blockType": "heading",
+        "content": "5. Not Testing Before Shooting"
+      },
+      {
+        "id": "p6",
+        "blockType": "paragraph",
+        "content": "Jumping straight into recording without test shots leads to avoidable mistakes. Always do a 10-second test shoot to check shadows, reflections, and balance. Professional setups save time since lighting is pre-tested."
+      },
+      {
+        "id": "h6",
+        "blockType": "heading",
+        "content": "Final Note"
+      },
+      {
+        "id": "p7",
+        "blockType": "paragraph",
+        "content": "Lighting is one of the fastest ways to elevate your content from amateur to professional. By avoiding these mistakes and shooting in spaces optimized for creators, you ensure your work stands out, engages audiences, and looks premium."
+      }
+    ],
+    "slug": "lighting-mistakes-creators",
+    "meta": {
+      "title": "Top 5 Mistakes New Creators Make with Lighting — And How to Avoid Them",
+      "description": "A pro-level guide for Indian creators on common lighting mistakes and how to fix them for better, high-quality shoots.",
+      "image": {
+        "id": "img2",
+        "alt": "Creator adjusting studio lighting setup",
+        "filename": "lighting.png",
+        "mimeType": "image/png",
+        "filesize": 115000,
+        "width": 1920,
+        "height": 1080,
+        "url": "/images/blogs/lighting.png"
+      }
+    },
+    "_status": "published",
+    "createdAt": "2025-08-22T12:00:00.000Z",
+    "updatedAt": "2025-08-22T12:00:00.000Z",
+    "enablePremiumContent": false,
+    "tags": ["lighting tips", "creator growth", "content creation", "studio shoots"]
+  }
+  

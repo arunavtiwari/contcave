@@ -1,60 +1,40 @@
 import fs from "fs";
 import path from "path";
-import matter from "gray-matter";
-import { remark } from "remark";
-import html from "remark-html";
+import { BlogPost } from "@/types/blog";
 
-const postsDir = path.join(process.cwd(), "content/posts");
+const postsDirectory = path.join(process.cwd(), "content/posts");
 
-export interface PostMeta {
-  id: string;
-  title: string;
-  date: string;
-  excerpt?: string;
-  image?: string; 
-}
+// Get all posts sorted by date
+export function getSortedPostsData(): BlogPost[] {
+  const fileNames = fs.readdirSync(postsDirectory);
 
-export interface PostData extends PostMeta {
-  contentHtml: string;
-}
-
-// Fetch all posts metadata
-export function getSortedPostsData(): PostMeta[] {
-  const fileNames = fs.readdirSync(postsDir);
-
-  const allPostsData: PostMeta[] = fileNames.map(fileName => {
-    const id = fileName.replace(/\.md$/, "");
-    const fullPath = path.join(postsDir, fileName);
+  const allPosts: BlogPost[] = fileNames.map((fileName) => {
+    const fullPath = path.join(postsDirectory, fileName);
     const fileContents = fs.readFileSync(fullPath, "utf8");
-    const { data } = matter(fileContents);
-
-    return {
-      id,
-      title: data.title,
-      date: data.date,
-      excerpt: data.excerpt,
-      image: data.image, // ✅ now available for cards
-    };
+    const post: BlogPost = JSON.parse(fileContents);
+    return post;
   });
 
-  return allPostsData.sort((a, b) => (a.date < b.date ? 1 : -1));
+  return allPosts.sort(
+    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  );
 }
 
-
-// Fetch one post's data
-export async function getPostData(id: string): Promise<PostData> {
-  const fullPath = path.join(postsDir, `${id}.md`);
+// Get single post by ID (slug)
+export function getPostData(id: string): BlogPost {
+  const fullPath = path.join(postsDirectory, `${id}.json`);
   const fileContents = fs.readFileSync(fullPath, "utf8");
-  const { data, content } = matter(fileContents);
-  const processedContent = await remark().use(html).process(content);
-
-  return {
-    id,
-    title: data.title,
-    date: data.date,
-    excerpt: data.excerpt,
-    image: data.image,
-    contentHtml: processedContent.toString(),
-  };
+  const post: BlogPost = JSON.parse(fileContents);
+  return post;
 }
 
+export function groupPostsByCategory(posts: BlogPost[]) {
+  const grouped: Record<string, BlogPost[]> = {};
+  posts.forEach(post => {
+    post.categories.forEach(cat => {
+      if (!grouped[cat.title]) grouped[cat.title] = [];
+      grouped[cat.title].push(post);
+    });
+  });
+  return grouped;
+}
