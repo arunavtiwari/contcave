@@ -493,10 +493,9 @@ const ProfileClient = ({ profile }) => {
                 isOpen={showOwnerModal}
                 onClose={() => setShowOwnerModal(false)}
                 onSuccess={() => {
-                    // refresh user locally or fetch again from server
-                    setCurrentUser((u) => ({ ...u, is_owner: true }));
+                    setUserData((u) => ({ ...u, is_owner: true }));
                     setShowOwnerModal(false);
-                    setShowVerificationModal(true); // optionally immediately start verification
+                    setShowVerificationModal(true); 
                 }}
                 initialEmail={userData.email}
                 initialPhone={userData.phone}
@@ -508,8 +507,7 @@ const ProfileClient = ({ profile }) => {
             onClose={() => setShowVerificationModal(false)}
             currentUser={currentUser}
             onComplete={() => {
-            // update state after verification
-            setCurrentUser((u) => ({ ...u, is_verified: true }));
+            setUserData((u) => ({ ...u, is_verified: true }));
             setIsVerified(true);
             }}
         />
