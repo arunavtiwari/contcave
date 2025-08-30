@@ -1,27 +1,32 @@
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React from "react";
 
-export default function Logo() {
+type Props = {};
+
+function Logo({ }: Props) {
+  const router = useRouter();
+
   return (
-    <Link href="/" aria-label="ContCave Home" className="logo-container inline-flex items-center">
-      {/* Desktop/Large */}
-      <Image
-        alt="ContCave"
-        height={100}
-        width={200}
-        src="/assets/logo.png"
-        className="hidden sm:block"
-        priority
-      />
-      {/* Mobile/Small */}
-      <Image
-        alt="ContCave"
-        height={50}
-        width={50}
-        src="/assets/logo_small.png"
-        className="block sm:hidden"
-        priority
-      />
-    </Link>
+    <div onClick={() => router.push("/")}>
+      <div className="logo-container">
+        <Image
+          alt="logo-large"
+          height={100}
+          width={200}
+          src="/assets/logo.png"
+          className="hidden sm:block cursor-pointer"
+        />
+        <Image
+          alt="logo-small"
+          height={50}
+          width={50}
+          src="/assets/logo_small.png"
+          className="block sm:hidden cursor-pointer"
+        />
+      </div>
+    </div>
   );
 }
+
+export default Logo;
