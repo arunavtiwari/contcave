@@ -4,7 +4,7 @@ type Args = { tid: string };
 
 export default async function getTransaction({ tid }: Args) {
   if (!tid) return null;
-  return prisma.transaction.findUnique({
+  return prisma.transaction.findFirst({
     where: { cfOrderId: tid },
     include: {
       reservation: { include: { listing: true } },
