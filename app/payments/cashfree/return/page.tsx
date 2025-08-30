@@ -17,15 +17,14 @@ const getApproveCode = (r: any) => {
 
 export default async function CashfreeReturnPage({ searchParams }: Props) {
     const sp = await searchParams;
-
-    const tid = pickFirst(sp.oid ?? sp.order_id ?? sp.tid);
+    const tid = pickFirst(sp.order_id ?? sp.tid);
 
     if (!tid) {
         return (
             <main className="max-w-xl mx-auto p-6">
                 <h1 className="text-3xl font-bold">Your Reservation</h1>
                 <p className="mt-4 text-xl text-red-600">
-                    Missing <code>oid</code> (or <code>order_id</code>/<code>tid</code>) in URL.
+                    Missing <code>order_id</code> (or <code>tid</code>) in URL.
                 </p>
             </main>
         );
@@ -52,9 +51,9 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
     }
 
     const approval = getApproveCode(reservation);
-    const txnStatus = String(transaction?.status ?? "").toUpperCase();
+    const txnFailed =
+        String(transaction?.status ?? "").toUpperCase() === "FAILED";
 
-    const txnFailed = txnStatus === "FAILED" || txnStatus === "CANCELLED" || txnStatus === "EXPIRED";
     const isFailed = txnFailed;
     const isConfirmed = !isFailed && approval === 1;
     const isPending = !isFailed && approval === 0;
@@ -70,8 +69,10 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
     const venueAddress =
         reservation.listing?.actualLocation &&
             typeof reservation.listing.actualLocation === "object" &&
-            (reservation.listing.actualLocation as { display_name?: string }).display_name
-            ? (reservation.listing.actualLocation as { display_name?: string }).display_name!
+            (reservation.listing.actualLocation as { display_name?: string })
+                .display_name
+            ? (reservation.listing.actualLocation as { display_name?: string })
+                .display_name!
             : "";
 
     const heading = isConfirmed
@@ -154,7 +155,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
 
                 {isFailed && (
                     <div className="mt-4 space-y-2 text-base">
-                        <p className="font-bold">Payment {txnStatus.toLowerCase()}</p>
+                        <p className="font-bold">Payment failed</p>
                         <ul className="list-disc pl-5 space-y-1">
                             <li>
                                 Your payment didn&apos;t go through, so this reservation isn&apos;t

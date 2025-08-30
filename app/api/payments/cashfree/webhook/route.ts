@@ -17,32 +17,24 @@ const log = {
 async function retry<T>(fn: () => Promise<T>, tries = 3, ms = 120): Promise<T> {
     let lastErr: any;
     for (let i = 0; i < tries; i++) {
-        try { return await fn(); } catch (e: any) {
-            lastErr = e; await new Promise(r => setTimeout(r, ms * (i + 1)));
+        try {
+            return await fn();
+        } catch (e: any) {
+            lastErr = e;
+            await new Promise(r => setTimeout(r, ms * (i + 1)));
         }
     }
     throw lastErr;
 }
 
-type TStatus = "SUCCESS" | "FAILED" | "CANCELLED" | "EXPIRED" | "PENDING" | "REFUNDED";
-function mapTxnStatus(input?: string): TStatus {
+function mapTxnStatus(input?: string): "SUCCESS" | "FAILED" | "CANCELLED" | "EXPIRED" | "PENDING" {
     const v = String(input || "").toUpperCase();
     if (v === "PAID" || v === "SUCCESS" || v === "CAPTURED") return "SUCCESS";
     if (v === "FAILED") return "FAILED";
     if (v === "CANCELLED") return "CANCELLED";
     if (v === "EXPIRED") return "EXPIRED";
-    if (v === "REFUNDED") return "REFUNDED";
     return "PENDING";
 }
-
-const STATUS_RANK: Record<TStatus, number> = {
-    PENDING: 0,
-    FAILED: 1,
-    CANCELLED: 1,
-    EXPIRED: 1,
-    REFUNDED: 2,
-    SUCCESS: 2,
-};
 
 function pickOrderId(payload: any): string {
     return String(payload?.data?.order?.order_id ?? "");
@@ -95,18 +87,18 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    const orderId = pickOrderId(payload);
-    if (!orderId) {
+    const tId = pickOrderId(payload);
+    if (!tId) {
         log.warn("missing order_id; acking");
         return NextResponse.json({ ok: true }, { status: 200 });
     }
     const cfPaymentId = pickPaymentId(payload);
-    const newStatus = mapTxnStatus(pickPaymentStatus(payload));
+    const status = mapTxnStatus(pickPaymentStatus(payload));
 
     try {
         const txn = await retry(() =>
             prisma.transaction.findFirst({
-                where: { cfOrderId: orderId },
+                where: { cfOrderId: tId },
                 select: {
                     id: true,
                     status: true,
@@ -120,46 +112,23 @@ export async function POST(req: NextRequest) {
         );
 
         if (!txn) {
-            log.warn("txn not found for order", orderId);
+            log.warn("txn not found for order", tId);
             return NextResponse.json({ ok: true }, { status: 200 });
         }
 
-        const currentStatus = (txn.status as TStatus) || "PENDING";
-        const shouldUpdateStatus = STATUS_RANK[newStatus] >= STATUS_RANK[currentStatus];
+        await retry(() =>
+            prisma.transaction.update({
+                where: { id: txn.id },
+                data: {
+                    status,
+                    cfPaymentId,
+                    cfWebhookPayload: payload,
+                    cfSignature: signature || undefined,
+                },
+            })
+        );
 
-        if (shouldUpdateStatus) {
-            await retry(() =>
-                prisma.transaction.update({
-                    where: { id: txn.id },
-                    data: {
-                        status: newStatus,
-                        cfPaymentId,
-                        cfWebhookPayload: payload,
-                        cfSignature: signature || undefined,
-                    },
-                })
-            );
-        } else {
-
-            await retry(() =>
-                prisma.transaction.update({
-                    where: { id: txn.id },
-                    data: {
-                        cfWebhookPayload: payload,
-                        cfSignature: signature || undefined,
-                    },
-                })
-            );
-        }
-
-
-        if (newStatus === "SUCCESS" && !txn.reservationId && txn.userId && txn.listingId) {
-            const md: any = txn.metadata || {};
-            const startDate = localMidnightFromYmd(md.startDate);
-            const startTime: string = String(md.startTime ?? "");
-            const endTime: string = String(md.endTime ?? "");
-
-
+        if (status === "SUCCESS" && !txn.reservationId && txn.userId && txn.listingId) {
             const listing = await retry(() =>
                 prisma.listing.findUnique({
                     where: { id: txn.listingId! },
@@ -168,6 +137,11 @@ export async function POST(req: NextRequest) {
             );
 
             const isInstant = !!listing?.instantBooking;
+            const md: any = txn.metadata || {};
+
+            const startDate = localMidnightFromYmd(md.startDate);
+            const startTime: string = String(md.startTime ?? "");
+            const endTime: string = String(md.endTime ?? "");
 
             const reservation = await retry(() =>
                 prisma.reservation.create({
