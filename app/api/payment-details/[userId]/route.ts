@@ -57,7 +57,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         const processingTime = Date.now() - startTime;
 
         if (error instanceof z.ZodError) {
-            const errorMessage = error.errors[0]?.message || 'Invalid user ID';
+            const errorMessage = error.issues[0]?.message || 'Invalid user ID';
             console.warn(`GET /api/payment-details - Validation error: ${errorMessage} (${processingTime}ms)`);
             return createResponse(false, errorMessage, 400);
         }

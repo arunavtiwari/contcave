@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         });
     } catch (error) {
         if (error instanceof z.ZodError) {
-            const msg = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+            const msg = error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
             return createResponse(false, `Validation failed: ${msg}`, 400);
         }
 
