@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
                 status: "PENDING",
                 description: "Listing reservation",
                 paymentMethod: "Cashfree",
-                cfOrderId: tId,
+                cfTxnRef: tId,
                 metadata: {
                     startDate: data.startDate,
                     startTime: data.startTime,
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        const { payment_session_id } = await cfCreateOrder({
+        const { order_id, payment_session_id } = await cfCreateOrder({
             transaction_id: tId,
             order_amount: amount,
             customer_id: txn.userId,
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
 
         await prisma.transaction.update({
             where: { id: txn.id },
-            data: { cfPaymentSessionId: payment_session_id },
+            data: { cfPaymentSessionId: payment_session_id, cfOrderId: order_id },
         });
 
         return NextResponse.json({

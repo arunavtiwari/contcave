@@ -39,7 +39,7 @@ export async function cfCreateOrder(input: {
     customer_name: string;
     customer_email?: string;
     customer_phone: string;
-}): Promise<{ payment_session_id: string }> {
+}): Promise<{ payment_session_id: string; order_id: string }> {
     const url = `${cfBaseURL()}/orders`;
     const res = await fetch(url, {
         method: "POST",
@@ -62,11 +62,17 @@ export async function cfCreateOrder(input: {
         cache: "no-store",
     });
 
-    const j = await res.json().catch(() => ({}));
-    if (!res.ok || !j?.payment_session_id) {
-        throw new Error(j?.message || j?.error || JSON.stringify(j) || "Cashfree create reservation failed");
+    const j: any = await res.json().catch(() => ({}));
+    if (!res.ok || !j?.payment_session_id || !j?.order_id) {
+        throw new Error(
+            j?.message || j?.error || JSON.stringify(j) || "Cashfree create order failed"
+        );
     }
-    return { payment_session_id: j.payment_session_id };
+
+    return {
+        payment_session_id: j.payment_session_id as string,
+        order_id: j.order_id as string,
+    };
 }
 
 export function cfVerifyWebhookSignature({

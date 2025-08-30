@@ -215,8 +215,9 @@ model Transaction {
   paymentMethod String            @default("Cashfree")
 
   // -------- Cashfree PG fields ----------
-  cfOrderId            String?    @unique
+  cfOrderId            String?
   cfPaymentId          String?
+  cfTxnRef             String?
   cfPaymentSessionId   String?
   cfWebhookPayload     Json?
   cfSignature          String?
