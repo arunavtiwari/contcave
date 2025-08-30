@@ -13,8 +13,8 @@ export type SafeReservation = Omit<
 > & {
   createdAt: string;
   startDate: Date;
-  startTime: Date;
-  endTime: Date;
+  startTime: string;
+  endTime: string;
   listing: safeListing;
 };
 
