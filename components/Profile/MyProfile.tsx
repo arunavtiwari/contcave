@@ -9,6 +9,8 @@ import useLoginModel from "@/hook/useLoginModal";
 import { useRouter } from "next/navigation";
 import Heading from "@/components/Heading";
 import { toast } from "react-toastify";
+import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
+import VerificationModal from "@/components/verification/VerificationModal";
 import {
     FaUser,
     FaEnvelope,
@@ -34,6 +36,9 @@ const ProfileClient = ({ profile }) => {
     const [editMode, setEditMode] = useState(false);
     const [isVerified, setIsVerified] = useState(false);
     const [selectedMenu, setSelectedMenu] = useState("Profile");
+    const [showOwnerModal, setShowOwnerModal] = useState(false);
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+
 
     // Languages
     const languageOptions = [
@@ -64,6 +69,7 @@ const ProfileClient = ({ profile }) => {
         email: string;
         phone: string;
         profileImage: string;
+        isOwner:boolean;
         isVerified: boolean;
         joinYear: string;
     }>({
@@ -75,6 +81,7 @@ const ProfileClient = ({ profile }) => {
         email: "",
         phone: "",
         profileImage: "",
+        isOwner: false,
         isVerified: false,
         joinYear: "",
     });
@@ -97,6 +104,7 @@ const ProfileClient = ({ profile }) => {
                     email: user.email || "",
                     phone: user.phone || "",
                     profileImage: user.profileImage || user.image || "/assets/default-profile.svg",
+                    isOwner:user.is_owner,
                     isVerified: user.is_verified,
                     joinYear: user.createdAt
                         ? new Date(user.createdAt).toLocaleString("default", { month: "short", year: "numeric" })
@@ -399,12 +407,21 @@ const ProfileClient = ({ profile }) => {
                                 <div>
                                     <h3 className="text-lg font-semibold text-orange-900">Verification Pending</h3>
                                     <p className="text-orange-700 text-sm mt-2">
-                                        Verify your identity to unlock space owner features and build trust with potential renters.
+                                        Verify your details to unlock space owner features and start hosting.
                                     </p>
                                 </div>
-                                <button className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors">
+                                <button
+                                    onClick={() => {
+                                        if (!userData?.isOwner) {
+                                        setShowOwnerModal(true);
+                                        } else {
+                                        setShowVerificationModal(true);
+                                        }
+                                    }}
+                                    className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors"
+                                    >
                                     Start Verification
-                                </button>
+                                    </button>
                             </div>
                         </div>
                     ) : (
@@ -471,8 +488,36 @@ const ProfileClient = ({ profile }) => {
                     </div>
                 </div>
             </div>
+        
+            <OwnerEnableModal
+                isOpen={showOwnerModal}
+                onClose={() => setShowOwnerModal(false)}
+                onSuccess={() => {
+                    // refresh user locally or fetch again from server
+                    setCurrentUser((u) => ({ ...u, is_owner: true }));
+                    setShowOwnerModal(false);
+                    setShowVerificationModal(true); // optionally immediately start verification
+                }}
+                initialEmail={userData.email}
+                initialPhone={userData.phone}
+                />
+
+        {currentUser && (
+        <VerificationModal
+            isOpen={showVerificationModal}
+            onClose={() => setShowVerificationModal(false)}
+            currentUser={currentUser}
+            onComplete={() => {
+            // update state after verification
+            setCurrentUser((u) => ({ ...u, is_verified: true }));
+            setIsVerified(true);
+            }}
+        />
+        )}
         </div>
     );
+
 };
 
 export default ProfileClient;
+
