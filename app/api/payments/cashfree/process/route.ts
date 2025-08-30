@@ -75,10 +75,13 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const tId = "tid_" + randomUUID().replace(/-/g, "").slice(0, 20);
         const amount = Math.round(Number(data.totalPrice));
         const cleanedAddons = sanitizeAddons(data.selectedAddons);
 
+        // Merchant order id (Cashfree echoes this as `order_id`)
+        const orderId = "ord_" + randomUUID().replace(/-/g, "").slice(0, 20);
+
+        // 1) Create local transaction (PENDING). `cfOrderId` is optional now, but we still set it.
         const txn = await prisma.transaction.create({
             data: {
                 userId: currentUser.id,
@@ -88,35 +91,40 @@ export async function POST(req: NextRequest) {
                 status: "PENDING",
                 description: "Listing reservation",
                 paymentMethod: "Cashfree",
-                cfOrderId: tId,
+                cfOrderId: orderId, // good to have for quick lookup
+                customerEmail: currentUser.email || data.customerEmail || undefined,
+                customerPhone,
                 metadata: {
                     startDate: data.startDate,
                     startTime: data.startTime,
-                    endTime: data.endTime,  
+                    endTime: data.endTime,
                     selectedAddons: cleanedAddons,
                     instantBooking: !!data.instantBooking,
                 },
             },
         });
 
+        // 2) Create order session with Cashfree via your wrapper (requires `transaction_id`)
         const { payment_session_id } = await cfCreateOrder({
-            transaction_id: tId,
+            transaction_id: orderId,
             order_amount: amount,
             customer_id: txn.userId,
-            return_url: `${process.env.APP_URL}/payments/cashfree/return?tid={transaction_id}`,
+            return_url: `${process.env.APP_URL}/payments/cashfree/return?oid=${orderId}`,
             notify_url: `${process.env.APP_URL}/api/payments/cashfree/webhook`,
             customer_name: currentUser.name || data.customerName || "Customer",
             customer_email: currentUser.email || data.customerEmail || undefined,
             customer_phone: customerPhone,
         });
 
+        // 3) Persist session id
         await prisma.transaction.update({
             where: { id: txn.id },
             data: { cfPaymentSessionId: payment_session_id },
         });
 
+        // 4) Respond to client
         return NextResponse.json({
-            tId,
+            orderId,
             paymentSessionId: payment_session_id,
         });
     } catch (err: any) {
