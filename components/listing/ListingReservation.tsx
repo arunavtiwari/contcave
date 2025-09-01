@@ -1,12 +1,31 @@
 "use client";
 
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Calendar from "../inputs/Calendar";
 import TimeSlotPicker from "../inputs/TimeSlotPicker";
 import { load, Cashfree } from "@cashfreepayments/cashfree-js";
-import { ReservationOperationalTimings, TimeHM, TimeLabel, DayKey } from "@/types/scheduling";
+import {
+  ReservationOperationalTimings,
+  TimeHM,
+  TimeLabel,
+  DayKey,
+  OperationalDays,
+} from "@/types/scheduling";
 
-const INR = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
+const INR = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0,
+});
+
+type Addon = { price: number; qty?: number };
 
 type Props = {
   listingId: string;
@@ -14,17 +33,18 @@ type Props = {
   totalPrice?: number;
   platformFee?: number;
   time: number;
-  setSelectDate: (value: Date) => void;
-  selectedDate: Date;
+  setSelectDate: (value: Date | null) => void;
+  selectedDate: Date | null;
   setSelectTimeSlots: (value: [TimeLabel | null, TimeLabel | null]) => void;
-  selectedTime: [TimeLabel, TimeLabel] | [TimeLabel | null, TimeLabel | null];
+  selectedTime: [TimeLabel | null, TimeLabel | null];
   disabled?: boolean;
   disabledDates: Date[];
   disabledStartTimes: readonly TimeHM[];
   disabledEndTimes: readonly TimeHM[];
   operationalTimings: ReservationOperationalTimings;
   instantBooking: boolean;
-  selectedAddons?: Array<{ price: number; qty?: number }>;
+  selectedAddons?: Addon[];
+  currentUserPhone?: string | null;
 };
 
 type LocalTimes = { start: TimeLabel | null; end: TimeLabel | null };
@@ -33,7 +53,8 @@ let cashfreePromise: Promise<Cashfree | null> | null = null;
 function getCashfree() {
   if (!cashfreePromise) {
     const mode =
-      (process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox").toLowerCase() === "production"
+      (process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox").toLowerCase() ===
+        "production"
         ? "production"
         : "sandbox";
     cashfreePromise = load({ mode });
@@ -42,6 +63,15 @@ function getCashfree() {
 }
 
 const clampRound = (n: number) => Math.max(0, Math.round(n || 0));
+const isValidDate = (d: unknown): d is Date =>
+  d instanceof Date && !Number.isNaN(d.getTime());
+
+function normalizePhone(phone: string) {
+  const digits = (phone || "").replace(/\D/g, "");
+  if (digits.length >= 12 && digits.startsWith("91")) return digits.slice(-10);
+  if (digits.length >= 10) return digits.slice(-10);
+  return "";
+}
 
 export default function ListingReservation({
   listingId,
@@ -60,17 +90,37 @@ export default function ListingReservation({
   operationalTimings,
   instantBooking,
   selectedAddons = [],
+  currentUserPhone = null,
 }: Props) {
   const [localTimes, setLocalTimes] = useState<LocalTimes>({
     start: selectedTime?.[0] ?? null,
     end: selectedTime?.[1] ?? null,
   });
-  const [hasPickedDate, setHasPickedDate] = useState(Boolean(selectedDate));
+
+  const [hasPickedDate, setHasPickedDate] = useState<boolean>(
+    Boolean(selectedDate)
+  );
   const [isPaying, setIsPaying] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [phoneInput, setPhoneInput] = useState(currentUserPhone ?? "");
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [customerPhone, setCustomerPhone] = useState<string>(
+    currentUserPhone ?? ""
+  );
+
   const mountedRef = useRef(true);
   const inflight = useRef<AbortController | null>(null);
   const sectionId = useId();
+
+  useEffect(() => {
+    setLocalTimes({
+      start: (selectedTime?.[0] as TimeLabel | null) ?? null,
+      end: (selectedTime?.[1] as TimeLabel | null) ?? null,
+    });
+  }, [selectedTime?.[0], selectedTime?.[1]]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -84,16 +134,19 @@ export default function ListingReservation({
     setSelectTimeSlots([localTimes.start, localTimes.end]);
   }, [localTimes.start, localTimes.end, setSelectTimeSlots]);
 
-  const safeHours = useMemo(() => (Number.isFinite(time) && time > 0 ? time : 0), [time]);
+  const safeHours = useMemo(
+    () => (Number.isFinite(time) && time > 0 ? time : 0),
+    [time]
+  );
   const bookingFee = useMemo(() => price * safeHours, [price, safeHours]);
 
   const addonsSum = useMemo(
     () =>
-      selectedAddons.reduce(
-        (sum, a) =>
-          sum + Math.max(0, Number(a.price) || 0) * Math.max(0, Number(a.qty ?? 0)),
-        0
-      ),
+      (selectedAddons || []).reduce((sum, a) => {
+        const p = Math.max(0, Number(a?.price) || 0);
+        const q = Math.max(0, Number(a?.qty ?? 0));
+        return sum + p * q;
+      }, 0),
     [selectedAddons]
   );
 
@@ -117,17 +170,18 @@ export default function ListingReservation({
     [disabled, hasPickedDate, hasValidTime, isPaying]
   );
 
-  const handleTimeSelect = useCallback((value: TimeLabel | null, field: "start" | "end") => {
-    setErr(null);
-    setLocalTimes((prev) => (field === "start" ? { start: value, end: null } : { ...prev, end: value }));
-  }, []);
+  const handleTimeSelect = useCallback(
+    (value: TimeLabel | null, field: "start" | "end") => {
+      setErr(null);
+      setLocalTimes((prev) =>
+        field === "start" ? { start: value, end: null } : { ...prev, end: value }
+      );
+    },
+    []
+  );
 
-  const allowedDays: DayKey[] = useMemo(() => {
-    const od = operationalTimings.operationalDays;
-    if (!od) return [];
-    if ("days" in od && Array.isArray(od.days)) return od.days;
-    if ("start" in od && "end" in od) return [od.start, od.end];
-    return [];
+  const allowedDays = useMemo<OperationalDays | DayKey[] | undefined>(() => {
+    return operationalTimings.operationalDays;
   }, [operationalTimings.operationalDays]);
 
   const formatLocalYmd = (d: Date) => {
@@ -137,15 +191,57 @@ export default function ListingReservation({
     return `${y}-${m}-${day}`;
   };
 
-  const handleReserve = useCallback(async () => {
-    if (!ready || !listingId || !selectedDate || !localTimes.start || !localTimes.end) return;
-    setIsPaying(true);
-    setErr(null);
-    inflight.current?.abort();
-    const controller = new AbortController();
-    inflight.current = controller;
+  const ensurePhone = useCallback(() => {
+    const n = normalizePhone(customerPhone);
+    if (!n) {
+      setPhoneInput("");
+      setPhoneError(null);
+      setShowPhoneModal(true);
+      return false;
+    }
+    return true;
+  }, [customerPhone]);
 
+  const submitPhone = useCallback(async () => {
+    const normalized = normalizePhone(phoneInput);
+    if (!normalized) {
+      setPhoneError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+    setPhoneSaving(true);
+    setPhoneError(null);
     try {
+      const res = await fetch("/api/profile/phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: normalized }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j?.message || "Failed to save phone");
+      }
+      setCustomerPhone(normalized);
+      setShowPhoneModal(false);
+    } catch (e: any) {
+      setPhoneError(e?.message || "Unable to save phone. Try again.");
+    } finally {
+      setPhoneSaving(false);
+    }
+  }, [phoneInput]);
+
+  useEffect(() => {
+    if (!showPhoneModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowPhoneModal(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showPhoneModal]);
+
+  const startPayment = useCallback(
+    async (controller: AbortController) => {
+      if (!listingId || !selectedDate || !localTimes.start || !localTimes.end) return;
+
       const startDateStr = formatLocalYmd(selectedDate);
       const payload = {
         listingId,
@@ -164,19 +260,51 @@ export default function ListingReservation({
         signal: controller.signal,
       });
 
-      const j = await res.json().catch(() => ({} as any));
-      if (!res.ok || !j?.paymentSessionId) throw new Error(j?.message || "Failed to create reservation");
+      const j = (await res.json().catch(() => ({}))) as {
+        paymentSessionId?: string;
+        message?: string;
+      };
+      if (!res.ok || !j?.paymentSessionId)
+        throw new Error(j?.message || "Failed to create reservation");
 
       const cf = await getCashfree();
       if (!cf) throw new Error("Unable to initialize payment gateway");
-      await cf.checkout({ paymentSessionId: j.paymentSessionId, redirectTarget: "_self" });
+
+      await cf.checkout({
+        paymentSessionId: j.paymentSessionId,
+        redirectTarget: "_self",
+      });
+    },
+    [
+      listingId,
+      selectedDate,
+      localTimes.start,
+      localTimes.end,
+      finalTotal,
+      selectedAddons,
+      instantBooking,
+    ]
+  );
+
+  const handleReserve = useCallback(async () => {
+    if (!ready) return;
+    if (!ensurePhone()) return;
+
+    setIsPaying(true);
+    setErr(null);
+    inflight.current?.abort();
+    const controller = new AbortController();
+    inflight.current = controller;
+
+    try {
+      await startPayment(controller);
     } catch (e: any) {
       if (mountedRef.current && e?.name !== "AbortError") {
         setErr(e?.message || "Payment initiation failed. Please try again.");
         setIsPaying(false);
       }
     }
-  }, [ready, listingId, selectedDate, localTimes.start, localTimes.end, finalTotal, selectedAddons, instantBooking]);
+  }, [ready, ensurePhone, startPayment]);
 
   return (
     <section
@@ -187,25 +315,31 @@ export default function ListingReservation({
     >
       <div className="flex items-center gap-1 p-4">
         <p className="flex gap-1 text-2xl font-semibold" id={`${sectionId}-title`}>
-          {INR.format(price)} <span className="text-neutral-600 font-normal">/ hour</span>
+          {INR.format(price)}{" "}
+          <span className="text-neutral-600 font-normal">/ hour</span>
         </p>
       </div>
 
       <hr />
 
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
-        <h2 className="text-lg" id={`${sectionId}-date-label`}>Select Date for Booking</h2>
+        <h2 className="text-lg" id={`${sectionId}-date-label`}>
+          Select Date for Booking
+        </h2>
       </div>
 
       <Calendar
-        value={selectedDate}
+        value={selectedDate ?? null}
         disabledDates={disabledDates}
         allowedDays={allowedDays}
-        onChange={(value: Date) => {
-          if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        onChange={(value) => {
+          if (isValidDate(value)) {
             setSelectDate(value);
             setHasPickedDate(true);
             setErr(null);
+          } else {
+            setSelectDate(null);
+            setHasPickedDate(false);
           }
         }}
         aria-labelledby={`${sectionId}-date-label`}
@@ -214,7 +348,9 @@ export default function ListingReservation({
       <hr />
 
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
-        <h2 className="text-lg" id={`${sectionId}-time-label`}>Pick your Time Slot</h2>
+        <h2 className="text-lg" id={`${sectionId}-time-label`}>
+          Pick your Time Slot
+        </h2>
       </div>
 
       <TimeSlotPicker
@@ -223,9 +359,10 @@ export default function ListingReservation({
         selectedEnd={localTimes.end}
         disabledStartTimes={disabledStartTimes}
         disabledEndTimes={disabledEndTimes}
-        selectedDate={selectedDate}
+        selectedDate={selectedDate ?? null}
         operationalTimings={operationalTimings}
         aria-labelledby={`${sectionId}-time-label`}
+        minBookingMinutes={90}
       />
 
       <hr />
@@ -254,7 +391,8 @@ export default function ListingReservation({
       <div className="p-4 flex flex-col text-neutral-600 gap-1" aria-live="polite">
         <div className="flex justify-between">
           <p>
-            Base booking fee {INR.format(price)} × {safeHours} hr{safeHours === 1 ? "" : "s"}
+            Base booking fee {INR.format(price)} × {safeHours} hr
+            {safeHours === 1 ? "" : "s"}
           </p>
           <p>{INR.format(clampRound(bookingFee))}</p>
         </div>
@@ -272,6 +410,74 @@ export default function ListingReservation({
           <p className="font-semibold">{INR.format(finalTotal)}</p>
         </div>
       </div>
+
+      {/* Phone Modal (unchanged from earlier) */}
+      {showPhoneModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`${sectionId}-phone-title`}
+          onClick={() => !phoneSaving && setShowPhoneModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white shadow-xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              id={`${sectionId}-phone-title`}
+              className="text-lg font-semibold mb-2"
+            >
+              Add your mobile number
+            </h3>
+            <p className="text-sm text-neutral-600 mb-4">
+              Please provide a valid mobile number to continue with your booking.
+            </p>
+            <div className="space-y-2">
+              <label htmlFor={`${sectionId}-phone-input`} className="text-sm">
+                Mobile number
+              </label>
+              <input
+                id={`${sectionId}-phone-input`}
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoFocus
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
+                placeholder="10-digit number"
+                value={phoneInput}
+                onChange={(e) => {
+                  setPhoneError(null);
+                  setPhoneInput(e.target.value);
+                }}
+                disabled={phoneSaving}
+              />
+              {!!phoneError && (
+                <p className="text-sm text-red-600">{phoneError}</p>
+              )}
+            </div>
+            <div className="mt-5 flex gap-2 justify-end">
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg border border-neutral-300 hover:bg-neutral-50"
+                onClick={() => !phoneSaving && setShowPhoneModal(false)}
+                disabled={phoneSaving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg text-white ${phoneSaving ? "bg-neutral-500" : "bg-black hover:opacity-90"
+                  }`}
+                onClick={submitPhone}
+                disabled={phoneSaving}
+              >
+                {phoneSaving ? "Saving…" : "Save & Continue"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

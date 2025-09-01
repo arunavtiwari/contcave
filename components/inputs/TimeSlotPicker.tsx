@@ -1,4 +1,6 @@
-import React, { useMemo, useState } from "react";
+"use client";
+
+import React, { useMemo, useState, useCallback } from "react";
 
 type TimeLabel = string;
 type TimeSlot = TimeLabel | null;
@@ -12,10 +14,11 @@ interface TimeSlotPickerProps {
     onTimeSelect: (time: TimeSlot, field: "start" | "end") => void;
     selectedStart: TimeSlot;
     selectedEnd: TimeSlot;
-    disabledStartTimes: readonly TimeHM[];
-    disabledEndTimes: readonly TimeHM[];
-    selectedDate: Date;
+    disabledStartTimes?: readonly TimeHM[];
+    disabledEndTimes?: readonly TimeHM[];
+    selectedDate?: Date | null;
     operationalTimings?: ReservationOperationalTimings;
+    minBookingMinutes?: number;
 }
 
 const TIME_SLOTS: TimeLabel[] = [
@@ -37,16 +40,13 @@ const ampmToMinutes = (label: string): number => {
     if (period === "AM" && h === 12) h = 0;
     return h * 60 + min;
 };
-
 const hhmmToMinutes = (hhmm: string): number => {
     const m = hhmm.match(/^(\d{1,2}):([0-5]\d)$/);
     if (!m) return NaN;
     const h = Number(m[1]);
     const min = Number(m[2]);
-    if (h > 23 || min > 59) return NaN;
     return h * 60 + min;
 };
-
 const toMinutes = (s?: string | null): number => {
     if (!s) return NaN;
     const m12 = ampmToMinutes(s);
@@ -54,7 +54,6 @@ const toMinutes = (s?: string | null): number => {
     const m24 = hhmmToMinutes(s);
     return m24;
 };
-
 const to12hLabel = (input?: string | null): string => {
     const s = String(input ?? "").trim();
     if (!s) return "";
@@ -82,7 +81,6 @@ function resolveOperationalRange(ops?: ReservationOperationalTimings) {
     const rawEnd = ops?.operationalHours?.end?.trim();
 
     const labelMinutes = TIME_SLOTS.map(ampmToMinutes);
-
     const toMin = (s?: string): number | null => {
         if (!s) return null;
         const idx = TIME_SLOTS.indexOf(to12hLabel(s));
@@ -110,10 +108,11 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     onTimeSelect,
     selectedStart,
     selectedEnd,
-    disabledStartTimes,
-    disabledEndTimes,
+    disabledStartTimes = [],
+    disabledEndTimes = [],
     selectedDate,
     operationalTimings,
+    minBookingMinutes = 60,
 }) => {
     const [activeSegment, setActiveSegment] = useState<"start" | "end">("start");
 
@@ -132,85 +131,128 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
         () => resolveOperationalRange(operationalTimings),
         [operationalTimings]
     );
+    const visible = useMemo(
+        () => TIME_SLOTS.slice(startIdx, endIdx + 1),
+        [startIdx, endIdx]
+    );
 
-    const visible = useMemo(() => TIME_SLOTS.slice(startIdx, endIdx + 1), [startIdx, endIdx]);
-
-    const isReserved = (label: TimeLabel): boolean => {
-        const m = toMinutes(label);
-        if (Number.isNaN(m)) return false;
-        return disabledIntervals.some(({ s, e }) => m >= s && m < e);
-    };
-
-    const violatesEndBeforeStart = (label: TimeLabel): boolean => {
-        if (activeSegment !== "end" || !selectedStart) return false;
-        const endM = toMinutes(label);
-        const startM = toMinutes(selectedStart);
-        if (Number.isNaN(endM) || Number.isNaN(startM)) return false;
-        return endM <= startM;
-    };
-
-    const handleClick = (label: TimeLabel) => {
-        onTimeSelect(to12hLabel(label), activeSegment);
-    };
+    const isReserved = useCallback(
+        (label: TimeLabel): boolean => {
+            const m = toMinutes(label);
+            if (Number.isNaN(m)) return false;
+            return disabledIntervals.some(({ s, e }) => m >= s && m < e);
+        },
+        [disabledIntervals]
+    );
 
     const normStart = to12hLabel(selectedStart);
     const normEnd = to12hLabel(selectedEnd);
 
+    const violatesEndRequirement = useCallback(
+        (label: TimeLabel): boolean => {
+            if (activeSegment !== "end" || !normStart) return false;
+            const endM = toMinutes(label);
+            const startM = toMinutes(normStart);
+            if (Number.isNaN(endM) || Number.isNaN(startM)) return false;
+            return endM < startM + Math.max(0, minBookingMinutes);
+        },
+        [activeSegment, normStart, minBookingMinutes]
+    );
+
+    const handleClick = useCallback(
+        (label: TimeLabel) => {
+            const normalized = to12hLabel(label);
+
+            if (activeSegment === "start") {
+                if (normEnd) {
+                    const startM = toMinutes(normalized);
+                    const endM = toMinutes(normEnd);
+                    if (!Number.isNaN(startM) && !Number.isNaN(endM) && endM < startM + minBookingMinutes) {
+                        onTimeSelect(null, "end");
+                    }
+                }
+                onTimeSelect(normalized, "start");
+                setActiveSegment("end");
+            } else {
+                if (violatesEndRequirement(normalized)) return;
+                onTimeSelect(normalized, "end");
+            }
+        },
+        [activeSegment, normEnd, minBookingMinutes, onTimeSelect, violatesEndRequirement]
+    );
+
+    const noDatePicked = !selectedDate;
+
     return (
-        <div className="p-4 pb-0">
-            <div className="mb-4">
-                <div className="flex justify-between bg-gray-200 p-1.5 rounded-xl">
-                    <button
-                        type="button"
-                        className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-white shadow-md" : "bg-transparent"
-                            }`}
-                        onClick={() => setActiveSegment("start")}
-                    >
-                        Start
-                        <span className="block text-xs text-gray-500">
-                            {normStart || "Please select"}
-                        </span>
-                    </button>
-                    <button
-                        type="button"
-                        className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "end" ? "bg-white shadow-md" : "bg-transparent"
-                            }`}
-                        onClick={() => setActiveSegment("end")}
-                    >
-                        End
-                        <span className="block text-xs text-gray-500">
-                            {normEnd || "Please select"}
-                        </span>
-                    </button>
+        <div className="p-4 pb-0" role="group" aria-label="Time slot picker">
+            {/* Toggle buttons */}
+            <div className="mb-4 flex justify-between bg-gray-200 p-1.5 rounded-xl">
+                <button
+                    type="button"
+                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-white shadow-md" : "bg-transparent"
+                        }`}
+                    onClick={() => setActiveSegment("start")}
+                    disabled={noDatePicked}
+                >
+                    Start
+                    <span className="block text-xs text-gray-500">
+                        {normStart || (noDatePicked ? "Pick a date first" : "Please select")}
+                    </span>
+                </button>
+                <button
+                    type="button"
+                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "end" ? "bg-white shadow-md" : "bg-transparent"
+                        }`}
+                    onClick={() => setActiveSegment("end")}
+                    disabled={noDatePicked}
+                >
+                    End
+                    <span className="block text-xs text-gray-500">
+                        {normEnd || (noDatePicked ? "Pick a date first" : "Please select")}
+                    </span>
+                </button>
+            </div>
+
+            {noDatePicked ? (
+                <div className="p-4 text-sm text-neutral-600">
+                    Please pick a date to see available time slots.
                 </div>
-            </div>
+            ) : (
+                <>
+                    {/* Simple minimum time rule text */}
+                    <p className="px-1 pb-2 text-xs text-neutral-500">
+                        Minimum booking: {minBookingMinutes} minutes
+                    </p>
 
-            <div className="gap-4 grid grid-cols-3 h-[30vh] pr-1 overflow-y-auto pb-4">
-                {visible.map((label) => {
-                    const reserved = isReserved(label);
-                    const orderBad = violatesEndBeforeStart(label);
-                    const disabled = reserved || orderBad;
-                    const isSelected =
-                        (activeSegment === "start" && to12hLabel(label) === normStart) ||
-                        (activeSegment === "end" && to12hLabel(label) === normEnd);
+                    <div className="gap-4 grid grid-cols-3 h-[30vh] pr-1 overflow-y-auto pb-4">
+                        {visible.map((label) => {
+                            const reserved = isReserved(label);
+                            const tooShort = violatesEndRequirement(label);
+                            const disabled = reserved || (activeSegment === "end" && tooShort);
+                            const selected =
+                                (activeSegment === "start" && to12hLabel(label) === normStart) ||
+                                (activeSegment === "end" && to12hLabel(label) === normEnd);
 
-                    return (
-                        <button
-                            key={label}
-                            type="button"
-                            onClick={() => handleClick(label)}
-                            disabled={disabled}
-                            className={`rounded-xl px-4 py-2 text-sm border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isSelected ? "border-black bg-black text-white" : "border-neutral-300 bg-transparent hover:border-black"
-                                }`}
-                        >
-                            <span className={orderBad && !reserved ? "line-through" : ""}>
-                                {label}
-                            </span>
-                            {reserved && <p className="text-xs py-0">Not available</p>}
-                        </button>
-                    );
-                })}
-            </div>
+                            return (
+                                <button
+                                    key={label}
+                                    type="button"
+                                    onClick={() => handleClick(label)}
+                                    disabled={disabled}
+                                    className={`rounded-xl px-4 py-2 text-sm border transition-colors ${selected
+                                        ? "border-black bg-black text-white"
+                                        : disabled
+                                            ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                                            : "border-neutral-300 bg-transparent hover:border-black"
+                                        }`}
+                                >
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
         </div>
     );
 };

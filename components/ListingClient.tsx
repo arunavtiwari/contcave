@@ -8,7 +8,12 @@ import ListingHead from "./listing/ListingHead";
 import ListingInfo from "./listing/ListingInfo";
 import ListingReservation from "./listing/ListingReservation";
 import { categories } from "./navbar/Categories";
-import { ReservationOperationalTimings, TimeHM, TimeLabel, buildOperationalTimings } from "@/types/scheduling";
+import {
+  ReservationOperationalTimings,
+  TimeHM,
+  TimeLabel,
+  buildOperationalTimings,
+} from "@/types/scheduling";
 
 type Props = {
   reservations?: SafeReservation[];
@@ -37,7 +42,15 @@ const parseLabel = (label: string) => {
 
 const dateFromLabel = (base: Date, label: string) => {
   const { hours, minutes } = parseLabel(label);
-  return new Date(base.getFullYear(), base.getMonth(), base.getDate(), hours, minutes, 0, 0);
+  return new Date(
+    base.getFullYear(),
+    base.getMonth(),
+    base.getDate(),
+    hours,
+    minutes,
+    0,
+    0
+  );
 };
 
 const toNum = (v: unknown, def = 0) => {
@@ -50,22 +63,38 @@ const toNum = (v: unknown, def = 0) => {
 };
 
 const normalizeAddons = (input: unknown): AddonItem[] => {
-  const base = Array.isArray(input) ? input : input && typeof input === "object" ? Object.values(input as any) : [];
+  const base = Array.isArray(input)
+    ? input
+    : input && typeof input === "object"
+      ? Object.values(input as any)
+      : [];
   return base
     .map((a: any) => ({
       name: a?.name,
       price: Math.max(0, toNum(a?.price, 0)),
       qty: Math.max(0, toNum(a?.qty, 0)),
     }))
-    .filter(a => a.price > 0 && a.qty > 0);
+    .filter((a) => a.price > 0 && a.qty > 0);
 };
 
 const addonsSig = (arr: AddonItem[]) =>
-  arr.map(a => `${a.name ?? ""}|${a.price}|${a.qty}`).sort().join(",");
+  arr
+    .map((a) => `${a.name ?? ""}|${a.price}|${a.qty}`)
+    .sort()
+    .join(",");
 
-function ListingClient({ reservations = [], listing }: Props) {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>([null, null]);
+function ListingClient({
+  reservations = [],
+  listing,
+  currentUser = null,
+}: Props) {
+  // ❗ Start with NO default date selection
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<
+    [TimeLabel | null, TimeLabel | null]
+  >([null, null]);
+
   const [selectedAddons, setSelectedAddons] = useState<AddonItem[]>([]);
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
 
@@ -74,8 +103,12 @@ function ListingClient({ reservations = [], listing }: Props) {
   const abortRef = useRef<AbortController | null>(null);
   const lastSigRef = useRef("");
 
-  const localDisabledDates = useMemo(() => reservations.map(r => new Date(r.startDate)), [reservations]);
+  const localDisabledDates = useMemo(
+    () => reservations.map((r) => new Date(r.startDate)),
+    [reservations]
+  );
 
+  // Fetch owner's Google Calendar busy slots for this listing (if connected)
   useEffect(() => {
     if (!ownerHasGoogleCalendar) {
       setGoogleCalendarEvents([]);
@@ -99,45 +132,65 @@ function ListingClient({ reservations = [], listing }: Props) {
   }, [listing.id, ownerHasGoogleCalendar]);
 
   const disabledDates = useMemo(() => {
-    const googleDates = googleCalendarEvents.filter(e => e.start?.dateTime).map(e => new Date(e.start.dateTime));
-    const key = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString();
+    const googleDates = googleCalendarEvents
+      .filter((e) => e.start?.dateTime)
+      .map((e) => new Date(e.start.dateTime));
+    const key = (d: Date) =>
+      new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString();
     const set = new Map<string, Date>();
-    [...localDisabledDates, ...googleDates].forEach(d => set.set(key(d), d));
+    [...localDisabledDates, ...googleDates].forEach((d) => set.set(key(d), d));
     return Array.from(set.values());
   }, [localDisabledDates, googleCalendarEvents]);
 
-  const selectedDateStr = selectedDate.toDateString();
+  const selectedDateStr = selectedDate ? selectedDate.toDateString() : "";
 
   const disabledStartTimes = useMemo(() => {
+    if (!selectedDate) return [] as readonly TimeHM[];
     const reservationStartTimes = reservations
-      .filter(r => new Date(r.startDate).toDateString() === selectedDateStr)
-      .map(r => toHHMM(new Date(r.startTime)));
+      .filter((r) => new Date(r.startDate).toDateString() === selectedDateStr)
+      .map((r) => toHHMM(new Date(r.startTime)));
     const googleStartTimes = googleCalendarEvents
-      .filter(e => e.start?.dateTime && new Date(e.start.dateTime).toDateString() === selectedDateStr)
-      .map(e => toHHMM(new Date(e.start.dateTime)));
+      .filter(
+        (e) =>
+          e.start?.dateTime &&
+          new Date(e.start.dateTime).toDateString() === selectedDateStr
+      )
+      .map((e) => toHHMM(new Date(e.start.dateTime)));
     return [...reservationStartTimes, ...googleStartTimes] as readonly TimeHM[];
-  }, [reservations, googleCalendarEvents, selectedDateStr]);
+  }, [reservations, googleCalendarEvents, selectedDate, selectedDateStr]);
 
   const disabledEndTimes = useMemo(() => {
+    if (!selectedDate) return [] as readonly TimeHM[];
     const reservationEndTimes = reservations
-      .filter(r => new Date(r.startDate).toDateString() === selectedDateStr)
-      .map(r => toHHMM(new Date(r.endTime)));
+      .filter((r) => new Date(r.startDate).toDateString() === selectedDateStr)
+      .map((r) => toHHMM(new Date(r.endTime)));
     const googleEndTimes = googleCalendarEvents
-      .filter(e => e.end?.dateTime && new Date(e.end.dateTime).toDateString() === selectedDateStr)
-      .map(e => toHHMM(new Date(e.end.dateTime)));
+      .filter(
+        (e) =>
+          e.end?.dateTime &&
+          new Date(e.end.dateTime).toDateString() === selectedDateStr
+      )
+      .map((e) => toHHMM(new Date(e.end.dateTime)));
     return [...reservationEndTimes, ...googleEndTimes] as readonly TimeHM[];
-  }, [reservations, googleCalendarEvents, selectedDateStr]);
+  }, [reservations, googleCalendarEvents, selectedDate, selectedDateStr]);
 
+  // Compute selected duration (hours)
   useEffect(() => {
     const [startLabel, endLabel] = selectedTimeSlot;
-    if (!selectedDate || !startLabel || !endLabel) return;
+    if (!selectedDate || !startLabel || !endLabel) {
+      setTimeDifferenceInHours(0);
+      return;
+    }
     const start = dateFromLabel(selectedDate, startLabel);
     const end = dateFromLabel(selectedDate, endLabel);
     const diffHours = Math.max(0, (end.getTime() - start.getTime()) / 36e5);
     setTimeDifferenceInHours(diffHours);
   }, [selectedDate, selectedTimeSlot]);
 
-  const category = useMemo(() => categories.find(c => c.label === listing.category), [listing.category]);
+  const category = useMemo(
+    () => categories.find((c) => c.label === listing.category),
+    [listing.category]
+  );
 
   const handleAddonChange = useCallback((payload: unknown) => {
     const next = normalizeAddons(payload);
@@ -153,7 +206,10 @@ function ListingClient({ reservations = [], listing }: Props) {
     if (sig !== lastSigRef.current) lastSigRef.current = sig;
   }, [selectedAddons]);
 
-  const operationalTimings: ReservationOperationalTimings = useMemo(() => buildOperationalTimings(listing), [listing]);
+  const operationalTimings: ReservationOperationalTimings = useMemo(
+    () => buildOperationalTimings(listing),
+    [listing]
+  );
 
   return (
     <div className="pt-10">
@@ -184,15 +240,16 @@ function ListingClient({ reservations = [], listing }: Props) {
                   platformFee={0}
                   time={timeDifferenceInHours}
                   setSelectDate={setSelectedDate}
-                  selectedDate={selectedDate}
+                  selectedDate={selectedDate} 
                   setSelectTimeSlots={setSelectedTimeSlot}
-                  selectedTime={selectedTimeSlot as [TimeLabel, TimeLabel]}
+                  selectedTime={selectedTimeSlot}
                   instantBooking={!!listing.instantBooking}
                   disabledDates={disabledDates}
                   disabledStartTimes={disabledStartTimes}
                   disabledEndTimes={disabledEndTimes}
                   operationalTimings={operationalTimings}
                   selectedAddons={selectedAddons}
+                  currentUserPhone={currentUser?.phone ?? null}
                 />
               </div>
             </div>
