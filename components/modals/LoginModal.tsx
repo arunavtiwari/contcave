@@ -6,7 +6,6 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import { AiFillFacebook } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 

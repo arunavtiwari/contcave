@@ -222,7 +222,7 @@ model Transaction {
   cfWebhookPayload     Json?
   cfSignature          String?
   vendorId             String?
-  payoutPercentToOwner Float?    @default(80)
+  payoutPercentToOwner Float?    @default(88)
   payoutDueAt          DateTime?
   payoutDoneAt         DateTime?
 

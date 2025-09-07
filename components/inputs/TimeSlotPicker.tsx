@@ -186,7 +186,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     return (
         <div className="p-4 pb-0" role="group" aria-label="Time slot picker">
             {/* Toggle buttons */}
-            <div className="mb-4 flex justify-between bg-gray-200 p-1.5 rounded-xl">
+            <div className="flex justify-between bg-gray-200 p-1.5 rounded-xl">
                 <button
                     type="button"
                     className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-white shadow-md" : "bg-transparent"
@@ -220,7 +220,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
             ) : (
                 <>
                     {/* Simple minimum time rule text */}
-                    <p className="px-1 pb-2 text-xs text-neutral-500">
+                    <p className="px-1 pb-2 mt-2 text-xs text-neutral-500">
                         Minimum booking: {minBookingMinutes} minutes
                     </p>
 

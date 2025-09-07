@@ -18,6 +18,8 @@ import {
   DayKey,
   OperationalDays,
 } from "@/types/scheduling";
+import useLoginModal from "@/hook/useLoginModal";
+import PhoneModal from "@/components/modals/PhoneModal";
 
 const INR = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -45,6 +47,8 @@ type Props = {
   instantBooking: boolean;
   selectedAddons?: Addon[];
   currentUserPhone?: string | null;
+  isAuthenticated: boolean;
+  minBookingHours?: number;
 };
 
 type LocalTimes = { start: TimeLabel | null; end: TimeLabel | null };
@@ -73,6 +77,12 @@ function normalizePhone(phone: string) {
   return "";
 }
 
+function hoursToMinutes(h?: number, fallbackMinutes = 90) {
+  const n = Number(h);
+  if (!Number.isFinite(n) || n <= 0) return fallbackMinutes;
+  return Math.max(0, Math.round(n * 60));
+}
+
 export default function ListingReservation({
   listingId,
   price,
@@ -91,18 +101,20 @@ export default function ListingReservation({
   instantBooking,
   selectedAddons = [],
   currentUserPhone = null,
+  isAuthenticated,
+  minBookingHours,
 }: Props) {
+  const loginModel = useLoginModal();
+
   const [localTimes, setLocalTimes] = useState<LocalTimes>({
     start: selectedTime?.[0] ?? null,
     end: selectedTime?.[1] ?? null,
   });
-
   const [hasPickedDate, setHasPickedDate] = useState<boolean>(
     Boolean(selectedDate)
   );
   const [isPaying, setIsPaying] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [phoneInput, setPhoneInput] = useState(currentUserPhone ?? "");
   const [phoneSaving, setPhoneSaving] = useState(false);
@@ -110,7 +122,6 @@ export default function ListingReservation({
   const [customerPhone, setCustomerPhone] = useState<string>(
     currentUserPhone ?? ""
   );
-
   const mountedRef = useRef(true);
   const inflight = useRef<AbortController | null>(null);
   const sectionId = useId();
@@ -170,6 +181,11 @@ export default function ListingReservation({
     [disabled, hasPickedDate, hasValidTime, isPaying]
   );
 
+  const minBookingMinutes = useMemo(
+    () => hoursToMinutes(minBookingHours, 90),
+    [minBookingHours]
+  );
+
   const handleTimeSelect = useCallback(
     (value: TimeLabel | null, field: "start" | "end") => {
       setErr(null);
@@ -180,9 +196,10 @@ export default function ListingReservation({
     []
   );
 
-  const allowedDays = useMemo<OperationalDays | DayKey[] | undefined>(() => {
-    return operationalTimings.operationalDays;
-  }, [operationalTimings.operationalDays]);
+  const allowedDays = useMemo<OperationalDays | DayKey[] | undefined>(
+    () => operationalTimings.operationalDays,
+    [operationalTimings.operationalDays]
+  );
 
   const formatLocalYmd = (d: Date) => {
     const y = d.getFullYear();
@@ -229,19 +246,10 @@ export default function ListingReservation({
     }
   }, [phoneInput]);
 
-  useEffect(() => {
-    if (!showPhoneModal) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setShowPhoneModal(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [showPhoneModal]);
-
   const startPayment = useCallback(
     async (controller: AbortController) => {
-      if (!listingId || !selectedDate || !localTimes.start || !localTimes.end) return;
-
+      if (!listingId || !selectedDate || !localTimes.start || !localTimes.end)
+        return;
       const startDateStr = formatLocalYmd(selectedDate);
       const payload = {
         listingId,
@@ -252,24 +260,20 @@ export default function ListingReservation({
         selectedAddons,
         instantBooking: !!instantBooking,
       };
-
       const res = await fetch("/api/payments/cashfree/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
-
       const j = (await res.json().catch(() => ({}))) as {
         paymentSessionId?: string;
         message?: string;
       };
       if (!res.ok || !j?.paymentSessionId)
         throw new Error(j?.message || "Failed to create reservation");
-
       const cf = await getCashfree();
       if (!cf) throw new Error("Unable to initialize payment gateway");
-
       await cf.checkout({
         paymentSessionId: j.paymentSessionId,
         redirectTarget: "_self",
@@ -288,14 +292,16 @@ export default function ListingReservation({
 
   const handleReserve = useCallback(async () => {
     if (!ready) return;
+    if (!isAuthenticated) {
+      loginModel.onOpen();
+      return;
+    }
     if (!ensurePhone()) return;
-
     setIsPaying(true);
     setErr(null);
     inflight.current?.abort();
     const controller = new AbortController();
     inflight.current = controller;
-
     try {
       await startPayment(controller);
     } catch (e: any) {
@@ -304,30 +310,21 @@ export default function ListingReservation({
         setIsPaying(false);
       }
     }
-  }, [ready, ensurePhone, startPayment]);
+  }, [ready, isAuthenticated, loginModel, ensurePhone, startPayment]);
 
   return (
-    <section
-      className="bg-white rounded-xl border border-neutral-200 overflow-hidden"
-      role="region"
-      aria-labelledby={`${sectionId}-title`}
-      data-component="ListingReservation"
-    >
+    <section className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
       <div className="flex items-center gap-1 p-4">
         <p className="flex gap-1 text-2xl font-semibold" id={`${sectionId}-title`}>
-          {INR.format(price)}{" "}
-          <span className="text-neutral-600 font-normal">/ hour</span>
+          {INR.format(price)} <span className="text-neutral-600 font-normal">/ hour</span>
         </p>
       </div>
-
       <hr />
-
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
         <h2 className="text-lg" id={`${sectionId}-date-label`}>
           Select Date for Booking
         </h2>
       </div>
-
       <Calendar
         value={selectedDate ?? null}
         disabledDates={disabledDates}
@@ -344,15 +341,12 @@ export default function ListingReservation({
         }}
         aria-labelledby={`${sectionId}-date-label`}
       />
-
       <hr />
-
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
         <h2 className="text-lg" id={`${sectionId}-time-label`}>
           Pick your Time Slot
         </h2>
       </div>
-
       <TimeSlotPicker
         onTimeSelect={handleTimeSelect}
         selectedStart={localTimes.start}
@@ -362,20 +356,15 @@ export default function ListingReservation({
         selectedDate={selectedDate ?? null}
         operationalTimings={operationalTimings}
         aria-labelledby={`${sectionId}-time-label`}
-        minBookingMinutes={90}
+        minBookingMinutes={minBookingMinutes}
       />
-
       <hr />
-
       <div className="p-4">
         <button
           type="button"
           disabled={!ready}
-          aria-disabled={!ready}
-          className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"
-            }`}
+          className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
           onClick={handleReserve}
-          data-testid="reserve-pay-btn"
         >
           {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
         </button>
@@ -385,9 +374,7 @@ export default function ListingReservation({
           </p>
         )}
       </div>
-
       <hr />
-
       <div className="p-4 flex flex-col text-neutral-600 gap-1" aria-live="polite">
         <div className="flex justify-between">
           <p>
@@ -410,74 +397,16 @@ export default function ListingReservation({
           <p className="font-semibold">{INR.format(finalTotal)}</p>
         </div>
       </div>
-
-      {/* Phone Modal (unchanged from earlier) */}
-      {showPhoneModal && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={`${sectionId}-phone-title`}
-          onClick={() => !phoneSaving && setShowPhoneModal(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl bg-white shadow-xl p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3
-              id={`${sectionId}-phone-title`}
-              className="text-lg font-semibold mb-2"
-            >
-              Add your mobile number
-            </h3>
-            <p className="text-sm text-neutral-600 mb-4">
-              Please provide a valid mobile number to continue with your booking.
-            </p>
-            <div className="space-y-2">
-              <label htmlFor={`${sectionId}-phone-input`} className="text-sm">
-                Mobile number
-              </label>
-              <input
-                id={`${sectionId}-phone-input`}
-                type="tel"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                autoFocus
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
-                placeholder="10-digit number"
-                value={phoneInput}
-                onChange={(e) => {
-                  setPhoneError(null);
-                  setPhoneInput(e.target.value);
-                }}
-                disabled={phoneSaving}
-              />
-              {!!phoneError && (
-                <p className="text-sm text-red-600">{phoneError}</p>
-              )}
-            </div>
-            <div className="mt-5 flex gap-2 justify-end">
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg border border-neutral-300 hover:bg-neutral-50"
-                onClick={() => !phoneSaving && setShowPhoneModal(false)}
-                disabled={phoneSaving}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={`px-4 py-2 rounded-lg text-white ${phoneSaving ? "bg-neutral-500" : "bg-black hover:opacity-90"
-                  }`}
-                onClick={submitPhone}
-                disabled={phoneSaving}
-              >
-                {phoneSaving ? "Saving…" : "Save & Continue"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PhoneModal
+        isOpen={showPhoneModal}
+        phoneInput={phoneInput}
+        phoneError={phoneError}
+        phoneSaving={phoneSaving}
+        setPhoneInput={setPhoneInput}
+        setPhoneError={setPhoneError}
+        onClose={() => setShowPhoneModal(false)}
+        onSubmit={submitPhone}
+      />
     </section>
   );
 }

@@ -240,7 +240,7 @@ function ListingClient({
                   platformFee={0}
                   time={timeDifferenceInHours}
                   setSelectDate={setSelectedDate}
-                  selectedDate={selectedDate} 
+                  selectedDate={selectedDate}
                   setSelectTimeSlots={setSelectedTimeSlot}
                   selectedTime={selectedTimeSlot}
                   instantBooking={!!listing.instantBooking}
@@ -250,6 +250,8 @@ function ListingClient({
                   operationalTimings={operationalTimings}
                   selectedAddons={selectedAddons}
                   currentUserPhone={currentUser?.phone ?? null}
+                  isAuthenticated={!!currentUser}
+                  minBookingHours={Number(listing.minimumBookingHours)}
                 />
               </div>
             </div>
