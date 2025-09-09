@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prismadb";
-import { cfEnsureVendor } from "@/lib/cashfree";
+import { cfEnsureVendor } from "@/lib/cashfree/cashfree";
 import { z } from "zod";
 
 export const runtime = "nodejs";

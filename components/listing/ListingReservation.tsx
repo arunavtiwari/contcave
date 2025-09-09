@@ -20,6 +20,7 @@ import {
 } from "@/types/scheduling";
 import useLoginModal from "@/hook/useLoginModal";
 import PhoneModal from "@/components/modals/PhoneModal";
+import { normalizePhone } from "@/lib/phone";
 
 const INR = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -69,13 +70,6 @@ function getCashfree() {
 const clampRound = (n: number) => Math.max(0, Math.round(n || 0));
 const isValidDate = (d: unknown): d is Date =>
   d instanceof Date && !Number.isNaN(d.getTime());
-
-function normalizePhone(phone: string) {
-  const digits = (phone || "").replace(/\D/g, "");
-  if (digits.length >= 12 && digits.startsWith("91")) return digits.slice(-10);
-  if (digits.length >= 10) return digits.slice(-10);
-  return "";
-}
 
 function hoursToMinutes(h?: number, fallbackMinutes = 90) {
   const n = Number(h);
@@ -219,6 +213,7 @@ export default function ListingReservation({
     return true;
   }, [customerPhone]);
 
+  // update only mobile via PATCH /api/profile
   const submitPhone = useCallback(async () => {
     const normalized = normalizePhone(phoneInput);
     if (!normalized) {
@@ -228,8 +223,8 @@ export default function ListingReservation({
     setPhoneSaving(true);
     setPhoneError(null);
     try {
-      const res = await fetch("/api/profile/phone", {
-        method: "POST",
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: normalized }),
       });
@@ -363,7 +358,8 @@ export default function ListingReservation({
         <button
           type="button"
           disabled={!ready}
-          className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
+          className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"
+            }`}
           onClick={handleReserve}
         >
           {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}

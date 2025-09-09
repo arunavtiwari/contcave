@@ -221,6 +221,9 @@ model Transaction {
   cfPaymentSessionId   String?
   cfWebhookPayload     Json?
   cfSignature          String?
+  emailSentCustomer    Boolean   @default(false)
+  emailSentOwner       Boolean   @default(false)
+  emailSentFailed      Boolean   @default(false)
   vendorId             String?
   payoutPercentToOwner Float?    @default(88)
   payoutDueAt          DateTime?

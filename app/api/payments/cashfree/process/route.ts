@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prismadb";
 import { randomUUID } from "crypto";
-import { cfCreateOrder } from "@/lib/cashfree";
+import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 
 function normalizePhone(phone?: string | null) {
