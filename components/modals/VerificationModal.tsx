@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Modal from "../modals/Modal";
@@ -18,13 +18,26 @@ const steps = [
   { id: 3, title: "Bank Details" },
 ];
 
-function isValidAadhaar(aadhaarNumber) {
+// Aadhaar / OTP validators
+function isValidAadhaar(aadhaarNumber: string) {
   return /^[2-9]{1}[0-9]{11}$/.test(aadhaarNumber);
 }
-function isValidOtp(otp) {
+function isValidOtp(otp: string) {
   return /^[0-9]{6}$/.test(otp);
 }
 
+// Vendor ID generator
+function generateVendorId() {
+  return `vendor_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+}
+
+// Step calculation helper
+const getInitialStep = (user: any) => {
+  if (user?.bank_verified) return 3;
+  if (user?.aadhaar_verified) return 3;
+  if (user?.phone_verified) return 2;
+  return 1;
+};
 
 const VerificationModal: React.FC<Props> = ({
   isOpen,
@@ -32,78 +45,84 @@ const VerificationModal: React.FC<Props> = ({
   currentUser,
   onComplete,
 }) => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(getInitialStep(currentUser));
   const [loading, setLoading] = useState(false);
 
-  // Step data
+  // Step 1: Phone/email
   const [otpState, setOtpState] = useState({
     phoneValue: currentUser?.phone || "",
-    phoneValid: currentUser?.phone?.length === 10 || false,
-    emailVerified: false,
+    phoneValid: /^\d{10}$/.test(currentUser?.phone || ""),
+    emailVerified: !!currentUser?.email_verified,
   });
 
+  // Step 2: Aadhaar
   const [aadhaarState, setAadhaarState] = useState({
-    aadhaarNumber: "",
+    aadhaarNumber: currentUser?.aadhaar_last4
+      ? "********" + currentUser?.aadhaar_last4
+      : "",
     refId: null as string | number | null,
     otp: "",
-    verified: false,
+    verified: !!currentUser?.aadhaar_verified,
   });
 
+  // Step 3: Bank details
   const [bankState, setBankState] = useState({
-    accountHolder: "",
+    accountHolder: currentUser?.bank_verified_name || "",
     accountNumber: "",
     confirmAccountNumber: "",
     ifsc: "",
-    pan: "",
-    vendorId: "",
-    businessType: "INDIVIDUAL",
+    pan: currentUser?.kyc_pan || "",
+    gst: currentUser?.kyc_gst || "",
   });
 
+  // Reset step on open
+  useEffect(() => {
+    if (isOpen) {
+      setStep(getInitialStep(currentUser));
+    }
+  }, [isOpen, currentUser]);
 
-
-
-
-
-  // --- Primary flow ---
+  // --- Main flow ---
   const handleNext = async () => {
     try {
       setLoading(true);
 
       // --- Step 1: Phone & Email ---
       if (step === 1) {
+        if (currentUser?.phone_verified) {
+          setStep(2);
+          return;
+        }
+
         if (!/^\d{10}$/.test(otpState.phoneValue)) {
           toast.error("Invalid Phone Number");
           return;
         }
-        // Email validation MSG91 
-        // const { data } = await axios.post("/api/verify-email-vendor", {
-        //   email: currentUser.email,
-        // });
-        // if (!data?.valid) {
-        //   toast.error("Invalid email ❌");
-        //   return;
-        // }
 
-        toast.success("Contact Information verified");
+        await axios.patch("/api/user/verify", { step: "phone" });
+
+        toast.success("Contact Information verified ✅");
         setStep(2);
       }
 
-      // --- Step 2: Aadhaar KYC ---
+      // --- Step 2: Aadhaar ---
       else if (step === 2) {
-        if (!aadhaarState.aadhaarNumber) {
-          toast.error("Enter Aadhaar number.");
+        if (currentUser?.aadhaar_verified || aadhaarState.verified) {
+          setStep(3);
           return;
         }
 
-          // Aadhaar format check (12 digits, not starting with 0 or 1)
-        if (!isValidAadhaar(aadhaarState.aadhaarNumber)) {
-          toast.error("Enter a valid Aadhaar number.");
-          return;
-        }
-
-        // Generate OTP
         if (!aadhaarState.refId) {
-          const resp = await axios.post("/api/generate-id-otp-vendor.ts", {
+          if (!aadhaarState.aadhaarNumber) {
+            toast.error("Enter Aadhaar number.");
+            return;
+          }
+          if (!isValidAadhaar(aadhaarState.aadhaarNumber)) {
+            toast.error("Enter a valid Aadhaar number.");
+            return;
+          }
+
+          const resp = await axios.post("/api/generate_otp", {
             aadhaarNumber: aadhaarState.aadhaarNumber,
           });
 
@@ -121,15 +140,20 @@ const VerificationModal: React.FC<Props> = ({
           return;
         }
 
-        // Verify OTP
-        const verifyResp = await axios.post("/api/verify-id-vendor.ts", {
+        const verifyResp = await axios.post("/api/verification", {
           refId: aadhaarState.refId,
           otp: aadhaarState.otp,
         });
 
         if (verifyResp.data.status === "VALID") {
           setAadhaarState((s) => ({ ...s, verified: true }));
-          toast.success("Aadhaar Verified ");
+
+          await axios.patch("/api/user/verify", {
+            step: "aadhaar",
+            aadhaarRefId: aadhaarState.refId,
+          });
+
+          toast.success("Aadhaar Verified 🎉");
           setStep(3);
         } else {
           toast.error("Invalid OTP or Aadhaar verification failed.");
@@ -138,6 +162,13 @@ const VerificationModal: React.FC<Props> = ({
 
       // --- Step 3: Bank Details ---
       else if (step === 3) {
+        if (currentUser?.bank_verified) {
+          toast.info("Bank details already verified ✅");
+          onComplete?.();
+          onClose();
+          return;
+        }
+
         if (
           !bankState.accountHolder ||
           !bankState.accountNumber ||
@@ -149,24 +180,53 @@ const VerificationModal: React.FC<Props> = ({
           return;
         }
 
-        // await axios.put("/api/user", { is_verified: true });
-        toast.success("Vendor created & verified 🎉");
-        onComplete?.();
-        onClose();
+        try {
+          const payload = {
+            vendor_id: generateVendorId(),
+            status: "ACTIVE",
+            name: currentUser?.name,
+            email: currentUser?.email,
+            phone: currentUser?.phone,
+            verify_account: true,
+            dashboard_access: false,
+            bank: {
+              account_number: bankState.accountNumber,
+              account_holder: bankState.accountHolder,
+              ifsc: bankState.ifsc,
+            },
+            kyc_details: {
+              account_type: "BUSINESS",
+              business_type: "B2B",
+              gst: bankState.gst || undefined,
+              pan: bankState.pan || undefined,
+            },
+          };
+
+          const resp = await axios.post("/api/create_vendor", payload);
+          console.log("Vendor created:", resp.data);
+
+          await axios.patch("/api/user/verify", {
+            step: "bank",
+            bankVerifiedName: bankState.accountHolder,
+          });
+
+          toast.success("Vendor created & verified 🎉");
+          onComplete?.();
+          onClose();
+        } catch (err: any) {
+          console.error(err);
+          toast.error(err?.response?.data?.message || "Vendor creation failed");
+        }
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err?.response?.data?.message || "Verification failed");
+      toast.error(err?.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   const handleBack = () => step > 1 && setStep((s) => s - 1);
-
-
-
-
 
   // --- Step UI ---
   const renderStep = () => {
@@ -185,6 +245,7 @@ const VerificationModal: React.FC<Props> = ({
             }
             placeholder="Phone Number (10 digits)"
             className="w-full border px-3 py-2 rounded-lg"
+            disabled={currentUser?.phone_verified}
           />
           <input
             type="email"
@@ -192,6 +253,9 @@ const VerificationModal: React.FC<Props> = ({
             disabled
             className="w-full border px-3 py-2 rounded-lg bg-gray-100"
           />
+          {currentUser?.phone_verified && (
+            <p className="text-green-600 text-sm">Phone already verified ✅</p>
+          )}
         </div>
       );
     }
@@ -207,8 +271,9 @@ const VerificationModal: React.FC<Props> = ({
             }
             placeholder="Enter Aadhaar Number"
             className="w-full border px-3 py-2 rounded-lg"
+            disabled={aadhaarState.verified || currentUser?.aadhaar_verified}
           />
-          {aadhaarState.refId && (
+          {aadhaarState.refId && !aadhaarState.verified && (
             <input
               type="text"
               value={aadhaarState.otp}
@@ -219,7 +284,11 @@ const VerificationModal: React.FC<Props> = ({
               className="w-full border px-3 py-2 rounded-lg"
             />
           )}
-          <p className="text-sm text-gray-600">Click "Send OTP" to generate OTP on Aadhaar-linked mobile.</p>
+          <p className="text-sm text-gray-600">
+            {aadhaarState.verified || currentUser?.aadhaar_verified
+              ? "Aadhaar already verified ✅"
+              : 'Click "Send OTP" to generate OTP on Aadhaar-linked mobile.'}
+          </p>
         </div>
       );
     }
@@ -234,6 +303,7 @@ const VerificationModal: React.FC<Props> = ({
           }
           placeholder="Account Holder Name"
           className="w-full border px-3 py-2 rounded-lg"
+          disabled={currentUser?.bank_verified}
         />
         <input
           type="text"
@@ -243,6 +313,7 @@ const VerificationModal: React.FC<Props> = ({
           }
           placeholder="Account Number"
           className="w-full border px-3 py-2 rounded-lg"
+          disabled={currentUser?.bank_verified}
         />
         <input
           type="text"
@@ -252,6 +323,7 @@ const VerificationModal: React.FC<Props> = ({
           }
           placeholder="Confirm Account Number"
           className="w-full border px-3 py-2 rounded-lg"
+          disabled={currentUser?.bank_verified}
         />
         <input
           type="text"
@@ -259,6 +331,7 @@ const VerificationModal: React.FC<Props> = ({
           onChange={(e) => setBankState({ ...bankState, ifsc: e.target.value })}
           placeholder="IFSC Code"
           className="w-full border px-3 py-2 rounded-lg"
+          disabled={currentUser?.bank_verified}
         />
         <input
           type="text"
@@ -266,20 +339,43 @@ const VerificationModal: React.FC<Props> = ({
           onChange={(e) => setBankState({ ...bankState, pan: e.target.value })}
           placeholder="PAN Number (optional)"
           className="w-full border px-3 py-2 rounded-lg"
+          disabled={currentUser?.bank_verified}
         />
-
-<p className="text-xs text-gray-500">When you click Create Vendor, we will submit bank + KYC details to Cashfree.</p>
+        <input
+          type="text"
+          value={bankState.gst}
+          onChange={(e) => setBankState({ ...bankState, gst: e.target.value })}
+          placeholder="GST Number (optional)"
+          className="w-full border px-3 py-2 rounded-lg"
+          disabled={currentUser?.bank_verified}
+        />
+        {currentUser?.bank_verified && (
+          <p className="text-green-600 text-sm">
+            Bank details already verified ✅
+          </p>
+        )}
+        {!currentUser?.bank_verified && (
+          <p className="text-xs text-gray-500">
+            When you click Finish, we will submit bank + KYC details to Cashfree.
+          </p>
+        )}
       </div>
     );
   };
 
   const actionLabel =
     step === 1
-      ? "Next"
+      ? currentUser?.phone_verified
+        ? "Next"
+        : "Verify Phone"
       : step === 2
-      ? aadhaarState.refId
+      ? currentUser?.aadhaar_verified || aadhaarState.verified
+        ? "Next"
+        : aadhaarState.refId
         ? "Submit OTP"
         : "Send OTP"
+      : currentUser?.bank_verified
+      ? "Close"
       : "Finish";
 
   return (

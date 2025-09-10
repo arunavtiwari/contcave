@@ -51,6 +51,16 @@ model User {
   is_verified             Boolean           @default(false)
   transactions            Transaction[]
   googleCalendarConnected Boolean           @default(false)
+
+  verification_stage      Int               @default(0)  // 0=none, 1=contact, 2=aadhaar, 3=bank
+  aadhaar_verified        Boolean           @default(false)
+  aadhaar_ref_id          String?           
+  bank_verified           Boolean           @default(false)
+  bank_verified_name      String?
+  phone_verified          Boolean           @default(false)
+  email_verified          Boolean           @default(false)
+  verified_via            String[]          @default([]) // ["aadhaar_okyc", "phone_otp"]
+  verified_at             DateTime?
 }
 
 model Account {

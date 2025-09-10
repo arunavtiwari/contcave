@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import Heading from "@/components/Heading";
 import { toast } from "react-toastify";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
-import VerificationModal from "@/components/verification/VerificationModal";
+
 import {
     FaUser,
     FaEnvelope,
@@ -27,6 +27,7 @@ import {
     FaHome,
     FaCreditCard
 } from "react-icons/fa";
+import VerificationModal from "../modals/VerificationModal";
 
 const ProfileClient = ({ profile }) => {
     const router = useRouter();
