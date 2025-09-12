@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { google } from 'googleapis';
+import { createCalendarEventForUser } from "@/lib/calendar/createEvent";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -18,32 +18,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const isAllDay = !start.includes('T') && !end.includes('T');
-
-  const event = {
-    summary: title,
-    start: isAllDay
-      ? { date: start }
-      : { dateTime: start, timeZone: 'UTC' },
-    end: isAllDay
-      ? { date: end }
-      : { dateTime: end, timeZone: 'UTC' },
-  };
-
   try {
-    const oauth2Client = new google.auth.OAuth2();
-    oauth2Client.setCredentials({
-      access_token: session.accessToken as string,
+    const data = await createCalendarEventForUser({
+      userId: String((session as any).user?.id || ""),
+      title,
+      startIso: String(start),
+      endIso: String(end),
     });
-
-    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
-    const response = await calendar.events.insert({
-      calendarId: 'primary',
-      requestBody: event,
-    });
-
-    return NextResponse.json(response.data, { status: 200 });
+    return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error('Error creating event:', error);
     return NextResponse.json(

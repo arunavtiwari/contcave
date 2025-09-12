@@ -14,6 +14,7 @@ import axios from "axios";
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import { useRouter } from "next/navigation";
+import { FaStar } from "react-icons/fa";
 
 const Map = dynamic(() => import("../Map"), { ssr: false });
 
@@ -146,19 +147,19 @@ function ListingInfo({
   const type = Array.isArray(fullListing?.type) ? fullListing.type : [];
 
   const handleReviewSubmit = async () => {
-  try {
-    await axios.post("/api/reviews", {
-      listingId: fullListing.id,
-      reservationId: latestReservationId,
-      rating: review.rating,
-      comment: review.comment,
-    });
-    const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
-    setReviews(res.data);
-    setReview({ rating: 5, comment: "" });
-  } catch {
-  }
-};
+    try {
+      await axios.post("/api/reviews", {
+        listingId: fullListing.id,
+        reservationId: latestReservationId,
+        rating: review.rating,
+        comment: review.comment,
+      });
+      const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
+      setReviews(res.data);
+      setReview({ rating: 5, comment: "" });
+    } catch {
+    }
+  };
 
   return (
     <div className="col-span-4 flex flex-col gap-8">
@@ -168,7 +169,9 @@ function ListingInfo({
           <Avatar src={user?.image} userName={user?.name} />
         </div>
         {fullListing.avgReviewRating && fullListing.avgReviewRating !== 0 && (
-          <div className="font-semibold text-md flex items-center gap-1.5">{fullListing.avgReviewRating.toFixed(1)}</div>
+          <div className="font-semibold text-lg flex items-center gap-1.5 leading-[18px]">
+            <FaStar size={20} color="gold" /> {fullListing.avgReviewRating?.toFixed(1)}
+          </div>
         )}
       </div>
 

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prismadb";
+import { createCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
 import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
@@ -58,6 +59,24 @@ function formatAddons(a: any): string {
         })
         .filter(Boolean) as string[];
     return parts.length ? parts.join(", ") : "None";
+}
+
+type OwnerCalendarPayload = { ownerUserId: string; title: string; startIso: string; endIso: string };
+async function createCalendarEventForOwner(p: OwnerCalendarPayload) {
+    try {
+        await createCalendarEventForUser({
+            userId: p.ownerUserId,
+            title: p.title,
+            startIso: p.startIso,
+            endIso: p.endIso,
+        });
+    } catch {
+    }
+}
+
+function combineUtcIso(ymd: string, hm: string): string {
+    const time = /^(\d{2}):(\d{2})$/.test(hm) ? hm : "00:00";
+    return new Date(`${ymd}T${time}:00Z`).toISOString();
 }
 
 // atomic email claimers (never run inside a DB transaction)
@@ -181,6 +200,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
         let afterCustomer: Parameters<typeof claimAndSendCustomerEmail>[1] | undefined;
         let afterOwner: Parameters<typeof claimAndSendOwnerEmail>[1] | undefined;
         let afterTxnId: string | undefined;
+        let afterCalendar: OwnerCalendarPayload | undefined;
 
         if (status === "SUCCESS" && txn.userId && txn.listingId) {
             await prisma.$transaction(async (db) => {
@@ -269,6 +289,14 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                         (afterOwner as any).formattedStartDate = startDateYmd;
                         (afterOwner as any).formattedStartTime = startTime;
                         (afterOwner as any).formattedEndTime = endTime;
+                        if (listing?.user?.googleCalendarConnected) {
+                            afterCalendar = {
+                                ownerUserId: listing.user.id,
+                                title: `${studioName} booking by ${user?.name || "Customer"}`,
+                                startIso: combineUtcIso(startDateYmd, startTime),
+                                endIso: combineUtcIso(startDateYmd, endTime),
+                            };
+                        }
                         console.log("Prepared owner email", { txnId: freshTxn.id, to: listing.user.email });
                     }
                 } else {
@@ -319,6 +347,14 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                             (afterOwner as any).formattedStartDate = startDateYmd;
                             (afterOwner as any).formattedStartTime = resv.startTime || "";
                             (afterOwner as any).formattedEndTime = resv.endTime || "";
+                            if (resv.listing?.user?.googleCalendarConnected) {
+                                afterCalendar = {
+                                    ownerUserId: resv.listing.user.id,
+                                    title: `${studioName} booking by ${resv.user?.name || "Customer"}`,
+                                    startIso: combineUtcIso(startDateYmd, resv.startTime || "00:00"),
+                                    endIso: combineUtcIso(startDateYmd, resv.endTime || "00:00"),
+                                };
+                            }
                             console.log("Prepared owner email (existing)", { txnId: freshTxn.id, to: resv.listing.user.email });
                         }
                     }
@@ -345,6 +381,12 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                         console.log("Owner email claim", { txnId: afterTxnId, before: before?.emailSentOwner, after: after?.emailSentOwner });
                     } catch (e) {
                         console.error("Owner email dispatch error", { txnId: afterTxnId, error: (e as any)?.message || e });
+                    }
+                }
+                if (afterCalendar) {
+                    try {
+                        await createCalendarEventForOwner(afterCalendar);
+                    } catch {
                     }
                 }
             }

@@ -50,6 +50,7 @@ type Props = {
   currentUserPhone?: string | null;
   isAuthenticated: boolean;
   minBookingHours?: number;
+  isOwner?: boolean;
 };
 
 type LocalTimes = { start: TimeLabel | null; end: TimeLabel | null };
@@ -97,6 +98,7 @@ export default function ListingReservation({
   currentUserPhone = null,
   isAuthenticated,
   minBookingHours,
+  isOwner = false,
 }: Props) {
   const loginModel = useLoginModal();
 
@@ -354,22 +356,23 @@ export default function ListingReservation({
         minBookingMinutes={minBookingMinutes}
       />
       <hr />
-      <div className="p-4">
-        <button
-          type="button"
-          disabled={!ready}
-          className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"
-            }`}
-          onClick={handleReserve}
-        >
-          {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
-        </button>
-        {!!err && (
-          <p className="mt-2 text-sm text-red-600" role="alert">
-            {err}
-          </p>
-        )}
-      </div>
+      {!isOwner && (
+        <div className="p-4">
+          <button
+            type="button"
+            disabled={!ready}
+            className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
+            onClick={handleReserve}
+          >
+            {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
+          </button>
+          {!!err && (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {err}
+            </p>
+          )}
+        </div>
+      )}
       <hr />
       <div className="p-4 flex flex-col text-neutral-600 gap-1" aria-live="polite">
         <div className="flex justify-between">

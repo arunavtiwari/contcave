@@ -252,6 +252,7 @@ function ListingClient({
                   currentUserPhone={currentUser?.phone ?? null}
                   isAuthenticated={!!currentUser}
                   minBookingHours={Number(listing.minimumBookingHours)}
+                  isOwner={!!currentUser?.is_owner}
                 />
               </div>
             </div>

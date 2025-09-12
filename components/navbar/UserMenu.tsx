@@ -117,7 +117,9 @@ function UserMenu({ currentUser }: Props) {
                 <MenuItem onClick={() => { router.push("/favorites"); closeMenu(); }} label="My Favorites" />
                 <MenuItem onClick={() => { router.push("/reservations"); closeMenu(); }} label="Guest Reservations" />
                 <MenuItem onClick={() => { router.push("/properties"); closeMenu(); }} label="My Properties" />
-                <MenuItem onClick={() => { onRent(); closeMenu(); }} label="List your space" />
+                {currentUser?.is_owner && (
+                  <MenuItem onClick={() => { onRent(); closeMenu(); }} label="List your space" />
+                )}
                 <MenuItem onClick={() => { router.push("/Profile"); closeMenu(); }} label="My Profile" />
                 <MenuItem onClick={() => { signOut(); closeMenu(); }} label="Logout" />
               </>
