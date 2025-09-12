@@ -11,19 +11,26 @@ export async function sendReservationOwnerEmail(input: {
     totalPrice: number;
     customerName: string;
     templateId?: string;
+    bookingId?: string;
+    addons?: string;
+    formattedStartDate?: string;
+    formattedStartTime?: string;
+    formattedEndTime?: string;
 }) {
     await sendTemplateEmail({
         toEmail: input.toEmail,
         toName: input.toName || "",
         templateId: input.templateId || process.env.MS_TPL_RESERVATION_OWNER || "",
         data: {
-            owner_name: input.toName || "",
-            studio_name: input.studioName,
-            start_date: input.startDate,
-            start_time: input.startTime,
-            end_time: input.endTime,
-            total_price: Math.round(input.totalPrice),
+            studio_owner_name: input.toName || "",
             customer_name: input.customerName || "",
+            studio_name: input.studioName,
+            bookingId: input.bookingId || "",
+            formattedStartDate: input.formattedStartDate || input.startDate,
+            formattedStartTime: input.formattedStartTime || input.startTime,
+            formattedEndTime: input.formattedEndTime || input.endTime,
+            totalPrice: Math.round(input.totalPrice),
+            selectedAddonsList: input.addons || "None",
         },
     });
 }

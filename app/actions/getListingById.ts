@@ -29,6 +29,9 @@ export default async function getListingById(params: IParams) {
         createdAt: listing.user.createdAt.toString(),
         updatedAt: listing.user.updatedAt.toString(),
         emailVerified: listing.user.emailVerified?.toString() || null,
+        verified_at: listing.user.verified_at
+          ? listing.user.verified_at.toISOString()
+          : null,
       },
     };
   } catch (error: any) {

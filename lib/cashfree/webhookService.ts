@@ -85,16 +85,25 @@ async function claimAndSendOwnerEmail(
     txnId: string,
     payload: {
         toEmail: string; toName: string; studioName: string; startDate: string;
-        startTime: string; endTime: string; totalPrice: number; customerName: string;
+        startTime: string; endTime: string; totalPrice: number; customerName: string; templateId?: string;
     }
 ) {
+    if (!payload?.toEmail) {
+        console.warn("Owner email skipped: missing recipient", { txnId });
+        return;
+    }
+    const tpl = (payload as any)?.templateId || process.env.MS_TPL_RESERVATION_OWNER;
+    if (!tpl) {
+        console.warn("Owner email skipped: missing templateId", { txnId });
+        return;
+    }
     const claimed = await prisma.transaction.updateMany({
         where: { id: txnId, emailSentOwner: false },
         data: { emailSentOwner: true },
     });
     if (claimed.count === 1) {
         try {
-            await sendReservationOwnerEmail(payload);
+            await sendReservationOwnerEmail(payload as any);
         } catch (e) {
             await prisma.transaction.update({ where: { id: txnId }, data: { emailSentOwner: false } });
             throw e;
@@ -142,6 +151,8 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
         if (!orderId) return { statusCode: 200 };
 
         const status = mapStatus(pickPayStatus(body));
+        // basic trace
+        console.log("Webhook parsed", { orderId, status });
         const cfPaymentId = pickPaymentId(body);
 
         const txn = await prisma.transaction.findFirst({
@@ -238,6 +249,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                             addons: addonsStr,
                             studioLocation,
                         };
+                        console.log("Prepared customer email", { txnId: freshTxn.id, to: user.email });
                     }
                     if (listing?.user?.email) {
                         afterOwner = {
@@ -249,7 +261,15 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                             endTime,
                             totalPrice,
                             customerName: user?.name || "",
-                        };
+                            templateId: process.env.MS_TPL_RESERVATION_OWNER || "",
+                        } as any;
+                        // enrich with extra fields expected by new owner template
+                        (afterOwner as any).bookingId = reservation.id;
+                        (afterOwner as any).addons = addonsStr;
+                        (afterOwner as any).formattedStartDate = startDateYmd;
+                        (afterOwner as any).formattedStartTime = startTime;
+                        (afterOwner as any).formattedEndTime = endTime;
+                        console.log("Prepared owner email", { txnId: freshTxn.id, to: listing.user.email });
                     }
                 } else {
                     // reservation already exists → load for email payloads
@@ -280,6 +300,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                                 addons: addonsStr,
                                 studioLocation,
                             };
+                            console.log("Prepared customer email (existing)", { txnId: freshTxn.id, to: resv.user.email });
                         }
                         if (resv.listing?.user?.email) {
                             afterOwner = {
@@ -291,7 +312,14 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                                 endTime: resv.endTime || "",
                                 totalPrice,
                                 customerName: resv.user?.name || "",
-                            };
+                                templateId: process.env.MS_TPL_RESERVATION_OWNER || "",
+                            } as any;
+                            (afterOwner as any).bookingId = resv.id;
+                            (afterOwner as any).addons = addonsStr;
+                            (afterOwner as any).formattedStartDate = startDateYmd;
+                            (afterOwner as any).formattedStartTime = resv.startTime || "";
+                            (afterOwner as any).formattedEndTime = resv.endTime || "";
+                            console.log("Prepared owner email (existing)", { txnId: freshTxn.id, to: resv.listing.user.email });
                         }
                     }
                 }
@@ -299,11 +327,25 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
 
             // send emails after commit using atomic claim flags
             if (afterTxnId) {
-                try {
-                    if (afterCustomer) await claimAndSendCustomerEmail(afterTxnId, afterCustomer);
-                    if (afterOwner) await claimAndSendOwnerEmail(afterTxnId, afterOwner);
-                } catch {
-                    // swallow to keep 200 to provider
+                if (afterCustomer) {
+                    try {
+                        const before = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentCustomer: true } });
+                        await claimAndSendCustomerEmail(afterTxnId, afterCustomer);
+                        const after = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentCustomer: true } });
+                        console.log("Customer email claim", { txnId: afterTxnId, before: before?.emailSentCustomer, after: after?.emailSentCustomer });
+                    } catch (e) {
+                        console.error("Customer email dispatch error", { txnId: afterTxnId, error: (e as any)?.message || e });
+                    }
+                }
+                if (afterOwner) {
+                    try {
+                        const before = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentOwner: true } });
+                        await claimAndSendOwnerEmail(afterTxnId, afterOwner);
+                        const after = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentOwner: true } });
+                        console.log("Owner email claim", { txnId: afterTxnId, before: before?.emailSentOwner, after: after?.emailSentOwner });
+                    } catch (e) {
+                        console.error("Owner email dispatch error", { txnId: afterTxnId, error: (e as any)?.message || e });
+                    }
                 }
             }
         }

@@ -18,9 +18,13 @@ export type SafeReservation = Omit<
   listing: safeListing;
 };
 
-export type SafeUser = Omit<User, "createdAt" | "updatedAt" | "emailVerified"> & {
+export type SafeUser = Omit<
+  User,
+  "createdAt" | "updatedAt" | "emailVerified" | "verified_at"
+> & {
   createdAt: string;
   updatedAt: string;
   emailVerified: string | null;
+  verified_at: string | null;
   googleCalendarConnected: boolean;
 };
