@@ -14,6 +14,7 @@ import {
   TimeLabel,
   buildOperationalTimings,
 } from "@/types/scheduling";
+import { Package } from "./inputs/PackagesForm";
 
 type Props = {
   reservations?: SafeReservation[];
@@ -97,7 +98,7 @@ function ListingClient({
 
   const [selectedAddons, setSelectedAddons] = useState<AddonItem[]>([]);
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
-
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [googleCalendarEvents, setGoogleCalendarEvents] = useState<any[]>([]);
   const ownerHasGoogleCalendar = !!listing?.user?.googleCalendarConnected;
   const abortRef = useRef<AbortController | null>(null);
@@ -107,6 +108,27 @@ function ListingClient({
     () => reservations.map((r) => new Date(r.startDate)),
     [reservations]
   );
+
+
+ // For setting EndTime for a Package 
+  useEffect(() => {
+    if (!selectedDate || !selectedPackage || !selectedTimeSlot[0]) return;
+  
+    const startLabel = selectedTimeSlot[0];
+    const startDate = dateFromLabel(selectedDate, startLabel);
+    const endDate = new Date(startDate);
+    endDate.setHours(endDate.getHours() + selectedPackage.durationHours);
+  
+    const hh = endDate.getHours() % 12 || 12;
+    const mm = endDate.getMinutes().toString().padStart(2, "0");
+    const ampm = endDate.getHours() >= 12 ? "PM" : "AM";
+    const endLabel = `${hh}:${mm} ${ampm}` as TimeLabel;
+
+    if (selectedTimeSlot[1] !== endLabel) {
+      setSelectedTimeSlot([startLabel, endLabel]);
+    }
+  }, [selectedDate, selectedPackage, selectedTimeSlot[0]]);
+  
 
   // Fetch owner's Google Calendar busy slots for this listing (if connected)
   useEffect(() => {
@@ -232,6 +254,11 @@ function ListingClient({
                 fullListing={listing}
                 onAddonChange={handleAddonChange}
                 services={[]}
+                onPackageSelect={(pkg) => {
+                  setSelectedPackage(pkg);
+                  setSelectedDate(null);
+                  setSelectedTimeSlot([null, null]);
+                }}
               />
               <div className="order-first mb-10 md:order-last md:col-span-3">
                 <ListingReservation
@@ -253,6 +280,7 @@ function ListingClient({
                   isAuthenticated={!!currentUser}
                   minBookingHours={Number(listing.minimumBookingHours)}
                   isOwner={!!currentUser?.is_owner}
+                  selectedPackage={selectedPackage}
                 />
               </div>
             </div>

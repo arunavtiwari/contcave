@@ -21,6 +21,7 @@ import {
 import useLoginModal from "@/hook/useLoginModal";
 import PhoneModal from "@/components/modals/PhoneModal";
 import { normalizePhone } from "@/lib/phone";
+import { Package } from "../inputs/PackagesForm";
 
 const INR = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -51,6 +52,7 @@ type Props = {
   isAuthenticated: boolean;
   minBookingHours?: number;
   isOwner?: boolean;
+  selectedPackage?: Package | null;
 };
 
 type LocalTimes = { start: TimeLabel | null; end: TimeLabel | null };
@@ -78,6 +80,26 @@ function hoursToMinutes(h?: number, fallbackMinutes = 90) {
   return Math.max(0, Math.round(n * 60));
 }
 
+/* Helpers to parse/format 12-hour labels like "2:30 PM" */
+const parseLabel = (label: string) => {
+  const m = label.match(/^\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*$/i);
+  if (!m) return { hours: 0, minutes: 0 };
+  let h = parseInt(m[1], 10);
+  const min = parseInt(m[2], 10);
+  const period = m[3].toUpperCase();
+  if (period === "PM" && h < 12) h += 12;
+  if (period === "AM" && h === 12) h = 0;
+  return { hours: h, minutes: min };
+};
+
+const formatLabel = (d: Date): TimeLabel => {
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${String(m).padStart(2, "0")} ${ampm}` as TimeLabel;
+};
+
 export default function ListingReservation({
   listingId,
   price,
@@ -99,6 +121,7 @@ export default function ListingReservation({
   isAuthenticated,
   minBookingHours,
   isOwner = false,
+  selectedPackage = null,
 }: Props) {
   const loginModel = useLoginModal();
 
@@ -121,6 +144,22 @@ export default function ListingReservation({
   const mountedRef = useRef(true);
   const inflight = useRef<AbortController | null>(null);
   const sectionId = useId();
+
+  /* If a package is selected and user chooses a start time, auto-calc end time */
+  useEffect(() => {
+    if (selectedPackage && selectedTime[0] && selectedDate) {
+      const startLabel = selectedTime[0];
+      const { hours, minutes } = parseLabel(startLabel!);
+      const startDate = new Date(selectedDate);
+      startDate.setHours(hours, minutes, 0, 0);
+  
+      const endDate = new Date(startDate);
+      endDate.setHours(endDate.getHours() + Number(selectedPackage.durationHours || 0));
+      const endLabel = formatLabel(endDate);
+  
+      setLocalTimes({ start: startLabel, end: endLabel });
+    }
+  }, [selectedPackage, selectedTime, selectedDate]);
 
   useEffect(() => {
     setLocalTimes({
@@ -145,7 +184,11 @@ export default function ListingReservation({
     () => (Number.isFinite(time) && time > 0 ? time : 0),
     [time]
   );
-  const bookingFee = useMemo(() => price * safeHours, [price, safeHours]);
+
+  const bookingFee = useMemo(() => {
+    if (selectedPackage) return Number(selectedPackage.offeredPrice || 0);
+    return price * safeHours;
+  }, [selectedPackage, price, safeHours]);
 
   const addonsSum = useMemo(
     () =>
@@ -185,11 +228,19 @@ export default function ListingReservation({
   const handleTimeSelect = useCallback(
     (value: TimeLabel | null, field: "start" | "end") => {
       setErr(null);
+
+      // if package selected and field === "start", clear end (it will auto-set via effect)
+      if (selectedPackage && field === "start") {
+        setLocalTimes((prev) => ({ start: value, end: null }));
+        // parent will get updated via useEffect that watches selectedTime (selectedTime prop)
+        return;
+      }
+
       setLocalTimes((prev) =>
         field === "start" ? { start: value, end: null } : { ...prev, end: value }
       );
     },
-    []
+    [selectedPackage]
   );
 
   const allowedDays = useMemo<OperationalDays | DayKey[] | undefined>(
@@ -248,7 +299,7 @@ export default function ListingReservation({
       if (!listingId || !selectedDate || !localTimes.start || !localTimes.end)
         return;
       const startDateStr = formatLocalYmd(selectedDate);
-      const payload = {
+      const payload: any = {
         listingId,
         startDate: startDateStr,
         startTime: localTimes.start,
@@ -257,6 +308,15 @@ export default function ListingReservation({
         selectedAddons,
         instantBooking: !!instantBooking,
       };
+
+      if (selectedPackage) {
+        payload.selectedPackage = {
+          title: selectedPackage.title,
+          offeredPrice: selectedPackage.offeredPrice,
+          durationHours: selectedPackage.durationHours,
+        };
+      }
+
       const res = await fetch("/api/payments/cashfree/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -284,6 +344,7 @@ export default function ListingReservation({
       finalTotal,
       selectedAddons,
       instantBooking,
+      selectedPackage,
     ]
   );
 
@@ -313,7 +374,8 @@ export default function ListingReservation({
     <section className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
       <div className="flex items-center gap-1 p-4">
         <p className="flex gap-1 text-2xl font-semibold" id={`${sectionId}-title`}>
-          {INR.format(price)} <span className="text-neutral-600 font-normal">/ hour</span>
+          {selectedPackage ? INR.format(Number(selectedPackage.offeredPrice || 0)) : INR.format(price)}{" "}
+          <span className="text-neutral-600 font-normal">{selectedPackage ? " (package)" : "/ hour"}</span>
         </p>
       </div>
       <hr />
@@ -376,10 +438,14 @@ export default function ListingReservation({
       <hr />
       <div className="p-4 flex flex-col text-neutral-600 gap-1" aria-live="polite">
         <div className="flex justify-between">
-          <p>
-            Base booking fee {INR.format(price)} × {safeHours} hr
-            {safeHours === 1 ? "" : "s"}
-          </p>
+          {selectedPackage ? (
+            <p>Package: {selectedPackage.title}</p>
+          ) : (
+            <p>
+              Base booking fee {INR.format(price)} × {safeHours} hr
+              {safeHours === 1 ? "" : "s"}
+            </p>
+          )}
           <p>{INR.format(clampRound(bookingFee))}</p>
         </div>
         <div className="flex justify-between">

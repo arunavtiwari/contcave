@@ -15,6 +15,8 @@ import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import { useRouter } from "next/navigation";
 import { FaStar } from "react-icons/fa";
+import PackageList from "./PackageList";
+import { Package } from "../inputs/PackagesForm";
 
 const Map = dynamic(() => import("../Map"), { ssr: false });
 
@@ -22,17 +24,18 @@ type Props = {
   user: SafeUser;
   description: string;
   category:
-  | {
-    icon: IconType;
-    label: string;
-    description: string;
-  }
-  | undefined;
+    | {
+        icon: IconType;
+        label: string;
+        description: string;
+      }
+    | undefined;
   locationValue: string;
   fullListing: any;
   definedAmenities?: Array<any>;
   onAddonChange: (addons: any) => void;
   services: string[];
+  onPackageSelect?: (pkg: Package | null) => void;
 };
 
 function ListingInfo({
@@ -43,6 +46,7 @@ function ListingInfo({
   fullListing,
   definedAmenities,
   onAddonChange,
+  onPackageSelect,
 }: Props) {
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
@@ -56,6 +60,7 @@ function ListingInfo({
   const [latestReservationId, setLatestReservationId] = useState("");
   const [review, setReview] = useState({ rating: 5, comment: "" });
   const [isExpanded, setIsExpanded] = useState(false);
+
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
   const limit = 250;
@@ -65,15 +70,17 @@ function ListingInfo({
   useEffect(() => {
     const fetchData = async () => {
       const list = await getAddons();
-      setAddonList(list);
-      const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
-      setReviews(res.data);
+      setAddonList(list || []);
+      try {
+        const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
+        setReviews(res.data || []);
+      } catch {}
     };
     const checkBooking = async () => {
       try {
         const res = await axios.get(`/api/checkbooking/${fullListing.id}`);
-        setCanReview(res.data.canReview);
-        setLatestReservationId(res.data.latestReservationId);
+        setCanReview(Boolean(res.data?.canReview));
+        setLatestReservationId(res.data?.latestReservationId ?? "");
       } catch {
         setCanReview(false);
       }
@@ -158,6 +165,7 @@ function ListingInfo({
       setReviews(res.data);
       setReview({ rating: 5, comment: "" });
     } catch {
+      // ignore
     }
   };
 
@@ -214,6 +222,18 @@ function ListingInfo({
       {Array.isArray(fullListing.addons) && fullListing.addons.length > 0 && (
         <>
           <AddonsList addons={fullListing.addons} onChange={relayAddons} addonList={addonList} />
+          <hr />
+        </>
+      )}
+
+      {Array.isArray(fullListing.packages) && fullListing.packages.length > 0 && (
+        <>
+          <PackageList
+            packages={fullListing.packages}
+            onSelect={(pkg) => {
+              onPackageSelect?.(pkg ?? null);
+            }}
+          />
           <hr />
         </>
       )}

@@ -24,6 +24,7 @@ import SpaceVerification from "../inputs/SpaceVerification";
 import TermsAndConditionsModal from "../inputs/TermsAndConditions";
 import CustomAddonModal from "./CustomAddonModal";
 import AutoComplete from "../inputs/AutoComplete";
+import PackagesForm, { Package } from "../inputs/PackagesForm";
 
 enum STEPS {
   CATEGORY = 0,
@@ -33,9 +34,10 @@ enum STEPS {
   PRICE = 4,
   AMENITIES = 5,
   ADDONS = 6,
-  OTHERDETAILS = 7,
-  VERIFICATION = 8,
-  TERMS = 9,
+  PACKAGES = 7,
+  OTHERDETAILS = 8,
+  VERIFICATION = 9,
+  TERMS = 10,
 }
 
 function RentModal() {
@@ -49,8 +51,12 @@ function RentModal() {
   const [verifications, setVerifications] = useState<any>();
   const [terms, setTerms] = useState<boolean>(false);
   const [addons, setAddons] = useState<any[]>([]);
-  const [selectedAmenities, setSelectedAmenities] = useState<{ predefined: { [key: string]: boolean }; custom: string[] }>({ predefined: {}, custom: [] });
+  const [selectedAmenities, setSelectedAmenities] = useState<{
+    predefined: { [key: string]: boolean };
+    custom: string[];
+  }>({ predefined: {}, custom: [] });
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
+  const [packages, setPackages] = useState<Package[]>([]);
 
   const Map = useMemo(() => dynamic(() => import("../Map"), { ssr: false }), []);
 
@@ -59,13 +65,13 @@ function RentModal() {
       try {
         const amenitiesData = await getAmenities();
         setAmenities(amenitiesData);
-      } catch { }
+      } catch {}
     };
     const fetchAddonsData = async () => {
       try {
         const addonsData = await getAddons();
         setAddons(addonsData);
-      } catch { }
+      } catch {}
     };
     fetchAmenitiesData();
     fetchAddonsData();
@@ -98,7 +104,11 @@ function RentModal() {
 
   const setCustomValue = useCallback(
     (id: string, value: any) => {
-      setValue(id, value, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+      setValue(id, value, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
     },
     [setValue]
   );
@@ -115,7 +125,9 @@ function RentModal() {
       return;
     }
     if (step === STEPS.IMAGES && (!imageSrc || imageSrc.length === 0)) {
-      toast.error("Please upload at least one image", { toastId: "ImageUpload" });
+      toast.error("Please upload at least one image", {
+        toastId: "ImageUpload",
+      });
       return;
     }
     setStep((v) => v + 1);
@@ -123,14 +135,31 @@ function RentModal() {
 
   const handleTermsAndConditions = (accept: boolean) => setTerms(accept);
   const handleVerificationChange = (v: any) => setVerifications(v);
-  const handleAmenitiesChange = (v: { predefined: { [key: string]: boolean }; custom: string[] }) => setSelectedAmenities(v);
+  const handleAmenitiesChange = (v: {
+    predefined: { [key: string]: boolean };
+    custom: string[];
+  }) => setSelectedAmenities(v);
   const handleAddonChange = (v: Addon[]) => setSelectedAddons(v);
   const handleDetailsChange = (v: ListingDetails) => setListingDetails(v);
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) return onNext();
+    if (
+      packages.some(
+        (pkg) =>
+          !pkg.title || !pkg.offeredPrice || !pkg.durationHours
+      )
+    ) {
+      toast.error("Please complete all package details", {
+        toastId: "Incomplete_Package",
+      });
+      return;
+    }
 
-    const selectedAmenityKeys = Object.keys(selectedAmenities.predefined).filter((k) => selectedAmenities.predefined[k]);
+    const selectedAmenityKeys = Object.keys(selectedAmenities.predefined).filter(
+      (k) => selectedAmenities.predefined[k]
+    );
+
     const payload = {
       title: data.title,
       description: data.description,
@@ -150,12 +179,21 @@ function RentModal() {
       instantBooking: listingDetails?.instantBooking ?? false,
       type: listingDetails?.type ?? [],
       bookingApprovalCount: listingDetails?.bookingApprovalCount ?? null,
+      packages: packages.map((pkg) => ({
+        title: pkg.title,
+        originalPrice: pkg.originalPrice,
+        offeredPrice: pkg.offeredPrice,
+        features: pkg.features,
+        durationHours: pkg.durationHours,
+      })),
       verifications,
       terms,
     };
 
     if (!payload.locationValue) {
-      toast.error("Please select a city/location", { toastId: "Location_Missing" });
+      toast.error("Please select a city/location", {
+        toastId: "Location_Missing",
+      });
       return;
     }
 
@@ -180,15 +218,26 @@ function RentModal() {
     return "Next";
   }, [step]);
 
-  const secondActionLabel = useMemo(() => (step === STEPS.CATEGORY ? undefined : "Back"), [step]);
+  const secondActionLabel = useMemo(
+    () => (step === STEPS.CATEGORY ? undefined : "Back"),
+    [step]
+  );
 
   let bodyContent = (
     <div className="flex flex-col gap-4">
-      <Heading title="Which of these best describes your place?" subtitle="Pick a category" />
+      <Heading
+        title="Which of these best describes your place?"
+        subtitle="Pick a category"
+      />
       <div className="grid grid-cols-2 md-grid-cols-3 gap-3 max-h-[calc(100vh-42vh)] overflow-y-auto pr-2">
         {categories.map((item, index) => (
           <div key={index} className="col-span-1">
-            <CategoryInput onClick={(c) => setCustomValue("category", c)} selected={category === item.label} label={item.label} icon={item.icon} />
+            <CategoryInput
+              onClick={(c) => setCustomValue("category", c)}
+              selected={category === item.label}
+              label={item.label}
+              icon={item.icon}
+            />
           </div>
         ))}
       </div>
@@ -203,13 +252,22 @@ function RentModal() {
   if (step === STEPS.LOCATION) {
     bodyContent = (
       <div className="flex flex-col gap-4">
-        <Heading title="Where is your place located?" subtitle="Help content creators find you!" />
-        <CitySelect value={location} onChange={(v) => setCustomValue("location", v)} />
+        <Heading
+          title="Where is your place located?"
+          subtitle="Help content creators find you!"
+        />
+        <CitySelect
+          value={location}
+          onChange={(v) => setCustomValue("location", v)}
+        />
         <AutoComplete
           value={location ? location.display_name : ""}
           onChange={(sel: any) => {
-            const latlng = [sel.latlng.lat, sel.latlng.lon];
-            setCustomValue("actualLocation", { display_name: sel.display_name, latlng });
+            const latlng = [Number(sel.latlng.lat), Number(sel.latlng.lon)];
+            setCustomValue("actualLocation", {
+              display_name: sel.display_name,
+              latlng,
+            });
           }}
         />
         <Map center={actualLocation?.latlng ?? location?.latlng} />
@@ -220,17 +278,32 @@ function RentModal() {
   if (step === STEPS.IMAGES) {
     bodyContent = (
       <div className="flex flex-col gap-8">
-        <Heading title="Add photos of your place" subtitle="Show creators what your place looks like!" />
+        <Heading
+          title="Add photos of your place"
+          subtitle="Show creators what your place looks like!"
+        />
         <div className="flex gap-6 w-full flex-wrap justify-center sm:justify-normal mt-2 sm:mt-0">
           {imageSrc.map((item: any, index: number) => (
             <div key={index} className="relative">
               <div className="h-32 w-32 rounded-xl flex items-center">
-                <img src={item} alt={`Image ${index}`} className="h-full w-full object-cover rounded-xl" />
+                <img
+                  src={item}
+                  alt={`Image ${index}`}
+                  className="h-full w-full object-cover rounded-xl"
+                />
               </div>
-              <button onClick={() => removeImage(index)} className="absolute top-2 right-2 rounded-full" />
+              <button
+                onClick={() => removeImage(index)}
+                className="absolute top-2 right-2 rounded-full"
+              />
             </div>
           ))}
-          {(!imageSrc || imageSrc.length < 8) && <ImageUpload onChange={(v) => setCustomValue("imageSrc", v)} values={imageSrc} />}
+          {(!imageSrc || imageSrc.length < 8) && (
+            <ImageUpload
+              onChange={(v) => setCustomValue("imageSrc", v)}
+              values={imageSrc}
+            />
+          )}
         </div>
       </div>
     );
@@ -239,9 +312,28 @@ function RentModal() {
   if (step === STEPS.DESCRIPTION) {
     bodyContent = (
       <div className="flex flex-col gap-4">
-        <Heading title="Your Property Details" subtitle="Set an inviting title and subtitle for your property" />
-        <Input id="title" label="Title" disabled={isLoading} register={register("title", { required: "Name of your property" })} errors={errors} required />
-        <Input id="description" label="Description" disabled={isLoading} register={register("description", { required: "Describe your property" })} errors={errors} required />
+        <Heading
+          title="Your Property Details"
+          subtitle="Set an inviting title and subtitle for your property"
+        />
+        <Input
+          id="title"
+          label="Title"
+          disabled={isLoading}
+          register={register("title", { required: "Name of your property" })}
+          errors={errors}
+          required
+        />
+        <Input
+          id="description"
+          label="Description"
+          disabled={isLoading}
+          register={register("description", {
+            required: "Describe your property",
+          })}
+          errors={errors}
+          required
+        />
       </div>
     );
   }
@@ -249,8 +341,22 @@ function RentModal() {
   if (step === STEPS.PRICE) {
     bodyContent = (
       <div className="flex flex-col gap-8">
-        <Heading title="Now, set your price" subtitle="How much do you charge per hour?" />
-        <Input id="price" label="Price" formatPrice type="number" disabled={isLoading} register={register("price", { required: "Price of your property" })} errors={errors} required />
+        <Heading
+          title="Now, set your price"
+          subtitle="How much do you charge per hour?"
+        />
+        <Input
+          id="price"
+          label="Price"
+          formatPrice
+          type="number"
+          disabled={isLoading}
+          register={register("price", {
+            required: "Price of your property",
+          })}
+          errors={errors}
+          required
+        />
       </div>
     );
   }
@@ -258,8 +364,14 @@ function RentModal() {
   if (step === STEPS.AMENITIES) {
     bodyContent = (
       <div className="flex flex-col gap-8">
-        <Heading title="Select the amenities at your property" subtitle="Add the amenities available at the shoot space" />
-        <AmenitiesCheckbox amenities={amenities} onChange={handleAmenitiesChange} />
+        <Heading
+          title="Select the amenities at your property"
+          subtitle="Add the amenities available at the shoot space"
+        />
+        <AmenitiesCheckbox
+          amenities={amenities}
+          onChange={handleAmenitiesChange}
+        />
       </div>
     );
   }
@@ -267,9 +379,28 @@ function RentModal() {
   if (step === STEPS.ADDONS) {
     bodyContent = (
       <div className="flex flex-col gap-8">
-        <Heading title="Select the add-ons, if available at your property" subtitle="Additional chargeable services/facilities" />
-        <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons} onSelectedAddonsChange={handleAddonChange} />
+        <Heading
+          title="Select the add-ons, if available at your property"
+          subtitle="Additional chargeable services/facilities"
+        />
+        <AddonsSelection
+          addons={addons}
+          initialSelectedAddons={selectedAddons}
+          onSelectedAddonsChange={handleAddonChange}
+        />
         <CustomAddonModal save={(v: any) => setAddons([...addons, v])} />
+      </div>
+    );
+  }
+
+  if (step === STEPS.PACKAGES) {
+    bodyContent = (
+      <div className="flex flex-col gap-8">
+        <Heading
+          title="Add Custom Packages"
+          subtitle="Create bundles (e.g. studio + photographer + lighting)"
+        />
+        <PackagesForm value={packages} onChange={setPackages} />
       </div>
     );
   }
@@ -303,7 +434,13 @@ function RentModal() {
     <Modal
       disabled={isLoading}
       isOpen={rentModel.isOpen}
-      title={step === STEPS.VERIFICATION ? "Space Verification" : step === STEPS.TERMS ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS" : "List Your Space!"}
+      title={
+        step === STEPS.VERIFICATION
+          ? "Space Verification"
+          : step === STEPS.TERMS
+          ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS"
+          : "List Your Space!"
+      }
       actionLabel={actionLabel}
       onSubmit={handleSubmit(onSubmit)}
       secondaryActionLabel={secondActionLabel}

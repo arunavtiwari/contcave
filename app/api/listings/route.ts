@@ -27,17 +27,11 @@ export async function POST(request: Request) {
     type,
     bookingApprovalCount,
     verifications,
-    terms
+    terms,
+    packages 
   } = body;
 
-  if (
-    !title ||
-    !description ||
-    !imageSrc ||
-    !category ||
-    !locationValue ||
-    !price
-  ) {
+  if (!title || !description || !imageSrc || !category || !locationValue || !price) {
     return NextResponse.error();
   }
 
@@ -63,8 +57,22 @@ export async function POST(request: Request) {
       type,
       bookingApprovalCount,
       verifications,
-      terms
-    }
+      terms,
+      packages: packages
+        ? {
+            create: packages.map((pkg: any) => ({
+              title: pkg.title,
+              description: pkg.description || "",
+              originalPrice: parseInt(pkg.originalPrice, 10),
+              offeredPrice: parseInt(pkg.offeredPrice, 10),
+              features: pkg.features || [],
+            })),
+          }
+        : undefined,
+    },
+    include: {
+      packages: true, 
+    },
   });
 
   return NextResponse.json(listing);

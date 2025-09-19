@@ -113,9 +113,23 @@ model Listing {
   DayStatus            DayStatus[]
   avgReviewRating      Float?
   Transaction          Transaction[]
+  packages Package[]
 
   @@index([userId])
 }
+
+model Package {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  originalPrice  Int      
+  offeredPrice   Int       
+  features       String[]  // items included in the package, e.g. ["5 hrs studio", "Photographer", "Lighting"]
+  durationHours  Int       
+  listingId      String    @db.ObjectId
+  listing        Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+}
+
 
 model DayStatus {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId

@@ -9,8 +9,10 @@ type Props = {
   disabled?: boolean;
   formatPrice?: boolean;
   required?: boolean;
-  register: ReturnType<UseFormRegister<FieldValues>>;
-  errors: FieldErrors;
+  register?: ReturnType<UseFormRegister<FieldValues>>;
+  value?: string | number;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; 
+  errors?: FieldErrors;
 };
 
 function Input({
@@ -20,14 +22,18 @@ function Input({
   disabled,
   formatPrice,
   register,
+  value,
+  onChange,
   required = true,
   errors,
 }: Props) {
+  const hasError = errors?.[id];
   return (
     <div className="w-full relative">
       {formatPrice && (
         <MdOutlineCurrencyRupee
           size={24}
+          placeholder={label}
           className="
             text-neutral-700
             absolute
@@ -42,12 +48,16 @@ function Input({
       <input
         id={id}
         disabled={disabled}
-        {...register}
+        {...(register ?? {})} 
         placeholder={label}
         type={type}
-        className={`peer w-full font-light bg-white border-2 rounded-full outline-none transition disabled:opacity-70 disabled:cursor-not-allowed py-2.5 ${formatPrice ? "pl-10" : "pl-4"
-          } ${errors[id] ? "border-rose-500" : "border-neutral-300"} ${errors[id] ? "focus:border-rose-500" : "focus:border-black"
-          }`}
+        value={value}
+        onChange={onChange}
+        className={`peer w-full font-light bg-white border-2 rounded-md outline-none transition disabled:opacity-70 disabled:cursor-not-allowed py-2.5 ${
+          formatPrice ? "pl-10" : "pl-4"
+        } ${hasError ? "border-rose-500" : "border-neutral-300"} ${
+          hasError ? "focus:border-rose-500" : "focus:border-black"
+        }`}
       />
     </div>
   );
