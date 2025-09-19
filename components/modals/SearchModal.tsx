@@ -31,7 +31,7 @@ function SearchModal({ }: Props) {
   type Value = ValuePiece | [ValuePiece, ValuePiece];
   const [location, setLocation] = useState<CitySelectValue>();
   const [step, setStep] = useState(STEPS.LOCATION);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<Value>(['10:00', '11:00']);
 
 
