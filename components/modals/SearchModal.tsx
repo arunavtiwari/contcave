@@ -123,7 +123,7 @@ function SearchModal({ }: Props) {
         />
         <Calendar
           value={selectedDate}
-          onChange={(value) => setSelectedDate(value)}
+          onChange={(value) => setSelectedDate(value?? null)}
         />
       </div>
     );
