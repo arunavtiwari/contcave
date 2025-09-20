@@ -1,6 +1,7 @@
 "use client";
 
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
+import Image from "next/image";
 import { Amenities } from "@prisma/client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GiPhotoCamera, GiPineTree, GiSunflower, GiCube, GiLighthouse, GiMountainCave, GiArtificialIntelligence, GiCaveEntrance, GiFruitBowl } from "react-icons/gi";
@@ -246,7 +247,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 {(initialListing.imageSrc ?? []).map((item: string, index: number) => (
                                     <div key={index} className="relative">
                                         <div className="h-32 w-32 rounded-xl flex items-center">
-                                            <img src={item} alt={`Image ${index}`} className="h-full w-full object-cover rounded-xl" />
+                                            <Image src={item} alt={`Image ${index}`} width={128} height={128} className="h-full w-full object-cover rounded-xl" />
                                         </div>
                                         <button onClick={() => removeImage(index)} className="absolute top-2 right-2 rounded-full">
                                             <MdClose
@@ -436,7 +437,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     className="bg-black text-white px-15 h-fit py-2 rounded-full hover:opacity-90 flex gap-4 justify-center items-center"
                                     onClick={() => signIn("google-calendar")}
                                 >
-                                    <img src="/images/icon/google_calendar.png" alt="Google Calendar" width="30" className="bg-white rounded-full" />
+                                    <Image src="/images/icon/google_calendar.png" alt="Google Calendar" width={30} height={30} className="bg-white rounded-full" />
                                     Sync Google Calendar
                                 </button>
                             )}

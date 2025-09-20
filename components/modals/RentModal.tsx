@@ -25,6 +25,7 @@ import TermsAndConditionsModal from "../inputs/TermsAndConditions";
 import CustomAddonModal from "./CustomAddonModal";
 import AutoComplete from "../inputs/AutoComplete";
 import PackagesForm, { Package } from "../inputs/PackagesForm";
+import Image from "next/image";
 
 enum STEPS {
   CATEGORY = 0,
@@ -65,13 +66,13 @@ function RentModal() {
       try {
         const amenitiesData = await getAmenities();
         setAmenities(amenitiesData);
-      } catch {}
+      } catch { }
     };
     const fetchAddonsData = async () => {
       try {
         const addonsData = await getAddons();
         setAddons(addonsData);
-      } catch {}
+      } catch { }
     };
     fetchAmenitiesData();
     fetchAddonsData();
@@ -286,9 +287,11 @@ function RentModal() {
           {imageSrc.map((item: any, index: number) => (
             <div key={index} className="relative">
               <div className="h-32 w-32 rounded-xl flex items-center">
-                <img
+                <Image
                   src={item}
                   alt={`Image ${index}`}
+                  width={128}
+                  height={128}
                   className="h-full w-full object-cover rounded-xl"
                 />
               </div>
@@ -438,8 +441,8 @@ function RentModal() {
         step === STEPS.VERIFICATION
           ? "Space Verification"
           : step === STEPS.TERMS
-          ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS"
-          : "List Your Space!"
+            ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS"
+            : "List Your Space!"
       }
       actionLabel={actionLabel}
       onSubmit={handleSubmit(onSubmit)}

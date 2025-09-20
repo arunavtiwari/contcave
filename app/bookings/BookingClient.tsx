@@ -21,7 +21,7 @@ function BookingClient({ reservations, currentUser }: Props) {
 
   const onChat = useCallback((id: string) => {
     window.open(`/chat/${id}`, "_blank")
-  }, [router]);
+  }, []);
   const onDelete = useCallback(
     (id: string) => {
       setDeletingId(id);

@@ -3,21 +3,23 @@
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import React from "react";
-import getCurrentUser from "../actions/getCurrentUser";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
 type Props = {};
 
-const CancellationPolicy = async (props: Props) => {
-    const currentUser = await getCurrentUser();
+const CancellationPolicy = (props: Props) => {
 
     return (
         <ClientOnly>
             <div className="banner">
-                <img
-                    src="assets\footer-banner.jpg"
+                <Image
+                    src="/assets/footer-banner.jpg"
                     alt="Banner Image"
+                    width={1920}
+                    height={400}
+                    priority
                 />
                 <div className="overlay">
                     <h1 className="banner-text">Cancellation Policy</h1>

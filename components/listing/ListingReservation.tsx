@@ -146,27 +146,27 @@ export default function ListingReservation({
   const sectionId = useId();
 
   /* If a package is selected and user chooses a start time, auto-calc end time */
+  const selectedStartLabel = selectedTime?.[0];
   useEffect(() => {
-    if (selectedPackage && selectedTime[0] && selectedDate) {
-      const startLabel = selectedTime[0];
+    if (selectedPackage && selectedStartLabel && selectedDate) {
+      const startLabel = selectedStartLabel;
       const { hours, minutes } = parseLabel(startLabel!);
       const startDate = new Date(selectedDate);
       startDate.setHours(hours, minutes, 0, 0);
-  
+
       const endDate = new Date(startDate);
       endDate.setHours(endDate.getHours() + Number(selectedPackage.durationHours || 0));
       const endLabel = formatLabel(endDate);
-  
+
       setLocalTimes({ start: startLabel, end: endLabel });
     }
-  }, [selectedPackage, selectedTime, selectedDate]);
+  }, [selectedPackage, selectedStartLabel, selectedDate]);
 
+  const selStart = (selectedTime?.[0] as TimeLabel | null) ?? null;
+  const selEnd = (selectedTime?.[1] as TimeLabel | null) ?? null;
   useEffect(() => {
-    setLocalTimes({
-      start: (selectedTime?.[0] as TimeLabel | null) ?? null,
-      end: (selectedTime?.[1] as TimeLabel | null) ?? null,
-    });
-  }, [selectedTime?.[0], selectedTime?.[1]]);
+    setLocalTimes({ start: selStart, end: selEnd });
+  }, [selStart, selEnd]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -176,9 +176,11 @@ export default function ListingReservation({
     };
   }, []);
 
+  const ltStart = localTimes.start;
+  const ltEnd = localTimes.end;
   useEffect(() => {
-    setSelectTimeSlots([localTimes.start, localTimes.end]);
-  }, [localTimes.start, localTimes.end, setSelectTimeSlots]);
+    setSelectTimeSlots([ltStart, ltEnd]);
+  }, [ltStart, ltEnd, setSelectTimeSlots]);
 
   const safeHours = useMemo(
     () => (Number.isFinite(time) && time > 0 ? time : 0),

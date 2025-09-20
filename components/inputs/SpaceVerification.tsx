@@ -1,6 +1,7 @@
 "use client";
 import { CldUploadWidget } from "next-cloudinary";
 import React, { useCallback, useState } from 'react';
+import Image from 'next/image';
 import { FiUpload } from "react-icons/fi";
 import { CiFileOn } from "react-icons/ci";
 
@@ -93,16 +94,16 @@ const SpaceVerification = ({ onVerification }: any) => {
                                     }}
                                 </CldUploadWidget>
                                 <div className="flex flex-wrap">
-                                    {documents.map((doc: any,index:number) => doc.thumbnail ? (
+                                    {documents.map((doc: any, index: number) => doc.thumbnail ? (
                                         <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            <img  src={doc.thumbnail ?? doc.url} className="rounded border" />
+                                            <Image src={doc.thumbnail ?? doc.url} alt={doc.original_filename || "document"} width={100} height={80} className="rounded border" />
                                             <strong className="text-xs truncate">{doc.original_filename}.{doc.format}</strong>
                                         </div>
 
                                     ) : (
-                                        <div  key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
+                                        <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
                                             {/* <img src={doc.thumbnail ?? doc.url} className="rounded border" /> */}
-                                            <CiFileOn  className="rounded border h-15"  size={62}/>
+                                            <CiFileOn className="rounded border h-15" size={62} />
                                             <strong className="text-xs truncate">{doc.original_filename}.{doc.format}</strong>
                                         </div>
                                     )
@@ -166,16 +167,16 @@ const SpaceVerification = ({ onVerification }: any) => {
                                     }}
                                 </CldUploadWidget>
                                 <div className="flex flex-wrap">
-                                    {videos.map((video: any,index:number) => video.thumbnail ? (
+                                    {videos.map((video: any, index: number) => video.thumbnail ? (
                                         <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            <img    src={video.thumbnail ?? video.url} className="rounded border" />
+                                            <Image src={video.thumbnail ?? video.url} alt={video.original_filename || "video"} width={100} height={80} className="rounded border" />
                                             <strong className="text-xs truncate">{video.original_filename}.{video.format}</strong>
                                         </div>
 
                                     ) : (
-                                        <div  key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
+                                        <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
                                             {/* <img src={video.thumbnail ?? video.url} className="rounded border" /> */}
-                                            <CiFileOn  className="rounded border h-15"  size={62}/>
+                                            <CiFileOn className="rounded border h-15" size={62} />
                                             <strong className="text-xs truncate">{video.original_filename}.{video.format}</strong>
                                         </div>
                                     )

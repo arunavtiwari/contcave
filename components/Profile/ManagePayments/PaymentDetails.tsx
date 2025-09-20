@@ -349,7 +349,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, onSave, onFetc
                 toast.error(errorMessage);
             }
         });
-    }, [formData, originalData, validateForm, onSave, profile, hasChanges, hasExistingData]);
+    }, [formData, validateForm, onSave, profile, hasChanges, hasExistingData]);
 
     const handleCancel = useCallback(() => {
         setIsEditing(false);

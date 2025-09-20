@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { TbPhotoPlus } from "react-icons/tb";
 
 type Props = {
@@ -60,9 +61,11 @@ function ImageUpload({
         <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
       ) : circle ? (
         values && values.length > 0 ? (
-          <img
+          <Image
             src={values[0]}
             alt="Profile"
+            width={128}
+            height={128}
             className="w-full h-full object-cover rounded-full"
           />
         ) : (

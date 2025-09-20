@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type PaymentStatus = "success" | "error";
@@ -27,26 +28,29 @@ export default function PaymentAnimation({ status }: { status: PaymentStatus }) 
         >
           {/* Front face logo */}
           <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black border shadow-lg backface-hidden overflow-hidden">
-            <img
+            <Image
               src="/images/logo/logo_small.png"
               alt="ContCave Icon Logo"
+              width={128}
+              height={128}
               className="object-cover"
             />
           </div>
 
           {/* Back face: tick or error cross depending on status */}
           <div
-            className={`absolute flex h-full w-full items-center justify-center rounded-full text-5xl text-white [backface-visibility:hidden] [transform:rotateY(180deg)] ${
-              status === "success" ? "bg-green-500" : "bg-yellow-500"
-            }`}
+            className={`absolute flex h-full w-full items-center justify-center rounded-full text-5xl text-white [backface-visibility:hidden] [transform:rotateY(180deg)] ${status === "success" ? "bg-green-500" : "bg-yellow-500"
+              }`}
           >
-            <img
+            <Image
               src={
                 status === "success"
                   ? "/images/icon/tick.png"
                   : "/images/icon/error.png"
               }
               alt={status === "success" ? "Booking Success" : "Booking Error"}
+              width={128}
+              height={128}
               className="object-cover"
             />
           </div>

@@ -1,5 +1,5 @@
 import prisma from "@/lib/prismadb";
-import { createCalendarEventForUser } from "@/lib/calendar/createEvent";
+import { ensureCalendarEventForUser, createCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
 import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
@@ -64,7 +64,7 @@ function formatAddons(a: any): string {
 type OwnerCalendarPayload = { ownerUserId: string; title: string; startIso: string; endIso: string };
 async function createCalendarEventForOwner(p: OwnerCalendarPayload) {
     try {
-        await createCalendarEventForUser({
+        await ensureCalendarEventForUser({
             userId: p.ownerUserId,
             title: p.title,
             startIso: p.startIso,

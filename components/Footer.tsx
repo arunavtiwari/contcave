@@ -51,7 +51,9 @@ function Footer() {
             <a href="https://www.instagram.com/contcave/" target="_blank" rel="noopener noreferrer">
               <Image src="/images/icon/Instagram.svg" width={25} height={25} alt="instagram" className="object-cover hover:scale-105 transition-all" />
             </a>
-            <a href="https://www.producthunt.com/posts/contcave?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-contcave" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=480635&theme=dark&t=1738752353649" alt="ContCave - We&#0032;Help&#0032;creators&#0032;and&#0032;brands&#0032;Shoot&#0032;Better&#0032;Content | Product Hunt" width="200" height="auto" className="rounded-full" /></a>
+            <a href="https://www.producthunt.com/posts/contcave?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-contcave" target="_blank" rel="noopener noreferrer">
+              <Image src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=480635&theme=dark&t=1738752353649" alt="ContCave - We Help creators and brands Shoot Better Content | Product Hunt" width={200} height={44} className="rounded-full" />
+            </a>
           </div>
 
           <div className="flex space-x-4 justify-center text-center md:text-left">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 type Props = {
   imageUrl: string;
@@ -55,10 +56,25 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
           onChange={handleCheckboxChange}
           className="w-6 h-6 text-black bg-gray-100 border-black border-2 rounded-full focus:ring-transparent"
         />)}
-        {hideCheckbox && <img src={imageUrl} alt={label} className="rounded-md w-20 mt-6 mb-2"
-          onClick={onClickChange}
-        />}
-        {!hideCheckbox && <img src={imageUrl} alt={label} className="rounded-md mt-2" style={{ width: addon.width ? addon.width + "px" : "97px" }} />}
+        {hideCheckbox && (
+          <Image
+            src={imageUrl}
+            alt={label || "image"}
+            width={80}
+            height={80}
+            className="rounded-md w-20 mt-6 mb-2"
+            onClick={onClickChange}
+          />
+        )}
+        {!hideCheckbox && (
+          <Image
+            src={imageUrl}
+            alt={label || "image"}
+            width={addon.width ? Number(addon.width) : 97}
+            height={addon.width ? Number(addon.width) : 97}
+            className="rounded-md mt-2"
+          />
+        )}
 
 
         <div className="w-full flex flex-col items-center gap-3">

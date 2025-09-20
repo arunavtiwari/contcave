@@ -51,15 +51,12 @@ const ProfileClient = ({ profile }) => {
     const titleOptions = ["Mr", "Mrs", "Ms", "Dr", "Prof"];
 
     useEffect(() => {
-        const fetchUser = async () => {
-            const user = profile;
-            if (user) {
-                setCurrentUser(user);
-                setIsVerified(user.is_verified || false);
-            }
-        };
-        fetchUser();
-    }, []);
+        const user = profile;
+        if (user) {
+            setCurrentUser(user);
+            setIsVerified(user.is_verified || false);
+        }
+    }, [profile]);
 
     const [userData, setUserData] = useState<{
         name: string;
@@ -70,7 +67,7 @@ const ProfileClient = ({ profile }) => {
         email: string;
         phone: string;
         profileImage: string;
-        isOwner:boolean;
+        isOwner: boolean;
         isVerified: boolean;
         joinYear: string;
     }>({
@@ -89,32 +86,29 @@ const ProfileClient = ({ profile }) => {
 
     const onRent = useCallback(() => {
         rentModel.onOpen();
-    }, [currentUser, loginModel, rentModel]);
+    }, [rentModel]);
 
     useEffect(() => {
-        const fetchUser = async () => {
-            const user = profile;
-            if (user) {
-                setCurrentUser(user);
-                setUserData({
-                    name: user.name || "",
-                    description: user.description || "",
-                    location: user.location || "",
-                    languages: user.languages || [],
-                    title: user.title || "",
-                    email: user.email || "",
-                    phone: user.phone || "",
-                    profileImage: user.profileImage || user.image || "/assets/default-profile.svg",
-                    isOwner:user.is_owner,
-                    isVerified: user.is_verified,
-                    joinYear: user.createdAt
-                        ? new Date(user.createdAt).toLocaleString("default", { month: "short", year: "numeric" })
-                        : "Jun 2025"
-                });
-            }
-        };
-        fetchUser();
-    }, []);
+        const user = profile;
+        if (user) {
+            setCurrentUser(user);
+            setUserData({
+                name: user.name || "",
+                description: user.description || "",
+                location: user.location || "",
+                languages: user.languages || [],
+                title: user.title || "",
+                email: user.email || "",
+                phone: user.phone || "",
+                profileImage: user.profileImage || user.image || "/assets/default-profile.svg",
+                isOwner: user.is_owner,
+                isVerified: user.is_verified,
+                joinYear: user.createdAt
+                    ? new Date(user.createdAt).toLocaleString("default", { month: "short", year: "numeric" })
+                    : "Jun 2025"
+            });
+        }
+    }, [profile]);
 
 
     const handleChange = (e) => {
@@ -414,15 +408,15 @@ const ProfileClient = ({ profile }) => {
                                 <button
                                     onClick={() => {
                                         if (!userData?.isOwner) {
-                                        setShowOwnerModal(true);
+                                            setShowOwnerModal(true);
                                         } else {
-                                        setShowVerificationModal(true);
+                                            setShowVerificationModal(true);
                                         }
                                     }}
                                     className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors"
-                                    >
+                                >
                                     Start Verification
-                                    </button>
+                                </button>
                             </div>
                         </div>
                     ) : (
@@ -489,30 +483,30 @@ const ProfileClient = ({ profile }) => {
                     </div>
                 </div>
             </div>
-        
+
             <OwnerEnableModal
                 isOpen={showOwnerModal}
                 onClose={() => setShowOwnerModal(false)}
                 onSuccess={() => {
                     setUserData((u) => ({ ...u, is_owner: true }));
                     setShowOwnerModal(false);
-                    setShowVerificationModal(true); 
+                    setShowVerificationModal(true);
                 }}
                 initialEmail={userData.email}
                 initialPhone={userData.phone}
-                />
+            />
 
-        {currentUser && (
-        <VerificationModal
-            isOpen={showVerificationModal}
-            onClose={() => setShowVerificationModal(false)}
-            currentUser={currentUser}
-            onComplete={() => {
-            setUserData((u) => ({ ...u, is_verified: true }));
-            setIsVerified(true);
-            }}
-        />
-        )}
+            {currentUser && (
+                <VerificationModal
+                    isOpen={showVerificationModal}
+                    onClose={() => setShowVerificationModal(false)}
+                    currentUser={currentUser}
+                    onComplete={() => {
+                        setUserData((u) => ({ ...u, is_verified: true }));
+                        setIsVerified(true);
+                    }}
+                />
+            )}
         </div>
     );
 

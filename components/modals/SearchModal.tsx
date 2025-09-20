@@ -40,7 +40,7 @@ function SearchModal({ }: Props) {
       dynamic(() => import("../Map"), {
         ssr: false,
       }),
-    [location]
+    []
   );
 
   const onBack = () => {
@@ -53,7 +53,8 @@ function SearchModal({ }: Props) {
 
   const onSubmit = useCallback(async () => {
     if (step !== STEPS.TIME) {
-      return onNext();
+      setStep((v) => v + 1);
+      return;
     }
 
     let currentQuery = {};
@@ -81,7 +82,7 @@ function SearchModal({ }: Props) {
     searchModel.onClose();
 
     router.push(url);
-  }, [step, searchModel, location, router, selectedDate, selectedTime, onNext, params]);
+  }, [step, searchModel, location, router, selectedDate, selectedTime, params]);
 
   const actionLabel = useMemo(() => {
     if (step === STEPS.TIME) {
@@ -123,7 +124,7 @@ function SearchModal({ }: Props) {
         />
         <Calendar
           value={selectedDate}
-          onChange={(value) => setSelectedDate(value?? null)}
+          onChange={(value) => setSelectedDate(value ?? null)}
         />
       </div>
     );

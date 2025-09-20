@@ -11,7 +11,7 @@ type Props = {
   required?: boolean;
   register?: ReturnType<UseFormRegister<FieldValues>>;
   value?: string | number;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; 
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   errors?: FieldErrors;
 };
 
@@ -33,7 +33,6 @@ function Input({
       {formatPrice && (
         <MdOutlineCurrencyRupee
           size={24}
-          placeholder={label}
           className="
             text-neutral-700
             absolute
@@ -48,16 +47,14 @@ function Input({
       <input
         id={id}
         disabled={disabled}
-        {...(register ?? {})} 
+        {...(register ?? {})}
         placeholder={label}
         type={type}
         value={value}
         onChange={onChange}
-        className={`peer w-full font-light bg-white border-2 rounded-md outline-none transition disabled:opacity-70 disabled:cursor-not-allowed py-2.5 ${
-          formatPrice ? "pl-10" : "pl-4"
-        } ${hasError ? "border-rose-500" : "border-neutral-300"} ${
-          hasError ? "focus:border-rose-500" : "focus:border-black"
-        }`}
+        className={`peer w-full font-light bg-white border-2 rounded-md outline-none transition disabled:opacity-70 disabled:cursor-not-allowed py-2.5 ${formatPrice ? "pl-10" : "pl-4"
+          } ${hasError ? "border-rose-500" : "border-neutral-300"} ${hasError ? "focus:border-rose-500" : "focus:border-black"
+          }`}
       />
     </div>
   );

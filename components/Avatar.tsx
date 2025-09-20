@@ -21,12 +21,12 @@ function Avatar({ src, userName, size = 30 }: Props) {
           src={src}
         />
       ) : userName ? (
-        <img
+        <Image
           className="rounded-full"
           alt="nameImage"
           width={size}
           height={size}
-          src={`https://ui-avatars.com/api/?name=${userName}&size=${size}`}
+          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&size=${size}`}
         />
       ) : (
         <Image

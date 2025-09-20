@@ -110,15 +110,15 @@ function ListingClient({
   );
 
 
- // For setting EndTime for a Package 
+  // For setting EndTime for a Package 
   useEffect(() => {
     if (!selectedDate || !selectedPackage || !selectedTimeSlot[0]) return;
-  
+
     const startLabel = selectedTimeSlot[0];
     const startDate = dateFromLabel(selectedDate, startLabel);
     const endDate = new Date(startDate);
     endDate.setHours(endDate.getHours() + selectedPackage.durationHours);
-  
+
     const hh = endDate.getHours() % 12 || 12;
     const mm = endDate.getMinutes().toString().padStart(2, "0");
     const ampm = endDate.getHours() >= 12 ? "PM" : "AM";
@@ -127,8 +127,8 @@ function ListingClient({
     if (selectedTimeSlot[1] !== endLabel) {
       setSelectedTimeSlot([startLabel, endLabel]);
     }
-  }, [selectedDate, selectedPackage, selectedTimeSlot[0]]);
-  
+  }, [selectedDate, selectedPackage, selectedTimeSlot]);
+
 
   // Fetch owner's Google Calendar busy slots for this listing (if connected)
   useEffect(() => {
