@@ -24,6 +24,9 @@ export default async function getListings(params: IListingsParams) {
 
     if (userId) {
       query.userId = userId;
+    } else {
+      // Only show active listings on public listings page
+      query.active = true;
     }
 
     if (category) {
@@ -36,8 +39,8 @@ export default async function getListings(params: IListingsParams) {
     if (type) {
       query.type = { has: type };
     }
-    
-    
+
+
 
     if (startDate && endDate) {
       query.NOT = {

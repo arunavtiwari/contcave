@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     bookingApprovalCount,
     verifications,
     terms,
-    packages 
+    packages
   } = body;
 
   if (!title || !description || !imageSrc || !category || !locationValue || !price) {
@@ -58,20 +58,22 @@ export async function POST(request: Request) {
       bookingApprovalCount,
       verifications,
       terms,
+      status: 'PENDING',
+      active: false,
       packages: packages
         ? {
-            create: packages.map((pkg: any) => ({
-              title: pkg.title,
-              description: pkg.description || "",
-              originalPrice: parseInt(pkg.originalPrice, 10),
-              offeredPrice: parseInt(pkg.offeredPrice, 10),
-              features: pkg.features || [],
-            })),
-          }
+          create: packages.map((pkg: any) => ({
+            title: pkg.title,
+            description: pkg.description || "",
+            originalPrice: parseInt(pkg.originalPrice, 10),
+            offeredPrice: parseInt(pkg.offeredPrice, 10),
+            features: pkg.features || [],
+          })),
+        }
         : undefined,
     },
     include: {
-      packages: true, 
+      packages: true,
     },
   });
 

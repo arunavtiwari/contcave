@@ -20,6 +20,12 @@ enum TransactionStatus {
   EXPIRED
 }
 
+enum ListingStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
 /**
  * ---------------------------- Models -----------------------------
  */
@@ -52,15 +58,15 @@ model User {
   transactions            Transaction[]
   googleCalendarConnected Boolean           @default(false)
 
-  verification_stage      Int               @default(0)  // 0=none, 1=contact, 2=aadhaar, 3=bank
-  aadhaar_verified        Boolean           @default(false)
-  aadhaar_ref_id          String?           
-  bank_verified           Boolean           @default(false)
-  bank_verified_name      String?
-  phone_verified          Boolean           @default(false)
-  email_verified          Boolean           @default(false)
-  verified_via            String[]          @default([]) // ["aadhaar_okyc", "phone_otp"]
-  verified_at             DateTime?
+  verification_stage Int       @default(0) // 0=none, 1=contact, 2=aadhaar, 3=bank
+  aadhaar_verified   Boolean   @default(false)
+  aadhaar_ref_id     String?
+  bank_verified      Boolean   @default(false)
+  bank_verified_name String?
+  phone_verified     Boolean   @default(false)
+  email_verified     Boolean   @default(false)
+  verified_via       String[]  @default([]) // ["aadhaar_okyc", "phone_otp"]
+  verified_at        DateTime?
 }
 
 model Account {
@@ -113,23 +119,24 @@ model Listing {
   DayStatus            DayStatus[]
   avgReviewRating      Float?
   Transaction          Transaction[]
-  packages Package[]
+  packages             Package[]
+  status               ListingStatus @default(PENDING)
+  active               Boolean       @default(false)
 
   @@index([userId])
 }
 
 model Package {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  title          String
-  originalPrice  Int      
-  offeredPrice   Int       
-  features       String[]  // items included in the package, e.g. ["5 hrs studio", "Photographer", "Lighting"]
-  durationHours  Int       
-  listingId      String    @db.ObjectId
-  listing        Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  createdAt      DateTime  @default(now())
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  originalPrice Int
+  offeredPrice  Int
+  features      String[] // items included in the package, e.g. ["5 hrs studio", "Photographer", "Lighting"]
+  durationHours Int
+  listingId     String   @db.ObjectId
+  listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
 }
-
 
 model DayStatus {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
