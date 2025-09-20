@@ -168,9 +168,12 @@ model Reservation {
   Review         Review[]
   isApproved     Int?
   Transaction    Transaction[]
+  billingDetailId String? @db.ObjectId
+  billingDetail    BillingDetails? @relation(fields: [billingDetailId], references: [id])
 
   @@index([userId])
   @@index([listingId])
+  @@index([billingDetailId])
 }
 
 model Amenities {
@@ -232,6 +235,19 @@ model PaymentDetails {
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   User                    User[]
+}
+
+model BillingDetails {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
+  companyName    String
+  gstin          String   @db.VarChar(15)
+  billingAddress String
+  isDefault      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id])
 }
 
 model Transaction {

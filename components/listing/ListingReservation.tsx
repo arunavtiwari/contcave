@@ -20,8 +20,10 @@ import {
 } from "@/types/scheduling";
 import useLoginModal from "@/hook/useLoginModal";
 import PhoneModal from "@/components/modals/PhoneModal";
+import BookingSummaryModal from "../modals/BookingSummaryModal";
 import { normalizePhone } from "@/lib/phone";
 import { Package } from "../inputs/PackagesForm";
+import { SafeUser } from "@/types";
 
 const INR = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -31,7 +33,14 @@ const INR = new Intl.NumberFormat("en-IN", {
 
 type Addon = { price: number; qty?: number };
 
+type GSTDetails = {
+  companyName: string;
+  gstin: string;
+  billingAddress: string;
+};
+
 type Props = {
+  user: SafeUser;
   listingId: string;
   price: number;
   totalPrice?: number;
@@ -101,6 +110,7 @@ const formatLabel = (d: Date): TimeLabel => {
 };
 
 export default function ListingReservation({
+  user,
   listingId,
   price,
   totalPrice,
@@ -141,6 +151,13 @@ export default function ListingReservation({
   const [customerPhone, setCustomerPhone] = useState<string>(
     currentUserPhone ?? ""
   );
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [gstDetails, setGstDetails] = useState<GSTDetails>({
+    companyName: "",
+    gstin: "",
+    billingAddress: "",
+  });
+
   const mountedRef = useRef(true);
   const inflight = useRef<AbortController | null>(null);
   const sectionId = useId();
@@ -155,7 +172,9 @@ export default function ListingReservation({
       startDate.setHours(hours, minutes, 0, 0);
 
       const endDate = new Date(startDate);
-      endDate.setHours(endDate.getHours() + Number(selectedPackage.durationHours || 0));
+      endDate.setHours(
+        endDate.getHours() + Number(selectedPackage.durationHours || 0)
+      );
       const endLabel = formatLabel(endDate);
 
       setLocalTimes({ start: startLabel, end: endLabel });
@@ -230,14 +249,10 @@ export default function ListingReservation({
   const handleTimeSelect = useCallback(
     (value: TimeLabel | null, field: "start" | "end") => {
       setErr(null);
-
-      // if package selected and field === "start", clear end (it will auto-set via effect)
       if (selectedPackage && field === "start") {
-        setLocalTimes((prev) => ({ start: value, end: null }));
-        // parent will get updated via useEffect that watches selectedTime (selectedTime prop)
+        setLocalTimes({ start: value, end: null });
         return;
       }
-
       setLocalTimes((prev) =>
         field === "start" ? { start: value, end: null } : { ...prev, end: value }
       );
@@ -268,7 +283,6 @@ export default function ListingReservation({
     return true;
   }, [customerPhone]);
 
-  // update only mobile via PATCH /api/profile
   const submitPhone = useCallback(async () => {
     const normalized = normalizePhone(phoneInput);
     if (!normalized) {
@@ -297,7 +311,7 @@ export default function ListingReservation({
   }, [phoneInput]);
 
   const startPayment = useCallback(
-    async (controller: AbortController) => {
+    async (controller: AbortController, gst?: GSTDetails) => {
       if (!listingId || !selectedDate || !localTimes.start || !localTimes.end)
         return;
       const startDateStr = formatLocalYmd(selectedDate);
@@ -309,6 +323,7 @@ export default function ListingReservation({
         totalPrice: finalTotal,
         selectedAddons,
         instantBooking: !!instantBooking,
+        gstDetails: gst, 
       };
 
       if (selectedPackage) {
@@ -350,27 +365,32 @@ export default function ListingReservation({
     ]
   );
 
-  const handleReserve = useCallback(async () => {
+  // handleReserve now shows the BookingSummaryModal first
+  const handleReserve = useCallback(() => {
     if (!ready) return;
     if (!isAuthenticated) {
       loginModel.onOpen();
       return;
     }
     if (!ensurePhone()) return;
+
+    setShowSummaryModal(true);
+  }, [ready, isAuthenticated, loginModel, ensurePhone]);
+
+  const handleConfirmModal = useCallback(() => {
+    setShowSummaryModal(false);
     setIsPaying(true);
-    setErr(null);
     inflight.current?.abort();
     const controller = new AbortController();
     inflight.current = controller;
-    try {
-      await startPayment(controller);
-    } catch (e: any) {
+
+    startPayment(controller, gstDetails).catch((e) => {
       if (mountedRef.current && e?.name !== "AbortError") {
         setErr(e?.message || "Payment initiation failed. Please try again.");
         setIsPaying(false);
       }
-    }
-  }, [ready, isAuthenticated, loginModel, ensurePhone, startPayment]);
+    });
+  }, [gstDetails, startPayment]);
 
   return (
     <section className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
@@ -420,7 +440,7 @@ export default function ListingReservation({
         minBookingMinutes={minBookingMinutes}
       />
       <hr />
-      {!isOwner && (
+      {true && (
         <div className="p-4">
           <button
             type="button"
@@ -464,6 +484,7 @@ export default function ListingReservation({
           <p className="font-semibold">{INR.format(finalTotal)}</p>
         </div>
       </div>
+
       <PhoneModal
         isOpen={showPhoneModal}
         phoneInput={phoneInput}
@@ -474,6 +495,18 @@ export default function ListingReservation({
         onClose={() => setShowPhoneModal(false)}
         onSubmit={submitPhone}
       />
+
+      <BookingSummaryModal
+        isOpen={showSummaryModal}
+        onClose={() => setShowSummaryModal(false)}
+        onConfirm={handleConfirmModal}
+        finalTotal={finalTotal}
+        bookingFee={bookingFee}
+        addonsSum={addonsSum}
+        platformFee={platformFee || 0}
+        gstDetails={gstDetails}
+        setGstDetails={setGstDetails} 
+        currentUserId={user.id}      />
     </section>
   );
 }

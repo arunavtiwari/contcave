@@ -262,6 +262,7 @@ function ListingClient({
               />
               <div className="order-first mb-10 md:order-last md:col-span-3">
                 <ListingReservation
+                  user={listing.user}
                   listingId={listing.id}
                   price={listing.price}
                   platformFee={0}
