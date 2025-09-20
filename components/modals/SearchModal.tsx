@@ -66,7 +66,7 @@ function SearchModal({ }: Props) {
     const updatedQuery: any = {
       ...currentQuery,
       locationValue: location?.value,
-      selectedDate: formatISO(selectedDate),
+      selectedDate: selectedDate ? formatISO(selectedDate) : undefined,
       selectedTime
     };
 

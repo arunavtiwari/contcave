@@ -24,6 +24,7 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
       user: {
         select: {
           name: true,
+          image: true,
         },
       },
     },
