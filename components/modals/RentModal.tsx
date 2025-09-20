@@ -51,6 +51,7 @@ function RentModal() {
   const [customAmenities, setCustomAmenities] = useState<CustomAmenities[]>([]);
   const [verifications, setVerifications] = useState<any>();
   const [terms, setTerms] = useState<boolean>(false);
+  const [signature, setSignature] = useState<any>(null);
   const [addons, setAddons] = useState<any[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<{
     predefined: { [key: string]: boolean };
@@ -60,6 +61,12 @@ function RentModal() {
   const [packages, setPackages] = useState<Package[]>([]);
 
   const Map = useMemo(() => dynamic(() => import("../Map"), { ssr: false }), []);
+
+  const hasVerification = useMemo(() => {
+    const docs = Array.isArray(verifications?.documents) ? (verifications!.documents as any[]) : [];
+    const vids = Array.isArray(verifications?.videos) ? (verifications!.videos as any[]) : [];
+    return docs.length > 0 || vids.length > 0;
+  }, [verifications]);
 
   useEffect(() => {
     const fetchAmenitiesData = async () => {
@@ -131,11 +138,37 @@ function RentModal() {
       });
       return;
     }
+    if (step === STEPS.OTHERDETAILS) {
+      const d = listingDetails;
+      const missing = !d || !d.carpetArea || !d.operationalDays?.start || !d.operationalDays?.end || !d.operationalHours?.start || !d.operationalHours?.end || !d.minimumBookingHours || !d.maximumPax || !Array.isArray(d.type) || d.type.length === 0;
+      if (missing) {
+        toast.error("Please complete all 'Other details' fields", { toastId: "Other_Details_Missing" });
+        return;
+      }
+    }
+    if (step === STEPS.PACKAGES) {
+      const invalid = packages.some(
+        (pkg) => !pkg?.title || !pkg?.offeredPrice || !pkg?.durationHours
+      );
+      if (invalid) {
+        toast.error("Please complete all package details", { toastId: "Incomplete_Package" });
+        return;
+      }
+    }
+    if (step === STEPS.VERIFICATION) {
+      if (!hasVerification) {
+        toast.error("Please upload verification documents before continuing", { toastId: "Verification_Step_Missing" });
+        return;
+      }
+    }
     setStep((v) => v + 1);
   };
 
   const handleTermsAndConditions = (accept: boolean) => setTerms(accept);
-  const handleVerificationChange = (v: any) => setVerifications(v);
+  const handleSignature = (sig: any) => setSignature(sig);
+  const handleVerificationChange = (v: any) => {
+    setVerifications(v);
+  };
   const handleAmenitiesChange = (v: {
     predefined: { [key: string]: boolean };
     custom: string[];
@@ -145,17 +178,7 @@ function RentModal() {
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) return onNext();
-    if (
-      packages.some(
-        (pkg) =>
-          !pkg.title || !pkg.offeredPrice || !pkg.durationHours
-      )
-    ) {
-      toast.error("Please complete all package details", {
-        toastId: "Incomplete_Package",
-      });
-      return;
-    }
+    // Step-level validation already enforced; no submission-time gating here
 
     const selectedAmenityKeys = Object.keys(selectedAmenities.predefined).filter(
       (k) => selectedAmenities.predefined[k]
@@ -188,6 +211,7 @@ function RentModal() {
         durationHours: pkg.durationHours,
       })),
       verifications,
+      agreementSignature: signature,
       terms,
     };
 
@@ -428,14 +452,14 @@ function RentModal() {
   if (step === STEPS.TERMS) {
     bodyContent = (
       <div className="flex flex-col gap-8">
-        <TermsAndConditionsModal onChange={handleTermsAndConditions} />
+        <TermsAndConditionsModal onChange={handleTermsAndConditions} onSignature={handleSignature} />
       </div>
     );
   }
 
   return (
     <Modal
-      disabled={isLoading}
+      disabled={isLoading || (step === STEPS.TERMS && !(terms && signature))}
       isOpen={rentModel.isOpen}
       title={
         step === STEPS.VERIFICATION

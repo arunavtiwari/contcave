@@ -1,6 +1,6 @@
 "use client";
 import { CldUploadWidget } from "next-cloudinary";
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { FiUpload } from "react-icons/fi";
 import { CiFileOn } from "react-icons/ci";
@@ -15,37 +15,43 @@ const SpaceVerification = ({ onVerification }: any) => {
     const [verificationDocs, setVerificationDocs] = useState({});
     // Function that gets called when the upload widget process is complete
     const handleUploadDocSuccess = (result: any) => {
-        const urls = Array.isArray(result.info.secure_url)
-            ? result.info.secure_url
+        const info = result?.info || {};
+        const newItems = Array.isArray(info.secure_url)
+            ? info.secure_url
             : [{
-                resource_type: result.info.resource_type,
-                original_filename: result.info.original_filename,
-                thumbnail: result.info.thumbnail_url,
-                url: result.info.secure_url,
-                format: result.info.format ?? result.info.secure_url.substring(result.info.secure_url.lastIndexOf('.') + 1)
+                resource_type: info.resource_type,
+                original_filename: info.original_filename,
+                public_id: info.public_id,
+                bytes: info.bytes,
+                version: info.version,
+                thumbnail: info.thumbnail_url,
+                url: info.secure_url,
+                format: info.format ?? String(info.secure_url || "").substring(String(info.secure_url || "").lastIndexOf('.') + 1)
 
             }];
-        const finalList = [...documents, ...urls];
-        setDocuments(finalList);
-        setVerificationPayload()
-        setVerificationPayload(urls, videos, verificationCode)
+        const nextDocs = [...documents, ...newItems];
+        setDocuments(nextDocs);
+        setVerificationPayload(nextDocs, videos, verificationCode)
 
     };
 
     const handleUploadVideoSuccess = (result: any) => {
-        const urls = Array.isArray(result.info.secure_url)
-            ? result.info.secure_url
+        const info = result?.info || {};
+        const newItems = Array.isArray(info.secure_url)
+            ? info.secure_url
             : [{
-                resource_type: result.info.resource_type,
-                original_filename: result.info.original_filename,
-                thumbnail: result.info.thumbnail_url,
-                url: result.info.secure_url,
-                format: result.info.format
+                resource_type: info.resource_type,
+                original_filename: info.original_filename,
+                public_id: info.public_id,
+                bytes: info.bytes,
+                version: info.version,
+                thumbnail: info.thumbnail_url,
+                url: info.secure_url,
+                format: info.format
             }];
-        const finalList = [...videos, ...urls];
-        setVideos(finalList);
-        setVerificationPayload()
-        setVerificationPayload(documents, urls, verificationCode)
+        const nextVideos = [...videos, ...newItems];
+        setVideos(nextVideos);
+        setVerificationPayload(documents, nextVideos, verificationCode)
 
     };
 
@@ -68,6 +74,11 @@ const SpaceVerification = ({ onVerification }: any) => {
         }
         onVerification(verifications)
     })
+    useEffect(() => {
+        // Keep parent in sync whenever docs/videos/code change
+        setVerificationPayload(documents, videos, verificationCode);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [documents, videos, verificationCode]);
     return (
         <div className=" bg-opacity-50 overflow-y-auto h-full w-full" id="my-">
             <div className="bg-white mx-auto relative rounded-md">
@@ -77,21 +88,26 @@ const SpaceVerification = ({ onVerification }: any) => {
                         <div className="flex justify-between">
                             <div className="px-4 w-1/2">
                                 <CldUploadWidget
-                                    onUpload={handleUploadDocSuccess}
+                                    onSuccess={(r: any) => { console.log("doc onSuccess", r); handleUploadDocSuccess(r); }}
                                     uploadPreset="phxjukr6"
+                                    signatureEndpoint="/api/cloudinary/sign"
                                     options={{
                                         maxFiles: 10,
-                                        multiple: true
+                                        multiple: true,
+                                        folder: "verifications",
+                                        sources: ["local", "camera"],
+                                        resourceType: "image",
                                     }}
                                 >
-                                    {({ open }) => {
+                                    {((props: any) => {
+                                        const open = props?.open as (() => void) | undefined;
                                         return (
-                                            <button onClick={() => open?.()} className="flex justify-center w-full h-15 px-4 py-3  mt-5 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none">
+                                            <button onClick={() => open && open()} className="flex justify-center w-full h-15 px-4 py-3  mt-5 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none">
                                                 <FiUpload className="h-5 w-5 text-white  mr-2 " aria-hidden="true" />
                                                 Upload Document/s
                                             </button>
                                         );
-                                    }}
+                                    })}
                                 </CldUploadWidget>
                                 <div className="flex flex-wrap">
                                     {documents.map((doc: any, index: number) => doc.thumbnail ? (
@@ -147,12 +163,17 @@ const SpaceVerification = ({ onVerification }: any) => {
                                         disabled={true} value={verificationCode}
                                     />
                                 </div><br />
+                                {/* Video upload temporarily disabled */}
+                                {/**
                                 <CldUploadWidget
                                     onUpload={handleUploadVideoSuccess}
                                     uploadPreset="phxjukr6"
+                                    signatureEndpoint="/api/cloudinary/sign"
                                     options={{
                                         maxFiles: 10,
-                                        multiple: true
+                                        multiple: true,
+                                        folder: "verifications",
+                                        sources: ["local", "camera"],
                                     }}
                                 >
                                     {({ open }) => {
@@ -175,7 +196,6 @@ const SpaceVerification = ({ onVerification }: any) => {
 
                                     ) : (
                                         <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            {/* <img src={video.thumbnail ?? video.url} className="rounded border" /> */}
                                             <CiFileOn className="rounded border h-15" size={62} />
                                             <strong className="text-xs truncate">{video.original_filename}.{video.format}</strong>
                                         </div>
@@ -183,6 +203,7 @@ const SpaceVerification = ({ onVerification }: any) => {
 
                                     )}
                                 </div>
+                                **/}
                             </div>
 
                             <div className="border-l mt-4 pl-6 w-1/2">
