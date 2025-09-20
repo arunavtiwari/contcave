@@ -1,6 +1,7 @@
 import Container from "@/components/Container";
 import React from "react";
 import Image from "next/image";
+import ClientOnly from "@/components/ClientOnly";
 
 export const dynamic = "force-dynamic";
 
