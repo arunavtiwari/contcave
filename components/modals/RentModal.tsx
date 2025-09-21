@@ -22,6 +22,7 @@ import AddonsSelection, { Addon } from "../inputs/AddonsSelection";
 import OtherListingDetails, { ListingDetails } from "../inputs/OtherListingDetails";
 import SpaceVerification from "../inputs/SpaceVerification";
 import TermsAndConditionsModal from "../inputs/TermsAndConditions";
+import { useRef } from "react";
 import CustomAddonModal from "./CustomAddonModal";
 import AutoComplete from "../inputs/AutoComplete";
 import PackagesForm, { Package } from "../inputs/PackagesForm";
@@ -164,6 +165,8 @@ function RentModal() {
     setStep((v) => v + 1);
   };
 
+  const [agreementPdf, setAgreementPdf] = useState<any>(null);
+  const termsRef = useRef<any>(null);
   const handleTermsAndConditions = (accept: boolean) => setTerms(accept);
   const handleSignature = (sig: any) => setSignature(sig);
   const handleVerificationChange = (v: any) => {
@@ -179,6 +182,12 @@ function RentModal() {
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) return onNext();
     // Step-level validation already enforced; no submission-time gating here
+    try {
+      if (signature && terms && termsRef.current?.generateAndUploadPdf) {
+        const meta = await termsRef.current.generateAndUploadPdf();
+        if (meta?.pdfUrl) setAgreementPdf(meta);
+      }
+    } catch { }
 
     const selectedAmenityKeys = Object.keys(selectedAmenities.predefined).filter(
       (k) => selectedAmenities.predefined[k]
@@ -212,6 +221,7 @@ function RentModal() {
       })),
       verifications,
       agreementSignature: signature,
+      agreementPdf,
       terms,
     };
 
@@ -452,7 +462,7 @@ function RentModal() {
   if (step === STEPS.TERMS) {
     bodyContent = (
       <div className="flex flex-col gap-8">
-        <TermsAndConditionsModal onChange={handleTermsAndConditions} onSignature={handleSignature} />
+        <TermsAndConditionsModal ref={termsRef} onChange={handleTermsAndConditions} onSignature={handleSignature} onAgreementPdf={setAgreementPdf} />
       </div>
     );
   }

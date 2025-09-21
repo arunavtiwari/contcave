@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { CldUploadWidget } from "next-cloudinary";
 import Image from "next/image";
 
-const TermsAndConditionsModal = ({ onChange, onSignature }: any) => {
+type TermsRef = { generateAndUploadPdf: () => Promise<any> };
+
+const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignature, onAgreementPdf }: any, ref) => {
     const [agree, setAgree] = useState(false);
     const [signature, setSignature] = useState<any>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const handleSignatureUpload = (result: any) => {
         const info = result?.info || {};
@@ -28,10 +31,47 @@ const TermsAndConditionsModal = ({ onChange, onSignature }: any) => {
         onChange(event.target.checked);
     };
 
+    const generateAndUploadPdf = async () => {
+        try {
+            const node = containerRef.current;
+            if (!node) return;
+            // @ts-ignore - no local types for html2canvas
+            const html2canvas = (await import("html2canvas")).default;
+            // @ts-ignore - jspdf ESM default export shape
+            const { jsPDF } = await import("jspdf");
+            const canvas = await html2canvas(node as HTMLElement, { scale: 2, useCORS: true });
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const imgProps = (pdf as any).getImageProperties ? (pdf as any).getImageProperties(imgData) : { width: canvas.width, height: canvas.height };
+            const ratio = Math.min(pageWidth / imgProps.width, pageHeight / imgProps.height);
+            const w = imgProps.width * ratio;
+            const h = imgProps.height * ratio;
+            pdf.addImage(imgData, "PNG", (pageWidth - w) / 2, 10, w, h);
+            const dataUrl = pdf.output("datauristring");
+            const res = await fetch("/api/cloudinary/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ dataUrl, folder: "agreements" }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.error || "Upload failed");
+            const meta = { url: data.secure_url, pdfUrl: data.pdf_url || data.secure_url };
+            onAgreementPdf?.(meta);
+            return meta;
+        } catch (e) {
+            console.error("Agreement PDF error", e);
+            throw e;
+        }
+    };
+
+    useImperativeHandle(ref, () => ({ generateAndUploadPdf }));
+
     return (
         <div className=" flex justify-center items-center">
             <div className="bg-white w-full max-w-xl mx-auto rounded-lg overflow-auto" style={{ maxHeight: '90vh' }}>
-                <div className="px-4">
+                <div className="px-4" ref={containerRef}>
                     <div className="my-4 text-sm overflow-auto scrollbar-thin" style={{ maxHeight: '65vh' }}>
                         This agreement (&apos;Agreement&apos;) is entered into between CONTCAVE (&apos;Company&apos;), a company registered under the laws of India, and the individual or entity (&apos;Host&apos;) who wishes to list their property (&apos;Property&apos;) on the Company's platform (&apos;Platform&apos;). By listing the Property on the Platform, Host agrees to comply with the terms and conditions outlined in this Agreement.<br /><br />
                         <strong>1. Listing Property</strong><br />
@@ -97,11 +137,12 @@ const TermsAndConditionsModal = ({ onChange, onSignature }: any) => {
                             I AGREE TO ALL TERMS AND CONDITIONS
                         </label>
                     </div>
+                    {/* PDF will be generated automatically on submission */}
 
                 </div>
             </div>
         </div>
     );
-};
+});
 
 export default TermsAndConditionsModal;

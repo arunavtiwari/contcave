@@ -1,6 +1,6 @@
 "use client";
 import { CldUploadWidget } from "next-cloudinary";
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { FiUpload } from "react-icons/fi";
 import { CiFileOn } from "react-icons/ci";
@@ -12,7 +12,6 @@ const SpaceVerification = ({ onVerification }: any) => {
     const [documents, setDocuments] = useState<any[]>([]);
     const [videos, setVideos] = useState<any[]>([]);
     const [verificationCode, setVerificationCode] = useState('');
-    const [verificationDocs, setVerificationDocs] = useState({});
     // Function that gets called when the upload widget process is complete
     const handleUploadDocSuccess = (result: any) => {
         const info = result?.info || {};
@@ -24,10 +23,9 @@ const SpaceVerification = ({ onVerification }: any) => {
                 public_id: info.public_id,
                 bytes: info.bytes,
                 version: info.version,
-                thumbnail: info.thumbnail_url,
                 url: info.secure_url,
-                format: info.format ?? String(info.secure_url || "").substring(String(info.secure_url || "").lastIndexOf('.') + 1)
-
+                pdfUrl: info.format === "pdf" ? info.secure_url : undefined,
+                format: info.format || "pdf"
             }];
         const nextDocs = [...documents, ...newItems];
         setDocuments(nextDocs);
@@ -88,7 +86,7 @@ const SpaceVerification = ({ onVerification }: any) => {
                         <div className="flex justify-between">
                             <div className="px-4 w-1/2">
                                 <CldUploadWidget
-                                    onSuccess={(r: any) => { console.log("doc onSuccess", r); handleUploadDocSuccess(r); }}
+                                    onSuccess={(r: any) => { handleUploadDocSuccess(r); }}
                                     uploadPreset="phxjukr6"
                                     signatureEndpoint="/api/cloudinary/sign"
                                     options={{
@@ -96,7 +94,8 @@ const SpaceVerification = ({ onVerification }: any) => {
                                         multiple: true,
                                         folder: "verifications",
                                         sources: ["local", "camera"],
-                                        resourceType: "image",
+                                        resourceType: "raw",
+                                        clientAllowedFormats: ["pdf"],
                                     }}
                                 >
                                     {((props: any) => {
@@ -118,7 +117,6 @@ const SpaceVerification = ({ onVerification }: any) => {
 
                                     ) : (
                                         <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            {/* <img src={doc.thumbnail ?? doc.url} className="rounded border" /> */}
                                             <CiFileOn className="rounded border h-15" size={62} />
                                             <strong className="text-xs truncate">{doc.original_filename}.{doc.format}</strong>
                                         </div>
@@ -163,47 +161,7 @@ const SpaceVerification = ({ onVerification }: any) => {
                                         disabled={true} value={verificationCode}
                                     />
                                 </div><br />
-                                {/* Video upload temporarily disabled */}
-                                {/**
-                                <CldUploadWidget
-                                    onUpload={handleUploadVideoSuccess}
-                                    uploadPreset="phxjukr6"
-                                    signatureEndpoint="/api/cloudinary/sign"
-                                    options={{
-                                        maxFiles: 10,
-                                        multiple: true,
-                                        folder: "verifications",
-                                        sources: ["local", "camera"],
-                                    }}
-                                >
-                                    {({ open }) => {
-                                        return (
-                                            <button onClick={() => open?.()} className="flex justify-center w-full  px-4 py-3 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none">
-                                                <FiUpload className="h-5 w-5 text-white mr-2 " aria-hidden="true" />
-                                                Upload Video
-
-                                            </button>
-                                        )
-
-                                    }}
-                                </CldUploadWidget>
-                                <div className="flex flex-wrap">
-                                    {videos.map((video: any, index: number) => video.thumbnail ? (
-                                        <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            <Image src={video.thumbnail ?? video.url} alt={video.original_filename || "video"} width={100} height={80} className="rounded border" />
-                                            <strong className="text-xs truncate">{video.original_filename}.{video.format}</strong>
-                                        </div>
-
-                                    ) : (
-                                        <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            <CiFileOn className="rounded border h-15" size={62} />
-                                            <strong className="text-xs truncate">{video.original_filename}.{video.format}</strong>
-                                        </div>
-                                    )
-
-                                    )}
-                                </div>
-                                **/}
+                                {/* Video upload disabled */}
                             </div>
 
                             <div className="border-l mt-4 pl-6 w-1/2">
