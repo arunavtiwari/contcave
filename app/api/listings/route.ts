@@ -64,10 +64,10 @@ export async function POST(request: Request) {
         ? {
           create: packages.map((pkg: any) => ({
             title: pkg.title,
-            description: pkg.description || "",
             originalPrice: parseInt(pkg.originalPrice, 10),
             offeredPrice: parseInt(pkg.offeredPrice, 10),
             features: pkg.features || [],
+            durationHours: pkg.durationHours,
           })),
         }
         : undefined,

@@ -52,19 +52,19 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
           where: { id: pkg.id },
           data: {
             title: pkg.title,
-            description: pkg.description || "",
             originalPrice: parseInt(pkg.originalPrice, 10),
             offeredPrice: parseInt(pkg.offeredPrice, 10),
             features: pkg.features || [],
+            durationHours: pkg.durationHours,
           },
         })),
         // Create new packages
         create: createPackages.map((pkg: any) => ({
           title: pkg.title,
-          description: pkg.description || "",
           originalPrice: parseInt(pkg.originalPrice, 10),
           offeredPrice: parseInt(pkg.offeredPrice, 10),
           features: pkg.features || [],
+          durationHours: pkg.durationHours,
         })),
       },
     },

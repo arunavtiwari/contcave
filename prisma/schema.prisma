@@ -51,12 +51,13 @@ model User {
   reservations            Reservation[]
   CustomAmenities         CustomAmenities[]
   Review                  Review[]
-  paymentDetails          PaymentDetails?   @relation(fields: [paymentDetailsId], references: [id])
+  paymentDetails          PaymentDetails?   @relation("UserPaymentDetails")
   paymentDetailsId        String?           @db.ObjectId
   is_owner                Boolean           @default(false)
   is_verified             Boolean           @default(false)
   transactions            Transaction[]
   googleCalendarConnected Boolean           @default(false)
+  billingDetails    BillingDetails[]
 
   verification_stage Int       @default(0) // 0=none, 1=contact, 2=aadhaar, 3=bank
   aadhaar_verified   Boolean   @default(false)
@@ -75,12 +76,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.String
-  access_token      String? @db.String
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.String
+  id_token          String?
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -131,7 +132,7 @@ model Package {
   title         String
   originalPrice Int
   offeredPrice  Int
-  features      String[] // items included in the package, e.g. ["5 hrs studio", "Photographer", "Lighting"]
+  features      String[]
   durationHours Int
   listingId     String   @db.ObjectId
   listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
@@ -169,7 +170,7 @@ model Reservation {
   isApproved     Int?
   Transaction    Transaction[]
   billingDetailId String? @db.ObjectId
-  billingDetail    BillingDetails? @relation(fields: [billingDetailId], references: [id])
+  billingDetail   BillingDetails? @relation(fields: [billingDetailId], references: [id])
 
   @@index([userId])
   @@index([listingId])
@@ -234,20 +235,21 @@ model PaymentDetails {
   cashfreeVendorId        String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
-  User                    User[]
+  user                    User     @relation("UserPaymentDetails", fields: [userId], references: [id])
 }
 
 model BillingDetails {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
   userId         String   @db.ObjectId
   companyName    String
-  gstin          String   @db.VarChar(15)
+  gstin          String   // removed @db.VarChar
   billingAddress String
   isDefault      Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   user           User     @relation(fields: [userId], references: [id])
+  reservations   Reservation[]
 }
 
 model Transaction {
