@@ -1,16 +1,7 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 
 export const runtime = "nodejs";
-
-async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
-    const parts = dataUrl.split(",");
-    const mime = parts[0].match(/:(.*?);/)?.[1] || "image/png";
-    const bstr = atob(parts[1] || "");
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) u8arr[n] = bstr.charCodeAt(n);
-    return new Blob([u8arr], { type: mime });
-}
 
 export async function POST(request: Request) {
     try {
@@ -22,43 +13,39 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Missing Cloudinary env" }, { status: 500 });
         }
 
+        // Expect a data URL like data:application/pdf;base64,...
+        const dataUrlStr = String(dataUrl || "");
+        const mime = dataUrlStr.match(/^data:(.*?);base64,/)?.[1] || "application/pdf";
+        const isPdf = /pdf/i.test(mime);
+        const resourceType = isPdf ? "raw" : "image";
+
+        // Cloudinary accepts data URLs directly in 'file'
         const form = new FormData();
-        const blob = await dataUrlToBlob(String(dataUrl));
-        form.append("file", blob, (publicId || `agreement_${Date.now()}`) + ".png");
+        form.append("file", dataUrlStr);
         form.append("folder", folder);
         const timestamp = String(Math.floor(Date.now() / 1000));
         form.append("timestamp", timestamp);
-        // request eager PDF generation
-        form.append("eager", "f_pdf");
+        if (publicId) form.append("public_id", publicId);
 
-        // Signature: sign 'folder=...&timestamp=...' (and public_id if provided)
-        const params: Record<string, string> = { folder, timestamp, eager: "f_pdf" };
+        // Sign params
+        const params: Record<string, string> = { folder, timestamp };
         if (publicId) params.public_id = publicId;
         const toSign = Object.keys(params)
             .sort()
             .map((k) => `${k}=${params[k]}`)
             .join("&");
-        const signature = await crypto.subtle.digest(
-            "SHA-1",
-            new TextEncoder().encode(toSign + apiSecret)
-        ).then((buf) => Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join(""));
+        const signature = crypto.createHash("sha1").update(`${toSign}${apiSecret}`).digest("hex");
 
         form.append("api_key", apiKey);
         form.append("signature", signature);
-        if (publicId) form.append("public_id", publicId);
 
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/${resourceType}/upload`, {
             method: "POST",
             body: form,
         });
         const data = await res.json();
         if (!res.ok) return NextResponse.json({ error: data }, { status: 500 });
-        const pdf_url = Array.isArray(data?.eager) && data.eager[0]?.secure_url
-            ? data.eager[0].secure_url
-            : (typeof data?.secure_url === "string"
-                ? String(data.secure_url).replace("/upload/", "/upload/f_pdf/").replace(/\.[^/.]+$/, ".pdf")
-                : undefined);
-        return NextResponse.json({ ...data, pdf_url });
+        return NextResponse.json(data);
     } catch (e: any) {
         return NextResponse.json({ error: e?.message || "Upload error" }, { status: 500 });
     }
