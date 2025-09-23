@@ -181,7 +181,6 @@ function RentModal() {
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) return onNext();
-    // Step-level validation already enforced; generate PDF after create
 
     const selectedAmenityKeys = Object.keys(selectedAmenities.predefined).filter(
       (k) => selectedAmenities.predefined[k]
@@ -233,9 +232,7 @@ function RentModal() {
       const created = createRes.data;
       const listingId = created?.id;
       console.log("[RentModal] Listing created:", listingId);
-      // We'll keep a local merged verifications object to avoid overwriting server state
       let mergedVerifications = { ...(verifications || {}) } as any;
-      // Upload verification documents directly under verifications/{listingId}
       if (listingId && Array.isArray(verifications?.documents) && verifications.documents.length > 0) {
         try {
           const folder = `verifications/${listingId}`;
