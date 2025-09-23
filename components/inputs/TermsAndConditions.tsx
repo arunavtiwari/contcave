@@ -1,27 +1,20 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { CldUploadWidget } from "next-cloudinary";
-import Image from "next/image";
+// no next/image here to ensure html2canvas captures the signature reliably
 
-type TermsRef = { generateAndUploadPdf: () => Promise<any> };
+type TermsRef = { generateAndUploadPdf: (folderOverride?: string) => Promise<any> };
 
 const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignature, onAgreementPdf }: any, ref) => {
     const [agree, setAgree] = useState(false);
     const [signature, setSignature] = useState<any>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const handleSignatureUpload = (result: any) => {
-        const info = result?.info || {};
-        const secureUrl: string = info.secure_url || "";
-        const publicId: string = info.public_id || "";
-        const bytes = info.bytes;
-        const version = info.version;
-        const thumb = info.thumbnail_url;
-        // Build a Cloudinary delivery URL for PDF (format transformation)
-        // Convert .../upload/... to .../upload/f_pdf/...
-        const pdfUrl = secureUrl && secureUrl.includes("/upload/")
-            ? secureUrl.replace("/upload/", "/upload/f_pdf/").replace(/\.[^/.]+$/, ".pdf")
-            : "";
-        const meta = { public_id: publicId, url: secureUrl, pdfUrl, bytes, version, thumbnail: thumb };
+    const handleSignatureFile = async (file: File) => {
+        const reader = new FileReader();
+        const dataUrl: string = await new Promise((resolve) => {
+            reader.onload = () => resolve(String(reader.result || ""));
+            reader.readAsDataURL(file);
+        });
+        const meta = { url: dataUrl };
         setSignature(meta);
         onSignature?.(meta);
     };
@@ -31,37 +24,135 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
         onChange(event.target.checked);
     };
 
-    const generateAndUploadPdf = async () => {
+    const generateAndUploadPdf = async (folderOverride?: string) => {
         try {
             const node = containerRef.current;
             if (!node) return;
+            // Expand overflowed area to capture full content
+            const prevOverflow = node.style.overflow;
+            const prevMaxHeight = node.style.maxHeight;
+            const prevHeight = node.style.height;
+            const prevPaddingBottom = node.style.paddingBottom;
+            node.style.overflow = "visible";
+            node.style.maxHeight = "none";
+            node.style.height = "auto";
+            node.style.paddingBottom = "48px"; // ensure bottom content is not flush with page break
+            (node as any).scrollTop = 0;
+
             // @ts-ignore - no local types for html2canvas
             const html2canvas = (await import("html2canvas")).default;
             // @ts-ignore - jspdf ESM default export shape
             const { jsPDF } = await import("jspdf");
-            const canvas = await html2canvas(node as HTMLElement, { scale: 2, useCORS: true });
-            const imgData = canvas.toDataURL("image/png");
+            console.log("[Terms] Generating canvas...");
+            const canvas = await html2canvas(node as HTMLElement, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                width: (node as HTMLElement).scrollWidth,
+                height: (node as HTMLElement).scrollHeight,
+            });
+            // Restore styles
+            node.style.overflow = prevOverflow;
+            node.style.maxHeight = prevMaxHeight;
+            node.style.height = prevHeight;
+            node.style.paddingBottom = prevPaddingBottom;
             const pdf = new jsPDF("p", "mm", "a4");
+            pdf.setProperties({
+                title: "Contcave Host Agreement",
+                subject: "Terms and Conditions",
+                author: "Contcave",
+                creator: "Contcave",
+            });
             const pageWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
-            const imgProps = (pdf as any).getImageProperties ? (pdf as any).getImageProperties(imgData) : { width: canvas.width, height: canvas.height };
-            const ratio = Math.min(pageWidth / imgProps.width, pageHeight / imgProps.height);
-            const w = imgProps.width * ratio;
-            const h = imgProps.height * ratio;
-            pdf.addImage(imgData, "PNG", (pageWidth - w) / 2, 10, w, h);
-            const dataUrl = pdf.output("datauristring");
-            const res = await fetch("/api/cloudinary/upload", {
+            const imgProps = { width: canvas.width, height: canvas.height };
+            const marginMm = 12;
+            const printableWidth = pageWidth - marginMm * 2;
+            const printableHeight = pageHeight - marginMm * 2;
+            const scale = printableWidth / imgProps.width; // mm per px in width
+            const sliceHeightPx = Math.floor(printableHeight / scale); // source pixels per page
+
+            let remainingPx = imgProps.height;
+            let sourceY = 0;
+            while (remainingPx > 0) {
+                const currentSlicePx = Math.min(sliceHeightPx, remainingPx);
+                const sliceCanvas = document.createElement('canvas');
+                sliceCanvas.width = imgProps.width;
+                sliceCanvas.height = currentSlicePx;
+                const sctx = sliceCanvas.getContext('2d');
+                if (sctx) {
+                    sctx.fillStyle = '#ffffff';
+                    sctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+                    sctx.drawImage(
+                        canvas,
+                        0,
+                        sourceY,
+                        imgProps.width,
+                        currentSlicePx,
+                        0,
+                        0,
+                        imgProps.width,
+                        currentSlicePx
+                    );
+                }
+                const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.92);
+                // height in mm for this slice
+                const sliceHeightMm = currentSlicePx * scale;
+                if (sourceY > 0) pdf.addPage();
+                pdf.addImage(sliceData, 'JPEG', marginMm, marginMm, printableWidth, sliceHeightMm);
+                sourceY += currentSlicePx;
+                remainingPx -= currentSlicePx;
+            }
+            const blob: Blob = pdf.output("blob");
+            const dataUrl = await new Promise<string>((resolve) => {
+                const fr = new FileReader();
+                fr.onload = () => resolve(String(fr.result || ""));
+                fr.readAsDataURL(blob);
+            });
+            console.log("[Terms] PDF blob size:", blob.size, "data URL length:", dataUrl?.length);
+
+            const folder = folderOverride || "agreements";
+            const timestamp = Math.floor(Date.now() / 1000);
+            const publicId = `agreement-${timestamp}`;
+            const paramsToSign: any = { folder, timestamp, public_id: publicId };
+            console.log("[Terms] Signing params (raw upload, no preset):", paramsToSign);
+            const signRes = await fetch("/api/cloudinary/sign", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ dataUrl, folder: "agreements" }),
+                body: JSON.stringify({ paramsToSign })
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data?.error || "Upload failed");
-            const meta = { url: data.secure_url, pdfUrl: data.pdf_url || data.secure_url };
+            const sign = await signRes.json();
+            console.log("[Terms] Sign response status:", signRes.status, sign);
+            if (!signRes.ok || !sign?.signature) throw new Error("Signature failed");
+
+            const cloud = (sign.cloud as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME as string);
+            const apiKey = (sign.apiKey as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY as string);
+            if (!cloud || !apiKey) throw new Error("Missing Cloudinary client env");
+
+            const fd = new FormData();
+            const file = new File([blob], `${publicId}.pdf`, { type: "application/pdf" });
+            fd.append("file", file);
+            fd.append("folder", folder);
+            fd.append("timestamp", String(sign.timestamp));
+            fd.append("public_id", publicId);
+            fd.append("api_key", apiKey);
+            fd.append("signature", sign.signature);
+
+            console.log("[Terms] Uploading to Cloudinary cloud:", cloud, "folder:", folder, "as image/upload (pdf)");
+            const upRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method: "POST", body: fd });
+            const up = await upRes.json();
+            console.log("[Terms] Upload status:", upRes.status, up);
+            if (!upRes.ok) {
+                const errMsg = up?.error?.message || up?.error || up;
+                console.error("[Terms] Cloudinary upload error:", errMsg);
+                throw new Error(typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg));
+            }
+            const meta = { url: up.secure_url, pdfUrl: up.secure_url };
             onAgreementPdf?.(meta);
             return meta;
         } catch (e) {
-            console.error("Agreement PDF error", e);
+            console.error("[Terms] Agreement PDF error", e);
             throw e;
         }
     };
@@ -71,8 +162,8 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
     return (
         <div className=" flex justify-center items-center">
             <div className="bg-white w-full max-w-xl mx-auto rounded-lg overflow-auto" style={{ maxHeight: '90vh' }}>
-                <div className="px-4" ref={containerRef}>
-                    <div className="my-4 text-sm overflow-auto scrollbar-thin" style={{ maxHeight: '65vh' }}>
+                <div className="px-4">
+                    <div ref={containerRef} className="my-4 text-sm overflow-auto scrollbar-thin" style={{ maxHeight: '65vh' }}>
                         This agreement (&apos;Agreement&apos;) is entered into between CONTCAVE (&apos;Company&apos;), a company registered under the laws of India, and the individual or entity (&apos;Host&apos;) who wishes to list their property (&apos;Property&apos;) on the Company's platform (&apos;Platform&apos;). By listing the Property on the Platform, Host agrees to comply with the terms and conditions outlined in this Agreement.<br /><br />
                         <strong>1. Listing Property</strong><br />
                         1.1 Host agrees to provide accurate and up-to-date information about the Property, including property type, location, amenities, availability, pricing, and any rules or restrictions associated with the Property.<br />
@@ -102,22 +193,18 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
                         <div className="mb-3">
                             <div className="font-semibold text-sm mb-1">Host Signature</div>
                             {!signature ? (
-                                <CldUploadWidget
-                                    onSuccess={handleSignatureUpload}
-                                    uploadPreset="phxjukr6"
-                                    signatureEndpoint="/api/cloudinary/sign"
-                                    options={{ folder: "agreements", sources: ["local", "camera"], maxFiles: 1 }}
-                                >
-                                    {({ open }) => (
-                                        <button onClick={() => open?.()} className="px-4 py-2 rounded-md border text-sm bg-white hover:opacity-80">
-                                            Upload Signature
-                                        </button>
-                                    )}
-                                </CldUploadWidget>
+                                <input
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/webp"
+                                    onChange={(e) => {
+                                        const f = e.target.files?.[0];
+                                        if (f) handleSignatureFile(f);
+                                    }}
+                                    className="text-sm"
+                                />
                             ) : (
                                 <div className="flex items-center gap-3">
-                                    <Image src={signature.thumbnail || signature.url} alt="Signature" width={120} height={60} className="rounded border bg-white" />
-                                    <a href={signature.pdfUrl || signature.url} target="_blank" rel="noreferrer" className="text-blue-600 underline text-sm">View PDF</a>
+                                    <img src={signature.thumbnail || signature.url} alt="Signature" style={{ width: 120, height: 60, objectFit: 'contain' }} className="rounded border bg-white" crossOrigin="anonymous" />
                                 </div>
                             )}
                         </div>

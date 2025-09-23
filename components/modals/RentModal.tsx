@@ -181,13 +181,7 @@ function RentModal() {
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) return onNext();
-    // Step-level validation already enforced; no submission-time gating here
-    try {
-      if (signature && terms && termsRef.current?.generateAndUploadPdf) {
-        const meta = await termsRef.current.generateAndUploadPdf();
-        if (meta?.pdfUrl) setAgreementPdf(meta);
-      }
-    } catch { }
+    // Step-level validation already enforced; generate PDF after create
 
     const selectedAmenityKeys = Object.keys(selectedAmenities.predefined).filter(
       (k) => selectedAmenities.predefined[k]
@@ -234,7 +228,81 @@ function RentModal() {
 
     setIsLoading(true);
     try {
-      await axios.post("/api/listings", payload);
+      console.log("[RentModal] Creating listing payload:", payload);
+      const createRes = await axios.post("/api/listings", payload);
+      const created = createRes.data;
+      const listingId = created?.id;
+      console.log("[RentModal] Listing created:", listingId);
+      // We'll keep a local merged verifications object to avoid overwriting server state
+      let mergedVerifications = { ...(verifications || {}) } as any;
+      // Upload verification documents directly under verifications/{listingId}
+      if (listingId && Array.isArray(verifications?.documents) && verifications.documents.length > 0) {
+        try {
+          const folder = `verifications/${listingId}`;
+          const reuploadedDocs: any[] = [];
+          for (let i = 0; i < verifications.documents.length; i++) {
+            const doc = verifications.documents[i];
+            try {
+              const publicId = doc?.original_filename ? doc.original_filename.replace(/\.[^/.]+$/, "") : `verification-${i + 1}-${Date.now()}`;
+              let file: File | undefined = doc?.file as File | undefined;
+              if (!file) {
+                const srcUrl = doc?.pdfUrl || doc?.url;
+                if (!srcUrl) continue;
+                const resp = await fetch(srcUrl);
+                const blob = await resp.blob();
+                file = new File([blob], `${publicId}.pdf`, { type: "application/pdf" });
+              }
+              if (!file) continue;
+              const signRes = await fetch("/api/cloudinary/sign", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paramsToSign: { folder, timestamp: Math.floor(Date.now() / 1000), public_id: publicId } }),
+              });
+              const sign = await signRes.json();
+              if (!signRes.ok || !sign?.signature) throw new Error("Sign failed");
+              const cloud = sign.cloud as string;
+              const apiKey = sign.apiKey as string;
+              const fd = new FormData();
+              fd.append("file", file);
+              fd.append("folder", folder);
+              fd.append("timestamp", String(sign.timestamp));
+              fd.append("public_id", publicId);
+              fd.append("api_key", apiKey);
+              fd.append("signature", sign.signature);
+              const upRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method: "POST", body: fd });
+              const up = await upRes.json();
+              if (!upRes.ok) throw new Error(up?.error || "Upload failed");
+              reuploadedDocs.push({
+                resource_type: "image",
+                original_filename: publicId,
+                public_id: up.public_id,
+                bytes: up.bytes,
+                version: up.version,
+                url: up.secure_url,
+                pdfUrl: up.secure_url,
+                format: "pdf",
+              });
+            } catch (e) {
+              console.error("[RentModal] Re-upload doc failed", e);
+              reuploadedDocs.push(doc); // fallback preserve original
+            }
+          }
+          mergedVerifications = { ...mergedVerifications, documents: reuploadedDocs };
+          const patchRes = await axios.patch(`/api/listings/${listingId}`, { verifications: mergedVerifications });
+          console.log("[RentModal] Saved verification docs under listing folder:", patchRes.status);
+        } catch (e) {
+          console.error("[RentModal] Verification re-upload failed", e);
+        }
+      }
+      if (listingId && signature && terms && termsRef.current?.generateAndUploadPdf) {
+        try {
+          const meta = await termsRef.current.generateAndUploadPdf(`agreements/${listingId}`);
+          setAgreementPdf(meta);
+          mergedVerifications = { ...mergedVerifications, agreementPdf: meta };
+          const patch2 = await axios.patch(`/api/listings/${listingId}`, { verifications: mergedVerifications });
+          console.log("[RentModal] Saved agreement PDF inside verifications:", patch2.status);
+        } catch { }
+      }
       toast.success("Listing Created!", { toastId: "Listing_Created" });
       router.refresh();
       reset();

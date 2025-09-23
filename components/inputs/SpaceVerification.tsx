@@ -1,7 +1,5 @@
 "use client";
-import { CldUploadWidget } from "next-cloudinary";
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { FiUpload } from "react-icons/fi";
 import { CiFileOn } from "react-icons/ci";
 
@@ -12,25 +10,21 @@ const SpaceVerification = ({ onVerification }: any) => {
     const [documents, setDocuments] = useState<any[]>([]);
     const [videos, setVideos] = useState<any[]>([]);
     const [verificationCode, setVerificationCode] = useState('');
-    // Function that gets called when the upload widget process is complete
-    const handleUploadDocSuccess = (result: any) => {
-        const info = result?.info || {};
-        const newItems = Array.isArray(info.secure_url)
-            ? info.secure_url
-            : [{
-                resource_type: info.resource_type,
-                original_filename: info.original_filename,
-                public_id: info.public_id,
-                bytes: info.bytes,
-                version: info.version,
-                url: info.secure_url,
-                pdfUrl: info.format === "pdf" ? info.secure_url : undefined,
-                format: info.format || "pdf"
-            }];
-        const nextDocs = [...documents, ...newItems];
+    // Local file capture; actual upload will happen after listing creation
+    const handleLocalDocs = (evt: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(evt.target.files || []).filter((f) => f.type === 'application/pdf');
+        if (files.length === 0) return;
+        const mapped = files.map((f) => ({
+            file: f,
+            original_filename: f.name,
+            bytes: f.size,
+            format: 'pdf',
+            resource_type: 'image',
+            previewUrl: URL.createObjectURL(f),
+        }));
+        const nextDocs = [...documents, ...mapped];
         setDocuments(nextDocs);
-        setVerificationPayload(nextDocs, videos, verificationCode)
-
+        setVerificationPayload(nextDocs, videos, verificationCode);
     };
 
     const handleUploadVideoSuccess = (result: any) => {
@@ -85,44 +79,18 @@ const SpaceVerification = ({ onVerification }: any) => {
                     <div className="px-7">
                         <div className="flex justify-between">
                             <div className="px-4 w-1/2">
-                                <CldUploadWidget
-                                    onSuccess={(r: any) => { handleUploadDocSuccess(r); }}
-                                    uploadPreset="phxjukr6"
-                                    signatureEndpoint="/api/cloudinary/sign"
-                                    options={{
-                                        maxFiles: 10,
-                                        multiple: true,
-                                        folder: "verifications",
-                                        sources: ["local", "camera"],
-                                        resourceType: "raw",
-                                        clientAllowedFormats: ["pdf"],
-                                    }}
-                                >
-                                    {((props: any) => {
-                                        const open = props?.open as (() => void) | undefined;
-                                        return (
-                                            <button onClick={() => open && open()} className="flex justify-center w-full h-15 px-4 py-3  mt-5 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none">
-                                                <FiUpload className="h-5 w-5 text-white  mr-2 " aria-hidden="true" />
-                                                Upload Document/s
-                                            </button>
-                                        );
-                                    })}
-                                </CldUploadWidget>
+                                <label className="flex justify-center w-full h-15 px-4 py-3  mt-5 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none cursor-pointer">
+                                    <FiUpload className="h-5 w-5 text-white  mr-2 " aria-hidden="true" />
+                                    <span>Upload Document/s (PDF)</span>
+                                    <input type="file" accept="application/pdf" multiple className="hidden" onChange={handleLocalDocs} />
+                                </label>
                                 <div className="flex flex-wrap">
-                                    {documents.map((doc: any, index: number) => doc.thumbnail ? (
-                                        <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            <Image src={doc.thumbnail ?? doc.url} alt={doc.original_filename || "document"} width={100} height={80} className="rounded border" />
-                                            <strong className="text-xs truncate">{doc.original_filename}.{doc.format}</strong>
-                                        </div>
-
-                                    ) : (
+                                    {documents.map((doc: any, index: number) => (
                                         <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
                                             <CiFileOn className="rounded border h-15" size={62} />
-                                            <strong className="text-xs truncate">{doc.original_filename}.{doc.format}</strong>
+                                            <strong className="text-xs truncate">{doc.original_filename}.pdf</strong>
                                         </div>
-                                    )
-
-                                    )}
+                                    ))}
                                 </div>
                             </div>
                             <div className="border-l pb-6 pl-6 pt-6 w-1/2">
