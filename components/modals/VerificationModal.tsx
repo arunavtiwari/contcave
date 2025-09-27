@@ -19,12 +19,14 @@ const steps = [
 ];
 
 // Validators
-const isValidAadhaar = (aadhaarNumber: string) => /^[2-9]{1}[0-9]{11}$/.test(aadhaarNumber);
+const isValidAadhaar = (aadhaarNumber: string) =>
+  /^[2-9]{1}[0-9]{11}$/.test(aadhaarNumber);
 const isValidOtp = (otp: string) => /^[0-9]{6}$/.test(otp);
 const isValidIfsc = (ifsc: string) => /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc);
 
 // Vendor ID generator
-const generateVendorId = () => `vendor_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+const generateVendorId = () =>
+  `vendor_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
 const getInitialStep = (user: any) => {
   if (!user.phone_verified || !user.email_verified) return 1;
@@ -33,7 +35,12 @@ const getInitialStep = (user: any) => {
   return 4;
 };
 
-const VerificationModal: React.FC<Props> = ({ isOpen, onClose, currentUser, onComplete }) => {
+const VerificationModal: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  currentUser,
+  onComplete,
+}) => {
   const [userState, setUserState] = useState(currentUser);
   const [step, setStep] = useState(getInitialStep(currentUser));
   const [loading, setLoading] = useState(false);
@@ -53,7 +60,9 @@ const VerificationModal: React.FC<Props> = ({ isOpen, onClose, currentUser, onCo
 
   // Aadhaar
   const [aadhaarState, setAadhaarState] = useState({
-    aadhaarNumber: currentUser?.aadhaar_last4 ? "********" + currentUser?.aadhaar_last4 : "",
+    aadhaarNumber: currentUser?.aadhaar_last4
+      ? "********" + currentUser?.aadhaar_last4
+      : "",
     refId: null as string | number | null,
     otp: "",
     verified: !!currentUser?.aadhaar_verified,
@@ -83,7 +92,9 @@ const VerificationModal: React.FC<Props> = ({ isOpen, onClose, currentUser, onCo
         checking: false,
       });
       setAadhaarState({
-        aadhaarNumber: currentUser?.aadhaar_last4 ? "********" + currentUser?.aadhaar_last4 : "",
+        aadhaarNumber: currentUser?.aadhaar_last4
+          ? "********" + currentUser?.aadhaar_last4
+          : "",
         refId: null,
         otp: "",
         verified: !!currentUser?.aadhaar_verified,
@@ -105,7 +116,9 @@ const VerificationModal: React.FC<Props> = ({ isOpen, onClose, currentUser, onCo
     setEmailState((s) => ({ ...s, checking: true }));
 
     try {
-      const resp = await axios.post("/api/verify_email", { email: emailState.value });
+      const resp = await axios.post("/api/verify_email", {
+        email: emailState.value,
+      });
       const deliverable =
         resp.data?.data?.result?.valid &&
         resp.data?.data?.result?.result === "deliverable";
@@ -264,9 +277,182 @@ const VerificationModal: React.FC<Props> = ({ isOpen, onClose, currentUser, onCo
     }
   };
 
-  const handleBack = () => step > 1 && setStep((s) => s - 1);
+  const renderStep = () => {
+    if (step === 1) {
+      return (
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">Step 1: Phone & Email</h3>
 
-  // Render omitted for brevity (use your JSX with inputs/buttons)
+          <div>
+            <label className="block text-sm font-medium">Email</label>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={emailState.value}
+                onChange={(e) =>
+                  setEmailState((s) => ({ ...s, value: e.target.value }))
+                }
+                className="border px-3 py-2 rounded-lg flex-1"
+              />
+              <button
+                type="button"
+                onClick={verifyEmail}
+                disabled={emailState.checking || emailState.verified}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+              >
+                {emailState.verified ? "Verified" : "Verify"}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Phone</label>
+            <input
+              type="tel"
+              value={otpState.phoneValue}
+              onChange={(e) =>
+                setOtpState({
+                  phoneValue: e.target.value.replace(/\D/g, "").slice(0, 10),
+                  phoneValid: /^\d{10}$/.test(e.target.value),
+                })
+              }
+              className="border px-3 py-2 rounded-lg w-full"
+              placeholder="10-digit number"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    if (step === 2) {
+      return (
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">Step 2: Aadhaar Verification</h3>
+
+          {!aadhaarState.refId ? (
+            <div>
+              <label className="block text-sm font-medium">Aadhaar Number</label>
+              <input
+                type="text"
+                value={aadhaarState.aadhaarNumber}
+                onChange={(e) =>
+                  setAadhaarState((s) => ({ ...s, aadhaarNumber: e.target.value }))
+                }
+                className="border px-3 py-2 rounded-lg w-full"
+                placeholder="12-digit Aadhaar"
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium">Enter OTP</label>
+              <input
+                type="text"
+                value={aadhaarState.otp}
+                onChange={(e) =>
+                  setAadhaarState((s) => ({ ...s, otp: e.target.value }))
+                }
+                className="border px-3 py-2 rounded-lg w-full"
+                placeholder="6-digit OTP"
+              />
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (step === 3) {
+      return (
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">Step 3: Bank Details</h3>
+
+          <div>
+            <label className="block text-sm font-medium">Account Holder</label>
+            <input
+              type="text"
+              value={bankState.accountHolder}
+              onChange={(e) =>
+                setBankState((s) => ({ ...s, accountHolder: e.target.value }))
+              }
+              className="border px-3 py-2 rounded-lg w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Account Number</label>
+            <input
+              type="text"
+              value={bankState.accountNumber}
+              onChange={(e) =>
+                setBankState((s) => ({ ...s, accountNumber: e.target.value }))
+              }
+              className="border px-3 py-2 rounded-lg w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">
+              Confirm Account Number
+            </label>
+            <input
+              type="text"
+              value={bankState.confirmAccountNumber}
+              onChange={(e) =>
+                setBankState((s) => ({
+                  ...s,
+                  confirmAccountNumber: e.target.value,
+                }))
+              }
+              className="border px-3 py-2 rounded-lg w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">IFSC</label>
+            <input
+              type="text"
+              value={bankState.ifsc}
+              onChange={(e) =>
+                setBankState((s) => ({ ...s, ifsc: e.target.value.toUpperCase() }))
+              }
+              className="border px-3 py-2 rounded-lg w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">PAN</label>
+            <input
+              type="text"
+              value={bankState.pan}
+              onChange={(e) =>
+                setBankState((s) => ({ ...s, pan: e.target.value.toUpperCase() }))
+              }
+              className="border px-3 py-2 rounded-lg w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">GST (optional)</label>
+            <input
+              type="text"
+              value={bankState.gst}
+              onChange={(e) =>
+                setBankState((s) => ({ ...s, gst: e.target.value.toUpperCase() }))
+              }
+              className="border px-3 py-2 rounded-lg w-full"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="text-center py-6">
+        <h3 className="text-lg font-semibold">✅ Verification Complete</h3>
+        <p className="text-gray-600">All steps have been successfully verified.</p>
+      </div>
+    );
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -275,7 +461,7 @@ const VerificationModal: React.FC<Props> = ({ isOpen, onClose, currentUser, onCo
       onSubmit={handleNext}
       actionLabel={step === 3 ? "Finish" : "Next"}
       customWidth="max-w-2xl"
-      body={<div>{/* keep your renderStep UI */}</div>}
+      body={<div>{renderStep()}</div>}
     />
   );
 };
