@@ -182,16 +182,28 @@ function RentModal() {
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) return onNext();
 
+
     const selectedAmenityKeys = Object.keys(selectedAmenities.predefined).filter(
       (k) => selectedAmenities.predefined[k]
     );
+
+    let locationValue = "";
+    if (data.location) {
+      if (typeof data.location.value === "string") {
+        locationValue = data.location.value;
+      } else if (typeof data.location.label === "string") {
+        locationValue = data.location.label;
+      } else if (typeof data.location.name === "string") {
+        locationValue = data.location.name;
+      }
+    }
 
     const payload = {
       title: data.title,
       description: data.description,
       imageSrc: data.imageSrc,
       category: data.category,
-      locationValue: data.location?.value ?? "",
+      locationValue,
       actualLocation: data.actualLocation,
       price: Number(data.price),
       amenities: selectedAmenityKeys,
@@ -218,7 +230,7 @@ function RentModal() {
       terms,
     };
 
-    if (!payload.locationValue) {
+    if (!locationValue) {
       toast.error("Please select a city/location", {
         toastId: "Location_Missing",
       });
@@ -281,7 +293,7 @@ function RentModal() {
               });
             } catch (e) {
               console.error("[RentModal] Re-upload doc failed", e);
-              reuploadedDocs.push(doc); // fallback preserve original
+              reuploadedDocs.push(doc);
             }
           }
           mergedVerifications = { ...mergedVerifications, documents: reuploadedDocs };

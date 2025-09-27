@@ -1,26 +1,24 @@
 "use client";
 
-import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import Image from "next/image";
 import { Amenities } from "@prisma/client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GiPhotoCamera, GiPineTree, GiSunflower, GiCube, GiLighthouse, GiMountainCave, GiArtificialIntelligence, GiCaveEntrance, GiFruitBowl } from "react-icons/gi";
-import { IoDiamond } from "react-icons/io5";
-import { MdOutlineVilla, MdClose } from "react-icons/md";
 import AddonsSelection, { Addon } from "./inputs/AddonsSelection";
 import CustomAddonModal from "./modals/CustomAddonModal";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ImageUpload from "./inputs/ImageUpload";
 import useIndianCities from "@/hook/useCities";
-import { FaBolt } from "react-icons/fa";
 import ReactSwitch from "react-switch";
 import Heading from "@/components/Heading";
 import Calendar from "@/components/Calendar";
 import { SessionProvider, signIn } from "next-auth/react";
 import Sidebar from "@/components/Sidebar";
 import ManageTimings from "./ManageTimings";
-import { MdOutlineCurrencyRupee } from "react-icons/md";
+import { MdOutlineCurrencyRupee, MdClose } from "react-icons/md";
+import { FaBolt } from "react-icons/fa";
+import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
+import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 
 type Props = {
     listing: any;
@@ -37,7 +35,12 @@ function setDeep<T extends object>(obj: T, path: string, value: any): T {
     for (let i = 0; i < keys.length - 1; i++) {
         const k = keys[i];
         const next = cur[k];
-        const nextVal = next && typeof next === "object" ? (Array.isArray(next) ? [...next] : { ...next }) : {};
+        const nextVal =
+            next && typeof next === "object"
+                ? Array.isArray(next)
+                    ? [...next]
+                    : { ...next }
+                : {};
         cur[k] = nextVal;
         cur = cur[k];
     }
@@ -48,12 +51,39 @@ function setDeep<T extends object>(obj: T, path: string, value: any): T {
 /* ---- Time slots dropdown source ---- */
 type TimeLabel = string;
 const TIME_SLOTS: TimeLabel[] = [
-    "6:00 AM", "6:30 AM", "7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM",
-    "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-    "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
-    "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM",
-    "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM", "8:30 PM",
-    "9:00 PM", "9:30 PM", "10:00 PM",
+    "6:00 AM",
+    "6:30 AM",
+    "7:00 AM",
+    "7:30 AM",
+    "8:00 AM",
+    "8:30 AM",
+    "9:00 AM",
+    "9:30 AM",
+    "10:00 AM",
+    "10:30 AM",
+    "11:00 AM",
+    "11:30 AM",
+    "12:00 PM",
+    "12:30 PM",
+    "1:00 PM",
+    "1:30 PM",
+    "2:00 PM",
+    "2:30 PM",
+    "3:00 PM",
+    "3:30 PM",
+    "4:00 PM",
+    "4:30 PM",
+    "5:00 PM",
+    "5:30 PM",
+    "6:00 PM",
+    "6:30 PM",
+    "7:00 PM",
+    "7:30 PM",
+    "8:00 PM",
+    "8:30 PM",
+    "9:00 PM",
+    "9:30 PM",
+    "10:00 PM",
 ];
 
 const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Props) => {
@@ -66,6 +96,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         amenities: listing?.amenities ?? [],
         otherAmenities: listing?.otherAmenities ?? [],
         addons: listing?.addons ?? [],
+        locationValue: listing?.locationValue ?? listing?.location ?? "",
+        actualLocation: listing?.actualLocation ?? null,
     }));
 
     const [amenities, setAmenities] = useState<Amenities[]>(predefinedAmenities ?? []);
@@ -76,18 +108,30 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     }, [selectedMenu]);
 
     const update = () => {
+        const payload = {
+            ...initialListing,
+            locationValue: initialListing.locationValue,
+            actualLocation: initialListing.actualLocation,
+        };
         axios
-            .patch(`/api/listings/${initialListing.id}`, initialListing)
+            .patch(`/api/listings/${initialListing.id}`, payload)
             .then(() => {
                 toast.info("Listing has been successfully updated", { toastId: "Listing_Updated" });
             })
             .catch((error) => {
-                toast.error(error?.response?.data?.error || "Failed to update listing", { toastId: "Listing_Error_1" });
+                toast.error(error?.response?.data?.error || "Failed to update listing", {
+                    toastId: "Listing_Error_1",
+                });
             });
     };
 
     const handleInputChange = useCallback((field: string, value: any) => {
-        setListing((prev: any) => setDeep(prev, field, value));
+        setListing((prev: any) => {
+            if (field === "locationValue" || field === "actualLocation") {
+                return { ...prev, [field]: value };
+            }
+            return setDeep(prev, field, value);
+        });
     }, []);
 
     const handleAmenitiesChange = (updated: { predefined: { [key: string]: boolean }; custom: string[] }) => {
@@ -105,39 +149,19 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
     const indianCities = useIndianCities().getAll();
 
-    const categories = useMemo(
-        () => [
-            { label: "Studios", icon: GiPhotoCamera, description: "For a modern touch, explore futuristic and contemporary spaces!" },
-            { label: "Urban", icon: MdOutlineVilla, description: "This location is in the heart of the city!" },
-            { label: "Nature", icon: GiPineTree, description: "Surrounded by natural beauty, perfect for outdoor shoots!" },
-            { label: "Open Spaces", icon: GiSunflower, description: "A location with expansive open space, great for creative shots!" },
-            { label: "Minimalist", icon: GiCube, description: "Simplicity at its best, perfect for minimalist aesthetics!" },
-            { label: "Seaside", icon: GiLighthouse, description: "Shoot by the sea, with breathtaking views and natural lighting!" },
-            { label: "Mountain", icon: GiMountainCave, description: "Find serenity in the mountains, an ideal retreat for your shoot!" },
-            { label: "Artistic", icon: GiArtificialIntelligence, description: "Discover studios designed for artistic and creative photography!" },
-            { label: "Vintage", icon: GiCaveEntrance, description: "Step into the past with locations exuding vintage vibes!" },
-            { label: "Chic & Trendy", icon: IoDiamond, description: "Stay on-trend with chic and stylish shoot locations!" },
-            { label: "Public Spaces", icon: GiFruitBowl, description: "Capture the essence of vibrant open-air markets in your shoot!" },
-        ],
-        []
-    );
-
     const removeImage = (indexToRemove: number) => {
         const images = Array.isArray(initialListing.imageSrc) ? initialListing.imageSrc : [];
         const updatedImages = images.filter((_: any, index: number) => index !== indexToRemove);
         handleInputChange("imageSrc", updatedImages);
     };
 
-    // Time dropdown logic
     const startTime: TimeLabel = initialListing.operationalHours?.start ?? "";
     const endTime: TimeLabel = initialListing.operationalHours?.end ?? "";
 
     const startIdx = useMemo(() => TIME_SLOTS.indexOf(startTime), [startTime]);
-    const endIdx = useMemo(() => TIME_SLOTS.indexOf(endTime), [endTime]);
-
     const endOptions = useMemo(() => {
         if (startIdx === -1) return TIME_SLOTS;
-        return TIME_SLOTS.slice(startIdx); // enforce end >= start
+        return TIME_SLOTS.slice(startIdx);
     }, [startIdx]);
 
     const onStartChange = (val: TimeLabel) => {
@@ -145,7 +169,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         const currentEndIdx = TIME_SLOTS.indexOf(initialListing.operationalHours?.end ?? "");
         let nextEnd = initialListing.operationalHours?.end ?? "";
         if (newStartIdx !== -1 && (currentEndIdx === -1 || currentEndIdx < newStartIdx)) {
-            nextEnd = TIME_SLOTS[newStartIdx]; // auto-align end to start if invalid
+            nextEnd = TIME_SLOTS[newStartIdx];
         }
         setListing((prev: any) =>
             setDeep(setDeep(prev, "operationalHours.start", val), "operationalHours.end", nextEnd)
@@ -197,10 +221,10 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Category</label>
                             <select
                                 className="border rounded-full pl-3 py-2 shadow-sm w-full"
-                                value={initialListing.category ?? categories[0]?.label}
+                                value={initialListing.category ?? CATEGORY_OPTIONS[0]?.label}
                                 onChange={(e) => handleInputChange("category", e.target.value)}
                             >
-                                {categories.map((item) => (
+                                {CATEGORY_OPTIONS.map((item) => (
                                     <option key={item.label} value={item.label}>
                                         {item.label}
                                     </option>
@@ -212,7 +236,10 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Price</label>
                             <div className="w-full relative">
-                                <MdOutlineCurrencyRupee size={24} className="text-neutral-700 absolute top-2.5 left-2 border-r pr-1 border-neutral-300" />
+                                <MdOutlineCurrencyRupee
+                                    size={24}
+                                    className="text-neutral-700 absolute top-2.5 left-2 border-r pr-1 border-neutral-300"
+                                />
                                 <input
                                     type="number"
                                     id="listingPrice"
@@ -229,8 +256,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Location</label>
                             <select
                                 className="border rounded-full pl-3 py-2 shadow-sm w-full"
-                                value={initialListing.location ?? ""}
-                                onChange={(e) => handleInputChange("location", e.target.value)}
+                                value={initialListing.locationValue ?? ""}
+                                onChange={(e) => handleInputChange("locationValue", e.target.value)}
                             >
                                 {indianCities.map((item: any, index: number) => (
                                     <option key={index} value={item.name}>
@@ -242,14 +269,25 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         {/* Images */}
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Images (Max 8 Pictures)</label>
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
+                                Images (Max 8 Pictures)
+                            </label>
                             <div className="flex gap-6 w-full flex-wrap justify-center sm:justify-normal mt-2 sm:mt-0">
                                 {(initialListing.imageSrc ?? []).map((item: string, index: number) => (
                                     <div key={index} className="relative">
                                         <div className="h-32 w-32 rounded-xl flex items-center">
-                                            <Image src={item} alt={`Image ${index}`} width={128} height={128} className="h-full w-full object-cover rounded-xl" />
+                                            <Image
+                                                src={item}
+                                                alt={`Image ${index}`}
+                                                width={128}
+                                                height={128}
+                                                className="h-full w-full object-cover rounded-xl"
+                                            />
                                         </div>
-                                        <button onClick={() => removeImage(index)} className="absolute top-2 right-2 rounded-full">
+                                        <button
+                                            onClick={() => removeImage(index)}
+                                            className="absolute top-2 right-2 rounded-full"
+                                        >
                                             <MdClose
                                                 size={20}
                                                 className="text-white bg-black rounded-full hover:bg-white hover:text-black border-solid border-2 border-black transition-colors ease-in-out duration-300"
@@ -260,7 +298,9 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 {(!initialListing.imageSrc || initialListing.imageSrc.length < 8) && (
                                     <ImageUpload
                                         isFromPropertyClient
-                                        onChange={(value) => handleInputChange("imageSrc", [...(initialListing.imageSrc ?? []), ...value])}
+                                        onChange={(value) =>
+                                            handleInputChange("imageSrc", [...(initialListing.imageSrc ?? []), ...value])
+                                        }
                                         values={[]}
                                     />
                                 )}
@@ -284,7 +324,11 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Addons</label>
                             <div className="flex flex-col w-full">
-                                <AddonsSelection initialSelectedAddons={initialListing.addons} addons={addons} onSelectedAddonsChange={handleAddonChange} />
+                                <AddonsSelection
+                                    initialSelectedAddons={initialListing.addons}
+                                    addons={addons}
+                                    onSelectedAddonsChange={handleAddonChange}
+                                />
                                 <CustomAddonModal
                                     save={(value) => {
                                         const updated = [...addons, value];
@@ -337,7 +381,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        {/* Operational Hours (Dropdowns from TIME_SLOTS) */}
+                        {/* Operational Hours */}
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Hours</label>
                             <div className="flex space-x-2 w-full">
@@ -373,7 +417,9 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         {/* Min Booking Hours */}
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Min. Booking Hours</label>
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
+                                Min. Booking Hours
+                            </label>
                             <input
                                 type="text"
                                 id="minBookingHours"
@@ -431,13 +477,22 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     {/* Calendar */}
                     <div className={selectedMenu === "Sync Calendar" ? "flex flex-col gap-5 sm:gap-8 items-center" : "hidden"}>
                         <div className="flex justify-between w-full items-center">
-                            <Heading title="Connect Your Google Calendar" subtitle="Sync offline and Contcave bookings to keep your availability up to date—automatically" />
+                            <Heading
+                                title="Connect Your Google Calendar"
+                                subtitle="Sync offline and Contcave bookings to keep your availability up to date—automatically"
+                            />
                             {!listing.user.googleCalendarConnected && (
                                 <button
                                     className="bg-black text-white px-15 h-fit py-2 rounded-full hover:opacity-90 flex gap-4 justify-center items-center"
                                     onClick={() => signIn("google-calendar")}
                                 >
-                                    <Image src="/images/icon/google_calendar.png" alt="Google Calendar" width={30} height={30} className="bg-white rounded-full" />
+                                    <Image
+                                        src="/images/icon/google_calendar.png"
+                                        alt="Google Calendar"
+                                        width={30}
+                                        height={30}
+                                        className="bg-white rounded-full"
+                                    />
                                     Sync Google Calendar
                                 </button>
                             )}
@@ -464,9 +519,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                     {/* Settings */}
                     <div className={selectedMenu === "Settings" ? "flex flex-col gap-5" : "hidden"}>
-                        <button className="border-2 border-red px-6 py-2 rounded-full hover:opacity-85 text-red w-fit shadow-sm">DELETE PROPERTY</button>
+                        <button className="border-2 border-red px-6 py-2 rounded-full hover:opacity-85 text-red w-fit shadow-sm">
+                            DELETE PROPERTY
+                        </button>
                         <p>
-                            <span className="font-semibold">Warning:</span> Deleting your property will permanently remove all your data and cannot be undone.
+                            <span className="font-semibold">Warning:</span> Deleting your property will permanently remove all your
+                            data and cannot be undone.
                         </p>
                     </div>
                 </div>
