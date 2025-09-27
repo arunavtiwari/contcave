@@ -89,7 +89,6 @@ function ListingClient({
   listing,
   currentUser = null,
 }: Props) {
-  // ❗ Start with NO default date selection
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<
@@ -110,7 +109,6 @@ function ListingClient({
   );
 
 
-  // For setting EndTime for a Package 
   useEffect(() => {
     if (!selectedDate || !selectedPackage || !selectedTimeSlot[0]) return;
 
@@ -130,7 +128,6 @@ function ListingClient({
   }, [selectedDate, selectedPackage, selectedTimeSlot]);
 
 
-  // Fetch owner's Google Calendar busy slots for this listing (if connected)
   useEffect(() => {
     if (!ownerHasGoogleCalendar) {
       setGoogleCalendarEvents([]);
@@ -196,7 +193,6 @@ function ListingClient({
     return [...reservationEndTimes, ...googleEndTimes] as readonly TimeHM[];
   }, [reservations, googleCalendarEvents, selectedDate, selectedDateStr]);
 
-  // Compute selected duration (hours)
   useEffect(() => {
     const [startLabel, endLabel] = selectedTimeSlot;
     if (!selectedDate || !startLabel || !endLabel) {

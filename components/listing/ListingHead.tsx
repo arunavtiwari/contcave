@@ -82,6 +82,8 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
     }
   }, [showModal, selectedImageIndex]);
 
+  const showCarousel = imageSrc.length < 5;
+
   const renderImageWithSkeleton = (src: string, index: number, extraClasses = "") => (
     <div className="relative w-full h-full cursor-pointer" onClick={() => handleImageClick(index)}>
       {!loaded[index] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-lg"></div>}
@@ -120,6 +122,16 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
     </div>
   );
 
+  const sliderContent = (
+    <Slider {...slickSettings}>
+      {imageSrc.map((url, index) => (
+        <div key={index} className="w-full h-[60vh] overflow-hidden rounded-xl relative">
+          <Image src={url} alt={`image-${index}`} fill className="object-cover w-full" />
+        </div>
+      ))}
+    </Slider>
+  );
+
   return (
     <>
       <div className="flex gap-2">
@@ -129,55 +141,57 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
         </div>
       </div>
 
-      <div className="hidden lg:grid lg:grid-cols-2 gap-2 mt-4">
-        <div className="relative h-[455px] cursor-pointer" onClick={() => handleImageClick(0)}>
-          {!loaded[0] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-l-lg"></div>}
-          {imageSrc[0] && (
-            <Image
-              src={imageSrc[0]}
-              alt="image-0"
-              fill
-              onLoadingComplete={() => handleImageLoad(0)}
-              className={`object-cover rounded-l-lg hover:brightness-[90%] ${loaded[0] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
-            />
-          )}
+      {showCarousel ? (
+        <div className="mt-4">
+          {sliderContent}
         </div>
-
-        <div className="grid grid-rows-2 grid-cols-2 gap-2 h-[455px]">
-          {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
-          {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-r-lg")}
-          {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
-          {imageSrc[4] && (
-            <div className="relative w-full h-full">
-              {!loaded[4] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-r-lg"></div>}
-              <Image
-                src={imageSrc[4]}
-                alt="image-4"
-                fill
-                onLoadingComplete={() => handleImageLoad(4)}
-                className={`object-cover rounded-r-lg hover:brightness-[90%] ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
-                onClick={() => handleImageClick(4)}
-              />
-              <button
-                className="absolute bottom-3 right-3 bg-white text-black px-4 py-1.5 rounded-lg shadow-md hover:bg-neutral-200 transition font-medium text-base"
-                onClick={() => handleImageClick(0)}
-              >
-                Show all photos
-              </button>
+      ) : (
+        <>
+          <div className="hidden lg:grid lg:grid-cols-2 gap-2 mt-4">
+            <div className="relative h-[455px] cursor-pointer" onClick={() => handleImageClick(0)}>
+              {!loaded[0] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-l-lg"></div>}
+              {imageSrc[0] && (
+                <Image
+                  src={imageSrc[0]}
+                  alt="image-0"
+                  fill
+                  onLoadingComplete={() => handleImageLoad(0)}
+                  className={`object-cover rounded-l-lg hover:brightness-[90%] ${loaded[0] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+                />
+              )}
             </div>
-          )}
-        </div>
-      </div>
 
-      <div className="lg:hidden mt-4">
-        <Slider {...slickSettings}>
-          {imageSrc.map((url, index) => (
-            <div key={index} className="w-full h-[60vh] overflow-hidden rounded-xl relative">
-              <Image src={url} alt={`image-${index}`} fill className="object-cover w-full" />
+            <div className="grid grid-rows-2 grid-cols-2 gap-2 h-[455px]">
+              {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
+              {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-r-lg")}
+              {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
+              {imageSrc[4] && (
+                <div className="relative w-full h-full">
+                  {!loaded[4] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-r-lg"></div>}
+                  <Image
+                    src={imageSrc[4]}
+                    alt="image-4"
+                    fill
+                    onLoadingComplete={() => handleImageLoad(4)}
+                    className={`object-cover rounded-r-lg hover:brightness-[90%] ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+                    onClick={() => handleImageClick(4)}
+                  />
+                  <button
+                    className="absolute bottom-3 right-3 bg-white text-black px-4 py-1.5 rounded-lg shadow-md hover:bg-neutral-200 transition font-medium text-base"
+                    onClick={() => handleImageClick(0)}
+                  >
+                    Show all photos
+                  </button>
+                </div>
+              )}
             </div>
-          ))}
-        </Slider>
-      </div>
+          </div>
+
+          <div className="lg:hidden mt-4">
+            {sliderContent}
+          </div>
+        </>
+      )}
 
       <Modal
         isOpen={showModal}
