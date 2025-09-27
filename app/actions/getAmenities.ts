@@ -103,44 +103,39 @@ export default async function getAmenities(fromPropertyClient:boolean = false): 
         "name": "Hot water",
         icon: BsFire,
       },
-    
+  
       {
         "id":4,
-        "name": "Wifi",
-        icon: AiOutlineWifi,
-      },
-      {
-        "id":5,
         "name": "Coffee",
         icon: MdOutlineCoffeeMaker,
       },
       {
-        "id":6,
+        "id":5,
         "name": "Security cameras",
         icon: BiCctv,
       },
       {
-        "id":7,
+        "id":6,
         "name": "Bathtub",
         icon: MdOutlineBathtub,
       },
       {
-        "id":8,
+        "id":7,
         "name": "Dedicated workspace",
         icon: GrWorkshop,
       },
       {
-        "id":9,
+        "id":8,
         "name": "Safe",
         icon: RiSafeLine,
       },
       {
-        "id":10,
+        "id":9,
         "name": "Free parking",
         icon: AiOutlineCar,
       },
       {
-        "id":11,
+        "id":10,
         "name": "Fire extinguisher",
         icon: FaFireExtinguisher,
       },
