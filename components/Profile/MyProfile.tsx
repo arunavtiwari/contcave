@@ -67,8 +67,8 @@ const ProfileClient = ({ profile }) => {
         email: string;
         phone: string;
         profileImage: string;
-        isOwner: boolean;
-        isVerified: boolean;
+        is_owner: boolean;
+        is_verified: boolean;
         joinYear: string;
     }>({
         name: "",
@@ -79,8 +79,8 @@ const ProfileClient = ({ profile }) => {
         email: "",
         phone: "",
         profileImage: "",
-        isOwner: false,
-        isVerified: false,
+        is_owner: false,
+        is_verified: false,
         joinYear: "",
     });
 
@@ -101,8 +101,8 @@ const ProfileClient = ({ profile }) => {
                 email: user.email || "",
                 phone: user.phone || "",
                 profileImage: user.profileImage || user.image || "/assets/default-profile.svg",
-                isOwner: user.is_owner,
-                isVerified: user.is_verified,
+                is_owner: user.is_owner,
+                is_verified: user.is_verified,
                 joinYear: user.createdAt
                     ? new Date(user.createdAt).toLocaleString("default", { month: "short", year: "numeric" })
                     : "Jun 2025"
@@ -407,7 +407,7 @@ const ProfileClient = ({ profile }) => {
                                 </div>
                                 <button
                                     onClick={() => {
-                                        if (!userData?.isOwner) {
+                                        if (!userData?.is_owner) {
                                             setShowOwnerModal(true);
                                         } else {
                                             setShowVerificationModal(true);
@@ -487,14 +487,23 @@ const ProfileClient = ({ profile }) => {
             <OwnerEnableModal
                 isOpen={showOwnerModal}
                 onClose={() => setShowOwnerModal(false)}
-                onSuccess={() => {
-                    setUserData((u) => ({ ...u, is_owner: true }));
+                onSuccess={(newPhone?: string) => {
+                    axios.put("/api/user", { 
+                    ...userData, 
+                    is_owner: true, 
+                    phone: newPhone || userData.phone,
+                    })
+                    .then((res) => {
+                    setUserData(res.data); 
                     setShowOwnerModal(false);
                     setShowVerificationModal(true);
+                    })
+                    .catch(() => toast.error("Failed to update owner status"));
                 }}
                 initialEmail={userData.email}
                 initialPhone={userData.phone}
-            />
+                />
+
 
             {currentUser && (
                 <VerificationModal

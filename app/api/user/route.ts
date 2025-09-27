@@ -11,7 +11,7 @@ export async function PUT(request: Request) {
   }
 
   const body = await request.json();
-  const { name, description, location, languages, title, email, phone, profileImage } = body;
+  const { name, description, location, languages, title, email, phone, profileImage, is_owner, is_verified  } = body;
 
   if (
     typeof name !== "string" ||
@@ -21,7 +21,9 @@ export async function PUT(request: Request) {
     !languages.every((lang) => typeof lang === "string") ||
     typeof title !== "string" ||
     typeof email !== "string" ||
-    typeof phone !== "string"
+    typeof phone !== "string" ||
+    typeof is_owner !== "boolean" ||
+    typeof is_verified !== "boolean"
   ) {
     throw new Error("Invalid input");
   }
@@ -29,7 +31,7 @@ export async function PUT(request: Request) {
   try {
     const updatedUser = await prisma.user.update({
       where: { email: currentUser?.email ?? "" },
-      data: { name, description, location, languages, title, email, phone, profileImage },
+      data: { name, description, location, languages, title, email, phone, profileImage, is_owner, is_verified  },
     });
     return NextResponse.json(updatedUser);
   } catch (error: any) {

@@ -7,7 +7,7 @@ import Modal from "./Modal";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void; 
+  onSuccess?: (phone?: string, email?: string) => void; 
   initialEmail?: string;
   initialPhone?: string;
 };
@@ -24,9 +24,8 @@ const OwnerEnableModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, initial
     }
     setLoading(true);
     try {
-      // TO DO Update user is_owner: true
       toast.success("You are now registered as a space owner");
-      onSuccess?.();
+      onSuccess?.(phone, email);  
       onClose();
     } catch (err) {
       console.error(err);
@@ -35,6 +34,7 @@ const OwnerEnableModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, initial
       setLoading(false);
     }
   };
+  
 
   const body = (
     <div className="space-y-4">

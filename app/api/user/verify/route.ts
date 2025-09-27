@@ -1,11 +1,11 @@
-// app/api/user/verify/route.ts
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 
 export async function PATCH(request: Request) {
   const currentUser = await getCurrentUser();
-  if (!currentUser) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!currentUser)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   let body: any;
   try {
@@ -14,17 +14,19 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: "Invalid JSON" }, { status: 400 });
   }
 
-  const {
-    step,
-    aadhaarRefId,
-    bankVerifiedName,
-  } = body;
+  const { step, phone, aadhaarRefId, bankVerifiedName } = body;
 
   try {
     const updates: any = {};
 
+    if (step === "email") {
+      updates.email_verified = true;
+      updates.verified_via = { push: "email_verification_msg91" };
+    }
+
     if (step === "phone") {
       updates.phone_verified = true;
+      if (phone) updates.phone = phone;
       updates.verified_via = { push: "phone_otp" };
     }
 
@@ -40,23 +42,32 @@ export async function PATCH(request: Request) {
       updates.verified_via = { push: "bank_verification" };
     }
 
-    // bump stage
     updates.verification_stage = { increment: 1 };
-
-    // mark overall verified if all checks passed
-    if (currentUser.phone_verified && currentUser.aadhaar_verified && currentUser.bank_verified) {
-      updates.is_verified = true;
-      updates.verified_at = new Date();
-    }
 
     const updated = await prisma.user.update({
       where: { id: currentUser.id },
       data: updates,
     });
 
+    // Final check: mark fully verified if all steps done
+    if (
+      updated.phone_verified &&
+      updated.email_verified &&
+      updated.aadhaar_verified &&
+      updated.bank_verified
+    ) {
+      await prisma.user.update({
+        where: { id: currentUser.id },
+        data: { is_verified: true, verified_at: new Date() },
+      });
+    }
+
     return NextResponse.json(updated, { status: 200 });
   } catch (err: any) {
     console.error("Failed to update verification:", err);
-    return NextResponse.json({ message: "Failed to update verification" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to update verification" },
+      { status: 500 }
+    );
   }
 }
