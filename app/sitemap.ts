@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = "https://www.contcave.com";
+  const base = "https://contcave.com";
 
   const routes = [
     "",

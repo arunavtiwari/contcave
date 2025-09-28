@@ -1,4 +1,4 @@
-export const SITE_URL = "https://www.contcave.com" as const;
+export const SITE_URL = "https://contcave.com" as const;
 export const BRAND_NAME = "ContCave" as const;
 export const BRAND_TITLE = `${BRAND_NAME} | Find the Perfect Shoot Space with Ease` as const;
 export const BRAND_DESCRIPTION =
@@ -19,4 +19,3 @@ export function absoluteUrl(path: string): string {
   if (path.startsWith("http")) return path;
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
-
