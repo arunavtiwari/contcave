@@ -60,6 +60,7 @@ function RentModal() {
   }>({ predefined: {}, custom: [] });
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const Map = useMemo(() => dynamic(() => import("../Map"), { ssr: false }), []);
 
@@ -312,7 +313,7 @@ function RentModal() {
           console.log("[RentModal] Saved agreement PDF inside verifications:", patch2.status);
         } catch { }
       }
-      toast.success("Listing Created!", { toastId: "Listing_Created" });
+      setShowSuccessModal(true);
       router.refresh();
       reset();
       setStep(STEPS.CATEGORY);
@@ -545,29 +546,52 @@ function RentModal() {
   }
 
   return (
-    <Modal
-      disabled={isLoading || (step === STEPS.TERMS && !(terms && signature))}
-      isOpen={rentModel.isOpen}
-      title={
-        step === STEPS.VERIFICATION
-          ? "Space Verification"
-          : step === STEPS.TERMS
-            ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS"
-            : "List Your Space!"
-      }
-      actionLabel={actionLabel}
-      onSubmit={handleSubmit(onSubmit)}
-      secondaryActionLabel={secondActionLabel}
-      secondaryAction={step === STEPS.CATEGORY ? undefined : onBack}
-      onClose={rentModel.onClose}
-      selfActionButton={false}
-      autoWidth={step === STEPS.VERIFICATION || step === STEPS.ADDONS}
-      customWidth={step === STEPS.VERIFICATION ? "w-1/2" : ""}
-      body={bodyContent}
-      verificationBtn={step === STEPS.TERMS}
-      fixedHeight={step === STEPS.ADDONS}
-      termsAndConditionsAccept={terms}
-    />
+    <>
+      <Modal
+        disabled={isLoading || (step === STEPS.TERMS && !(terms && signature))}
+        isOpen={rentModel.isOpen}
+        title={
+          step === STEPS.VERIFICATION
+            ? "Space Verification"
+            : step === STEPS.TERMS
+              ? "TERMS AND CONDITIONS FOR PROPERTY HOSTS"
+              : "List Your Space!"
+        }
+        actionLabel={actionLabel}
+        onSubmit={handleSubmit(onSubmit)}
+        secondaryActionLabel={secondActionLabel}
+        secondaryAction={step === STEPS.CATEGORY ? undefined : onBack}
+        onClose={rentModel.onClose}
+        selfActionButton={false}
+        autoWidth={step === STEPS.VERIFICATION || step === STEPS.ADDONS}
+        customWidth={step === STEPS.VERIFICATION ? "w-1/2" : ""}
+        body={bodyContent}
+        verificationBtn={step === STEPS.TERMS}
+        fixedHeight={step === STEPS.ADDONS}
+        termsAndConditionsAccept={terms}
+      />
+
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        onSubmit={() => setShowSuccessModal(false)}
+        title="Listing Submitted"
+        actionLabel="Close"
+        body={
+          <div className="flex flex-col gap-3 text-gray-700">
+            <p>
+              Thank you for submitting your studio. We&apos;ve received all the details and our
+              team will review everything shortly.
+            </p>
+            <p>
+              We&apos;ll reach out once verification is complete and your listing is ready to go
+              live on ContCave.
+            </p>
+          </div>
+        }
+        selfActionButton={false}
+      />
+    </>
   );
 }
 
