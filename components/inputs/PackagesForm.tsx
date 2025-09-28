@@ -5,6 +5,7 @@ import { Trash2, Plus } from "lucide-react";
 import Input from "./Input";
 
 export interface Package {
+  id?: string;
   title: string;
   originalPrice: number;
   offeredPrice: number;
@@ -36,7 +37,7 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
   const addPackage = () => {
     updatePackages([
       ...packages,
-      { title: "", originalPrice: 0, offeredPrice: 0, features: [], durationHours: 1 },
+      { id: undefined, title: "", originalPrice: 0, offeredPrice: 0, features: [], durationHours: 1 },
     ]);
   };
 
@@ -140,8 +141,9 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
                       )
                     }
                     className="text-red-500 hover:text-red-700 font-bold"
+                    aria-label="Remove feature"
                   >
-                    ×
+                    x
                   </button>
                 </div>
               ))}

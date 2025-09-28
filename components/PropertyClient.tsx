@@ -15,6 +15,7 @@ import Calendar from "@/components/Calendar";
 import { SessionProvider, signIn } from "next-auth/react";
 import Sidebar from "@/components/Sidebar";
 import ManageTimings from "./ManageTimings";
+import PackagesForm, { Package as ListingPackage } from "./inputs/PackagesForm";
 import { MdOutlineCurrencyRupee, MdClose } from "react-icons/md";
 import { FaBolt } from "react-icons/fa";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
@@ -96,6 +97,16 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         amenities: listing?.amenities ?? [],
         otherAmenities: listing?.otherAmenities ?? [],
         addons: listing?.addons ?? [],
+        packages: Array.isArray(listing?.packages)
+            ? listing.packages.map((pkg: any) => ({
+                  id: pkg.id,
+                  title: pkg.title ?? "",
+                  originalPrice: Number(pkg.originalPrice ?? 0),
+                  offeredPrice: Number(pkg.offeredPrice ?? 0),
+                  features: Array.isArray(pkg.features) ? pkg.features : [],
+                  durationHours: Number(pkg.durationHours ?? 1) || 1,
+              }))
+            : [],
         locationValue: listing?.locationValue ?? listing?.location ?? "",
         actualLocation: listing?.actualLocation ?? null,
     }));
@@ -103,16 +114,48 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     const [amenities, setAmenities] = useState<Amenities[]>(predefinedAmenities ?? []);
     const [addons, setAddons] = useState<any[]>(predefinedAddons ?? []);
 
+    const indianCities = useIndianCities().getAll();
+
     useEffect(() => {
         window.scrollTo({ top: 0 });
     }, [selectedMenu]);
 
     const update = () => {
+        const normalizedPackages = (initialListing.packages ?? []).map((pkg: ListingPackage) => ({
+            id: pkg.id,
+            title: (pkg.title ?? "").trim(),
+            originalPrice: Number(pkg.originalPrice ?? 0),
+            offeredPrice: Number(pkg.offeredPrice ?? 0),
+            features: Array.isArray(pkg.features)
+                ? pkg.features.filter((feature) => typeof feature === "string" && feature.trim().length > 0)
+                : [],
+            durationHours: Number(pkg.durationHours ?? 0),
+        }));
+
+        const packagesWithData = normalizedPackages.filter((pkg) =>
+            pkg.title.length > 0 ||
+            pkg.originalPrice > 0 ||
+            pkg.offeredPrice > 0 ||
+            pkg.durationHours > 0 ||
+            (pkg.features && pkg.features.length > 0)
+        );
+
+        const hasIncompletePackage = packagesWithData.some((pkg) =>
+            !pkg.title || pkg.durationHours <= 0 || pkg.originalPrice <= 0 || pkg.offeredPrice <= 0
+        );
+
+        if (hasIncompletePackage) {
+            toast.error("Please complete all package fields before saving", { toastId: "Incomplete_Package_Update" });
+            return;
+        }
+
+        const { id: _ignoredId, user: _ignoredUser, createdAt: _ignoredCreatedAt, updatedAt: _ignoredUpdatedAt, packages: _ignoredPackages, ...listingWithoutMeta } = initialListing;
+
         const payload = {
-            ...initialListing,
-            locationValue: initialListing.locationValue,
-            actualLocation: initialListing.actualLocation,
+            ...listingWithoutMeta,
+            packages: packagesWithData,
         };
+
         axios
             .patch(`/api/listings/${initialListing.id}`, payload)
             .then(() => {
@@ -147,7 +190,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         });
     };
 
-    const indianCities = useIndianCities().getAll();
+    const handlePackagesChange = useCallback((updatedPackages: ListingPackage[]) => {
+        setListing((prev: any) => ({
+            ...prev,
+            packages: updatedPackages,
+        }));
+    }, []);
+
 
     const removeImage = (indexToRemove: number) => {
         const images = Array.isArray(initialListing.imageSrc) ? initialListing.imageSrc : [];
@@ -335,6 +384,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         setAddons(updated);
                                     }}
                                 />
+                            </div>
+                        </div>
+
+                        {/* Packages */}
+                        <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Packages</label>
+                            <div className="flex flex-col w-full">
+                                <PackagesForm value={initialListing.packages ?? []} onChange={handlePackagesChange} />
                             </div>
                         </div>
 
@@ -534,3 +591,4 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 };
 
 export default PropertyClient;
+
