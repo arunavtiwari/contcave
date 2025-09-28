@@ -305,24 +305,29 @@ const ProfileClient = ({ profile }) => {
                                     <span className="font-medium text-gray-700">Phone</span>
                                 </div>
                                 <div
-                                    className={`flex justify-end rounded-xl px-3 py-2 ${editMode ? 'border border-slate-300' : ''
+                                    className={`flex items-center justify-end rounded-xl ${editMode ? 'px-3 py-2 border border-slate-300' : ''
                                         }`}
                                 >
-                                    <span className="mr-2 pr-2 border-r">+91</span>
-                                    <input
-                                        type="tel"
-                                        name="phone"
-                                        value={userData.phone}
-                                        placeholder="99xxxxxx21"
-                                        inputMode="numeric"
-                                        maxLength={10}
-                                        onChange={(e) => {
-                                            const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                            handleChange({ target: { name: 'phone', value: digitsOnly } });
-                                        }}
-                                        disabled={!editMode}
-                                        className="bg-transparent focus:outline-none focus:ring-0 placeholder-slate-400 border-none w-28 h-fit p-0"
-                                    />
+                                    <span className="mr-2 pr-2 border-r whitespace-nowrap">+91</span>
+                                    {editMode ? (
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            value={userData.phone}
+                                            placeholder="99xxxxxx21"
+                                            inputMode="numeric"
+                                            maxLength={10}
+                                            onChange={(e) => {
+                                                const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                handleChange({ target: { name: 'phone', value: digitsOnly } });
+                                            }}
+                                            className="bg-transparent focus:outline-none focus:ring-0 placeholder-slate-400 border-none w-28 h-fit p-0"
+                                        />
+                                    ) : (
+                                        <span className="text-gray-900 font-medium whitespace-nowrap">
+                                            {userData.phone || 'Not added'}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
