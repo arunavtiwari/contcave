@@ -1,18 +1,12 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { PrismaClient } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prismadb";
 
-const prisma = new PrismaClient();
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
-
+export async function POST(request: NextRequest) {
   try {
-    const { userId, companyName, gstin, billingAddress, isDefault } = req.body;
+    const { userId, companyName, gstin, billingAddress, isDefault } = await request.json();
 
     if (!userId || !companyName || !gstin || !billingAddress) {
-      return res.status(400).json({ message: "Missing required fields" });
+      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
     if (isDefault) {
@@ -28,13 +22,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         companyName,
         gstin,
         billingAddress,
-        isDefault: !!isDefault,
+        isDefault: Boolean(isDefault),
       },
     });
 
-    return res.status(201).json({ billingDetailId: billing.id, billing });
-  } catch (error: any) {
-    console.error("Failed to create billing detail:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return NextResponse.json({ billingDetailId: billing.id, billing }, { status: 201 });
+  } catch (error) {
+    console.error("Failed to create billing detail", error);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
+}
+
+export async function GET() {
+  return NextResponse.json({ message: "Method not allowed" }, { status: 405 });
 }
