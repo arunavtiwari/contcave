@@ -1,6 +1,18 @@
 import getReservation from "@/app/actions/getReservation";
 import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/PaymentSuccessAnimation";
+import type { Metadata } from "next";
+import { BRAND_NAME } from "@/lib/seo";
+
+export const metadata: Metadata = {
+    title: `Payment Status | ${BRAND_NAME}`,
+    description: "Review the outcome of your recent ContCave payment and see next steps.",
+    robots: {
+        index: false,
+        follow: false,
+        googleBot: { index: false, follow: false },
+    },
+};
 
 type Search = Record<string, string | string[] | undefined>;
 type Props = { searchParams: Promise<Search> };

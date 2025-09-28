@@ -5,7 +5,19 @@ import getCurrentUser from "../actions/getCurrentUser";
 import getReservation from "../actions/getReservations";
 import BookingClient from "./BookingClient";
 import Container from "@/components/Container";
-export const dynamic = "force-dynamic"
+import type { Metadata } from "next";
+import { BRAND_NAME } from "@/lib/seo";
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: `My Bookings | ${BRAND_NAME}`,
+  description: "View and manage reservations you have made on ContCave.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 type Props = {};
 

@@ -1,8 +1,43 @@
-// app/privacy/page.tsx
 import Container from "@/components/Container";
 import Image from "next/image";
+import type { Metadata } from "next";
+import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+const DESCRIPTION =
+  "Learn how ContCave collects, uses, and protects personal data in line with Indian IT Act and SPDI Rules." as const;
+
+export const metadata: Metadata = {
+  title: `Privacy Policy | ${BRAND_NAME}`,
+  description: DESCRIPTION,
+  alternates: {
+    canonical: "/privacy-policy",
+  },
+  openGraph: {
+    title: `Privacy Policy | ${BRAND_NAME}`,
+    description: DESCRIPTION,
+    url: `${SITE_URL}/privacy-policy`,
+    type: "article",
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `Privacy Policy | ${BRAND_NAME}`,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    noimageindex: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: true,
+    },
+  },
+};
 
 export default function PrivacyPolicyPage() {
   return (

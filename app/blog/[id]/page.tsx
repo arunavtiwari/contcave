@@ -1,13 +1,105 @@
-import { getPostData } from "@/lib/posts";
 import Image from "next/image";
+import type { Metadata } from "next";
+import { getPostData, getSortedPostsData } from "@/lib/posts";
+import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
-export default async function PostPage(props: { params: Promise<{ id: string }> }) {
+const FALLBACK_DESCRIPTION =
+  "Insights and stories from ContCave on studios, production workflows, and the creative economy in India.";
+
+type RouteParams = { id: string };
+
+const asciiClean = (value: string | undefined | null): string | undefined =>
+  value?.replace(/[^\x20-\x7E]+/g, " ").replace(/\s+/g, " ").trim();
+
+export async function generateStaticParams() {
+  return getSortedPostsData().map((post) => ({ id: post.id }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<RouteParams>;
+}): Promise<Metadata> {
+  try {
+    const { id } = await params;
+    const post = getPostData(id);
+    const description =
+      asciiClean(post.meta?.description) ??
+      asciiClean(post.layout?.find((block) => block.blockType === "paragraph")?.content) ??
+      FALLBACK_DESCRIPTION;
+
+    const image = absoluteUrl(post.meta?.image?.url ?? OG_IMAGE);
+    const published = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
+    const updated = post.updatedAt ? new Date(post.updatedAt).toISOString() : published;
+    const canonical = `/blog/${id}`;
+    const title = `${post.title} | ${BRAND_NAME} Blog`;
+
+    return {
+      title,
+      description,
+      alternates: { canonical },
+      openGraph: {
+        type: "article",
+        title,
+        description,
+        url: `${SITE_URL}${canonical}`,
+        images: [image],
+        publishedTime: published,
+        modifiedTime: updated,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [image],
+      },
+    };
+  } catch (error) {
+    return {
+      title: `Blog | ${BRAND_NAME}`,
+      description: FALLBACK_DESCRIPTION,
+    };
+  }
+}
+
+export default async function PostPage(props: { params: Promise<RouteParams> }) {
   const { id } = await props.params;
   const post = await getPostData(id);
+  const description =
+    asciiClean(post.meta?.description) ??
+    asciiClean(post.layout?.find((block) => block.blockType === "paragraph")?.content) ??
+    FALLBACK_DESCRIPTION;
+
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description,
+    image: [absoluteUrl(post.meta?.image?.url ?? OG_IMAGE)],
+    author: (post.authors ?? []).map((name) => ({ "@type": "Person", name })),
+    publisher: {
+      "@type": "Organization",
+      name: BRAND_NAME,
+      logo: {
+        "@type": "ImageObject",
+        url: absoluteUrl(OG_IMAGE),
+      },
+    },
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt ?? post.publishedAt,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": absoluteUrl(`/blog/${id}`),
+    },
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 !select-text">
-      {/* Hero / Title */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+
       <h1 className="text-4xl font-extrabold mb-4">{post.title}</h1>
 
       {post.meta?.image?.url && (
@@ -29,7 +121,6 @@ export default async function PostPage(props: { params: Promise<{ id: string }> 
         })}
       </p>
 
-      {/* Blog Body */}
       {post.layout.map((block) => {
         switch (block.blockType) {
           case "heading":
@@ -77,3 +168,4 @@ export default async function PostPage(props: { params: Promise<{ id: string }> 
     </div>
   );
 }
+

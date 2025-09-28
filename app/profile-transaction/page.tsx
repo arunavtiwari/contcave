@@ -2,8 +2,19 @@ import ClientOnly from "@/components/ClientOnly";
 import getCurrentUser from "../actions/getCurrentUser";
 import EmptyState from "@/components/EmptyState";
 import ProfileTransactionClient from "./ProfileTransactionClient";
-export const dynamic = "force-dynamic"
-import Container from '@/components/Container';
+import Container from "@/components/Container";
+import type { Metadata } from "next";
+import { BRAND_NAME } from "@/lib/seo";
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: `Transactions | ${BRAND_NAME}`,
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 type Props = {};
 

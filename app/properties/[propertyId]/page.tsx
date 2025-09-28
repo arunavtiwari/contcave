@@ -8,6 +8,16 @@ import EmptyState from '@/components/EmptyState';
 import PropertyClient from '@/components/PropertyClient';
 export const dynamic = "force-dynamic"
 import React from 'react';
+export const metadata = {
+  title: "Manage Property | ContCave",
+  description:
+    "Edit your listing details, amenities, and add-ons securely within your ContCave host dashboard.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 import Container from '@/components/Container';
 
 interface IParams {

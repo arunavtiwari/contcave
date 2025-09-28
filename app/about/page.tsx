@@ -5,8 +5,31 @@ import getCurrentUser from "../actions/getCurrentUser";
 import Image from "next/image";
 import { Building2, Heart, Users } from "lucide-react";
 import Hero from "./hero";
+import type { Metadata } from "next";
+import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+const DESCRIPTION =
+  "Learn how ContCave empowers creatives with a curated network of production-ready studios, industry partners, and hands-on support." as const;
+
+export const metadata: Metadata = {
+  title: `About ${BRAND_NAME}`,
+  description: DESCRIPTION,
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: `About ${BRAND_NAME}`,
+    description: DESCRIPTION,
+    url: `${SITE_URL}/about`,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `About ${BRAND_NAME}`,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+};
 
 const About = async () => {
   const currentUser = await getCurrentUser();

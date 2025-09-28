@@ -3,6 +3,18 @@ import EmptyState from "@/components/EmptyState";
 import getCurrentUser from "../actions/getCurrentUser";
 import getListings from "../actions/getListings";
 import PropertiesClient from "./PropertiesClient";
+import type { Metadata } from "next";
+import { BRAND_NAME } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: `My Properties | ${BRAND_NAME}`,
+  description: "Manage the listings you host on ContCave, update details, and keep availability in sync.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 type Props = {};
 

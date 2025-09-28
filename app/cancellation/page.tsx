@@ -1,10 +1,31 @@
-"use client";
-
 import Container from "@/components/Container";
 import React from "react";
 import Image from "next/image";
+import type { Metadata } from "next";
+import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: `Cancellation Policy | ${BRAND_NAME}`,
+  description:
+    "Understand ContCave's cancellation windows, refund rules, and how to manage changes to your booking with confidence.",
+  alternates: { canonical: "/cancellation" },
+  openGraph: {
+    title: `Cancellation Policy | ${BRAND_NAME}`,
+    description:
+      "Review the cancellation timeframes and refund process for bookings made through ContCave.",
+    url: `${SITE_URL}/cancellation`,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `Cancellation Policy | ${BRAND_NAME}`,
+    description:
+      "Understand the timelines and process for cancelling or rescheduling ContCave bookings.",
+    images: [OG_IMAGE],
+  },
+};
 
 type Props = {};
 

@@ -1,5 +1,4 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-// no next/image here to ensure html2canvas captures the signature reliably
 
 type TermsRef = { generateAndUploadPdf: (folderOverride?: string) => Promise<any> };
 
@@ -28,7 +27,6 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
         try {
             const node = containerRef.current;
             if (!node) return;
-            // Expand overflowed area to capture full content
             const prevOverflow = node.style.overflow;
             const prevMaxHeight = node.style.maxHeight;
             const prevHeight = node.style.height;
@@ -36,12 +34,10 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
             node.style.overflow = "visible";
             node.style.maxHeight = "none";
             node.style.height = "auto";
-            node.style.paddingBottom = "48px"; // ensure bottom content is not flush with page break
+            node.style.paddingBottom = "48px";
             (node as any).scrollTop = 0;
 
-            // @ts-ignore - no local types for html2canvas
             const html2canvas = (await import("html2canvas")).default;
-            // @ts-ignore - jspdf ESM default export shape
             const { jsPDF } = await import("jspdf");
             console.log("[Terms] Generating canvas...");
             const canvas = await html2canvas(node as HTMLElement, {
@@ -52,7 +48,6 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
                 width: (node as HTMLElement).scrollWidth,
                 height: (node as HTMLElement).scrollHeight,
             });
-            // Restore styles
             node.style.overflow = prevOverflow;
             node.style.maxHeight = prevMaxHeight;
             node.style.height = prevHeight;
@@ -70,8 +65,8 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
             const marginMm = 12;
             const printableWidth = pageWidth - marginMm * 2;
             const printableHeight = pageHeight - marginMm * 2;
-            const scale = printableWidth / imgProps.width; // mm per px in width
-            const sliceHeightPx = Math.floor(printableHeight / scale); // source pixels per page
+            const scale = printableWidth / imgProps.width;
+            const sliceHeightPx = Math.floor(printableHeight / scale);
 
             let remainingPx = imgProps.height;
             let sourceY = 0;
@@ -97,7 +92,6 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
                     );
                 }
                 const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.92);
-                // height in mm for this slice
                 const sliceHeightMm = currentSlicePx * scale;
                 if (sourceY > 0) pdf.addPage();
                 pdf.addImage(sliceData, 'JPEG', marginMm, marginMm, printableWidth, sliceHeightMm);
@@ -224,7 +218,6 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
                             I AGREE TO ALL TERMS AND CONDITIONS
                         </label>
                     </div>
-                    {/* PDF will be generated automatically on submission */}
 
                 </div>
             </div>
