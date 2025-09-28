@@ -1,4 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import Image from 'next/image';
 
 type TermsRef = { generateAndUploadPdf: (folderOverride?: string) => Promise<any> };
 
@@ -198,7 +199,15 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
                                 />
                             ) : (
                                 <div className="flex items-center gap-3">
-                                    <img src={signature.thumbnail || signature.url} alt="Signature" style={{ width: 120, height: 60, objectFit: 'contain' }} className="rounded border bg-white" crossOrigin="anonymous" />
+                                    <Image
+                                        src={signature.thumbnail || signature.url}
+                                        alt="Signature"
+                                        width={120}
+                                        height={60}
+                                        unoptimized
+                                        style={{ objectFit: 'contain' }}
+                                        className="rounded border bg-white"
+                                    />
                                 </div>
                             )}
                         </div>
@@ -224,5 +233,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
         </div>
     );
 });
+
+TermsAndConditionsModal.displayName = 'TermsAndConditionsModal';
 
 export default TermsAndConditionsModal;
