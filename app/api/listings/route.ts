@@ -8,30 +8,13 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const {
-    title,
-    description,
-    imageSrc,
-    category,
-    locationValue,
-    actualLocation,
-    price,
-    amenities,
-    otherAmenities,
-    addons,
-    carpetArea,
-    operationalDays,
-    operationalHours,
-    minimumBookingHours,
-    maximumPax,
-    instantBooking,
-    type,
-    bookingApprovalCount,
-    verifications,
-    terms,
-    packages
+    title, description, imageSrc, category, locationValue, actualLocation,
+    price, amenities, otherAmenities, addons, carpetArea, operationalDays,
+    operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
+    bookingApprovalCount, verifications, terms, packages,
   } = body;
 
-  if (!title || !description || !imageSrc || !category || !locationValue || !price) {
+  if (!title || !description || !imageSrc || !category || !locationValue || price == null) {
     return NextResponse.error();
   }
 
@@ -43,7 +26,7 @@ export async function POST(request: Request) {
       category,
       locationValue,
       actualLocation,
-      price: parseInt(price, 10),
+      price: Number(price),
       userId: currentUser.id,
       amenities,
       otherAmenities,
@@ -58,24 +41,28 @@ export async function POST(request: Request) {
       bookingApprovalCount,
       verifications,
       terms,
-      status: 'PENDING',
+      status: "PENDING",
       active: false,
-      packages: packages
-        ? {
-          create: packages.map((pkg: any) => ({
-            title: pkg.title,
-            originalPrice: parseInt(pkg.originalPrice, 10),
-            offeredPrice: parseInt(pkg.offeredPrice, 10),
-            features: pkg.features || [],
-            durationHours: pkg.durationHours,
-          })),
-        }
-        : undefined,
-    },
-    include: {
-      packages: true,
     },
   });
 
-  return NextResponse.json(listing);
+  if (Array.isArray(packages) && packages.length > 0) {
+    await prisma.package.createMany({
+      data: packages.map((p: any) => ({
+        title: String(p.title),
+        originalPrice: p.originalPrice != null ? Number(p.originalPrice) : 0, // your schema requires Int
+        offeredPrice: Number(p.offeredPrice),
+        features: Array.isArray(p.features) ? p.features.map(String) : [],
+        durationHours: Number(p.durationHours),
+        listingId: listing.id,
+      })),
+    });
+  }
+
+  const withPackages = await prisma.listing.findUnique({
+    where: { id: listing.id },
+    include: { packages: true },
+  });
+
+  return NextResponse.json(withPackages);
 }

@@ -1,4 +1,3 @@
-// Sample data of Indian cities (You may replace this with an actual dataset of Indian cities)
 const indianCities = [
   { name: "Mumbai", state: "Maharashtra", latlng: [18.9750, 72.8258] },
   { name: "Delhi", state: "Delhi", latlng: [28.6139, 77.2090] },
@@ -216,12 +215,12 @@ const indianCities = [
   { name: "Muzaffarpur", state: "Bihar", latlng: [26.1209, 85.3647] }
 ];
 
-const formattedIndianCities = indianCities.map((city, index) => ({
-  value: `city${index}`,
+const formattedIndianCities = indianCities.map((city) => ({
+  value: city.name,
   label: city.name,
   state: city.state,
   latlng: city.latlng,
- name:city.name
+  name: city.name
 }));
 
 const useIndianCities = () => {
