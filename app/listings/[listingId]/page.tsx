@@ -198,10 +198,10 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
 
   const url = absoluteUrl(`/listings/${listing.id}`);
 
-  const lodgingBusinessJsonLd = {
+  const eventVenueJsonLd = {
     "@context": "https://schema.org",
-    "@type": "LodgingBusiness",
-    "@id": `${url}#lodging`,
+    "@type": "EventVenue",
+    "@id": `${url}#venue`,
     name: listing.title,
     description: asciiClean(listing.description) ?? undefined,
     url,
@@ -223,7 +223,7 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
               : "https://schema.org/LimitedAvailability",
             url,
           },
-        ]
+      ]
       : undefined,
     openingHoursSpecification,
     areaServed: clean(listing.locationValue),
@@ -234,7 +234,7 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
       <>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(lodgingBusinessJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd) }}
         />
         <ListingClient
           listing={listing}
