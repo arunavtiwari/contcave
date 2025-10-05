@@ -2,11 +2,13 @@
 import { useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Link from "next/link";
+import Image from 'next/image'
+import { useRouter } from "next/navigation";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Hero = () => {
+  const router = useRouter();
   useEffect(() => {
     let tl = gsap.timeline({
       scrollTrigger: {
@@ -39,32 +41,35 @@ const Hero = () => {
 
   return (
     <div id="hero-anim-track" className="overflow-hidden">
-      <div className="hero flex items-center text-white relative h-[90vh]">
+      <div className="hero flex items-center text-white relative h-[calc(100vh-80px)] justify-center">
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black opacity-70 z-10"></div>
+        <div className="absolute inset-0 bg-black opacity-65 z-10"></div>
 
-        <div className="w-full m-10 flex flex-col z-20">
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
-            Discover the perfect
-          </h1>
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
-            <span id="changing-text">Studio</span>
-          </h1>
-          <p className="text-lg sm:text-xl md:text-2xl opacity-70 mt-4">
-            Whether you’re telling a story or capturing a moment, find the space that elevates your vision.
-          </p>
-          <Link href="/home" passHref>
-            <button className="bg-white mt-10 text-black px-6 py-2.5 rounded-full font-semibold text-lg shadow-md hover:scale-105 duration-300 relative z-20">
-              Explore now
+        <div className="container flex flex-col z-20">
+          <div className="w-full sm:w-2/3 text-center sm:text-start px-4 sm:px-0">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
+              Discover the perfect
+            </h1>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
+              <span id="changing-text">Studio</span>
+            </h1>
+            <p className="text-lg sm:text-xl md:text-2xl opacity-70 mt-4">
+              Whether you're telling a story or capturing a moment, find the space that elevates your vision.
+            </p>
+            <button
+              onClick={() => router.push('/home')}
+              className="bg-white mt-10 w-fit text-black px-6 py-2.5 rounded-full font-semibold text-lg shadow-md hover:scale-105 duration-300 relative z-20"
+            >
+              Book Now
             </button>
-          </Link>
+          </div>
         </div>
 
-
-        <img
-          src="https://plus.unsplash.com/premium_photo-1663091946297-8050202e1a63?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        <Image
+          src="/images/hero/bg-hero.jpg"
           alt="Hero background"
-          className="absolute left-0 top-0 w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
       </div>
     </div>

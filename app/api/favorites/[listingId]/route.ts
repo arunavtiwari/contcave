@@ -7,7 +7,8 @@ interface IPrisma {
   listingId?: string;
 }
 
-export async function POST(request: Request, { params }: { params: IPrisma }) {
+export async function POST(request: Request, props: { params: Promise<IPrisma> }) {
+  const params = await props.params;
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -36,10 +37,8 @@ export async function POST(request: Request, { params }: { params: IPrisma }) {
   return NextResponse.json(user);
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: IPrisma }
-) {
+export async function DELETE(request: Request, props: { params: Promise<IPrisma> }) {
+  const params = await props.params;
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {

@@ -1,0 +1,128 @@
+{
+  "id": "product-shoot-on-a-budget",
+  "title": "How to Plan a Product Shoot on a Budget",
+  "categories": [
+    {
+      "id": "content-guides",
+      "title": "Content Creation Guides",
+      "breadcrumbs": [],
+      "createdAt": "2025-08-17T12:00:00.000Z",
+      "updatedAt": "2025-08-17T12:00:00.000Z"
+    }
+  ],
+  "publishedAt": "2025-08-17T12:00:00.000Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "image",
+    "richText": [],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "p1",
+      "blockType": "paragraph",
+      "content": "Big budgets don’t always guarantee great product photos. In fact, some of the most creative shoots are born out of limited resources. Whether you’re a small business owner, an independent creator, or simply starting your content journey, here’s how you can plan a professional product shoot without breaking the bank."
+    },
+    {
+      "id": "h1",
+      "blockType": "heading",
+      "content": "1. Define Your Goal First"
+    },
+    {
+      "id": "p2",
+      "blockType": "paragraph",
+      "content": "Before you touch a camera or think about props, ask yourself: what is this shoot for? Instagram posts? An e-commerce store? A brand launch? Knowing the purpose will help you decide the style, the format, and how much time you really need to spend."
+    },
+    {
+      "id": "h2",
+      "blockType": "heading",
+      "content": "2. Pick the Right Location"
+    },
+    {
+      "id": "p3",
+      "blockType": "paragraph",
+      "content": "You don’t need a fancy studio every time. Natural light from a window, a clean tabletop, or even a rented co-working space can double up as a product backdrop. Platforms like ContCave make it easy to book creative-friendly spaces by the hour, so you can keep costs predictable."
+    },
+    {
+      "id": "h3",
+      "blockType": "heading",
+      "content": "3. Work With What You Have"
+    },
+    {
+      "id": "p4",
+      "blockType": "paragraph",
+      "content": "Expensive lighting gear isn’t mandatory. A white chart paper can act as a reflector. Clip-on lamps with daylight bulbs can give you soft lighting. Household props—like wooden trays, fabrics, or even books—can be styled as background elements to give your photos character."
+    },
+    {
+      "id": "h4",
+      "blockType": "heading",
+      "content": "4. Keep It Simple"
+    },
+    {
+      "id": "p5",
+      "blockType": "paragraph",
+      "content": "Overcomplicating a shoot often makes it look messy. Stick to one or two key props, and let the product be the hero. Simple compositions with good lighting often look more professional than cluttered setups."
+    },
+    {
+      "id": "h5",
+      "blockType": "heading",
+      "content": "5. Edit Smart, Not Hard"
+    },
+    {
+      "id": "p6",
+      "blockType": "paragraph",
+      "content": "You don’t need Photoshop mastery. Free apps like Snapseed, VSCO, or Lightroom Mobile can help adjust brightness, contrast, and colors. Consistency in editing matters more than complexity—it’s what makes your brand look cohesive online."
+    },
+    {
+      "id": "h6",
+      "blockType": "heading",
+      "content": "6. Budget Checklist"
+    },
+    {
+      "id": "l1",
+      "blockType": "list",
+      "items": [
+        "DIY lighting: ₹500–₹1,000",
+        "Props: ₹200–₹1,000 (most can come from your home)",
+        "Space rental (if needed): ₹500–₹2,000/hour",
+        "Editing apps: Free or minimal subscription"
+      ]
+    },
+    {
+      "id": "h7",
+      "blockType": "heading",
+      "content": "Final Note"
+    },
+    {
+      "id": "p7",
+      "blockType": "paragraph",
+      "content": "Constraints often fuel creativity. By focusing on the essentials and making smart choices, your product shoot can stand out, engage audiences, and tell your brand story authentically—without burning a hole in your pocket."
+    }
+  ],
+  "slug": "product-shoot-on-a-budget",
+  "meta": {
+    "title": "How to Plan a Product Shoot on a Budget",
+    "description": "A practical step-by-step guide for creators and small businesses to plan professional-looking product shoots without overspending.",
+    "image": {
+      "id": "img1",
+      "alt": "Affordable product shoot setup with DIY lighting",
+      "filename": "booking.png",
+      "mimeType": "image/png",
+      "filesize": 120000,
+      "width": 1920,
+      "height": 1080,
+      "focalX": 0,
+      "focalY": 0,
+      "createdAt": "2025-08-17T12:00:00.000Z",
+      "updatedAt": "2025-08-17T12:00:00.000Z",
+      "url": "/images/features/booking.png"
+    }
+  },
+  "_status": "published",
+  "createdAt": "2025-08-17T12:00:00.000Z",
+  "updatedAt": "2025-08-17T12:00:00.000Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [],
+  "premiumContent": [],
+  "tags": ["shooting tips", "budget shoots", "content creation"]
+}

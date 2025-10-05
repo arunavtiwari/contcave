@@ -21,7 +21,7 @@ function BookingClient({ reservations, currentUser }: Props) {
 
   const onChat = useCallback((id: string) => {
     window.open(`/chat/${id}`, "_blank")
-  }, [router]);
+  }, []);
   const onDelete = useCallback(
     (id: string) => {
       setDeletingId(id);
@@ -29,11 +29,15 @@ function BookingClient({ reservations, currentUser }: Props) {
       axios
         .delete(`/api/reservations/${id}`)
         .then(() => {
-          toast.info("Reservation deleted");
+          toast.info("Reservation Deleted", {
+            toastId: "Reservation_Deleted"
+          });
           router.refresh();
         })
         .catch((error) => {
-          toast.error(error?.response?.data?.error);
+          toast.error(error?.response?.data?.error, {
+            toastId: "Reservation_Error_1"
+          });
         })
         .finally(() => {
           setDeletingId("");
@@ -49,11 +53,15 @@ function BookingClient({ reservations, currentUser }: Props) {
       axios
         .patch(`/api/reservations/${id}`, { isApproved: 3 })
         .then(() => {
-          toast.success("Reservation cancelled");
+          toast.success("Reservation cancelled", {
+            toastId: "Reservation_Cancelled"
+          });
           router.refresh();
         })
         .catch((error) => {
-          toast.error(error?.response?.data?.error);
+          toast.error(error?.response?.data?.error, {
+            toastId: "Reservation_Error_2"
+          });
         })
         .finally(() => {
           setDeletingId("");
@@ -63,28 +71,30 @@ function BookingClient({ reservations, currentUser }: Props) {
   );
 
   return (
-    <Container>
-      <Heading
-        title="Booking"
-        subtitle="Spaces booked by you"
-      />
-      <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-8">
-        {reservations.map((reservation) => (
-          <BookingCard
-            key={reservation.id}
-            data={reservation.listing}
-            reservation={reservation}
-            actionId={reservation.id}
-            onAction={onCancel}
-            onChat={onChat}
-            onDelete={onDelete}
-            disabled={deletingId === reservation.id}
-            actionLabel="Cancel reservation"
-            currentUser={currentUser}
-          />
-        ))}
-      </div>
-    </Container>
+    <div className="mt-5">
+      <Container>
+        <Heading
+          title="My Bookings"
+          subtitle="Spaces booked by you"
+        />
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-8">
+          {reservations.map((reservation) => (
+            <BookingCard
+              key={reservation.id}
+              data={reservation.listing}
+              reservation={reservation}
+              actionId={reservation.id}
+              onAction={onCancel}
+              onChat={onChat}
+              onDelete={onDelete}
+              disabled={deletingId === reservation.id}
+              actionLabel="Cancel reservation"
+              currentUser={currentUser}
+            />
+          ))}
+        </div>
+      </Container>
+    </div>
   );
 }
 

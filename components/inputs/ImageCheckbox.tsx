@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 type Props = {
   imageUrl: string;
   label?: string;
   checked?: boolean;
-  hideCheckbox?:boolean;
-  hideInputFields?:boolean;
-  addon?:any;
-  onChange: (value: { checked: boolean; price?: any; qty?:any }) => void;
+  hideCheckbox?: boolean;
+  hideInputFields?: boolean;
+  addon?: any;
+  onChange: (value: { checked: boolean; price?: any; qty?: any }) => void;
   onClickChange?: () => void;
 
 };
 
-const ImageCheckbox = ({ imageUrl, label,hideCheckbox, hideInputFields, checked, addon, onChange,onClickChange }: Props) => {
+const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked, addon, onChange, onClickChange }: Props) => {
   const [isChecked, setIsChecked] = useState(checked);
   const [price, setPrice] = useState<number | ''>('');
   const [qty, setQty] = useState<number | ''>('');
@@ -33,60 +34,85 @@ const ImageCheckbox = ({ imageUrl, label,hideCheckbox, hideInputFields, checked,
     // Call onChange only if the checkbox is checked
     if (isChecked) {
       setIsChecked(isChecked);
-      onChange({ checked: true, price: newPrice !== '' ? newPrice : undefined , qty: qty});
-    
+      onChange({ checked: true, price: newPrice !== '' ? newPrice : undefined, qty: qty });
+
     }
   };
   const handleQtyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newQty= e.target.value === '' ? '' : parseInt(e.target.value, 10);
+    const newQty = e.target.value === '' ? '' : parseInt(e.target.value, 10);
     setQty(newQty);
-    // Call onChange only if the checkbox is checked
     if (isChecked) {
       setIsChecked(isChecked);
-      onChange({ checked: true, price: price, qty: newQty!== '' ? newQty: undefined });
+      onChange({ checked: true, price: price, qty: newQty !== '' ? newQty : undefined });
     }
   };
   return (
     <>
 
-    <label className="image-checkbox block cursor-pointer"  data-tooltip-target="tooltip-default">
-     {!hideCheckbox && (<input
-        type="checkbox"
-        checked={isChecked}
-        onChange={handleCheckboxChange}
-        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-md focus:ring-blue-500"
-      />)}
-      {hideCheckbox && <img src={imageUrl} alt={label} className="rounded-md  w-20 mt-6 mb-2"
-      onClick={onClickChange}
-      />}
-      {!hideCheckbox && <img src={imageUrl} alt={label} className="rounded-md" style={{width: addon.width? addon.width+"px":"97px"}}/>}
-   
-      <div className="items-center">
-        <span className="addon-name text-ellipsis truncate">{label}</span>
-        {!hideInputFields && (
-     
-        <input
-          type="text" // Change to number to ensure only numerical input
-          value={addon.price ? addon.price : price}
-          onChange={handlePriceChange}
-          className="w-20 text-center border rounded-md px-2 py-1"
-          placeholder="₹ Price"
-          disabled={!isChecked} // Disable if not checked
-        />     
-      )}
-      </div>
-      {!hideInputFields && (
-      <input
-          type="text" // Change to number to ensure only numerical input
-          value={addon.qty ?addon.qty: qty}
-          onChange={handleQtyChange}
-          className="w-20 text-center border rounded-md px-2 py-1"
-          placeholder="Qty Available"
-          disabled={!isChecked} // Disable if not checked
-          style={{"width": "96%","marginTop": "10px"}}
-        />
-      )}
-    </label>
+      <label className="w-full cursor-pointer flex flex-col items-center" data-tooltip-target="tooltip-default">
+        {!hideCheckbox && (<input
+          type="checkbox"
+          checked={isChecked}
+          onChange={handleCheckboxChange}
+          className="w-6 h-6 text-black bg-gray-100 border-black border-2 rounded-full focus:ring-transparent"
+        />)}
+        {hideCheckbox && (
+          <Image
+            src={imageUrl}
+            alt={label || "image"}
+            width={80}
+            height={80}
+            className="rounded-md w-20 mt-6 mb-2"
+            onClick={onClickChange}
+          />
+        )}
+        {!hideCheckbox && (
+          <Image
+            src={imageUrl}
+            alt={label || "image"}
+            width={addon.width ? Number(addon.width) : 97}
+            height={addon.width ? Number(addon.width) : 97}
+            className="rounded-md mt-2"
+          />
+        )}
+
+
+        <div className="w-full flex flex-col items-center gap-3">
+          <span className="addon-name truncate mt-2">{label}</span>
+          {/* Price */}
+          {!hideInputFields && (
+            <div className='flex items-center gap-4 w-full justify-between'>
+              <label className="text-sm">Price</label>
+              <div className="relative flex items-center">
+                <span className="absolute left-2 text-gray-500 border-r pr-2">₹</span>
+                <input
+                  type="number"
+                  value={addon.price ? addon.price : price}
+                  onChange={handlePriceChange}
+                  className="w-[150px] text-center border rounded-xl py-1 pl-10"
+                  placeholder="Price"
+                  disabled={!isChecked}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Quantity */}
+          {!hideInputFields && (
+            <div className='flex items-center gap-4 w-full justify-between'>
+              <label className="text-sm">Quantity</label>
+              <input
+                type="number"
+                value={addon.qty ? addon.qty : qty}
+                onChange={handleQtyChange}
+                className="w-[150px] text-center border rounded-xl py-1 pl-7"
+                placeholder="Quantity"
+                disabled={!isChecked}
+              />
+            </div>
+          )}
+        </div>
+      </label>
     </>
   );
 };

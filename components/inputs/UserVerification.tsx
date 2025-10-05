@@ -16,7 +16,6 @@ const UserVerification = ({onSubmit}: Props) => {
 
     onSubmit();
   }, [onSubmit, disabled]);
-  // Handlers would go here to manage state changes, form submissions, etc.
 
   return (
     <div className="bg-opacity-50 overflow-y-auto h-full w-full" id="my-modal">
@@ -28,7 +27,7 @@ const UserVerification = ({onSubmit}: Props) => {
             <div className='flex gap-10  pb-6 mt-3'>
 
               <div className="flex-1 p-3 rounded">
-                <button className="flex bg-rose-500 shadow-lg text-white py-2 px-4 rounded rounded-lg hover:bg-rose-500 focus:outline-none focus:bg-rose-700 mx-auto">
+                <button className="flex bg-rose-500 shadow-lg text-white py-2 px-4 rounded-lg hover:bg-rose-500 focus:outline-none focus:bg-rose-700 mx-auto">
                   <FiUpload /> &nbsp; <label className="text-sm">Upload Document/s</label>
                 </button>
                 {/* Placeholder for uploaded documents */}
@@ -124,7 +123,7 @@ const UserVerification = ({onSubmit}: Props) => {
             <div className="items-center px-4 py-3">
               <button id="ok-btn"
               onClick={handleSubmit}
-              className="bg-blue-500 bg-rose-500 focus:outline-none focus:ring-2 focus:ring-blue-300 font-medium hover:opacity-80 mt-4 px-4 py-3 rounded-md rounded-xl shadow-sm text-base text-white w-[40vw]">
+              className="bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 font-medium hover:opacity-80 mt-4 px-4 py-3 rounded-xl shadow-sm text-base text-white w-[40vw]">
                 Complete Verification
               </button>
             </div>

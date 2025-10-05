@@ -1,82 +1,95 @@
 "use client";
 
-import { CldUploadWidget } from "next-cloudinary";
+import React, { useState } from "react";
 import Image from "next/image";
-import React, { useCallback } from "react";
 import { TbPhotoPlus } from "react-icons/tb";
-
-declare global {
-  var cloudinary: any;
-}
 
 type Props = {
   onChange: (value: string[]) => void;
   values: string[];
-  height?:number,
-  width?:number,
-  isFromPropertyClient?:boolean,
+  isFromPropertyClient?: boolean;
+  circle?: boolean;
 };
 
-function ImageUpload({ onChange, values, height, width, isFromPropertyClient = false }: Props) {
-  const handleCallback = useCallback(
-    (result: any) => {
-      const urls = Array.isArray(result.info.secure_url)
-        ? result.info.secure_url
-        : [result.info.secure_url];
+function ImageUpload({
+  onChange,
+  values,
+  isFromPropertyClient = false,
+  circle = false,
+}: Props) {
+  const [uploading, setUploading] = useState(false);
 
-      onChange([...values, ...urls]);
-    },
-    [onChange, values]
-  );
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+
+    const uploadedUrls: string[] = [];
+
+    for (const file of Array.from(files)) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "phxjukr6");
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      try {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (data.secure_url) {
+          uploadedUrls.push(data.secure_url);
+        }
+      } catch (error) {
+        console.error("Upload failed:", error);
+      }
+    }
+
+    setUploading(false);
+    onChange([...values, ...uploadedUrls]);
+  };
 
   return (
-    <CldUploadWidget
-      onUpload={handleCallback}
-      uploadPreset="phxjukr6"
-      options={{
-        maxFiles: 10,
-        multiple: true
-      }}
+    <label
+      htmlFor="file-upload"
+      className={`relative cursor-pointer hover:opacity-85 transition border-dashed flex flex-col justify-center items-center text-neutral-600 ${circle ? "rounded-full" : "rounded-xl"
+        } ${circle ? "w-full h-full" : "w-32 h-32 p-2 border-2 border-neutral-300"}`}
     >
-      {({ open }) => {
-        return (
-          <div
-            onClick={() => open?.()}
-            className={`relative cursor-pointer hover:opacity-70 transition border-dashed border-2  border-neutral-300 flex flex-col justify-center items-center text-neutral-600 
-            ${isFromPropertyClient ? 'p-5 rounded-md gap-0' : ' gap-4  p-20'}`}
-          >
-            <TbPhotoPlus size={isFromPropertyClient ? 30 : 50} />
-            <div className={`font-semibold text-lg  ${isFromPropertyClient ? 'text-sm' : 'text-lg'}`}>Click to upload</div>
-            {values.length > 0 && (
-              <div className=" absolute inset-0 w-full h-full">
-                {values.map((url, index) => (
-                  
-                    height ? (
-                      <Image
-                      key={index}
-                      height={height}
-                      width={width}
-                      alt={`upload-${index}`}
-                      style={{ objectFit: "cover" }}
-                      src={url}
-                    />
-                    ): (
-                      <Image
-                      key={index}
-                      alt={`upload-${index}`}
-                      fill
-                      style={{ objectFit: "cover" }}
-                      src={url}
-                    />
-                    )
-                
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      }}
-    </CldUploadWidget>
+      {uploading ? (
+        <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+      ) : circle ? (
+        values && values.length > 0 ? (
+          <Image
+            src={values[0]}
+            alt="Profile"
+            width={128}
+            height={128}
+            className="w-full h-full object-cover rounded-full"
+          />
+        ) : (
+          <TbPhotoPlus size={30} className="text-neutral-600" />
+        )
+      ) : (
+        <TbPhotoPlus size={30} className="text-neutral-600" />
+      )}
+
+      {!circle && (
+        <div className="font-semibold mt-1 flex items-center gap-2 text-sm">
+          {uploading ? "Uploading" : "Upload Image"}
+        </div>
+      )}
+
+      <input
+        id="file-upload"
+        type="file"
+        multiple
+        onChange={handleUpload}
+        className="hidden"
+        accept="image/*"
+      />
+    </label>
   );
 }
 

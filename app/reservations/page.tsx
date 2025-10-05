@@ -4,7 +4,19 @@ import React from "react";
 import getCurrentUser from "../actions/getCurrentUser";
 import getReservation from "../actions/getReservations";
 import ReservationsClient from "./ReservationsClient";
-export const dynamic = "force-dynamic"
+import type { Metadata } from "next";
+import { BRAND_NAME } from "@/lib/seo";
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: `Guest Reservations | ${BRAND_NAME}`,
+  description: "Track and manage upcoming reservations across your ContCave listings.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 type Props = {};
 

@@ -4,32 +4,35 @@ import Image from "next/image";
 import React from "react";
 
 type Props = {
-  src: string | null | undefined;
-  userName?: string | null | undefined;
+  src?: string | null;
+  userName?: string | null;
+  size?: number;
 };
 
-function Avatar({ src, userName }: Props) {
+function Avatar({ src, userName, size = 30 }: Props) {
   return (
     <div>
       {src ? (
         <Image
           className="rounded-full"
-          height="30"
-          width="30"
-          alt="hasImag"
+          height={size}
+          width={size}
+          alt="hasImage"
           src={src}
         />
       ) : userName ? (
-        <img
-          className="rounded-full h-[30px] w-[30px]"
+        <Image
+          className="rounded-full"
           alt="nameImage"
-          src={`https://ui-avatars.com/api/?name=${userName}`}
+          width={size}
+          height={size}
+          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&size=${size}`}
         />
       ) : (
         <Image
           className="rounded-full"
-          height="30"
-          width="30"
+          height={size}
+          width={size}
           alt="noUser"
           src="/assets/avatar.png"
         />

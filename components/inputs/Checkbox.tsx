@@ -7,7 +7,13 @@ type Props = {
 const Checkbox = ({ label, isChecked, onChange }: Props) => {
     return (
         <div className="flex items-center">
-            <input type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 focus:ring-2 " checked={isChecked} onChange={onChange}></input>
+            <input
+                type="checkbox"
+                value=""
+                className="w-4.5 h-4.5 text-black bg-gray-100 rounded-full border-gray-300 focus:outline-none focus:ring-transparent"
+                checked={isChecked}
+                onChange={onChange}
+            />
             <label className="ml-2 text-sm font-medium text-gray-900 ">{label}</label>
         </div>
 

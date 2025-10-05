@@ -26,31 +26,30 @@ type Props = {
 function Map({ center, locationValue }: Props) {
   return (
     <MapContainer
-      center={(center as L.LatLngExpression) || [51, -0.09]}
-      zoom={center ? 4 : 2}
+      center={(center as L.LatLngExpression) || [20.5937, 78.9629]}
+      zoom={center ? 10 : 4}
       scrollWheelZoom={false}
       className="h-[35vh] rounded-lg"
+
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      {locationValue ? (
-        <>
-          {center && (
-            <Marker position={center as L.LatLngExpression}>
-              <Popup>
-                <div className="flex justify-center items-center animate-bounce">
-                  <Flag code={locationValue} className="w-10" />
-                </div>
-              </Popup>
-            </Marker>
+
+      {center && (
+        <Marker position={center as L.LatLngExpression}>
+          {locationValue && (
+            <Popup>
+              <div className="flex justify-center items-center animate-bounce">
+                <Flag code={locationValue} className="w-10" />
+              </div>
+            </Popup>
           )}
-        </>
-      ) : (
-        <>{center && <Marker position={center as L.LatLngExpression} />}</>
+        </Marker>
       )}
     </MapContainer>
+
   );
 }
 

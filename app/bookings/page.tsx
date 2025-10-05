@@ -4,7 +4,20 @@ import React from "react";
 import getCurrentUser from "../actions/getCurrentUser";
 import getReservation from "../actions/getReservations";
 import BookingClient from "./BookingClient";
-export const dynamic = "force-dynamic"
+import Container from "@/components/Container";
+import type { Metadata } from "next";
+import { BRAND_NAME } from "@/lib/seo";
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: `My Bookings | ${BRAND_NAME}`,
+  description: "View and manage reservations you have made on ContCave.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 type Props = {};
 
@@ -35,9 +48,11 @@ const BookingPage = async (props: Props) => {
   }
 
   return (
+
     <ClientOnly>
       <BookingClient reservations={reservations} currentUser={currentUser} />
     </ClientOnly>
+
   );
 };
 

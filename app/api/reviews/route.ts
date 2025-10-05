@@ -9,9 +9,7 @@ interface IBody {
   comment: string;
 }
 
-export async function POST(
-  request: Request
-) {
+export async function POST(request: Request) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -21,14 +19,20 @@ export async function POST(
   const body: IBody = await request.json();
   const { listingId, reservationId, rating, comment } = body;
 
-  if (!listingId || typeof listingId !== "string" ||
-      !reservationId || typeof reservationId !== "string" ||
-      typeof rating !== "number" || rating < 1 || rating > 5 ||
-      !comment || typeof comment !== "string") {
+  if (
+    !listingId ||
+    typeof listingId !== "string" ||
+    !reservationId ||
+    typeof reservationId !== "string" ||
+    typeof rating !== "number" ||
+    rating < 1 ||
+    rating > 5 ||
+    !comment ||
+    typeof comment !== "string"
+  ) {
     throw new Error("Invalid input");
   }
 
-  // Check if the user has made a booking for this listing
   const reservation = await prisma.reservation.findFirst({
     where: {
       id: reservationId,
@@ -41,7 +45,6 @@ export async function POST(
     return NextResponse.error();
   }
 
-  // Add the review
   const review = await prisma.review.create({
     data: {
       userId: currentUser.id,
@@ -50,6 +53,18 @@ export async function POST(
       rating: rating,
       comment: comment,
     },
+  });
+
+  const aggregateResult = await prisma.review.aggregate({
+    where: { listingId },
+    _avg: { rating: true },
+  });
+
+  const avgRating = aggregateResult._avg.rating ?? 0;
+
+  await prisma.listing.update({
+    where: { id: listingId },
+    data: { avgReviewRating: avgRating },
   });
 
   return NextResponse.json(review);

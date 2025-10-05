@@ -5,11 +5,9 @@ interface IParams {
   paidaddonId?: string;
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: IParams }
-) {
-  
+export async function DELETE(request: Request, props: { params: Promise<IParams> }) {
+  const params = await props.params;
+
   const { paidaddonId } = params;
 
   if (!paidaddonId || typeof paidaddonId !== "string") {

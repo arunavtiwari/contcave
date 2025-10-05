@@ -64,8 +64,8 @@ function UserMenu({ currentUser }: Props) {
 
   return (
     <div className="relative">
-      <div className="flex flex-row items-center gap-3">
-        <div className="flex flex-row items-center gap-1">
+      <div className="flex">
+        {/* <div className="flex flex-row items-center gap-1">
           <div
             className="hidden md:block text-sm font-semibold p-3 rounded-full hover:bg-neutral-100 transition cursor-pointer"
             onClick={onRent}
@@ -84,7 +84,7 @@ function UserMenu({ currentUser }: Props) {
           >
             Hire Talent
           </div>
-        </div>
+        </div> */}
         <div
           onClick={toggleOpen}
           className="ai-outline-menu p-4 md:py-1 md:px-2 border-[2px] flex flex-row items-center gap-3 rounded-full cursor-pointer hover:shadow-md transition"
@@ -108,39 +108,28 @@ function UserMenu({ currentUser }: Props) {
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute rounded-xl shadow-solid-6 w-[40vw] md:w-3/4 bg-white overflow-hidden right-0 top-[3.2rem] text-sm p-3"
+          className="absolute rounded-xl shadow-solid-6 min-w-60 bg-white overflow-hidden right-0 top-[3.2rem] text-sm p-3"
         >
           <div className="flex flex-col cursor-pointer">
             {currentUser ? (
               <>
-                <MenuItem
-                  onClick={() => router.push("/bookings")}
-                  label="My Bookings"
-                />
-                <MenuItem
-                  onClick={() => router.push("/favorites")}
-                  label="My Favorites"
-                />
-                <MenuItem
-                  onClick={() => router.push("/reservations")}
-                  label="Guest Reservations"
-                />
-                <MenuItem
-                  onClick={() => router.push("/properties")}
-                  label="My Properties"
-                />
-                <MenuItem onClick={onRent} label="List your space" />
-                <MenuItem
-                  onClick={() => router.push("/Profile")}
-                  label="My Profile"
-                />
-                <hr className="my-2" />
-                <MenuItem onClick={() => signOut()} label="Logout" />
+                <MenuItem onClick={() => { router.push("/bookings"); closeMenu(); }} label="My Bookings" />
+                <MenuItem onClick={() => { router.push("/favorites"); closeMenu(); }} label="My Favorites" />
+                {currentUser?.is_owner && (
+                  <>
+                    <MenuItem onClick={() => { router.push("/reservations"); closeMenu(); }} label="Guest Reservations" />
+                    <MenuItem onClick={() => { router.push("/properties"); closeMenu(); }} label="My Properties" />
+                    <MenuItem onClick={() => { onRent(); closeMenu(); }} label="List your space" />
+                  </>
+                )}
+                <MenuItem onClick={() => { router.push("/Profile"); closeMenu(); }} label="My Profile" />
+                <MenuItem onClick={() => { signOut(); closeMenu(); }} label="Logout" />
               </>
             ) : (
               <>
-                <MenuItem onClick={loginModel.onOpen} label="Login" />
-                <MenuItem onClick={registerModel.onOpen} label="Sign up" />
+                <MenuItem onClick={() => { loginModel.onOpen(); closeMenu(); }} label="Login" />
+                <MenuItem onClick={() => { registerModel.onOpen(); closeMenu(); }} label="Sign up" />
+
               </>
             )}
           </div>

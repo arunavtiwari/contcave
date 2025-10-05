@@ -1,8 +1,6 @@
-// server.ts
-export { }
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-const next = require('next');
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import next from 'next';
 
 const dev = process.env.NODE_ENV !== 'production';
 const nextApp = next({ dev });
@@ -24,7 +22,7 @@ nextApp.prepare().then(() => {
 
     socket.on('message', (msg) => {
       console.log('Message received: ', msg);
-      io.emit('message', msg); // Broadcast the message to all connected clients
+      io.emit('message', msg);
     });
 
     socket.on('disconnect', () => {

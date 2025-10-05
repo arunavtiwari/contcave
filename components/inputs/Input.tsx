@@ -9,8 +9,10 @@ type Props = {
   disabled?: boolean;
   formatPrice?: boolean;
   required?: boolean;
-  register: ReturnType<UseFormRegister<FieldValues>>;
-  errors: FieldErrors;
+  register?: ReturnType<UseFormRegister<FieldValues>>;
+  value?: string | number;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  errors?: FieldErrors;
 };
 
 function Input({
@@ -20,9 +22,12 @@ function Input({
   disabled,
   formatPrice,
   register,
+  value,
+  onChange,
   required = true,
   errors,
 }: Props) {
+  const hasError = errors?.[id];
   return (
     <div className="w-full relative">
       {formatPrice && (
@@ -31,28 +36,26 @@ function Input({
           className="
             text-neutral-700
             absolute
-            top-5
+            top-2.5
             left-2
+            border-r
+            pr-1
+            border-neutral-300
           "
         />
       )}
       <input
         id={id}
         disabled={disabled}
-        {...register}
-        placeholder=" "
+        {...(register ?? {})}
+        placeholder={label}
         type={type}
-        className={`peer w-full p-4 pt-6 font-light bg-white border-2 rounded-md outline-none transition disabled:opacity-70 disabled:cursor-not-allowed ${formatPrice ? "pl-9" : "pl-4"
-          } ${errors[id] ? "border-rose-500" : "border-neutral-300"} ${errors[id] ? "focus:border-rose-500" : "focus:border-black"
+        value={value}
+        onChange={onChange}
+        className={`peer w-full font-light bg-white border-2 rounded-md outline-none transition disabled:opacity-70 disabled:cursor-not-allowed py-2.5 ${formatPrice ? "pl-10" : "pl-4"
+          } ${hasError ? "border-rose-500" : "border-neutral-300"} ${hasError ? "focus:border-rose-500" : "focus:border-black"
           }`}
       />
-      <label
-        className={`absolute text-md duration-150 transform -translate-y-3 top-5 z-10 origin-[0] ${formatPrice ? "left-9" : "left-4"
-          } peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 ${errors[id] ? "text-rose-500" : "text-zinc-400"
-          }`}
-      >
-        {label}
-      </label>
     </div>
   );
 }

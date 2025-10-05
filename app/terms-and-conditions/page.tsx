@@ -1,31 +1,45 @@
-"use client";
-
-import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
+import Image from "next/image";
 import React from "react";
-import getCurrentUser from "../actions/getCurrentUser";
+import type { Metadata } from "next";
+import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+const DESCRIPTION =
+  "Review the terms, acceptable use, and booking policies that govern access to ContCave's studio marketplace." as const;
+
+export const metadata: Metadata = {
+  title: `Terms & Conditions | ${BRAND_NAME}`,
+  description: DESCRIPTION,
+  alternates: { canonical: "/terms-and-conditions" },
+  openGraph: {
+    title: `Terms & Conditions | ${BRAND_NAME}`,
+    description: DESCRIPTION,
+    url: `${SITE_URL}/terms-and-conditions`,
+    type: "article",
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `Terms & Conditions | ${BRAND_NAME}`,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+};
 
 type Props = {};
 
-const TermsAndConditions = async (props: Props) => {
-    const currentUser = await getCurrentUser();
-
+const TermsAndConditions = (props: Props) => {
     return (
-        <ClientOnly>
+        <>
             <div className="banner">
-                <img
-                    src="/assets/footer-banner.jpg"
-                    alt="Banner Image"
-                />
+                <Image src="/assets/footer-banner.jpg" fill alt="Banner Image" />
                 <div className="overlay">
                     <h1 className="banner-text">Terms & Conditions</h1>
                 </div>
             </div>
 
             <Container>
-                <div className="pt-10 pb-60">
+                <div className="pt-10">
                     <div className="container mx-auto mt-8 p-8 bg-white shadow-lg space-y-6">
                         <h2 className="text-2xl font-bold text-gray-800">
                             Terms & Conditions
@@ -117,7 +131,7 @@ const TermsAndConditions = async (props: Props) => {
                     </div>
                 </div>
             </Container>
-        </ClientOnly>
+        </>
     );
 };
 

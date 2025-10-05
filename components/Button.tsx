@@ -8,6 +8,7 @@ type Props = {
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
   outline?: boolean;
+  rounded?: boolean;
   small?: boolean;
   icon?: IconType;
   isColor?: boolean;
@@ -19,6 +20,7 @@ function Button({
   onClick,
   disabled,
   outline,
+  rounded,
   small,
   icon: Icon,
   isColor,
@@ -31,18 +33,22 @@ function Button({
       className={`relative 
         disabled:opacity-70 
         disabled:cursor-not-allowed 
-        hover:opacity-80 
-        rounded-md
-        py-3 
+        hover:opacity-90 
+        py-[10px]
         transition 
         w-full 
-        ${classNames || (outline ? "bg-white border-black text-black" : "bg-black border-red-500 text-white")}
+        flex
+        justify-center
+        gap-5
+        border
+        ${rounded ? " rounded-full" : "rounded-md"}
+        ${classNames || (outline ? "bg-white border border-black text-black" : "bg-black border border-black text-white")}
       `}
     >
       {Icon && (
         <Icon
           size={24}
-          className={`absolute left-4 top-3 ${isColor && "text-blue-600"}`}
+          className={`${isColor && "text-blue-600"}`}
         />
       )}
       {label}

@@ -2,42 +2,179 @@ import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import React from "react";
 import getCurrentUser from "../actions/getCurrentUser";
-export const dynamic = "force-dynamic"
+import Image from "next/image";
+import { Building2, Heart, Users } from "lucide-react";
+import Hero from "./hero";
+import type { Metadata } from "next";
+import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
-type Props = {};
+export const dynamic = "force-dynamic";
 
-const About = async (props: Props) => {
-    const currentUser = await getCurrentUser();
+const DESCRIPTION =
+  "Learn how ContCave empowers creatives with a curated network of production-ready studios, industry partners, and hands-on support." as const;
 
-    return (
-        <ClientOnly>
-            <div className="banner">
-                <img src="/assets/footer-banner.jpg" alt="Banner Image" />
-                <div className="overlay">
-                    <h1 className="banner-text">About Us</h1>
-                </div>
+export const metadata: Metadata = {
+  title: `About ${BRAND_NAME}`,
+  description: DESCRIPTION,
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: `About ${BRAND_NAME}`,
+    description: DESCRIPTION,
+    url: `${SITE_URL}/about`,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `About ${BRAND_NAME}`,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+};
+
+const About = async () => {
+  const currentUser = await getCurrentUser();
+
+  return (
+    <ClientOnly>
+      {/* Hero Section */}
+      {/* <div className="relative h-[40vh] w-full">
+        <Image
+          src="/assets/footer-banner.jpg"
+          fill
+          alt="Banner Image"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-white text-center max-w-3xl leading-tight">
+            Sustaining & Growing <span className="underline">Creative Ecosytem</span>
+          </h1>
+        </div>
+      </div> */}
+
+<Hero />
+      
+
+      <Container>
+        <div className="py-20 space-y-24">
+          {/* Founders Note */}
+          <section className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-black mb-6">
+              Our Story
+            </h2>
+            <p className="text-gray-700 text-lg leading-relaxed">
+              We started <strong>ContCave</strong> with one belief: no creative
+              idea should be left unrealized just because the right space wasn&apos;t
+              accessible. Every café corner, every studio, every underused nook
+              deserves a chance to tell a story.
+            </p>
+            <p className="text-gray-700 text-lg leading-relaxed mt-6">
+              As part of <strong>Arkanet Ventures LLP</strong>, our mission is
+              to sustain, drive, and grow human art by making creative spaces
+              discoverable, accessible, and celebrated.
+            </p>
+          </section>
+
+          {/* Core Values */}
+          <section>
+            <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-14">
+              What We Stand For
+            </h2>
+            <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition">
+                <Building2 className="mx-auto mb-4 w-10 h-10 text-black" />
+                <h3 className="text-xl font-semibold mb-3 text-black">
+                  Space Utilisation
+                </h3>
+                <p className="text-gray-600">
+                  No creative space should go to waste — whether it&apos;s a café, a
+                  studio, or a hidden corner. Every space can inspire art.
+                </p>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition">
+                <Heart className="mx-auto mb-4 w-10 h-10 text-black" />
+                <h3 className="text-xl font-semibold mb-3 text-black">
+                  Sustaining Human Creativity
+                </h3>
+                <p className="text-gray-600">
+                  Technology may evolve, but human creativity is timeless. We
+                  exist to give it space, voice, and longevity.
+                </p>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition">
+                <Users className="mx-auto mb-4 w-10 h-10 text-black" />
+                <h3 className="text-xl font-semibold mb-3 text-black">
+                  Community First
+                </h3>
+                <p className="text-gray-600">
+                  Our vision is to build a community where creators support each
+                  other, share spaces, and thrive together.
+                </p>
+              </div>
             </div>
-            <Container>
-                <div className="pt-10 pb-60">
-                    <div className="container mx-auto mt-8 p-8 bg-white shadow-lg">
+          </section>
 
-                        <p className="text-gray-700">
-                            Welcome to Contcave, a beacon of creativity and innovation in the digital content creation landscape. Our platform is designed to empower content creators, offering them the tools, spaces, and connections needed to bring their visions to life. At the heart of our mission lies the commitment to fostering a vibrant community where storytelling and visual creativity flourish.
-                        </p>
-                        <p className="text-gray-700 mt-4">
-                            Our vision is to revolutionize the way content is created, shared, and experienced. By simplifying access to high-quality studios, cutting-edge equipment, and exceptional talent, we aim to eliminate the barriers that creators face, enabling them to focus on what they do best: creating inspiring and impactful content.
-                        </p>
-                        <p className="text-gray-700 mt-4">
-                            At Contcave, we&apos;re not just about providing services; we&apos;re about building connections. We connect creators with the resources they need, from studio bookings and equipment rentals to talent hiring. But beyond that, we strive to connect ideas with opportunities, vision with execution, and creativity with audiences worldwide.
-                        </p>
-                        <p className="text-gray-700 mt-4">
-                            Join us on this journey of innovation and creativity. Whether you&apos;re a seasoned content creator or just starting out, Contcave is here to support you every step of the way. Together, we can redefine the creative process and celebrate the power of storytelling in all its forms.
-                        </p>
-                    </div>
-                </div>
-            </Container>
-        </ClientOnly>
-    );
+          {/* Vision Timeline */}
+          <section>
+            <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-14">
+              Our Vision
+            </h2>
+            <div className="relative border-l-2 border-gray-300 max-w-3xl mx-auto">
+              <div className="mb-12 ml-8">
+                <span className="absolute -left-3 w-6 h-6 bg-black rounded-full"></span>
+                <h3 className="text-xl font-semibold text-black">
+                  2024 – The Spark
+                </h3>
+                <p className="text-gray-600">
+                  We saw creators struggling to find affordable, accessible
+                  spaces for storytelling.
+                </p>
+              </div>
+              <div className="mb-12 ml-8">
+                <span className="absolute -left-3 w-6 h-6 bg-black rounded-full"></span>
+                <h3 className="text-xl font-semibold text-black">
+                  2025 – The Launch
+                </h3>
+                <p className="text-gray-600">
+                  ContCave was born: a platform to repurpose every creative
+                  corner into a canvas.
+                </p>
+              </div>
+              <div className="ml-8">
+                <span className="absolute -left-3 w-6 h-6 bg-black rounded-full"></span>
+                <h3 className="text-xl font-semibold text-black">
+                  What&apos;s ahead of us?
+                </h3>
+                <p className="text-gray-600">
+                  A community-led ecosystem where art sustains, drives, and
+                  grows, powered by shared spaces and human stories.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Call to Action */}
+          <section className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-black mb-6">
+              Join the First Wave
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto mb-8">
+              Be part of the movement to make creative spaces in India more
+              accessible, celebrated, and sustainable.
+            </p>
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdYngGwgLaHCYcejKqCvwsdhxykFbr2UxxCHdXusQrXDaubWA/viewform"
+              target="_blank"
+              className="inline-block bg-black text-white px-8 py-3 rounded-xl text-lg font-semibold hover:bg-gray-800 transition"
+            >
+              Get Involved
+            </a>
+          </section>
+        </div>
+      </Container>
+    </ClientOnly>
+  );
 };
 
 export default About;

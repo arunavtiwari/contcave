@@ -1,34 +1,22 @@
 "use client";
-
-import ClientOnly from "@/components/ClientOnly";
-import Container from "@/components/Container";
-import React from "react";
-import Image from "next/image";
-import getCurrentUser from "../actions/getCurrentUser";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Sidebar from "@/components/Sidebar";
+import Heading from "@/components/Heading";
 
 type Props = {};
 
 const ProfileTransactionClient = ({ profile }) => {
   const router = useRouter();
+  const [selectedMenu, setSelectedMenu] = useState("Manage Payments");
   return (
 
-    <div className="flex py-10">
-      <div className="w-14 sticky top-50 flex flex-col items-center justify-center h-max p-4 rounded-full space-y-10 bg-[#12121291] backdrop-blur-xl ms-3">
-        <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/Profile")}>
-          <Image src="/assets/user-white.svg" width={25} height={25} alt="" className="object-contain" />
-        </div>
-        <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/payment-details")}>
-          <Image src="/assets/faCreditCard-black.svg" width={25} height={25} alt="" className="object-contain" />
-        </div>
-        <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-share")}>
-          <Image src="/assets/faUserPlus.svg" width={25} height={25} alt="" className="object-contain" />
-        </div>
-        <div className="flex items-center justify-center cursor-pointer" onClick={() => router.push("/profile-settings")}>
-          <Image src="/assets/faSettings.svg" width={25} height={25} alt="" className="object-contain" />
-        </div>
-      </div>
-      <div className="xl:w-[calc(100%-80px)] lg:w-[calc(100%-80px)] md:w-[calc(100%-80px)] w-[calc(100%-64px)] xl:px-10 lg:px-10 md:px-6 px-6">
+    <div className="flex">
+      {/* Sidebar */}
+      <Sidebar selectedMenu={selectedMenu} setSelectedMenu={setSelectedMenu} menuType="profile" />
+
+      <div className="flex flex-col sm:p-8 sm:pt-12 w-full gap-5 sm:border-l-2 border-gray-200">
+        <Heading title="Transactions"></Heading>
         <div className="flex xl:flex-nowrap lg:flex-nowrap md:flex-wrap flex-wrap gap-2">
           <h2 className="xl:text-center lg:text-center md:text-center text-left text-2xl font-bold p-4 cursor-pointer shadow-solid-6 rounded-t-xl">Transaction History</h2>
           <h2 className="xl:text-center lg:text-center md:text-center text-left xl:text-2xl lg:text-2xl md:text-2xl text-lg text-slate-700 font-medium xl:px-8 lg:px-8 md:px-0 px-0 p-4 cursor-pointer" onClick={() => router.push("/payment-details")}>Payment Details</h2>

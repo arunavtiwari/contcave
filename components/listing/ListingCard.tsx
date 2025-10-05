@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import React, { useCallback, useMemo } from "react";
 import Button from "../Button";
 import HeartButton from "../HeartButton";
+import { FaStar } from "react-icons/fa6";
 
 type Props = {
   data: safeListing;
@@ -73,13 +74,13 @@ function ListingCard({
         ease: [0, 0.71, 0.2, 1.01],
       }}
       onClick={() => onEdit ? router.push(`/properties/${data.id}`) : router.push(`/listings/${data.id}`)}
-      className="col-span-1 cursor-pointer group p-5 shadow-solid-6 rounded-2xl"
+      className="col-span-1 cursor-pointer group p-5 shadow-md rounded-2xl border border-neutral-200"
     >
       <div className="flex flex-col gap-2 w-full">
         <div className="aspect-square w-full relative overflow-hidden rounded-xl">
           <Image
             fill
-            className="object-cover h-full w-full group-hover:scale-110 transition"
+            className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-700"
             src={data.imageSrc[0] || "/assets/listing-image-default.png"}
             alt="listing"
           />
@@ -87,62 +88,71 @@ function ListingCard({
             <HeartButton listingId={data.id} currentUser={currentUser} />
           </div>
         </div>
-        <div className="font-semibold text-lg">
-          {data.title}
-        </div>
-        <div className="font-light text-neutral-500">
-          {data.category} | {location?.label}
+        <div>
+          <div className="flex justify-between items-center">
+            <div className="font-semibold text-lg">
+              {data.title}
+            </div>
+            {data.avgReviewRating && data.avgReviewRating != 0 && (
+              <div className="font-semibold text-md flex items-center gap-1.5">
+                <FaStar size={18} color="gold" /> {data.avgReviewRating?.toFixed(1)}
+              </div>
+            )}
+
+          </div>
+          <div className="font-light text-neutral-500">
+            {data.category} | {location?.label}
+          </div>
         </div>
         <div className="flex flex-row items-center">
           <div className="flex gap-1 font-semibold">
             ₹{price} {!reservation && <div className="font-light">/ Hour</div>}
           </div>
         </div>
-        <div className="flex mt-2">
-          {onEdit && (
-            <Button
-              label="Manage"
-              onClick={() => onEdit(data.id)}
-              classNames="button button-rounded"
-            />
-          )}
 
-          {/* {onDelete && (
-            <Button
-              label="Delete"
-              classNames="outline"
-              onClick={() => onDelete(data.id)}
-            />
-          )} */}
-          {!reservation?.isApproved && onApprove && (
-            <Button
-              label="Approve"
-              classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
-              onClick={() => onApprove(reservation?.id ?? "")}
-            />
-          )}
-          {!reservation?.isApproved && onApprove && (
-            <Button
-              label="Cancel"
-              classNames="text-md font-semibold py-3 border-2  bg-rose-500 border-rose-500 text-white ml-2"
-              onClick={() => onApprove(reservation?.id ?? "")}
-            />
-          )}
-          {reservation && reservation?.isApproved != 0 && onChat && (
-            <>
+        {(onEdit || (!reservation?.isApproved && onApprove) || (reservation?.isApproved !== 0 && onChat)) && (
+          <div className="flex mt-2">
+            {onEdit && (
               <Button
-                label="Approved"
-                classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
-                onClick={() => reservation.isApproved}
+                rounded
+                label="Manage"
+                onClick={() => router.push(`/properties/${data.id}`)}
+                classNames="button"
               />
-              <Button
-                label="Chat"
-                classNames="text-md font-semibold py-3 border-2  bg-green-500 border-green-500 text-white ml-2"
-                onClick={() => onChat(reservation?.id ?? "")}
-              />
-            </>
-          )}
-        </div>
+            )}
+
+            {!reservation?.isApproved && onApprove && (
+              <>
+                <Button
+                  label="Approve"
+                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-white ml-2"
+                  onClick={() => onApprove(reservation?.id ?? "")}
+                />
+                <Button
+                  label="Cancel"
+                  classNames="text-md font-semibold py-3 border-2 bg-rose-500 border-rose-500 text-white ml-2"
+                  onClick={() => onApprove(reservation?.id ?? "")}
+                />
+              </>
+            )}
+
+            {reservation && reservation?.isApproved != 0 && onChat && (
+              <>
+                <Button
+                  label="Approved"
+                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-white ml-2"
+                  onClick={() => reservation.isApproved}
+                />
+                <Button
+                  label="Chat"
+                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-white ml-2"
+                  onClick={() => onChat(reservation?.id ?? "")}
+                />
+              </>
+            )}
+          </div>
+        )}
+
       </div>
     </motion.div>
   );

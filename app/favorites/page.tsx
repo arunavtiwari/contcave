@@ -4,7 +4,19 @@ import React from "react";
 import getCurrentUser from "../actions/getCurrentUser";
 import getFavoriteListings from "../actions/getFavoriteListings";
 import FavoritesClient from "./FavoritesClient";
-export const dynamic = "force-dynamic"
+import type { Metadata } from "next";
+import { BRAND_NAME } from "@/lib/seo";
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: `Saved Spaces | ${BRAND_NAME}`,
+  description: "Quickly access the studios and listings you've marked as favourites on ContCave.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 type Props = {};
 

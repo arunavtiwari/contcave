@@ -12,8 +12,9 @@ import { GrWorkshop } from "react-icons/gr";
 import { MdOutlineBathtub, MdOutlineCoffeeMaker, MdTableRestaurant } from "react-icons/md";
 import { RiSafeLine } from "react-icons/ri";
 import { TbAirConditioning } from "react-icons/tb";
-
-
+import { PiProjectorScreenFill } from "react-icons/pi";
+import { BsFillCameraVideoFill } from "react-icons/bs";
+import { MdTableRows } from "react-icons/md";
 
 type Props = {
   amenities?: Array<any>;
@@ -61,18 +62,19 @@ const getIconByName = (name) => {
     {
       "id": "65b2ace316d8d0003b5c6e18",
       "name": "Wardrobe Rack",
-      "icon": FaPlus,
+      "icon": MdTableRows,
       "createdAt": "2024-01-25T18:48:03.358Z"
     },
     {
       "id": "65b2acf116d8d0003b5c6e19",
       "name": "Video Equipment",
-      "icon": FaPlus,
+      "icon": BsFillCameraVideoFill,
       "createdAt": "2024-01-25T18:48:17.044Z"
     },
     {
       "id": "65b2acff16d8d0003b5c6e1a",
       "name": "Green Screen",
+      "icon": PiProjectorScreenFill,
       "createdAt": "2024-01-25T18:48:31.774Z"
     },
     {
@@ -176,9 +178,9 @@ function Offers({ amenities, definedAmenities }: Props) {
               className="flex cursor-pointer gap-3 items-center"
             >
               {item.icon && (
-                <item.icon size={25} className="text-gray-700" />
+                <item.icon size={25} className="" />
               )}
-              <p className="text-neutral-500">{item.name}</p>
+              <p className="">{item.name}</p>
             </motion.div>
           ))}
         </div>

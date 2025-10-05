@@ -1,67 +1,64 @@
-import getAddons from '@/app/actions/getAddons';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
-const AddonItem = ({ addon, onChange, addonList }: any) => {
-  const [quantity, setQuantity] = useState(0);
+type Addon = { id?: string; name: string; price: number | string; imageUrl?: string; qty?: number };
+type AddonListItem = { name: string; imageUrl?: string };
 
-  const handleIncrement = useCallback(() => {
-    setQuantity((prevQuantity: number) => {
-      let quant = prevQuantity + 1;
-      onChange(quant);
-      return quant
-    });
-  }, [onChange]);
+type AddonItemProps = {
+  addon: Addon;
+  imgUrl?: string;
+  qty: number;
+  onQtyChange: (nextQty: number) => void;
+};
 
-  const handleDecrement = useCallback(() => {
-    setQuantity((prevQuantity: number) => {
-      let quant = (prevQuantity > 0 ? prevQuantity - 1 : 0);
-      onChange(quant);
-      return quant;
-    });
-  }, [onChange]);
+const toPrice = (v: number | string | undefined) => {
+  if (typeof v === "number") return v;
+  if (typeof v === "string") {
+    const n = parseFloat(v.replace(/[^\d.+-]/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+};
+
+const sig = (arr: Addon[]) => arr.map(a => `${a.name}|${toPrice(a.price)}|${a.qty ?? 0}`).sort().join(",");
+
+const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }) => {
+  const inc = useCallback(() => onQtyChange(qty + 1), [qty, onQtyChange]);
+  const dec = useCallback(() => onQtyChange(Math.max(0, qty - 1)), [qty, onQtyChange]);
+  const add = useCallback(() => onQtyChange(1), [onQtyChange]);
 
   return (
     <motion.div
-      initial={{
-        x: 200,
-        opacity: 0,
-      }}
+      initial={{ x: -200, opacity: 0 }}
       transition={{ duration: 1 }}
       whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }} className="flex space-x-4 items-center">
-      <div className="rounded shadow-lg border h-fit w-fit">
-        <img
-          src={addonList.find((item: { name: string; imageUrl: string }) => item.name === addon.name)?.imageUrl || addon.imageUrl}
-          alt={`${addon.name}`}
-          className="h-16 w-16 rounded"
+      viewport={{ once: true }}
+      className="flex space-x-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200"
+    >
+      <div className="rounded-lg h-fit w-fit">
+        <div
+          className="h-16 w-16 rounded-lg bg-neutral-100 bg-cover bg-center"
+          style={{ backgroundImage: `url(${imgUrl || addon.imageUrl || ""})`, backgroundBlendMode: "multiply" }}
         />
       </div>
-      <div className='text-sm'>
-        <p><strong>{addon.name}</strong></p>
-        <p>₹ {addon.price}</p>
 
+      <div className="text-sm overflow-hidden">
+        <p className="truncate w-full" title={addon.name}>
+          <strong>{addon.name}</strong>
+        </p>
+        <p>₹ {toPrice(addon.price)}</p>
 
-        {quantity === 0 ? (
-          <button
-            onClick={handleIncrement}
-            className="bg-rose-500 text-white px-4 py-1 mt-1 rounded-lg"
-          >
+        {qty === 0 ? (
+          <button onClick={add} className="bg-black text-white px-4 py-1.5 mt-1 rounded-full">
             ADD
           </button>
         ) : (
           <div className="flex items-center mt-1">
-            <button
-              onClick={handleDecrement}
-              className="text-white bg-rose-500 px-2 py-1 rounded-lg"
-            >
+            <button onClick={dec} className="text-white bg-rose-500 h-8 w-8 rounded-l-xl text-xl">
               -
             </button>
-            <span className="px-4">{quantity}</span>
-            <button
-              onClick={handleIncrement}
-              className="text-white bg-green-500 px-2 py-1 rounded-lg"
-            >
+            <span className="px-5 bg-neutral-300 py-1.5 w-13">{qty}</span>
+            <button onClick={inc} className="text-white bg-green-500 h-8 w-8 rounded-r-xl text-xl leading-none">
               +
             </button>
           </div>
@@ -71,29 +68,63 @@ const AddonItem = ({ addon, onChange, addonList }: any) => {
   );
 };
 
-const AddonsList = ({ addons, onChange, addonList }: any) => {
-  const handleQuantity = ((addon: any, quantity: number) => {
-    addon.quantity = quantity;
-    addons[addons.findIndex((item: any) => item.name == addon.name)] = addon;
-    onChange(addons);
-  });
+type AddonsListProps = {
+  addons: Addon[];
+  onChange: (selected: Addon[]) => void;
+  addonList?: AddonListItem[];
+};
+
+const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonList = [] }) => {
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const lastSigRef = useRef<string>("");
+
+  useEffect(() => {
+    const next: Record<string, number> = {};
+    addons.forEach(a => { if (a?.name) next[a.name] = 0; });
+    setQuantities(next);
+    lastSigRef.current = "";
+  }, [addons]);
+
+  useEffect(() => {
+    const withQty = addons.map(a => ({ ...a, qty: quantities[a.name] ?? 0, price: toPrice(a.price) }));
+    const selected = withQty.filter(a => (a.qty ?? 0) > 0 && toPrice(a.price) > 0);
+    const nextSig = sig(selected);
+    if (nextSig !== lastSigRef.current) {
+      lastSigRef.current = nextSig;
+      onChange(selected);
+    }
+  }, [addons, quantities, onChange]);
+
+  const findImg = useCallback(
+    (name?: string) => addonList.find(i => i.name === name)?.imageUrl,
+    [addonList]
+  );
+
+  const handleQtyChange = useCallback((addon: Addon, nextQty: number) => {
+    setQuantities(prev => ({ ...prev, [addon.name]: Math.max(0, nextQty) }));
+  }, []);
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Add-ons</h2>
       <div className="grid grid-cols-2 gap-4">
-        {addons && addons.length > 0 && addons.map((addon: any, index: number) => (
-          <AddonItem
-            key={index}
-            addon={addon}
-            onChange={(quantity: number) => handleQuantity(addon, quantity)}
-            addonList={addonList}
-          />
-        ))}
+        {addons.length > 0 &&
+          addons.map(addon => {
+            const qty = quantities[addon.name] ?? 0;
+            const imgUrl = findImg(addon.name);
+            return (
+              <AddonItem
+                key={addon.id || addon.name}
+                addon={addon}
+                imgUrl={imgUrl}
+                qty={qty}
+                onQtyChange={(q) => handleQtyChange(addon, q)}
+              />
+            );
+          })}
       </div>
     </div>
   );
 };
 
 export default AddonsList;
-
-

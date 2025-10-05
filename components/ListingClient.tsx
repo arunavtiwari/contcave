@@ -1,196 +1,291 @@
 "use client";
 
-import useLoginModel from "@/hook/useLoginModal";
 import { SafeReservation, SafeUser, safeListing } from "@/types";
 import axios from "axios";
-import { timeStamp } from "console";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Calendar } from "react-date-range"
-import { toast } from "react-toastify";
-import { format } from "date-fns";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Container from "./Container";
 import ListingHead from "./listing/ListingHead";
 import ListingInfo from "./listing/ListingInfo";
 import ListingReservation from "./listing/ListingReservation";
 import { categories } from "./navbar/Categories";
-import getAmenities from "@/app/actions/getAmenities";
+import {
+  ReservationOperationalTimings,
+  TimeHM,
+  TimeLabel,
+  buildOperationalTimings,
+} from "@/types/scheduling";
+import { Package } from "./inputs/PackagesForm";
 
-const initialDate = new Date();
 type Props = {
   reservations?: SafeReservation[];
-  listing: safeListing & {
-    user: SafeUser;
-  };
+  listing: safeListing & { user: SafeUser };
   currentUser?: SafeUser | null;
 };
 
-function ListingClient({ reservations = [], listing, currentUser }: Props) {
-  const router = useRouter();
-  const loginModal = useLoginModel();
+type AddonItem = { name?: string; price: number; qty: number };
 
-  //disable time to be implented instead of disable date
-  const disableDates  = reservations.map((reservation) => new Date(reservation.startDate));
+const toHHMM = (d: Date): TimeHM => {
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}` as TimeHM;
+};
 
-  const disabledStartTimes = reservations.map((reservations) => new Date(reservations.startTime));
-  const disabledEndTimes   = reservations.map((reservations) => new Date(reservations.endTime));
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [totalPrice, setTotalPrice] = useState(listing.price);
-  const [selectedDate, setSelectedDate] = useState<Date>(initialDate);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<[string, string]>(["", ""]);
-  const [selectedAddons, setSelectedAddons] = useState<[]>([]);
+const parseLabel = (label: string) => {
+  const m = label.match(/^\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*$/i);
+  if (!m) return { hours: 0, minutes: 0 };
+  let h = parseInt(m[1], 10);
+  const min = parseInt(m[2], 10);
+  const period = m[3].toUpperCase();
+  if (period === "PM" && h < 12) h += 12;
+  if (period === "AM" && h === 12) h = 0;
+  return { hours: h, minutes: min };
+};
+
+const dateFromLabel = (base: Date, label: string) => {
+  const { hours, minutes } = parseLabel(label);
+  return new Date(
+    base.getFullYear(),
+    base.getMonth(),
+    base.getDate(),
+    hours,
+    minutes,
+    0,
+    0
+  );
+};
+
+const toNum = (v: unknown, def = 0) => {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const n = parseFloat(v.replace(/[^\d.+-]/g, ""));
+    return Number.isFinite(n) ? n : def;
+  }
+  return def;
+};
+
+const normalizeAddons = (input: unknown): AddonItem[] => {
+  const base = Array.isArray(input)
+    ? input
+    : input && typeof input === "object"
+      ? Object.values(input as any)
+      : [];
+  return base
+    .map((a: any) => ({
+      name: a?.name,
+      price: Math.max(0, toNum(a?.price, 0)),
+      qty: Math.max(0, toNum(a?.qty, 0)),
+    }))
+    .filter((a) => a.price > 0 && a.qty > 0);
+};
+
+const addonsSig = (arr: AddonItem[]) =>
+  arr
+    .map((a) => `${a.name ?? ""}|${a.price}|${a.qty}`)
+    .sort()
+    .join(",");
+
+function ListingClient({
+  reservations = [],
+  listing,
+  currentUser = null,
+}: Props) {
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<
+    [TimeLabel | null, TimeLabel | null]
+  >([null, null]);
+
+  const [selectedAddons, setSelectedAddons] = useState<AddonItem[]>([]);
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
-  const [definedAmenities, setDefinedAmenities] = useState<any>([]);
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [googleCalendarEvents, setGoogleCalendarEvents] = useState<any[]>([]);
+  const ownerHasGoogleCalendar = !!listing?.user?.googleCalendarConnected;
+  const abortRef = useRef<AbortController | null>(null);
+  const lastSigRef = useRef("");
 
-  const onCreateReservation = useCallback(() => {
-    if (!currentUser) {
-      loginModal.onOpen();
-      return;
-    }
+  const localDisabledDates = useMemo(
+    () => reservations.map((r) => new Date(r.startDate)),
+    [reservations]
+  );
 
-    setIsLoading(true);
-
-
-    axios.post("/api/reservations", {
-      totalPrice,
-      startDate: selectedDate.toISOString(),
-      startTime: new Date(`${selectedDate.toISOString().split('T')[0]} ${selectedTimeSlot[0]}`),
-      endTime: new Date(`${selectedDate.toISOString().split('T')[0]} ${selectedTimeSlot[1]}`),
-      listingId: listing.id,
-      instantBooking: listing.instantBooking,
-      selectedAddons: selectedAddons
-    })
-      .then(() => {
-        toast.success("Reservation Successful!");
-        setSelectedDate(initialDate);
-        router.push("/bookings");
-      })
-      .catch(() => {
-        toast.error("Error in Reservation");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [totalPrice, selectedDate, selectedTimeSlot, listing?.id, router, currentUser, loginModal]);
 
   useEffect(() => {
-    if(definedAmenities.length == 0){
-      getAmenities().then((data:any)=>{
-          setDefinedAmenities(data);
-      });
+    if (!selectedDate || !selectedPackage || !selectedTimeSlot[0]) return;
+
+    const startLabel = selectedTimeSlot[0];
+    const startDate = dateFromLabel(selectedDate, startLabel);
+    const endDate = new Date(startDate);
+    endDate.setHours(endDate.getHours() + selectedPackage.durationHours);
+
+    const hh = endDate.getHours() % 12 || 12;
+    const mm = endDate.getMinutes().toString().padStart(2, "0");
+    const ampm = endDate.getHours() >= 12 ? "PM" : "AM";
+    const endLabel = `${hh}:${mm} ${ampm}` as TimeLabel;
+
+    if (selectedTimeSlot[1] !== endLabel) {
+      setSelectedTimeSlot([startLabel, endLabel]);
     }
-    if (selectedDate && selectedTimeSlot) {
-    const [startTime, endTime] = selectedTimeSlot;
+  }, [selectedDate, selectedPackage, selectedTimeSlot]);
 
-    const parseTime = (time) => {
-      if(time) {
-        const [hourString, minuteString, period] = time.match(/(\d+):(\d+) (AM|PM)/).slice(1);
-        let hours = parseInt(hourString, 10);
-        const minutes = parseInt(minuteString, 10);
 
-        if (period === "PM" && hours < 12) {
-            hours += 12;
-        }
-        if (period === "AM" && hours === 12) {
-            hours = 0;
-        }
-
-        return { hours, minutes };
+  useEffect(() => {
+    if (!ownerHasGoogleCalendar) {
+      setGoogleCalendarEvents([]);
+      return;
+    }
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    (async () => {
+      try {
+        const res = await axios.get("/api/calendar/events", {
+          params: { listingId: listing.id },
+          signal: controller.signal as any,
+        });
+        setGoogleCalendarEvents(Array.isArray(res.data) ? res.data : []);
+      } catch {
+        setGoogleCalendarEvents([]);
       }
-      return {hours:0,minutes:0}
-    };
+    })();
+    return () => controller.abort();
+  }, [listing.id, ownerHasGoogleCalendar]);
 
-    const { hours: startHours, minutes: startMinutes } = parseTime(startTime);
-    const { hours: endHours, minutes: endMinutes } = parseTime(endTime);
+  const disabledDates = useMemo(() => {
+    const googleDates = googleCalendarEvents
+      .filter((e) => e.start?.dateTime)
+      .map((e) => new Date(e.start.dateTime));
+    const key = (d: Date) =>
+      new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString();
+    const set = new Map<string, Date>();
+    [...localDisabledDates, ...googleDates].forEach((d) => set.set(key(d), d));
+    return Array.from(set.values());
+  }, [localDisabledDates, googleCalendarEvents]);
 
-    const startDate = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        selectedDate.getDate(),
-        startHours,
-        startMinutes
-    );
+  const selectedDateStr = selectedDate ? selectedDate.toDateString() : "";
 
-    const endDate = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        selectedDate.getDate(),
-        endHours,
-        endMinutes
-    );
+  const disabledStartTimes = useMemo(() => {
+    if (!selectedDate) return [] as readonly TimeHM[];
+    const reservationStartTimes = reservations
+      .filter((r) => new Date(r.startDate).toDateString() === selectedDateStr)
+      .map((r) => toHHMM(new Date(r.startTime)));
+    const googleStartTimes = googleCalendarEvents
+      .filter(
+        (e) =>
+          e.start?.dateTime &&
+          new Date(e.start.dateTime).toDateString() === selectedDateStr
+      )
+      .map((e) => toHHMM(new Date(e.start.dateTime)));
+    return [...reservationStartTimes, ...googleStartTimes] as readonly TimeHM[];
+  }, [reservations, googleCalendarEvents, selectedDate, selectedDateStr]);
 
-    const timeDifferenceInMilliseconds = endDate.getTime() - startDate.getTime();
-    const timeDifferenceInHours = timeDifferenceInMilliseconds / (1000 * 60 * 60);
-    const totalPrice = calculateTotalPrice(selectedAddons, timeDifferenceInHours);
-    setTimeDifferenceInHours(timeDifferenceInHours);
-    setTotalPrice(totalPrice);
-}
+  const disabledEndTimes = useMemo(() => {
+    if (!selectedDate) return [] as readonly TimeHM[];
+    const reservationEndTimes = reservations
+      .filter((r) => new Date(r.startDate).toDateString() === selectedDateStr)
+      .map((r) => toHHMM(new Date(r.endTime)));
+    const googleEndTimes = googleCalendarEvents
+      .filter(
+        (e) =>
+          e.end?.dateTime &&
+          new Date(e.end.dateTime).toDateString() === selectedDateStr
+      )
+      .map((e) => toHHMM(new Date(e.end.dateTime)));
+    return [...reservationEndTimes, ...googleEndTimes] as readonly TimeHM[];
+  }, [reservations, googleCalendarEvents, selectedDate, selectedDateStr]);
 
-  }, [selectedDate, selectedTimeSlot, listing.price]);
+  useEffect(() => {
+    const [startLabel, endLabel] = selectedTimeSlot;
+    if (!selectedDate || !startLabel || !endLabel) {
+      setTimeDifferenceInHours(0);
+      return;
+    }
+    const start = dateFromLabel(selectedDate, startLabel);
+    const end = dateFromLabel(selectedDate, endLabel);
+    const diffHours = Math.max(0, (end.getTime() - start.getTime()) / 36e5);
+    setTimeDifferenceInHours(diffHours);
+  }, [selectedDate, selectedTimeSlot]);
 
+  const category = useMemo(
+    () => categories.find((c) => c.label === listing.category),
+    [listing.category]
+  );
 
-  const calculateTotalPrice = (addons: any, timeDifference:number = timeDifferenceInHours) => {
-    return (timeDifference * listing.price) +  addons.reduce((acc: number, value: { price: number; quantity: any; }) => acc + (value.price * (value.quantity ?? 0)), 0);
-  }
+  const handleAddonChange = useCallback((payload: unknown) => {
+    const next = normalizeAddons(payload);
+    const sig = addonsSig(next);
+    if (sig !== lastSigRef.current) {
+      lastSigRef.current = sig;
+      setSelectedAddons(next);
+    }
+  }, []);
 
-  const category = useMemo(() => {
-    return categories.find((item) => item.label === listing.category);
-  }, [listing.category]);
+  useEffect(() => {
+    const sig = addonsSig(selectedAddons);
+    if (sig !== lastSigRef.current) lastSigRef.current = sig;
+  }, [selectedAddons]);
 
-  const handleAddonChange =(addons:any)=>{
-    setTotalPrice((price:number) =>{
-      return calculateTotalPrice(addons)
-    });
-   setSelectedAddons(addons);
-  };
+  const operationalTimings: ReservationOperationalTimings = useMemo(
+    () => buildOperationalTimings(listing),
+    [listing]
+  );
+
   return (
-    <Container>
-      <div className="max-w-screen-lg mx-auto">
-        <div className="flex flex-col gap-6">
-          <ListingHead
-            title={listing.title}
-            imageSrc={listing.imageSrc}
-            locationValue={listing.locationValue}
-            id={listing.id}
-            currentUser={currentUser}
-          />
-          <div className="grid grid-cols-1 md:grid-cols-7 md:gap-10 mt-6">
-            <ListingInfo
-              definedAmenities={definedAmenities}
-              user={listing.user}
-              category={category}
-              description={listing.description}
+    <div className="pt-10">
+      <Container>
+        <div className="max-w-[1120px] mx-auto pb-24">
+          <div className="flex flex-col gap-2">
+            <ListingHead
+              title={listing.title}
+              imageSrc={listing.imageSrc}
               locationValue={listing.locationValue}
-              fullListing={listing}
-              onAddonChange={handleAddonChange} services={[]}            />
-            <div className="order-first mb-10 md:order-last md:col-span-3">
-              <ListingReservation
-                price={listing.price}
-                totalPrice={totalPrice}
-                platformFee={0}
-                time={timeDifferenceInHours}
-                addons={selectedAddons.reduce((acc: number, value: { price: number; quantity: any; }) => acc + (value.price * (value.quantity ?? 0)), 0)}
-                setSelectDate={(value) => setSelectedDate(value)}
-                selectedDate={selectedDate}
-                setSelectTimeSlots={(value) => setSelectedTimeSlot(value)}
-                selectedTime={selectedTimeSlot}
-                onSubmit={onCreateReservation}
-                disabled={isLoading}
-                instantBooking={listing.instantBooking??0}
-                disabledDates={disableDates}   
-                disabledStartTimes={disabledStartTimes}
-                disabledEndTimes={disabledEndTimes}
-                operationalTimings={listing.otherDetails}
+              id={listing.id}
+              currentUser={null}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-7 md:gap-10 mt-6">
+              <ListingInfo
+                user={listing.user}
+                category={category}
+                description={listing.description}
+                locationValue={listing.locationValue}
+                fullListing={listing}
+                onAddonChange={handleAddonChange}
+                services={[]}
+                onPackageSelect={(pkg) => {
+                  setSelectedPackage(pkg);
+                  setSelectedDate(null);
+                  setSelectedTimeSlot([null, null]);
+                }}
+              />
+              <div className="order-first mb-10 md:order-last md:col-span-3">
+                <ListingReservation
+                  user={listing.user}
+                  listingId={listing.id}
+                  price={listing.price}
+                  platformFee={0}
+                  time={timeDifferenceInHours}
+                  setSelectDate={setSelectedDate}
+                  selectedDate={selectedDate}
+                  setSelectTimeSlots={setSelectedTimeSlot}
+                  selectedTime={selectedTimeSlot}
+                  instantBooking={!!listing.instantBooking}
+                  disabledDates={disabledDates}
+                  disabledStartTimes={disabledStartTimes}
+                  disabledEndTimes={disabledEndTimes}
+                  operationalTimings={operationalTimings}
+                  selectedAddons={selectedAddons}
+                  currentUserPhone={currentUser?.phone ?? null}
+                  isAuthenticated={!!currentUser}
+                  minBookingHours={Number(listing.minimumBookingHours)}
+                  isOwner={!!currentUser?.is_owner}
+                  selectedPackage={selectedPackage}
                 />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </Container>
+      </Container>
+    </div>
   );
 }
 
 export default ListingClient;
-
-

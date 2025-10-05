@@ -8,6 +8,7 @@ import React, { useCallback, useMemo, useState, useEffect } from "react";
 import Button from "../Button";
 import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
 import { IconButton } from "@chakra-ui/button";
+import { IoMdCloseCircle } from "react-icons/io";
 
 type Props = {
     data: safeListing;
@@ -62,7 +63,6 @@ function BookingCard({
         [onAction, actionId, disabled]
     );
 
-    // Determine Price
     const price = useMemo(() => {
         if (reservation) {
             return reservation.totalPrice;
@@ -70,7 +70,7 @@ function BookingCard({
         return data.price;
     }, [reservation, data.price]);
 
-    const bookingStatus = reservation?.isApproved; // `status` can be 'approved', 'pending', or 'cancelled'
+    const bookingStatus = reservation?.isApproved;
 
     const getStatusBanner = () => {
         if (bookingStatus == 1) {
@@ -87,12 +87,12 @@ function BookingCard({
 
     const getBannerColor = () => {
         if (bookingStatus == 1) {
-            return "#27AE60";
+            return "#218C54";
         }
         if (bookingStatus == 0) {
-            return "#FCD34D";
+            return "#B98A30";
         }
-        return "#E74C3C";
+        return "#B53020";
     };
 
     const toggleReceiptModal = () => setShowReceipt(!showReceipt);
@@ -107,20 +107,21 @@ function BookingCard({
                     delay: 0.5,
                     ease: [0, 0.71, 0.2, 1.01],
                 }}
-                className="relative col-span-1 cursor-pointer group"
+                className="relative col-span-1 border p-5 rounded-xl"
             >
                 <div className="flex flex-col gap-2 w-full">
                     <div className="aspect-square w-full relative overflow-hidden rounded-xl">
                         {/* Property Image */}
                         <Image
                             fill
-                            className="object-cover h-full w-full group-hover:scale-110 transition"
+                            className="object-cover h-full w-full"
                             src={data.imageSrc?.[0] ?? ""}
                             alt="listing"
                         />
                         {/* Status Banner */}
                         <div
-                            className={`absolute top-3 right-3 px-3 py-1 rounded-lg text-white text-sm bg-[${getBannerColor()}]`}
+                            className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-white text-sm`}
+                            style={{ backgroundColor: getBannerColor() }}
                         >
                             {getStatusBanner()}
                         </div>
@@ -129,44 +130,57 @@ function BookingCard({
                     {/* Property Title */}
                     <div className="font-semibold text-lg">{data.title}</div>
                     {!reservation?.isApproved && onApprove && (
-                        <Button
-                            label="Approve"
-                            classNames="text-md font-semibold py-3 border-2 bg-[#27AE60] border-[#27AE60] text-white ml-2 rounded-md"
-                            onClick={() => onApprove(reservation?.id ?? "")}
-                        />
+                        <div className="flex items-stretch">
+                            <div className="w-1/4">
+                                <div className="lex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4]" onClick={toggleReceiptModal}>
+                                    <IconButton
+                                        icon={<FaCircleInfo />}
+                                        aria-label="Info"
+                                        size="xl"
+                                        className="p-0 w-full h-full"
+                                        color="white"
+                                    />
+                                </div>
+                            </div>
+                            <div className="w-3/4">
+                                <Button
+                                    label="Approve"
+                                    classNames="text-md font-semibold bg-[#27AE60] border-[#27AE60] text-white rounded-r-full"
+                                    onClick={() => onApprove(reservation?.id ?? "")}
+                                />
+                            </div>
+                        </div>
+
                     )}
                     {!reservation?.isApproved && onReject && (
                         <Button
                             label="Reject"
-                            classNames="text-md font-semibold py-3 border-2 bg-[#E74C3C] border-[#E74C3C] text-white ml-2 rounded-md"
+                            rounded
+                            classNames="text-md font-semibold bg-[#E74C3C] text-white"
                             onClick={() => onReject(reservation?.id ?? "")}
                         />
                     )}
                     {reservation && reservation?.isApproved != 0 && onChat && (
                         <div className="flex flex-col gap-2">
-                            {/* Row for 'i' button and 'Message the Host' button */}
-                            <div className="flex items-center gap-2">
-                                {/* "i" Button */}
+                            <div className="flex items-stretch">
                                 <div className="w-1/4">
-                                    <div className="flex items-center p-4 justify-center bg-[#4682B4] h-full rounded-md">
+                                    <div className="flex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4]" onClick={toggleReceiptModal}>
                                         <IconButton
                                             icon={<FaCircleInfo />}
                                             aria-label="Info"
-                                            size="lg"
+                                            size="xl"
                                             className="p-0 w-full h-full"
                                             color="white"
-                                            onClick={toggleReceiptModal}
                                         />
                                     </div>
                                 </div>
 
-                                {/* Message the Host Button */}
                                 <div className="w-3/4">
                                     <Button
                                         label={onApprove ? "Message Client" : "Message Host"}
                                         onClick={() => onChat?.(reservation?.id ?? "")}
-                                        disabled={bookingStatus != 1} // Disable if not approved
-                                        classNames={`button button-rounded text-md font-semibold ${bookingStatus == 1
+                                        disabled={bookingStatus != 1}
+                                        classNames={`text-md font-semibold rounded-r-full border-black ${bookingStatus == 1
                                             ? "bg-gray-700 text-white"
                                             : "bg-gray-200 text-gray-500 cursor-not-allowed"
                                             }`}
@@ -178,7 +192,8 @@ function BookingCard({
                                 <Button
                                     label="Cancel Reservation"
                                     onClick={handleCancel}
-                                    classNames="text-md font-semibold py-3 border-2 bg-white border-[#E74C3C] text-[#E74C3C] rounded-md"
+                                    rounded
+                                    classNames="text-md font-semibold bg-white border-[#E74C3C] text-[#E74C3C]"
                                 />
                             )}
 
@@ -187,7 +202,8 @@ function BookingCard({
                                     icon={FaTrashCan}
                                     label="Delete"
                                     onClick={() => onDelete(reservation?.id ?? "")}
-                                    classNames="text-md font-semibold py-3 border-2 bg-white border-rose-500 text-rose-500"
+                                    rounded
+                                    classNames="text-md font-semibold border-2 bg-white border-rose-500 text-rose-500"
                                 />
                             )}
 
@@ -196,61 +212,81 @@ function BookingCard({
             </motion.div>
             {showReceipt && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50">
-                    <div className="bg-white p-6 rounded-lg w-full max-w-xs md:max-w-md lg:max-w-lg">
-                        <h2 className="text-xl font-semibold mb-4">Booking Details</h2>
-
-                        <p className="mb-2">
-                            <strong>Property:</strong> {reservation?.listing?.title}
-                        </p>
-
-                        <p className="mb-2">
-                            <strong>Date of Booking:</strong> {new Date(booking?.startDate).toLocaleDateString()}
-                        </p>
-
-                        <p className="mb-2">
-                            <strong>Time:</strong> {new Date(booking?.startTime).toLocaleTimeString()} - {new Date(booking?.endTime).toLocaleTimeString()}
-                        </p>
-
-                        <p className="mb-2">
-                            <strong>Duration:</strong>{" "}
-                            {(() => {
-                                const startTime = new Date(booking?.startTime);
-                                const endTime = new Date(booking?.endTime);
-                                const durationInMs = endTime.getTime() - startTime.getTime();
-                                const durationInHours = durationInMs / (1000 * 60 * 60);
-                                return `${durationInHours} hours`;
-                            })()}
-                        </p>
-
-                        <p className="mb-2">
-                            <strong>Add-ons:</strong>{" "}
-                            {
-                                booking?.selectedAddons.map((item) => item.name).join(", ") || "None"
-                            }
-                        </p>
-                        <p className="mb-2">
-                            <strong>Add-ons Charge:</strong> <span>₹ {booking?.selectedAddons.reduce((acc, value) => acc + (value.qty * value.price), 0)}</span>
-                        </p>
-                        <p className="mb-2">
-                            <strong>Property Charge:</strong> <span>₹ {booking?.totalPrice - booking?.selectedAddons.reduce((acc, value) => acc + (value.qty * value.price), 0)}</span>
-                        </p>
-
-
-                        <p className="mt-4 text-lg">
-                            <strong>Total:</strong> ₹ {reservation?.totalPrice ?? 0}
-                        </p>
-
-                        <div className="mt-4 flex justify-end">
-                            <Button
-                                label="Close"
+                    <div className="bg-white p-6 rounded-xl w-full max-w-xs md:max-w-md lg:max-w-lg">
+                        <div className="flex items-center mb-5">
+                            <button
+                                className="hover:opacity-80 transition absolute"
                                 onClick={toggleReceiptModal}
-                                classNames="text-md font-semibold py-3 bg-gray-300 text-black"
-                            />
+                            >
+                                <IoMdCloseCircle size={24} />
+                            </button>
+                            <h2 className="text-xl font-semibold text-center w-full">Booking Details</h2>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="flex justify-between">
+                                <span className="text-gray-700 font-medium">Property:</span>
+                                <span className="text-gray-900">{reservation?.listing?.title}</span>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span className="text-gray-700 font-medium">Date of Booking:</span>
+                                <span className="text-gray-900">
+                                    {new Date(booking?.startDate).toLocaleDateString()}
+                                </span>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span className="text-gray-700 font-medium">Time:</span>
+                                <span className="text-gray-900">
+                                    {new Date(booking?.startTime).toLocaleTimeString()} – {new Date(booking?.endTime).toLocaleTimeString()}
+                                </span>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span className="text-gray-700 font-medium">Duration:</span>
+                                <span className="text-gray-900">
+                                    {(() => {
+                                        const startTime = new Date(booking?.startTime);
+                                        const endTime = new Date(booking?.endTime);
+                                        const durationInMs = endTime.getTime() - startTime.getTime();
+                                        const durationInHours = durationInMs / (1000 * 60 * 60);
+                                        return `${durationInHours} hours`;
+                                    })()}
+                                </span>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span className="text-gray-700 font-medium">Add-ons:</span>
+                                <span className="text-gray-900">
+                                    {booking?.selectedAddons.map((item) => item.name).join(", ") || "None"}
+                                </span>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span className="text-gray-700 font-medium">Add-ons Charge:</span>
+                                <span className="text-gray-900 font-semibold">
+                                    ₹ {booking?.selectedAddons.reduce((acc, value) => acc + (value.qty * value.price), 0)}
+                                </span>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span className="text-gray-700 font-medium">Property Charge:</span>
+                                <span className="text-gray-900 font-semibold">
+                                    ₹ {booking?.totalPrice - booking?.selectedAddons.reduce((acc, value) => acc + (value.qty * value.price), 0)}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-between mt-4 border-t pt-4">
+                            <span className="text-lg font-bold text-gray-700">Total:</span>
+                            <span className="text-lg font-bold text-gray-900">
+                                ₹ {reservation?.totalPrice ?? 0}
+                            </span>
                         </div>
                     </div>
                 </div>
             )}
-
         </>
     );
 }

@@ -1,6 +1,5 @@
 "use client";
-import { CldUploadWidget } from "next-cloudinary";
-import React, { useCallback, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiUpload } from "react-icons/fi";
 import { CiFileOn } from "react-icons/ci";
 
@@ -11,40 +10,40 @@ const SpaceVerification = ({ onVerification }: any) => {
     const [documents, setDocuments] = useState<any[]>([]);
     const [videos, setVideos] = useState<any[]>([]);
     const [verificationCode, setVerificationCode] = useState('');
-    const [verificationDocs, setVerificationDocs] = useState({});
-    // Function that gets called when the upload widget process is complete
-    const handleUploadDocSuccess = (result: any) => {
-        const urls = Array.isArray(result.info.secure_url)
-            ? result.info.secure_url
-            : [{
-                resource_type: result.info.resource_type,
-                original_filename: result.info.original_filename,
-                thumbnail: result.info.thumbnail_url,
-                url: result.info.secure_url,
-                format: result.info.format ?? result.info.secure_url.substring(result.info.secure_url.lastIndexOf('.') + 1)
-
-            }];
-        const finalList = [...documents, ...urls];
-        setDocuments(finalList);
-        setVerificationPayload()
-        setVerificationPayload(urls, videos, verificationCode)
-
+    // Local file capture; actual upload will happen after listing creation
+    const handleLocalDocs = (evt: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(evt.target.files || []).filter((f) => f.type === 'application/pdf');
+        if (files.length === 0) return;
+        const mapped = files.map((f) => ({
+            file: f,
+            original_filename: f.name,
+            bytes: f.size,
+            format: 'pdf',
+            resource_type: 'image',
+            previewUrl: URL.createObjectURL(f),
+        }));
+        const nextDocs = [...documents, ...mapped];
+        setDocuments(nextDocs);
+        setVerificationPayload(nextDocs, videos, verificationCode);
     };
 
     const handleUploadVideoSuccess = (result: any) => {
-        const urls = Array.isArray(result.info.secure_url)
-            ? result.info.secure_url
+        const info = result?.info || {};
+        const newItems = Array.isArray(info.secure_url)
+            ? info.secure_url
             : [{
-                resource_type: result.info.resource_type,
-                original_filename: result.info.original_filename,
-                thumbnail: result.info.thumbnail_url,
-                url: result.info.secure_url,
-                format: result.info.format
+                resource_type: info.resource_type,
+                original_filename: info.original_filename,
+                public_id: info.public_id,
+                bytes: info.bytes,
+                version: info.version,
+                thumbnail: info.thumbnail_url,
+                url: info.secure_url,
+                format: info.format
             }];
-        const finalList = [...videos, ...urls];
-        setVideos(finalList);
-        setVerificationPayload()
-        setVerificationPayload(documents, urls, verificationCode)
+        const nextVideos = [...videos, ...newItems];
+        setVideos(nextVideos);
+        setVerificationPayload(documents, nextVideos, verificationCode)
 
     };
 
@@ -67,6 +66,11 @@ const SpaceVerification = ({ onVerification }: any) => {
         }
         onVerification(verifications)
     })
+    useEffect(() => {
+        // Keep parent in sync whenever docs/videos/code change
+        setVerificationPayload(documents, videos, verificationCode);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [documents, videos, verificationCode]);
     return (
         <div className=" bg-opacity-50 overflow-y-auto h-full w-full" id="my-">
             <div className="bg-white mx-auto relative rounded-md">
@@ -75,39 +79,18 @@ const SpaceVerification = ({ onVerification }: any) => {
                     <div className="px-7">
                         <div className="flex justify-between">
                             <div className="px-4 w-1/2">
-                                <CldUploadWidget
-                                    onUpload={handleUploadDocSuccess}
-                                    uploadPreset="phxjukr6"
-                                    options={{
-                                        maxFiles: 10,
-                                        multiple: true
-                                    }}
-                                >
-                                    {({ open }) => {
-                                        return (
-                                            <button onClick={() => open?.()} className="flex justify-center w-full h-15 px-4 py-3  mt-5 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none">
-                                                <FiUpload className="h-5 w-5 text-white  mr-2 " aria-hidden="true" />
-                                                Upload Document/s
-                                            </button>
-                                        );
-                                    }}
-                                </CldUploadWidget>
+                                <label className="flex justify-center w-full h-15 px-4 py-3  mt-5 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none cursor-pointer">
+                                    <FiUpload className="h-5 w-5 text-white  mr-2 " aria-hidden="true" />
+                                    <span>Upload Document/s (PDF)</span>
+                                    <input type="file" accept="application/pdf" multiple className="hidden" onChange={handleLocalDocs} />
+                                </label>
                                 <div className="flex flex-wrap">
-                                    {documents.map((doc: any,index:number) => doc.thumbnail ? (
+                                    {documents.map((doc: any, index: number) => (
                                         <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            <img  src={doc.thumbnail ?? doc.url} className="rounded border" />
-                                            <strong className="text-xs truncate">{doc.original_filename}.{doc.format}</strong>
+                                            <CiFileOn className="rounded border h-15" size={62} />
+                                            <strong className="text-xs truncate">{doc.original_filename}.pdf</strong>
                                         </div>
-
-                                    ) : (
-                                        <div  key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            {/* <img src={doc.thumbnail ?? doc.url} className="rounded border" /> */}
-                                            <CiFileOn  className="rounded border h-15"  size={62}/>
-                                            <strong className="text-xs truncate">{doc.original_filename}.{doc.format}</strong>
-                                        </div>
-                                    )
-
-                                    )}
+                                    ))}
                                 </div>
                             </div>
                             <div className="border-l pb-6 pl-6 pt-6 w-1/2">
@@ -146,42 +129,7 @@ const SpaceVerification = ({ onVerification }: any) => {
                                         disabled={true} value={verificationCode}
                                     />
                                 </div><br />
-                                <CldUploadWidget
-                                    onUpload={handleUploadVideoSuccess}
-                                    uploadPreset="phxjukr6"
-                                    options={{
-                                        maxFiles: 10,
-                                        multiple: true
-                                    }}
-                                >
-                                    {({ open }) => {
-                                        return (
-                                            <button onClick={() => open?.()} className="flex justify-center w-full  px-4 py-3 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none">
-                                                <FiUpload className="h-5 w-5 text-white mr-2 " aria-hidden="true" />
-                                                Upload Video
-
-                                            </button>
-                                        )
-
-                                    }}
-                                </CldUploadWidget>
-                                <div className="flex flex-wrap">
-                                    {videos.map((video: any,index:number) => video.thumbnail ? (
-                                        <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            <img    src={video.thumbnail ?? video.url} className="rounded border" />
-                                            <strong className="text-xs truncate">{video.original_filename}.{video.format}</strong>
-                                        </div>
-
-                                    ) : (
-                                        <div  key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            {/* <img src={video.thumbnail ?? video.url} className="rounded border" /> */}
-                                            <CiFileOn  className="rounded border h-15"  size={62}/>
-                                            <strong className="text-xs truncate">{video.original_filename}.{video.format}</strong>
-                                        </div>
-                                    )
-
-                                    )}
-                                </div>
+                                {/* Video upload disabled */}
                             </div>
 
                             <div className="border-l mt-4 pl-6 w-1/2">

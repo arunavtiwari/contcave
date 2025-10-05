@@ -46,6 +46,15 @@ export interface Meta {
   image: MetaImage;
 }
 
+export interface BlogBlock {
+  id: string;
+  blockType: "heading" | "paragraph" | "image" | "quote" | "list";
+  content?: string; 
+  src?: string; 
+  alt?: string;
+  items?: string[]; 
+}
+
 export interface BlogPost {
   id: string;
   title: string;
@@ -53,11 +62,7 @@ export interface BlogPost {
   publishedAt: string;
   authors: string[];
   hero: Hero;
-  layout: {
-    columns: any[];
-    id: string;
-    blockType: string;
-  }[];
+  layout: BlogBlock[];
   slug: string;
   meta: Meta;
   _status: string;
@@ -69,5 +74,5 @@ export interface BlogPost {
     name: string;
   }[];
   premiumContent: any[];
-  tags: string[]
+  tags: string[];
 }
