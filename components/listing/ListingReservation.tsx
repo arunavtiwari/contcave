@@ -506,7 +506,9 @@ export default function ListingReservation({
         platformFee={platformFee || 0}
         gstDetails={gstDetails}
         setGstDetails={setGstDetails} 
-        currentUserId={user.id}      />
+        currentUserId={user.id}
+        reservationId={""}     
+        transactionId={""}      />
     </section>
   );
 }
