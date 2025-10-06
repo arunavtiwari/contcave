@@ -1,6 +1,6 @@
-// /lib/invoice/pdfBlob.ts
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import prisma from "@/lib/prismadb";
 
 type InvoiceData = {
   invoiceNumber: string;
@@ -39,7 +39,6 @@ export async function generateInvoicePDFBlob(data: InvoiceData) {
   const imgData = canvas.toDataURL("image/jpeg", 0.9);
   const pdf = new jsPDF("p", "mm", "a4", true);
   const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
   const imgProps = pdf.getImageProperties(imgData);
   const pdfHeight = (imgProps.height * pageWidth) / imgProps.width;
 
@@ -47,4 +46,61 @@ export async function generateInvoicePDFBlob(data: InvoiceData) {
 
   const blob = pdf.output("blob");
   return blob;
+}
+
+/**
+ * Wrapper that creates the invoice record and returns a Blob URL.
+ */
+export async function createInvoice({
+  userId,
+  reservationId,
+  transactionId,
+  amount,
+}: {
+  userId: string;
+  reservationId: string;
+  transactionId: string;
+  amount: number;
+}) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { billingDetails: { where: { isDefault: true }, take: 1 } },
+  });
+  if (!user) throw new Error("User not found");
+
+  const billing = user.billingDetails?.[0] ?? null;
+  const gstRate = 0.18;
+  const gstAmount = amount * gstRate;
+  const totalAmount = amount + gstAmount;
+  const invoiceNumber = `CC-${Date.now()}`;
+
+  // Generate PDF blob
+  const blob = await generateInvoicePDFBlob({
+    invoiceNumber,
+    user,
+    billing,
+    amount,
+    gstAmount,
+    totalAmount,
+    reservationId,
+  });
+
+  // Store as Object URL or in S3 / Cloudflare R2 / Supabase (for production, use real file storage)
+  const url = URL.createObjectURL(blob);
+
+  await prisma.invoice.create({
+    data: {
+      userId,
+      reservationId,
+      transactionId,
+      billingId: billing?.id,
+      amount,
+      gstAmount,
+      totalAmount,
+      invoiceNumber,
+      invoiceUrl: url,
+    },
+  });
+
+  return url;
 }
