@@ -1,16 +1,17 @@
-// /pages/api/invoice.ts
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prismadb";
-import { generateInvoicePDFBlob } from "@/lib/invoice/pdfBlob"; 
-import fetch from "node-fetch";
+import { generateInvoicePDFBlob } from "@/lib/invoice/pdfBlob";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
-
+export async function POST(req: Request) {
   try {
-    const { userId, reservationId, transactionId, amount } = req.body;
+    const { userId, reservationId, transactionId, amount } = await req.json();
+
+    if (!userId || !reservationId || !transactionId || !amount) {
+      return NextResponse.json(
+        { message: "Missing required fields" },
+        { status: 400 }
+      );
+    }
 
     // Fetch user with default billing details
     const user = await prisma.user.findUnique({
@@ -20,17 +21,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
+
     const billing = user.billingDetails?.[0] ?? null;
 
     // Calculate GST
     const gstRate = 0.18;
     const gstAmount = amount * gstRate;
     const totalAmount = amount + gstAmount;
-
     const invoiceNumber = `CC-${Date.now()}`;
 
-    // Generate PDF blob
+    // Generate PDF Blob
     const pdfBlob = await generateInvoicePDFBlob({
       invoiceNumber,
       user,
@@ -46,30 +49,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const timestamp = Math.floor(Date.now() / 1000);
     const publicId = `reservation_${reservationId}_${timestamp}`;
 
-    const signRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/cloudinary/sign`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paramsToSign: { folder, timestamp, public_id: publicId } }),
-    });
+    const signRes = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/cloudinary/sign`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paramsToSign: { folder, timestamp, public_id: publicId },
+        }),
+      }
+    );
+
     const sign = await signRes.json();
-    if (!sign?.signature) throw new Error("Cloudinary signature failed");
+    if (!sign?.signature)
+      throw new Error("Cloudinary signature generation failed");
 
-    const fd = new FormData();
-    fd.append("file", pdfBlob, `${publicId}.pdf`);
-    fd.append("folder", folder);
-    fd.append("timestamp", String(sign.timestamp));
-    fd.append("public_id", publicId);
-    fd.append("api_key", sign.apiKey);
-    fd.append("signature", sign.signature);
+    const formData = new FormData();
+    formData.append("file", pdfBlob, `${publicId}.pdf`);
+    formData.append("folder", folder);
+    formData.append("timestamp", String(sign.timestamp));
+    formData.append("public_id", publicId);
+    formData.append("api_key", sign.apiKey);
+    formData.append("signature", sign.signature);
 
-    const upRes = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloud}/image/upload`, {
-      method: "POST",
-      body: fd,
-    });
-    const up = await upRes.json();
-    if (!upRes.ok) throw new Error(up?.error?.message || "Cloudinary upload failed");
+    const uploadRes = await fetch(
+      `https://api.cloudinary.com/v1_1/${sign.cloud}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
 
-    // Save invoice in Prisma
+    const uploadData = await uploadRes.json();
+    if (!uploadRes.ok)
+      throw new Error(uploadData?.error?.message || "Cloudinary upload failed");
+
+    // Save in Prisma
     const invoiceRecord = await prisma.invoice.create({
       data: {
         userId,
@@ -80,16 +95,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         gstAmount,
         totalAmount,
         invoiceNumber,
-        invoiceUrl: up.secure_url,
+        invoiceUrl: uploadData.secure_url,
       },
     });
 
-    return res.status(200).json({
-      invoiceUrl: up.secure_url,
+    return NextResponse.json({
+      invoiceUrl: uploadData.secure_url,
       invoiceId: invoiceRecord.id,
     });
-  } catch (err: any) {
-    console.error(err);
-    return res.status(500).json({ message: err.message || "Failed to generate invoice" });
+  } catch (error: any) {
+    console.error("Invoice generation failed:", error);
+    return NextResponse.json(
+      { message: error.message || "Failed to generate invoice" },
+      { status: 500 }
+    );
   }
 }
