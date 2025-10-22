@@ -410,7 +410,7 @@ export default function RentModal() {
           step === STEPS.VERIFICATION
             ? "Space Verification"
             : step === STEPS.TERMS
-            ? "Terms & Conditions for Hosts"
+            ? "Host Agreement"
             : "List Your Space"
         }
         actionLabel={actionLabel}
