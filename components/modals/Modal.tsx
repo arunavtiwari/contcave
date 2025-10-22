@@ -20,6 +20,7 @@ type Props = {
   secondaryAction?: () => void;
   secondaryActionLabel?: string;
   termsAndConditionsAccept?: boolean;
+  isLoading?: boolean;
 };
 
 function Modal({
@@ -38,6 +39,7 @@ function Modal({
   selfActionButton,
   secondaryActionLabel,
   termsAndConditionsAccept,
+  isLoading
 }: Props) {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -145,14 +147,16 @@ function Modal({
                 />
               )}
 
-              <Button
-                rounded
-                disabled={verificationBtn ? !termsAndConditionsAccept : disabled}
-                label={verificationBtn ? "Complete Listing" : actionLabel}
-                onClick={handleSubmit}
-              />
-            </div>
-          )}
+            <Button
+              rounded
+              disabled={verificationBtn ? !termsAndConditionsAccept || disabled : disabled}
+              label={verificationBtn ? "Complete Listing" : actionLabel}
+              onClick={handleSubmit}
+              loading={isLoading} 
+            />
+          </div>
+        )}
+
 
           {footer && <div className="px-6 pb-4">{footer}</div>}
         </div>
