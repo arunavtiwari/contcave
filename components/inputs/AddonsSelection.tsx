@@ -38,44 +38,36 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
         addonModal.onOpen();
     }, [addonModal]);
 
-    const handleAddonChange = (
-        addonName: string,
-        price?: number | string,
-        qty?: number | string,
-        checked?: boolean
-    ) => {
-        setSelectedAddons((prevSelected) => {
-            const selectedIndex = prevSelected.findIndex((a) => a.name === addonName);
-            const currentAddon =
-                selectedIndex !== -1
-                    ? prevSelected[selectedIndex]
-                    : addons.find((a) => a.name === addonName) || {
-                        name: addonName,
-                        price: 0,
-                        qty: 0,
-                        imageUrl: '',
-                    };
-
-            const updatedAddon: Addon = {
-                ...currentAddon,
-                price: price === undefined || price === '' ? currentAddon.price : Number(price),
-                qty: qty === undefined || qty === '' ? currentAddon.qty : Number(qty),
-            };
-
-            let newSelected: Addon[];
-            if (checked) {
-                if (selectedIndex !== -1) {
-                    newSelected = [...prevSelected];
-                    newSelected[selectedIndex] = updatedAddon;
+    const handleAddonChange = useCallback(
+        (addonName: string, price?: number | string, qty?: number | string, checked?: boolean) => {
+            setSelectedAddons((prevSelected) => {
+                const selectedIndex = prevSelected.findIndex((a) => a.name === addonName);
+                const currentAddon =
+                    selectedIndex !== -1
+                        ? prevSelected[selectedIndex]
+                        : addons.find((a) => a.name === addonName) || { name: addonName, price: 0, qty: 0, imageUrl: '' };
+    
+                const updatedAddon: Addon = {
+                    ...currentAddon,
+                    price: price && !isNaN(Number(price)) ? Math.max(0, Number(price)) : currentAddon.price,
+                    qty: qty && !isNaN(Number(qty)) ? Math.max(0, Number(qty)) : currentAddon.qty,
+                };
+    
+                if (checked) {
+                    if (selectedIndex !== -1) {
+                        const newSelected = [...prevSelected];
+                        newSelected[selectedIndex] = updatedAddon;
+                        return newSelected;
+                    }
+                    return [...prevSelected, updatedAddon];
                 } else {
-                    newSelected = [...prevSelected, updatedAddon];
+                    return prevSelected.filter((a) => a.name !== addonName);
                 }
-            } else {
-                newSelected = prevSelected.filter((a) => a.name !== addonName);
-            }
-            return newSelected;
-        });
-    };
+            });
+        },
+        [addons]
+    );
+    
 
     const availableAddons = addons.filter(
         (addon) => !selectedAddons.some((selected) => selected.name === addon.name)
@@ -123,8 +115,8 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
             {/* Available Addons Section */}
             {availableAddons.length > 0 && (
                 <div>
-                    <h2 className="text-lg font-semibold mb-5">Available Addons</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 place-items-center">
+                    {/* <h2 className="text-lg font-semibold mb-5">Available Addons</h2> */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 place-items-center">
                         {availableAddons.map((addon) => (
                             <div
                                 key={addon.name}

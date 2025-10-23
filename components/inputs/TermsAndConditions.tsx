@@ -55,10 +55,10 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
             node.style.paddingBottom = prevPaddingBottom;
             const pdf = new jsPDF("p", "mm", "a4");
             pdf.setProperties({
-                title: "Contcave Host Agreement",
-                subject: "Terms and Conditions",
-                author: "Contcave",
-                creator: "Contcave",
+                title: "ContCave Host Agreement",
+                subject: "Host Agreement – Arkanet Ventures LLP",
+                author: "Arkanet Ventures LLP",
+                creator: "Arkanet Ventures LLP",
             });
             const pageWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
@@ -159,7 +159,11 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
             <div className="bg-white w-full max-w-xl mx-auto rounded-lg overflow-auto" style={{ maxHeight: '90vh' }}>
                 <div className="px-4">
                     <div ref={containerRef} className="my-4 text-sm overflow-auto scrollbar-thin" style={{ maxHeight: '65vh' }}>
-                        This agreement (&apos;Agreement&apos;) is entered into between CONTCAVE (&apos;Company&apos;), a company registered under the laws of India, and the individual or entity (&apos;Host&apos;) who wishes to list their property (&apos;Property&apos;) on the Company's platform (&apos;Platform&apos;). By listing the Property on the Platform, Host agrees to comply with the terms and conditions outlined in this Agreement.<br /><br />
+                    <p>
+                            This Agreement (“Agreement”) is entered into between <strong>Arkanet Ventures LLP</strong> (hereinafter referred to as "Company") and the individual or entity (“Host”) who wishes to list their property (“Property”) on the Company’s platform, ContCave (“Platform”).
+                            By listing the Property, Host agrees to comply with the terms and conditions outlined below.
+                        </p><br /><br />
+                        {/* This agreement (&apos;Agreement&apos;) is entered into between CONTCAVE (&apos;Company&apos;), a company registered under the laws of India, and the individual or entity (&apos;Host&apos;) who wishes to list their property (&apos;Property&apos;) on the Company's platform (&apos;Platform&apos;). By listing the Property on the Platform, Host agrees to comply with the terms and conditions outlined in this Agreement.<br /><br /> */}
                         <strong>1. Listing Property</strong><br />
                         1.1 Host agrees to provide accurate and up-to-date information about the Property, including property type, location, amenities, availability, pricing, and any rules or restrictions associated with the Property.<br />
                         1.2 Host acknowledges that any photos, descriptions, or other content provided for the Property listing must accurately represent the Property and may be subject to review by the Company.<br />
@@ -212,8 +216,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
                             )}
                         </div>
 
-                        CONTCAVE
-
+                        <p className="font-semibold">Company: Arkanet Ventures LLP</p>
                     </div>
                     <div className="flex items-center mb-4">
                         <input

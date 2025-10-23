@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import Link from "next/link";
 
 type GSTDetails = {
   companyName: string;
@@ -19,6 +20,8 @@ type BookingSummaryModalProps = {
   gstDetails: GSTDetails;
   setGstDetails: (v: GSTDetails) => void;
   currentUserId: string;
+  reservationId: string;    
+  transactionId: string; 
 };
 
 export default function BookingSummaryModal({
@@ -32,31 +35,36 @@ export default function BookingSummaryModal({
   gstDetails,
   setGstDetails,
   currentUserId,
+  reservationId,      
+  transactionId,      
 }: BookingSummaryModalProps) {
   const sectionId = useId();
   const [needGST, setNeedGST] = useState(false);
+  const [agree, setAgree] = useState(false);
   const [gstError, setGstError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
+    setSaving(true);
+
     if (needGST) {
       // basic GSTIN validation: 15 alphanumeric characters
       if (!gstDetails.gstin.match(/^[0-9A-Z]{15}$/i)) {
         setGstError("Please enter a valid 15-character GSTIN.");
+        setSaving(false);
         return;
       }
       if (!gstDetails.companyName || !gstDetails.billingAddress) {
         setGstError("Please fill all GST fields.");
+        setSaving(false);
         return;
       }
 
-      setGstError(null);
-      setSaving(true);
-
       try {
-        const res = await fetch("/api/billing", {
+        // Save GST info first
+        const billingRes = await fetch("/api/billing", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -67,22 +75,37 @@ export default function BookingSummaryModal({
             isDefault: true,
           }),
         });
+        const billingData = await billingRes.json();
+        if (!billingRes.ok) throw new Error(billingData.message || "Failed to save GST info");
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to save GST info");
-
-        // optionally, update GST details with returned ID
         setGstDetails({ ...gstDetails });
 
-        onConfirm(); // proceed after successful save
+        // Then create invoice
+        const invoiceRes = await fetch("/api/invoice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: currentUserId,
+            reservationId,
+            transactionId,
+            amount: finalTotal,
+          }),
+        });
+        const invoiceData = await invoiceRes.json();
+        if (!invoiceRes.ok) throw new Error(invoiceData.message || "Invoice creation failed");
+
+        console.log("Invoice URL:", invoiceData.invoiceUrl);
+        onConfirm();
       } catch (err: any) {
         console.error(err);
-        setGstError(err.message || "Failed to save GST info. Try again.");
+        setGstError(err.message || "Something went wrong");
       } finally {
         setSaving(false);
       }
     } else {
+      // GST not needed, just confirm
       onConfirm();
+      setSaving(false);
     }
   };
 
@@ -105,6 +128,7 @@ export default function BookingSummaryModal({
           Booking Summary
         </h3>
 
+        {/* Summary */}
         <div className="mb-4 space-y-2 text-gray-700">
           <div className="flex justify-between">
             <p>Booking Fee</p>
@@ -127,12 +151,12 @@ export default function BookingSummaryModal({
 
         {/* GST Toggle */}
         <div className="mb-4">
-          <label className="flex items-center gap-2">
+          <label className="flex items-center text-sm gap-2">
             <input
               type="checkbox"
               checked={needGST}
               onChange={(e) => setNeedGST(e.target.checked)}
-              className="w-4 h-4"
+              className="mt-1 w-4 h-4 appearance-none border border-gray-400 rounded-md checked:bg-black checked:border-black checked:shadow-inner transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20"
             />
             <span>Need GST Invoice?</span>
           </label>
@@ -180,6 +204,38 @@ export default function BookingSummaryModal({
 
         {gstError && <p className="text-sm text-red-600 mb-2">{gstError}</p>}
 
+        {/* Terms & Conditions */}
+        <div className="mt-4 mb-5">
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={agree}
+              onChange={(e) => setAgree(e.target.checked)}
+              className="mt-1 w-4 h-4 appearance-none border border-gray-400 rounded-md checked:bg-black checked:border-black checked:shadow-inner transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20"
+            />
+            <span>
+              I agree to the{" "}
+              <Link
+                href="/terms-and-conditions"
+                target="_blank"
+                className="text-blue-600 underline hover:text-blue-800"
+              >
+                Terms & Conditions
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy-policy"
+                target="_blank"
+                className="text-blue-600 underline hover:text-blue-800"
+              >
+                Privacy Policy
+              </Link>
+              .
+            </span>
+          </label>
+        </div>
+
+        {/* Actions */}
         <div className="mt-5 flex gap-2 justify-end">
           <button
             type="button"
@@ -191,9 +247,13 @@ export default function BookingSummaryModal({
           </button>
           <button
             type="button"
-            className={`px-4 py-2 rounded-lg text-white bg-black hover:opacity-90`}
+            className={`px-4 py-2 rounded-lg text-white ${
+              agree
+                ? "bg-black hover:opacity-90"
+                : "bg-gray-400 cursor-not-allowed"
+            }`}
             onClick={handleConfirm}
-            disabled={saving}
+            disabled={!agree || saving}
           >
             {saving ? "Saving…" : "Confirm & Continue"}
           </button>

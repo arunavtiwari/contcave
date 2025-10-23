@@ -58,6 +58,7 @@ model User {
   transactions            Transaction[]
   googleCalendarConnected Boolean           @default(false)
   billingDetails    BillingDetails[]
+  invoices        Invoice[]  
 
   verification_stage Int       @default(0) // 0=none, 1=contact, 2=aadhaar, 3=bank
   aadhaar_verified   Boolean   @default(false)
@@ -169,6 +170,7 @@ model Reservation {
   Review         Review[]
   isApproved     Int?
   Transaction    Transaction[]
+  invoices        Invoice[] 
   billingDetailId String? @db.ObjectId
   billingDetail   BillingDetails? @relation(fields: [billingDetailId], references: [id])
 
@@ -250,6 +252,7 @@ model BillingDetails {
 
   user           User     @relation(fields: [userId], references: [id])
   reservations   Reservation[]
+  invoices Invoice[]
 }
 
 model Transaction {
@@ -262,6 +265,7 @@ model Transaction {
   status        TransactionStatus @default(PENDING)
   description   String?
   paymentMethod String            @default("Cashfree")
+  invoices      Invoice[]  
 
   // -------- Cashfree PG fields ----------
   cfOrderId            String?
@@ -295,3 +299,25 @@ model Transaction {
   @@index([status])
   @@index([payoutDueAt])
 }
+
+
+model Invoice {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceNumber  String    @unique
+  userId         String    @db.ObjectId
+  reservationId  String?   @db.ObjectId
+  transactionId  String?   @db.ObjectId
+  billingId      String?   @db.ObjectId
+  amount         Float
+  gstAmount      Float?
+  totalAmount    Float
+  invoiceUrl     String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id])
+  reservation    Reservation? @relation(fields: [reservationId], references: [id])
+  transaction    Transaction? @relation(fields: [transactionId], references: [id])
+  billingDetails BillingDetails? @relation(fields: [billingId], references: [id])
+}
+
