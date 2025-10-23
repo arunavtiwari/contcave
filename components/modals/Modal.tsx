@@ -21,6 +21,7 @@ type Props = {
   secondaryActionLabel?: string;
   termsAndConditionsAccept?: boolean;
   isLoading?: boolean;
+  autoWidth?: boolean;
 };
 
 function Modal({
@@ -39,7 +40,8 @@ function Modal({
   selfActionButton,
   secondaryActionLabel,
   termsAndConditionsAccept,
-  isLoading
+  isLoading,
+  autoWidth
 }: Props) {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
