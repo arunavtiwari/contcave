@@ -2,6 +2,7 @@ import getReservation from "@/app/actions/getReservation";
 import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/PaymentSuccessAnimation";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { BRAND_NAME } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -46,6 +47,17 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
     const transaction = await getTransaction({ tid });
     const reservation =
         transaction?.reservation ?? (await getReservation({ tid }));
+
+    const txStatus = String(transaction?.status ?? "").toUpperCase();
+    const listingId =
+        reservation?.listing?.id ||
+        reservation?.listingId ||
+        transaction?.listing?.id ||
+        transaction?.listingId ||
+        "";
+    if (txStatus === "CANCELLED") {
+        redirect(listingId ? `/listings/${listingId}` : "/bookings");
+    }
 
     if (!reservation) {
         return (
@@ -100,9 +112,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
             ? "Don’t worry, you can try again with the same or a different payment method."
             : undefined;
 
-    const listingHref = reservation.listing?.id
-        ? `/listings/${reservation.listing.id}`
-        : "/";
+    const listingHref = listingId ? `/listings/${listingId}` : "/";
     const primaryCtaHref = isFailed ? listingHref : "/bookings";
     const primaryCtaLabel = isFailed ? "BACK TO STUDIO" : "GO TO MY BOOKINGS";
 
