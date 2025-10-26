@@ -5,8 +5,7 @@ import Image from "next/image";
 import { toast } from "react-toastify";
 import Heading from "@/components/Heading";
 
-
-// Types matching Prisma schema
+// Types
 interface BankField {
     label: string;
     name: string;
@@ -25,20 +24,6 @@ interface TaxField {
     maxLength?: number;
 }
 
-// Interface matching your Prisma PaymentDetails model
-interface PaymentDetails {
-    id: string;
-    userId: string;
-    accountHolderName: string;
-    bankName: string;
-    accountNumber?: string;
-    ifscCode: string;
-    taxIdentificationNumber: string;
-    taxResidencyInformation: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
 interface PaymentProfile {
     id: string;
     userId?: string;
@@ -52,11 +37,10 @@ interface PaymentProfile {
 
 interface PaymentDetailsProps {
     profile?: PaymentProfile;
+    paymentDetails?: PaymentProfile | null;
     onSave?: (data: FormData, isEditing?: boolean) => Promise<void>;
-    onFetch?: (profileId: string) => Promise<PaymentProfile>;
 }
 
-// Field Input Component (unchanged)
 const FieldInput = React.memo<{
     field: BankField | TaxField;
     value: string;
@@ -122,21 +106,19 @@ const FieldInput = React.memo<{
 FieldInput.displayName = 'FieldInput';
 
 // Main Component
-const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, onSave, onFetch }) => {
-    // State management
+const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails, onSave }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [isPending, startTransition] = useTransition();
-    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState<Record<string, string>>({});
     const [originalData, setOriginalData] = useState<Record<string, string>>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [hasExistingData, setHasExistingData] = useState(false);
 
-    // Dynamic field definitions matching Prisma schema
+    // Field definitions
     const BANK_FIELDS: BankField[] = useMemo(() => [
         {
             label: "Account Holder Name",
-            name: "accountHolderName", // matches Prisma field
+            name: "accountHolderName",
             value: "",
             type: "text",
             required: true,
@@ -161,7 +143,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, onSave, onFetc
         },
         {
             label: "Re-enter Account Number",
-            name: "reAccountNumber", // validation field, not in schema
+            name: "reAccountNumber",
             value: "",
             type: "text",
             required: true,
@@ -182,21 +164,21 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, onSave, onFetc
     const TAX_FIELDS: TaxField[] = useMemo(() => [
         {
             label: "Tax Identification Number (TIN)",
-            name: "taxIdentificationNumber", // matches Prisma field
+            name: "taxIdentificationNumber",
             value: "",
             required: true,
             maxLength: 15
         },
         {
             label: "Tax Residency Information",
-            name: "taxResidencyInformation", // matches Prisma field
+            name: "taxResidencyInformation",
             value: "",
             required: true,
             maxLength: 50
         }
     ], []);
 
-    const initializeFormData = useCallback((profileData: PaymentProfile | undefined) => {
+    const initializeFormData = useCallback((profileData: PaymentProfile | null) => {
         const initialData: Record<string, string> = {};
 
         [...BANK_FIELDS, ...TAX_FIELDS].forEach(field => {
@@ -216,38 +198,13 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, onSave, onFetc
         return initialData;
     }, [BANK_FIELDS, TAX_FIELDS]);
 
+    // Initialize form data when payment details change
     useEffect(() => {
-        const fetchPaymentDetails = async () => {
-            if (profile?.id && onFetch) {
-                setIsLoading(true);
-                try {
-                    const paymentProfile = await onFetch(profile.id);
-                    const data = initializeFormData(paymentProfile);
-                    setFormData(data);
-                    setOriginalData(data);
-                    setHasExistingData(!!paymentProfile && Object.keys(paymentProfile).length > 1); // More than just id
-                } catch (error) {
-                    console.error('Failed to fetch payment details:', error);
-                    toast.error('Failed to load payment details');
-                    // Initialize with empty data on error
-                    const data = initializeFormData(undefined);
-                    setFormData(data);
-                    setOriginalData(data);
-                    setHasExistingData(false);
-                } finally {
-                    setIsLoading(false);
-                }
-            } else {
-                // Initialize with profile data or empty data
-                const data = initializeFormData(profile);
-                setFormData(data);
-                setOriginalData(data);
-                setHasExistingData(false);
-            }
-        };
-
-        fetchPaymentDetails();
-    }, [profile, onFetch, initializeFormData]);
+        const data = initializeFormData(paymentDetails || null);
+        setFormData(data);
+        setOriginalData(data);
+        setHasExistingData(!!paymentDetails && Object.keys(paymentDetails).length > 1);
+    }, [paymentDetails, initializeFormData]);
 
     // Handlers
     const handleFieldChange = useCallback((name: string, value: string) => {
@@ -316,26 +273,17 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, onSave, onFetc
 
                 form.append('accountHolderName', formData.accountHolderName || '');
                 form.append('bankName', formData.bankName || '');
+
+                // Handle masked account numbers
                 const isMasked = /^\*+$/.test(formData.accountNumber.trim()) || /\*{3,}/.test(formData.accountNumber.trim());
                 if (!isMasked) {
                     form.append('accountNumber', formData.accountNumber || '');
-                } else {
-                    console.log('Masked account number detected — skipping append.');
                 }
 
                 form.append('ifscCode', formData.ifscCode || '');
                 form.append('taxIdentificationNumber', formData.taxIdentificationNumber || '');
                 form.append('taxResidencyInformation', formData.taxResidencyInformation || '');
-
                 form.append('updatedAt', new Date().toISOString());
-
-                if (process.env.NODE_ENV === 'development') {
-                    console.log('=== PaymentDetails Form Data ===');
-                    console.log('Has existing data:', hasExistingData);
-                    Array.from(form.entries()).forEach(([key, value]) => {
-                        console.log(`${key}:`, value);
-                    });
-                }
 
                 await onSave?.(form, hasExistingData);
 
@@ -356,17 +304,6 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, onSave, onFetc
         setErrors({});
         setFormData({ ...originalData });
     }, [originalData]);
-
-    if (isLoading) {
-        return (
-            <div className="flex flex-col w-full gap-5">
-                <div className="flex justify-center items-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-2 text-gray-600">Loading payment details...</span>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="flex flex-col w-full gap-5">

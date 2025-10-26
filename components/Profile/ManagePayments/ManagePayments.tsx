@@ -28,30 +28,25 @@ interface Profile {
 
 interface Props {
     profile: Profile;
+    paymentDetails?: any;
+    transactions?: Transaction[];
+    paymentDataLoaded?: boolean;
+    paymentDataLoading?: boolean;
+    onPaymentDetailsUpdate?: (newPaymentDetails: any) => void;
 }
 
-class APIError extends Error {
-    status: number;
-
-    constructor(message: string, status: number) {
-        super(message);
-        this.name = 'APIError';
-        this.status = status;
-    }
-}
-
-// Constants
 const TABS = ["Transaction History", "Payment Details"] as const;
 type TabType = typeof TABS[number];
 
-const ManagePayments: React.FC<Props> = ({ profile }) => {
-    // State management
+const ManagePayments: React.FC<Props> = ({
+    profile,
+    paymentDetails: propPaymentDetails,
+    transactions: propTransactions,
+    paymentDataLoading,
+    onPaymentDetailsUpdate
+}) => {
     const [selectedTab, setSelectedTab] = useState<TabType>("Payment Details");
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
-    // Helper function for API calls with better error handling
     const apiCall = useCallback(async (url: string, options: RequestInit = {}) => {
         const response = await fetch(url, {
             headers: {
@@ -63,52 +58,16 @@ const ManagePayments: React.FC<Props> = ({ profile }) => {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => null);
-            throw new APIError(
-                errorData?.error || `HTTP error! status: ${response.status}`,
-                response.status
-            );
+            throw new Error(errorData?.error || `HTTP error! status: ${response.status}`);
         }
 
         return response.json();
     }, []);
 
-    const fetchTransactions = useCallback(async () => {
-        if (!profile?.id) {
-            console.warn('No profile ID provided for transaction fetch');
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-
-        try {
-            const data = await apiCall(`/api/transactions/${profile.id}`);
-
-            if (!data.success) {
-                throw new Error(data.error || 'Failed to fetch transactions');
-            }
-
-            console.log('Fetched transactions:', data.transactions);
-            setTransactions(Array.isArray(data.transactions) ? data.transactions : []);
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-            setError(`Failed to load transactions: ${errorMessage}`);
-            console.error('Transaction fetch error:', err);
-            setTransactions([]);
-        } finally {
-            setLoading(false);
-        }
-    }, [profile?.id, apiCall]);
-
-    const handleTabChange = useCallback(async (tab: TabType) => {
+    const handleTabChange = useCallback((tab: TabType) => {
         if (tab === selectedTab) return;
-
         setSelectedTab(tab);
-
-        if (tab === "Transaction History" && transactions.length === 0 && !loading) {
-            await fetchTransactions();
-        }
-    }, [selectedTab, transactions.length, loading, fetchTransactions]);
+    }, [selectedTab]);
 
     const handleSave = useCallback(async (form: FormData, isEditing: boolean = false): Promise<any> => {
         if (!form) {
@@ -127,22 +86,12 @@ const ManagePayments: React.FC<Props> = ({ profile }) => {
                 const stringVal = value?.toString() ?? '';
                 if (/\*+/.test(stringVal)) {
                     accountNumberMasked = true;
-                    console.log('Masked account number detected — skipping');
                     return;
                 }
             }
             sanitizedForm.append(key, value);
         });
-        // Debug logging
-        if (process.env.NODE_ENV === 'development') {
-            console.log('=== Form Data Debug ===');
-            console.log('Is editing:', isEditing);
-            Array.from(form.entries()).forEach(([key, value]) => {
-                console.log(`  ${key}:`, value);
-            });
-        }
 
-        // Validation
         let requiredFields = [
             'userId',
             'accountHolderName',
@@ -155,7 +104,6 @@ const ManagePayments: React.FC<Props> = ({ profile }) => {
 
         if (accountNumberMasked || !sanitizedForm.has('accountNumber')) {
             requiredFields = requiredFields.filter(field => field !== 'accountNumber');
-            console.log('Account number not required in validation');
         }
 
         const missingOrEmptyFields = requiredFields.filter(field => {
@@ -169,11 +117,9 @@ const ManagePayments: React.FC<Props> = ({ profile }) => {
         });
 
         if (missingOrEmptyFields.length > 0) {
-            console.error('Validation failed. Missing or empty fields:', missingOrEmptyFields);
             throw new Error(`Missing or empty required fields: ${missingOrEmptyFields.join(', ')}`);
         }
 
-        // Validate account number if provided
         const finalAccountNumber = form.get('accountNumber') as string;
         if (finalAccountNumber) {
             const cleanAccountNumber = finalAccountNumber.trim();
@@ -193,38 +139,16 @@ const ManagePayments: React.FC<Props> = ({ profile }) => {
                 throw new Error(data.error || 'Save failed');
             }
 
-            console.log('✅ Payment details saved successfully');
-            return data;
-        } catch (error) {
-            console.error('❌ Error saving payment details:', error);
-            throw error;
-        }
-    }, [profile?.id, apiCall]);
-
-
-    const handleFetch = useCallback(async (profileId: string) => {
-        if (!profileId) {
-            throw new Error('Profile ID is required');
-        }
-
-        try {
-            console.log('Fetching payment details for profileId:', profileId);
-
-            const data = await apiCall(`/api/payment-details/${profileId}`);
-
-            console.log('Fetched payment data:', data);
-            return data.success ? (data.data || null) : null;
-        } catch (error) {
-            if (error instanceof APIError && error.status === 404) {
-                console.log('No payment details found - normal for new users');
-                return null;
+            if (data.data) {
+                onPaymentDetailsUpdate?.(data.data);
             }
 
-            console.error('Error fetching payment details:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            throw new Error(`Failed to fetch payment details: ${errorMessage}`);
+            return data;
+        } catch (error) {
+            console.error('Error saving payment details:', error);
+            throw error;
         }
-    }, [apiCall]);
+    }, [profile?.id, apiCall, onPaymentDetailsUpdate]);
 
     const renderSelectedComponent = useMemo(() => {
         const commonProps = { profile };
@@ -234,35 +158,43 @@ const ManagePayments: React.FC<Props> = ({ profile }) => {
                 return (
                     <TransactionHistory
                         {...commonProps}
-                        transactions={transactions}
-                        loading={loading}
-                        error={error}
-                        onRetry={fetchTransactions}
+                        transactions={propTransactions || []}
+                        loading={paymentDataLoading || false}
+                        error={null}
+                        onRetry={() => { }}
                     />
                 );
             case "Payment Details":
-                return (
-                    <PaymentDetails
-                        {...commonProps}
-                        onSave={handleSave}
-                        onFetch={handleFetch}
-                    />
-                );
             default:
                 return (
                     <PaymentDetails
                         {...commonProps}
+                        paymentDetails={propPaymentDetails}
                         onSave={handleSave}
-                        onFetch={handleFetch}
                     />
                 );
         }
-    }, [selectedTab, profile, transactions, loading, error, fetchTransactions, handleSave, handleFetch]);
+    }, [selectedTab, profile, propTransactions, paymentDataLoading, handleSave, propPaymentDetails]);
 
     const tabIndicatorStyles = useMemo(() => ({
         left: selectedTab === "Transaction History" ? "0.25rem" : "50%",
         right: selectedTab === "Transaction History" ? "50%" : "0.25rem",
     }), [selectedTab]);
+
+    if (paymentDataLoading) {
+        return (
+            <div className="flex flex-col w-full gap-5">
+                <Heading
+                    title="Manage Payments"
+                    subtitle="View your payment details and past transactions."
+                />
+                <div className="flex justify-center items-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-gray-600">Loading payment data...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col w-full gap-5">
