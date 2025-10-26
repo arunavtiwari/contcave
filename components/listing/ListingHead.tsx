@@ -135,7 +135,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
   return (
     <>
       <div className="flex gap-2">
-        <Heading title={title} subtitle={`India, ${location?.label}`} />
+        <Heading title={title} subtitle={`${location?.label}, India`} />
         <div className="pt-[6px]">
           <HeartButton listingId={id} currentUser={currentUser} />
         </div>

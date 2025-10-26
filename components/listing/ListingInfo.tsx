@@ -206,13 +206,6 @@ function ListingInfo({
 
       <hr />
 
-      <div className="flex flex-col gap-2">
-        <p className="text-xl font-semibold">Address</p>
-        <p className="font-normal">{fullListing.locationValue ?? ""}</p>
-      </div>
-
-      <hr />
-
       {selectedAmenityKeys.length > 0 && amenityDefs.length > 0 && (
         <>
           <Offers amenities={selectedAmenityKeys} definedAmenities={amenityDefs} />
