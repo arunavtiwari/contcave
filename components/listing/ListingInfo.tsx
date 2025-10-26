@@ -25,12 +25,12 @@ type Props = {
   user: SafeUser;
   description: string;
   category:
-    | {
-        icon: IconType;
-        label: string;
-        description: string;
-      }
-    | undefined;
+  | {
+    icon: IconType;
+    label: string;
+    description: string;
+  }
+  | undefined;
   locationValue: string;
   fullListing: any;
   definedAmenities?: Array<any>;
@@ -75,7 +75,7 @@ function ListingInfo({
       try {
         const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
         setReviews(res.data || []);
-      } catch {}
+      } catch { }
     };
     const checkBooking = async () => {
       try {
@@ -208,7 +208,7 @@ function ListingInfo({
 
       <div className="flex flex-col gap-2">
         <p className="text-xl font-semibold">Address</p>
-        <p className="font-normal">{fullListing.actualLocation?.display_name ?? ""}</p>
+        <p className="font-normal">{fullListing.locationValue ?? ""}</p>
       </div>
 
       <hr />

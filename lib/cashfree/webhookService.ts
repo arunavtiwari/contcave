@@ -5,6 +5,11 @@ import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
 import { sendTemplateEmail } from "@/lib/email/mailer";
 
+type LocationData = {
+  display_name?: string;
+  [key: string]: any;
+};
+
 const MAX_SKEW_SEC = Number(process.env.WEBHOOK_MAX_SKEW_SEC || 600);
 const OWNER_PAYOUT_PERCENT = Number(process.env.OWNER_PAYOUT_PERCENT || 80);
 
@@ -250,9 +255,8 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             },
           });
 
-          // prepare emails only (do not send here)
           const studioName = listing?.title || "";
-          const studioLocation = listing?.locationValue || "";
+          const studioLocation = (listing?.actualLocation as LocationData)?.display_name || "";
           const addonsStr = formatAddons(md.selectedAddons);
           const totalPrice = Math.round(Number(freshTxn.amount || 0));
           afterTxnId = freshTxn.id;
@@ -300,7 +304,6 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             console.log("Prepared owner email", { txnId: freshTxn.id, to: listing.user.email });
           }
         } else {
-          // reservation already exists → load for email payloads
           const resv = await db.reservation.findUnique({
             where: { id: freshTxn.reservationId },
             include: {
@@ -310,7 +313,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           });
           if (resv) {
             const studioName = resv.listing?.title || "";
-            const studioLocation = resv.listing?.locationValue || "";
+            const studioLocation = (resv.listing?.actualLocation as LocationData)?.display_name || "";
             const addonsStr = formatAddons(resv.selectedAddons);
             const totalPrice = Math.round(Number(resv.totalPrice || 0));
             const startDateYmd = resv.startDate?.toISOString().slice(0, 10) || "";
@@ -361,7 +364,6 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
         }
       });
 
-      // send emails after commit using atomic claim flags
       if (afterTxnId) {
         if (afterCustomer) {
           try {
