@@ -1,6 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
 import { NextResponse } from "next/server";
+import { geocodeDisplayName } from "@/lib/geocode";
 
 export async function POST(request: Request) {
   const currentUser = await getCurrentUser();
@@ -18,6 +19,14 @@ export async function POST(request: Request) {
     return NextResponse.error();
   }
 
+  let finalActualLocation = actualLocation;
+  if (actualLocation && typeof actualLocation === "object" && actualLocation.display_name && !actualLocation.latlng) {
+    const geo = await geocodeDisplayName(String(actualLocation.display_name));
+    if (geo) {
+      finalActualLocation = { ...actualLocation, latlng: [geo.lat, geo.lng] };
+    }
+  }
+
   const listing = await prisma.listing.create({
     data: {
       title,
@@ -25,7 +34,7 @@ export async function POST(request: Request) {
       imageSrc,
       category,
       locationValue,
-      actualLocation,
+      actualLocation: finalActualLocation,
       price: Number(price),
       userId: currentUser.id,
       amenities,
@@ -50,7 +59,7 @@ export async function POST(request: Request) {
     await prisma.package.createMany({
       data: packages.map((p: any) => ({
         title: String(p.title),
-        originalPrice: p.originalPrice != null ? Number(p.originalPrice) : 0, // your schema requires Int
+        originalPrice: p.originalPrice != null ? Number(p.originalPrice) : 0,
         offeredPrice: Number(p.offeredPrice),
         features: Array.isArray(p.features) ? p.features.map(String) : [],
         durationHours: Number(p.durationHours),

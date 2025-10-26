@@ -282,11 +282,10 @@ export default function RentModal() {
             onChange={(sel: any) => {
               setCustomValue("actualLocation", {
                 display_name: sel.display_name,
-                latlng: [Number(sel.latlng.lat), Number(sel.latlng.lon)],
               });
             }}
           />
-          <Map center={actualLocation?.latlng ?? location?.latlng} />
+          <Map center={location?.latlng} />
         </div>
       );
       break;
@@ -354,7 +353,7 @@ export default function RentModal() {
       bodyContent = (
         <div className="flex flex-col gap-6">
           <Heading title="Add-ons" subtitle="Additional chargeable facilities" />
-          <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons} onSelectedAddonsChange={handleAddonChange} />
+          <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons} onSelectedAddonsChange={handleAddonChange} rentModal />
           <CustomAddonModal save={(v: any) => setAddons([...addons, v])} />
         </div>
       );
