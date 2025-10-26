@@ -84,7 +84,6 @@ function combineUtcIso(ymd: string, hm: string): string {
   return new Date(`${ymd}T${time}:00Z`).toISOString();
 }
 
-// atomic email claimers (never run inside a DB transaction)
 async function claimAndSendCustomerEmail(
   txnId: string,
   payload: {
@@ -175,7 +174,6 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
     if (!orderId) return { statusCode: 200 };
 
     const status = mapStatus(pickPayStatus(body));
-    // basic trace
     console.log("Webhook parsed", { orderId, status });
     const cfPaymentId = pickPaymentId(body);
 
@@ -287,7 +285,6 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               customerName: user?.name || "",
               templateId: process.env.MS_TPL_RESERVATION_OWNER || "",
             } as any;
-            // enrich with extra fields expected by new owner template
             (afterOwner as any).bookingId = reservation.id;
             (afterOwner as any).addons = addonsStr;
             (afterOwner as any).formattedStartDate = startDateYmd;
