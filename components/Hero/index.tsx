@@ -41,12 +41,12 @@ const Hero = () => {
 
   return (
     <div id="hero-anim-track" className="overflow-hidden">
-      <div className="hero flex items-center text-white relative h-[calc(100vh-80px)] justify-center">
+      <div className="flex items-center text-white relative h-[calc(100vh-80px)]">
         {/* Overlay */}
         <div className="absolute inset-0 bg-black opacity-65 z-10"></div>
 
-        <div className="container flex flex-col z-20">
-          <div className="w-full sm:w-2/3 text-center sm:text-start px-4 sm:px-0">
+        <div className="container flex z-20 px-4 sm:px-8 lg:px-16">
+          <div className="w-full sm:w-2/3 text-center sm:text-start">
             <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
               Discover the perfect
             </h1>
