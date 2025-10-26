@@ -5,7 +5,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-    if (req.headers.get("x-vercel-cron") !== "1") {
+    const isGitHubAction = req.headers.get("x-github-secret") === process.env.CRON_SECRET;
+
+    if (!isGitHubAction) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
