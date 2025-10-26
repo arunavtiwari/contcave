@@ -22,8 +22,11 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
       return NextResponse.json({ error: 'Invalid Reservation ID' }, { status: 400 });
     }
 
-    const reservation = await prisma.reservation.findUnique({
-      where: { id: reservationId },
+    const reservation = await prisma.reservation.findFirst({
+      where: {
+        id: reservationId,
+        markedForDeletion: false,
+      },
       include: { listing: true },
     });
 
@@ -55,21 +58,29 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
       return NextResponse.json({ error: 'Invalid Reservation ID' }, { status: 400 });
     }
 
-    const deletedReservation = await prisma.reservation.deleteMany({
+    const existingReservation = await prisma.reservation.findFirst({
       where: {
         id: reservationId,
         OR: [{ userId: currentUser.id }, { listing: { userId: currentUser.id } }],
       },
     });
 
-    if (deletedReservation.count === 0) {
+    if (!existingReservation) {
       return NextResponse.json({ error: 'Reservation Not Found or Unauthorized' }, { status: 404 });
     }
 
-    return NextResponse.json(deletedReservation);
+    const softDeletedReservation = await prisma.reservation.update({
+      where: { id: reservationId },
+      data: {
+        markedForDeletion: true,
+        markedForDeletionAt: new Date(),
+      },
+    });
+
+    return NextResponse.json(softDeletedReservation);
 
   } catch (error) {
-    console.error("Error deleting reservation:", error);
+    console.error("Error soft deleting reservation:", error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -91,6 +102,18 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
     }
 
     const body = await request.json();
+
+    const existingReservation = await prisma.reservation.findFirst({
+      where: {
+        id: reservationId,
+        markedForDeletion: false,
+        OR: [{ userId: currentUser.id }, { listing: { userId: currentUser.id } }],
+      },
+    });
+
+    if (!existingReservation) {
+      return NextResponse.json({ error: 'Reservation Not Found or Unauthorized' }, { status: 404 });
+    }
 
     const updatedReservation = await prisma.reservation.update({
       where: { id: reservationId },

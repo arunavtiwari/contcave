@@ -17,6 +17,7 @@ export default async function getReservation(params: IParams) {
         Transaction: {
           some: { cfOrderId: tid },
         },
+        markedForDeletion: false,
       },
       include: {
         listing: true,
@@ -34,6 +35,7 @@ export default async function getReservation(params: IParams) {
       startDate: reservation.startDate.toISOString(),
       startTime: reservation.startTime,
       endTime: reservation.endTime,
+      markedForDeletionAt: reservation.markedForDeletionAt?.toISOString() || null,
       listing: reservation.listing
         ? {
           ...reservation.listing,

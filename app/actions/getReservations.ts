@@ -10,7 +10,9 @@ export default async function getReservations(params: IParams) {
   try {
     const { listingId, userId, authorId } = params;
 
-    const query: any = {};
+    const query: any = {
+      markedForDeletion: false,
+    };
 
     if (listingId) {
       query.listingId = listingId;
@@ -28,7 +30,7 @@ export default async function getReservations(params: IParams) {
       where: query,
       include: {
         listing: true,
-        Review:false
+        Review: false
       },
       orderBy: {
         createdAt: "desc",
@@ -41,6 +43,7 @@ export default async function getReservations(params: IParams) {
       startDate: reservation.startDate,
       startTime: reservation.startTime,
       endTime: reservation.endTime,
+      markedForDeletionAt: reservation.markedForDeletionAt?.toISOString() || null,
       listing: {
         ...reservation.listing,
         createdAt: reservation.listing.createdAt.toISOString(),

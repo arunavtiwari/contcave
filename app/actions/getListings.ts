@@ -46,14 +46,21 @@ export default async function getListings(params: IListingsParams) {
       query.NOT = {
         reservations: {
           some: {
-            OR: [
+            AND: [
               {
-                endDate: { gte: startDate },
-                startDate: { lte: startDate },
+                markedForDeletion: false,
               },
               {
-                startDate: { lte: endDate },
-                endDate: { gte: endDate },
+                OR: [
+                  {
+                    endDate: { gte: startDate },
+                    startDate: { lte: startDate },
+                  },
+                  {
+                    startDate: { lte: endDate },
+                    endDate: { gte: endDate },
+                  },
+                ],
               },
             ],
           },
