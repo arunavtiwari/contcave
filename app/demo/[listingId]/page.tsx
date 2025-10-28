@@ -124,10 +124,12 @@ const DemoListingPage = async ({ params }: { params: Promise<RouteParams> }) => 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd) }}
         />
         <div className="relative">
-          <div className="absolute top-4 right-4 bg-yellow-200 text-yellow-900 px-3 py-1 rounded-full text-sm font-medium z-10 shadow-sm">
+        <div className="absolute top-3 right-3 left-3 sm:left-auto sm:top-4 sm:right-4 
+            bg-yellow-100 text-yellow-800 text-center px-3 py-1.5 rounded-md 
+            text-xs sm:text-sm font-medium z-10 shadow-sm whitespace-normal break-words">
             Demo Preview – Not Public Yet
-          </div>
-
+            </div>
+            
           <ListingClient
             listing={listing}
             currentUser={currentUser}
