@@ -165,24 +165,32 @@ function Offers({ amenities, definedAmenities }: Props) {
         <p className="text-xl font-semibold mb-4">What this space offers</p>
         <div className="grid grid-cols-2 gap-4">
           {definedAmenities?.map((item, index) =>
-          (
-            <motion.div
-              key={item.id}
-              initial={{
-                x: -200,
-                opacity: 0,
-              }}
-              transition={{ duration: 1 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="flex cursor-pointer gap-3 items-center"
-            >
-              {item.icon && (
-                <item.icon size={25} className="" />
-              )}
-              <p className="">{item.name}</p>
-            </motion.div>
-          ))}
+          <div
+          key={item.id}
+          className="flex items-center gap-3 cursor-pointer">
+          {item.icon && <item.icon size={22} className="text-neutral-700" />}
+          <p className="text-neutral-800 text-sm">{item.name}</p>
+          </div>
+          // (
+          //   <motion.div
+          //     key={item.id}
+          //     initial={{
+          //       x: -200,
+          //       opacity: 0,
+          //     }}
+          //     transition={{ duration: 1 }}
+          //     whileInView={{ opacity: 1, x: 0 }}
+          //     viewport={{ once: true }}
+          //     className="flex cursor-pointer gap-3 items-center"
+          //   >
+          //     {item.icon && (
+          //       <item.icon size={25} className="" />
+          //     )}
+          //     <p className="">{item.name}</p>
+          //   </motion.div>
+          // )
+          
+          )}
         </div>
       </div>
     </>

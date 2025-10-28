@@ -28,13 +28,14 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
   const add = useCallback(() => onQtyChange(1), [onQtyChange]);
 
   return (
-    <motion.div
-      initial={{ x: -200, opacity: 0 }}
-      transition={{ duration: 1 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      className="flex space-x-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200"
-    >
+    // <motion.div
+    //   initial={{ x: -200, opacity: 0 }}
+    //   transition={{ duration: 1 }}
+    //   whileInView={{ opacity: 1, x: 0 }}
+    //   viewport={{ once: true }}
+    //   className="flex space-x-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200"
+    // >
+    <div className="flex space-x-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200">
       <div className="rounded-lg h-fit w-fit">
         <div
           className="h-16 w-16 rounded-lg bg-neutral-100 bg-cover bg-center"
@@ -54,17 +55,26 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
           </button>
         ) : (
           <div className="flex items-center mt-1">
-            <button onClick={dec} className="text-white bg-rose-500 h-8 w-8 rounded-l-xl text-xl">
-              -
-            </button>
-            <span className="px-5 bg-neutral-300 py-1.5 w-13">{qty}</span>
-            <button onClick={inc} className="text-white bg-green-500 h-8 w-8 rounded-r-xl text-xl leading-none">
-              +
-            </button>
-          </div>
+          <button
+            onClick={dec}
+            className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-8 rounded-l-xl text-lg font-medium transition"
+          >
+            −
+          </button>
+          <span className="px-5 bg-white text-[#2F2F2F] border border-[#D6D3D1] py-1.5 w-13 text-center">
+            {qty}
+          </span>
+          <button
+            onClick={inc}
+            className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-8 rounded-r-xl text-lg font-medium transition"
+          >
+            +
+          </button>
+        </div>
         )}
       </div>
-    </motion.div>
+      </div>
+    // </motion.div>
   );
 };
 
