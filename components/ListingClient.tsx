@@ -20,6 +20,7 @@ type Props = {
   reservations?: SafeReservation[];
   listing: safeListing & { user: SafeUser };
   currentUser?: SafeUser | null;
+  isDemo: Boolean
 };
 
 type AddonItem = { name?: string; price: number; qty: number };
@@ -149,6 +150,7 @@ function ListingClient({
   reservations = [],
   listing,
   currentUser = null,
+  isDemo 
 }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>([null, null]);

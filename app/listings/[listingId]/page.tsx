@@ -240,6 +240,7 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
           listing={listing}
           currentUser={currentUser}
           reservations={reservations}
+          isDemo={false}
         />
       </>
     </ClientOnly>
