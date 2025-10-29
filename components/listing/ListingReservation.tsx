@@ -24,6 +24,7 @@ import BookingSummaryModal from "../modals/BookingSummaryModal";
 import { normalizePhone } from "@/lib/phone";
 import { Package } from "../inputs/PackagesForm";
 import { SafeUser } from "@/types";
+import { FaBolt } from "react-icons/fa";
 
 const INR = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -394,12 +395,33 @@ export default function ListingReservation({
 
   return (
     <section className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
-      <div className="flex items-center gap-1 p-4">
-        <p className="flex gap-1 text-2xl font-semibold" id={`${sectionId}-title`}>
-          {selectedPackage ? INR.format(Number(selectedPackage.offeredPrice || 0)) : INR.format(price)}{" "}
-          <span className="text-neutral-600 font-normal">{selectedPackage ? " (package)" : "/ hour"}</span>
+      <div className="flex items-center justify-between p-4">
+        {/* Left: Price */}
+        <p
+          className="flex gap-1 text-2xl font-semibold"
+          id={`${sectionId}-title`}
+        >
+          {selectedPackage
+            ? INR.format(Number(selectedPackage.offeredPrice || 0))
+            : INR.format(price)}{" "}
+          <span className="text-neutral-600 font-normal">
+            {selectedPackage ? " (package)" : "/ hour"}
+          </span>
         </p>
+
+        {/* Right: Booking type chip */}
+        <span
+          className={`flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full ${
+            instantBooking
+              ? "bg-green-100 text-green-700"
+              : "bg-yellow-100 text-yellow-700"
+          }`}
+        >
+          {instantBooking && <FaBolt className="text-yellow-500 w-3 h-3" />}
+          {instantBooking ? "Instant Book" : "Request to Book"}
+        </span>
       </div>
+      
       <hr />
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
         <h2 className="text-lg" id={`${sectionId}-date-label`}>
