@@ -11,7 +11,6 @@ export type ListingDetails = {
     maximumPax: string;
     instantBooking: boolean;
     type: string[];
-    bookingApprovalCount?: boolean;
 };
 
 type Props = {
@@ -77,7 +76,6 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
         maximumPax: "",
         instantBooking: false,
         type: [],
-        bookingApprovalCount: false,
     });
 
     useEffect(() => {
@@ -85,27 +83,8 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
     }, [details, onDetailsChange]);
 
     const handleInputChange = useCallback((field: keyof ListingDetails, value: any) => {
-        setDetails((prev) => {
-            if (field === "instantBooking") {
-                return {
-                    ...prev,
-                    instantBooking: value,
-                    bookingApprovalCount: value ? false : true, 
-                };
-            }
-    
-            if (field === "bookingApprovalCount") {
-                return {
-                    ...prev,
-                    bookingApprovalCount: value,
-                    instantBooking: value ? false : prev.instantBooking, 
-                };
-            }
-    
-            return { ...prev, [field]: value };
-        });
+        setDetails((prev) => ({ ...prev, [field]: value }));
     }, []);
-    
 
     const handleTypeSelect = (t: string) => {
         setDetails((prev) => {
@@ -249,9 +228,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
                 </label>
                 <ReactSwitch
                     checked={details.instantBooking}
-                    onChange={(checked) =>
-                    handleInputChange("instantBooking", checked ? true : false)
-                    }
+                    onChange={(checked) => handleInputChange("instantBooking", !!checked)}
                     offColor="#d1d5db"
                     onColor="#000"
                     uncheckedIcon={false}
@@ -260,28 +237,9 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
                     checkedIcon={false}
                     height={30}
                     handleDiameter={20}
-                    checkedHandleIcon={
-                    <FaBolt color="#FFD700" className="w-full h-full py-[2px]" />
-                    }
+                    checkedHandleIcon={<FaBolt color="#FFD700" className="w-full h-full py-[2px]" />}
                 />
-                </div>
-
-                <div className="flex justify-between items-center">
-                <label className="text-sm font-medium mb-1 w-[40vw]">
-                    Require host approval before confirming?
-                </label>
-                <ReactSwitch
-                    checked={!!details.bookingApprovalCount}
-                    onChange={(checked) => handleInputChange("bookingApprovalCount", checked)}
-                    offColor="#d1d5db"
-                    onColor="#000"
-                    uncheckedIcon={false}
-                    offHandleColor="#000"
-                    checkedIcon={false}
-                    height={24}
-                    handleDiameter={18}
-                />
-                </div>
+            </div>
 
             <hr />
 
@@ -294,7 +252,8 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
                         <button
                             key={t}
                             onClick={() => handleTypeSelect(t)}
-                            className={`${details.type.includes(t) ? "bg-black text-white" : "bg-gray-200 text-gray-800"} text-sm py-1 px-3 rounded-full`}
+                            className={`${details.type.includes(t) ? "bg-black text-white" : "bg-gray-200 text-gray-800"
+                                } text-sm py-1 px-3 rounded-full`}
                         >
                             {t}
                         </button>

@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     title, description, imageSrc, category, locationValue, actualLocation,
     price, amenities, otherAmenities, addons, carpetArea, operationalDays,
     operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
-    bookingApprovalCount, verifications, terms, packages,
+    verifications, terms, packages,
   } = body;
 
   if (!title || !description || !imageSrc || !category || !locationValue || price == null) {
@@ -47,7 +47,6 @@ export async function POST(request: Request) {
       maximumPax,
       instantBooking,
       type,
-      bookingApprovalCount,
       verifications,
       terms,
       status: "PENDING",

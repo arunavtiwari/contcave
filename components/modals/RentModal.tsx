@@ -137,8 +137,38 @@ export default function RentModal() {
       return toast.error("Please select a location");
     if (step === STEPS.IMAGES && (!imageSrc || imageSrc.length === 0))
       return toast.error("Please upload at least one image");
-    if (step === STEPS.OTHERDETAILS && !listingDetails)
-      return toast.error("Please complete all 'Other Details'");
+    if (step === STEPS.OTHERDETAILS) {
+      if (!listingDetails)
+        return toast.error("Please complete all 'Other Details'");
+
+      const {
+        carpetArea,
+        operationalDays,
+        operationalHours,
+        minimumBookingHours,
+        maximumPax,
+        type,
+      } = listingDetails as any;
+
+      if (!carpetArea || String(carpetArea).trim() === "")
+        return toast.error("Please enter Carpet Area");
+      if (!/^\d+(?:\.\d+)?$/.test(String(carpetArea).trim()))
+        return toast.error("Carpet Area must be a number");
+      if (!operationalDays?.start || !operationalDays?.end)
+        return toast.error("Please select Operational Days (start and end)");
+      if (!operationalHours?.start || !operationalHours?.end)
+        return toast.error("Please select Opening Hours (start and end)");
+      if (!minimumBookingHours || String(minimumBookingHours).trim() === "")
+        return toast.error("Please enter Minimum Booking Hours");
+      if (!/^\d+(?:\.\d+)?$/.test(String(minimumBookingHours).trim()))
+        return toast.error("Minimum Booking Hours must be a number");
+      if (!maximumPax || String(maximumPax).trim() === "")
+        return toast.error("Please enter Maximum Pax");
+      if (!/^\d+$/.test(String(maximumPax).trim()))
+        return toast.error("Maximum Pax must be an integer");
+      if (!Array.isArray(type) || type.length === 0)
+        return toast.error("Please select at least one Type");
+    }
     if (step === STEPS.VERIFICATION && !hasVerification)
       return toast.error("Please upload verification documents");
     setStep((v) => v + 1);
@@ -162,15 +192,15 @@ export default function RentModal() {
   // Submit
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) return onNext();
-  
+
     const locationValue =
       data.location?.value ||
       data.location?.label ||
       data.location?.name ||
       "";
-  
+
     if (!locationValue) return toast.error("Please select a valid city/location");
-  
+
     const payload = {
       title: data.title,
       description: data.description,
@@ -196,32 +226,32 @@ export default function RentModal() {
       agreementSignature: signature,
       terms,
     };
-  
+
     setIsLoading(true);
     try {
       // Create the listing
       const createRes = await axios.post("/api/listings", payload);
       const listingId = createRes.data?.id;
-  
+
       if (!listingId) throw new Error("Listing creation failed");
-  
+
       // Generate/upload agreement PDF if terms & signature are present
       if (signature && terms && termsRef.current?.generateAndUploadPdf) {
         const meta = await termsRef.current.generateAndUploadPdf(`agreements/${listingId}`);
         setAgreementPdf(meta);
-  
+
         const mergedVerifications = {
           ...(verifications || {}),
           agreementPdf: meta,
         };
-  
+
         await axios.patch(`/api/listings/${listingId}`, {
           verifications: mergedVerifications,
         });
-  
+
         console.log("[RentModal] Saved agreement PDF inside verifications");
       }
-  
+
       setShowSuccessModal(true);
       router.refresh();
       reset();
@@ -235,7 +265,7 @@ export default function RentModal() {
       setIsLoading(false);
     }
   };
-  
+
 
   // Dynamic labels
   const actionLabel = useMemo(() => {
@@ -409,8 +439,8 @@ export default function RentModal() {
           step === STEPS.VERIFICATION
             ? "Space Verification"
             : step === STEPS.TERMS
-            ? "Host Agreement"
-            : "List Your Space"
+              ? "Host Agreement"
+              : "List Your Space"
         }
         actionLabel={actionLabel}
         onSubmit={handleSubmit(onSubmit)}
