@@ -3,6 +3,7 @@
 import Container from "@/components/Container";
 import Heading from "@/components/Heading";
 import BookingCard from "@/components/listing/BookingCard";
+import Modal from "@/components/modals/Modal";
 import { SafeReservation, SafeUser } from "@/types";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -18,6 +19,20 @@ type Props = {
 function BookingClient({ reservations, currentUser }: Props) {
   const router = useRouter();
   const [deletingId, setDeletingId] = useState("");
+  const [isRefundOpen, setRefundOpen] = useState(false);
+  const [refundReservationId, setRefundReservationId] = useState<string>("");
+  const [isConfirmOpen, setConfirmOpen] = useState(false);
+  const [confirmReservationId, setConfirmReservationId] = useState<string>("");
+  const handleRefundContact = useCallback(() => {
+    const r = reservations.find(x => x.id === refundReservationId);
+    const studio = r?.listing?.title || "the studio";
+    const rid = r?.id || refundReservationId;
+    const msg = encodeURIComponent(`Hi ContCave team, I cancelled my booking for ${studio}. Reservation ID: ${rid}. Please help with refund.`);
+    const num = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(/[^0-9]/g, "");
+    const url = num ? `https://wa.me/${num}?text=${msg}` : `https://wa.me/?text=${msg}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+    setRefundOpen(false);
+  }, [reservations, refundReservationId]);
 
   const onChat = useCallback((id: string) => {
     window.open(`/chat/${id}`, "_blank")
@@ -56,6 +71,8 @@ function BookingClient({ reservations, currentUser }: Props) {
           toast.success("Reservation cancelled", {
             toastId: "Reservation_Cancelled"
           });
+          setRefundReservationId(id);
+          setRefundOpen(true);
           router.refresh();
         })
         .catch((error) => {
@@ -69,6 +86,11 @@ function BookingClient({ reservations, currentUser }: Props) {
     },
     [router]
   );
+
+  const openCancelConfirm = useCallback((id: string) => {
+    setConfirmReservationId(id);
+    setConfirmOpen(true);
+  }, []);
 
   return (
     <div className="mt-5">
@@ -84,7 +106,7 @@ function BookingClient({ reservations, currentUser }: Props) {
               data={reservation.listing}
               reservation={reservation}
               actionId={reservation.id}
-              onAction={onCancel}
+              onAction={openCancelConfirm}
               onChat={onChat}
               onDelete={onDelete}
               disabled={deletingId === reservation.id}
@@ -94,6 +116,42 @@ function BookingClient({ reservations, currentUser }: Props) {
           ))}
         </div>
       </Container>
+      {isConfirmOpen && (
+        <Modal
+          isOpen={isConfirmOpen}
+          onClose={() => setConfirmOpen(false)}
+          onSubmit={() => { setConfirmOpen(false); onCancel(confirmReservationId); }}
+          title="Cancel Reservation"
+          body={<p className="text-center">Are you sure you want to cancel this reservation?</p>}
+          actionLabel="Cancel Reservation"
+          secondaryAction={() => setConfirmOpen(false)}
+          secondaryActionLabel="Close"
+        />
+      )}
+      {isRefundOpen && (
+        <Modal
+          isOpen={isRefundOpen}
+          onClose={() => setRefundOpen(false)}
+          onSubmit={handleRefundContact}
+          title="Booking Cancelled 😓"
+          body={(() => {
+            const r = reservations.find(x => x.id === refundReservationId);
+            const studioName = r?.listing?.title || "this studio";
+            return (
+              <div className="space-y-4">
+                <p>
+                  We’re sorry to hear you couldn’t go ahead with your booking at {studioName}.
+                </p>
+                <p>
+                  Refunds are processed manually by our support team based on our cancellation policy.
+                  Tap below to connect with us on WhatsApp – we’ll help you sort your refund right away.
+                </p>
+              </div>
+            );
+          })()}
+          actionLabel="Contact Support on WhatsApp"
+        />
+      )}
     </div>
   );
 }

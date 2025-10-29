@@ -1,12 +1,10 @@
 // types.ts
 import { Listing, Reservation, User } from "@prisma/client";
 
-/** unchanged */
 export type safeListing = Omit<Listing, "createdAt"> & {
   createdAt: string;
 };
 
-/** unchanged shape for reservations */
 export type SafeReservation = Omit<
   Reservation,
   "createdAt" | "startDate" | "endDate" | "listing" | "markedForDeletionAt"
@@ -17,6 +15,7 @@ export type SafeReservation = Omit<
   endTime: string;
   listing: safeListing;
   markedForDeletionAt: string | null;
+  rejectReason?: string | null;
 };
 
 export type SafeUser = Omit<

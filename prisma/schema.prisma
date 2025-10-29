@@ -91,39 +91,38 @@ model Account {
 }
 
 model Listing {
-  id                   String        @id @default(auto()) @map("_id") @db.ObjectId
-  title                String
-  description          String
-  imageSrc             String[]
-  createdAt            DateTime      @default(now())
-  category             String
-  locationValue        String
-  actualLocation       Json?
-  userId               String        @db.ObjectId
-  price                Int
-  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reservations         Reservation[]
-  amenities            String[]
-  otherAmenities       String[]
-  addons               Json?
-  carpetArea           String?
-  operationalDays      Json?
-  operationalHours     Json?
-  minimumBookingHours  String?
-  maximumPax           String?
-  instantBooking       Boolean?
-  type                 String[]
-  bookingApprovalCount Boolean?
-  verifications        Json?
-  terms                Boolean?
-  Addons               Addons[]
-  reviews              Review[]
-  DayStatus            DayStatus[]
-  avgReviewRating      Float?
-  Transaction          Transaction[]
-  packages             Package[]
-  status               ListingStatus @default(PENDING)
-  active               Boolean       @default(false)
+  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
+  title               String
+  description         String
+  imageSrc            String[]
+  createdAt           DateTime      @default(now())
+  category            String
+  locationValue       String
+  actualLocation      Json?
+  userId              String        @db.ObjectId
+  price               Int
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reservations        Reservation[]
+  amenities           String[]
+  otherAmenities      String[]
+  addons              Json?
+  carpetArea          String?
+  operationalDays     Json?
+  operationalHours    Json?
+  minimumBookingHours String?
+  maximumPax          String?
+  instantBooking      Boolean?
+  type                String[]
+  verifications       Json?
+  terms               Boolean?
+  Addons              Addons[]
+  reviews             Review[]
+  DayStatus           DayStatus[]
+  avgReviewRating     Float?
+  Transaction         Transaction[]
+  packages            Package[]
+  status              ListingStatus @default(PENDING)
+  active              Boolean       @default(false)
 
   @@index([userId])
 }
@@ -169,6 +168,7 @@ model Reservation {
   listing             Listing         @relation(fields: [listingId], references: [id], onDelete: Cascade)
   Review              Review[]
   isApproved          Int?
+  rejectReason        String?
   Transaction         Transaction[]
   invoices            Invoice[]
   billingDetailId     String?         @db.ObjectId

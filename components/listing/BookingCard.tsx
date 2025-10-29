@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import Button from "../Button";
 import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
+import { FaWhatsapp } from "react-icons/fa";
 import { IconButton } from "@chakra-ui/button";
 import { IoMdCloseCircle } from "react-icons/io";
 
@@ -96,6 +97,17 @@ function BookingCard({
     };
 
     const toggleReceiptModal = () => setShowReceipt(!showReceipt);
+
+    const handleSupportWhatsApp = () => {
+        const studio = reservation?.listing?.title || "the studio";
+        const rid = reservation?.id || "";
+        const msg = encodeURIComponent(`Hi ContCave team, my booking was rejected for ${studio}. Reservation ID: ${rid}. Please help with refund.`);
+        const num = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(/[^0-9]/g, "");
+        const url = num ? `https://wa.me/${num}?text=${msg}` : `https://wa.me/?text=${msg}`;
+        if (typeof window !== "undefined") {
+            window.open(url, "_blank", "noopener,noreferrer");
+        }
+    };
 
     return (
         <>
@@ -188,7 +200,7 @@ function BookingCard({
                                 </div>
                             </div>
 
-                            {reservation && (reservation?.isApproved === 0 || reservation?.isApproved === 1) && (
+                            {reservation && onAction && (reservation?.isApproved === 0 || reservation?.isApproved === 1) && (
                                 <Button
                                     label="Cancel Reservation"
                                     onClick={handleCancel}
@@ -223,6 +235,45 @@ function BookingCard({
                             <h2 className="text-xl font-semibold text-center w-full">Booking Details</h2>
                         </div>
 
+                        {(reservation?.isApproved === 2 || reservation?.isApproved === 3) && (
+                            <div className="mb-4 space-y-3">
+                                {reservation?.isApproved === 2 && (
+                                    <p>
+                                        Unfortunately, your booking request for {reservation?.listing?.title} on
+                                        {" "}
+                                        {booking?.startDate ? new Date(booking.startDate).toLocaleDateString() : ""}
+                                        {booking?.startTime ? `, ${booking.startTime}` : ""}
+                                        {" "}was rejected by the host.
+                                    </p>
+                                )}
+                                {reservation?.isApproved === 2 && reservation?.rejectReason && (
+                                    <div>
+                                        <div>Reason Provided:</div>
+                                        <div>“{reservation.rejectReason}”</div>
+                                    </div>
+                                )}
+                                {!onApprove && (
+                                    <div className="space-y-3">
+                                        {reservation?.isApproved === 2 && (
+                                            <p>
+                                                Don’t worry! Your payment will be refunded as per our policy. We’ll help you with your refund right away. Tap the button below to connect with our team on WhatsApp.
+                                            </p>
+                                        )}
+                                        {reservation?.isApproved === 3 && (
+                                            <p>
+                                                Need help with your refund? Tap below to connect with our support team on WhatsApp.
+                                            </p>
+                                        )}
+                                        <Button
+                                            label="CONTACT SUPPORT ON WHATSAPP"
+                                            onClick={(e) => { e.preventDefault(); handleSupportWhatsApp(); }}
+                                            icon={FaWhatsapp}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <div className="space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Property:</span>
@@ -239,7 +290,7 @@ function BookingCard({
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Time:</span>
                                 <span className="text-gray-900">
-                                    {new Date(booking?.startTime).toLocaleTimeString()} – {new Date(booking?.endTime).toLocaleTimeString()}
+                                    {(booking?.startTime || reservation?.startTime) ?? ""} – {(booking?.endTime || reservation?.endTime) ?? ""}
                                 </span>
                             </div>
 
@@ -247,11 +298,27 @@ function BookingCard({
                                 <span className="text-gray-700 font-medium">Duration:</span>
                                 <span className="text-gray-900">
                                     {(() => {
-                                        const startTime = new Date(booking?.startTime);
-                                        const endTime = new Date(booking?.endTime);
-                                        const durationInMs = endTime.getTime() - startTime.getTime();
-                                        const durationInHours = durationInMs / (1000 * 60 * 60);
-                                        return `${durationInHours} hours`;
+                                        const parse12h = (s: string | undefined): number | null => {
+                                            if (!s) return null;
+                                            const m = s.match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+                                            if (!m) return null;
+                                            let h = parseInt(m[1], 10);
+                                            const min = parseInt(m[2], 10);
+                                            const ampm = m[3].toUpperCase();
+                                            if (ampm === "PM" && h !== 12) h += 12;
+                                            if (ampm === "AM" && h === 12) h = 0;
+                                            return h * 60 + min;
+                                        };
+                                        const startStr = (booking?.startTime || reservation?.startTime) as string | undefined;
+                                        const endStr = (booking?.endTime || reservation?.endTime) as string | undefined;
+                                        const startMin = parse12h(startStr);
+                                        const endMin = parse12h(endStr);
+                                        if (startMin == null || endMin == null) return "-";
+                                        let diff = endMin - startMin;
+                                        if (diff < 0) diff += 24 * 60;
+                                        const hours = Math.floor(diff / 60);
+                                        const minutes = diff % 60;
+                                        return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
                                     })()}
                                 </span>
                             </div>
