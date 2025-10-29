@@ -85,8 +85,27 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
     }, [details, onDetailsChange]);
 
     const handleInputChange = useCallback((field: keyof ListingDetails, value: any) => {
-        setDetails((prev) => ({ ...prev, [field]: value }));
+        setDetails((prev) => {
+            if (field === "instantBooking") {
+                return {
+                    ...prev,
+                    instantBooking: value,
+                    bookingApprovalCount: value ? false : true, 
+                };
+            }
+    
+            if (field === "bookingApprovalCount") {
+                return {
+                    ...prev,
+                    bookingApprovalCount: value,
+                    instantBooking: value ? false : prev.instantBooking, 
+                };
+            }
+    
+            return { ...prev, [field]: value };
+        });
     }, []);
+    
 
     const handleTypeSelect = (t: string) => {
         setDetails((prev) => {
@@ -230,7 +249,9 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
                 </label>
                 <ReactSwitch
                     checked={details.instantBooking}
-                    onChange={(checked) => handleInputChange("instantBooking", checked ? true : false)}
+                    onChange={(checked) =>
+                    handleInputChange("instantBooking", checked ? true : false)
+                    }
                     offColor="#d1d5db"
                     onColor="#000"
                     uncheckedIcon={false}
@@ -239,12 +260,16 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
                     checkedIcon={false}
                     height={30}
                     handleDiameter={20}
-                    checkedHandleIcon={<FaBolt color="#FFD700" className="w-full h-full py-[2px]" />}
+                    checkedHandleIcon={
+                    <FaBolt color="#FFD700" className="w-full h-full py-[2px]" />
+                    }
                 />
-            </div>
+                </div>
 
-            <div className="flex justify-between items-center">
-                <label className="text-sm font-medium mb-1 w-[40vw]">Require host approval before confirming?</label>
+                <div className="flex justify-between items-center">
+                <label className="text-sm font-medium mb-1 w-[40vw]">
+                    Require host approval before confirming?
+                </label>
                 <ReactSwitch
                     checked={!!details.bookingApprovalCount}
                     onChange={(checked) => handleInputChange("bookingApprovalCount", checked)}
@@ -256,7 +281,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
                     height={24}
                     handleDiameter={18}
                 />
-            </div>
+                </div>
 
             <hr />
 
