@@ -76,7 +76,7 @@ function PropertiesClient({ listings, currentUser }: Props) {
     <div className="mt-5">
       <Container>
         <Heading title="My Properties" subtitle="Efficiently Manage, Update, and Showcase Your Listings with Ease." />
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {listings.map((listing: any) => (
             <ListingCard
               key={listing.id}
