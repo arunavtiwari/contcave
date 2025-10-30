@@ -174,6 +174,19 @@ export default function RentModal() {
     setStep((v) => v + 1);
   };
 
+  const resetFormStates = useCallback(() => {
+    setSelectedAmenities({ predefined: {}, custom: [] });
+    setSelectedAddons([]);
+    setListingDetails(undefined);
+    setVerifications(undefined);
+    setTerms(false);
+    setSignature(null);
+    setPackages([]);
+    setAgreementPdf(null);
+    reset();
+    setStep(STEPS.CATEGORY);
+  }, [reset]);
+
   const removeImage = (idx: number) => {
     setCustomValue(
       "imageSrc",
@@ -185,7 +198,12 @@ export default function RentModal() {
   const handleSignature = (sig: any) => setSignature(sig);
   const handleVerificationChange = (v: any) => setVerifications(v);
   const handleAmenitiesChange = (v: typeof selectedAmenities) =>
-    setSelectedAmenities(v);
+    setSelectedAmenities({
+      predefined: Object.fromEntries(
+        Object.entries(v.predefined || {}).map(([k, val]) => [String(k), Boolean(val)])
+      ),
+      custom: Array.isArray(v.custom) ? v.custom : [],
+    });
   const handleAddonChange = (v: Addon[]) => setSelectedAddons(v);
   const handleDetailsChange = (v: ListingDetails) => setListingDetails(v);
 
@@ -253,10 +271,8 @@ export default function RentModal() {
       }
 
       setShowSuccessModal(true);
-      router.refresh();
-      reset();
-      setStep(STEPS.CATEGORY);
       rentModel.onClose();
+      resetFormStates();
       toast.success("Listing created successfully!");
     } catch (e) {
       console.error(e);
@@ -374,7 +390,12 @@ export default function RentModal() {
       bodyContent = (
         <div className="flex flex-col gap-6">
           <Heading title="Amenities" subtitle="Select all available amenities" />
-          <AmenitiesCheckbox amenities={amenities} onChange={handleAmenitiesChange} />
+          <AmenitiesCheckbox
+            amenities={amenities}
+            checked={Object.keys(selectedAmenities.predefined).filter((k) => selectedAmenities.predefined[k])}
+            customAmenities={selectedAmenities.custom}
+            onChange={handleAmenitiesChange}
+          />
         </div>
       );
       break;
@@ -471,8 +492,8 @@ export default function RentModal() {
 
       <Modal
         isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        onSubmit={() => setShowSuccessModal(false)}
+        onClose={() => { setShowSuccessModal(false); }}
+        onSubmit={() => { setShowSuccessModal(false); }}
         title="Listing Submitted 🎉"
         actionLabel="Close"
         body={

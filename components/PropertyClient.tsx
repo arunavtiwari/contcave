@@ -99,13 +99,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         addons: listing?.addons ?? [],
         packages: Array.isArray(listing?.packages)
             ? listing.packages.map((pkg: any) => ({
-                  id: pkg.id,
-                  title: pkg.title ?? "",
-                  originalPrice: Number(pkg.originalPrice ?? 0),
-                  offeredPrice: Number(pkg.offeredPrice ?? 0),
-                  features: Array.isArray(pkg.features) ? pkg.features : [],
-                  durationHours: Number(pkg.durationHours ?? 1) || 1,
-              }))
+                id: pkg.id,
+                title: pkg.title ?? "",
+                originalPrice: Number(pkg.originalPrice ?? 0),
+                offeredPrice: Number(pkg.offeredPrice ?? 0),
+                features: Array.isArray(pkg.features) ? pkg.features : [],
+                durationHours: Number(pkg.durationHours ?? 1) || 1,
+            }))
             : [],
         locationValue: listing?.locationValue ?? listing?.location ?? "",
         actualLocation: listing?.actualLocation ?? null,
@@ -178,9 +178,9 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     }, []);
 
     const handleAmenitiesChange = (updated: { predefined: { [key: string]: boolean }; custom: string[] }) => {
-        const selectedPredefined = Object.keys(updated.predefined).filter((k) => updated.predefined[k]);
+        const selectedPredefined = Object.keys(updated.predefined).filter((k) => updated.predefined[k]).map(String);
         handleInputChange("amenities", selectedPredefined);
-        handleInputChange("otherAmenities", updated.custom);
+        handleInputChange("otherAmenities", updated.custom || []);
     };
 
     const handleAddonChange = (updatedAddons: Addon[]) => {

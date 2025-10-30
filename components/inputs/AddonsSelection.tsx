@@ -86,27 +86,70 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
     return (
         <div className="space-y-8">
             {/* Selected Addons Section */}
-            {selectedAddons.length > 0 && (
-                <div>
-                    <h2 className="text-lg font-semibold mb-5">Selected Addons</h2>
-                    <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'} gap-6 place-items-center`}>
-                        {selectedAddons.map((addon) => (
-                            <div
-                                key={addon.name}
-                                className="border border-solid border-gray-300 rounded-xl shadow-md p-5 bg-gray-50"
-                            >
-                                <ImageCheckbox
-                                    addon={addon}
-                                    imageUrl={addon.imageUrl}
-                                    label={addon.name}
-                                    onChange={(item) =>
-                                        handleAddonChange(addon.name, item.price, item.qty, item.checked)
-                                    }
-                                    checked={true}
-                                />
-                            </div>
-                        ))}
-                        {availableAddons.length === 0 && (
+            <div className='flex justify-start'>
+                {selectedAddons.length > 0 && (
+                    <div>
+                        <h2 className="text-lg font-semibold mb-5">Selected Addons</h2>
+                        <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6 place-items-start`}>
+                            {selectedAddons.map((addon) => (
+                                <div
+                                    key={addon.name}
+                                    className="border border-solid border-gray-300 rounded-xl shadow-md p-5 bg-gray-50"
+                                >
+                                    <ImageCheckbox
+                                        addon={addon}
+                                        imageUrl={addon.imageUrl}
+                                        label={addon.name}
+                                        onChange={(item) =>
+                                            handleAddonChange(addon.name, item.price, item.qty, item.checked)
+                                        }
+                                        checked={true}
+                                    />
+                                </div>
+                            ))}
+                            {availableAddons.length === 0 && (
+                                <div className="flex justify-center">
+                                    <ImageCheckbox
+                                        imageUrl="https://cdn-icons-png.flaticon.com/512/992/992651.png"
+                                        label="Create your own"
+                                        hideCheckbox
+                                        hideInputFields
+                                        onClickChange={handleCreateCustomAddon}
+                                        onChange={handleCreateCustomAddon}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+            {rentModal && selectedAddons.length > 0 && <hr className="my-4" />}
+
+            {/* Available Addons Section */}
+            <div className='flex justify-start'>
+                {availableAddons.length > 0 && (
+                    <div>
+                        {!rentModal && (
+                            <h2 className="text-lg font-semibold mb-5">Available Addons</h2>
+                        )}
+                        <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6 place-items-start`}>
+                            {availableAddons.map((addon) => (
+                                <div
+                                    key={addon.name}
+                                    className="border border-solid border-gray-300 rounded-xl shadow-md p-5"
+                                >
+                                    <ImageCheckbox
+                                        addon={addon}
+                                        imageUrl={addon.imageUrl}
+                                        label={addon.name}
+                                        onChange={(item) =>
+                                            handleAddonChange(addon.name, item.price, item.qty, item.checked)
+                                        }
+                                        checked={false}
+                                    />
+                                </div>
+                            ))}
+                            {/* Custom Addon Option */}
                             <div className="flex justify-center">
                                 <ImageCheckbox
                                     imageUrl="https://cdn-icons-png.flaticon.com/512/992/992651.png"
@@ -117,50 +160,10 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                                     onChange={handleCreateCustomAddon}
                                 />
                             </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {rentModal && selectedAddons.length > 0 && <hr className="my-4" />}
-
-            {/* Available Addons Section */}
-            {availableAddons.length > 0 && (
-                <div>
-                    {!rentModal && (
-                        <h2 className="text-lg font-semibold mb-5">Available Addons</h2>
-                    )}
-                    <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'} gap-6 place-items-center`}>
-                        {availableAddons.map((addon) => (
-                            <div
-                                key={addon.name}
-                                className="border border-solid border-gray-300 rounded-xl shadow-md p-5"
-                            >
-                                <ImageCheckbox
-                                    addon={addon}
-                                    imageUrl={addon.imageUrl}
-                                    label={addon.name}
-                                    onChange={(item) =>
-                                        handleAddonChange(addon.name, item.price, item.qty, item.checked)
-                                    }
-                                    checked={false}
-                                />
-                            </div>
-                        ))}
-                        {/* Custom Addon Option */}
-                        <div className="flex justify-center">
-                            <ImageCheckbox
-                                imageUrl="https://cdn-icons-png.flaticon.com/512/992/992651.png"
-                                label="Create your own"
-                                hideCheckbox
-                                hideInputFields
-                                onClickChange={handleCreateCustomAddon}
-                                onChange={handleCreateCustomAddon}
-                            />
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };
