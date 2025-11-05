@@ -193,23 +193,23 @@ select:focus {
 }
 
 .hide-scrollbar {
-	scrollbar-width: thin; 
-	scrollbar-color: rgba(0,0,0,0.2) transparent; 
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar {
-	height: 4px; 
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar-track {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+	height: 4px;
+}
+
+.hide-scrollbar::-webkit-scrollbar-track {
 	background: transparent;
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar-thumb {
-	background-color: rgba(0,0,0,0.3);
+}
+
+.hide-scrollbar::-webkit-scrollbar-thumb {
+	background-color: rgba(0, 0, 0, 0.3);
 	border-radius: 10px;
-  }
-  
+}
+
 
 .slick-list {
 	border-radius: 1rem;
@@ -252,7 +252,25 @@ select:focus {
 	cursor: pointer !important;
 	background-color: #000000 !important;
 	color: #ffffff !important;
-	flex-direction: column-reverse;
+	display: block;
+	overflow: hidden;
+}
+
+.fc-daygrid-event .fc-event-title,
+.fc-daygrid-event .fc-event-time,
+.fc-timegrid-event .fc-event-title,
+.fc-timegrid-event .fc-event-time,
+.fc-event-main {
+	display: block;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.fc-daygrid-event,
+.fc-timegrid-event {
+	padding: 2px 8px;
 }
 
 .fc-button:focus {

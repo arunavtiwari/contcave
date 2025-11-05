@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import type { EventContentArg } from '@fullcalendar/core';
 import { useSession } from 'next-auth/react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -39,6 +40,21 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
     });
 
     const [calendarView, setCalendarView] = useState('dayGridMonth');
+
+    const renderEventContent = (eventInfo: EventContentArg) => {
+        return (
+            <div className="px-2 py-1 leading-tight">
+                {eventInfo.timeText && (
+                    <div className="text-xs opacity-80 overflow-hidden text-ellipsis whitespace-nowrap">
+                        {eventInfo.timeText}
+                    </div>
+                )}
+                <div className="text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap">
+                    {eventInfo.event.title}
+                </div>
+            </div>
+        );
+    };
 
     useEffect(() => {
         setIsCalendarLoaded(true);
@@ -118,7 +134,6 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
                 });
 
                 setEvents(filteredEvents);
-                console.log('Fetched events:', filteredEvents);
             }
         } catch (error) {
             console.error('Error fetching events:', error);
@@ -164,8 +179,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
                 weekends={true}
                 eventClick={handleEventClick}
                 height="auto"
-                eventColor="black"
-                eventTextColor="white"
+                eventContent={renderEventContent}
                 handleWindowResize={true}
                 displayEventEnd={true}
                 eventTimeFormat={{
