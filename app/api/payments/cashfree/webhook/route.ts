@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleCashfreeWebhook } from "@/lib/cashfree/webhookService";
-import { rateLimit, formatRetryAfterMs } from "@/lib/cashfree/rateLimit";
+import { rateLimit, formatRetryAfterMs } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,9 +9,9 @@ export async function POST(req: NextRequest) {
     // Lightweight per-IP+path rate limit
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const key = `cf-webhook:${ip}`;
-    const { allowed, resetAt } = rateLimit({ key, limit: 30, windowMs: 60_000 });
-    if (!allowed) {
-        const retryAfter = formatRetryAfterMs(resetAt);
+    const result = await rateLimit({ key, limit: 30, windowMs: 60_000 });
+    if (!result.allowed) {
+        const retryAfter = formatRetryAfterMs(result.resetAt);
         return new NextResponse(null, { status: 429, headers: { "Retry-After": retryAfter } });
     }
     let raw = "";
