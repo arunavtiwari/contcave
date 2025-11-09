@@ -282,19 +282,10 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
 
                     <div className="bg-white rounded-lg p-5 border border-gray-200">
                         <h3 className="text-lg font-semibold text-slate-900 mb-3">Benefits for Influencers</h3>
-                        <ul className="space-y-2 text-slate-700">
-                            <li className="flex items-start">
-                                <span className="text-green-500 mr-2 mt-1">•</span>
-                                <span className="text-sm">Exclusive discounts on future bookings.</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="text-green-500 mr-2 mt-1">•</span>
-                                <span className="text-sm">Featured promotion on our platform and social media channels.</span>
-                            </li>
-                            <li className="flex items-start">
-                                <span className="text-green-500 mr-2 mt-1">•</span>
-                                <span className="text-sm">Potential collaboration opportunities.</span>
-                            </li>
+                        <ul className="list-disc marker:text-emerald-500 pl-5 space-y-2 text-sm text-slate-700 leading-6">
+                            <li>Exclusive discounts on future bookings.</li>
+                            <li>Featured promotion on our platform and social media channels.</li>
+                            <li>Potential collaboration opportunities.</li>
                         </ul>
                     </div>
                 </div>
