@@ -5,6 +5,7 @@ import Link from "next/link";
 import Modal from "@/components/modals/Modal";
 import { toast } from "react-toastify";
 import { SafeUser } from "@/types";
+import { signOut } from "next-auth/react";
 
 type Props = {
   profile: SafeUser | null;
@@ -30,6 +31,7 @@ const ProfileSettings = ({ profile }: Props) => {
       }
       toast.success("Account scheduled for deletion. Log in again to cancel.");
       setShowConfirmModal(false);
+      await signOut({ callbackUrl: "/" });
     } catch (error: any) {
       toast.error(error?.message || "Unable to update account status.");
     } finally {
