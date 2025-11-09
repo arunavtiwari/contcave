@@ -6,10 +6,10 @@ export interface PaymentDetailsData {
     userId: string;
     accountHolderName: string;
     bankName: string;
-    accountNumber?: string; // ✅ Optional for updates
+    accountNumber?: string; // Optional for updates
     ifscCode: string;
-    taxIdentificationNumber: string;
-    taxResidencyInformation: string;
+    companyName?: string;
+    gstin?: string;
 }
 
 export interface PaymentDetailsResponse {
@@ -42,12 +42,14 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
             where: { userId: data.userId },
         });
 
+        const normalizedGstin = data.gstin ? data.gstin.toUpperCase() : null;
+
         const commonData = {
             accountHolderName: data.accountHolderName,
             bankName: data.bankName,
             ifscCode: data.ifscCode,
-            taxIdentificationNumber: data.taxIdentificationNumber,
-            taxResidencyInformation: data.taxResidencyInformation,
+            companyName: data.companyName ?? null,
+            gstin: normalizedGstin,
             updatedAt: new Date(),
         };
 
@@ -69,6 +71,8 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
                 ...commonData,
                 userId: data.userId,
                 accountNumber: data.accountNumber,
+                companyName: data.companyName ?? null,
+                gstin: normalizedGstin,
                 createdAt: new Date(),
             },
         });
@@ -111,14 +115,15 @@ export async function upsertPaymentDetailsSafe(data: PaymentDetailsData): Promis
         const existing = await prisma.paymentDetails.findFirst({ where: { userId: data.userId } });
 
         let paymentDetails: PaymentDetails;
+        const normalizedGstin = data.gstin ? data.gstin.toUpperCase() : null;
 
         if (existing) {
             const updateData: any = {
                 accountHolderName: data.accountHolderName,
                 bankName: data.bankName,
                 ifscCode: data.ifscCode,
-                taxIdentificationNumber: data.taxIdentificationNumber,
-                taxResidencyInformation: data.taxResidencyInformation,
+                companyName: data.companyName ?? null,
+                gstin: normalizedGstin,
                 updatedAt: new Date(),
             };
 
@@ -145,8 +150,8 @@ export async function upsertPaymentDetailsSafe(data: PaymentDetailsData): Promis
                     bankName: data.bankName,
                     accountNumber: data.accountNumber,
                     ifscCode: data.ifscCode,
-                    taxIdentificationNumber: data.taxIdentificationNumber,
-                    taxResidencyInformation: data.taxResidencyInformation,
+                    companyName: data.companyName ?? null,
+                    gstin: normalizedGstin,
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 },
@@ -177,9 +182,7 @@ export function validatePaymentDetailsData(data: Partial<PaymentDetailsData>): d
         data.accountHolderName &&
         data.bankName &&
         data.accountNumber &&
-        data.ifscCode &&
-        data.taxIdentificationNumber &&
-        data.taxResidencyInformation
+        data.ifscCode
     );
 }
 

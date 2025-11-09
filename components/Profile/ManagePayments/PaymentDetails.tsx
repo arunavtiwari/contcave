@@ -31,8 +31,8 @@ interface PaymentProfile {
     bankName?: string;
     accountNumber?: string;
     ifscCode?: string;
-    taxIdentificationNumber?: string;
-    taxResidencyInformation?: string;
+    companyName?: string;
+    gstin?: string;
 }
 
 interface PaymentDetailsProps {
@@ -163,18 +163,18 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
     const TAX_FIELDS: TaxField[] = useMemo(() => [
         {
-            label: "Tax Identification Number (TIN)",
-            name: "taxIdentificationNumber",
+            label: "Company Name (optional)",
+            name: "companyName",
             value: "",
-            required: true,
-            maxLength: 15
+            required: false,
+            maxLength: 100
         },
         {
-            label: "Tax Residency Information",
-            name: "taxResidencyInformation",
+            label: "GSTIN (optional)",
+            name: "gstin",
             value: "",
-            required: true,
-            maxLength: 50
+            required: false,
+            maxLength: 15
         }
     ], []);
 
@@ -191,8 +191,8 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
             initialData.accountNumber = profileData.accountNumber || '';
             initialData.reAccountNumber = profileData.accountNumber || '';
             initialData.ifscCode = profileData.ifscCode || '';
-            initialData.taxIdentificationNumber = profileData.taxIdentificationNumber || '';
-            initialData.taxResidencyInformation = profileData.taxResidencyInformation || '';
+            initialData.companyName = profileData.companyName || '';
+            initialData.gstin = profileData.gstin || '';
         }
 
         return initialData;
@@ -208,7 +208,8 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
     // Handlers
     const handleFieldChange = useCallback((name: string, value: string) => {
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const normalizedValue = name === "gstin" ? value.toUpperCase() : value;
+        setFormData(prev => ({ ...prev, [name]: normalizedValue }));
         // Clear error when user starts typing
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
@@ -235,6 +236,10 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         // IFSC code validation
         if (formData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)) {
             newErrors.ifscCode = 'Invalid IFSC code format';
+        }
+
+        if (formData.gstin && !/^[0-9A-Z]{15}$/i.test(formData.gstin)) {
+            newErrors.gstin = 'Invalid GSTIN format';
         }
 
         setErrors(newErrors);
@@ -281,8 +286,12 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                 }
 
                 form.append('ifscCode', formData.ifscCode || '');
-                form.append('taxIdentificationNumber', formData.taxIdentificationNumber || '');
-                form.append('taxResidencyInformation', formData.taxResidencyInformation || '');
+                if (formData.companyName?.trim()) {
+                    form.append('companyName', formData.companyName.trim());
+                }
+                if (formData.gstin?.trim() && !formData.gstin.includes('*')) {
+                    form.append('gstin', formData.gstin.trim().toUpperCase());
+                }
                 form.append('updatedAt', new Date().toISOString());
 
                 await onSave?.(form, hasExistingData);

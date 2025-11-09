@@ -89,6 +89,12 @@ const ManagePayments: React.FC<Props> = ({
                     return;
                 }
             }
+            if (key === 'gstin') {
+                const stringVal = value?.toString() ?? '';
+                if (/\*+/.test(stringVal)) {
+                    return;
+                }
+            }
             sanitizedForm.append(key, value);
         });
 
@@ -97,9 +103,7 @@ const ManagePayments: React.FC<Props> = ({
             'accountHolderName',
             'bankName',
             'accountNumber',
-            'ifscCode',
-            'taxIdentificationNumber',
-            'taxResidencyInformation'
+            'ifscCode'
         ];
 
         if (accountNumberMasked || !sanitizedForm.has('accountNumber')) {

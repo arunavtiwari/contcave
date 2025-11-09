@@ -47,9 +47,9 @@ type Props = {
   totalPrice?: number;
   platformFee?: number;
   time: number;
-  setSelectDate: (value: Date | null) => void;
+  setSelectDateAction: (value: Date | null) => void;
   selectedDate: Date | null;
-  setSelectTimeSlots: (value: [TimeLabel | null, TimeLabel | null]) => void;
+  setSelectTimeSlotsAction: (value: [TimeLabel | null, TimeLabel | null]) => void;
   selectedTime: [TimeLabel | null, TimeLabel | null];
   disabled?: boolean;
   disabledDates: Date[];
@@ -81,6 +81,7 @@ function getCashfree() {
 }
 
 const clampRound = (n: number) => Math.max(0, Math.round(n || 0));
+const GST_RATE = 0.18;
 const isValidDate = (d: unknown): d is Date =>
   d instanceof Date && !Number.isNaN(d.getTime());
 
@@ -117,9 +118,9 @@ export default function ListingReservation({
   totalPrice,
   platformFee = 0,
   time,
-  setSelectDate,
+  setSelectDateAction,
   selectedDate,
-  setSelectTimeSlots,
+  setSelectTimeSlotsAction,
   selectedTime,
   disabled = false,
   disabledDates,
@@ -199,8 +200,8 @@ export default function ListingReservation({
   const ltStart = localTimes.start;
   const ltEnd = localTimes.end;
   useEffect(() => {
-    setSelectTimeSlots([ltStart, ltEnd]);
-  }, [ltStart, ltEnd, setSelectTimeSlots]);
+    setSelectTimeSlotsAction([ltStart, ltEnd]);
+  }, [ltStart, ltEnd, setSelectTimeSlotsAction]);
 
   const safeHours = useMemo(
     () => (Number.isFinite(time) && time > 0 ? time : 0),
@@ -227,10 +228,17 @@ export default function ListingReservation({
     [bookingFee, addonsSum, platformFee]
   );
 
-  const finalTotal = useMemo(
-    () => clampRound(typeof totalPrice === "number" ? totalPrice : computedTotal),
-    [totalPrice, computedTotal]
+  const gstAmount = useMemo(
+    () => clampRound(computedTotal * GST_RATE),
+    [computedTotal]
   );
+
+  const finalTotal = useMemo(() => {
+    if (typeof totalPrice === "number") {
+      return clampRound(totalPrice);
+    }
+    return clampRound(computedTotal + gstAmount);
+  }, [totalPrice, computedTotal, gstAmount]);
 
   const hasValidTime = useMemo(
     () => Boolean(localTimes.start && localTimes.end),
@@ -434,11 +442,11 @@ export default function ListingReservation({
         allowedDays={allowedDays}
         onChange={(value) => {
           if (isValidDate(value)) {
-            setSelectDate(value);
+            setSelectDateAction(value);
             setHasPickedDate(true);
             setErr(null);
           } else {
-            setSelectDate(null);
+            setSelectDateAction(null);
             setHasPickedDate(false);
           }
         }}
@@ -500,6 +508,10 @@ export default function ListingReservation({
           <p>Platform fee</p>
           <p>{INR.format(clampRound(platformFee || 0))}</p>
         </div>
+        <div className="flex justify-between pb-3 text-black">
+          <p className="font-medium">GST (18%)</p>
+          <p className="font-medium">{INR.format(gstAmount)}</p>
+        </div>
         <hr />
         <div className="flex justify-between pt-4 text-black">
           <p className="font-semibold">Total</p>
@@ -520,14 +532,16 @@ export default function ListingReservation({
 
       <BookingSummaryModal
         isOpen={showSummaryModal}
-        onClose={() => setShowSummaryModal(false)}
-        onConfirm={handleConfirmModal}
+        onCloseAction={() => setShowSummaryModal(false)}
+        onConfirmAction={handleConfirmModal}
         finalTotal={finalTotal}
         bookingFee={bookingFee}
         addonsSum={addonsSum}
         platformFee={platformFee || 0}
+        gstAmount={gstAmount}
+        subTotal={computedTotal}
         gstDetails={gstDetails}
-        setGstDetails={setGstDetails} 
+        setGstDetailsAction={setGstDetails} 
         currentUserId={user.id}
         reservationId={""}     
         transactionId={""}      />

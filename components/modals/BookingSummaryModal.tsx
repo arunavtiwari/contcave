@@ -11,14 +11,16 @@ type GSTDetails = {
 
 type BookingSummaryModalProps = {
   isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
+  onCloseAction: () => void;
+  onConfirmAction: () => void;
   finalTotal: number;
   bookingFee: number;
   addonsSum: number;
   platformFee: number;
+  gstAmount: number;
+  subTotal: number;
   gstDetails: GSTDetails;
-  setGstDetails: (v: GSTDetails) => void;
+  setGstDetailsAction: (v: GSTDetails) => void;
   currentUserId: string;
   reservationId: string;    
   transactionId: string; 
@@ -26,17 +28,19 @@ type BookingSummaryModalProps = {
 
 export default function BookingSummaryModal({
   isOpen,
-  onClose,
-  onConfirm,
+  onCloseAction,
+  onConfirmAction,
   finalTotal,
   bookingFee,
   addonsSum,
   platformFee,
+  gstAmount,
+  subTotal,
   gstDetails,
-  setGstDetails,
+  setGstDetailsAction,
   currentUserId,
-  reservationId,      
-  transactionId,      
+  reservationId,     
+  transactionId,     
 }: BookingSummaryModalProps) {
   const sectionId = useId();
   const [needGST, setNeedGST] = useState(false);
@@ -78,7 +82,7 @@ export default function BookingSummaryModal({
         const billingData = await billingRes.json();
         if (!billingRes.ok) throw new Error(billingData.message || "Failed to save GST info");
 
-        setGstDetails({ ...gstDetails });
+        setGstDetailsAction({ ...gstDetails });
 
         // Then create invoice
         const invoiceRes = await fetch("/api/invoice", {
@@ -88,14 +92,14 @@ export default function BookingSummaryModal({
             userId: currentUserId,
             reservationId,
             transactionId,
-            amount: finalTotal,
+            amount: subTotal,
           }),
         });
         const invoiceData = await invoiceRes.json();
         if (!invoiceRes.ok) throw new Error(invoiceData.message || "Invoice creation failed");
 
         console.log("Invoice URL:", invoiceData.invoiceUrl);
-        onConfirm();
+        onConfirmAction();
       } catch (err: any) {
         console.error(err);
         setGstError(err.message || "Something went wrong");
@@ -104,7 +108,7 @@ export default function BookingSummaryModal({
       }
     } else {
       // GST not needed, just confirm
-      onConfirm();
+      onConfirmAction();
       setSaving(false);
     }
   };
@@ -115,7 +119,7 @@ export default function BookingSummaryModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby={`${sectionId}-booking-summary-title`}
-      onClick={() => onClose()}
+      onClick={() => onCloseAction()}
     >
       <div
         className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6"
@@ -141,6 +145,10 @@ export default function BookingSummaryModal({
           <div className="flex justify-between">
             <p>Platform Fee</p>
             <p>₹{platformFee}</p>
+          </div>
+          <div className="flex justify-between">
+            <p>GST (18%)</p>
+            <p>₹{gstAmount}</p>
           </div>
           <hr />
           <div className="flex justify-between font-semibold">
@@ -172,7 +180,7 @@ export default function BookingSummaryModal({
                 className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
                 value={gstDetails.companyName}
                 onChange={(e) =>
-                  setGstDetails({ ...gstDetails, companyName: e.target.value })
+                  setGstDetailsAction({ ...gstDetails, companyName: e.target.value })
                 }
               />
             </div>
@@ -184,7 +192,7 @@ export default function BookingSummaryModal({
                 className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
                 value={gstDetails.gstin}
                 onChange={(e) =>
-                  setGstDetails({ ...gstDetails, gstin: e.target.value.toUpperCase() })
+                  setGstDetailsAction({ ...gstDetails, gstin: e.target.value.toUpperCase() })
                 }
                 placeholder="XXABCDE1234F2Z5"
               />
@@ -195,7 +203,7 @@ export default function BookingSummaryModal({
                 className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
                 value={gstDetails.billingAddress}
                 onChange={(e) =>
-                  setGstDetails({ ...gstDetails, billingAddress: e.target.value })
+                  setGstDetailsAction({ ...gstDetails, billingAddress: e.target.value })
                 }
               />
             </div>
@@ -240,7 +248,7 @@ export default function BookingSummaryModal({
           <button
             type="button"
             className="px-4 py-2 rounded-lg border border-neutral-300 hover:bg-neutral-50"
-            onClick={onClose}
+            onClick={onCloseAction}
             disabled={saving}
           >
             Cancel

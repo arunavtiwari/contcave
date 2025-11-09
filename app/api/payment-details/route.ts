@@ -16,8 +16,8 @@ const createSchema = z.object({
     ifscCode: z.string()
         .length(11, 'Must be exactly 11 characters')
         .regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Invalid IFSC format'),
-    taxIdentificationNumber: z.string().min(1).max(50),
-    taxResidencyInformation: z.string().min(1).max(200)
+    companyName: z.string().max(100).optional(),
+    gstin: z.string().max(15).regex(/^[0-9A-Z]{15}$/i, 'Invalid GSTIN').optional()
 });
 
 const updateSchema = createSchema.extend({
@@ -34,10 +34,13 @@ const createResponse = (success: boolean, data: any, status = 200) =>
         { status }
     );
 
+const maskGstin = (value: string) =>
+    value.length <= 8 ? value : value.replace(/^(.{4}).+(.{4})$/, '$1******$2');
+
 const sanitize = (data: any) => ({
     ...data,
     accountNumber: data.accountNumber ? '***' + data.accountNumber.slice(-4) : undefined,
-    taxIdentificationNumber: data.taxIdentificationNumber ? '***' + data.taxIdentificationNumber.slice(-4) : undefined,
+    gstin: data.gstin ? maskGstin(data.gstin) : undefined,
 });
 
 export async function POST(request: NextRequest) {

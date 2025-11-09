@@ -446,9 +446,9 @@ function ListingClient({
                   price={listing.price}
                   platformFee={0}
                   time={timeDifferenceInHours}
-                  setSelectDate={setSelectedDate}
+                  setSelectDateAction={setSelectedDate}
                   selectedDate={selectedDate}
-                  setSelectTimeSlots={setSelectedTimeSlot}
+                  setSelectTimeSlotsAction={setSelectedTimeSlot}
                   selectedTime={selectedTimeSlot}
                   instantBooking={!!listing.instantBooking}
                   disabledDates={disabledDates}

@@ -12,13 +12,16 @@ const createResponse = (success: boolean, data: any, status = 200) => {
     }, { status });
 };
 
+const maskGstin = (value: string) =>
+    value.length <= 8 ? value : value.replace(/^(.{4}).+(.{4})$/, '$1******$2');
+
 const sanitizePaymentDetails = (paymentDetails: any) => ({
     ...paymentDetails,
     accountNumber: paymentDetails.accountNumber
         ? '***' + paymentDetails.accountNumber.slice(-4)
         : undefined,
-    taxIdentificationNumber: paymentDetails.taxIdentificationNumber
-        ? '***' + paymentDetails.taxIdentificationNumber.slice(-4)
+    gstin: paymentDetails.gstin
+        ? maskGstin(paymentDetails.gstin)
         : undefined,
 });
 
