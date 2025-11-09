@@ -1,19 +1,22 @@
 "use client";
 
 import React from "react";
+import { IconType } from "react-icons";
 
 type Props = {
   onClick: () => void;
   label: string;
+  icon?: IconType;
 };
 
-function MenuItem({ onClick, label }: Props) {
+function MenuItem({ onClick, label, icon: Icon }: Props) {
   return (
     <div
-      className=" px-4 py-3 hover:bg-neutral-100 transition font-semibold rounded-full"
+      className="flex items-center gap-3 px-4 py-2.5 hover:bg-neutral-100 transition font-semibold rounded-xl cursor-pointer"
       onClick={onClick}
     >
-      {label}
+      {Icon && <Icon className="text-lg" />}
+      <span>{label}</span>
     </div>
   );
 }
