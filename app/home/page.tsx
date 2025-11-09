@@ -1,7 +1,7 @@
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
-import ListingCard from "@/components/listing/ListingCard";
+import ListingFeed from "@/components/listing/ListingFeed";
 import Categories from "@/components/navbar/Categories";
 import getCurrentUser from "../actions/getCurrentUser";
 import getListings, { IListingsParams } from "../actions/getListings";
@@ -94,11 +94,11 @@ export default async function Home(props: HomeProps) {
       <ClientOnly>
         <Container>
           <Categories />
-          <div className="pb-24 pt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 overflow-x-hidden">
-            {listing.map((item) => (
-              <ListingCard key={item.id} data={item} currentUser={currentUser} />
-            ))}
-          </div>
+          <ListingFeed
+            listings={listing}
+            currentUser={currentUser}
+            autoSortByLocation={!searchParams.locationValue}
+          />
         </Container>
       </ClientOnly>
     </>

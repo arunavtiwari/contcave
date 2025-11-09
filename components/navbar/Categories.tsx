@@ -85,7 +85,7 @@ function Categories({ }: Props) {
 
 
   return (
-    <div className="pt-2 w-full flex flex-row items-center justify-between gap-2">
+    <div className="my-4 w-full flex flex-row items-center justify-between gap-2 border-b border-gray-200">
       {/* Category List */}
       <div className="flex-1 overflow-x-auto hide-scrollbar flex gap-4 items-center">
         {categories.map((item, index) => (
