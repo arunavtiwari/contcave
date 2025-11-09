@@ -78,8 +78,8 @@ export async function POST(req: Request) {
 
     const billing = user.billingDetails?.[0] ?? null;
 
-    const amount = transaction.amount ?? reservation.totalPrice;
-    if (!amount || amount <= 0) {
+    const totalAmountSource = transaction.amount ?? reservation.totalPrice;
+    if (!totalAmountSource || totalAmountSource <= 0) {
       return NextResponse.json(
         { message: "Unable to determine invoice amount" },
         { status: 400 }
@@ -88,8 +88,11 @@ export async function POST(req: Request) {
 
     // Calculate GST
     const gstRate = 0.18;
-    const gstAmount = amount * gstRate;
-    const totalAmount = amount + gstAmount;
+    const baseAmount = totalAmountSource / (1 + gstRate);
+    const amount = Number(baseAmount.toFixed(2));
+    const gstAmount = Number((totalAmountSource - amount).toFixed(2));
+    const totalAmount = Number((amount + gstAmount).toFixed(2));
+
     const invoiceNumber = `CC-${Date.now()}`;
 
     // Generate PDF Blob
