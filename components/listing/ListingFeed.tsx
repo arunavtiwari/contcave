@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ListingCard from "./ListingCard";
-import useIndianCities from "@/hook/useCities";
 import { SafeUser, safeListing } from "@/types";
 
 type Props = {
@@ -26,30 +25,50 @@ const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 };
 
+const getListingLatLng = (listing: safeListing): [number, number] | null => {
+  const actualLocation = (listing as any)?.actualLocation;
+  if (!actualLocation || typeof actualLocation !== "object") return null;
+  const latlng = (actualLocation as any).latlng;
+  if (!Array.isArray(latlng) || latlng.length < 2) return null;
+  const lat = Number(latlng[0]);
+  const lng = Number(latlng[1]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return [lat, lng];
+};
+
 function ListingFeed({ listings, currentUser, autoSortByLocation = false }: Props) {
-  const { getAll } = useIndianCities();
-  const cities = useMemo(() => getAll(), [getAll]);
   const [sortedListings, setSortedListings] = useState(listings);
-  const [userCity, setUserCity] = useState<string | null>(null);
+  const [sortedByLocation, setSortedByLocation] = useState(false);
   const hasAttemptedSortingRef = useRef(false);
   const listingsRef = useRef(listings);
 
   useEffect(() => {
     listingsRef.current = listings;
     setSortedListings(listings);
+    setSortedByLocation(false);
   }, [listings]);
 
-  const prioritizeListings = useCallback((cityValue: string) => {
-    const baseline = listingsRef.current.map((listing, index) => ({ listing, index }));
-    baseline.sort((a, b) => {
-      const aMatch = Number(a.listing.locationValue === cityValue);
-      const bMatch = Number(b.listing.locationValue === cityValue);
-      if (aMatch !== bMatch) {
-        return bMatch - aMatch;
-      }
-      return a.index - b.index;
+  const prioritizeListings = useCallback((userLat: number, userLng: number) => {
+    const baseline = listingsRef.current.map((listing, index) => {
+      const listingCoords = getListingLatLng(listing);
+      const distance = listingCoords
+        ? haversineDistance(userLat, userLng, listingCoords[0], listingCoords[1])
+        : Number.POSITIVE_INFINITY;
+      return { listing, index, distance };
     });
-    setSortedListings(baseline.map((item) => item.listing));
+
+    baseline.sort((a, b) => {
+      if (a.distance === b.distance) {
+        return a.index - b.index;
+      }
+      return a.distance - b.distance;
+    });
+
+    const hasAnyDistance = baseline.some((item) => Number.isFinite(item.distance));
+    if (hasAnyDistance) {
+      setSortedListings(baseline.map((item) => item.listing));
+      setSortedByLocation(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -65,42 +84,19 @@ function ListingFeed({ listings, currentUser, autoSortByLocation = false }: Prop
       (position) => {
         hasAttemptedSortingRef.current = true;
         const { latitude, longitude } = position.coords;
-        let closestCityValue: string | null = null;
-        let closestDistance = Number.POSITIVE_INFINITY;
-
-        cities.forEach((city) => {
-          if (!Array.isArray(city.latlng) || city.latlng.length < 2) return;
-          const [cityLat, cityLon] = city.latlng;
-          const distance = haversineDistance(latitude, longitude, cityLat, cityLon);
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            closestCityValue = city.value;
-          }
-        });
-
-        if (closestCityValue) {
-          setUserCity(closestCityValue);
-          prioritizeListings(closestCityValue);
-        }
+        prioritizeListings(latitude, longitude);
       },
       () => {
         hasAttemptedSortingRef.current = true;
       },
       { enableHighAccuracy: false, timeout: GEO_TIMEOUT }
     );
-  }, [autoSortByLocation, cities, prioritizeListings]);
-
-  const userCityLabel = useMemo(() => {
-    if (!userCity) return null;
-    return cities.find((city) => city.value === userCity)?.label ?? userCity;
-  }, [cities, userCity]);
+  }, [autoSortByLocation, prioritizeListings]);
 
   return (
     <div className="space-y-6">
-      {userCityLabel && (
-        <p className="text-sm text-neutral-600">
-          Showing spaces near <span className="font-semibold">{userCityLabel}</span>
-        </p>
+      {sortedByLocation && (
+        <p className="text-sm text-neutral-600 font-semibold">Showing spaces near you</p>
       )}
       <div className="pb-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 overflow-x-hidden">
         {sortedListings.map((item) => (

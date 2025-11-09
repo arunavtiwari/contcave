@@ -23,10 +23,10 @@ const AutoComplete = ({ value, onChange }: any) => {
       setQuery(place.formatted_address);
       onChange({
         display_name: place.formatted_address,
-        latlng: {
-          lat: place.geometry.location.lat(),
-          lon: place.geometry.location.lng(),
-        },
+        latlng: [
+          place.geometry.location.lat(),
+          place.geometry.location.lng(),
+        ],
       });
       setIsActive(false);
     }
