@@ -505,9 +505,9 @@ export default function RentModal() {
           <>
             <div className="flex items-center justify-between text-xs text-neutral-500 mb-3 px-2">
               <span>Step {step + 1} of {Object.keys(STEPS).length / 2}</span>
-              <div className="flex-1 mx-2 bg-neutral-200 rounded-full h-1">
+              <div className="flex-1 mx-2 bg-neutral-200 rounded-full h-2">
                 <div
-                  className="bg-black h-1 rounded-full transition-all"
+                  className="bg-black h-2 rounded-full transition-all"
                   style={{ width: `${progress}%` }}
                 />
               </div>
