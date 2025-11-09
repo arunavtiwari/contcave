@@ -96,7 +96,7 @@ function ListingFeed({ listings, currentUser, autoSortByLocation = false }: Prop
   }, [cities, userCity]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {userCityLabel && (
         <p className="text-sm text-neutral-600">
           Showing spaces near <span className="font-semibold">{userCityLabel}</span>
