@@ -84,6 +84,7 @@ export default function RentModal() {
       category: "",
       location: null,
       actualLocation: null,
+      additionalInfo: "",
       imageSrc: [],
       title: "",
       description: "",
@@ -96,6 +97,7 @@ export default function RentModal() {
   const location = watch("location");
   const actualLocation = watch("actualLocation");
   const imageSrc = watch("imageSrc");
+  const additionalInfo = watch("additionalInfo");
 
   // Fetch Amenities & Addons
   useEffect(() => {
@@ -225,7 +227,10 @@ export default function RentModal() {
       imageSrc: data.imageSrc,
       category: data.category,
       locationValue,
-      actualLocation: data.actualLocation,
+      actualLocation: data.actualLocation ? {
+        ...data.actualLocation,
+        additionalInfo: data.additionalInfo || "",
+      } : null,
       price: Number(data.price),
       amenities: Object.keys(selectedAmenities.predefined).filter(
         (k) => selectedAmenities.predefined[k]
@@ -324,13 +329,38 @@ export default function RentModal() {
           <Heading title="Where is your space?" subtitle="Help creators find you" />
           <CitySelect value={location} onChange={(v) => setCustomValue("location", v)} />
           <AutoComplete
-            value={location ? location.display_name : ""}
+            value={actualLocation?.display_name || ""}
             onChange={(sel: any) => {
               setCustomValue("actualLocation", {
                 display_name: sel.display_name,
+                latlng: sel.latlng,
+                additionalInfo: additionalInfo || actualLocation?.additionalInfo || "",
               });
             }}
           />
+          <div className="w-full">
+            <label htmlFor="additionalInfo" className="block text-sm font-medium text-gray-700 mb-1">
+              Additional Info (Optional)
+            </label>
+            <input
+              id="additionalInfo"
+              type="text"
+              disabled={isLoading}
+              placeholder="Apartment, suite, unit, building, floor, etc."
+              value={additionalInfo || ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                setCustomValue("additionalInfo", value);
+                if (actualLocation) {
+                  setCustomValue("actualLocation", {
+                    ...actualLocation,
+                    additionalInfo: value,
+                  });
+                }
+              }}
+              className="peer w-full py-2.5 px-3 font-light bg-white border-2 border-gray-300 focus:border-black transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
+            />
+          </div>
           <Map center={location?.latlng} />
         </div>
       );

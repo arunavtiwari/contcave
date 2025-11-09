@@ -10,6 +10,7 @@ export async function sendReservationCustomerEmail(input: {
     totalPrice: number;
     addons: string;
     studioLocation: string;
+    additionalInfo?: string;
     templateId?: string;
 }) {
     await sendTemplateEmail({
@@ -25,6 +26,7 @@ export async function sendReservationCustomerEmail(input: {
             total_price: Math.round(input.totalPrice),
             addons: input.addons,
             studio_location: input.studioLocation,
+            additional_info: input.additionalInfo || "",
         },
     });
 }

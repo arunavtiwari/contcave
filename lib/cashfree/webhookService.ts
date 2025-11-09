@@ -7,6 +7,7 @@ import { sendTemplateEmail } from "@/lib/email/mailer";
 
 type LocationData = {
   display_name?: string;
+  additionalInfo?: string;
   [key: string]: any;
 };
 
@@ -88,7 +89,7 @@ async function claimAndSendCustomerEmail(
   txnId: string,
   payload: {
     toEmail: string; toName: string; studioName: string; startDate: string;
-    startTime: string; endTime: string; totalPrice: number; addons: string; studioLocation: string;
+    startTime: string; endTime: string; totalPrice: number; addons: string; studioLocation: string; additionalInfo?: string;
   }
 ) {
   const claimed = await prisma.transaction.updateMany({
@@ -254,7 +255,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           });
 
           const studioName = listing?.title || "";
-          const studioLocation = (listing?.actualLocation as LocationData)?.display_name || "";
+          const actualLocation = listing?.actualLocation as LocationData;
+          const studioLocation = actualLocation?.display_name || "";
+          const additionalInfo = actualLocation?.additionalInfo || "";
           const addonsStr = formatAddons(md.selectedAddons);
           const totalPrice = Math.round(Number(freshTxn.amount || 0));
           afterTxnId = freshTxn.id;
@@ -270,6 +273,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               totalPrice,
               addons: addonsStr,
               studioLocation,
+              additionalInfo,
             };
             console.log("Prepared customer email", { txnId: freshTxn.id, to: user.email });
           }
@@ -310,7 +314,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           });
           if (resv) {
             const studioName = resv.listing?.title || "";
-            const studioLocation = (resv.listing?.actualLocation as LocationData)?.display_name || "";
+            const actualLocation = resv.listing?.actualLocation as LocationData;
+            const studioLocation = actualLocation?.display_name || "";
+            const additionalInfo = actualLocation?.additionalInfo || "";
             const addonsStr = formatAddons(resv.selectedAddons);
             const totalPrice = Math.round(Number(resv.totalPrice || 0));
             const startDateYmd = resv.startDate?.toISOString().slice(0, 10) || "";
@@ -327,6 +333,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 totalPrice,
                 addons: addonsStr,
                 studioLocation,
+                additionalInfo,
               };
               console.log("Prepared customer email (existing)", { txnId: freshTxn.id, to: resv.user.email });
             }
