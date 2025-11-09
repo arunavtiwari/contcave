@@ -10,11 +10,11 @@ const Checkbox = ({ label, isChecked, onChange }: Props) => {
             <input
                 type="checkbox"
                 value=""
-                className="w-4.5 h-4.5 text-black bg-gray-100 rounded-full border-gray-300 focus:outline-none focus:ring-transparent"
+                className="w-4.5 h-4.5 text-black bg-gray-100 rounded-full border-gray-300 focus:outline-none focus:ring-transparent cursor-pointer"
                 checked={isChecked}
                 onChange={onChange}
             />
-            <label className="ml-2 text-sm font-medium text-gray-900 ">{label}</label>
+            <label className="ml-2 text-sm font-medium text-gray-900 leading-none">{label}</label>
         </div>
 
     );

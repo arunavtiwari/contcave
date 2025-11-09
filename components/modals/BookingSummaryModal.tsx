@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import Link from "next/link";
+import Checkbox from "@/components/inputs/Checkbox";
 
 type GSTDetails = {
   companyName: string;
@@ -22,8 +23,8 @@ type BookingSummaryModalProps = {
   gstDetails: GSTDetails;
   setGstDetailsAction: (v: GSTDetails) => void;
   currentUserId: string;
-  reservationId: string;    
-  transactionId: string; 
+  reservationId: string;
+  transactionId: string;
 };
 
 export default function BookingSummaryModal({
@@ -39,8 +40,8 @@ export default function BookingSummaryModal({
   gstDetails,
   setGstDetailsAction,
   currentUserId,
-  reservationId,     
-  transactionId,     
+  reservationId,
+  transactionId,
 }: BookingSummaryModalProps) {
   const sectionId = useId();
   const [needGST, setNeedGST] = useState(false);
@@ -157,17 +158,14 @@ export default function BookingSummaryModal({
           </div>
         </div>
 
+
         {/* GST Toggle */}
         <div className="mb-4">
-          <label className="flex items-center text-sm gap-2">
-            <input
-              type="checkbox"
-              checked={needGST}
-              onChange={(e) => setNeedGST(e.target.checked)}
-              className="mt-1 w-4 h-4 appearance-none border border-gray-400 rounded-md checked:bg-black checked:border-black checked:shadow-inner transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20"
-            />
-            <span>Need GST Invoice?</span>
-          </label>
+          <Checkbox
+            label="Need GST Invoice?"
+            isChecked={needGST}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNeedGST(e.target.checked)}
+          />
         </div>
 
         {/* GST Fields */}
@@ -214,19 +212,17 @@ export default function BookingSummaryModal({
 
         {/* Terms & Conditions */}
         <div className="mt-4 mb-5">
-          <label className="flex items-start gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              checked={agree}
-              onChange={(e) => setAgree(e.target.checked)}
-              className="mt-1 w-4 h-4 appearance-none border border-gray-400 rounded-md checked:bg-black checked:border-black checked:shadow-inner transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20"
+          <div className="flex items-center gap-1 text-sm text-gray-700">
+            <Checkbox
+              label="I agree to the"
+              isChecked={agree}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAgree(e.target.checked)}
             />
-            <span>
-              I agree to the{" "}
+            <span className="font-medium">
               <Link
                 href="/terms-and-conditions"
                 target="_blank"
-                className="text-blue-600 underline hover:text-blue-800"
+                className="text-blue-600 underline hover:text-blue-800 leading-none"
               >
                 Terms & Conditions
               </Link>{" "}
@@ -234,13 +230,13 @@ export default function BookingSummaryModal({
               <Link
                 href="/privacy-policy"
                 target="_blank"
-                className="text-blue-600 underline hover:text-blue-800"
+                className="text-blue-600 underline hover:text-blue-800 leading-none"
               >
                 Privacy Policy
               </Link>
               .
             </span>
-          </label>
+          </div>
         </div>
 
         {/* Actions */}
@@ -255,11 +251,10 @@ export default function BookingSummaryModal({
           </button>
           <button
             type="button"
-            className={`px-4 py-2 rounded-lg text-white ${
-              agree
-                ? "bg-black hover:opacity-90"
-                : "bg-gray-400 cursor-not-allowed"
-            }`}
+            className={`px-4 py-2 rounded-lg text-white ${agree
+              ? "bg-black hover:opacity-90"
+              : "bg-gray-400 cursor-not-allowed"
+              }`}
             onClick={handleConfirm}
             disabled={!agree || saving}
           >
