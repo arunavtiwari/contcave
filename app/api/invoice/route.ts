@@ -4,28 +4,87 @@ import { generateInvoicePDFBlob } from "@/lib/invoice/pdfBlob";
 
 export async function POST(req: Request) {
   try {
-    const { userId, reservationId, transactionId, amount } = await req.json();
+    const { userId, reservationId, transactionId } = await req.json();
 
-    if (!userId || !reservationId || !transactionId || !amount) {
+    if (!userId || !reservationId || !transactionId) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // Fetch user with default billing details
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        billingDetails: { where: { isDefault: true }, take: 1 },
-      },
-    });
+    const [user, reservation, transaction] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          billingDetails: { where: { isDefault: true }, take: 1 },
+        },
+      }),
+      prisma.reservation.findUnique({
+        where: { id: reservationId },
+        include: {
+          listing: {
+            include: {
+              user: {
+                include: { paymentDetails: true },
+              },
+            },
+          },
+        },
+      }),
+      prisma.transaction.findUnique({
+        where: { id: transactionId },
+      }),
+    ]);
 
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
+    if (!reservation) {
+      return NextResponse.json(
+        { message: "Reservation not found" },
+        { status: 404 }
+      );
+    }
+
+    if (!transaction) {
+      return NextResponse.json(
+        { message: "Transaction not found" },
+        { status: 404 }
+      );
+    }
+
+    if (transaction.userId !== userId || transaction.reservationId !== reservationId) {
+      return NextResponse.json(
+        { message: "Transaction does not match provided user/reservation" },
+        { status: 400 }
+      );
+    }
+
+    const ownerPayment =
+      reservation.listing?.user?.paymentDetails &&
+      reservation.listing.user.paymentDetails.companyName &&
+      reservation.listing.user.paymentDetails.gstin
+        ? {
+            companyName: reservation.listing.user.paymentDetails.companyName,
+            gstin: reservation.listing.user.paymentDetails.gstin,
+            ownerName:
+              reservation.listing.user.name ||
+              reservation.listing.user.email ||
+              "Listing Owner",
+          }
+        : null;
+
     const billing = user.billingDetails?.[0] ?? null;
+
+    const amount = transaction.amount ?? reservation.totalPrice;
+    if (!amount || amount <= 0) {
+      return NextResponse.json(
+        { message: "Unable to determine invoice amount" },
+        { status: 400 }
+      );
+    }
 
     // Calculate GST
     const gstRate = 0.18;
@@ -38,6 +97,7 @@ export async function POST(req: Request) {
       invoiceNumber,
       user,
       billing,
+      ownerPayment,
       amount,
       gstAmount,
       totalAmount,

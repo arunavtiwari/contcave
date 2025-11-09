@@ -2,10 +2,17 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import prisma from "@/lib/prismadb";
 
+type OwnerPaymentDetails = {
+  ownerName?: string | null;
+  companyName: string;
+  gstin: string;
+};
+
 type InvoiceData = {
   invoiceNumber: string;
   user: any;
   billing: any | null;
+  ownerPayment?: OwnerPaymentDetails | null;
   amount: number;
   gstAmount: number;
   totalAmount: number;
@@ -13,7 +20,15 @@ type InvoiceData = {
 };
 
 export async function generateInvoicePDFBlob(data: InvoiceData) {
-  const { invoiceNumber, user, billing, amount, gstAmount, totalAmount } = data;
+  const {
+    invoiceNumber,
+    user,
+    billing,
+    ownerPayment,
+    amount,
+    gstAmount,
+    totalAmount,
+  } = data;
 
   // Create a hidden div for rendering invoice
   const container = document.createElement("div");
@@ -24,10 +39,34 @@ export async function generateInvoicePDFBlob(data: InvoiceData) {
     <h1>Invoice</h1>
     <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
     <p><strong>Customer:</strong> ${user.name || user.email}</p>
-    ${billing ? `<p><strong>Company:</strong> ${billing.companyName}</p>` : ""}
-    <p><strong>Amount:</strong> ₹${amount.toFixed(2)}</p>
-    <p><strong>GST (18%):</strong> ₹${gstAmount.toFixed(2)}</p>
-    <p><strong>Total:</strong> ₹${totalAmount.toFixed(2)}</p>
+    ${
+      billing
+        ? `<div style="margin: 12px 0;">
+            <p><strong>Bill To:</strong> ${billing.companyName}</p>
+            ${
+              billing.gstin
+                ? `<p><strong>GSTIN:</strong> ${billing.gstin}</p>`
+                : ""
+            }
+          </div>`
+        : ""
+    }
+    ${
+      ownerPayment
+        ? `<div style="margin: 12px 0;">
+            <p><strong>Seller:</strong> ${
+              ownerPayment.ownerName ?? "Listing Owner"
+            }</p>
+            <p><strong>Seller Company:</strong> ${
+              ownerPayment.companyName
+            }</p>
+            <p><strong>Seller GSTIN:</strong> ${ownerPayment.gstin}</p>
+          </div>`
+        : ""
+    }
+    <p><strong>Amount:</strong> INR ${amount.toFixed(2)}</p>
+    <p><strong>GST (18%):</strong> INR ${gstAmount.toFixed(2)}</p>
+    <p><strong>Total:</strong> INR ${totalAmount.toFixed(2)}</p>
     <p>Thank you for booking with us!</p>
   `;
 
@@ -68,6 +107,35 @@ export async function createInvoice({
   });
   if (!user) throw new Error("User not found");
 
+  const reservation = await prisma.reservation.findUnique({
+    where: { id: reservationId },
+    include: {
+      listing: {
+        include: {
+          user: {
+            include: { paymentDetails: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!reservation) throw new Error("Reservation not found");
+
+  const ownerPayment =
+    reservation.listing?.user?.paymentDetails &&
+    reservation.listing.user.paymentDetails.companyName &&
+    reservation.listing.user.paymentDetails.gstin
+      ? {
+          companyName: reservation.listing.user.paymentDetails.companyName,
+          gstin: reservation.listing.user.paymentDetails.gstin,
+          ownerName:
+            reservation.listing.user.name ||
+            reservation.listing.user.email ||
+            "Listing Owner",
+        }
+      : null;
+
   const billing = user.billingDetails?.[0] ?? null;
   const gstRate = 0.18;
   const gstAmount = amount * gstRate;
@@ -79,6 +147,7 @@ export async function createInvoice({
     invoiceNumber,
     user,
     billing,
+    ownerPayment,
     amount,
     gstAmount,
     totalAmount,
