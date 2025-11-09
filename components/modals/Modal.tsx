@@ -119,7 +119,7 @@ function Modal({
               {title}
             </h2>
             <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition focus:outline-none"
+              className="absolute right-6 text-gray-500 hover:text-gray-800 transition focus:outline-none"
               onClick={handleClose}
               aria-label="Close modal"
             >

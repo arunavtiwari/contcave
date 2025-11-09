@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { FaBolt } from "react-icons/fa";
 import Select from "react-select";
 import ReactSwitch from "react-switch";
+import { spaceTypes } from "@/constants/spaceTypes";
 
 export type ListingDetails = {
     carpetArea: string;
@@ -16,20 +17,6 @@ export type ListingDetails = {
 type Props = {
     onDetailsChange: (details: ListingDetails) => void;
 };
-
-const types = [
-    "Fashion shoot",
-    "Product shoot",
-    "Podcast",
-    "Recording Studio",
-    "Film Shoot",
-    "Outdoor Event",
-    "Content shoot",
-    "Pre-Wedding",
-    "Meetings",
-    "Workshops",
-    "Photo Shoot",
-];
 
 const dayOptions = [
     { value: "Mon", label: "Monday" },
@@ -248,7 +235,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
                     <strong>TYPE</strong>
                 </label>
                 <div className="flex flex-wrap gap-2 w-100 mt-2">
-                    {types.map((t) => (
+                    {spaceTypes.map((t) => (
                         <button
                             key={t}
                             onClick={() => handleTypeSelect(t)}
