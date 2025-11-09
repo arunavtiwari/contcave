@@ -6,10 +6,6 @@ import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import qs from "query-string";
 import { useCallback, useMemo, useState } from "react";
-import TimeRangePicker from '@wojtekmaj/react-timerange-picker';
-import '@wojtekmaj/react-timerange-picker/dist/TimeRangePicker.css';
-
-
 import Heading from "../Heading";
 import Calendar from "../inputs/Calendar";
 import CitySelect, { CitySelectValue } from "../inputs/CitySelect";
@@ -18,7 +14,6 @@ import Modal from "./Modal";
 enum STEPS {
   LOCATION = 0,
   DATE = 1,
-  TIME = 2,
 }
 
 type Props = {};
@@ -27,12 +22,9 @@ function SearchModal({ }: Props) {
   const router = useRouter();
   const params = useSearchParams();
   const searchModel = useSearchModal();
-  type ValuePiece = Date | string | null;
-  type Value = ValuePiece | [ValuePiece, ValuePiece];
   const [location, setLocation] = useState<CitySelectValue>();
   const [step, setStep] = useState(STEPS.LOCATION);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<Value>(['10:00', '11:00']);
 
 
   const Map = useMemo(
@@ -47,12 +39,8 @@ function SearchModal({ }: Props) {
     setStep((value) => value - 1);
   };
 
-  const onNext = () => {
-    setStep((value) => value + 1);
-  };
-
   const onSubmit = useCallback(async () => {
-    if (step !== STEPS.TIME) {
+    if (step !== STEPS.DATE) {
       setStep((v) => v + 1);
       return;
     }
@@ -67,7 +55,6 @@ function SearchModal({ }: Props) {
       ...currentQuery,
       locationValue: location?.value,
       selectedDate: selectedDate ? formatISO(selectedDate) : undefined,
-      selectedTime
     };
 
     const url = qs.stringifyUrl(
@@ -82,10 +69,10 @@ function SearchModal({ }: Props) {
     searchModel.onClose();
 
     router.push(url);
-  }, [step, searchModel, location, router, selectedDate, selectedTime, params]);
+  }, [step, searchModel, location, router, selectedDate, params]);
 
   const actionLabel = useMemo(() => {
-    if (step === STEPS.TIME) {
+    if (step === STEPS.DATE) {
       return "Search";
     }
 
@@ -125,21 +112,6 @@ function SearchModal({ }: Props) {
         <Calendar
           value={selectedDate}
           onChange={(value) => setSelectedDate(value ?? null)}
-        />
-      </div>
-    );
-  }
-
-  if (step === STEPS.TIME) {
-    bodyContent = (
-      <div className="flex flex-col gap-8">
-        <Heading
-          title="Select Time Slot"
-          subtitle="Choose the time range for your booking"
-        />
-        <TimeRangePicker
-          value={selectedTime}
-          onChange={(value) => setSelectedTime(value as Value)}
         />
       </div>
     );
