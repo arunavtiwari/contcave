@@ -27,4 +27,6 @@ export type SafeUser = Omit<
   emailVerified: string | null;
   verified_at: string | null;
   googleCalendarConnected: boolean;
+  markedForDeletion: boolean;
+  markedForDeletionAt: string | null;
 };

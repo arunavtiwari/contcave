@@ -16,7 +16,7 @@ export default async function getCurrentUser() {
       return null;
     }
 
-    const currentUser = await prisma.user.findUnique({
+    let currentUser = await prisma.user.findUnique({
       where: {
         email: session.user.email as string,
       },
@@ -26,12 +26,27 @@ export default async function getCurrentUser() {
       return null;
     }
 
+    const userRecord = currentUser as any;
+
+    if (userRecord?.markedForDeletion) {
+      currentUser = await prisma.user.update({
+        where: { id: currentUser.id },
+        data: {
+          markedForDeletion: false,
+          markedForDeletionAt: null,
+        } as any,
+      });
+    }
+
+    const markedForDeletionAt = (currentUser as any)?.markedForDeletionAt as Date | null | undefined;
+
     return {
       ...currentUser,
       createdAt: currentUser.createdAt.toISOString(),
       updatedAt: currentUser.updatedAt.toISOString(),
       emailVerified: currentUser.emailVerified?.toISOString() || null,
-
+      markedForDeletionAt: markedForDeletionAt ? markedForDeletionAt.toISOString() : null,
+      markedForDeletion: Boolean((currentUser as any)?.markedForDeletion),
       verified_at: currentUser.verified_at
         ? currentUser.verified_at.toISOString()
         : null,

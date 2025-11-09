@@ -59,6 +59,8 @@ model User {
   googleCalendarConnected Boolean           @default(false)
   billingDetails          BillingDetails[]
   invoices                Invoice[]
+  markedForDeletion       Boolean           @default(false)
+  markedForDeletionAt     DateTime?
 
   verification_stage Int       @default(0) // 0=none, 1=contact, 2=aadhaar, 3=bank
   aadhaar_verified   Boolean   @default(false)

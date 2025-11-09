@@ -123,7 +123,13 @@ function UserMenu({ currentUser }: Props) {
                   </>
                 )}
                 <MenuItem onClick={() => { router.push("/Profile"); closeMenu(); }} label="My Profile" />
-                <MenuItem onClick={() => { signOut(); closeMenu(); }} label="Logout" />
+                <MenuItem
+                  onClick={() => {
+                    signOut({ callbackUrl: "/" });
+                    closeMenu();
+                  }}
+                  label="Logout"
+                />
               </>
             ) : (
               <>

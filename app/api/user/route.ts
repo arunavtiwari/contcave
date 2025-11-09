@@ -74,11 +74,34 @@ export async function PATCH(request: Request) {
   }
 }
 
+export async function DELETE() {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser?.email) {
+    return NextResponse.error();
+  }
+
+  try {
+    await prisma.user.update({
+      where: { email: currentUser.email },
+      data: {
+        markedForDeletion: true,
+        markedForDeletionAt: new Date(),
+      } as any,
+    });
+
+    return NextResponse.json({ ok: true }, { status: 200 });
+  } catch (error: any) {
+    console.error("Failed to mark user for deletion:", error);
+    return NextResponse.error();
+  }
+}
+
 export async function OPTIONS() {
   return new Response(null, {
     status: 204,
     headers: {
-      Allow: "PUT, PATCH, OPTIONS"
+      Allow: "PUT, PATCH, DELETE, OPTIONS"
     }
   });
 }
