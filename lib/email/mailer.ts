@@ -1,6 +1,12 @@
-import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
+import { MailerSend, EmailParams, Sender, Recipient, Attachment } from "mailersend";
 
 export type PersonalizationData = Record<string, string | number | boolean | null | undefined>;
+
+export type AttachmentInput = {
+    filename: string;
+    content: string; // base64
+    disposition?: string;
+};
 
 export async function sendTemplateEmail({
     toEmail,
@@ -10,6 +16,7 @@ export async function sendTemplateEmail({
     fromEmail = process.env.MAILERSEND_FROM_EMAIL || "",
     fromName = process.env.MAILERSEND_FROM_NAME || "ContCave",
     apiKey = process.env.MAILERSEND_API_KEY || "",
+    attachments,
 }: {
     toEmail: string;
     toName?: string;
@@ -18,6 +25,7 @@ export async function sendTemplateEmail({
     fromEmail?: string;
     fromName?: string;
     apiKey?: string;
+    attachments?: AttachmentInput[];
 }) {
     if (!apiKey || !templateId || !toEmail) return;
     const ms = new MailerSend({ apiKey });
@@ -26,5 +34,13 @@ export async function sendTemplateEmail({
         .setTemplateId(templateId)
         .setPersonalization([{ email: toEmail, data }]);
     if (fromEmail) params.setFrom(new Sender(fromEmail, fromName));
+    if (attachments?.length) {
+        const mapped = attachments
+            .filter((att) => att.content && att.filename)
+            .map((att) => new Attachment(att.content, att.filename, att.disposition));
+        if (mapped.length) {
+            params.setAttachments(mapped);
+        }
+    }
     await ms.email.send(params);
 }

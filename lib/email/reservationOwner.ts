@@ -1,5 +1,5 @@
 // lib/email/reservationOwner.ts
-import { sendTemplateEmail } from "./mailer";
+import { AttachmentInput, sendTemplateEmail } from "./mailer";
 
 export async function sendReservationOwnerEmail(input: {
     toEmail: string;
@@ -16,6 +16,7 @@ export async function sendReservationOwnerEmail(input: {
     formattedStartDate?: string;
     formattedStartTime?: string;
     formattedEndTime?: string;
+    attachments?: AttachmentInput[];
 }) {
     await sendTemplateEmail({
         toEmail: input.toEmail,
@@ -32,5 +33,6 @@ export async function sendReservationOwnerEmail(input: {
             totalPrice: Math.round(input.totalPrice),
             selectedAddonsList: input.addons || "None",
         },
+        attachments: input.attachments,
     });
 }

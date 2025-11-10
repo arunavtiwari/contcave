@@ -1,4 +1,4 @@
-import { sendTemplateEmail } from "./mailer";
+import { AttachmentInput, sendTemplateEmail } from "./mailer";
 
 export async function sendReservationCustomerEmail(input: {
     toEmail: string;
@@ -12,6 +12,7 @@ export async function sendReservationCustomerEmail(input: {
     studioLocation: string;
     additionalInfo?: string;
     templateId?: string;
+    attachments?: AttachmentInput[];
 }) {
     await sendTemplateEmail({
         toEmail: input.toEmail,
@@ -28,5 +29,6 @@ export async function sendReservationCustomerEmail(input: {
             studio_location: input.studioLocation,
             additional_info: input.additionalInfo || "",
         },
+        attachments: input.attachments,
     });
 }

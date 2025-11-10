@@ -3,7 +3,8 @@ import { ensureCalendarEventForUser, createCalendarEventForUser } from "@/lib/ca
 import { cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
 import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
-import { sendTemplateEmail } from "@/lib/email/mailer";
+import { AttachmentInput, sendTemplateEmail } from "@/lib/email/mailer";
+import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
 
 type LocationData = {
   display_name?: string;
@@ -85,12 +86,12 @@ function combineUtcIso(ymd: string, hm: string): string {
   return new Date(`${ymd}T${time}:00Z`).toISOString();
 }
 
+type CustomerEmailPayload = Parameters<typeof sendReservationCustomerEmail>[0];
+type OwnerEmailPayload = Parameters<typeof sendReservationOwnerEmail>[0];
+
 async function claimAndSendCustomerEmail(
   txnId: string,
-  payload: {
-    toEmail: string; toName: string; studioName: string; startDate: string;
-    startTime: string; endTime: string; totalPrice: number; addons: string; studioLocation: string; additionalInfo?: string;
-  }
+  payload: CustomerEmailPayload,
 ) {
   const claimed = await prisma.transaction.updateMany({
     where: { id: txnId, emailSentCustomer: false },
@@ -107,10 +108,7 @@ async function claimAndSendCustomerEmail(
 }
 async function claimAndSendOwnerEmail(
   txnId: string,
-  payload: {
-    toEmail: string; toName: string; studioName: string; startDate: string;
-    startTime: string; endTime: string; totalPrice: number; customerName: string; templateId?: string;
-  }
+  payload: OwnerEmailPayload,
 ) {
   if (!payload?.toEmail) {
     console.warn("Owner email skipped: missing recipient", { txnId });
@@ -201,10 +199,12 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
       });
     }
 
-    let afterCustomer: Parameters<typeof claimAndSendCustomerEmail>[1] | undefined;
-    let afterOwner: Parameters<typeof claimAndSendOwnerEmail>[1] | undefined;
+    let afterCustomer: CustomerEmailPayload | undefined;
+    let afterOwner: OwnerEmailPayload | undefined;
     let afterTxnId: string | undefined;
     let afterCalendar: OwnerCalendarPayload | undefined;
+    let afterReservationId: string | undefined;
+    let afterInvoiceAttachment: AttachmentInput | undefined;
 
     if (status === "SUCCESS" && txn.userId && txn.listingId) {
       await prisma.$transaction(async (db) => {
@@ -253,6 +253,8 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               payoutDueAt: startDate,
             },
           });
+
+          afterReservationId = reservation.id;
 
           const studioName = listing?.title || "";
           const actualLocation = listing?.actualLocation as LocationData;
@@ -313,6 +315,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             },
           });
           if (resv) {
+            afterReservationId = resv.id;
             const studioName = resv.listing?.title || "";
             const actualLocation = resv.listing?.actualLocation as LocationData;
             const studioLocation = actualLocation?.display_name || "";
@@ -367,6 +370,34 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           }
         }
       });
+
+      if (afterTxnId && afterReservationId && txn.userId) {
+        try {
+          const invoiceResult = await ensureInvoiceWithAttachment({
+            userId: txn.userId,
+            reservationId: afterReservationId,
+            transactionId: afterTxnId,
+          });
+          afterInvoiceAttachment = invoiceResult.attachment;
+        } catch (e) {
+          console.error("Invoice generation failed", { txnId: afterTxnId, error: (e as any)?.message || e });
+        }
+      }
+
+      if (afterInvoiceAttachment) {
+        if (afterCustomer) {
+          afterCustomer.attachments = [
+            ...(afterCustomer.attachments || []),
+            afterInvoiceAttachment,
+          ];
+        }
+        if (afterOwner) {
+          afterOwner.attachments = [
+            ...(afterOwner.attachments || []),
+            afterInvoiceAttachment,
+          ];
+        }
+      }
 
       if (afterTxnId) {
         if (afterCustomer) {
