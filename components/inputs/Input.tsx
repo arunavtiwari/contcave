@@ -47,15 +47,19 @@ function Input({
       <input
         id={id}
         disabled={disabled}
-        {...(register ?? {})}
         placeholder={label}
         type={type}
         value={value}
-        onChange={onChange}
+        {...(register ? register : { onChange })}
         className={`peer w-full font-light bg-white border-2 rounded-md outline-none transition disabled:opacity-70 disabled:cursor-not-allowed py-2.5 ${formatPrice ? "pl-10" : "pl-4"
           } ${hasError ? "border-rose-500" : "border-neutral-300"} ${hasError ? "focus:border-rose-500" : "focus:border-black"
           }`}
       />
+      {hasError && (
+        <p className="text-rose-500 text-sm mt-1">
+          {errors?.[id]?.message as string}
+        </p>
+      )}
     </div>
   );
 }

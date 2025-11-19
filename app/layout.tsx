@@ -77,6 +77,7 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
   },
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {

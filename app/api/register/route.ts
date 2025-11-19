@@ -23,6 +23,14 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return new Response("Email already exists", { status: 400 });
+    }
+
     const user = await prisma.user.create({
       data: {
         email,
@@ -33,7 +41,10 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(user, { status: 201 });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { hashedPassword: _, ...userWithoutPassword } = user;
+
+    return NextResponse.json(userWithoutPassword, { status: 201 });
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(
