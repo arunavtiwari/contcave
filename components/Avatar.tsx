@@ -5,11 +5,10 @@ import React from "react";
 
 type Props = {
   src?: string | null;
-  userName?: string | null;
   size?: number;
 };
 
-function Avatar({ src, userName, size = 30 }: Props) {
+function Avatar({ src, size = 30 }: Props) {
   return (
     <div>
       {src ? (
@@ -19,14 +18,6 @@ function Avatar({ src, userName, size = 30 }: Props) {
           width={size}
           alt="hasImage"
           src={src}
-        />
-      ) : userName ? (
-        <Image
-          className="rounded-full"
-          alt="nameImage"
-          width={size}
-          height={size}
-          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&size=${size}`}
         />
       ) : (
         <Image

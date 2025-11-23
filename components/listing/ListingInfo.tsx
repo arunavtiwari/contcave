@@ -175,7 +175,7 @@ function ListingInfo({
       <div className="flex gap-2 justify-between">
         <div className="text-xl font-semibold flex flex-row items-center gap-2">
           <div>Hosted by {user?.name}</div>
-          <Avatar src={user?.image} userName={user?.name} />
+          <Avatar src={user?.image} />
         </div>
         {fullListing.avgReviewRating && fullListing.avgReviewRating !== 0 && (
           <div className="font-semibold text-lg flex items-center gap-1.5 leading-[18px]">
@@ -320,7 +320,7 @@ function ListingInfo({
                 {reviews.map((rv: any) => (
                   <div className="flex items-center p-5 shadow-md rounded-2xl border" key={rv.id}>
                     <div className="h-fit">
-                      <Avatar src={rv.user?.image} userName={rv.user?.name} size={45} />
+                      <Avatar src={rv.user?.image} size={45} />
                     </div>
                     <div className="pl-4 flex flex-col w-full">
                       <div className="flex justify-between items-center">

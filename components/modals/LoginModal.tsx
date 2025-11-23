@@ -50,7 +50,7 @@ function LoginModal({ }: Props) {
         router.refresh();
         loginModel.onClose();
       } else if (callback?.error) {
-        toast.error("Something Went Wrong", {
+        toast.error(callback.error, {
           toastId: "Login_Error_1"
         });
       }

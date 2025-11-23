@@ -9,6 +9,7 @@ import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Button from "../Button";
 import Heading from "../Heading";
 import Input from "../inputs/Input";
@@ -17,6 +18,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function RegisterModal() {
   const registerModal = useRegisterModal();
+  const router = useRouter();
   const loginModal = useLoginModal();
   const ownerRegisterModal = useOwnerRegisterModal();
   const [isLoading, setIsLoading] = useState(false);
@@ -49,16 +51,27 @@ function RegisterModal() {
         toast.success("Successfully registered and logged in!", {
           toastId: "Registered"
         });
+        router.refresh();
         registerModal.onClose();
       } else if (callback?.error) {
         toast.error("Login failed", {
           toastId: "Login_Error_1"
         });
       }
-    } catch (err) {
-      toast.error("Something went wrong during registration.", {
-        toastId: "Registration_Error_1"
-      });
+    } catch (err: any) {
+      if (err?.response?.data?.error) {
+        toast.error(err.response.data.error, {
+          toastId: "Registration_Error_Specific"
+        });
+      } else if (typeof err?.response?.data === "string") {
+        toast.error(err.response.data, {
+          toastId: "Registration_Error_String"
+        });
+      } else {
+        toast.error("Something went wrong during registration.", {
+          toastId: "Registration_Error_1"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
