@@ -89,7 +89,11 @@ export const authOptions: AuthOptions = {
         });
 
         if (!user || !user.hashedPassword) {
-          throw new Error("Invalid credentials");
+          if (!user) {
+            throw new Error("User not found");
+          } else {
+            throw new Error("Invalid credentials");
+          }
         }
 
         const isCorrectPassword = await bcrypt.compare(

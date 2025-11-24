@@ -32,7 +32,14 @@ const Body = z.object({
     listingId: z.preprocess(trimStr, z.string().min(1, "listingId required")),
     startDate: z
         .preprocess(trimStr, z.string().min(1, "startDate required"))
-        .refine((s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s)), "startDate must be YYYY-MM-DD"),
+        .refine((s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s)), "startDate must be YYYY-MM-DD")
+        .refine((s) => {
+            const inputDate = new Date(String(s));
+            const now = new Date();
+            const istDate = new Date(now.getTime() + 330 * 60000);
+            const today = new Date(Date.UTC(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate()));
+            return inputDate >= today;
+        }, "Past dates are not allowed"),
     startTime: z.preprocess(trimStr, z.string().min(1, "startTime required")),
     endTime: z.preprocess(trimStr, z.string().min(1, "endTime required")),
 

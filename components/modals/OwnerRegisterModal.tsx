@@ -11,9 +11,11 @@ import Input from "../inputs/Input";
 import Modal from "./Modal";
 import { FcGoogle } from "react-icons/fc";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 function OwnerRegisterModal() {
     const ownerRegisterModal = useOwnerRegisterModal();
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -35,10 +37,24 @@ function OwnerRegisterModal() {
 
         try {
             await axios.post("/api/register", { ...data, is_owner: true });
-            toast.success("Owner registered successfully!", {
-                toastId: "Owner_Registered"
+
+            const callback = await signIn("credentials", {
+                email: data.email,
+                password: data.password,
+                redirect: false,
             });
-            ownerRegisterModal.onClose();
+
+            if (callback?.ok) {
+                toast.success("Owner registered and logged in successfully!", {
+                    toastId: "Owner_Registered"
+                });
+                router.refresh();
+                ownerRegisterModal.onClose();
+            } else if (callback?.error) {
+                toast.error("Login failed", {
+                    toastId: "Owner_Login_Error"
+                });
+            }
         } catch (error) {
             toast.error("Something went wrong during registration.", {
                 toastId: "Owner_Error_1"
