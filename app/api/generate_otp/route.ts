@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     console.log("[Generate OTP] Incoming request body:", body);
+
+    const httpsAgent = process.env.PROXY_URL
+      ? new HttpsProxyAgent(process.env.PROXY_URL)
+      : undefined;
+
+    if (httpsAgent) {
+      console.log("[Generate OTP] Using proxy for outbound request");
+    }
 
     const resp = await axios.post(
       "https://api.cashfree.com/verification/offline-aadhaar/otp",
@@ -15,6 +24,7 @@ export async function POST(req: Request) {
           "x-client-id": process.env.CASHFREE_CLIENT_ID!,
           "x-client-secret": process.env.CASHFREE_CLIENT_SECRET!,
         },
+        httpsAgent,
       }
     );
 
