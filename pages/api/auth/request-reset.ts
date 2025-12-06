@@ -28,7 +28,7 @@ export default async function handler(
 
 
         const resetToken = crypto.randomBytes(32).toString("hex");
-        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+        const resetTokenExpiry = new Date(Date.now() + 3600000);
 
         await prisma.user.update({
             where: { id: user.id },
@@ -40,7 +40,7 @@ export default async function handler(
 
         const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${resetToken}`;
 
-        const TEMPLATE_ID = process.env.MAILERSEND_RESET_PASSWORD_TEMPLATE_ID || "replace_with_actual_template_id";
+        const TEMPLATE_ID = process.env.MS_TPL_RESET_PASSWORD!;
 
         await sendTemplateEmail({
             toEmail: user.email,
