@@ -103,13 +103,24 @@ function LoginModal({ }: Props) {
             type={showPassword ? "text" : "password"}
           />
 
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="text-sm text-neutral-600 focus:outline-none"
-          >
-            {showPassword ? "Hide" : "Show"} Password
-          </button>
+          <div className="flex justify-between items-center">
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-sm text-neutral-600 focus:outline-none"
+            >
+              {showPassword ? "Hide" : "Show"} Password
+            </button>
+            <span
+              onClick={() => {
+                loginModel.onClose();
+                router.push("/forgot-password");
+              }}
+              className="text-sm text-neutral-600 hover:underline cursor-pointer"
+            >
+              Forgot Password?
+            </span>
+          </div>
         </div>
       }
       footer={

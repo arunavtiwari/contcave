@@ -7,8 +7,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log("[Generate OTP] Incoming request body:", body);
 
-    const httpsAgent = process.env.PROXY_URL
-      ? new HttpsProxyAgent(process.env.PROXY_URL)
+    const httpsAgent = process.env.FIXIE_URL
+      ? new HttpsProxyAgent(process.env.FIXIE_URL)
       : undefined;
 
     if (httpsAgent) {
