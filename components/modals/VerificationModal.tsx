@@ -214,7 +214,11 @@ const VerificationModal: React.FC<Props> = ({
           toast.success("Aadhaar verified ✅");
           setStep(3);
         } else {
-          toast.error("Invalid OTP");
+          if (verifyResp.data.error) {
+            toast.error(verifyResp.data.error?.message || verifyResp.data.error || "Verification failed");
+          } else {
+            toast.error(verifyResp.data.message || "Invalid OTP");
+          }
         }
         return;
       }
