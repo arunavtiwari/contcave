@@ -25,7 +25,8 @@ import {
     FaShieldAlt,
     FaPlus,
     FaHome,
-    FaCreditCard
+    FaCreditCard,
+    FaSpinner
 } from "react-icons/fa";
 import VerificationModal from "../modals/VerificationModal";
 
@@ -39,6 +40,7 @@ const ProfileClient = ({ profile }) => {
     const [selectedMenu, setSelectedMenu] = useState("Profile");
     const [showOwnerModal, setShowOwnerModal] = useState(false);
     const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
 
     // Languages
@@ -479,23 +481,49 @@ const ProfileClient = ({ profile }) => {
             <OwnerEnableModal
                 isOpen={showOwnerModal}
                 onClose={() => setShowOwnerModal(false)}
-                onSuccess={(newPhone?: string) => {
-                    axios.put("/api/user", { 
-                    ...userData, 
-                    is_owner: true, 
-                    phone: newPhone || userData.phone,
-                    })
+                onLoadingStart={() => {
+                    setShowLoadingOverlay(true);
+                }}
+                onSuccess={(newPhone?: string, newEmail?: string) => {
+                    const updatedData = {
+                        ...userData, 
+                        is_owner: true, 
+                        phone: newPhone || userData.phone,
+                        email: newEmail || userData.email,
+                    };
+                    
+                    axios.put("/api/user", updatedData)
                     .then((res) => {
-                    setUserData(res.data); 
-                    setShowOwnerModal(false);
-                    setShowVerificationModal(true);
+                        const updatedUser = res.data;
+                        setUserData(updatedUser);
+                        setCurrentUser(updatedUser); // Update currentUser for VerificationModal
+                        
+                        // Show loading for 1.5 seconds, then open verification modal
+                        setTimeout(() => {
+                            setShowLoadingOverlay(false);
+                            setShowVerificationModal(true);
+                        }, 1500);
                     })
-                    .catch(() => toast.error("Failed to update owner status"));
+                    .catch((err) => {
+                        console.error("Failed to update owner status:", err);
+                        setShowLoadingOverlay(false);
+                        toast.error(err?.response?.data?.error || "Failed to update owner status");
+                    });
                 }}
                 initialEmail={userData.email}
                 initialPhone={userData.phone}
                 />
 
+
+            {/* Full-screen loading overlay */}
+            {showLoadingOverlay && (
+                <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-md flex items-center justify-center">
+                    <div className="flex flex-col items-center justify-center gap-4">
+                        <FaSpinner className="w-12 h-12 text-white animate-spin" />
+                        <p className="text-xl font-semibold text-white">Starting Verification...</p>
+                    </div>
+                </div>
+            )}
 
             {currentUser && (
                 <VerificationModal
@@ -503,8 +531,11 @@ const ProfileClient = ({ profile }) => {
                     onClose={() => setShowVerificationModal(false)}
                     currentUser={currentUser}
                     onComplete={() => {
+                        // Update local state after verification completes
                         setUserData((u) => ({ ...u, is_verified: true }));
                         setIsVerified(true);
+                        // Update currentUser to reflect verification status
+                        setCurrentUser((u) => u ? { ...u, is_verified: true } : null);
                     }}
                 />
             )}

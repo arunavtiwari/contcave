@@ -96,9 +96,9 @@ function Modal({
 
   return (
     <div
-      className={`fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[999] flex items-center justify-center bg-black/60 px-4 transition-all duration-300 ${
         isOpen ? "opacity-100" : "opacity-0"
-      }`}
+      } ${isLoading ? "backdrop-blur-md" : "backdrop-blur-sm"}`}
       onClick={handleBackdropClick}
     >
       <div
