@@ -1,13 +1,9 @@
-// lib/cron/runDueSplits.ts
 import prisma from "@/lib/prismadb";
 import { createOrderSplit } from "@/lib/cashfree/easySplit";
+import { WhatsappService } from "@/lib/whatsapp/service";
 
 const OWNER_PAYOUT_PERCENT = Number(process.env.OWNER_PAYOUT_PERCENT || 80);
 
-/**
- * Triggers Cashfree Easy Split for transactions due now.
- * Uses provider idempotency key per transaction.
- */
 export async function runDueSplits(limit = 200) {
     const now = new Date();
 
@@ -17,7 +13,7 @@ export async function runDueSplits(limit = 200) {
             reservationId: { not: null },
             vendorId: { not: null },
             cfOrderId: { not: null },
-            payoutDueAt: { lte: now }, // set to reservation start date in your webhook
+            payoutDueAt: { lte: now },
         },
         orderBy: { payoutDueAt: "asc" },
         take: limit,
@@ -26,6 +22,18 @@ export async function runDueSplits(limit = 200) {
             cfOrderId: true,
             vendorId: true,
             payoutPercentToOwner: true,
+            amount: true,
+            listing: {
+                select: {
+                    title: true,
+                    user: {
+                        select: {
+                            name: true,
+                            phone: true,
+                        }
+                    }
+                }
+            }
         },
     });
 
@@ -47,6 +55,25 @@ export async function runDueSplits(limit = 200) {
                 idempotencyKey: `easy-split:${t.id}`,
             });
             results.push({ id: t.id, ok: true });
+
+            const hostPhone = t.listing?.user?.phone;
+            if (hostPhone) {
+                const payoutAmount = (Number(t.amount) * (pct / 100)).toFixed(2);
+                try {
+                    await WhatsappService.sendPaymentTransferredHost(hostPhone, {
+                        hostName: t.listing?.user?.name || "Host",
+                        amount: payoutAmount,
+                        listingTitle: t.listing?.title || "Studio",
+                        date: new Date().toISOString().split("T")[0],
+                    });
+                } catch (e: any) {
+                    console.error("Failed to send payout WhatsApp", {
+                        transactionId: t.id,
+                        hostPhone,
+                        error: e?.message || e,
+                    });
+                }
+            }
         } catch (e: any) {
             results.push({ id: t.id, ok: false, error: e?.message || "split failed" });
         }

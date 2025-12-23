@@ -5,6 +5,7 @@ import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
 import { AttachmentInput, sendTemplateEmail } from "@/lib/email/mailer";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
+import { WhatsappService } from "@/lib/whatsapp/service";
 
 type LocationData = {
   display_name?: string;
@@ -100,6 +101,11 @@ async function claimAndSendCustomerEmail(
   if (claimed.count === 1) {
     try {
       await sendReservationCustomerEmail(payload);
+      // Send WhatsApp to Customer
+      if (payload.toEmail) { // Using email as a proxy for user existence, but we need phone.
+        // We need to fetch the user's phone. It's not in the payload.
+        // We will handle this in the main flow where we have the user object.
+      }
     } catch (e) {
       await prisma.transaction.update({ where: { id: txnId }, data: { emailSentCustomer: false } });
       throw e;
@@ -220,7 +226,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               where: { id: freshTxn.listingId! },
               include: { user: { include: { paymentDetails: true } } },
             }),
-            db.user.findUnique({ where: { id: freshTxn.userId! }, select: { email: true, name: true } }),
+            db.user.findUnique({ where: { id: freshTxn.userId! }, select: { email: true, name: true, phone: true } }),
           ]);
 
           const md: any = freshTxn.metadata || {};
@@ -311,7 +317,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             where: { id: freshTxn.reservationId },
             include: {
               listing: { include: { user: { include: { paymentDetails: true } } } },
-              user: { select: { email: true, name: true } },
+              user: { select: { email: true, name: true, phone: true } },
             },
           });
           if (resv) {
@@ -409,7 +415,29 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           } catch (e) {
             console.error("Customer email dispatch error", { txnId: afterTxnId, error: (e as any)?.message || e });
           }
+
+          let customerPhone: string | null | undefined;
+          try {
+            const txnUser = await prisma.user.findUnique({ where: { id: txn.userId! }, select: { phone: true } });
+            customerPhone = txnUser?.phone;
+            if (customerPhone) {
+              await WhatsappService.sendBookingConfirmedCustomer(customerPhone, {
+                customerName: afterCustomer.toName || "",
+                listingTitle: afterCustomer.studioName || "",
+                startDate: afterCustomer.startDate || "",
+                startTime: afterCustomer.startTime || "",
+                locationLink: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(afterCustomer.studioLocation || "")}`
+              });
+            }
+          } catch (e: any) {
+            console.error("Customer WhatsApp dispatch error", {
+              txnId: afterTxnId,
+              error: e?.message || e,
+              phone: customerPhone
+            });
+          }
         }
+
         if (afterOwner) {
           try {
             const before = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentOwner: true } });
@@ -419,7 +447,30 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           } catch (e) {
             console.error("Owner email dispatch error", { txnId: afterTxnId, error: (e as any)?.message || e });
           }
+
+          let hostPhone: string | null | undefined;
+          try {
+            const txnListing = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { listing: { select: { user: { select: { phone: true } } } } } });
+            hostPhone = txnListing?.listing?.user?.phone;
+
+            if (hostPhone) {
+              await WhatsappService.sendBookingReceivedHost(hostPhone, {
+                hostName: afterOwner.toName || "",
+                customerName: afterOwner.customerName || "",
+                listingTitle: afterOwner.studioName || "",
+                startDate: (afterOwner as any).formattedStartDate || "",
+                startTime: (afterOwner as any).formattedStartTime || ""
+              });
+            }
+          } catch (e: any) {
+            console.error("Host WhatsApp dispatch error", {
+              txnId: afterTxnId,
+              error: e?.message || e,
+              hostPhone
+            });
+          }
         }
+
         if (afterCalendar) {
           try {
             await createCalendarEventForOwner(afterCalendar);
