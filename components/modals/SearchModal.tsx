@@ -5,7 +5,7 @@ import { formatISO } from "date-fns";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import qs from "query-string";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, Suspense } from "react";
 import Heading from "@/components/Heading";
 import Calendar from "@/components/inputs/Calendar";
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
@@ -18,7 +18,7 @@ enum STEPS {
 
 type Props = {};
 
-function SearchModal({ }: Props) {
+function SearchModalContent({ }: Props) {
   const router = useRouter();
   const params = useSearchParams();
   const searchModel = useSearchModal();
@@ -128,6 +128,14 @@ function SearchModal({ }: Props) {
       actionLabel={actionLabel}
       body={bodyContent}
     />
+  );
+}
+
+function SearchModal({ }: Props) {
+  return (
+    <Suspense fallback={null}>
+      <SearchModalContent />
+    </Suspense>
   );
 }
 

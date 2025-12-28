@@ -1,12 +1,12 @@
 "use client";
 
-import { memo, useMemo, useCallback } from "react";
+import { memo, useMemo, useCallback, Suspense } from "react";
 import useCountries from "@/hook/useCities";
 import useSearchModal from "@/hook/useSearchModal";
 import { useSearchParams } from "next/navigation";
 import { BiSearch } from "react-icons/bi";
 
-const Search = memo(function Search() {
+const SearchContent = memo(function SearchContent() {
   const searchModel = useSearchModal();
   const params = useSearchParams();
   const { getByValue } = useCountries();
@@ -52,6 +52,30 @@ const Search = memo(function Search() {
         </div>
       </div>
     </div>
+  );
+});
+
+SearchContent.displayName = "SearchContent";
+
+const Search = memo(function Search() {
+  return (
+    <Suspense fallback={
+      <div className="border-2 md:w-auto p-2 rounded-full shadow-xs">
+        <div className="flex flex-row items-center justify-between">
+          <div className="text-sm font-semibold px-6">City</div>
+          <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
+            Date
+          </div>
+          <div className="text-sm text-gray-600 flex flex-row items-center gap-3">
+            <div className="p-2 bg-black rounded-full text-white">
+              <BiSearch size={16} />
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 });
 

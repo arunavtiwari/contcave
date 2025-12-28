@@ -1,12 +1,12 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { spaceTypes } from "@/constants/spaceTypes";
 import useIndianCities from "@/hook/useCities";
 import CitySelect from "@/components/inputs/CitySelect";
 import Modal from "./Modal";
 
-const FilterModal = () => {
+const FilterModalContent = () => {
   const router = useRouter();
   const params = useSearchParams();
   const { getByValue } = useIndianCities();
@@ -112,6 +112,20 @@ const FilterModal = () => {
         customWidth="w-full max-w-md"
       />
     </div>
+  );
+};
+
+const FilterModal = () => {
+  return (
+    <Suspense fallback={
+      <div className="shrink-0">
+        <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm whitespace-nowrap">
+          More Filters
+        </button>
+      </div>
+    }>
+      <FilterModalContent />
+    </Suspense>
   );
 };
 

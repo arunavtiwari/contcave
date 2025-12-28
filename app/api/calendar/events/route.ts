@@ -3,25 +3,53 @@ import { google } from 'googleapis';
 import prisma from "@/lib/prismadb";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
-async function refreshCalendarAccessToken(account: { refresh_token: string }) {
-  const url = "https://oauth2.googleapis.com/token";
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: new URLSearchParams({
-      client_id: process.env.GOOGLE_CLIENT_ID!,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-      grant_type: "refresh_token",
-      refresh_token: account.refresh_token,
-    }),
-  });
-  const refreshedTokens = await response.json();
-  if (!response.ok) {
-    throw new Error("Failed to refresh token: " + JSON.stringify(refreshedTokens));
+async function refreshCalendarAccessToken(account: { refresh_token: string }): Promise<{ access_token: string; expires_in?: number; refresh_token?: string }> {
+  try {
+    const url = "https://oauth2.googleapis.com/token";
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        grant_type: "refresh_token",
+        refresh_token: account.refresh_token,
+      }),
+    });
+
+    let refreshedTokens: unknown;
+    const responseText = await response.text();
+    try {
+      refreshedTokens = JSON.parse(responseText);
+    } catch (jsonError) {
+      throw new Error(`Failed to parse token refresh response: ${responseText.substring(0, 200)}`);
+    }
+
+    if (!response.ok) {
+      const errorMessage = typeof refreshedTokens === 'object' && refreshedTokens !== null && 'error' in refreshedTokens
+        ? String(refreshedTokens.error)
+        : 'Unknown error';
+      throw new Error(`Failed to refresh token: ${errorMessage}`);
+    }
+
+    if (
+      typeof refreshedTokens !== 'object' ||
+      refreshedTokens === null ||
+      !('access_token' in refreshedTokens) ||
+      typeof refreshedTokens.access_token !== 'string'
+    ) {
+      throw new Error('Invalid token refresh response: missing access_token');
+    }
+
+    return refreshedTokens as { access_token: string; expires_in?: number; refresh_token?: string };
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Unknown error during token refresh');
   }
-  return refreshedTokens;
 }
 
 export async function GET(request: Request) {
@@ -89,29 +117,56 @@ export async function GET(request: Request) {
       });
       responseData = response.data.items || [];
     } catch (error: unknown) {
-      if (
+      // Check if error is due to invalid credentials and we have a refresh token
+      const isInvalidCredentials = 
         error instanceof Error &&
         error.message &&
-        error.message.includes("Invalid Credentials") &&
-        googleAccount &&
-        googleAccount.refresh_token
-      ) {
-        const refreshedTokens = await refreshCalendarAccessToken({ refresh_token: googleAccount.refresh_token as string });
-        await prisma.account.update({
-          where: { id: googleAccount.id },
-          data: { access_token: refreshedTokens.access_token },
-        });
-        accessToken = refreshedTokens.access_token;
-        oauth2Client.setCredentials({ access_token: accessToken });
-        const response = await calendar.events.list({
-          calendarId: 'primary',
-          timeMin: timeMin.toISOString(),
-          timeMax: timeMax.toISOString(),
-          singleEvents: true,
-          orderBy: 'startTime',
-        });
-        responseData = response.data.items || [];
+        (error.message.includes("Invalid Credentials") ||
+         error.message.includes("invalid_grant") ||
+         error.message.includes("401") ||
+         error.message.includes("unauthorized"));
+
+      if (isInvalidCredentials && googleAccount && googleAccount.refresh_token) {
+        try {
+          const refreshedTokens = await refreshCalendarAccessToken({ 
+            refresh_token: googleAccount.refresh_token 
+          });
+          
+          if (!refreshedTokens.access_token) {
+            throw new Error('Token refresh did not return access_token');
+          }
+
+          // Update the access token in the database
+          await prisma.account.update({
+            where: { id: googleAccount.id },
+            data: { 
+              access_token: refreshedTokens.access_token,
+              expires_at: refreshedTokens.expires_in 
+                ? Math.floor(Date.now() / 1000) + refreshedTokens.expires_in 
+                : null,
+            },
+          });
+
+          // Retry the calendar API call with the new token
+          accessToken = refreshedTokens.access_token;
+          oauth2Client.setCredentials({ access_token: accessToken });
+          const response = await calendar.events.list({
+            calendarId: 'primary',
+            timeMin: timeMin.toISOString(),
+            timeMax: timeMax.toISOString(),
+            singleEvents: true,
+            orderBy: 'startTime',
+          });
+          responseData = response.data.items || [];
+        } catch (refreshError) {
+          // If token refresh fails, throw the original error with context
+          const errorMessage = refreshError instanceof Error 
+            ? refreshError.message 
+            : 'Unknown error during token refresh';
+          throw new Error(`Failed to refresh calendar access token: ${errorMessage}. Original error: ${error instanceof Error ? error.message : 'Unknown'}`);
+        }
       } else {
+        // Re-throw the original error if we can't handle it
         throw error;
       }
     }

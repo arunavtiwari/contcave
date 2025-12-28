@@ -1,6 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 
+export const dynamic = 'force-static';
+export const dynamicParams = false;
+
 export default function NotFound() {
   return (
     <main className="flex flex-col items-center justify-center gap-6 px-6 py-24 text-center ">

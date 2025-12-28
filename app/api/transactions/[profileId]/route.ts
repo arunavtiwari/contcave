@@ -1,15 +1,29 @@
 import { NextRequest } from 'next/server';
-import { PrismaClient, TransactionStatus } from '@prisma/client';
-import { createSuccessResponse, handleRouteError } from "@/lib/api-utils";
-
-const prisma = new PrismaClient();
+import { TransactionStatus } from '@prisma/client';
+import prisma from "@/lib/prismadb";
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function GET(
     request: NextRequest,
     context: { params: Promise<{ profileId: string }> }
 ) {
-    const { profileId } = await context.params;
     try {
+        const { profileId } = await context.params;
+
+        if (!profileId || typeof profileId !== "string" || profileId.trim().length === 0) {
+            return createErrorResponse("Invalid profile ID", 400);
+        }
+
+        const currentUser = await getCurrentUser();
+        if (!currentUser?.id) {
+            return createErrorResponse("Unauthorized", 401);
+        }
+
+        if (currentUser.id !== profileId) {
+            return createErrorResponse("You can only view your own transactions", 403);
+        }
+
         const transactions = await prisma.transaction.findMany({
             where: { userId: profileId },
             include: {
@@ -39,6 +53,7 @@ export async function GET(
             orderBy: {
                 createdAt: 'desc',
             },
+            take: 1000,
         });
 
         const transformedTransactions = transactions.map((transaction) => ({
@@ -47,7 +62,7 @@ export async function GET(
                 transaction.listing?.title ||
                 transaction.reservation?.listing?.title ||
                 'N/A',
-            merchant: transaction.paymentMethod || 'PhonePe',
+            merchant: transaction.paymentMethod || 'Unknown',
             date: transaction.createdAt,
             guestName: transaction.user?.name || 'N/A',
             customerName: transaction.user?.name || 'N/A',
@@ -62,8 +77,6 @@ export async function GET(
         });
     } catch (error) {
         return handleRouteError(error, "GET /api/transactions/[profileId]");
-    } finally {
-        await prisma.$disconnect();
     }
 }
 

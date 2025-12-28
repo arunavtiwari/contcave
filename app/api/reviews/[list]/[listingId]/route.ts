@@ -11,8 +11,17 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
 
     const { listingId } = params;
 
-    if (!listingId || typeof listingId !== "string") {
+    if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
       return createErrorResponse("Invalid Listing Id", 400);
+    }
+
+    const listing = await prisma.listing.findUnique({
+      where: { id: listingId },
+      select: { id: true },
+    });
+
+    if (!listing) {
+      return createErrorResponse("Listing not found", 404);
     }
 
     const reviews = await prisma.review.findMany({
@@ -30,6 +39,7 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
       orderBy: {
         createdAt: "desc",
       },
+      take: 100,
     });
 
     return createSuccessResponse(reviews);

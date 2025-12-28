@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import getCurrentUser from '@/app/actions/getCurrentUser';
 import { getPaymentDetailsByUserId } from '@/lib/payment-details';
 import { z } from 'zod';
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
@@ -24,10 +25,19 @@ interface RouteParams {
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
     try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser?.id) {
+            return createErrorResponse("Unauthorized", 401);
+        }
+
         const resolvedParams = await params;
         const rawUserId = resolvedParams.userId;
 
         const userId = userIdSchema.parse(rawUserId);
+
+        if (userId !== currentUser.id) {
+            return createErrorResponse("You can only view your own payment details", 403);
+        }
 
         const paymentDetails = await getPaymentDetailsByUserId(userId);
 

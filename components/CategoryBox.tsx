@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import qs from "query-string";
 import { IconType } from "react-icons";
@@ -11,7 +11,7 @@ type Props = {
   selected?: boolean;
 };
 
-const CategoryBox = memo(function CategoryBox({ icon: Icon, label, selected }: Props) {
+const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label, selected }: Props) {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -54,6 +54,21 @@ const CategoryBox = memo(function CategoryBox({ icon: Icon, label, selected }: P
       <Icon size={26} />
       <div className="font-medium text-xs w-fit whitespace-nowrap">{label}</div>
     </div>
+  );
+});
+
+CategoryBoxContent.displayName = "CategoryBoxContent";
+
+const CategoryBox = memo(function CategoryBox(props: Props) {
+  return (
+    <Suspense fallback={
+      <div className={`flex flex-col items-center justify-center gap-2 p-3 border-b-2 border-transparent text-neutral-500`}>
+        <props.icon size={26} />
+        <div className="font-medium text-xs w-fit whitespace-nowrap">{props.label}</div>
+      </div>
+    }>
+      <CategoryBoxContent {...props} />
+    </Suspense>
   );
 });
 

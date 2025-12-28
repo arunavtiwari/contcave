@@ -84,37 +84,70 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
     const params = await props.params;
     const currentUser = await getCurrentUser();
 
-    if (!currentUser) {
+    if (!currentUser?.id) {
       return createErrorResponse("Authentication required", 401);
     }
 
     const { reservationId } = params;
 
-    if (!reservationId || typeof reservationId !== "string") {
+    if (!reservationId || typeof reservationId !== "string" || reservationId.trim().length === 0) {
       return createErrorResponse("Invalid reservation ID", 400);
     }
 
-    const body = await request.json();
+    if (!request.headers.get("content-type")?.includes("application/json")) {
+      return createErrorResponse("Content-Type must be application/json", 415);
+    }
+
+    const body = await request.json().catch(() => ({}));
+
+    const allowedFields = ["isApproved", "rejectReason"];
+    const updateData: Record<string, unknown> = {};
+
+    if ("isApproved" in body) {
+      if (typeof body.isApproved !== "number" || (body.isApproved !== 0 && body.isApproved !== 1)) {
+        return createErrorResponse("isApproved must be 0 or 1", 400);
+      }
+      updateData.isApproved = body.isApproved;
+    }
+
+    if ("rejectReason" in body) {
+      if (typeof body.rejectReason !== "string") {
+        return createErrorResponse("rejectReason must be a string", 400);
+      }
+      const trimmedReason = body.rejectReason.trim();
+      if (trimmedReason.length > 500) {
+        return createErrorResponse("rejectReason is too long (max 500 characters)", 400);
+      }
+      updateData.rejectReason = trimmedReason || null;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return createErrorResponse("No valid fields to update", 400);
+    }
 
     const existingReservation = await prisma.reservation.findFirst({
       where: {
         id: reservationId,
         markedForDeletion: false,
-        OR: [{ userId: currentUser.id }, { listing: { userId: currentUser.id } }],
+        listing: { userId: currentUser.id },
       },
+      select: { id: true },
     });
 
     if (!existingReservation) {
-      return createErrorResponse("Reservation not found or unauthorized", 404);
+      return createErrorResponse("Only listing owners can update reservations", 403);
     }
 
     const updatedReservation = await prisma.reservation.update({
       where: { id: reservationId },
-      data: body,
+      data: updateData,
     });
 
     return createSuccessResponse(updatedReservation, 200, "Reservation updated successfully");
   } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+      return createErrorResponse("Reservation not found", 404);
+    }
     return handleRouteError(error, "PATCH /api/reservations/[reservationId]");
   }
 }

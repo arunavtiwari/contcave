@@ -8,17 +8,24 @@ export async function POST() {
   try {
     const currentUser = await getCurrentUser();
 
-    if (!currentUser) {
+    if (!currentUser?.id) {
       return createErrorResponse("Unauthorized", 401);
     }
 
+    const ablyApiKey = process.env.ABLY_API_KEY;
+    if (!ablyApiKey || typeof ablyApiKey !== "string") {
+      return createErrorResponse("Server configuration error", 500);
+    }
+
     const client = new Ably.Realtime({
-      key: process.env.ABLY_API_KEY || "mqScEw.KR_mtA:hXN4SyJS62x5aW_oF3ZUL5QpkxzgpYltXFl1jmtJfMc",
+      key: ablyApiKey,
     });
 
     const tokenRequest = await client.auth.createTokenRequest({
       clientId: currentUser.id,
     });
+
+    await client.close();
 
     return createSuccessResponse(tokenRequest);
   } catch (error) {

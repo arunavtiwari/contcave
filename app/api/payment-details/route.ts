@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
+import getCurrentUser from '@/app/actions/getCurrentUser';
 import { upsertPaymentDetails, PaymentDetailsData } from '@/lib/payment-details';
 import { createErrorResponse, createSuccessResponse, handleRouteError } from '@/lib/api-utils';
 
@@ -36,6 +37,11 @@ const sanitize = (data: { accountNumber?: string | null; gstin?: string | null;[
 
 export async function POST(request: NextRequest) {
     try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser?.id) {
+            return createErrorResponse("Unauthorized", 401);
+        }
+
         const contentType = request.headers.get('content-type') || '';
 
         if (!contentType.includes('multipart/form-data')) {
@@ -48,6 +54,12 @@ export async function POST(request: NextRequest) {
         form.forEach((val, key) => {
             if (typeof val === 'string') rawData[key] = val.trim();
         });
+
+        if (rawData.userId && rawData.userId !== currentUser.id) {
+            return createErrorResponse("You can only update your own payment details", 403);
+        }
+
+        rawData.userId = currentUser.id;
 
         const isUpdate = !rawData.accountNumber?.trim().match(/^\d+$/);
         const schema = isUpdate ? updateSchema : createSchema;

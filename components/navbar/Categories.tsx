@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   GiMusicalNotes,
@@ -65,7 +65,7 @@ export const categories = [
 ];
 
 
-const Categories = memo(function Categories() {
+const CategoriesContent = memo(function CategoriesContent() {
   const params = useSearchParams();
   const category = useMemo(() => params?.get("category"), [params]);
 
@@ -89,6 +89,32 @@ const Categories = memo(function Categories() {
       </div>
       <FilterModal />
     </div>
+  );
+});
+
+CategoriesContent.displayName = "CategoriesContent";
+
+const Categories = memo(function Categories() {
+  return (
+    <Suspense fallback={
+      <div className="mt-4 mb-6 w-full flex flex-row items-center justify-between gap-2 border-b border-gray-200">
+        <div className="flex-1 overflow-x-auto hide-scrollbar flex gap-4 items-center">
+          {categories.map((item) => (
+            <div key={item.label} className="flex flex-col items-center justify-center gap-2 p-3 border-b-2 border-transparent text-neutral-500">
+              <item.icon size={26} />
+              <div className="font-medium text-xs w-fit whitespace-nowrap">{item.label}</div>
+            </div>
+          ))}
+        </div>
+        <div className="shrink-0">
+          <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm whitespace-nowrap">
+            More Filters
+          </button>
+        </div>
+      </div>
+    }>
+      <CategoriesContent />
+    </Suspense>
   );
 });
 

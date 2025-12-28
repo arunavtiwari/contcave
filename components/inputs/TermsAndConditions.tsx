@@ -230,7 +230,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                             type="checkbox"
                             checked={agree}
                             onChange={handleAgreeChange}
-                            className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
+                            className="h-4 w-4 accent-black bg-gray-100 border-gray-300 rounded-full focus:outline-none focus:ring-transparent cursor-pointer checked:bg-black checked:border-black transition duration-150 ease-in-out"
                         />
                         <label htmlFor="agreeCheckbox" className="ml-2 block text-sm leading-5 text-gray-900">
                             I AGREE TO ALL TERMS AND CONDITIONS

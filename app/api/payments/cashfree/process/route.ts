@@ -85,7 +85,24 @@ export async function POST(req: NextRequest) {
 
         const tId = "tid_" + randomUUID().replace(/-/g, "").slice(0, 20);
         const amount = Math.round(Number(data.totalPrice));
+        
+        if (amount <= 0 || !Number.isFinite(amount)) {
+            return createErrorResponse("Invalid amount: must be a positive number", 400);
+        }
+        
+        if (amount > 10000000) {
+            return createErrorResponse("Amount exceeds maximum limit", 400);
+        }
+        
         const cleanedAddons = sanitizeAddons(data.selectedAddons);
+        
+        const appUrl = process.env.APP_URL;
+        if (!appUrl || typeof appUrl !== "string" || !appUrl.startsWith("http")) {
+            return createErrorResponse(
+                "Server configuration error: APP_URL is missing or invalid",
+                500
+            );
+        }
 
         const txn = await prisma.transaction.create({
             data: {
@@ -107,21 +124,63 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        const { order_id, payment_session_id } = await cfCreateOrder({
-            transaction_id: tId,
-            order_amount: amount,
-            customer_id: txn.userId,
-            return_url: `${process.env.APP_URL}/payments/cashfree/return?tid={transaction_id}`,
-            notify_url: `${process.env.APP_URL}/api/payments/cashfree/webhook`,
-            customer_name: currentUser.name || data.customerName || "Customer",
-            customer_email: currentUser.email || data.customerEmail || undefined,
-            customer_phone: customerPhone,
-        });
+        let order_id: string;
+        let payment_session_id: string;
 
-        await prisma.transaction.update({
-            where: { id: txn.id },
-            data: { cfPaymentSessionId: payment_session_id, cfOrderId: order_id },
-        });
+        try {
+            const customerName = (currentUser.name || data.customerName || "Customer").trim().slice(0, 100);
+            const customerEmail = currentUser.email || data.customerEmail;
+            
+            if (customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+                return createErrorResponse("Invalid email format", 400);
+            }
+            
+            const orderResult = await cfCreateOrder({
+                transaction_id: tId,
+                order_amount: amount,
+                customer_id: txn.userId,
+                return_url: `${appUrl}/payments/cashfree/return?tid={transaction_id}`,
+                notify_url: `${appUrl}/api/payments/cashfree/webhook`,
+                customer_name: customerName,
+                customer_email: customerEmail || undefined,
+                customer_phone: customerPhone,
+            });
+            order_id = orderResult.order_id;
+            payment_session_id = orderResult.payment_session_id;
+        } catch (orderError) {
+            await prisma.transaction.update({
+                where: { id: txn.id },
+                data: { 
+                    status: "FAILED",
+                    description: `Payment initialization failed: ${orderError instanceof Error ? orderError.message : "Unknown error"}`,
+                },
+            }).catch(() => {});
+
+            const errorMessage = orderError instanceof Error 
+                ? orderError.message 
+                : "Failed to create payment order";
+            
+            if (errorMessage.includes("authentication") || errorMessage.includes("credentials")) {
+                return createErrorResponse(
+                    "Payment service configuration error. Please contact support.",
+                    500,
+                    process.env.NODE_ENV === "development" ? { details: errorMessage } : undefined
+                );
+            }
+
+            throw orderError;
+        }
+
+        try {
+            await prisma.transaction.update({
+                where: { id: txn.id },
+                data: { cfPaymentSessionId: payment_session_id, cfOrderId: order_id },
+            });
+        } catch (updateError) {
+            if (process.env.NODE_ENV === "development") {
+                console.error("[Cashfree Process] Failed to update transaction:", updateError);
+            }
+        }
 
         return createSuccessResponse({
             tId,

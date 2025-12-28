@@ -67,6 +67,25 @@ function ListingInfo({
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
 
+  const getValidCenter = useCallback((): number[] | undefined => {
+    if (fullListing.actualLocation && 
+        typeof fullListing.actualLocation.lat === 'number' && 
+        typeof fullListing.actualLocation.lng === 'number' &&
+        Number.isFinite(fullListing.actualLocation.lat) &&
+        Number.isFinite(fullListing.actualLocation.lng)) {
+      return [fullListing.actualLocation.lat, fullListing.actualLocation.lng];
+    }
+    if (Array.isArray(coordinates) && 
+        coordinates.length >= 2 &&
+        typeof coordinates[0] === 'number' &&
+        typeof coordinates[1] === 'number' &&
+        Number.isFinite(coordinates[0]) &&
+        Number.isFinite(coordinates[1])) {
+      return [coordinates[0], coordinates[1]];
+    }
+    return undefined;
+  }, [fullListing.actualLocation, coordinates]);
+
   const relayAddons = useCallback((addons: Addon[]) => onAddonChange(addons), [onAddonChange]);
 
   const [addonList, setAddonList] = useState<Addon[]>([]);
@@ -263,7 +282,7 @@ function ListingInfo({
 
       <div className="flex flex-col gap-4">
         <p className="text-xl font-semibold">Where you’ll be</p>
-        <Map center={fullListing.actualLocation ? [fullListing.actualLocation.lat, fullListing.actualLocation.lng] : coordinates} locationValue={locationValue} />
+        <Map center={getValidCenter()} locationValue={locationValue} />
       </div>
 
       <hr />

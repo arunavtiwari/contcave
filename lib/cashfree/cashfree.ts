@@ -18,10 +18,21 @@ export function cfSplitBaseURL() {
 }
 
 export function cfHeaders(): Record<string, string> {
-    const appId = process.env.CASHFREE_APP_ID!;
-    const secret = process.env.CASHFREE_SECRET_KEY!;
+    const appId = process.env.CASHFREE_APP_ID;
+    const secret = process.env.CASHFREE_SECRET_KEY;
     const version = process.env.CASHFREE_API_VERSION || "2023-08-01";
-    if (!appId || !secret) throw new Error("CASHFREE_APP_ID / CASHFREE_SECRET_KEY missing");
+    
+    if (!appId || !secret) {
+        const missing = [];
+        if (!appId) missing.push("CASHFREE_APP_ID");
+        if (!secret) missing.push("CASHFREE_SECRET_KEY");
+        throw new Error(`Cashfree credentials missing: ${missing.join(", ")}`);
+    }
+    
+    if (typeof appId !== "string" || typeof secret !== "string") {
+        throw new Error("Cashfree credentials must be strings");
+    }
+    
     return {
         "x-client-id": appId,
         "x-client-secret": secret,
@@ -40,11 +51,43 @@ export async function cfCreateOrder(input: {
     customer_email?: string;
     customer_phone: string;
 }): Promise<{ payment_session_id: string; order_id: string }> {
-    const url = `${cfBaseURL()}/orders`;
-    const res = await fetch(url, {
-        method: "POST",
-        headers: cfHeaders(),
-        body: JSON.stringify({
+    try {
+        if (!input.transaction_id || typeof input.transaction_id !== "string" || input.transaction_id.trim().length === 0) {
+            throw new Error("transaction_id is required and must be a non-empty string");
+        }
+        
+        if (!Number.isFinite(input.order_amount) || input.order_amount <= 0) {
+            throw new Error("order_amount must be a positive number");
+        }
+        
+        if (!input.customer_id || typeof input.customer_id !== "string" || input.customer_id.trim().length === 0) {
+            throw new Error("customer_id is required and must be a non-empty string");
+        }
+        
+        if (!input.customer_name || typeof input.customer_name !== "string" || input.customer_name.trim().length === 0) {
+            throw new Error("customer_name is required and must be a non-empty string");
+        }
+        
+        if (!input.customer_phone || typeof input.customer_phone !== "string" || !/^\d{10}$/.test(input.customer_phone)) {
+            throw new Error("customer_phone must be a valid 10-digit phone number");
+        }
+        
+        if (!input.return_url || typeof input.return_url !== "string" || !input.return_url.startsWith("http")) {
+            throw new Error("return_url must be a valid HTTP/HTTPS URL");
+        }
+        
+        if (!input.notify_url || typeof input.notify_url !== "string" || !input.notify_url.startsWith("http")) {
+            throw new Error("notify_url must be a valid HTTP/HTTPS URL");
+        }
+        
+        if (input.customer_email && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.customer_email))) {
+            throw new Error("customer_email must be a valid email address if provided");
+        }
+        
+        const url = `${cfBaseURL()}/orders`;
+        const headers = cfHeaders();
+        
+        const requestBody = {
             transaction_id: input.transaction_id,
             order_amount: input.order_amount,
             order_currency: "INR",
@@ -58,28 +101,97 @@ export async function cfCreateOrder(input: {
                 return_url: input.return_url.replace("{transaction_id}", input.transaction_id),
                 notify_url: input.notify_url,
             },
-        }),
-        cache: "no-store",
-    });
+        };
 
-    interface CashfreeOrderResponse {
-        payment_session_id?: string;
-        order_id?: string;
-        message?: string;
-        error?: string;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        let res: Response;
+        try {
+            res = await fetch(url, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(requestBody),
+                cache: "no-store",
+                signal: controller.signal,
+            });
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (fetchError instanceof Error && fetchError.name === "AbortError") {
+                throw new Error("Cashfree API request timeout after 30 seconds");
+            }
+            throw new Error(`Network error calling Cashfree API: ${fetchError instanceof Error ? fetchError.message : "Unknown error"}`);
+        } finally {
+            clearTimeout(timeoutId);
+        }
+
+        let responseData: unknown;
+        const contentType = res.headers.get("content-type");
+        const isJson = contentType?.includes("application/json");
+
+        try {
+            if (isJson) {
+                responseData = await res.json();
+            } else {
+                const text = await res.text();
+                responseData = { message: text || "Non-JSON response from Cashfree" };
+            }
+        } catch (parseError) {
+            throw new Error(`Failed to parse Cashfree API response: ${parseError instanceof Error ? parseError.message : "Unknown error"}`);
+        }
+
+        interface CashfreeOrderResponse {
+            payment_session_id?: string;
+            order_id?: string;
+            message?: string;
+            error?: string;
+            subCode?: string;
+            code?: string;
+        }
+
+        const j = responseData as CashfreeOrderResponse;
+
+        if (!res.ok) {
+            const statusText = res.statusText || "Unknown error";
+            const errorCode = res.status;
+            
+            let errorMessage = "Cashfree API error";
+            if (j?.message) {
+                errorMessage = j.message;
+            } else if (j?.error) {
+                errorMessage = j.error;
+            } else if (typeof j === "object" && j !== null) {
+                errorMessage = JSON.stringify(j);
+            }
+
+            if (errorCode === 401 || errorCode === 403) {
+                throw new Error(`Cashfree authentication failed (${errorCode}): ${errorMessage}. Please verify CASHFREE_APP_ID and CASHFREE_SECRET_KEY are correct for ${cfEnv()} environment.`);
+            }
+
+            if (errorCode === 400) {
+                throw new Error(`Cashfree validation error: ${errorMessage}`);
+            }
+
+            throw new Error(`Cashfree API error (${errorCode} ${statusText}): ${errorMessage}`);
+        }
+
+        if (!j?.payment_session_id || !j?.order_id) {
+            const missing = [];
+            if (!j?.payment_session_id) missing.push("payment_session_id");
+            if (!j?.order_id) missing.push("order_id");
+            throw new Error(`Cashfree response missing required fields: ${missing.join(", ")}. Response: ${JSON.stringify(j)}`);
+        }
+
+        return {
+            payment_session_id: j.payment_session_id,
+            order_id: j.order_id,
+        };
+    } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error(`Unknown error creating Cashfree order: ${String(error)}`);
     }
-
-    const j: CashfreeOrderResponse = await res.json().catch(() => ({}));
-    if (!res.ok || !j?.payment_session_id || !j?.order_id) {
-        throw new Error(
-            j?.message || j?.error || JSON.stringify(j) || "Cashfree create order failed"
-        );
-    }
-
-    return {
-        payment_session_id: j.payment_session_id,
-        order_id: j.order_id,
-    };
 }
 
 export function cfVerifyWebhookSignature({

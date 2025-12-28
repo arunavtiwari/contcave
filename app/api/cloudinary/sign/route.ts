@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 interface SignatureParams {
@@ -17,11 +18,20 @@ interface SignatureParams {
 
 export async function POST(request: Request) {
     try {
+        if (!request.headers.get("content-type")?.includes("application/json")) {
+            return createErrorResponse("Content-Type must be application/json", 415);
+        }
+
+        const currentUser = await getCurrentUser();
+        if (!currentUser?.id) {
+            return createErrorResponse("Unauthorized", 401);
+        }
+
         const raw = await request.json().catch(() => ({}));
         const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-        if (!apiSecret) {
-            return createErrorResponse("Missing CLOUDINARY_API_SECRET", 500);
+        if (!apiSecret || typeof apiSecret !== "string") {
+            return createErrorResponse("Server configuration error", 500);
         }
 
         const paramsObj: SignatureParams = raw?.paramsToSign && typeof raw.paramsToSign === "object"
@@ -50,7 +60,11 @@ export async function POST(request: Request) {
         for (const key of Object.keys(paramsObj) as Array<keyof SignatureParams>) {
             const value = paramsObj[key];
             if (value != null && allowedKeys.has(key)) {
-                signParams[key] = typeof value === "string" ? value : JSON.stringify(value);
+                const stringValue = typeof value === "string" ? value : JSON.stringify(value);
+                if (stringValue.length > 1000) {
+                    return createErrorResponse(`Parameter ${key} value is too long (max 1000 characters)`, 400);
+                }
+                signParams[key] = stringValue;
             }
         }
 
@@ -63,6 +77,10 @@ export async function POST(request: Request) {
 
         const apiKey = process.env.CLOUDINARY_API_KEY || process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
         const cloud = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+
+        if (!apiKey || !cloud) {
+            return createErrorResponse("Server configuration error", 500);
+        }
 
         return createSuccessResponse({
             signature,

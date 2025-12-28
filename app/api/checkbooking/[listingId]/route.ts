@@ -13,14 +13,23 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
     const params = await props.params;
     const currentUser = await getCurrentUser();
 
-    if (!currentUser) {
+    if (!currentUser?.id) {
       return createErrorResponse("User not authenticated", 401);
     }
 
     const { listingId } = params;
 
-    if (!listingId || typeof listingId !== "string") {
+    if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
       return createErrorResponse("Invalid Listing ID", 400);
+    }
+
+    const listing = await prisma.listing.findUnique({
+      where: { id: listingId },
+      select: { id: true },
+    });
+
+    if (!listing) {
+      return createErrorResponse("Listing not found", 404);
     }
 
     const reservationCount = await prisma.reservation.count({

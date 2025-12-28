@@ -1,48 +1,110 @@
 import axios from "axios";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { NextRequest } from "next/server";
+import getCurrentUser from "@/app/actions/getCurrentUser";
 
-export async function POST(req: Request) {
+function validateOTP(otp: string): boolean {
+  return /^\d{6}$/.test(otp);
+}
+
+function validateRefId(refId: string): boolean {
+  return typeof refId === "string" && refId.trim().length > 0 && refId.length <= 100;
+}
+
+export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
-        if (process.env.NODE_ENV === 'development') {
-            console.warn('[Verify OTP] Request received');
+        if (!req.headers.get("content-type")?.includes("application/json")) {
+            return createErrorResponse("Content-Type must be application/json", 415);
+        }
+
+        const currentUser = await getCurrentUser();
+        if (!currentUser?.id) {
+            return createErrorResponse("Unauthorized", 401);
+        }
+
+        const body = await req.json().catch(() => ({}));
+        const { refId, otp } = body;
+
+        if (!refId || typeof refId !== "string") {
+            return createErrorResponse("refId is required and must be a string", 400);
+        }
+
+        if (!validateRefId(refId)) {
+            return createErrorResponse("Invalid refId format", 400);
+        }
+
+        if (!otp || typeof otp !== "string") {
+            return createErrorResponse("otp is required and must be a string", 400);
+        }
+
+        if (!validateOTP(otp)) {
+            return createErrorResponse("OTP must be exactly 6 digits", 400);
+        }
+
+        const clientId = process.env.CASHFREE_CLIENT_ID;
+        const clientSecret = process.env.CASHFREE_CLIENT_SECRET;
+
+        if (!clientId || !clientSecret || typeof clientId !== "string" || typeof clientSecret !== "string") {
+            return createErrorResponse("Server configuration error", 500);
         }
 
         const httpsAgent = process.env.FIXIE_URL
             ? new HttpsProxyAgent(process.env.FIXIE_URL)
             : undefined;
 
-        if (httpsAgent) {
-            if (process.env.NODE_ENV === 'development') {
-                console.warn('[Verify OTP] Using proxy for outbound request');
-            }
-        }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-        const resp = await axios.post(
-            "https://api.cashfree.com/verification/offline-aadhaar/verify",
-            {
-                ref_id: body.refId,
-                otp: body.otp,
-            },
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-client-id": process.env.CASHFREE_CLIENT_ID!,
-                    "x-client-secret": process.env.CASHFREE_CLIENT_SECRET!,
+        try {
+            const resp = await axios.post(
+                "https://api.cashfree.com/verification/offline-aadhaar/verify",
+                {
+                    ref_id: refId.trim(),
+                    otp: otp.trim(),
                 },
-                httpsAgent,
-            }
-        );
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-client-id": clientId,
+                        "x-client-secret": clientSecret,
+                    },
+                    httpsAgent,
+                    signal: controller.signal,
+                    timeout: 30000,
+                }
+            );
 
-        if (process.env.NODE_ENV === 'development') {
-            console.warn('[Verify OTP] Success');
+            clearTimeout(timeoutId);
+            return createSuccessResponse(resp.data, resp.status);
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (axios.isAxiosError(fetchError)) {
+                const status = fetchError.response?.status || 500;
+                const errorData = fetchError.response?.data || fetchError.message;
+                
+                if (status === 401 || status === 403) {
+                    return createErrorResponse("Verification service authentication failed", 500);
+                }
+
+                if (status === 400) {
+                    return createErrorResponse(
+                        typeof errorData === "object" ? JSON.stringify(errorData) : String(errorData),
+                        400
+                    );
+                }
+
+                return createErrorResponse(
+                    typeof errorData === "object" ? JSON.stringify(errorData) : String(errorData),
+                    status
+                );
+            }
+            if (fetchError instanceof Error && fetchError.name === "AbortError") {
+                return createErrorResponse("Request timeout", 408);
+            }
+            throw fetchError;
         }
-        return createSuccessResponse(resp.data, resp.status);
     } catch (err: unknown) {
-        if (axios.isAxiosError(err)) {
-            return createErrorResponse(err.response?.data || err.message, err.response?.status || 500);
-        }
         return handleRouteError(err, "POST /api/verification");
     }
 }

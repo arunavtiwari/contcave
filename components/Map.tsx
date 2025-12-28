@@ -19,21 +19,31 @@ type Props = {
 };
 
 function Map({ center, locationValue }: Props) {
+  const isValidCenter = Array.isArray(center) && 
+    center.length >= 2 &&
+    typeof center[0] === 'number' &&
+    typeof center[1] === 'number' &&
+    Number.isFinite(center[0]) &&
+    Number.isFinite(center[1]);
+
+  const mapCenter: L.LatLngExpression = isValidCenter 
+    ? [center[0], center[1]] 
+    : [20.5937, 78.9629];
+
   return (
     <MapContainer
-      center={(center as L.LatLngExpression) || [20.5937, 78.9629]}
-      zoom={center ? 10 : 4}
+      center={mapCenter}
+      zoom={isValidCenter ? 10 : 4}
       scrollWheelZoom={false}
       className="h-[35vh] rounded-lg"
-
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
 
-      {center && (
-        <Marker position={center as L.LatLngExpression}>
+      {isValidCenter && (
+        <Marker position={mapCenter}>
           {locationValue && (
             <Popup>
               <div className="flex justify-center items-center animate-bounce">
@@ -44,7 +54,6 @@ function Map({ center, locationValue }: Props) {
         </Marker>
       )}
     </MapContainer>
-
   );
 }
 
