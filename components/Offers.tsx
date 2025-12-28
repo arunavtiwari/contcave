@@ -13,14 +13,29 @@ import { TbAirConditioning } from "react-icons/tb";
 import { PiProjectorScreenFill } from "react-icons/pi";
 import { BsFillCameraVideoFill } from "react-icons/bs";
 import { MdTableRows } from "react-icons/md";
+import { IconType } from "react-icons";
+
+interface Amenity {
+  id: string | number;
+  name: string;
+  icon: IconType;
+  createdAt?: string;
+}
+
+interface AmenityProp {
+  id: string;
+  name: string;
+  icon: IconType | null;
+  createdAt: Date;
+}
 
 type Props = {
-  amenities?: Array<any>;
-  definedAmenities?: Array<any>;
+  amenities?: string[];
+  definedAmenities?: AmenityProp[];
 };
 
 const getIconByName = (name: string) => {
-  const amenities: any[] = [
+  const amenities: Amenity[] = [
     {
       "id": "65b2ac4116d8d0003b5c6e12",
       "name": "Lighting Equipment",

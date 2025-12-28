@@ -1,8 +1,6 @@
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import React from "react";
-import getCurrentUser from "@/app/actions/getCurrentUser";
-import Image from "next/image";
 import { Building2, Heart, Users } from "lucide-react";
 import Hero from "./hero";
 import type { Metadata } from "next";
@@ -32,7 +30,6 @@ export const metadata: Metadata = {
 };
 
 const About = async () => {
-  const currentUser = await getCurrentUser();
 
   return (
     <ClientOnly>

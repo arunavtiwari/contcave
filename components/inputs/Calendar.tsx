@@ -19,7 +19,7 @@ function jsWeekdayToMon0Index(jsWeekday: number) {
 }
 
 function isDaysList(obj: OperationalDays): obj is { days: DayKey[] } {
-  return "days" in obj && Array.isArray((obj as any).days);
+  return "days" in obj && Array.isArray((obj as { days: unknown }).days);
 }
 function isRange(obj: OperationalDays): obj is { start: DayKey; end: DayKey } {
   return "start" in obj && "end" in obj;

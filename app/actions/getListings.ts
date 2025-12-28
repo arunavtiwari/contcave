@@ -22,7 +22,28 @@ export default async function getListings(params: IListingsParams) {
       type,
     } = params;
 
-    const query: any = {};
+    const query: {
+      userId?: string;
+      active?: boolean;
+      category?: string;
+      locationValue?: string;
+      type?: { has: string };
+      NOT?: {
+        reservations: {
+          some: {
+            AND: [
+              { markedForDeletion: boolean },
+              {
+                OR: [
+                  { endDate: { gte: string }; startDate: { lte: string } },
+                  { startDate: { lte: string }; endDate: { gte: string } }
+                ]
+              }
+            ]
+          }
+        }
+      };
+    } = {};
 
     if (userId) {
       query.userId = userId;
@@ -77,13 +98,13 @@ export default async function getListings(params: IListingsParams) {
       },
     });
 
-    const safeListings = listing.map((list: any) => ({
+    const safeListings = listing.map((list) => ({
       ...list,
       createdAt: list.createdAt.toISOString(),
     }));
 
     return safeListings;
-  } catch (error: any) {
-    throw new Error(error.message);
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "An unknown error occurred");
   }
 }

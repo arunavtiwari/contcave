@@ -98,14 +98,30 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
   const imageUrls = imageCandidates.map((src) => absoluteUrl(src));
   const locationData =
     listing.actualLocation && typeof listing.actualLocation === "object"
-      ? (listing.actualLocation as Record<string, any>)
+      ? (listing.actualLocation as Record<string, unknown>)
       : {};
-  const latlng = Array.isArray(locationData.latlng) ? locationData.latlng : undefined;
+  const latlng = Array.isArray((locationData as { latlng?: unknown }).latlng) ? (locationData as { latlng?: number[] }).latlng : undefined;
   const [latitude, longitude] =
     Array.isArray(latlng) && latlng.length >= 2 ? [latlng[0], latlng[1]] : [undefined, undefined];
+  interface RawAddress {
+    road?: string;
+    suburb?: string;
+    neighbourhood?: string;
+    residential?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    county?: string;
+    state?: string;
+    state_district?: string;
+    postcode?: string;
+    country_code?: string;
+    country?: string;
+  }
   const rawAddress =
-    locationData && typeof locationData.address === "object"
-      ? (locationData.address as Record<string, any>)
+    locationData && typeof (locationData as { address?: unknown }).address === "object"
+      ? ((locationData as { address?: unknown }).address as RawAddress)
       : {};
   const clean = (value: unknown) =>
     asciiClean(typeof value === "string" ? value : value != null ? String(value) : undefined);
@@ -175,9 +191,13 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
     ? parseInt(String(listing.maximumPax).replace(/[^\d]/g, ""), 10)
     : undefined;
 
+  interface OperationalHours {
+    start?: string;
+    end?: string;
+  }
   const operationalHours =
     listing.operationalHours && typeof listing.operationalHours === "object"
-      ? (listing.operationalHours as Record<string, any>)
+      ? (listing.operationalHours as OperationalHours)
       : {};
   const opens = clean(operationalHours.start);
   const closes = clean(operationalHours.end);

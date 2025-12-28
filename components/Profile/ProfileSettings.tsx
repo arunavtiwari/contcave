@@ -32,8 +32,9 @@ const ProfileSettings = ({ profile }: Props) => {
       toast.success("Account scheduled for deletion. Log in again to cancel.");
       setShowConfirmModal(false);
       await signOut({ callbackUrl: "/" });
-    } catch (error: any) {
-      toast.error(error?.message || "Unable to update account status.");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unable to update account status.";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

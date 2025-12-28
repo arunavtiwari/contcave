@@ -36,11 +36,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
     setSelectedId("");
   }, []);
 
-  const handleCancelModal = useCallback((id: string) => {
-    setSelectedId(id);
-    setModalAction("cancel");
-    setModalOpen(true);
-  }, []);
+
 
   const handleDeleteModal = useCallback((id: string) => {
     setSelectedId(id);

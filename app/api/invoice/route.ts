@@ -1,5 +1,5 @@
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse } from "@/lib/api-utils";
 
 export async function POST(req: Request) {
   try {
@@ -20,8 +20,8 @@ export async function POST(req: Request) {
       invoiceUrl: invoice.invoiceUrl,
       invoiceId: invoice.id,
     });
-  } catch (error: any) {
-    const message = error?.message || "Failed to generate invoice";
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to generate invoice";
     const notFoundMessages = new Set([
       "User not found",
       "Reservation not found",

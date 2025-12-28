@@ -48,6 +48,7 @@ function Input({
         id={id}
         disabled={disabled}
         placeholder={label}
+        required={required}
         type={type}
         value={value}
         {...(register ? register : { onChange })}

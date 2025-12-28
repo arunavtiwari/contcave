@@ -3,7 +3,7 @@
 import prisma from "@/lib/prismadb";
 import { auth } from "@/auth";
 
-export const dynamic = "force-dynamic";
+
 
 export async function getSession() {
   return await auth();
@@ -35,7 +35,7 @@ export const updateUser = async (userData: Partial<User>) => {
       updatedAt: updatedUser.updatedAt.toISOString(),
       emailVerified: updatedUser.emailVerified?.toISOString() || null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to update user:", error);
     throw new Error("Failed to update user");
   }

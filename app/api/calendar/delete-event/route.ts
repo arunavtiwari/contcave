@@ -9,7 +9,7 @@ export async function DELETE(request: Request) {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    const accessToken = (session as any).accessToken;
+    const accessToken = (session as { accessToken?: string }).accessToken;
     if (!accessToken) {
       return createErrorResponse("No access token found", 401);
     }

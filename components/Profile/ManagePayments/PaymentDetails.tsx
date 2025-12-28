@@ -5,6 +5,7 @@ import Image from "next/image";
 import { toast } from "react-toastify";
 import Heading from "@/components/Heading";
 import { SafeUser } from "@/types/user";
+import { PaymentProfile } from "@/types/payment";
 
 // Types
 interface BankField {
@@ -25,16 +26,7 @@ interface TaxField {
     maxLength?: number;
 }
 
-interface PaymentProfile {
-    id: string;
-    userId?: string;
-    accountHolderName?: string;
-    bankName?: string;
-    accountNumber?: string;
-    ifscCode?: string;
-    companyName?: string;
-    gstin?: string;
-}
+
 interface PaymentDetailsProps {
     profile?: SafeUser | PaymentProfile | null;
     paymentDetails?: PaymentProfile | null;
@@ -186,7 +178,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         });
 
         if (profileData) {
-            const data = profileData as any;
+            const data = profileData as unknown as PaymentProfile;
             initialData.accountHolderName = data.accountHolderName || '';
             initialData.bankName = data.bankName || '';
             initialData.accountNumber = data.accountNumber || '';
@@ -273,8 +265,8 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
                 if (profile?.id) {
                     form.append('userId', profile.id);
-                } else if ((profile as any)?.userId) {
-                    form.append('userId', (profile as any).userId);
+                } else if ((profile as unknown as PaymentProfile)?.userId) {
+                    form.append('userId', (profile as unknown as PaymentProfile).userId!);
                 }
 
                 form.append('accountHolderName', formData.accountHolderName || '');

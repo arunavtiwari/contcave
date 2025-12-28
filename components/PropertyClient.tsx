@@ -8,7 +8,7 @@ import CustomAddonModal from "./modals/CustomAddonModal";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ImageUpload from "./inputs/ImageUpload";
-import useIndianCities from "@/hook/useCities";
+import useIndianCities, { City } from "@/hook/useCities";
 import ReactSwitch from "react-switch";
 import Heading from "@/components/Heading";
 import Calendar from "@/components/Calendar";
@@ -43,8 +43,8 @@ const dayOptions = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
     const keys = path.split(".");
-    const clone: any = Array.isArray(obj) ? [...(obj as any)] : { ...obj };
-    let cur: any = clone;
+    const clone = (Array.isArray(obj) ? [...obj] : { ...obj }) as unknown as T;
+    let cur = clone as unknown as Record<string, unknown>;
     for (let i = 0; i < keys.length - 1; i++) {
         const k = keys[i];
         const next = cur[k];
@@ -55,7 +55,7 @@ function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
                     : { ...next }
                 : {};
         cur[k] = nextVal;
-        cur = cur[k];
+        cur = cur[k] as Record<string, unknown>;
     }
     cur[keys[keys.length - 1]] = value;
     return clone;
@@ -145,7 +145,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
         const { id: _ignoredId, user: _ignoredUser, createdAt: _ignoredCreatedAt, ...listingWithoutMeta } = initialListing;
         // Handle updatedAt if it exists, otherwise ignore
-        const { updatedAt: _ignoredUpdatedAt, ...rest } = listingWithoutMeta as any;
+        const { updatedAt: _ignoredUpdatedAt, ...rest } = listingWithoutMeta as Record<string, unknown>;
 
         const payload = {
             ...rest,
@@ -304,7 +304,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 value={initialListing.locationValue ?? ""}
                                 onChange={(e) => handleInputChange("locationValue", e.target.value)}
                             >
-                                {indianCities.map((item: any, index: number) => (
+                                {indianCities.map((item: City, index: number) => (
                                     <option key={index} value={item.name}>
                                         {item.name}
                                     </option>
@@ -342,7 +342,6 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 ))}
                                 {(!initialListing.imageSrc || initialListing.imageSrc.length < 8) && (
                                     <ImageUpload
-                                        isFromPropertyClient
                                         onChange={(value) =>
                                             handleInputChange("imageSrc", [...(initialListing.imageSrc ?? []), ...value])
                                         }

@@ -5,7 +5,6 @@ import axios from "axios";
 import Image from "next/image";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import useRentModal from "@/hook/useRentModal";
-import useLoginModel from "@/hook/useLoginModal";
 import { useRouter } from "next/navigation";
 import Heading from "@/components/Heading";
 import { toast } from "react-toastify";
@@ -41,7 +40,6 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
     const [showOwnerModal, setShowOwnerModal] = useState(false);
     const [showVerificationModal, setShowVerificationModal] = useState(false);
     const rentModel = useRentModal();
-    const loginModel = useLoginModel();
     const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
 

@@ -20,11 +20,27 @@ interface Message {
   timestamp: string;
 }
 
+interface Booking {
+  listing?: {
+    title: string;
+    imageSrc?: string[];
+  };
+  startDate: string;
+  startTime: string;
+  endTime: string;
+  totalPrice: number;
+  selectedAddons: {
+    name: string;
+    qty: number;
+    price: number;
+  }[];
+}
+
 const ChatClient: FC<ChatClientProps> = ({ profile }) => {
-  const reservationId = window.location.pathname.substring(
+  const reservationId = typeof window !== 'undefined' ? window.location.pathname.substring(
     window.location.pathname.lastIndexOf("/") + 1
-  );
-  const [booking, setBooking] = useState<any>(null);
+  ) : "";
+  const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
@@ -37,6 +53,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
     let ably: Ably.Realtime;
 
     const initializeChat = async () => {
+      if (!reservationId) return;
       try {
         const reservationRes = await fetch(`/api/reservations/${reservationId}`, {
           method: "GET",
@@ -172,7 +189,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
         {booking && (
           <div className="border bg-white border-l-0 rounded-r-xl p-5 w-1/4">
             <Image
-              src={booking?.listing?.imageSrc?.[0]}
+              src={booking?.listing?.imageSrc?.[0] || ""}
               alt="Property Image"
               width={200}
               height={200}
@@ -223,7 +240,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
               <div className="flex justify-between">
                 <span className="text-gray-600">Add-ons:</span>
                 <span className="font-semibold text-gray-900">
-                  {booking?.selectedAddons.map((item: any) => item.name).join(", ") || "None"}
+                  {booking?.selectedAddons.map((item) => item.name).join(", ") || "None"}
                 </span>
               </div>
 
@@ -231,7 +248,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
                 <span className="text-gray-600">Add-ons Charge:</span>
                 <span className="font-semibold text-gray-900">
                   ₹{" "}
-                  {booking?.selectedAddons.reduce((acc: any, value: any) => acc + value.qty * value.price, 0)}
+                  {booking?.selectedAddons.reduce((acc, value) => acc + value.qty * value.price, 0)}
                 </span>
               </div>
 
@@ -240,7 +257,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
                 <span className="font-semibold text-gray-900">
                   ₹{" "}
                   {booking?.totalPrice -
-                    booking?.selectedAddons.reduce((acc: any, value: any) => acc + value.qty * value.price, 0)}
+                    booking?.selectedAddons.reduce((acc, value) => acc + value.qty * value.price, 0)}
                 </span>
               </div>
 

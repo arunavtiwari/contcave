@@ -27,6 +27,9 @@ export default async function getListingById(params: IParams) {
     return {
       ...listing,
       createdAt: listing.createdAt.toString(),
+      amenities: (listing.amenities as string[]) || [],
+      addons: (listing.addons as unknown as any[]) || [],
+      packages: (listing.packages as unknown as any[]) || [],
       user: {
         ...listing.user,
         createdAt: listing.user.createdAt.toString(),
@@ -40,7 +43,7 @@ export default async function getListingById(params: IParams) {
           : null,
       },
     };
-  } catch (error: any) {
-    throw new Error(error.message);
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "An unknown error occurred");
   }
 }

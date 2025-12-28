@@ -1,7 +1,7 @@
 "use client";
 
 import { SafeUser } from "@/types/user";
-import { safeListing } from "@/types/listing";
+import { safeListing, FullListing } from "@/types/listing";
 import { SafeReservation } from "@/types/reservation";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -24,6 +24,17 @@ type Props = {
   currentUser?: SafeUser | null;
 
 };
+
+interface GoogleCalendarEvent {
+  start?: {
+    date?: string;
+    dateTime?: string;
+  };
+  end?: {
+    date?: string;
+    dateTime?: string;
+  };
+}
 
 type AddonItem = { name?: string; price: number; qty: number };
 
@@ -115,9 +126,16 @@ const toNum = (v: unknown, def = 0) => {
   return def;
 };
 const normalizeAddons = (input: unknown): AddonItem[] => {
-  const base = Array.isArray(input) ? input : input && typeof input === "object" ? Object.values(input as any) : [];
+  const base = Array.isArray(input) ? input : input && typeof input === "object" ? (Object.values(input as Record<string, unknown>) as unknown[]) : [];
   return base
-    .map((a: any) => ({ name: a?.name, price: Math.max(0, toNum(a?.price, 0)), qty: Math.max(0, toNum(a?.qty, 0)) }))
+    .map((a: unknown) => {
+      const item = a as Record<string, unknown>;
+      return {
+        name: typeof item?.name === 'string' ? item.name : undefined,
+        price: Math.max(0, toNum(item?.price, 0)),
+        qty: Math.max(0, toNum(item?.qty, 0))
+      };
+    })
     .filter((a) => a.price > 0 && a.qty > 0);
 };
 const addonsSig = (arr: AddonItem[]) =>
@@ -159,7 +177,7 @@ function ListingClient({
   const [selectedAddons, setSelectedAddons] = useState<AddonItem[]>([]);
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const [googleCalendarEvents, setGoogleCalendarEvents] = useState<any[]>([]);
+  const [googleCalendarEvents, setGoogleCalendarEvents] = useState<GoogleCalendarEvent[]>([]);
   const ownerHasGoogleCalendar = !!listing?.user?.googleCalendarConnected;
   const abortRef = useRef<AbortController | null>(null);
   const lastSigRef = useRef("");
@@ -189,7 +207,7 @@ function ListingClient({
       try {
         const res = await axios.get("/api/calendar/events", {
           params: { listingId: listing.id },
-          signal: controller.signal as any,
+          signal: controller.signal,
         });
         setGoogleCalendarEvents(Array.isArray(res.data) ? res.data : []);
       } catch {
@@ -238,7 +256,7 @@ function ListingClient({
       const now = new Date();
       const todayKey = istToDateOnly(now);
       const dow = todayKey.getDay();
-      const dayTiming = (operationalTimings as any)?.byDay?.[dow];
+      const dayTiming = operationalTimings?.byDay?.[dow];
       const isOpen = dayTiming?.open && dayTiming?.close && dayTiming?.enabled !== false;
       if (isOpen) {
         const [ch, cm] = String(dayTiming.close).split(":").map((n: string) => parseInt(n, 10));
@@ -265,7 +283,7 @@ function ListingClient({
       if (s && e && hhmmToMinutes(s) < hhmmToMinutes(e)) intervals.push({ s, e });
     });
 
-    googleCalendarEvents.forEach((ev: any) => {
+    googleCalendarEvents.forEach((ev) => {
       const sISO = ev?.start?.dateTime;
       const eISO = ev?.end?.dateTime;
       if (!sISO || !eISO) return;
@@ -285,7 +303,7 @@ function ListingClient({
     }
 
     const dow = istToDateOnly(day).getDay();
-    const dayTiming = (operationalTimings as any)?.byDay?.[dow];
+    const dayTiming = operationalTimings?.byDay?.[dow];
     const openHM = dayTiming?.open ? (String(dayTiming.open) as TimeHM) : null;
     const closeHM = dayTiming?.close ? (String(dayTiming.close) as TimeHM) : null;
 
@@ -334,11 +352,11 @@ function ListingClient({
   const hasValidStartForDay = useCallback((day: Date) => {
     const required = getRequiredMinutes(selectedPackage, listing);
     const labelMinutes = SLOT_LABELS.map(labelToMinutes);
-    const rawStart = (operationalTimings as any)?.operationalHours?.start?.trim?.();
-    const rawEnd = (operationalTimings as any)?.operationalHours?.end?.trim?.();
+    const rawStart = operationalTimings?.operationalHours?.start?.trim?.();
+    const rawEnd = operationalTimings?.operationalHours?.end?.trim?.();
     const toMinFromOps = (s?: string | null): number | null => {
       if (!s) return null;
-      const idx = SLOT_LABELS.indexOf(s as any);
+      const idx = s ? SLOT_LABELS.indexOf(s) : -1;
       if (idx >= 0) return labelMinutes[idx];
       const m = labelToMinutes(s);
       return Number.isNaN(m) ? null : m;
@@ -432,7 +450,7 @@ function ListingClient({
                 category={category}
                 description={listing.description}
                 locationValue={listing.locationValue}
-                fullListing={listing as unknown as any}
+                fullListing={listing as unknown as FullListing}
                 onAddonChange={handleAddonChange}
                 services={[]}
                 onPackageSelect={(pkg) => {

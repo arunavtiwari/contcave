@@ -8,6 +8,7 @@ export type CitySelectValue = {
   value: string;
   label: string;
   state: string;
+  region?: string;
   latlng: number[];
 
 };
@@ -28,7 +29,7 @@ function CitySelect({ value, onChange }: Props) {
         options={getAll()}
         value={value}
         onChange={(value) => onChange(value as CitySelectValue)}
-        formatOptionLabel={(option: any) => (
+        formatOptionLabel={(option: CitySelectValue) => (
           <div className="flex flex-row items-center gap-3 cursor-pointer">
             <Flag code={option.value} className="w-5" />
             <div>

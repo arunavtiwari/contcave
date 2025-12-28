@@ -1,4 +1,3 @@
-import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
@@ -9,7 +8,6 @@ interface IParams {
 export async function GET(request: Request, props: { params: Promise<IParams> }) {
   try {
     const params = await props.params;
-    const currentUser = await getCurrentUser();
 
     const { listingId } = params;
 

@@ -14,7 +14,6 @@ const getBlogData = async (): Promise<BlogPost[]> => {
         });
 
         const data = response.data;
-        console.log("Fetched blog data:", data);
 
 
         return data.docs as BlogPost[];

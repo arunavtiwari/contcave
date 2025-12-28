@@ -7,14 +7,12 @@ import { TbPhotoPlus } from "react-icons/tb";
 type Props = {
   onChange: (value: string[]) => void;
   values: string[];
-  isFromPropertyClient?: boolean;
   circle?: boolean;
 };
 
 function ImageUpload({
   onChange,
   values,
-  isFromPropertyClient = false,
   circle = false,
 }: Props) {
   const [uploading, setUploading] = useState(false);

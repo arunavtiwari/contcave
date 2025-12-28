@@ -8,10 +8,11 @@ import ShareAndRefer from "@/components/Profile/ShareAndRefer";
 import Settings from "@/components/Profile/ProfileSettings";
 
 import { SafeUser } from "@/types/user";
+import { PaymentProfile } from "@/types/payment";
 
 const ProfileClient = ({ profile }: { profile: SafeUser | null }) => {
   const [selectedMenu, setSelectedMenu] = useState("Profile");
-  const [paymentDetails, setPaymentDetails] = useState(null);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentProfile | null>(null);
   const [transactions, setTransactions] = useState([]);
   const [paymentDataLoaded, setPaymentDataLoaded] = useState(false);
   const [paymentDataLoading, setPaymentDataLoading] = useState(false);
@@ -29,7 +30,7 @@ const ProfileClient = ({ profile }: { profile: SafeUser | null }) => {
       const errorData = await response.json().catch(() => null);
       const errorMessage = errorData?.error || `HTTP error! status: ${response.status}`;
       const error = new Error(errorMessage);
-      (error as any).status = response.status;
+      (error as { status?: number }).status = response.status;
       throw error;
     }
 
@@ -42,8 +43,8 @@ const ProfileClient = ({ profile }: { profile: SafeUser | null }) => {
     try {
       const data = await apiCall(`/api/payment-details/${profile.id}`);
       return data.success ? (data.data || null) : null;
-    } catch (error) {
-      const err = error as any;
+    } catch (error: unknown) {
+      const err = error as { status?: number; message?: string };
       if (err.status === 404 || err.message?.includes('404') || err.message?.includes('not found')) {
         return null;
       }
@@ -58,8 +59,8 @@ const ProfileClient = ({ profile }: { profile: SafeUser | null }) => {
     try {
       const data = await apiCall(`/api/transactions/${profile.id}`);
       return data.success ? (data.transactions || []) : [];
-    } catch (error) {
-      const err = error as any;
+    } catch (error: unknown) {
+      const err = error as { status?: number; message?: string };
       if (err.status === 404 || err.message?.includes('404') || err.message?.includes('not found')) {
         return [];
       }
@@ -68,7 +69,7 @@ const ProfileClient = ({ profile }: { profile: SafeUser | null }) => {
     }
   }, [profile?.id, apiCall]);
 
-  const updatePaymentDetails = useCallback((newPaymentDetails: any) => {
+  const updatePaymentDetails = useCallback((newPaymentDetails: PaymentProfile) => {
     setPaymentDetails(newPaymentDetails);
   }, []);
 

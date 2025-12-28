@@ -52,7 +52,15 @@ const indianCities = [
   { name: "Srinagar", state: "Jammu and Kashmir", latlng: [34.0837, 74.7973] }
 ];
 
-const formattedIndianCities = indianCities.map((city) => ({
+export type City = {
+  value: string;
+  label: string;
+  state: string;
+  latlng: number[];
+  name: string;
+};
+
+const formattedIndianCities: City[] = indianCities.map((city) => ({
   value: city.name,
   label: city.name,
   state: city.state,

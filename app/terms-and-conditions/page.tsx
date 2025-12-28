@@ -5,30 +5,28 @@ import type { Metadata } from "next";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 const DESCRIPTION =
-  "Review the terms, acceptable use, and booking policies that govern access to ContCave's studio marketplace." as const;
+    "Review the terms, acceptable use, and booking policies that govern access to ContCave's studio marketplace." as const;
 
 export const metadata: Metadata = {
-  title: `Terms & Conditions | ${BRAND_NAME}`,
-  description: DESCRIPTION,
-  alternates: { canonical: "/terms-and-conditions" },
-  openGraph: {
     title: `Terms & Conditions | ${BRAND_NAME}`,
     description: DESCRIPTION,
-    url: `${SITE_URL}/terms-and-conditions`,
-    type: "article",
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `Terms & Conditions | ${BRAND_NAME}`,
-    description: DESCRIPTION,
-    images: [OG_IMAGE],
-  },
+    alternates: { canonical: "/terms-and-conditions" },
+    openGraph: {
+        title: `Terms & Conditions | ${BRAND_NAME}`,
+        description: DESCRIPTION,
+        url: `${SITE_URL}/terms-and-conditions`,
+        type: "article",
+        images: [OG_IMAGE],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: `Terms & Conditions | ${BRAND_NAME}`,
+        description: DESCRIPTION,
+        images: [OG_IMAGE],
+    },
 };
 
-type Props = {};
-
-const TermsAndConditions = (props: Props) => {
+const TermsAndConditions = () => {
     return (
         <>
             <div className="banner">

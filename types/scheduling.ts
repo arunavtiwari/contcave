@@ -7,9 +7,12 @@ export type TimeLabel = string;
 export type OpeningHours = { start: string; end: string };
 export type OperationalDays = { start: DayKey; end: DayKey } | { days: DayKey[] };
 
+export type DayTiming = { open?: string; close?: string; enabled?: boolean };
+
 export type ReservationOperationalTimings = {
     operationalHours?: OpeningHours;
     operationalDays?: OperationalDays;
+    byDay?: DayTiming[];
 };
 
 // ---------------- Normalizers ----------------
@@ -55,6 +58,8 @@ export const normalizeOpeningHours = (input: OpeningHoursInput): OpeningHours | 
 
 type ListingInput = { operationalDays?: unknown; operationalHours?: unknown } | null | undefined;
 
+const WEEK_DAYS: DayKey[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 export const buildOperationalTimings = (listing: ListingInput): ReservationOperationalTimings => {
     const operationalDays =
         normalizeOperationalDays(listing?.operationalDays as OperationalDaysInput) ??
@@ -64,5 +69,26 @@ export const buildOperationalTimings = (listing: ListingInput): ReservationOpera
         normalizeOpeningHours(listing?.operationalHours as OpeningHoursInput) ??
         ({ start: "", end: "" } as const);
 
-    return { operationalDays, operationalHours };
+    const byDay: DayTiming[] = WEEK_DAYS.map((day) => {
+        let enabled = false;
+        if ("days" in operationalDays) {
+            enabled = operationalDays.days.includes(day);
+        } else {
+            const startIdx = DAY_KEYS.indexOf(operationalDays.start);
+            const endIdx = DAY_KEYS.indexOf(operationalDays.end);
+            const curIdx = DAY_KEYS.indexOf(day);
+            if (startIdx <= endIdx) {
+                enabled = curIdx >= startIdx && curIdx <= endIdx;
+            } else {
+                enabled = curIdx >= startIdx || curIdx <= endIdx;
+            }
+        }
+        return {
+            open: operationalHours.start,
+            close: operationalHours.end,
+            enabled,
+        };
+    });
+
+    return { operationalDays, operationalHours, byDay };
 };

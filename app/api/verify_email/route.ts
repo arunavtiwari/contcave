@@ -1,4 +1,4 @@
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function POST(req: Request) {
   try {

@@ -1,7 +1,6 @@
 "use server";
 
 import 'server-only';
-import prisma from "@/lib/prismadb";
 import { Amenities } from '@prisma/client';
 
 interface AmenityData {

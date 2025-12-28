@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import type { EventContentArg } from '@fullcalendar/core';
+import type { EventContentArg, EventClickArg } from '@fullcalendar/core';
 import { useSession } from 'next-auth/react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -16,6 +16,20 @@ interface Event {
     end: string;
     allDay: boolean;
     desc?: string;
+}
+
+interface CalendarEventResponse {
+    id: string;
+    summary?: string;
+    start?: {
+        dateTime?: string;
+        date?: string;
+    };
+    end?: {
+        dateTime?: string;
+        date?: string;
+    };
+    description?: string;
 }
 
 interface CalendarProps {
@@ -119,16 +133,16 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
             const data = res.data;
 
             if (data) {
-                const formattedEvents = data.map((event: any) => ({
+                const formattedEvents: Event[] = (data as CalendarEventResponse[]).map((event) => ({
                     id: event.id,
                     title: event.summary || 'Busy',
-                    start: event.start?.dateTime || event.start?.date,
-                    end: event.end?.dateTime || event.end?.date,
+                    start: event.start?.dateTime || event.start?.date || '',
+                    end: event.end?.dateTime || event.end?.date || '',
                     allDay: !event.start?.dateTime,
                     desc: event.description || '',
                 }));
 
-                const filteredEvents = formattedEvents.filter((event: any) => {
+                const filteredEvents = formattedEvents.filter((event) => {
                     const eventDate = new Date(event.start);
                     return businessDays.includes(eventDate.getDay());
                 });
@@ -146,13 +160,13 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
         }
     }, [session, fetchEvents]);
 
-    const handleEventClick = (clickInfo: any) => {
+    const handleEventClick = (clickInfo: EventClickArg) => {
         setModalData({
             id: clickInfo.event.id,
             title: clickInfo.event.title,
             start: clickInfo.event.startStr,
             end: clickInfo.event.endStr,
-            desc: clickInfo.event.extendedProps.desc || '',
+            desc: (clickInfo.event.extendedProps as { desc?: string }).desc || '',
         });
         setModalOpen(true);
     };

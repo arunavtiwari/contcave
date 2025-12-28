@@ -22,7 +22,7 @@ const pickFirst = (v: string | string[] | undefined) =>
     typeof v === "string" ? v : v?.[0] ?? "";
 
 // isApprove: 0 = Pending, 1 = Approved
-const getApproveCode = (r: any) => {
+const getApproveCode = (r: { isApproved?: number | null; isApprove?: number | null }) => {
     const v = r?.isApproved ?? r?.isApprove;
     if (v === 0 || v === 1) return v;
     const n = Number(v);

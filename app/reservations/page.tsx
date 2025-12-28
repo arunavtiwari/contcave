@@ -18,9 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Props = {};
-
-const ReservationsPage = async (props: Props) => {
+const ReservationsPage = async () => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {

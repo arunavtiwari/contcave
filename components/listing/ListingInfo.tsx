@@ -143,8 +143,10 @@ function ListingInfo({
     if (Array.isArray(raw)) {
       raw.forEach((item) => {
         if (typeof item === "string") pushKey(item);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        else if (item && typeof item === "object") pushKey((item as any).key ?? (item as any).slug ?? (item as any).name ?? (item as any).id);
+        else if (item && typeof item === "object") {
+          const obj = item as Record<string, unknown>;
+          pushKey(obj.key ?? obj.slug ?? obj.name ?? obj.id);
+        }
       });
     } else if (raw && typeof raw === "object") {
       Object.entries(raw).forEach(([k, v]) => {

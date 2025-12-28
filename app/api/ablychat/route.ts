@@ -4,7 +4,7 @@ import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const currentUser = await getCurrentUser();
 

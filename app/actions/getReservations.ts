@@ -12,7 +12,12 @@ export default async function getReservations(params: IParams) {
   try {
     const { listingId, userId, authorId } = params;
 
-    const query: any = {
+    const query: {
+      markedForDeletion: boolean;
+      listingId?: string;
+      userId?: string;
+      listing?: { userId: string };
+    } = {
       markedForDeletion: false,
     };
 
@@ -39,7 +44,7 @@ export default async function getReservations(params: IParams) {
       },
     });
 
-    const safeReservations = reservation.map((reservation: any) => ({
+    const safeReservations = reservation.map((reservation) => ({
       ...reservation,
       createdAt: reservation.createdAt.toISOString(),
       startDate: reservation.startDate,
@@ -53,7 +58,7 @@ export default async function getReservations(params: IParams) {
     }));
 
     return safeReservations;
-  } catch (error: any) {
-    throw new Error(error.message);
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "An unknown error occurred");
   }
 }

@@ -1,7 +1,4 @@
-import Blog from "@/components/Blog";
-import Contact from "@/components/Contact";
 import CTA from "@/components/CTA";
-import Cover from "@/components/Cover";
 import FAQ from "@/components/FAQ";
 import Feature from "@/components/Features";
 import FeaturesTab from "@/components/FeaturesTab";

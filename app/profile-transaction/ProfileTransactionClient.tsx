@@ -4,11 +4,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Heading from "@/components/Heading";
 
-type Props = {};
-
-import { SafeUser } from "@/types/user";
-
-const ProfileTransactionClient = ({ profile }: { profile: SafeUser | null }) => {
+const ProfileTransactionClient = () => {
   const router = useRouter();
   const [selectedMenu, setSelectedMenu] = useState("Manage Payments");
   return (

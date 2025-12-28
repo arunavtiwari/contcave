@@ -1,8 +1,8 @@
 import React from 'react';
 type Props = {
     label: string;
-    isChecked: any;
-    onChange: (value: any) => void;
+    isChecked: boolean;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 const Checkbox = ({ label, isChecked, onChange }: Props) => {
     return (

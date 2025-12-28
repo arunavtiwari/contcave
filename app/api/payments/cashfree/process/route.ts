@@ -20,12 +20,15 @@ function sanitizeAddons(input: unknown): Array<{ price: number; qty?: number; na
     if (!input || typeof input !== 'object') return [];
     const arr = Array.isArray(input) ? input : Object.values(input);
     return arr
-        .map((a: any) => ({
-            name: typeof a?.name === "string" ? a.name : undefined,
-            id: typeof a?.id === "string" ? a.id : undefined,
-            price: Math.max(0, Number(a?.price) || 0),
-            qty: Math.max(0, Number(a?.qty ?? 0)),
-        }))
+        .map((a: unknown) => {
+            const item = a as { name?: string; id?: string; price?: number; qty?: number };
+            return {
+                name: typeof item?.name === "string" ? item.name : undefined,
+                id: typeof item?.id === "string" ? item.id : undefined,
+                price: Math.max(0, Number(item?.price) || 0),
+                qty: Math.max(0, Number(item?.qty ?? 0)),
+            };
+        })
         .filter((a) => a.price > 0 && a.qty > 0);
 }
 
@@ -126,7 +129,7 @@ export async function POST(req: NextRequest) {
         });
     } catch (err: unknown) {
         if (err && typeof err === 'object' && 'name' in err && err.name === "ZodError") {
-            return createErrorResponse("Invalid request", 400, (err as any).issues);
+            return createErrorResponse("Invalid request", 400, (err as { issues?: Record<string, unknown> }).issues);
         }
         return handleRouteError(err, "POST /api/payments/cashfree/process");
     }

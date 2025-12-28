@@ -27,9 +27,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Props = {};
-
-const CancellationPolicy = (props: Props) => {
+const CancellationPolicy = () => {
   return (
     <div className="flex flex-col">
       {/* Banner Section */}
@@ -76,7 +74,7 @@ const CancellationPolicy = (props: Props) => {
               </li>
               <li>
                 <b>Partial Refund:</b> Cancellations made between <b>24 and 48
-                hours</b> before the scheduled booking will receive a{" "}
+                  hours</b> before the scheduled booking will receive a{" "}
                 <b>50%</b> refund.
               </li>
               <li>

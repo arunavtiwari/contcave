@@ -1,26 +1,11 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Logo from "@/components/navbar/Logo"
 
-type Props = {};
-
 function Footer() {
-  const [country, setCountry] = useState("India");
-  // const [isChatPage, setIsChatPage] = useState(false);
-
   const router = useRouter();
-
-  // useEffect(() => {
-  //   if (window.location.href.includes("chat")) {
-  //     setIsChatPage(true);
-  //   }
-
-  //   fetch(`https://extreme-ip-lookup.com/json/?key=${process.env.NEXT_PUBLIC_LOOKUP_KEY}`)
-  //     .then((res) => res.json())
-  //     .then((data) => setCountry(data.country));
-  // }, []);
 
   return (
     <>

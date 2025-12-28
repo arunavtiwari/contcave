@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FiUpload } from "react-icons/fi";
 import { CiFileOn } from "react-icons/ci";
 
@@ -39,7 +39,7 @@ interface Props {
 
 const SpaceVerification: React.FC<Props> = ({ onVerification }) => {
     const [documents, setDocuments] = useState<VerificationDocument[]>([]);
-    const [videos, setVideos] = useState<VerificationVideo[]>([]);
+    const [videos] = useState<VerificationVideo[]>([]);
     const [verificationCode, setVerificationCode] = useState('');
 
     // Local file capture; actual upload will happen after listing creation
@@ -59,25 +59,7 @@ const SpaceVerification: React.FC<Props> = ({ onVerification }) => {
         setVerificationPayload(nextDocs, videos, verificationCode);
     };
 
-    const handleUploadVideoSuccess = (result: unknown) => {
-        const info = (result as { info: any })?.info || {};
-        const newItems: VerificationVideo[] = Array.isArray(info.secure_url)
-            ? info.secure_url
-            : [{
-                resource_type: info.resource_type,
-                original_filename: info.original_filename,
-                public_id: info.public_id,
-                bytes: info.bytes,
-                version: info.version,
-                thumbnail: info.thumbnail_url,
-                url: info.secure_url,
-                format: info.format
-            }];
-        const nextVideos = [...videos, ...newItems];
-        setVideos(nextVideos);
-        setVerificationPayload(documents, nextVideos, verificationCode)
 
-    };
 
     const generateVerificationCode = () => {
         let result = '';
@@ -90,19 +72,19 @@ const SpaceVerification: React.FC<Props> = ({ onVerification }) => {
         setVerificationPayload(documents, videos, result)
     }
 
-    const setVerificationPayload = ((documents: VerificationDocument[] = [], videos: VerificationVideo[] = [], code: string = "") => {
+    const setVerificationPayload = useCallback((documents: VerificationDocument[] = [], videos: VerificationVideo[] = [], code: string = "") => {
         const verifications: VerificationPayload = {
             documents: documents,
             videos: videos,
             code: code
         }
         onVerification(verifications)
-    })
+    }, [onVerification]);
+
     useEffect(() => {
         // Keep parent in sync whenever docs/videos/code change
         setVerificationPayload(documents, videos, verificationCode);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [documents, videos, verificationCode]);
+    }, [documents, videos, verificationCode, setVerificationPayload]);
     return (
         <div className=" bg-opacity-50 overflow-y-auto h-full w-full" id="my-">
             <div className="bg-white mx-auto relative rounded-md">

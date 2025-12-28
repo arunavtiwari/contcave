@@ -45,7 +45,7 @@ export default async function getReservation(params: IParams) {
         }
         : null,
     };
-  } catch (error: any) {
-    throw new Error(error?.message || "Failed to fetch reservation");
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "Failed to fetch reservation");
   }
 }

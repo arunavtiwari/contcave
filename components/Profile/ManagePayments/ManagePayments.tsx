@@ -4,6 +4,7 @@ import Heading from "@/components/Heading";
 import TransactionHistory from "@/components/Profile/ManagePayments/TransactionHistory";
 import PaymentDetails from "@/components/Profile/ManagePayments/PaymentDetails";
 import { SafeUser } from "@/types/user";
+import { PaymentProfile } from "@/types/payment";
 
 // Types
 interface Transaction {
@@ -22,11 +23,11 @@ type TransactionStatus = 'Pending' | 'Successful' | 'Success' | 'Failed' | 'Fail
 
 interface Props {
     profile: SafeUser | null;
-    paymentDetails?: any;
+    paymentDetails?: PaymentProfile | null;
     transactions?: Transaction[];
     paymentDataLoaded?: boolean;
     paymentDataLoading?: boolean;
-    onPaymentDetailsUpdate?: (newPaymentDetails: any) => void;
+    onPaymentDetailsUpdate?: (newPaymentDetails: PaymentProfile) => void;
 }
 
 const TABS = ["Transaction History", "Payment Details"] as const;
@@ -63,7 +64,7 @@ const ManagePayments: React.FC<Props> = ({
         setSelectedTab(tab);
     }, [selectedTab]);
 
-    const handleSave = useCallback(async (form: FormData, isEditing: boolean = false): Promise<any> => {
+    const handleSave = useCallback(async (form: FormData, isEditing: boolean = false): Promise<void> => {
         if (!form) {
             throw new Error('No form data provided');
         }

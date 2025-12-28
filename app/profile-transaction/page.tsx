@@ -16,9 +16,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Props = {};
-
-const ProfileTransaction = async (props: Props) => {
+const ProfileTransaction = async () => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -31,7 +29,7 @@ const ProfileTransaction = async (props: Props) => {
   return (
     <Container>
       <ClientOnly>
-        <ProfileTransactionClient profile={currentUser} />
+        <ProfileTransactionClient />
       </ClientOnly>
     </Container>
   );

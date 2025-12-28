@@ -24,7 +24,6 @@ function Button({
   loading,
   outline,
   rounded,
-  small,
   icon: Icon,
   isColor,
   classNames,

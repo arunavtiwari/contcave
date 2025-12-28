@@ -51,8 +51,7 @@ function SearchModal({ }: Props) {
       currentQuery = qs.parse(params.toString());
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updatedQuery: Record<string, any> = {
+    const updatedQuery: Record<string, string | string[] | null | undefined> = {
       ...currentQuery,
       locationValue: location?.value,
       selectedDate: selectedDate ? formatISO(selectedDate) : undefined,

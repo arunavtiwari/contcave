@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { Addon } from "@/types/addon";
 
 type Props = {
   imageUrl: string;
@@ -7,8 +8,8 @@ type Props = {
   checked?: boolean;
   hideCheckbox?: boolean;
   hideInputFields?: boolean;
-  addon?: any;
-  onChange: (value: { checked: boolean; price?: any; qty?: any }) => void;
+  addon?: Addon;
+  onChange: (value: { checked: boolean; price?: number; qty?: number }) => void;
   onClickChange?: () => void;
 
 };
@@ -34,7 +35,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
     // Call onChange only if the checkbox is checked
     if (isChecked) {
       setIsChecked(isChecked);
-      onChange({ checked: true, price: newPrice !== '' ? newPrice : undefined, qty: qty });
+      onChange({ checked: true, price: newPrice !== '' ? newPrice : undefined, qty: qty !== '' ? qty : undefined });
 
     }
   };
@@ -43,7 +44,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
     setQty(newQty);
     if (isChecked) {
       setIsChecked(isChecked);
-      onChange({ checked: true, price: price, qty: newQty !== '' ? newQty : undefined });
+      onChange({ checked: true, price: price !== '' ? price : undefined, qty: newQty !== '' ? newQty : undefined });
     }
   };
   return (
@@ -70,8 +71,8 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
           <Image
             src={imageUrl}
             alt={label || "image"}
-            width={addon.width ? Number(addon.width) : 97}
-            height={addon.width ? Number(addon.width) : 97}
+            width={97}
+            height={97}
             className="rounded-md mt-2"
           />
         )}
@@ -87,7 +88,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
                 <span className="absolute left-2 text-gray-500 border-r pr-2">₹</span>
                 <input
                   type="number"
-                  value={addon.price ? addon.price : price}
+                  value={addon?.price ? addon.price : price}
                   onChange={handlePriceChange}
                   className="w-[150px] text-center border rounded-xl py-1 pl-10"
                   placeholder="Price"
@@ -103,7 +104,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
               <label className="text-sm">Quantity</label>
               <input
                 type="number"
-                value={addon.qty ? addon.qty : qty}
+                value={addon?.qty ? addon.qty : qty}
                 onChange={handleQtyChange}
                 className="w-[150px] text-center border rounded-xl py-1 pl-7"
                 placeholder="Quantity"

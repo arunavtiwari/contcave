@@ -3,7 +3,7 @@ import { google } from 'googleapis';
 import prisma from "@/lib/prismadb";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
-async function refreshCalendarAccessToken(account: any) {
+async function refreshCalendarAccessToken(account: { refresh_token: string }) {
   const url = "https://oauth2.googleapis.com/token";
   const response = await fetch(url, {
     method: "POST",
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     const listingId = searchParams.get('listingId');
 
     let accessToken: string | null = null;
-    let googleAccount: any = null;
+    let googleAccount: { id: string; refresh_token: string | null; access_token: string | null; provider: string } | null = null;
 
     if (listingId) {
       const listing = await prisma.listing.findUnique({
@@ -40,9 +40,9 @@ export async function GET(request: Request) {
       if (!listing || !listing.user) {
         return createErrorResponse("Listing or owner not found", 400);
       }
-      googleAccount = listing.user.accounts.find(
-        (account: any) => account.provider === 'google-calendar'
-      );
+      googleAccount = (listing.user.accounts.find(
+        (account) => account.provider === 'google-calendar'
+      ) || null) as { id: string; refresh_token: string | null; access_token: string | null; provider: string } | null;
       if (!googleAccount || !googleAccount.access_token) {
         return createErrorResponse("Listing owner hasn't connected their Google Calendar", 400);
       }
@@ -88,14 +88,15 @@ export async function GET(request: Request) {
         orderBy: 'startTime',
       });
       responseData = response.data.items || [];
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (
+        error instanceof Error &&
         error.message &&
         error.message.includes("Invalid Credentials") &&
         googleAccount &&
         googleAccount.refresh_token
       ) {
-        const refreshedTokens = await refreshCalendarAccessToken(googleAccount);
+        const refreshedTokens = await refreshCalendarAccessToken({ refresh_token: googleAccount.refresh_token as string });
         await prisma.account.update({
           where: { id: googleAccount.id },
           data: { access_token: refreshedTokens.access_token },

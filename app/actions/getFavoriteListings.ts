@@ -20,13 +20,13 @@ export default async function getFavoriteListings() {
       },
     });
 
-    const safeFavorites = favorites.map((favorite: any) => ({
+    const safeFavorites = favorites.map((favorite) => ({
       ...favorite,
       createdAt: favorite.createdAt.toString(),
     }));
 
     return safeFavorites;
-  } catch (error: any) {
-    throw new Error(error.message);
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "An unknown error occurred");
   }
 }

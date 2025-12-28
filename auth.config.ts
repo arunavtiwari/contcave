@@ -1,6 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 
-async function refreshCalendarAccessToken(token: any) {
+async function refreshCalendarAccessToken(token: Record<string, unknown>) {
     try {
         const url = "https://oauth2.googleapis.com/token";
         const response = await fetch(url, {
@@ -12,7 +12,7 @@ async function refreshCalendarAccessToken(token: any) {
                 client_id: process.env.GOOGLE_CLIENT_ID!,
                 client_secret: process.env.GOOGLE_CLIENT_SECRET!,
                 grant_type: "refresh_token",
-                refresh_token: token.calendarRefreshToken,
+                refresh_token: token.calendarRefreshToken as string,
             }),
         });
 
@@ -69,7 +69,7 @@ function logSecurityEvent(
     if (process.env.NODE_ENV === 'production') {
         console.warn(logMessage);
     } else {
-        console.log(logMessage);
+        console.warn(logMessage);
     }
 }
 

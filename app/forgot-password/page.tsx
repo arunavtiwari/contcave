@@ -29,7 +29,7 @@ const ForgotPasswordPage = () => {
             .then(() => {
                 toast.success("If an account exists, a reset email has been sent.");
             })
-            .catch((error) => {
+            .catch(() => {
                 toast.error("Something went wrong.");
             })
             .finally(() => {

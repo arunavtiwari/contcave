@@ -18,9 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Props = {};
-
-const FavoritePage = async (props: Props) => {
+const FavoritePage = async () => {
   const currentUser = await getCurrentUser();
   const listings = await getFavoriteListings();
 
