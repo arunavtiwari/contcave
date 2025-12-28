@@ -165,7 +165,15 @@ function ListingInfo({
     [fullListing?.amenities, normalizeSelectedAmenityKeys]
   );
 
-
+  // Transform Amenities[] to AmenityProp[] for Offers component
+  const transformedAmenityDefs = useMemo(() => {
+    return amenityDefs.map((amenity) => ({
+      id: amenity.id,
+      name: amenity.name,
+      icon: typeof amenity.icon === "string" ? amenity.icon : amenity.icon == null ? null : String(amenity.icon),
+      createdAt: amenity.createdAt,
+    }));
+  }, [amenityDefs]);
 
   const opDaysStart = fullListing?.operationalDays?.start ?? "";
   const opDaysEnd = fullListing?.operationalDays?.end ?? "";
@@ -227,9 +235,9 @@ function ListingInfo({
 
       <hr />
 
-      {selectedAmenityKeys.length > 0 && amenityDefs.length > 0 && (
+      {selectedAmenityKeys.length > 0 && transformedAmenityDefs.length > 0 && (
         <>
-          <Offers amenities={selectedAmenityKeys} definedAmenities={amenityDefs} />
+          <Offers amenities={selectedAmenityKeys} definedAmenities={transformedAmenityDefs} />
           <hr />
         </>
       )}

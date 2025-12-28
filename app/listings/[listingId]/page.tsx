@@ -5,7 +5,8 @@ import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 import ListingClient from "@/components/ListingClient";
 import type { Metadata } from "next";
-import { BRAND_NAME, OG_IMAGE, SITE_URL, absoluteUrl } from "@/lib/seo";
+import { BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL, absoluteUrl } from "@/lib/seo";
+import prisma from "@/lib/prismadb";
 
 export const dynamic = "force-dynamic";
 
@@ -248,13 +249,21 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
 
   const url = absoluteUrl(`/listings/${listing.id}`);
 
-  const aggregateRating = listing.reviews && listing.reviews.length > 0
-    ? {
+  // Fetch review count for aggregate rating
+  const reviewCount = await prisma.review.count({
+    where: { listingId: listing.id },
+  });
+
+  const aggregateRating =
+    listing.avgReviewRating != null &&
+      listing.avgReviewRating > 0 &&
+      reviewCount > 0
+      ? {
         "@type": "AggregateRating",
-        ratingValue: listing.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / listing.reviews.length,
-        reviewCount: listing.reviews.length,
+        ratingValue: listing.avgReviewRating,
+        reviewCount,
       }
-    : undefined;
+      : undefined;
 
   const eventVenueJsonLd = {
     "@context": "https://schema.org",
