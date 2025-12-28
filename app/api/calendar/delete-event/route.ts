@@ -1,24 +1,23 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { auth } from "@/auth";
 import { google } from 'googleapis';
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function DELETE(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return createErrorResponse("Unauthorized", 401);
     }
 
     const accessToken = (session as any).accessToken;
     if (!accessToken) {
-      return NextResponse.json({ error: 'No access token found' }, { status: 401 });
+      return createErrorResponse("No access token found", 401);
     }
 
     const body = await request.json();
     const { id, calendarId } = body;
     if (!id) {
-      return NextResponse.json({ error: 'Event id is required' }, { status: 400 });
+      return createErrorResponse("Event id is required", 400);
     }
 
     const effectiveCalendarId = calendarId || 'primary';
@@ -33,12 +32,11 @@ export async function DELETE(request: Request) {
       eventId: id,
     });
 
-    return NextResponse.json(
-      { success: true, message: 'Event deleted successfully from Google Calendar' },
-      { status: 200 }
-    );
+    return createSuccessResponse({
+      success: true,
+      message: 'Event deleted successfully from Google Calendar'
+    });
   } catch (error) {
-    console.error('Error deleting google event using googleapis:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleRouteError(error, "DELETE /api/calendar/delete-event");
   }
 }

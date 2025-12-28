@@ -9,9 +9,9 @@ import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 
-import Button from "../Button";
-import Heading from "../Heading";
-import Input from "../inputs/Input";
+import Button from "@/components/Button";
+import Heading from "@/components/Heading";
+import Input from "@/components/inputs/Input";
 import Modal from "./Modal";
 
 type Props = {};

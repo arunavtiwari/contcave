@@ -1,31 +1,27 @@
 import prisma from "@/lib/prismadb";
 import { sendTemplateEmail } from "@/lib/email/mailer";
 import crypto from "crypto";
-import { NextApiRequest, NextApiResponse } from "next";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
-    if (req.method !== "POST") {
-        return res.status(405).end();
-    }
-
-    const { email } = req.body;
-
-    if (!email) {
-        return res.status(400).json({ error: "Email is required" });
-    }
-
+export async function POST(request: Request) {
     try {
+        const body = await request.json();
+        const { email } = body;
+
+        if (!email) {
+            return createErrorResponse("Email is required", 400);
+        }
+
         const user = await prisma.user.findUnique({
             where: { email },
         });
 
         if (!user || !user.email) {
-            return res.status(200).json({ message: "If an account exists, a reset email has been sent." });
+            return createSuccessResponse(
+                { message: "If an account exists, a reset email has been sent." },
+                200
+            );
         }
-
 
         const resetToken = crypto.randomBytes(32).toString("hex");
         const resetTokenExpiry = new Date(Date.now() + 3600000);
@@ -39,7 +35,6 @@ export default async function handler(
         });
 
         const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${resetToken}`;
-
         const TEMPLATE_ID = process.env.MS_TPL_RESET_PASSWORD!;
 
         await sendTemplateEmail({
@@ -52,9 +47,11 @@ export default async function handler(
             },
         });
 
-        return res.status(200).json({ message: "If an account exists, a reset email has been sent." });
+        return createSuccessResponse(
+            { message: "If an account exists, a reset email has been sent." },
+            200
+        );
     } catch (error) {
-        console.error("RESET_PASSWORD_ERROR", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        return handleRouteError(error, "POST /api/auth/request-reset");
     }
 }

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import Input from "../inputs/Input";
+import Input from "@/components/inputs/Input";
 import Modal from "./Modal";
 import useAddonModal from "@/hook/useAddonModal";
-import ImageUpload from "../inputs/ImageUpload";
+import ImageUpload from "@/components/inputs/ImageUpload";
 import Image from "next/image";
 
 type Props = {
@@ -14,8 +14,8 @@ type Props = {
 
 function CustomAddonModal({ save }: Props) {
   const addonModel = useAddonModal();
-  const [isLoading, setIsLoading] = useState(false);
-  const [image, setImage] = useState<any>([]);
+
+  const [image, setImage] = useState<string[]>([]);
 
   const {
     register,
@@ -36,11 +36,11 @@ function CustomAddonModal({ save }: Props) {
 
   return (
     <Modal
-      disabled={isLoading}
+
       isOpen={addonModel.isOpen}
       title="Create Add-On"
       actionLabel="Create"
-      autoWidth={true}
+
       onClose={addonModel.onClose}
       onSubmit={handleSubmit(onSubmit)}
       body={
@@ -49,7 +49,7 @@ function CustomAddonModal({ save }: Props) {
             <Input
               id="name"
               label="Name of Add-on"
-              disabled={isLoading}
+
               register={register("name", {
                 required: "Name of Add-on required",
               })}

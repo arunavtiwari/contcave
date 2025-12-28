@@ -7,7 +7,7 @@ export async function sendBookingReminders() {
     const start = startOfDay(tomorrow);
     const end = endOfDay(tomorrow);
 
-    console.log(`Running booking reminders for range: ${start.toISOString()} - ${end.toISOString()}`);
+    console.warn('[Cron] Running booking reminders', { rangeStart: start.toISOString(), rangeEnd: end.toISOString() });
 
     const reservations = await prisma.reservation.findMany({
         where: {
@@ -27,9 +27,17 @@ export async function sendBookingReminders() {
         },
     });
 
-    console.log(`Found ${reservations.length} reservations for tomorrow.`);
+    console.warn('[Cron] Found reservations for tomorrow', { count: reservations.length });
 
-    const results: Array<{ id: string; status: string; phone?: string; error?: any; reason?: string }> = [];
+    interface ReminderResult {
+        id: string;
+        status: string;
+        phone?: string;
+        error?: string;
+        reason?: string;
+    }
+
+    const results: ReminderResult[] = [];
 
     for (const res of reservations) {
         if (res.user?.phone) {
@@ -40,9 +48,10 @@ export async function sendBookingReminders() {
                     startTime: res.startTime,
                 });
                 results.push({ id: res.id, status: "sent", phone: res.user.phone });
-            } catch (error: any) {
-                console.error(`Failed to send reminder for reservation ${res.id}`, error);
-                results.push({ id: res.id, status: "failed", error: error.message });
+            } catch (error: unknown) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                console.error(`Failed to send reminder for reservation ${res.id}`, { error: errorMessage });
+                results.push({ id: res.id, status: "failed", error: errorMessage });
             }
         } else {
             results.push({ id: res.id, status: "skipped", reason: "no_phone" });

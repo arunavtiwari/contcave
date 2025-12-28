@@ -5,7 +5,7 @@ import useRegisterModal from "@/hook/useRegisterModal";
 import useRentModal from "@/hook/useRentModal";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { SafeUser } from "@/types";
+import { SafeUser } from "@/types/user";
 import { signOut } from "next-auth/react";
 import { useCallback, useState, useRef, useEffect } from "react";
 import { AiOutlineMenu } from "react-icons/ai";
@@ -20,7 +20,7 @@ import {
   FiUserPlus,
 } from "react-icons/fi";
 import { MdApartment } from "react-icons/md";
-import Avatar from "../Avatar";
+import Avatar from "@/components/Avatar";
 import MenuItem from "./MenuItem";
 
 type Props = {
@@ -94,7 +94,7 @@ function UserMenu({ currentUser }: Props) {
       <div className="flex">
         <div
           onClick={toggleOpen}
-          className="ai-outline-menu p-4 md:py-1 md:px-2 border-[2px] flex flex-row items-center gap-3 rounded-full cursor-pointer hover:shadow-sm transition"
+          className="ai-outline-menu p-4 md:py-1 md:px-2 border-2 flex flex-row items-center gap-3 rounded-full cursor-pointer hover:shadow-xs transition"
         >
           <AiOutlineMenu />
           <div className="hidden md:block">

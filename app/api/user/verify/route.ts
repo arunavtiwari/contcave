@@ -1,23 +1,23 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
-import { NextResponse } from "next/server";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function PATCH(request: Request) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser)
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-  let body: any;
   try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ message: "Invalid JSON" }, { status: 400 });
-  }
+    const currentUser = await getCurrentUser();
+    if (!currentUser)
+      return createErrorResponse("Unauthorized", 401);
 
-  const { step, phone, aadhaarRefId, bankVerifiedName } = body;
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return createErrorResponse("Invalid JSON", 400);
+    }
 
-  try {
-    const updates: any = {};
+    const { step, phone, aadhaarRefId, bankVerifiedName } = body;
+
+    const updates: Record<string, unknown> = {};
 
     if (step === "email") {
       updates.email_verified = true;
@@ -62,12 +62,8 @@ export async function PATCH(request: Request) {
       });
     }
 
-    return NextResponse.json(updated, { status: 200 });
-  } catch (err: any) {
-    console.error("Failed to update verification:", err);
-    return NextResponse.json(
-      { message: "Failed to update verification" },
-      { status: 500 }
-    );
+    return createSuccessResponse(updated);
+  } catch (err) {
+    return handleRouteError(err, "PATCH /api/user/verify");
   }
 }

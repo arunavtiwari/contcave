@@ -1,17 +1,19 @@
 "use client";
 
-import React from "react";
+
 import { IconType } from "react-icons";
 
-type Props = {
+interface ListingCategoryProps {
   icon: IconType;
   label: string;
   description: string;
-  address?:string;
+}
 
-};
-
-function ListingCategory({ icon: Icon, label, description, address }: Props) {
+const ListingCategory: React.FC<ListingCategoryProps> = ({
+  icon: Icon,
+  label,
+  description
+}) => {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-row items-center gap-4">
@@ -21,7 +23,7 @@ function ListingCategory({ icon: Icon, label, description, address }: Props) {
           <p className="text-neutral-500">{description}</p>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 

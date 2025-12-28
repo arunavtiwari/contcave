@@ -1,36 +1,32 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { auth } from "@/auth";
 import { google } from 'googleapis';
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function PUT(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const { id, title, start, end } = await request.json();
-
-  if (!id || !title || !start || !end) {
-    return NextResponse.json(
-      { error: 'Missing required fields: id, title, start, or end' },
-      { status: 400 }
-    );
-  }
-
-  const isAllDay = !start.includes('T') && !end.includes('T');
-
-  const event = {
-    summary: title,
-    start: isAllDay
-      ? { date: start }
-      : { dateTime: start, timeZone: 'UTC' },
-    end: isAllDay
-      ? { date: end }
-      : { dateTime: end, timeZone: 'UTC' },
-  };
-
   try {
+    const session = await auth();
+    if (!session || !session.accessToken) {
+      return createErrorResponse("Unauthorized", 401);
+    }
+
+    const { id, title, start, end } = await request.json();
+
+    if (!id || !title || !start || !end) {
+      return createErrorResponse("Missing required fields: id, title, start, or end", 400);
+    }
+
+    const isAllDay = !start.includes('T') && !end.includes('T');
+
+    const event = {
+      summary: title,
+      start: isAllDay
+        ? { date: start }
+        : { dateTime: start, timeZone: 'UTC' },
+      end: isAllDay
+        ? { date: end }
+        : { dateTime: end, timeZone: 'UTC' },
+    };
+
     const oauth2Client = new google.auth.OAuth2();
     oauth2Client.setCredentials({
       access_token: session.accessToken as string,
@@ -44,12 +40,8 @@ export async function PUT(request: Request) {
       requestBody: event,
     });
 
-    return NextResponse.json(response.data, { status: 200 });
+    return createSuccessResponse(response.data);
   } catch (error) {
-    console.error('Error updating event:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleRouteError(error, "PUT /api/calendar/update-event");
   }
 }

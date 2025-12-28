@@ -1,6 +1,5 @@
 "use client";
-
-import React, {
+import {
   useCallback,
   useEffect,
   useId,
@@ -8,8 +7,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import Calendar from "../inputs/Calendar";
-import TimeSlotPicker from "../inputs/TimeSlotPicker";
+import Calendar from "@/components/inputs/Calendar";
+import TimeSlotPicker from "@/components/inputs/TimeSlotPicker";
 import { load, Cashfree } from "@cashfreepayments/cashfree-js";
 import {
   ReservationOperationalTimings,
@@ -20,10 +19,10 @@ import {
 } from "@/types/scheduling";
 import useLoginModal from "@/hook/useLoginModal";
 import PhoneModal from "@/components/modals/PhoneModal";
-import BookingSummaryModal from "../modals/BookingSummaryModal";
+import BookingSummaryModal from "@/components/modals/BookingSummaryModal";
 import { normalizePhone } from "@/lib/phone";
-import { Package } from "../inputs/PackagesForm";
-import { SafeUser } from "@/types";
+import { Package } from "@/types/package";
+import { SafeUser } from "@/types/user";
 import { FaBolt } from "react-icons/fa";
 
 const INR = new Intl.NumberFormat("en-IN", {
@@ -39,6 +38,8 @@ type GSTDetails = {
   gstin: string;
   billingAddress: string;
 };
+
+type LocalTimes = { start: TimeLabel | null; end: TimeLabel | null };
 
 type Props = {
   user: SafeUser;
@@ -61,11 +62,9 @@ type Props = {
   currentUserPhone?: string | null;
   isAuthenticated: boolean;
   minBookingHours?: number;
-  isOwner?: boolean;
+
   selectedPackage?: Package | null;
 };
-
-type LocalTimes = { start: TimeLabel | null; end: TimeLabel | null };
 
 let cashfreePromise: Promise<Cashfree | null> | null = null;
 function getCashfree() {
@@ -132,7 +131,7 @@ export default function ListingReservation({
   currentUserPhone = null,
   isAuthenticated,
   minBookingHours,
-  isOwner = false,
+
   selectedPackage = null,
 }: Props) {
   const loginModel = useLoginModal();
@@ -312,8 +311,9 @@ export default function ListingReservation({
       }
       setCustomerPhone(normalized);
       setShowPhoneModal(false);
-    } catch (e: any) {
-      setPhoneError(e?.message || "Unable to save phone. Try again.");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unable to save phone. Try again.";
+      setPhoneError(msg);
     } finally {
       setPhoneSaving(false);
     }
@@ -324,7 +324,24 @@ export default function ListingReservation({
       if (!listingId || !selectedDate || !localTimes.start || !localTimes.end)
         return;
       const startDateStr = formatLocalYmd(selectedDate);
-      const payload: any = {
+
+      interface PaymentPayload {
+        listingId: string;
+        startDate: string;
+        startTime: string;
+        endTime: string;
+        totalPrice: number;
+        selectedAddons: Addon[];
+        instantBooking: boolean;
+        gstDetails?: GSTDetails;
+        selectedPackage?: {
+          title: string;
+          offeredPrice: number;
+          durationHours: number;
+        };
+      }
+
+      const payload: PaymentPayload = {
         listingId,
         startDate: startDateStr,
         startTime: localTimes.start,
@@ -332,7 +349,7 @@ export default function ListingReservation({
         totalPrice: finalTotal,
         selectedAddons,
         instantBooking: !!instantBooking,
-        gstDetails: gst, 
+        gstDetails: gst,
       };
 
       if (selectedPackage) {
@@ -419,17 +436,16 @@ export default function ListingReservation({
 
         {/* Right: Booking type chip */}
         <span
-          className={`flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full ${
-            instantBooking
-              ? "bg-green-100 text-green-700"
-              : "bg-yellow-100 text-yellow-700"
-          }`}
+          className={`flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full ${instantBooking
+            ? "bg-green-100 text-green-700"
+            : "bg-yellow-100 text-yellow-700"
+            }`}
         >
           {instantBooking && <FaBolt className="text-yellow-500 w-3 h-3" />}
           {instantBooking ? "Instant Book" : "Request to Book"}
         </span>
       </div>
-      
+
       <hr />
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
         <h2 className="text-lg" id={`${sectionId}-date-label`}>
@@ -541,10 +557,10 @@ export default function ListingReservation({
         gstAmount={gstAmount}
         subTotal={computedTotal}
         gstDetails={gstDetails}
-        setGstDetailsAction={setGstDetails} 
+        setGstDetailsAction={setGstDetails}
         currentUserId={user.id}
-        reservationId={""}     
-        transactionId={""}      />
+        reservationId={""}
+        transactionId={""} />
     </section>
   );
 }

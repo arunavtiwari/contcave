@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import ListingCard from "./ListingCard";
-import { SafeUser, safeListing } from "@/types";
+import { SafeUser } from "@/types/user";
+import { safeListing } from "@/types/listing";
 
 type Props = {
   listings: safeListing[];
@@ -25,10 +26,15 @@ const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 };
 
+type LocationData = {
+  latlng?: unknown;
+  [key: string]: unknown;
+};
+
 const getListingLatLng = (listing: safeListing): [number, number] | null => {
-  const actualLocation = (listing as any)?.actualLocation;
+  const actualLocation = listing.actualLocation as LocationData | null | undefined;
   if (!actualLocation || typeof actualLocation !== "object") return null;
-  const latlng = (actualLocation as any).latlng;
+  const latlng = actualLocation.latlng;
   if (!Array.isArray(latlng) || latlng.length < 2) return null;
   const lat = Number(latlng[0]);
   const lng = Number(latlng[1]);

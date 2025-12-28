@@ -10,28 +10,29 @@ import React, {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import useRentModal from "@/hook/useRentModal";
-import Heading from "../Heading";
+import Heading from "@/components/Heading";
 import Modal from "./Modal";
-import Input from "../inputs/Input";
-import CategoryInput from "../inputs/CategoryInput";
-import CitySelect from "../inputs/CitySelect";
-import AutoComplete from "../inputs/AutoComplete";
-import ImageUpload from "../inputs/ImageUpload";
-import AmenitiesCheckbox from "../inputs/AmenityCheckbox";
-import AddonsSelection, { Addon } from "../inputs/AddonsSelection";
-import OtherListingDetails, { ListingDetails } from "../inputs/OtherListingDetails";
-import SpaceVerification from "../inputs/SpaceVerification";
-import TermsAndConditionsModal from "../inputs/TermsAndConditions";
+import Input from "@/components/inputs/Input";
+import CategoryInput from "@/components/inputs/CategoryInput";
+import CitySelect from "@/components/inputs/CitySelect";
+import AutoComplete from "@/components/inputs/AutoComplete";
+import ImageUpload from "@/components/inputs/ImageUpload";
+import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
+import AddonsSelection from "@/components/inputs/AddonsSelection";
+import { Addon } from "@/types/addon";
+import OtherListingDetails, { ListingDetails } from "@/components/inputs/OtherListingDetails";
+import SpaceVerification, { VerificationPayload } from "@/components/inputs/SpaceVerification";
+import TermsAndConditionsModal, { TermsRef, SignatureMeta } from "@/components/inputs/TermsAndConditions";
 import CustomAddonModal from "./CustomAddonModal";
-import PackagesForm, { Package } from "../inputs/PackagesForm";
-import { categories } from "../navbar/Categories";
+import PackagesForm from "@/components/inputs/PackagesForm";
+import { Package } from "@/types/package";
+import { categories } from "@/components/navbar/Categories";
 import getAmenities from "@/app/actions/getAmenities";
 import getAddons from "@/app/actions/getAddons";
-import { Amenities, CustomAmenities } from "@prisma/client";
+import { Amenities } from "@prisma/client";
 
 enum STEPS {
   CATEGORY = 0,
@@ -48,28 +49,30 @@ enum STEPS {
 }
 
 export default function RentModal() {
-  const router = useRouter();
   const rentModel = useRentModal();
 
   const [step, setStep] = useState(STEPS.CATEGORY);
   const [isLoading, setIsLoading] = useState(false);
   const [amenities, setAmenities] = useState<Amenities[]>([]);
-  const [addons, setAddons] = useState<any[]>([]);
-  const [customAmenities, setCustomAmenities] = useState<CustomAmenities[]>([]);
+  const [addons, setAddons] = useState<Addon[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState({
     predefined: {} as Record<string, boolean>,
     custom: [] as string[],
   });
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
   const [listingDetails, setListingDetails] = useState<ListingDetails>();
-  const [verifications, setVerifications] = useState<any>();
+  const [verifications, setVerifications] = useState<VerificationPayload>();
   const [terms, setTerms] = useState(false);
-  const [signature, setSignature] = useState<any>(null);
+  const [signature, setSignature] = useState<SignatureMeta | null>(null);
+  const [, setAgreementPdf] = useState<unknown>(null);
   const [packages, setPackages] = useState<Package[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [agreementPdf, setAgreementPdf] = useState<any>(null);
 
-  const termsRef = useRef<any>(null);
+
+
+
+
+  const termsRef = useRef<TermsRef>(null);
   const Map = useMemo(() => dynamic(() => import("../Map"), { ssr: false }), []);
 
   const {
@@ -117,7 +120,7 @@ export default function RentModal() {
 
   // Helpers
   const setCustomValue = useCallback(
-    (id: string, value: any) => {
+    (id: string, value: unknown) => {
       setValue(id, value, { shouldValidate: true, shouldDirty: true });
     },
     [setValue]
@@ -150,7 +153,7 @@ export default function RentModal() {
         minimumBookingHours,
         maximumPax,
         type,
-      } = listingDetails as any;
+      } = listingDetails;
 
       if (!carpetArea || String(carpetArea).trim() === "")
         return toast.error("Please enter Carpet Area");
@@ -192,13 +195,13 @@ export default function RentModal() {
   const removeImage = (idx: number) => {
     setCustomValue(
       "imageSrc",
-      imageSrc.filter((_: any, i: number) => i !== idx)
+      imageSrc.filter((_: unknown, i: number) => i !== idx)
     );
   };
 
   const handleTermsAndConditions = (accept: boolean) => setTerms(accept);
-  const handleSignature = (sig: any) => setSignature(sig);
-  const handleVerificationChange = (v: any) => setVerifications(v);
+  const handleSignature = (sig: SignatureMeta) => setSignature(sig);
+  const handleVerificationChange = (v: VerificationPayload) => setVerifications(v);
   const handleAmenitiesChange = (v: typeof selectedAmenities) =>
     setSelectedAmenities({
       predefined: Object.fromEntries(
@@ -272,7 +275,7 @@ export default function RentModal() {
           verifications: mergedVerifications,
         });
 
-        console.log("[RentModal] Saved agreement PDF inside verifications");
+        console.warn("[RentModal] Saved agreement PDF inside verifications");
       }
 
       setShowSuccessModal(true);
@@ -330,7 +333,7 @@ export default function RentModal() {
           <CitySelect value={location} onChange={(v) => setCustomValue("location", v)} />
           <AutoComplete
             value={actualLocation?.display_name || ""}
-            onChange={(sel: any) => {
+            onChange={(sel: { display_name?: string; latlng?: unknown;[key: string]: unknown }) => {
               setCustomValue("actualLocation", {
                 display_name: sel.display_name,
                 latlng: sel.latlng,
@@ -378,7 +381,7 @@ export default function RentModal() {
                   alt={`Image ${index}`}
                   width={128}
                   height={128}
-                  className="h-32 w-32 rounded-xl object-cover border border-neutral-200 shadow-sm"
+                  className="h-32 w-32 rounded-xl object-cover border border-neutral-200 shadow-xs"
                 />
                 <button
                   onClick={() => removeImage(index)}
@@ -435,7 +438,7 @@ export default function RentModal() {
         <div className="flex flex-col gap-6">
           <Heading title="Add-ons" subtitle="Additional chargeable facilities" />
           <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons} onSelectedAddonsChange={handleAddonChange} rentModal />
-          <CustomAddonModal save={(v: any) => setAddons([...addons, v])} />
+          <CustomAddonModal save={(v: unknown) => setAddons([...addons, v as Addon])} />
         </div>
       );
       break;
@@ -499,7 +502,7 @@ export default function RentModal() {
         secondaryAction={step === STEPS.CATEGORY ? undefined : onBack}
         onClose={rentModel.onClose}
         selfActionButton={false}
-        autoWidth={step === STEPS.VERIFICATION || step === STEPS.ADDONS}
+
         customWidth={step === STEPS.VERIFICATION ? "w-1/2" : ""}
         body={
           <>

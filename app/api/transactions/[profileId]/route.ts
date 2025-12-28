@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { PrismaClient, TransactionStatus } from '@prisma/client';
+import { createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 const prisma = new PrismaClient();
 
@@ -55,16 +56,12 @@ export async function GET(
             status: mapTransactionStatus(transaction.status),
         }));
 
-        return NextResponse.json({
+        return createSuccessResponse({
             success: true,
             transactions: transformedTransactions,
         });
     } catch (error) {
-        console.error('Error fetching transactions:', error);
-        return NextResponse.json(
-            { success: false, error: 'Failed to fetch transactions' },
-            { status: 500 }
-        );
+        return handleRouteError(error, "GET /api/transactions/[profileId]");
     } finally {
         await prisma.$disconnect();
     }

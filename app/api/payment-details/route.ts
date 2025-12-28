@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { upsertPaymentDetails, PaymentDetailsData } from '@/lib/payment-details';
+import { createErrorResponse, createSuccessResponse, handleRouteError } from '@/lib/api-utils';
 
 const createSchema = z.object({
     userId: z.string().min(1, 'User ID is required'),
@@ -24,33 +25,23 @@ const updateSchema = createSchema.extend({
     accountNumber: createSchema.shape.accountNumber.optional()
 });
 
-
-// Utility
-const createResponse = (success: boolean, data: any, status = 200) =>
-    NextResponse.json(
-        success
-            ? { success, data: data.data || data, message: data.message || 'Success', timestamp: new Date().toISOString() }
-            : { success, error: data, timestamp: new Date().toISOString() },
-        { status }
-    );
-
 const maskGstin = (value: string) =>
     value.length <= 8 ? value : value.replace(/^(.{4}).+(.{4})$/, '$1******$2');
 
-const sanitize = (data: any) => ({
+const sanitize = (data: { accountNumber?: string | null; gstin?: string | null;[key: string]: unknown }) => ({
     ...data,
     accountNumber: data.accountNumber ? '***' + data.accountNumber.slice(-4) : undefined,
     gstin: data.gstin ? maskGstin(data.gstin) : undefined,
 });
 
 export async function POST(request: NextRequest) {
-    const contentType = request.headers.get('content-type') || '';
-
-    if (!contentType.includes('multipart/form-data')) {
-        return createResponse(false, 'Expected multipart/form-data', 415);
-    }
-
     try {
+        const contentType = request.headers.get('content-type') || '';
+
+        if (!contentType.includes('multipart/form-data')) {
+            return createErrorResponse('Expected multipart/form-data', 415);
+        }
+
         const form = await request.formData();
 
         const rawData: Record<string, string> = {};
@@ -71,24 +62,17 @@ export async function POST(request: NextRequest) {
 
         const result = await upsertPaymentDetails(paymentDetailsData);
 
-
-        return createResponse(true, {
-            message: 'Saved successfully',
-            data: sanitize(result)
-        });
+        return createSuccessResponse(
+            sanitize(result),
+            200,
+            'Payment details saved successfully'
+        );
     } catch (error) {
         if (error instanceof z.ZodError) {
             const msg = error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
-            return createResponse(false, `Validation failed: ${msg}`, 400);
+            return createErrorResponse(`Validation failed: ${msg}`, 400);
         }
 
-        return createResponse(false, 'Unexpected error', 500);
+        return handleRouteError(error, "POST /api/payment-details");
     }
 }
-
-export const config = {
-    api: {
-        bodyParser: false,
-        sizeLimit: '1mb',
-    },
-};

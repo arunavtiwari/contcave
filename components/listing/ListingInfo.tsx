@@ -1,13 +1,14 @@
 "use client";
 
 import useCities from "@/hook/useCities";
-import { SafeUser } from "@/types";
+import { SafeUser } from "@/types/user";
+import { FullListing } from "@/types/listing";
 import dynamic from "next/dynamic";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { IconType } from "react-icons";
-import Avatar from "../Avatar";
+import Avatar from "@/components/Avatar";
 import ListingCategory from "./ListingCategory";
-import Offers from "../Offers";
+import Offers from "@/components/Offers";
 import AddonsList from "./AddonList";
 import Image from "next/image";
 import axios from "axios";
@@ -16,10 +17,24 @@ import getAmenities from "@/app/actions/getAmenities";
 
 import { FaStar } from "react-icons/fa";
 import PackageList from "./PackageList";
-import { Package } from "../inputs/PackagesForm";
-import Link from "@/node_modules/next/link";
+
+import { Amenities } from "@prisma/client";
+
+import Link from "next/link";
+import { Addon } from "@/types/addon";
+import { Package } from "@/types/package";
 
 const Map = dynamic(() => import("../Map"), { ssr: false });
+
+interface Review {
+  id: string;
+  comment: string;
+  createdAt: string;
+  user: {
+    name: string;
+    image: string;
+  };
+}
 
 type Props = {
   user: SafeUser;
@@ -32,9 +47,9 @@ type Props = {
   }
   | undefined;
   locationValue: string;
-  fullListing: any;
-  definedAmenities?: Array<any>;
-  onAddonChange: (addons: any) => void;
+  fullListing: FullListing;
+  definedAmenities?: Amenities[];
+  onAddonChange: (addons: Addon[]) => void;
   services: string[];
   onPackageSelect?: (pkg: Package | null) => void;
 };
@@ -52,11 +67,11 @@ function ListingInfo({
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
 
-  const relayAddons = useCallback((addons: any) => onAddonChange(addons), [onAddonChange]);
+  const relayAddons = useCallback((addons: Addon[]) => onAddonChange(addons), [onAddonChange]);
 
-  const [addonList, setAddonList] = useState<any[]>([]);
-  const [amenityDefs, setAmenityDefs] = useState<any[]>(definedAmenities ?? []);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [addonList, setAddonList] = useState<Addon[]>([]);
+  const [amenityDefs, setAmenityDefs] = useState<Amenities[]>(definedAmenities ?? []);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
   const [review, setReview] = useState({ rating: 5, comment: "" });
@@ -109,7 +124,7 @@ function ListingInfo({
     };
   }, [definedAmenities]);
 
-  const normalizeSelectedAmenityKeys = useCallback((raw: any): string[] => {
+  const normalizeSelectedAmenityKeys = useCallback((raw: unknown): string[] => {
     try {
       if (typeof raw === "string") {
         const trimmed = raw.trim();
@@ -119,7 +134,7 @@ function ListingInfo({
       }
     } catch { }
     const out: string[] = [];
-    const pushKey = (k: any) => {
+    const pushKey = (k: unknown) => {
       if (k == null) return;
       const s = String(k).trim();
       if (!s) return;
@@ -128,7 +143,8 @@ function ListingInfo({
     if (Array.isArray(raw)) {
       raw.forEach((item) => {
         if (typeof item === "string") pushKey(item);
-        else if (item && typeof item === "object") pushKey(item.key ?? item.slug ?? item.name ?? item.id);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        else if (item && typeof item === "object") pushKey((item as any).key ?? (item as any).slug ?? (item as any).name ?? (item as any).id);
       });
     } else if (raw && typeof raw === "object") {
       Object.entries(raw).forEach(([k, v]) => {
@@ -190,7 +206,6 @@ function ListingInfo({
         <ListingCategory
           icon={category.icon}
           label={category.label}
-          address={fullListing.actualLocation?.display_name ?? ""}
           description={category.description}
         />
       )}
@@ -234,7 +249,7 @@ function ListingInfo({
 
       <div className="flex flex-col gap-4">
         <p className="text-xl font-semibold">Where you’ll be</p>
-        <Map center={fullListing.actualLocation ? fullListing.actualLocation.latlng ?? coordinates : coordinates} locationValue={locationValue} />
+        <Map center={fullListing.actualLocation ? [fullListing.actualLocation.lat, fullListing.actualLocation.lng] : coordinates} locationValue={locationValue} />
       </div>
 
       <hr />
@@ -317,7 +332,7 @@ function ListingInfo({
           {reviews.length > 0 && (
             <>
               <div className="flex flex-col relative gap-4 pb-4">
-                {reviews.map((rv: any) => (
+                {reviews.map((rv) => (
                   <div className="flex items-center p-5 shadow-md rounded-2xl border" key={rv.id}>
                     <div className="h-fit">
                       <Avatar src={rv.user?.image} size={45} />

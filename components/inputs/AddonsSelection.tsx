@@ -2,12 +2,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import ImageCheckbox from './ImageCheckbox';
 import useAddonModal from '@/hook/useAddonModal';
 
-export interface Addon {
-    name: string;
-    price: number;
-    imageUrl: string;
-    qty: number;
-}
+import { Addon } from "@/types/addon";
 
 interface AddonsCheckboxProps {
     addons: Addon[];

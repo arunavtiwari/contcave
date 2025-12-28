@@ -8,10 +8,24 @@ type OwnerPaymentDetails = {
   gstin: string;
 };
 
+type InvoiceUser = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  billingDetails?: BillingDetails[];
+};
+
+type BillingDetails = {
+  id: string;
+  companyName: string | null;
+  gstin: string | null;
+  isDefault: boolean;
+};
+
 type InvoiceData = {
   invoiceNumber: string;
-  user: any;
-  billing: any | null;
+  user: InvoiceUser;
+  billing: BillingDetails | null;
   ownerPayment?: OwnerPaymentDetails | null;
   amount: number;
   gstAmount: number;
@@ -39,30 +53,25 @@ export async function generateInvoicePDFBlob(data: InvoiceData) {
     <h1>Invoice</h1>
     <p><strong>Invoice Number:</strong> ${invoiceNumber}</p>
     <p><strong>Customer:</strong> ${user.name || user.email}</p>
-    ${
-      billing
-        ? `<div style="margin: 12px 0;">
+    ${billing
+      ? `<div style="margin: 12px 0;">
             <p><strong>Bill To:</strong> ${billing.companyName}</p>
-            ${
-              billing.gstin
-                ? `<p><strong>GSTIN:</strong> ${billing.gstin}</p>`
-                : ""
-            }
-          </div>`
+            ${billing.gstin
+        ? `<p><strong>GSTIN:</strong> ${billing.gstin}</p>`
         : ""
+      }
+          </div>`
+      : ""
     }
-    ${
-      ownerPayment
-        ? `<div style="margin: 12px 0;">
-            <p><strong>Seller:</strong> ${
-              ownerPayment.ownerName ?? "Listing Owner"
-            }</p>
-            <p><strong>Seller Company:</strong> ${
-              ownerPayment.companyName
-            }</p>
+    ${ownerPayment
+      ? `<div style="margin: 12px 0;">
+            <p><strong>Seller:</strong> ${ownerPayment.ownerName ?? "Listing Owner"
+      }</p>
+            <p><strong>Seller Company:</strong> ${ownerPayment.companyName
+      }</p>
             <p><strong>Seller GSTIN:</strong> ${ownerPayment.gstin}</p>
           </div>`
-        : ""
+      : ""
     }
     <p><strong>Amount:</strong> INR ${amount.toFixed(2)}</p>
     <p><strong>GST (18%):</strong> INR ${gstAmount.toFixed(2)}</p>
@@ -124,16 +133,16 @@ export async function createInvoice({
 
   const ownerPayment =
     reservation.listing?.user?.paymentDetails &&
-    reservation.listing.user.paymentDetails.companyName &&
-    reservation.listing.user.paymentDetails.gstin
+      reservation.listing.user.paymentDetails.companyName &&
+      reservation.listing.user.paymentDetails.gstin
       ? {
-          companyName: reservation.listing.user.paymentDetails.companyName,
-          gstin: reservation.listing.user.paymentDetails.gstin,
-          ownerName:
-            reservation.listing.user.name ||
-            reservation.listing.user.email ||
-            "Listing Owner",
-        }
+        companyName: reservation.listing.user.paymentDetails.companyName,
+        gstin: reservation.listing.user.paymentDetails.gstin,
+        ownerName:
+          reservation.listing.user.name ||
+          reservation.listing.user.email ||
+          "Listing Owner",
+      }
       : null;
 
   const billing = user.billingDetails?.[0] ?? null;

@@ -1,15 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 
-interface Package {
-  id: string;
-  title: string;
-  originalPrice: number;
-  offeredPrice: number;
-  features: string[];
-  durationHours: number;
-}
+import { Package } from "@/types/package";
 
 interface Props {
   packages: Package[];
@@ -24,7 +17,7 @@ export default function PackageList({ packages, onSelect }: Props) {
       setSelectedId(null);
       onSelect?.(null);
     } else {
-      setSelectedId(pkg.id);
+      setSelectedId(pkg.id ?? null);
       onSelect?.(pkg);
     }
   };
@@ -36,19 +29,17 @@ export default function PackageList({ packages, onSelect }: Props) {
       <p className="text-2xl font-semibold text-gray-900">Available Packages</p>
 
       <div
-        className={`grid gap-6 ${
-          packages.length > 1 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
-        }`}
+        className={`grid gap-6 ${packages.length > 1 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+          }`}
       >
         {packages.map((pkg) => (
           <div
             key={pkg.id}
             onClick={() => handleSelect(pkg)}
-            className={`border rounded-xl p-6 cursor-pointer transition-all transform ${
-              selectedId === pkg.id
-                ? "border-black shadow-lg bg-gray-100 scale-105"
-                : "border-gray-300 hover:shadow-md hover:bg-gray-50 hover:scale-105"
-            }`}
+            className={`border rounded-xl p-6 cursor-pointer transition-all transform ${selectedId === pkg.id
+              ? "border-black shadow-lg bg-gray-100 scale-105"
+              : "border-gray-300 hover:shadow-md hover:bg-gray-50 hover:scale-105"
+              }`}
           >
             {/* Header */}
             <div className="flex justify-between items-center">

@@ -1,12 +1,13 @@
-// app/api/create_vendor/route.ts
-import { NextResponse } from "next/server";
 import axios from "axios";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  console.log("[Create Vendor] Incoming:", body);
-
   try {
+    const body = await req.json();
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Create Vendor] Request received');
+    }
+
     const resp = await axios.post(
       "https://api.cashfree.com/pg/easy-split/vendors", // sandbox => https://sandbox.cashfree.com/pg/easy-split/vendors
       body,
@@ -20,13 +21,14 @@ export async function POST(req: Request) {
       }
     );
 
-    console.log("[Create Vendor] Cashfree response:", resp.data);
-    return NextResponse.json(resp.data, { status: resp.status });
-  } catch (err: any) {
-    console.error("[Create Vendor] Error:", err.response?.data || err.message);
-    return NextResponse.json(
-      { error: err.response?.data || err.message },
-      { status: err.response?.status || 500 }
-    );
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Create Vendor] Success');
+    }
+    return createSuccessResponse(resp.data, resp.status);
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      return createErrorResponse(err.response?.data || err.message, err.response?.status || 500);
+    }
+    return handleRouteError(err, "POST /api/create_vendor");
   }
 }

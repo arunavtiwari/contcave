@@ -32,12 +32,28 @@ const CLOUDINARY_SIGN_KEYS = new Set([
   "invalidate",
 ]);
 
-function signCloudinaryParams(params: Record<string, any>, apiSecret: string) {
-  const toSign = Object.keys(params)
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
+type CloudinaryParams = {
+  folder?: string;
+  timestamp?: number;
+  public_id?: string;
+  eager?: string;
+  transformation?: string;
+  context?: string;
+  tags?: string[];
+  upload_preset?: string;
+  source?: string;
+  type?: string;
+  invalidate?: boolean;
+};
+
+function signCloudinaryParams(params: CloudinaryParams, apiSecret: string) {
+  const toSign = (Object.keys(params) as Array<keyof CloudinaryParams>)
     .filter((key) => CLOUDINARY_SIGN_KEYS.has(key) && params[key] != null)
     .sort()
     .map((key) => {
-      const value = params[key];
+      const value = params[key] as JsonValue;
       return `${key}=${typeof value === "string" ? value : JSON.stringify(value)}`;
     })
     .join("&");
@@ -114,16 +130,16 @@ export async function ensureInvoiceWithAttachment(
 
   const ownerPayment =
     reservation.listing?.user?.paymentDetails &&
-    reservation.listing.user.paymentDetails.companyName &&
-    reservation.listing.user.paymentDetails.gstin
+      reservation.listing.user.paymentDetails.companyName &&
+      reservation.listing.user.paymentDetails.gstin
       ? {
-          companyName: reservation.listing.user.paymentDetails.companyName,
-          gstin: reservation.listing.user.paymentDetails.gstin,
-          ownerName:
-            reservation.listing.user.name ||
-            reservation.listing.user.email ||
-            "Listing Owner",
-        }
+        companyName: reservation.listing.user.paymentDetails.companyName,
+        gstin: reservation.listing.user.paymentDetails.gstin,
+        ownerName:
+          reservation.listing.user.name ||
+          reservation.listing.user.email ||
+          "Listing Owner",
+      }
       : null;
 
   const billing = user.billingDetails?.[0] ?? null;
@@ -175,7 +191,7 @@ export async function ensureInvoiceWithAttachment(
     throw new Error("Missing Cloudinary credentials");
   }
 
-  const paramsToSign = { folder, timestamp, public_id: publicId } as Record<string, any>;
+  const paramsToSign: CloudinaryParams = { folder, timestamp, public_id: publicId };
   const signature = signCloudinaryParams(paramsToSign, apiSecret);
 
   const formData = new FormData();

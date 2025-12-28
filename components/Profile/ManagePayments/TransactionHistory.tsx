@@ -17,7 +17,7 @@ interface Transaction {
 type TransactionStatus = 'Pending' | 'Successful' | 'Success' | 'Failed' | 'Failure';
 
 interface TransactionHistoryProps {
-    profile?: any;
+
     transactions?: Transaction[];
     loading?: boolean;
     error?: string | null;
@@ -25,7 +25,7 @@ interface TransactionHistoryProps {
 }
 
 const TransactionHistory: React.FC<TransactionHistoryProps> = ({
-    profile,
+
     transactions = [],
     loading = false,
     error = null,
@@ -164,7 +164,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                                         ].map(({ label, value }, idx) => (
                                             <div key={idx} className="text-left md:text-center">
                                                 <div className="text-sm font-semibold text-gray-500">{label}</div>
-                                                <div className="text-base font-semibold text-slate-900 break-words">{value}</div>
+                                                <div className="text-base font-semibold text-slate-900 wrap-break-word">{value}</div>
                                             </div>
                                         ))}
                                     </div>

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { FaBolt } from "react-icons/fa";
-import Select from "react-select";
+import Select, { Theme } from "react-select";
 import ReactSwitch from "react-switch";
 import { spaceTypes } from "@/constants/spaceTypes";
 
@@ -42,7 +42,7 @@ const buildTimeOptions = (stepMinutes = 30) => {
     return out;
 };
 
-const selectTheme = (theme: any) => ({
+const selectTheme = (theme: Theme) => ({
     ...theme,
     borderRadius: 10,
     colors: { ...theme.colors, primary: "black", primary25: "#F3F4F6", primary50: "#E5E7EB" },
@@ -69,7 +69,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
         onDetailsChange(details);
     }, [details, onDetailsChange]);
 
-    const handleInputChange = useCallback((field: keyof ListingDetails, value: any) => {
+    const handleInputChange = useCallback((field: keyof ListingDetails, value: string | boolean | string[] | { start?: string; end?: string }) => {
         setDetails((prev) => ({ ...prev, [field]: value }));
     }, []);
 

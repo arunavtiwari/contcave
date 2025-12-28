@@ -1,5 +1,5 @@
 import ClientOnly from "@/components/ClientOnly";
-import getCurrentUser from "../actions/getCurrentUser";
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import EmptyState from "@/components/EmptyState";
 import ProfileTransactionClient from "./ProfileTransactionClient";
 import Container from "@/components/Container";

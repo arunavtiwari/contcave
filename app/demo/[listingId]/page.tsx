@@ -100,7 +100,7 @@ const DemoListingPage = async ({ params }: { params: Promise<RouteParams> }) => 
 
   // JSON-LD Schema
   const imageUrls = Array.isArray(listing.imageSrc) && listing.imageSrc.length > 0
-    ? listing.imageSrc.map((src) => absoluteUrl(src))
+    ? listing.imageSrc.map((src: string) => absoluteUrl(src))
     : [absoluteUrl(OG_IMAGE)];
 
   const eventVenueJsonLd = {
@@ -124,17 +124,17 @@ const DemoListingPage = async ({ params }: { params: Promise<RouteParams> }) => 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd) }}
         />
         <div className="relative">
-        <div className="absolute top-3 right-3 left-3 sm:left-auto sm:top-4 sm:right-4 
+          <div className="absolute top-3 right-3 left-3 sm:left-auto sm:top-4 sm:right-4 
             bg-yellow-100 text-yellow-800 text-center px-3 py-1.5 rounded-md 
-            text-xs sm:text-sm font-medium z-10 shadow-sm whitespace-normal break-words">
+            text-xs sm:text-sm font-medium z-10 shadow-xs whitespace-normal wrap-break-word">
             Demo Preview – Not Public Yet
-            </div>
-            
+          </div>
+
           <ListingClient
             listing={listing}
             currentUser={currentUser}
             reservations={reservations}
-            isDemo={true}
+
           />
         </div>
       </>

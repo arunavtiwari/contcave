@@ -10,7 +10,7 @@ gsap.registerPlugin(ScrollTrigger);
 const Hero = () => {
   const router = useRouter();
   useEffect(() => {
-    let tl = gsap.timeline({
+    const tl = gsap.timeline({
       scrollTrigger: {
         trigger: '#hero-anim-track',
         start: '50% 50%',
@@ -26,7 +26,7 @@ const Hero = () => {
     })
 
     // Text changing animation
-    let textTl = gsap.timeline({ repeat: -1, repeatDelay: 1 });
+    const textTl = gsap.timeline({ repeat: -1, repeatDelay: 1 });
     textTl.to('#changing-text', { opacity: 0, duration: 0.5 })
       .set('#changing-text', { textContent: 'Studio' })
       .to('#changing-text', { opacity: 1, duration: 0.5 })

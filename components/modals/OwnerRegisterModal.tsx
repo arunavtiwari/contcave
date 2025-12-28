@@ -5,9 +5,9 @@ import axios from "axios";
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import Button from "../Button";
-import Heading from "../Heading";
-import Input from "../inputs/Input";
+import Button from "@/components/Button";
+import Heading from "@/components/Heading";
+import Input from "@/components/inputs/Input";
 import Modal from "./Modal";
 import { FcGoogle } from "react-icons/fc";
 import { signIn } from "next-auth/react";
@@ -55,7 +55,7 @@ function OwnerRegisterModal() {
                     toastId: "Owner_Login_Error"
                 });
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error("Something went wrong during registration.", {
                 toastId: "Owner_Error_1"
             });

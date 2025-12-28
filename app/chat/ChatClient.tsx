@@ -5,10 +5,12 @@ import { FC, useState, useEffect } from "react";
 import Ably from "ably";
 import Heading from "@/components/Heading";
 import Loader from "@/components/Loader";
+import { SafeUser } from "@/types/user";
+
 export const dynamic = "force-dynamic";
 
 interface ChatClientProps {
-  profile: any;
+  profile: SafeUser | null;
 }
 
 interface Message {
@@ -27,8 +29,8 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const [channel, setChannel] = useState<Ably.RealtimeChannel | null>(null);
-  const email1 = profile.email;
-  const name = profile.name;
+  const email1 = profile?.email;
+  const name = profile?.name;
 
   useEffect(() => {
     let chatChannel: Ably.RealtimeChannel;
@@ -51,7 +53,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
 
         ably = new Ably.Realtime({
           key: process.env.NEXT_PUBLIC_ABLY_CHAT_API!,
-          clientId: email1,
+          clientId: email1 || undefined,
         });
 
         chatChannel = ably.channels.get(`${reservationId}`);
@@ -81,7 +83,9 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
       }
     };
 
-    initializeChat();
+    if (email1) {
+      initializeChat();
+    }
 
     return () => {
       if (chatChannel) {
@@ -101,8 +105,8 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
     if (newMessage.trim() && channel) {
       const messageData = {
         text: newMessage,
-        email: email1,
-        name: name,
+        email: email1 || "",
+        name: name || "",
         timestamp: new Date().toISOString(),
       };
 
@@ -114,10 +118,10 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
   return (
     <div className="flex flex-col gap-5">
       <Heading title={`Chat with ${booking?.listing?.title}`} />
-      <div className="flex flex-grow overflow-hidden w-full items-stretch h-[calc(100vh-180px)]">
+      <div className="flex grow overflow-hidden w-full items-stretch h-[calc(100vh-180px)]">
         {/* Chat Section */}
-        <div className="flex flex-col flex-grow bg-gray-50 overflow-hidden rounded-l-xl border w-3/4">
-          <div className="flex-grow overflow-y-auto p-4">
+        <div className="flex flex-col grow bg-gray-50 overflow-hidden rounded-l-xl border w-3/4">
+          <div className="grow overflow-y-auto p-4">
             <div className="flex flex-col space-y-4">
               {messages.map((msg, index) => (
                 <div
@@ -148,7 +152,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
               <input
                 type="text"
                 placeholder="Type a message..."
-                className="flex-grow p-2 border rounded-l-full"
+                className="grow p-2 border rounded-l-full"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => {
@@ -219,7 +223,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
               <div className="flex justify-between">
                 <span className="text-gray-600">Add-ons:</span>
                 <span className="font-semibold text-gray-900">
-                  {booking?.selectedAddons.map((item) => item.name).join(", ") || "None"}
+                  {booking?.selectedAddons.map((item: any) => item.name).join(", ") || "None"}
                 </span>
               </div>
 
@@ -227,7 +231,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
                 <span className="text-gray-600">Add-ons Charge:</span>
                 <span className="font-semibold text-gray-900">
                   ₹{" "}
-                  {booking?.selectedAddons.reduce((acc, value) => acc + value.qty * value.price, 0)}
+                  {booking?.selectedAddons.reduce((acc: any, value: any) => acc + value.qty * value.price, 0)}
                 </span>
               </div>
 
@@ -236,7 +240,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
                 <span className="font-semibold text-gray-900">
                   ₹{" "}
                   {booking?.totalPrice -
-                    booking?.selectedAddons.reduce((acc, value) => acc + value.qty * value.price, 0)}
+                    booking?.selectedAddons.reduce((acc: any, value: any) => acc + value.qty * value.price, 0)}
                 </span>
               </div>
 

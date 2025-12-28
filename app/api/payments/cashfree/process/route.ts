@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prismadb";
 import { randomUUID } from "crypto";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 function normalizePhone(phone?: string | null) {
     if (!phone) return null;
@@ -15,8 +16,8 @@ function normalizePhone(phone?: string | null) {
 const toNum = (v: unknown) => (typeof v === "string" ? Number(v) : v);
 const trimStr = (v: unknown) => (typeof v === "string" ? v.trim() : v);
 
-function sanitizeAddons(input: any): Array<{ price: number; qty?: number; name?: string; id?: string }> {
-    if (!input) return [];
+function sanitizeAddons(input: unknown): Array<{ price: number; qty?: number; name?: string; id?: string }> {
+    if (!input || typeof input !== 'object') return [];
     const arr = Array.isArray(input) ? input : Object.values(input);
     return arr
         .map((a: any) => ({
@@ -58,28 +59,25 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
     try {
         if (!req.headers.get("content-type")?.includes("application/json")) {
-            return NextResponse.json({ message: "Content-Type must be application/json" }, { status: 415 });
+            return createErrorResponse("Content-Type must be application/json", 415);
         }
 
         const raw = await req.json();
         const parsed = Body.safeParse(raw);
         if (!parsed.success) {
-            return NextResponse.json({ message: "Invalid request", issues: parsed.error.issues }, { status: 400 });
+            return createErrorResponse("Invalid request", 400, { issues: parsed.error.issues });
         }
         const data = parsed.data;
 
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+            return createErrorResponse("Unauthorized", 401);
         }
 
         const customerPhone =
             normalizePhone(currentUser.phone) || normalizePhone(data.customerPhone) || null;
         if (!customerPhone) {
-            return NextResponse.json(
-                { message: "A valid 10-digit phone number is required (e.g., 9876543210)." },
-                { status: 400 }
-            );
+            return createErrorResponse("A valid 10-digit phone number is required (e.g., 9876543210).", 400);
         }
 
         const tId = "tid_" + randomUUID().replace(/-/g, "").slice(0, 20);
@@ -122,15 +120,14 @@ export async function POST(req: NextRequest) {
             data: { cfPaymentSessionId: payment_session_id, cfOrderId: order_id },
         });
 
-        return NextResponse.json({
+        return createSuccessResponse({
             tId,
             paymentSessionId: payment_session_id,
         });
-    } catch (err: any) {
-        if (err?.name === "ZodError") {
-            return NextResponse.json({ message: "Invalid request", issues: err.issues }, { status: 400 });
+    } catch (err: unknown) {
+        if (err && typeof err === 'object' && 'name' in err && err.name === "ZodError") {
+            return createErrorResponse("Invalid request", 400, (err as any).issues);
         }
-        console.error("cashfree:create-reservation error", err);
-        return NextResponse.json({ message: err?.message || "Internal Server Error" }, { status: 500 });
+        return handleRouteError(err, "POST /api/payments/cashfree/process");
     }
 }

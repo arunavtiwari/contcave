@@ -1,8 +1,8 @@
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 import React from "react";
-import getCurrentUser from "../actions/getCurrentUser";
-import getReservation from "../actions/getReservations";
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getReservation from "@/app/actions/getReservations";
 import ReservationsClient from "./ReservationsClient";
 import type { Metadata } from "next";
 import { BRAND_NAME } from "@/lib/seo";

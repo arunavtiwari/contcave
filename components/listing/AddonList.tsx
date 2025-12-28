@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-type Addon = { id?: string; name: string; price: number | string; imageUrl?: string; qty?: number };
+
+import { Addon } from "@/types/addon";
 type AddonListItem = { name: string; imageUrl?: string };
 
 type AddonItemProps = {
@@ -55,25 +55,25 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
           </button>
         ) : (
           <div className="flex items-center mt-1">
-          <button
-            onClick={dec}
-            className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-8 rounded-l-xl text-lg font-medium transition"
-          >
-            −
-          </button>
-          <span className="px-5 bg-white text-[#2F2F2F] border border-[#D6D3D1] py-1.5 w-13 text-center">
-            {qty}
-          </span>
-          <button
-            onClick={inc}
-            className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-8 rounded-r-xl text-lg font-medium transition"
-          >
-            +
-          </button>
-        </div>
+            <button
+              onClick={dec}
+              className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-8 rounded-l-xl text-lg font-medium transition"
+            >
+              −
+            </button>
+            <span className="px-5 bg-white text-[#2F2F2F] border border-[#D6D3D1] py-1.5 w-13 text-center">
+              {qty}
+            </span>
+            <button
+              onClick={inc}
+              className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-8 rounded-r-xl text-lg font-medium transition"
+            >
+              +
+            </button>
+          </div>
         )}
       </div>
-      </div>
+    </div>
     // </motion.div>
   );
 };

@@ -1,6 +1,6 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
-import { NextResponse } from "next/server";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 const JITTER_METERS = 250;
 
@@ -25,86 +25,94 @@ const jitterLatLng = (latlng: unknown): [number, number] | null => {
   return [jLat, jLng];
 };
 
+type PackageInput = {
+  title: unknown;
+  originalPrice?: unknown;
+  offeredPrice: unknown;
+  features?: unknown;
+  durationHours: unknown;
+};
+
 export async function POST(request: Request) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) return NextResponse.error();
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return createErrorResponse("Authentication required", 401);
+    }
 
-  const body = await request.json();
-  const {
-    title, description, imageSrc, category, locationValue, actualLocation,
-    price, amenities, otherAmenities, addons, carpetArea, operationalDays,
-    operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
-    verifications, terms, packages,
-  } = body;
+    const body = await request.json();
+    const {
+      title, description, imageSrc, category, locationValue, actualLocation,
+      price, amenities, otherAmenities, addons, carpetArea, operationalDays,
+      operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
+      verifications, terms, packages,
+    } = body;
 
-  if (!title || !description || !imageSrc || !category || !locationValue || price == null) {
-    return NextResponse.error();
-  }
+    if (!title || !description || !imageSrc || !category || !locationValue || price == null) {
+      return createErrorResponse("Missing required fields: title, description, imageSrc, category, locationValue, or price", 400);
+    }
 
-  if (!actualLocation || typeof actualLocation !== "object") {
-    return NextResponse.json(
-      { message: "Accurate location details are required." },
-      { status: 400 }
-    );
-  }
+    if (!actualLocation || typeof actualLocation !== "object") {
+      return createErrorResponse("Accurate location details are required", 400);
+    }
 
-  const privacySafeLatLng = jitterLatLng((actualLocation as any).latlng);
-  if (!privacySafeLatLng) {
-    return NextResponse.json(
-      { message: "Please select a valid location using autocomplete." },
-      { status: 400 }
-    );
-  }
+    const privacySafeLatLng = jitterLatLng((actualLocation as { latlng?: unknown }).latlng);
+    if (!privacySafeLatLng) {
+      return createErrorResponse("Please select a valid location using autocomplete", 400);
+    }
 
-  const finalActualLocation = {
-    ...actualLocation,
-    latlng: privacySafeLatLng,
-  };
+    const finalActualLocation = {
+      ...actualLocation,
+      latlng: privacySafeLatLng,
+    };
 
-  const listing = await prisma.listing.create({
-    data: {
-      title,
-      description,
-      imageSrc,
-      category,
-      locationValue,
-      actualLocation: finalActualLocation,
-      price: Number(price),
-      userId: currentUser.id,
-      amenities,
-      otherAmenities,
-      addons,
-      carpetArea,
-      operationalDays,
-      operationalHours,
-      minimumBookingHours,
-      maximumPax,
-      instantBooking,
-      type,
-      verifications,
-      terms,
-      status: "PENDING",
-      active: false,
-    },
-  });
-
-  if (Array.isArray(packages) && packages.length > 0) {
-    await prisma.package.createMany({
-      data: packages.map((p: any) => ({
-        title: String(p.title),
-        originalPrice: p.originalPrice != null ? Number(p.originalPrice) : 0,
-        offeredPrice: Number(p.offeredPrice),
-        features: Array.isArray(p.features) ? p.features.map(String) : [],
-        durationHours: Number(p.durationHours),
-        listingId: listing.id,
-      })),
+    const listing = await prisma.listing.create({
+      data: {
+        title,
+        description,
+        imageSrc,
+        category,
+        locationValue,
+        actualLocation: finalActualLocation,
+        price: Number(price),
+        userId: currentUser.id,
+        amenities,
+        otherAmenities,
+        addons,
+        carpetArea,
+        operationalDays,
+        operationalHours,
+        minimumBookingHours,
+        maximumPax,
+        instantBooking,
+        type,
+        verifications,
+        terms,
+        status: "PENDING",
+        active: false,
+      },
     });
+
+    if (Array.isArray(packages) && packages.length > 0) {
+      await prisma.package.createMany({
+        data: packages.map((p: PackageInput) => ({
+          title: String(p.title),
+          originalPrice: p.originalPrice != null ? Number(p.originalPrice) : 0,
+          offeredPrice: Number(p.offeredPrice),
+          features: Array.isArray(p.features) ? p.features.map(String) : [],
+          durationHours: Number(p.durationHours),
+          listingId: listing.id,
+        })),
+      });
+    }
+
+    const withPackages = await prisma.listing.findUnique({
+      where: { id: listing.id },
+      include: { packages: true },
+    });
+
+    return createSuccessResponse(withPackages, 201, "Listing created successfully");
+  } catch (error) {
+    return handleRouteError(error, "POST /api/listings");
   }
-
-  const withPackages = await prisma.listing.findUnique({
-    where: { id: listing.id },
-    include: { packages: true },
-  });
-
-  return NextResponse.json(withPackages);
 }

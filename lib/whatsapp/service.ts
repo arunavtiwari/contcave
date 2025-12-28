@@ -12,9 +12,15 @@ if (!PHONE_NUMBER_ID || !ACCESS_TOKEN) {
     console.warn("WhatsApp credentials missing in environment variables.");
 }
 
+type TemplateParameter = {
+    type: string;
+    text?: string;
+    [key: string]: unknown;
+};
+
 type TemplateComponent = {
     type: "header" | "body" | "button";
-    parameters: any[];
+    parameters: TemplateParameter[];
 };
 
 type SendTemplateInput = {
@@ -58,7 +64,7 @@ export const WhatsappService = {
         }
 
         const maxRetries = 3;
-        let lastError: any;
+        let lastError: unknown;
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
@@ -83,21 +89,31 @@ export const WhatsappService = {
                     },
                 });
 
-                console.log(`WhatsApp message sent to ${to}:`, response.data);
+                console.warn('[WhatsApp] Message sent successfully', { to: formattedTo, templateName, messageId: response.data?.messages?.[0]?.id });
                 return response.data;
-            } catch (error: any) {
+            } catch (error: unknown) {
                 lastError = error;
-                const status = error.response?.status;
-                const errorMessage = error.response?.data
-                    ? JSON.stringify(error.response.data)
-                    : error.message;
+                const status = error instanceof Error && 'response' in error
+                    ? (error as Error & { response?: { status?: number } }).response?.status
+                    : undefined;
 
+                let errorMessage = 'Unknown error';
+                if (error instanceof Error && 'response' in error) {
+                    const axiosError = error as Error & { response?: { data?: unknown }, message: string };
+                    errorMessage = axiosError.response?.data
+                        ? JSON.stringify(axiosError.response.data)
+                        : axiosError.message;
+                } else if (error instanceof Error) {
+                    errorMessage = error.message;
+                }
+
+                const errorCode = error instanceof Error && 'code' in error ? (error as Error & { code?: string }).code : undefined;
                 const isRetryable =
                     status === 429 ||
-                    (status >= 500 && status < 600) ||
-                    error.code === 'ECONNABORTED' ||
-                    error.code === 'ETIMEDOUT' ||
-                    error.code === 'ECONNRESET';
+                    (status !== undefined && status >= 500 && status < 600) ||
+                    errorCode === 'ECONNABORTED' ||
+                    errorCode === 'ETIMEDOUT' ||
+                    errorCode === 'ECONNRESET';
                 if (!isRetryable || status === 401 || status === 403) {
                     const whatsappError = new Error(
                         `WhatsApp API error: ${errorMessage}`
@@ -125,9 +141,20 @@ export const WhatsappService = {
             }
         }
 
-        const errorMessage = lastError.response?.data
-            ? JSON.stringify(lastError.response.data)
-            : lastError.message;
+        let errorMessage = 'Unknown error';
+        if (lastError instanceof Error && 'response' in lastError) {
+            const axiosError = lastError as Error & { response?: { data?: unknown }, message: string };
+            errorMessage = axiosError.response?.data
+                ? JSON.stringify(axiosError.response.data)
+                : axiosError.message;
+        } else if (lastError instanceof Error) {
+            errorMessage = lastError.message;
+        }
+
+        const status = lastError instanceof Error && 'response' in lastError
+            ? (lastError as Error & { response?: { status?: number } }).response?.status
+            : undefined;
+
         const whatsappError = new Error(
             `WhatsApp API error after ${maxRetries} attempts: ${errorMessage}`
         );
@@ -135,7 +162,7 @@ export const WhatsappService = {
             to,
             templateName,
             error: errorMessage,
-            status: lastError.response?.status,
+            status,
         });
         throw whatsappError;
     },

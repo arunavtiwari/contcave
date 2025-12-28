@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prismadb";
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 /**
  * POST → Create new or update existing BillingDetails (if GSTIN already exists)
@@ -9,20 +9,20 @@ export async function POST(req: Request) {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return createErrorResponse("Unauthorized", 401);
     }
 
     const body = await req.json();
     const { companyName, gstin, billingAddress, isDefault } = body;
 
     if (!companyName || !gstin || !billingAddress) {
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+      return createErrorResponse("Missing required fields", 400);
     }
 
     // ✅ Validate GSTIN format (15 alphanumeric chars)
     const gstRegex = /^[0-9A-Z]{15}$/;
     if (!gstRegex.test(gstin)) {
-      return NextResponse.json({ message: "Invalid GSTIN format" }, { status: 400 });
+      return createErrorResponse("Invalid GSTIN format", 400);
     }
 
     // ✅ Unset previous default if this one is set default
@@ -64,13 +64,9 @@ export async function POST(req: Request) {
       });
     }
 
-    return NextResponse.json(billingRecord, { status: 200 });
-  } catch (error: any) {
-    console.error("Billing POST error:", error);
-    return NextResponse.json(
-      { message: error.message || "Failed to save billing details" },
-      { status: 500 }
-    );
+    return createSuccessResponse(billingRecord);
+  } catch (error) {
+    return handleRouteError(error, "POST /api/billing");
   }
 }
 
@@ -81,7 +77,7 @@ export async function GET() {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return createErrorResponse("Unauthorized", 401);
     }
 
     const records = await prisma.billingDetails.findMany({
@@ -89,13 +85,9 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(records, { status: 200 });
-  } catch (error: any) {
-    console.error("Billing GET error:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch billing details" },
-      { status: 500 }
-    );
+    return createSuccessResponse(records);
+  } catch (error) {
+    return handleRouteError(error, "GET /api/billing");
   }
 }
 
@@ -106,19 +98,19 @@ export async function PUT(req: Request) {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return createErrorResponse("Unauthorized", 401);
     }
 
     const body = await req.json();
     const { id, companyName, gstin, billingAddress, isDefault } = body;
 
     if (!id) {
-      return NextResponse.json({ message: "Billing record ID is required" }, { status: 400 });
+      return createErrorResponse("Billing record ID is required", 400);
     }
 
     const existing = await prisma.billingDetails.findUnique({ where: { id } });
     if (!existing || existing.userId !== currentUser.id) {
-      return NextResponse.json({ message: "Not found or unauthorized" }, { status: 404 });
+      return createErrorResponse("Not found or unauthorized", 404);
     }
 
     if (isDefault) {
@@ -138,12 +130,8 @@ export async function PUT(req: Request) {
       },
     });
 
-    return NextResponse.json(updated, { status: 200 });
-  } catch (error: any) {
-    console.error("Billing PUT error:", error);
-    return NextResponse.json(
-      { message: "Failed to update billing record" },
-      { status: 500 }
-    );
+    return createSuccessResponse(updated);
+  } catch (error) {
+    return handleRouteError(error, "PUT /api/billing");
   }
 }

@@ -1,8 +1,7 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { auth } from "@/auth";
 import { google } from 'googleapis';
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import prisma from "@/lib/prismadb";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 async function refreshCalendarAccessToken(account: any) {
   const url = "https://oauth2.googleapis.com/token";
@@ -39,38 +38,32 @@ export async function GET(request: Request) {
         include: { user: { include: { accounts: true } } },
       });
       if (!listing || !listing.user) {
-        return NextResponse.json({ error: "Listing or owner not found" }, { status: 400 });
+        return createErrorResponse("Listing or owner not found", 400);
       }
       googleAccount = listing.user.accounts.find(
-        (account) => account.provider === 'google-calendar'
+        (account: any) => account.provider === 'google-calendar'
       );
       if (!googleAccount || !googleAccount.access_token) {
-        return NextResponse.json(
-          { error: "Listing owner hasn't connected their Google Calendar" },
-          { status: 400 }
-        );
+        return createErrorResponse("Listing owner hasn't connected their Google Calendar", 400);
       }
       accessToken = googleAccount.access_token;
     } else {
-      const session = await getServerSession(authOptions);
+      const session = await auth();
       if (!session) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return createErrorResponse("Unauthorized", 401);
       }
       if (!session.calendarAccessToken) {
-        return NextResponse.json(
-          { error: 'Session calendar access token missing' },
-          { status: 401 }
-        );
+        return createErrorResponse("Session calendar access token missing", 401);
       }
       accessToken = session.calendarAccessToken;
     }
 
     if (!accessToken) {
-      return NextResponse.json({ error: "Access token not available" }, { status: 400 });
+      return createErrorResponse("Access token not available", 400);
     }
 
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+      return createErrorResponse("Server configuration error", 500);
     }
 
     const oauth2Client = new google.auth.OAuth2(
@@ -121,12 +114,8 @@ export async function GET(request: Request) {
         throw error;
       }
     }
-    return NextResponse.json(responseData);
-  } catch (error: any) {
-    console.error("Error in GET /api/google-calendar:", error);
-    return NextResponse.json(
-      { error: 'Failed to fetch calendar events', details: error.message },
-      { status: 500 }
-    );
+    return createSuccessResponse(responseData);
+  } catch (error) {
+    return handleRouteError(error, "GET /api/calendar/events");
   }
 }

@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+
 import { toast } from "react-toastify";
 import Modal from "./Modal";
-import { FaExclamationCircle, FaInfoCircle, FaSpinner } from "react-icons/fa";
+import { FaExclamationCircle, FaInfoCircle } from "react-icons/fa";
 
 type Props = {
   isOpen: boolean;
@@ -27,7 +27,7 @@ const OwnerEnableModal: React.FC<Props> = ({
 }) => {
   const [email, setEmail] = useState(initialEmail);
   const [phone, setPhone] = useState(initialPhone);
-  const [loading, setLoading] = useState(false);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Reset form when modal opens/closes or initial values change
@@ -100,7 +100,7 @@ const OwnerEnableModal: React.FC<Props> = ({
               : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               } focus:outline-none focus:ring-2`}
             placeholder="your.email@example.com"
-            disabled={loading}
+
           />
           {errors.email && (
             <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
@@ -132,7 +132,7 @@ const OwnerEnableModal: React.FC<Props> = ({
                 } focus:outline-none focus:ring-2`}
               placeholder="10-digit mobile number"
               maxLength={10}
-              disabled={loading}
+
             />
           </div>
           {errors.phone && (
@@ -144,7 +144,7 @@ const OwnerEnableModal: React.FC<Props> = ({
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-          <FaInfoCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <FaInfoCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium text-blue-900 mb-1">What happens next?</p>
             <p className="text-xs text-blue-700">
@@ -155,7 +155,7 @@ const OwnerEnableModal: React.FC<Props> = ({
 
         {errors.submit && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
-            <FaExclamationCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+            <FaExclamationCircle className="w-4 h-4 text-red-600 shrink-0" />
             <p className="text-sm text-red-600">{errors.submit}</p>
           </div>
         )}
@@ -171,7 +171,7 @@ const OwnerEnableModal: React.FC<Props> = ({
       title="Register as Studio Host"
       body={body}
       actionLabel="Continue to Verification"
-      disabled={loading}
+
       customWidth="max-w-2xl"
     />
   );

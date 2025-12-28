@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import { IoMdCloseCircle } from "react-icons/io";
-import Button from "../Button";
+import Button from "@/components/Button";
 
 type Props = {
   isOpen?: boolean;
@@ -21,7 +21,7 @@ type Props = {
   secondaryActionLabel?: string;
   termsAndConditionsAccept?: boolean;
   isLoading?: boolean;
-  autoWidth?: boolean;
+
 };
 
 function Modal({
@@ -41,7 +41,7 @@ function Modal({
   secondaryActionLabel,
   termsAndConditionsAccept,
   isLoading,
-  autoWidth
+
 }: Props) {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -96,18 +96,16 @@ function Modal({
 
   return (
     <div
-      className={`fixed inset-0 z-[999] flex items-center justify-center bg-black/60 px-4 transition-all duration-300 ${
-        isOpen ? "opacity-100" : "opacity-0"
-      } ${isLoading ? "backdrop-blur-md" : "backdrop-blur-sm"}`}
+      className={`fixed inset-0 z-999 flex items-center justify-center bg-black/60 px-4 transition-all duration-300 ${isOpen ? "opacity-100" : "opacity-0"
+        } ${isLoading ? "backdrop-blur-md" : "backdrop-blur-sm"}`}
       onClick={handleBackdropClick}
     >
       <div
         ref={modalRef}
-        className={`relative mx-auto transform transition-all duration-300 ${
-          showModal && isOpen
-            ? "opacity-100 scale-100 translate-y-0"
-            : "opacity-0 scale-95 translate-y-4"
-        } ${customWidth || "w-full md:w-4/6 lg:w-3/6 xl:w-2/5"}`}
+        className={`relative mx-auto transform transition-all duration-300 ${showModal && isOpen
+          ? "opacity-100 scale-100 translate-y-0"
+          : "opacity-0 scale-95 translate-y-4"
+          } ${customWidth || "w-full md:w-4/6 lg:w-3/6 xl:w-2/5"}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -129,9 +127,8 @@ function Modal({
 
           {/* Body */}
           <div
-            className={`px-6 py-5 overflow-y-auto text-gray-800 ${
-              fixedHeight ? "max-h-[60vh]" : ""
-            }`}
+            className={`px-6 py-5 overflow-y-auto text-gray-800 ${fixedHeight ? "max-h-[60vh]" : ""
+              }`}
           >
             {body}
           </div>
@@ -149,15 +146,15 @@ function Modal({
                 />
               )}
 
-            <Button
-              rounded
-              disabled={verificationBtn ? !termsAndConditionsAccept || disabled : disabled}
-              label={verificationBtn ? "Complete Listing" : actionLabel}
-              onClick={handleSubmit}
-              loading={isLoading} 
-            />
-          </div>
-        )}
+              <Button
+                rounded
+                disabled={verificationBtn ? !termsAndConditionsAccept || disabled : disabled}
+                label={verificationBtn ? "Complete Listing" : actionLabel}
+                onClick={handleSubmit}
+                loading={isLoading}
+              />
+            </div>
+          )}
 
 
           {footer && <div className="px-6 pb-4">{footer}</div>}

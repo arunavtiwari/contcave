@@ -4,6 +4,7 @@ import React, { useState, useCallback, useTransition, useEffect, useMemo } from 
 import Image from "next/image";
 import { toast } from "react-toastify";
 import Heading from "@/components/Heading";
+import { SafeUser } from "@/types/user";
 
 // Types
 interface BankField {
@@ -34,9 +35,8 @@ interface PaymentProfile {
     companyName?: string;
     gstin?: string;
 }
-
 interface PaymentDetailsProps {
-    profile?: PaymentProfile;
+    profile?: SafeUser | PaymentProfile | null;
     paymentDetails?: PaymentProfile | null;
     onSave?: (data: FormData, isEditing?: boolean) => Promise<void>;
 }
@@ -78,7 +78,7 @@ const FieldInput = React.memo<{
                         aria-describedby={error ? `${field.name}-error` : undefined}
                     />
                     {isEditing && (
-                        <div className="w-4 h-4 flex-shrink-0">
+                        <div className="w-4 h-4 shrink-0">
                             <Image
                                 src="/assets/edit.svg"
                                 width={16}
@@ -178,7 +178,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         }
     ], []);
 
-    const initializeFormData = useCallback((profileData: PaymentProfile | null) => {
+    const initializeFormData = useCallback((profileData: SafeUser | PaymentProfile | null) => {
         const initialData: Record<string, string> = {};
 
         [...BANK_FIELDS, ...TAX_FIELDS].forEach(field => {
@@ -186,13 +186,14 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         });
 
         if (profileData) {
-            initialData.accountHolderName = profileData.accountHolderName || '';
-            initialData.bankName = profileData.bankName || '';
-            initialData.accountNumber = profileData.accountNumber || '';
-            initialData.reAccountNumber = profileData.accountNumber || '';
-            initialData.ifscCode = profileData.ifscCode || '';
-            initialData.companyName = profileData.companyName || '';
-            initialData.gstin = profileData.gstin || '';
+            const data = profileData as any;
+            initialData.accountHolderName = data.accountHolderName || '';
+            initialData.bankName = data.bankName || '';
+            initialData.accountNumber = data.accountNumber || '';
+            initialData.reAccountNumber = data.accountNumber || '';
+            initialData.ifscCode = data.ifscCode || '';
+            initialData.companyName = data.companyName || '';
+            initialData.gstin = data.gstin || '';
         }
 
         return initialData;
@@ -272,8 +273,8 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
                 if (profile?.id) {
                     form.append('userId', profile.id);
-                } else if (profile?.userId) {
-                    form.append('userId', profile.userId);
+                } else if ((profile as any)?.userId) {
+                    form.append('userId', (profile as any).userId);
                 }
 
                 form.append('accountHolderName', formData.accountHolderName || '');

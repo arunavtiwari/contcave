@@ -1,9 +1,10 @@
 import { MetadataRoute } from "next";
+import { PrismaClient } from "@prisma/client";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://contcave.com";
 
-  const routes = [
+  const routes: MetadataRoute.Sitemap = [
     "",
     "/home",
     "/about",
@@ -19,35 +20,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const prisma = (await import("@/lib/prismadb")).default as any;
-    const listings = await prisma?.listing?.findMany?.({
-      where: { isPublished: true as any },
-      select: { id: true, updatedAt: true },
+    const prisma = (await import("@/lib/prismadb")).default as PrismaClient;
+    const listings = await prisma.listing.findMany({
+      where: {
+        status: "VERIFIED",
+        active: true
+      },
+      select: { id: true, createdAt: true },
       take: 5000,
     });
-    if (Array.isArray(listings)) {
-      for (const l of listings) {
-        // Only include public listing URLs. Exclude private property dashboard/detail.
-        routes.push({
-          url: `${base}/listings/${l.id}`,
-          lastModified: l.updatedAt ?? new Date(),
-          changeFrequency: "weekly",
-          priority: 0.9,
-        } as any);
-      }
+
+    for (const listing of listings) {
+      routes.push({
+        url: `${base}/listings/${listing.id}`,
+        lastModified: listing.createdAt ?? new Date(),
+        changeFrequency: "weekly",
+        priority: 0.9,
+      });
     }
 
     const { getSortedPostsData } = await import("@/lib/posts");
     const posts = getSortedPostsData();
+
     for (const post of posts) {
       routes.push({
         url: `${base}/blog/${post.id}`,
         lastModified: post.updatedAt ? new Date(post.updatedAt) : new Date(post.publishedAt ?? Date.now()),
         changeFrequency: "monthly",
         priority: 0.6,
-      } as any);
+      });
     }
-  } catch {}
+  } catch (error) {
+    console.error('[Sitemap] Error generating dynamic routes:', error instanceof Error ? error.message : 'Unknown error');
+  }
 
   return routes;
 }

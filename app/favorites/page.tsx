@@ -1,8 +1,8 @@
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 import React from "react";
-import getCurrentUser from "../actions/getCurrentUser";
-import getFavoriteListings from "../actions/getFavoriteListings";
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getFavoriteListings from "@/app/actions/getFavoriteListings";
 import FavoritesClient from "./FavoritesClient";
 import type { Metadata } from "next";
 import { BRAND_NAME } from "@/lib/seo";

@@ -7,7 +7,9 @@ import ManagePayments from "@/components/Profile/ManagePayments/ManagePayments";
 import ShareAndRefer from "@/components/Profile/ShareAndRefer";
 import Settings from "@/components/Profile/ProfileSettings";
 
-const ProfileClient = ({ profile }) => {
+import { SafeUser } from "@/types/user";
+
+const ProfileClient = ({ profile }: { profile: SafeUser | null }) => {
   const [selectedMenu, setSelectedMenu] = useState("Profile");
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -41,7 +43,8 @@ const ProfileClient = ({ profile }) => {
       const data = await apiCall(`/api/payment-details/${profile.id}`);
       return data.success ? (data.data || null) : null;
     } catch (error) {
-      if ((error as any).status === 404 || error.message?.includes('404') || error.message?.includes('not found')) {
+      const err = error as any;
+      if (err.status === 404 || err.message?.includes('404') || err.message?.includes('not found')) {
         return null;
       }
       console.error('Error fetching payment details:', error);
@@ -56,7 +59,8 @@ const ProfileClient = ({ profile }) => {
       const data = await apiCall(`/api/transactions/${profile.id}`);
       return data.success ? (data.transactions || []) : [];
     } catch (error) {
-      if ((error as any).status === 404 || error.message?.includes('404') || error.message?.includes('not found')) {
+      const err = error as any;
+      if (err.status === 404 || err.message?.includes('404') || err.message?.includes('not found')) {
         return [];
       }
       console.error('Error fetching transactions:', error);

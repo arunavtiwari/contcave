@@ -44,7 +44,7 @@ export async function runDueSplits(limit = 200) {
         const vendorId = String(t.vendorId || "");
         if (!orderId || !vendorId) continue;
 
-        const pct = Number.isFinite(t.payoutPercentToOwner as any)
+        const pct = Number.isFinite(t.payoutPercentToOwner)
             ? Math.max(0, Math.min(100, Number(t.payoutPercentToOwner)))
             : OWNER_PAYOUT_PERCENT;
 
@@ -66,16 +66,16 @@ export async function runDueSplits(limit = 200) {
                         listingTitle: t.listing?.title || "Studio",
                         date: new Date().toISOString().split("T")[0],
                     });
-                } catch (e: any) {
+                } catch (e: unknown) {
                     console.error("Failed to send payout WhatsApp", {
                         transactionId: t.id,
                         hostPhone,
-                        error: e?.message || e,
+                        error: e instanceof Error ? e.message : String(e),
                     });
                 }
             }
-        } catch (e: any) {
-            results.push({ id: t.id, ok: false, error: e?.message || "split failed" });
+        } catch (e: unknown) {
+            results.push({ id: t.id, ok: false, error: e instanceof Error ? e.message : "split failed" });
         }
     }
 

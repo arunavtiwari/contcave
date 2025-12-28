@@ -1,3 +1,6 @@
+"use server";
+
+import 'server-only';
 import prisma from "@/lib/prismadb";
 import getCurrentUser from "./getCurrentUser";
 
@@ -17,12 +20,12 @@ export default async function getFavoriteListings() {
       },
     });
 
-    const safeFavorite = favorites.map((favorite) => ({
+    const safeFavorites = favorites.map((favorite: any) => ({
       ...favorite,
       createdAt: favorite.createdAt.toString(),
     }));
 
-    return safeFavorite;
+    return safeFavorites;
   } catch (error: any) {
     throw new Error(error.message);
   }

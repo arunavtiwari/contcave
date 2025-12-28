@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -9,23 +9,18 @@ interface IParams {
 }
 
 export async function GET(request: Request, props: { params: Promise<IParams> }) {
-  const params = await props.params;
   try {
+    const params = await props.params;
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {
-      return NextResponse.json({
-        canReview: false,
-        message: "User not authenticated"
-      }, { status: 401 });
+      return createErrorResponse("User not authenticated", 401);
     }
 
     const { listingId } = params;
 
     if (!listingId || typeof listingId !== "string") {
-      return NextResponse.json({
-        error: "Invalid Listing ID",
-      }, { status: 400 });
+      return createErrorResponse("Invalid Listing ID", 400);
     }
 
     const reservationCount = await prisma.reservation.count({
@@ -36,7 +31,7 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
     });
 
     if (reservationCount === 0) {
-      return NextResponse.json({
+      return createSuccessResponse({
         canReview: false,
         message: "No reservations found for this user and listing"
       });
@@ -59,10 +54,7 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
     });
 
     if (!latestReservation) {
-      return NextResponse.json({
-        canReview: false,
-        message: "No reservation found",
-      }, { status: 404 });
+      return createErrorResponse("No reservation found", 404);
     }
 
     // Determine if the reservation has concluded (end datetime <= now)
@@ -101,7 +93,7 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
     const isPastDay = ymd < todayYmd;
     const canReviewNow = isPastDay || endAt.getTime() <= now.getTime();
 
-    return NextResponse.json({
+    return createSuccessResponse({
       message: 'Reservation found',
       canReview: canReviewNow,
       latestReservationId: latestReservation.id,
@@ -109,9 +101,6 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
       now: now.toISOString(),
     });
   } catch (error) {
-    console.error("Error in fetching reservation:", error);
-    return NextResponse.json({
-      error: "Internal Server Error",
-    }, { status: 500 });
+    return handleRouteError(error, "GET /api/checkbooking/[listingId]");
   }
 }

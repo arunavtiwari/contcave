@@ -1,5 +1,5 @@
 // next-auth.d.ts
-import NextAuth, { DefaultSession } from "next-auth";
+import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -11,6 +11,10 @@ declare module "next-auth" {
   }
 }
 
+
+// Note: JWT module augmentation removed for NextAuth v5 compatibility
+// If JWT customization is needed, use the auth.ts configuration instead
+/*
 declare module "next-auth/jwt" {
   interface JWT {
     accessToken?: string;
@@ -19,3 +23,4 @@ declare module "next-auth/jwt" {
     accessTokenExpires?: number | null;
   }
 }
+*/

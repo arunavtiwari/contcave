@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import SectionHeader from "../Common/SectionHeader";
+import SectionHeader from "@/components/Common/SectionHeader";
 import BlogItem from "./BlogItem";
 import getBlogData from "./getBlogData";
 import { BlogPost } from "@/types/blog";
@@ -11,7 +11,7 @@ const Blog = () => {
 
   useEffect(() => {
     const loadBlogs = async () => {
-      const getBlog: BlogPost[] = await getBlogData(); 
+      const getBlog: BlogPost[] = await getBlogData();
       setBlogs(getBlog);
     };
 

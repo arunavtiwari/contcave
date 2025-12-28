@@ -1,3 +1,5 @@
+"use server";
+
 import prisma from "@/lib/prismadb";
 
 export interface IListingsParams {
@@ -20,7 +22,7 @@ export default async function getListings(params: IListingsParams) {
       type,
     } = params;
 
-    let query: any = {};
+    const query: any = {};
 
     if (userId) {
       query.userId = userId;
@@ -75,7 +77,7 @@ export default async function getListings(params: IListingsParams) {
       },
     });
 
-    const safeListings = listing.map((list) => ({
+    const safeListings = listing.map((list: any) => ({
       ...list,
       createdAt: list.createdAt.toISOString(),
     }));

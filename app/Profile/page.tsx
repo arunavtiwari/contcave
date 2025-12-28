@@ -1,6 +1,6 @@
 import ClientOnly from "@/components/ClientOnly";
 import ProfileClient from "./ProfileClient";
-import getCurrentUser from "../actions/getCurrentUser";
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import EmptyState from "@/components/EmptyState";
 import Container from "@/components/Container";
 import type { Metadata } from "next";

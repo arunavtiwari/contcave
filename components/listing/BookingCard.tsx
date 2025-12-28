@@ -1,17 +1,28 @@
 "use client";
-import useCities from "@/hook/useCities";
-import { SafeReservation, SafeUser, safeListing } from "@/types";
+
+import { SafeUser } from "@/types/user";
+import { safeListing } from "@/types/listing";
+import { SafeReservation } from "@/types/reservation";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import React, { useCallback, useMemo, useState, useEffect } from "react";
-import Button from "../Button";
-import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
-import { FaWhatsapp } from "react-icons/fa";
+
+import React, { useCallback, useState, useEffect } from "react";
+import Button from "@/components/Button";
 import { IconButton } from "@chakra-ui/button";
 import { IoMdCloseCircle } from "react-icons/io";
+import { Addon } from "@/types/addon";
+import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
+import { FaWhatsapp } from "react-icons/fa";
 
-type Props = {
+interface BookingDetails {
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    totalPrice: number;
+    selectedAddons: Addon[];
+}
+
+interface BookingCardProps {
     data: safeListing;
     reservation?: SafeReservation;
     onAction?: (id: string) => void;
@@ -24,23 +35,20 @@ type Props = {
     actionLabel?: string;
     actionId?: string;
     currentUser?: SafeUser | null;
-};
+}
 
-function BookingCard({
+const BookingCard: React.FC<BookingCardProps> = ({
     data,
     reservation,
     onAction,
-    onChat,
+    onDelete,
     onApprove,
     onReject,
-    onDelete,
+    onChat,
     disabled,
-    actionId = "",
-}: Props) {
-    const router = useRouter();
-    const { getByValue } = useCities();
-    const [booking, setBooking] = useState<any>();
-    const location = getByValue(data.locationValue);
+    actionId,
+}) => {
+    const [booking, setBooking] = useState<BookingDetails | null>(null);
     const [showReceipt, setShowReceipt] = useState(false);
 
     useEffect(() => {
@@ -52,24 +60,19 @@ function BookingCard({
             setBooking(await reservation_data.json());
         };
 
-        fetchReservation();
+        if (reservation?.id) {
+            fetchReservation();
+        }
     }, [reservation?.id]);
 
     const handleCancel = useCallback(
         (e: React.MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
-            if (disabled) return;
+            if (disabled || !actionId) return;
             onAction?.(actionId);
         },
         [onAction, actionId, disabled]
     );
-
-    const price = useMemo(() => {
-        if (reservation) {
-            return reservation.totalPrice;
-        }
-        return data.price;
-    }, [reservation, data.price]);
 
     const bookingStatus = reservation?.isApproved;
 
@@ -283,7 +286,7 @@ function BookingCard({
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Date of Booking:</span>
                                 <span className="text-gray-900">
-                                    {new Date(booking?.startDate).toLocaleDateString()}
+                                    {booking?.startDate ? new Date(booking.startDate).toLocaleDateString() : ""}
                                 </span>
                             </div>
 
@@ -326,21 +329,21 @@ function BookingCard({
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Add-ons:</span>
                                 <span className="text-gray-900">
-                                    {booking?.selectedAddons.map((item) => item.name).join(", ") || "None"}
+                                    {booking?.selectedAddons.map((item: Addon) => item.name).join(", ") || "None"}
                                 </span>
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Add-ons Charge:</span>
                                 <span className="text-gray-900 font-semibold">
-                                    ₹ {booking?.selectedAddons.reduce((acc, value) => acc + (value.qty * value.price), 0)}
+                                    ₹ {booking?.selectedAddons.reduce((acc: number, value: Addon) => acc + (value.qty * value.price), 0)}
                                 </span>
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Property Charge:</span>
                                 <span className="text-gray-900 font-semibold">
-                                    ₹ {booking?.totalPrice - booking?.selectedAddons.reduce((acc, value) => acc + (value.qty * value.price), 0)}
+                                    ₹ {(booking?.totalPrice ?? 0) - (booking?.selectedAddons.reduce((acc: number, value: Addon) => acc + (value.qty * value.price), 0) ?? 0)}
                                 </span>
                             </div>
                         </div>

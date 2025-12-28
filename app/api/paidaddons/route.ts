@@ -1,28 +1,29 @@
 import prisma from "@/lib/prismadb";
-import { NextResponse } from "next/server";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function POST(request: Request) {
-
-  const body = await request.json();
-  const {
-    name,
-    price,
-    image,
-  } = body;
-
-  Object.keys(body).forEach((value: any) => {
-    if (!body[value]) {
-      NextResponse.error();
-    }
-  });
-
-  const listen = await prisma.addons.create({
-    data: {
+  try {
+    const body = await request.json();
+    const {
       name,
       price,
-      image
-    },
-  });
+      image,
+    } = body;
 
-  return NextResponse.json(listen);
+    if (!name || !price || !image) {
+      return createErrorResponse("Missing required fields: name, price, or image", 400);
+    }
+
+    const listen = await prisma.addons.create({
+      data: {
+        name,
+        price,
+        image
+      },
+    });
+
+    return createSuccessResponse(listen);
+  } catch (error) {
+    return handleRouteError(error, "POST /api/paidaddons");
+  }
 }

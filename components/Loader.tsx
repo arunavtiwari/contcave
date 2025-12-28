@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import React from "react";
+
 
 type Props = {};
 
@@ -15,7 +15,7 @@ function Loader({ }: Props) {
       {/* Custom Loader Animation */}
       <div className="relative flex justify-center items-center">
 
-        <div className="absolute w-[100px] h-[100px] border-[8px] border-r-transparent border-black rounded-full animate-spin-slow"></div>
+        <div className="absolute w-[100px] h-[100px] border-8 border-r-transparent border-black rounded-full animate-spin-slow"></div>
 
         {/* Middle Pulsating Circle */}
         <motion.div

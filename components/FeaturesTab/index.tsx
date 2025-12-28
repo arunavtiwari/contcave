@@ -5,7 +5,7 @@ import FeaturesTabItem from "./FeaturesTabItem";
 import featuresTabData from "./featuresTabData";
 
 import { motion } from "framer-motion";
-import SectionHeader from "../Common/SectionHeader";
+import SectionHeader from "@/components/Common/SectionHeader";
 
 const FeaturesTab = () => {
   const [currentTab, setCurrentTab] = useState("tabOne");

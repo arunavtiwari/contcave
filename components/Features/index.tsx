@@ -2,7 +2,7 @@
 import React from "react";
 import featuresData from "./featuresData";
 import SingleFeature from "./SingleFeature";
-import SectionHeader from "../Common/SectionHeader";
+import SectionHeader from "@/components/Common/SectionHeader";
 
 const Feature = () => {
   return (
@@ -26,7 +26,7 @@ const Feature = () => {
             {featuresData.map((feature, key) => (
               <SingleFeature feature={feature} key={key} />
             ))}
-            
+
             {/* <!-- Features item End --> */}
           </div>
         </div>

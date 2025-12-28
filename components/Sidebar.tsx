@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+
 import { FaCalendar, FaClock, FaArrowUpRightDots } from "react-icons/fa6";
 import { FaHome, FaCogs } from "react-icons/fa";
 import React from "react";
@@ -15,7 +15,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedMenu, listingId, menuType = "main" }) => {
-    const router = useRouter();
+
 
     const sidebarMenuItems = React.useMemo(() => [
         { name: "Edit Property", icon: <FaHome size={22} className="hover:text-white sm:hover:text-black transition" /> },

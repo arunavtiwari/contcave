@@ -1,14 +1,16 @@
 "use client";
 
 import useCities from "@/hook/useCities";
-import { SafeReservation, SafeUser, safeListing } from "@/types";
-import { format } from "date-fns";
+import { SafeUser } from "@/types/user";
+import { safeListing } from "@/types/listing";
+import { SafeReservation } from "@/types/reservation";
+
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import React, { useCallback, useMemo } from "react";
-import Button from "../Button";
-import HeartButton from "../HeartButton";
+import React, { useMemo } from "react";
+import Button from "@/components/Button";
+import HeartButton from "@/components/HeartButton";
 import { FaStar } from "react-icons/fa6";
 
 type Props = {
@@ -26,35 +28,19 @@ type Props = {
   currentUser?: SafeUser | null;
 };
 
-function ListingCard({
+const ListingCard: React.FC<Props> = ({
   data,
   reservation,
-  onAction,
   onEdit,
-  onDelete,
   onApprove,
   onChat,
-  disabled,
-  actionLabel,
-  actionId = "",
-  onApproveBookings,
-  currentUser,
-}: Props) {
+  currentUser
+}) => {
   const router = useRouter();
   const { getByValue } = useCities();
-
   const location = getByValue(data.locationValue);
 
-  const handleCancel = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
 
-      if (disabled) return;
-
-      onAction?.(actionId);
-    },
-    [onAction, actionId, disabled]
-  );
 
   const price = useMemo(() => {
     if (reservation) {

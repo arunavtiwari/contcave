@@ -1,22 +1,37 @@
-import { NextResponse } from "next/server";
 import crypto from "crypto";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+
+interface SignatureParams {
+    timestamp?: string;
+    folder?: string;
+    public_id?: string;
+    eager?: string;
+    transformation?: string;
+    context?: string;
+    tags?: string;
+    upload_preset?: string;
+    source?: string;
+    type?: string;
+    invalidate?: string;
+}
 
 export async function POST(request: Request) {
     try {
-        const raw = await request.json().catch(() => ({} as any));
+        const raw = await request.json().catch(() => ({}));
         const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
         if (!apiSecret) {
-            return NextResponse.json({ error: "Missing CLOUDINARY_API_SECRET" }, { status: 500 });
+            return createErrorResponse("Missing CLOUDINARY_API_SECRET", 500);
         }
 
-        const paramsObj: Record<string, any> = raw?.paramsToSign && typeof raw.paramsToSign === "object"
+        const paramsObj: SignatureParams = raw?.paramsToSign && typeof raw.paramsToSign === "object"
             ? raw.paramsToSign
             : raw || {};
 
         const nowTs = String(Math.floor(Date.now() / 1000));
         if (!paramsObj.timestamp) paramsObj.timestamp = nowTs;
 
-        const allowedKeys = new Set([
+        const allowedKeys: Set<keyof SignatureParams> = new Set([
             "timestamp",
             "folder",
             "public_id",
@@ -31,13 +46,13 @@ export async function POST(request: Request) {
         ]);
 
         const signParams: Record<string, string> = {};
-        Object.keys(paramsObj).forEach((k) => {
-            const v = paramsObj[k];
-            if (v == null) return;
-            if (allowedKeys.has(k)) {
-                signParams[k] = typeof v === "string" ? v : JSON.stringify(v);
+
+        for (const key of Object.keys(paramsObj) as Array<keyof SignatureParams>) {
+            const value = paramsObj[key];
+            if (value != null && allowedKeys.has(key)) {
+                signParams[key] = typeof value === "string" ? value : JSON.stringify(value);
             }
-        });
+        }
 
         const toSign = Object.keys(signParams)
             .sort()
@@ -48,10 +63,14 @@ export async function POST(request: Request) {
 
         const apiKey = process.env.CLOUDINARY_API_KEY || process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
         const cloud = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-        return NextResponse.json({ signature, timestamp: String(paramsObj.timestamp), apiKey, cloud });
-    } catch (e: any) {
-        return NextResponse.json({ error: e?.message || "Signature error" }, { status: 500 });
+
+        return createSuccessResponse({
+            signature,
+            timestamp: String(paramsObj.timestamp),
+            apiKey,
+            cloud
+        });
+    } catch (error) {
+        return handleRouteError(error, "POST /api/cloudinary/sign");
     }
 }
-
-

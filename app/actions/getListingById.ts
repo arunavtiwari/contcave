@@ -1,3 +1,5 @@
+"use server";
+
 import prisma from "@/lib/prismadb";
 
 interface IParams {
@@ -32,6 +34,9 @@ export default async function getListingById(params: IParams) {
         emailVerified: listing.user.emailVerified?.toString() || null,
         verified_at: listing.user.verified_at
           ? listing.user.verified_at.toISOString()
+          : null,
+        markedForDeletionAt: listing.user.markedForDeletionAt
+          ? listing.user.markedForDeletionAt.toISOString()
           : null,
       },
     };

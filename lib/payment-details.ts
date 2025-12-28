@@ -118,7 +118,17 @@ export async function upsertPaymentDetailsSafe(data: PaymentDetailsData): Promis
         const normalizedGstin = data.gstin ? data.gstin.toUpperCase() : null;
 
         if (existing) {
-            const updateData: any = {
+            interface PaymentDetailsUpdate {
+                accountHolderName: string;
+                bankName: string;
+                ifscCode: string;
+                companyName: string | null;
+                gstin: string | null;
+                updatedAt: Date;
+                accountNumber?: string;
+            }
+
+            const updateData: PaymentDetailsUpdate = {
                 accountHolderName: data.accountHolderName,
                 bankName: data.bankName,
                 ifscCode: data.ifscCode,

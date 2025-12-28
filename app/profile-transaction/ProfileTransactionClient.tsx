@@ -6,7 +6,9 @@ import Heading from "@/components/Heading";
 
 type Props = {};
 
-const ProfileTransactionClient = ({ profile }) => {
+import { SafeUser } from "@/types/user";
+
+const ProfileTransactionClient = ({ profile }: { profile: SafeUser | null }) => {
   const router = useRouter();
   const [selectedMenu, setSelectedMenu] = useState("Manage Payments");
   return (

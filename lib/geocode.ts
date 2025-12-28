@@ -15,12 +15,19 @@ function jitter(lat: number, lng: number, meters: number) {
   return { lat: jLat, lng: jLng };
 }
 
+interface NominatimResult {
+  lat: string;
+  lon: string;
+  display_name?: string;
+  boundingbox?: string[];
+}
+
 export async function geocodeDisplayName(displayName: string): Promise<GeoResult | null> {
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(displayName)}&limit=1&addressdetails=0`;
     const res = await fetch(url, { headers: { "User-Agent": "contcave/1.0" } });
     if (!res.ok) return null;
-    const data: any[] = await res.json();
+    const data: NominatimResult[] = await res.json();
     if (!Array.isArray(data) || data.length === 0) return null;
     const item = data[0];
     const lat = Number(item.lat);

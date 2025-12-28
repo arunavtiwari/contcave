@@ -8,7 +8,9 @@ import EmptyState from '@/components/EmptyState';
 import PropertyClient from '@/components/PropertyClient';
 export const dynamic = "force-dynamic"
 import React from 'react';
-export const metadata = {
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
   title: "Manage Property | ContCave",
   description:
     "Edit your listing details, amenities, and add-ons securely within your ContCave host dashboard.",
@@ -27,7 +29,7 @@ const EditPropertyComponent = async (props: { params: Promise<IParams> }) => {
   const params = await props.params;
   const currentUser = await getCurrentUser();
   const listing = await getListingById({ listingId: params.propertyId }) as any;
-  const amenitiesData = await getAmenities(true);
+  const amenitiesData = await getAmenities();
   const addonsData = await getAddons();
 
   if (!listing) {

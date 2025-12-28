@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { spaceTypes } from "@/constants/spaceTypes";
 import useIndianCities from "@/hook/useCities";
-import CitySelect from "../inputs/CitySelect";
+import CitySelect from "@/components/inputs/CitySelect";
 import Modal from "./Modal";
 
 const FilterModal = () => {
@@ -78,11 +78,10 @@ const FilterModal = () => {
               onClick={() =>
                 setSelectedType((prev) => (prev === spaceType ? null : spaceType))
               }
-              className={`px-3 py-1 rounded-full border text-sm ${
-                selectedType === spaceType
-                  ? "bg-black text-white border-black"
-                  : "border-gray-300 hover:bg-gray-100"
-              }`}
+              className={`px-3 py-1 rounded-full border text-sm ${selectedType === spaceType
+                ? "bg-black text-white border-black"
+                : "border-gray-300 hover:bg-gray-100"
+                }`}
             >
               {spaceType}
             </button>
@@ -93,7 +92,7 @@ const FilterModal = () => {
   );
 
   return (
-    <div className="flex-shrink-0">
+    <div className="shrink-0">
       <button
         onClick={() => setIsOpen(true)}
         className="px-4 py-2 bg-gray-100 rounded-lg text-sm whitespace-nowrap"

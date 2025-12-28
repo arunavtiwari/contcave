@@ -1,15 +1,12 @@
-import { NextResponse } from "next/server";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function POST(req: Request) {
   try {
     const { userId, reservationId, transactionId, amount } = await req.json();
 
     if (!userId || !reservationId || !transactionId) {
-      return NextResponse.json(
-        { message: "Missing required fields" },
-        { status: 400 }
-      );
+      return createErrorResponse("Missing required fields: userId, reservationId, or transactionId", 400);
     }
 
     const { invoice } = await ensureInvoiceWithAttachment({
@@ -19,12 +16,11 @@ export async function POST(req: Request) {
       amountOverride: amount,
     });
 
-    return NextResponse.json({
+    return createSuccessResponse({
       invoiceUrl: invoice.invoiceUrl,
       invoiceId: invoice.id,
     });
   } catch (error: any) {
-    console.error("Invoice generation failed:", error);
     const message = error?.message || "Failed to generate invoice";
     const notFoundMessages = new Set([
       "User not found",
@@ -34,8 +30,9 @@ export async function POST(req: Request) {
     const status = notFoundMessages.has(message)
       ? 404
       : message.includes("does not match") || message.includes("Unable to determine")
-      ? 400
-      : 500;
-    return NextResponse.json({ message }, { status });
+        ? 400
+        : 500;
+
+    return createErrorResponse(message, status);
   }
 }

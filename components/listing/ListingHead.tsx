@@ -2,11 +2,11 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import useCities from "@/hook/useCities";
-import { SafeUser } from "@/types";
+import { SafeUser } from "@/types/user";
 import Image from "next/image";
-import Heading from "../Heading";
-import HeartButton from "../HeartButton";
-import Modal from "../modals/Modal";
+import Heading from "@/components/Heading";
+import HeartButton from "@/components/HeartButton";
+import Modal from "@/components/modals/Modal";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider, { Settings } from "react-slick";
@@ -92,7 +92,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
         alt={`image-${index}`}
         fill
         onLoadingComplete={() => handleImageLoad(index)}
-        className={`object-cover hover:brightness-[90%] ${extraClasses} ${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+        className={`object-cover hover:brightness-90 ${extraClasses} ${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
       />
     </div>
   );
@@ -156,7 +156,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
                   alt="image-0"
                   fill
                   onLoadingComplete={() => handleImageLoad(0)}
-                  className={`object-cover rounded-l-lg hover:brightness-[90%] ${loaded[0] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+                  className={`object-cover rounded-l-lg hover:brightness-90 ${loaded[0] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
                 />
               )}
             </div>
@@ -173,7 +173,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
                     alt="image-4"
                     fill
                     onLoadingComplete={() => handleImageLoad(4)}
-                    className={`object-cover rounded-r-lg hover:brightness-[90%] ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+                    className={`object-cover rounded-r-lg hover:brightness-90 ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
                     onClick={() => handleImageClick(4)}
                   />
                   <button

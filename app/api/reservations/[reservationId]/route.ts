@@ -1,25 +1,24 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
-import { NextResponse } from "next/server";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 interface IParams {
   reservationId?: string;
 }
 
-// GET Reservation by ID
 export async function GET(request: Request, props: { params: Promise<IParams> }) {
-  const params = await props.params;
   try {
+    const params = await props.params;
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return createErrorResponse("Authentication required", 401);
     }
 
     const { reservationId } = params;
 
     if (!reservationId || typeof reservationId !== "string") {
-      return NextResponse.json({ error: 'Invalid Reservation ID' }, { status: 400 });
+      return createErrorResponse("Invalid reservation ID", 400);
     }
 
     const reservation = await prisma.reservation.findFirst({
@@ -31,31 +30,28 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
     });
 
     if (!reservation || (reservation.userId !== currentUser.id && reservation.listing.userId !== currentUser.id)) {
-      return NextResponse.json({ error: 'Not Found or Unauthorized' }, { status: 404 });
+      return createErrorResponse("Reservation not found or unauthorized", 404);
     }
 
-    return NextResponse.json(reservation);
-
+    return createSuccessResponse(reservation);
   } catch (error) {
-    console.error("Error fetching reservation:", error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleRouteError(error, "GET /api/reservations/[reservationId]");
   }
 }
 
-// DELETE Reservation by ID
 export async function DELETE(request: Request, props: { params: Promise<IParams> }) {
-  const params = await props.params;
   try {
+    const params = await props.params;
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return createErrorResponse("Authentication required", 401);
     }
 
     const { reservationId } = params;
 
     if (!reservationId || typeof reservationId !== "string") {
-      return NextResponse.json({ error: 'Invalid Reservation ID' }, { status: 400 });
+      return createErrorResponse("Invalid reservation ID", 400);
     }
 
     const existingReservation = await prisma.reservation.findFirst({
@@ -66,7 +62,7 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
     });
 
     if (!existingReservation) {
-      return NextResponse.json({ error: 'Reservation Not Found or Unauthorized' }, { status: 404 });
+      return createErrorResponse("Reservation not found or unauthorized", 404);
     }
 
     const softDeletedReservation = await prisma.reservation.update({
@@ -77,28 +73,25 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
       },
     });
 
-    return NextResponse.json(softDeletedReservation);
-
+    return createSuccessResponse(softDeletedReservation, 200, "Reservation deleted successfully");
   } catch (error) {
-    console.error("Error soft deleting reservation:", error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleRouteError(error, "DELETE /api/reservations/[reservationId]");
   }
 }
 
-// PATCH Reservation by ID
 export async function PATCH(request: Request, props: { params: Promise<IParams> }) {
-  const params = await props.params;
   try {
+    const params = await props.params;
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return createErrorResponse("Authentication required", 401);
     }
 
     const { reservationId } = params;
 
     if (!reservationId || typeof reservationId !== "string") {
-      return NextResponse.json({ error: 'Invalid Reservation ID' }, { status: 400 });
+      return createErrorResponse("Invalid reservation ID", 400);
     }
 
     const body = await request.json();
@@ -112,7 +105,7 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
     });
 
     if (!existingReservation) {
-      return NextResponse.json({ error: 'Reservation Not Found or Unauthorized' }, { status: 404 });
+      return createErrorResponse("Reservation not found or unauthorized", 404);
     }
 
     const updatedReservation = await prisma.reservation.update({
@@ -120,10 +113,8 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       data: body,
     });
 
-    return NextResponse.json(updatedReservation);
-
+    return createSuccessResponse(updatedReservation, 200, "Reservation updated successfully");
   } catch (error) {
-    console.error("Error updating reservation:", error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleRouteError(error, "PATCH /api/reservations/[reservationId]");
   }
 }

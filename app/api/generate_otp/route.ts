@@ -1,18 +1,22 @@
-import { NextResponse } from "next/server";
 import axios from "axios";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log("[Generate OTP] Incoming request body:", body);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Generate OTP] Request received');
+    }
 
     const httpsAgent = process.env.FIXIE_URL
       ? new HttpsProxyAgent(process.env.FIXIE_URL)
       : undefined;
 
     if (httpsAgent) {
-      console.log("[Generate OTP] Using proxy for outbound request");
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Generate OTP] Using proxy');
+      }
     }
 
     const resp = await axios.post(
@@ -28,13 +32,14 @@ export async function POST(req: Request) {
       }
     );
 
-    console.log("[Generate OTP] Cashfree response:", resp.data);
-    return NextResponse.json(resp.data, { status: resp.status });
-  } catch (err: any) {
-    console.error("[Generate OTP] Error:", err.response?.data || err.message);
-    return NextResponse.json(
-      { error: err.response?.data || err.message },
-      { status: err.response?.status || 500 }
-    );
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Generate OTP] Success');
+    }
+    return createSuccessResponse(resp.data, resp.status);
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      return createErrorResponse(err.response?.data || err.message, err.response?.status || 500);
+    }
+    return handleRouteError(err, "POST /api/generate_otp");
   }
 }

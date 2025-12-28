@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function POST(req: Request) {
   try {
@@ -16,12 +16,8 @@ export async function POST(req: Request) {
 
     const data = await resp.json();
 
-    return NextResponse.json(data, { status: 200 });
-  } catch (err: any) {
-    console.error("Email verification error:", err);
-    return NextResponse.json(
-      { error: "Email verification failed" },
-      { status: 500 }
-    );
+    return createSuccessResponse(data);
+  } catch (err) {
+    return handleRouteError(err, "POST /api/verify_email");
   }
 }

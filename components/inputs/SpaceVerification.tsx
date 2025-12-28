@@ -3,18 +3,50 @@ import React, { useEffect, useState } from 'react';
 import { FiUpload } from "react-icons/fi";
 import { CiFileOn } from "react-icons/ci";
 
+export interface VerificationDocument {
+    file?: File;
+    original_filename: string;
+    bytes: number;
+    format: string;
+    resource_type: string;
+    previewUrl?: string;
+    public_id?: string;
+    version?: number;
+    thumbnail?: string;
+    url?: string;
+}
 
-const SpaceVerification = ({ onVerification }: any) => {
+export interface VerificationVideo {
+    resource_type: string;
+    original_filename: string;
+    public_id: string;
+    bytes: number;
+    version: number;
+    thumbnail: string;
+    url: string;
+    format: string;
+}
 
+export interface VerificationPayload {
+    documents: VerificationDocument[];
+    videos: VerificationVideo[];
+    code: string;
+}
 
-    const [documents, setDocuments] = useState<any[]>([]);
-    const [videos, setVideos] = useState<any[]>([]);
+interface Props {
+    onVerification: (data: VerificationPayload) => void;
+}
+
+const SpaceVerification: React.FC<Props> = ({ onVerification }) => {
+    const [documents, setDocuments] = useState<VerificationDocument[]>([]);
+    const [videos, setVideos] = useState<VerificationVideo[]>([]);
     const [verificationCode, setVerificationCode] = useState('');
+
     // Local file capture; actual upload will happen after listing creation
     const handleLocalDocs = (evt: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(evt.target.files || []).filter((f) => f.type === 'application/pdf');
         if (files.length === 0) return;
-        const mapped = files.map((f) => ({
+        const mapped: VerificationDocument[] = files.map((f) => ({
             file: f,
             original_filename: f.name,
             bytes: f.size,
@@ -27,9 +59,9 @@ const SpaceVerification = ({ onVerification }: any) => {
         setVerificationPayload(nextDocs, videos, verificationCode);
     };
 
-    const handleUploadVideoSuccess = (result: any) => {
-        const info = result?.info || {};
-        const newItems = Array.isArray(info.secure_url)
+    const handleUploadVideoSuccess = (result: unknown) => {
+        const info = (result as { info: any })?.info || {};
+        const newItems: VerificationVideo[] = Array.isArray(info.secure_url)
             ? info.secure_url
             : [{
                 resource_type: info.resource_type,
@@ -58,8 +90,8 @@ const SpaceVerification = ({ onVerification }: any) => {
         setVerificationPayload(documents, videos, result)
     }
 
-    const setVerificationPayload = ((documents: any[] = [], videos: any[] = [], code: string = "") => {
-        const verifications = {
+    const setVerificationPayload = ((documents: VerificationDocument[] = [], videos: VerificationVideo[] = [], code: string = "") => {
+        const verifications: VerificationPayload = {
             documents: documents,
             videos: videos,
             code: code
@@ -79,13 +111,13 @@ const SpaceVerification = ({ onVerification }: any) => {
                     <div className="px-7">
                         <div className="flex justify-between">
                             <div className="px-4 w-1/2">
-                                <label className="flex justify-center w-full h-15 px-4 py-3  mt-5 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none cursor-pointer">
+                                <label className="flex justify-center w-full h-15 px-4 py-3  mt-5 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-xs hover:text-white hover:opacity-50 focus:outline-none cursor-pointer">
                                     <FiUpload className="h-5 w-5 text-white  mr-2 " aria-hidden="true" />
                                     <span>Upload Document/s (PDF)</span>
                                     <input type="file" accept="application/pdf" multiple className="hidden" onChange={handleLocalDocs} />
                                 </label>
                                 <div className="flex flex-wrap">
-                                    {documents.map((doc: any, index: number) => (
+                                    {documents.map((doc, index) => (
                                         <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
                                             <CiFileOn className="rounded border h-15" size={62} />
                                             <strong className="text-xs truncate">{doc.original_filename}.pdf</strong>
@@ -121,7 +153,7 @@ const SpaceVerification = ({ onVerification }: any) => {
                                 <div className="flex ">
                                     <button
                                         onClick={generateVerificationCode}
-                                        className="flex items-center px-4 py-2 bg-green-800 rounded-lg border text-white font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none">
+                                        className="flex items-center px-4 py-2 bg-green-800 rounded-lg border text-white font-medium text-sm leading-5 shadow-xs hover:text-white hover:opacity-50 focus:outline-none">
 
                                         Generate code
                                     </button>

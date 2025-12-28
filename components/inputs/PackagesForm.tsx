@@ -4,14 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Trash2, Plus } from "lucide-react";
 import Input from "./Input";
 
-export interface Package {
-  id?: string;
-  title: string;
-  originalPrice: number;
-  offeredPrice: number;
-  features: string[];
-  durationHours: number;
-}
+import { Package } from "@/types/package";
 
 interface PackagesFormProps {
   value: Package[];
@@ -41,7 +34,7 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
     ]);
   };
 
-  const updatePackage = (index: number, key: keyof Package, val: any) => {
+  const updatePackage = (index: number, key: keyof Package, val: string | number | string[]) => {
     const updated = packages.map((pkg, i) => (i === index ? { ...pkg, [key]: val } : pkg));
     updatePackages(updated);
   };
@@ -56,7 +49,7 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
       {packages.map((pkg, idx) => (
         <div
           key={idx}
-          className="border border-black rounded-xl p-6 relative flex flex-col gap-4 bg-white shadow-sm"
+          className="border border-black rounded-xl p-6 relative flex flex-col gap-4 bg-white shadow-xs"
         >
           {/* Bin / Remove button */}
           <button

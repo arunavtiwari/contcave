@@ -1,6 +1,19 @@
 import { google } from "googleapis";
 import prisma from "@/lib/prismadb";
 
+type GoogleCalendarEvent = {
+    summary?: string;
+    start: { date?: string; dateTime?: string; timeZone?: string };
+    end: { date?: string; dateTime?: string; timeZone?: string };
+};
+
+type CalendarListItem = {
+    summary?: string | null;
+    start?: { dateTime?: string | null; date?: string | null };
+    end?: { dateTime?: string | null; date?: string | null };
+    [key: string]: unknown;
+};
+
 async function refreshAccessToken(refreshToken: string) {
     const url = "https://oauth2.googleapis.com/token";
     const response = await fetch(url, {
@@ -50,11 +63,11 @@ export async function createCalendarEventForUser(params: {
     });
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
     const isAllDay = !params.startIso.includes("T") && !params.endIso.includes("T");
-    const event = {
+    const event: GoogleCalendarEvent = {
         summary: params.title,
         start: isAllDay ? { date: params.startIso } : { dateTime: params.startIso, timeZone: "UTC" },
         end: isAllDay ? { date: params.endIso } : { dateTime: params.endIso, timeZone: "UTC" },
-    } as any;
+    };
 
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
     const attemptInsert = async () => {
@@ -64,18 +77,19 @@ export async function createCalendarEventForUser(params: {
 
     try {
         return await attemptInsert();
-    } catch (err: any) {
-        const msg = String(err?.message || "");
-        const status = Number(err?.code || err?.status || 0);
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "";
+        const errorWithCode = err as { code?: unknown; status?: unknown; message?: string };
+        const status = Number(errorWithCode.code || errorWithCode.status || 0);
         const isAuthError = msg.includes("Invalid Credentials") || status === 401;
         if (isAuthError && acct.refresh_token) {
             const refreshed = await refreshAccessToken(acct.refresh_token);
-            await prisma.account.update({ where: { id: acct.id as any }, data: { access_token: refreshed.access_token } });
+            await prisma.account.update({ where: { id: acct.id }, data: { access_token: refreshed.access_token } });
             oauth2Client.setCredentials({ access_token: refreshed.access_token, refresh_token: acct.refresh_token });
             // one immediate retry after refresh
             try {
                 return await attemptInsert();
-            } catch (e2: any) {
+            } catch (e2: unknown) {
                 // fall through to backoff if still retryable
                 err = e2;
             }
@@ -88,7 +102,7 @@ export async function createCalendarEventForUser(params: {
                 await sleep(250 * Math.pow(2, i));
                 try {
                     return await attemptInsert();
-                } catch (e3: any) {
+                } catch (e3: unknown) {
                     if (i === maxAttempts) throw e3;
                 }
             }
@@ -139,10 +153,11 @@ export async function ensureCalendarEventForUser(params: {
             orderBy: "startTime",
         });
         const items = listed.data.items || [];
-        const exists = items.some((ev: any) => {
-            const evStart = ev?.start?.dateTime || ev?.start?.date || "";
-            const evEnd = ev?.end?.dateTime || ev?.end?.date || "";
-            return String(ev.summary || "").trim() === params.title.trim() &&
+        const exists = items.some((ev) => {
+            const evItem = ev as CalendarListItem;
+            const evStart = evItem?.start?.dateTime || evItem?.start?.date || "";
+            const evEnd = evItem?.end?.dateTime || evItem?.end?.date || "";
+            return String(evItem.summary || "").trim() === params.title.trim() &&
                 (evStart.startsWith(params.startIso) || params.startIso.startsWith(evStart)) &&
                 (evEnd.startsWith(params.endIso) || params.endIso.startsWith(evEnd));
         });
@@ -153,5 +168,3 @@ export async function ensureCalendarEventForUser(params: {
 
     return await createCalendarEventForUser(params);
 }
-
-

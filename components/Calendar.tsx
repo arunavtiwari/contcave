@@ -204,7 +204,6 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
                 onSubmit={() => setModalOpen(false)}
                 title="Event Details"
                 actionLabel="Close"
-                autoWidth
                 selfActionButton={true}
                 body={
                     <div className="flex flex-col gap-2 min-w-[350px]">

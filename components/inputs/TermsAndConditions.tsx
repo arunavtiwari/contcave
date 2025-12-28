@@ -1,11 +1,22 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState, ChangeEvent } from 'react';
 import Image from 'next/image';
 
-type TermsRef = { generateAndUploadPdf: (folderOverride?: string) => Promise<any> };
+export type TermsRef = { generateAndUploadPdf: (folderOverride?: string) => Promise<{ url: string; pdfUrl: string }> };
 
-const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignature, onAgreementPdf }: any, ref) => {
+export interface SignatureMeta {
+    url: string;
+    thumbnail?: string;
+}
+
+interface TermsProps {
+    onChange: (checked: boolean) => void;
+    onSignature: (meta: SignatureMeta) => void;
+    onAgreementPdf: (meta: { url: string; pdfUrl: string }) => void;
+}
+
+const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, onSignature, onAgreementPdf }, ref) => {
     const [agree, setAgree] = useState(false);
-    const [signature, setSignature] = useState<any>(null);
+    const [signature, setSignature] = useState<SignatureMeta | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const handleSignatureFile = async (file: File) => {
@@ -19,7 +30,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
         onSignature?.(meta);
     };
 
-    const handleAgreeChange = (event: any) => {
+    const handleAgreeChange = (event: ChangeEvent<HTMLInputElement>) => {
         setAgree(event.target.checked);
         onChange(event.target.checked);
     };
@@ -27,7 +38,8 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
     const generateAndUploadPdf = async (folderOverride?: string) => {
         try {
             const node = containerRef.current;
-            if (!node) return;
+            if (!node) throw new Error("Container ref is null");
+
             const prevOverflow = node.style.overflow;
             const prevMaxHeight = node.style.maxHeight;
             const prevHeight = node.style.height;
@@ -36,23 +48,24 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
             node.style.maxHeight = "none";
             node.style.height = "auto";
             node.style.paddingBottom = "48px";
-            (node as any).scrollTop = 0;
+            node.scrollTop = 0;
 
             const html2canvas = (await import("html2canvas")).default;
             const { jsPDF } = await import("jspdf");
-            console.log("[Terms] Generating canvas...");
-            const canvas = await html2canvas(node as HTMLElement, {
+
+            const canvas = await html2canvas(node, {
                 scale: 2,
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
-                width: (node as HTMLElement).scrollWidth,
-                height: (node as HTMLElement).scrollHeight,
+                width: node.scrollWidth,
+                height: node.scrollHeight,
             });
             node.style.overflow = prevOverflow;
             node.style.maxHeight = prevMaxHeight;
             node.style.height = prevHeight;
             node.style.paddingBottom = prevPaddingBottom;
+
             const pdf = new jsPDF("p", "mm", "a4");
             pdf.setProperties({
                 title: "ContCave Host Agreement",
@@ -100,25 +113,19 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
                 remainingPx -= currentSlicePx;
             }
             const blob: Blob = pdf.output("blob");
-            const dataUrl = await new Promise<string>((resolve) => {
-                const fr = new FileReader();
-                fr.onload = () => resolve(String(fr.result || ""));
-                fr.readAsDataURL(blob);
-            });
-            console.log("[Terms] PDF blob size:", blob.size, "data URL length:", dataUrl?.length);
 
             const folder = folderOverride || "agreements";
             const timestamp = Math.floor(Date.now() / 1000);
             const publicId = `agreement-${timestamp}`;
-            const paramsToSign: any = { folder, timestamp, public_id: publicId };
-            console.log("[Terms] Signing params (raw upload, no preset):", paramsToSign);
+            const paramsToSign = { folder, timestamp, public_id: publicId };
+
             const signRes = await fetch("/api/cloudinary/sign", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ paramsToSign })
             });
             const sign = await signRes.json();
-            console.log("[Terms] Sign response status:", signRes.status, sign);
+
             if (!signRes.ok || !sign?.signature) throw new Error("Signature failed");
 
             const cloud = (sign.cloud as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME as string);
@@ -134,10 +141,9 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
             fd.append("api_key", apiKey);
             fd.append("signature", sign.signature);
 
-            console.log("[Terms] Uploading to Cloudinary cloud:", cloud, "folder:", folder, "as image/upload (pdf)");
             const upRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method: "POST", body: fd });
             const up = await upRes.json();
-            console.log("[Terms] Upload status:", upRes.status, up);
+
             if (!upRes.ok) {
                 const errMsg = up?.error?.message || up?.error || up;
                 console.error("[Terms] Cloudinary upload error:", errMsg);
@@ -159,7 +165,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
             <div className="bg-white w-full max-w-xl mx-auto rounded-lg overflow-auto" style={{ maxHeight: '90vh' }}>
                 <div className="px-4">
                     <div ref={containerRef} className="my-4 text-sm overflow-auto scrollbar-thin" style={{ maxHeight: '65vh' }}>
-                    <p>
+                        <p>
                             This Agreement (“Agreement”) is entered into between <strong>Arkanet Ventures LLP</strong> (hereinafter referred to as "Company") and the individual or entity (“Host”) who wishes to list their property (“Property”) on the Company’s platform, ContCave (“Platform”).
                             By listing the Property, Host agrees to comply with the terms and conditions outlined below.
                         </p><br /><br />

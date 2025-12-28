@@ -1,6 +1,8 @@
 "use client";
 
-import { SafeReservation, SafeUser, safeListing } from "@/types";
+import { SafeUser } from "@/types/user";
+import { safeListing } from "@/types/listing";
+import { SafeReservation } from "@/types/reservation";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Container from "./Container";
@@ -14,13 +16,13 @@ import {
   TimeLabel,
   buildOperationalTimings,
 } from "@/types/scheduling";
-import { Package } from "./inputs/PackagesForm";
+import { Package } from "@/types/package";
 
 type Props = {
   reservations?: SafeReservation[];
   listing: safeListing & { user: SafeUser };
   currentUser?: SafeUser | null;
-  isDemo: Boolean
+
 };
 
 type AddonItem = { name?: string; price: number; qty: number };
@@ -150,7 +152,7 @@ function ListingClient({
   reservations = [],
   listing,
   currentUser = null,
-  isDemo 
+
 }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>([null, null]);
@@ -430,7 +432,7 @@ function ListingClient({
                 category={category}
                 description={listing.description}
                 locationValue={listing.locationValue}
-                fullListing={listing}
+                fullListing={listing as unknown as any}
                 onAddonChange={handleAddonChange}
                 services={[]}
                 onPackageSelect={(pkg) => {
@@ -459,7 +461,7 @@ function ListingClient({
                   currentUserPhone={currentUser?.phone ?? null}
                   isAuthenticated={!!currentUser}
                   minBookingHours={Number(listing.minimumBookingHours)}
-                  isOwner={!!currentUser?.is_owner}
+
                   selectedPackage={selectedPackage}
                 />
               </div>

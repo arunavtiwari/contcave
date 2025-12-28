@@ -144,10 +144,10 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
   const geo =
     latitude != null && longitude != null
       ? {
-          "@type": "GeoCoordinates",
-          latitude,
-          longitude,
-        }
+        "@type": "GeoCoordinates",
+        latitude,
+        longitude,
+      }
       : undefined;
 
   const amenityNames = new Set<string>();
@@ -165,10 +165,10 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
   }
   const amenityFeature = amenityNames.size
     ? Array.from(amenityNames).map((name) => ({
-        "@type": "LocationFeatureSpecification",
-        name,
-        value: true,
-      }))
+      "@type": "LocationFeatureSpecification",
+      name,
+      value: true,
+    }))
     : undefined;
 
   const maxGuests = listing.maximumPax
@@ -183,12 +183,12 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
   const closes = clean(operationalHours.end);
   const openingHoursSpecification = opens || closes
     ? [
-        {
-          "@type": "OpeningHoursSpecification",
-          opens,
-          closes,
-        },
-      ]
+      {
+        "@type": "OpeningHoursSpecification",
+        opens,
+        closes,
+      },
+    ]
     : undefined;
 
   const priceRange =
@@ -214,15 +214,15 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
     priceRange,
     offers: listing.price
       ? [
-          {
-            "@type": "Offer",
-            priceCurrency: "INR",
-            price: listing.price,
-            availability: listing.active
-              ? "https://schema.org/InStock"
-              : "https://schema.org/LimitedAvailability",
-            url,
-          },
+        {
+          "@type": "Offer",
+          priceCurrency: "INR",
+          price: listing.price,
+          availability: listing.active
+            ? "https://schema.org/InStock"
+            : "https://schema.org/LimitedAvailability",
+          url,
+        },
       ]
       : undefined,
     openingHoursSpecification,
@@ -240,7 +240,7 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
           listing={listing}
           currentUser={currentUser}
           reservations={reservations}
-          isDemo={false}
+
         />
       </>
     </ClientOnly>

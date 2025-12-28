@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prismadb";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 // GET request to fetch day status by listingId and date
 export async function GET(request: Request) {
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const date = searchParams.get("date");
 
     if (!listingId || !date) {
-      return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+      return createErrorResponse("Missing parameters: listingId or date", 400);
     }
 
     const parsedDate = new Date(date);
@@ -18,10 +18,9 @@ export async function GET(request: Request) {
       where: { listingId_date: { listingId, date: parsedDate } },
     });
 
-    return NextResponse.json(dayStatus || {}, { status: 200 });
+    return createSuccessResponse(dayStatus || {});
   } catch (error) {
-    console.error("GET Error:", error);
-    return NextResponse.json({ error: "Failed to fetch day status" }, { status: 500 });
+    return handleRouteError(error, "GET /api/dayStatus");
   }
 }
 
@@ -32,7 +31,7 @@ export async function POST(request: Request) {
     const { listingId, date, listingActive, startTime, endTime } = body;
 
     if (!listingId || !date) {
-      return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+      return createErrorResponse("Missing parameters: listingId or date", 400);
     }
 
     const parsedDate = new Date(date);
@@ -52,9 +51,8 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(dayStatus, { status: 200 });
+    return createSuccessResponse(dayStatus);
   } catch (error) {
-    console.error("POST Error:", error);
-    return NextResponse.json({ error: "Failed to save day status" }, { status: 500 });
+    return handleRouteError(error, "POST /api/dayStatus");
   }
 }

@@ -1,10 +1,10 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Heading from "@/components/Heading";
 import Link from "next/link";
 import Modal from "@/components/modals/Modal";
 import { toast } from "react-toastify";
-import { SafeUser } from "@/types";
+import { SafeUser } from "@/types/user";
 import { signOut } from "next-auth/react";
 
 type Props = {
@@ -77,7 +77,7 @@ const ProfileSettings = ({ profile }: Props) => {
         </div>
         <div className="bg-neutral-100 p-5 rounded-xl">
           <h2 className="text-lg font-bold mb-2">Danger Zone</h2>
-          <p className="text-red-700 text-base font-bold text-red">Delete Account</p>
+          <p className="text-red-700 text-base font-bold">Delete Account</p>
           <p className="text-slate-600 font-medium text-sm">
             <span className="italic">Warning:</span> Deleting your account will permanently remove all
             your data and cannot be undone.
@@ -98,7 +98,7 @@ const ProfileSettings = ({ profile }: Props) => {
           )}
 
           <button
-            className="border-2 border-red px-10 py-1.5 rounded-full hover:opacity-85 text-red shadow-sm mt-3 text-sm font-semibold disabled:opacity-60"
+            className="border-2 border-red px-10 py-1.5 rounded-full hover:opacity-85 text-red shadow-xs mt-3 text-sm font-semibold disabled:opacity-60"
             onClick={() => setShowConfirmModal(true)}
             disabled={isSubmitting}
           >

@@ -1,5 +1,5 @@
 import prisma from "@/lib/prismadb";
-import { ensureCalendarEventForUser, createCalendarEventForUser } from "@/lib/calendar/createEvent";
+import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
 import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
@@ -10,7 +10,34 @@ import { WhatsappService } from "@/lib/whatsapp/service";
 type LocationData = {
   display_name?: string;
   additionalInfo?: string;
-  [key: string]: any;
+  [key: string]: unknown;
+};
+
+type CashfreeWebhookPayload = {
+  data?: {
+    order?: {
+      order_id?: string;
+    };
+    payment?: {
+      payment_status?: string;
+      cf_payment_id?: string | number;
+    };
+  };
+  [key: string]: unknown;
+};
+
+type AddonItem = {
+  name?: unknown;
+  qty?: unknown;
+  [key: string]: unknown;
+};
+
+type TransactionMetadata = {
+  startDate?: unknown;
+  startTime?: unknown;
+  endTime?: unknown;
+  selectedAddons?: unknown;
+  [key: string]: unknown;
 };
 
 const MAX_SKEW_SEC = Number(process.env.WEBHOOK_MAX_SKEW_SEC || 600);
@@ -44,25 +71,27 @@ function mapStatus(s?: string) {
   if (v === "EXPIRED") return "EXPIRED";
   return "PENDING";
 }
-function pickOrderId(p: any) {
+function pickOrderId(p: CashfreeWebhookPayload) {
   return String(p?.data?.order?.order_id ?? "");
 }
-function pickPayStatus(p: any) {
+function pickPayStatus(p: CashfreeWebhookPayload) {
   return String(p?.data?.payment?.payment_status ?? "");
 }
-function pickPaymentId(p: any) {
+function pickPaymentId(p: CashfreeWebhookPayload) {
   const r = p?.data?.payment?.cf_payment_id;
   return r != null ? String(r) : undefined;
 }
 function localMidnightFromYmd(ymd?: string): Date {
   return typeof ymd === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ymd) ? new Date(`${ymd}T00:00:00`) : new Date();
 }
-function formatAddons(a: any): string {
-  const arr = Array.isArray(a) ? a : a && typeof a === "object" ? Object.values(a) : [];
+function formatAddons(a: unknown): string {
+  const arr = Array.isArray(a) ? a : a && typeof a === "object" ? Object.values(a as Record<string, unknown>) : [];
   const parts = arr
-    .map((x: any) => {
-      const name = String(x?.name || "").trim();
-      const qty = Number(x?.qty || 0);
+    .map((x: unknown) => {
+      if (!x || typeof x !== 'object') return null;
+      const item = x as AddonItem;
+      const name = String(item?.name || "").trim();
+      const qty = Number(item?.qty || 0);
       return name && qty > 0 ? `${name} × ${qty}` : null;
     })
     .filter(Boolean) as string[];
@@ -120,8 +149,9 @@ async function claimAndSendOwnerEmail(
     console.warn("Owner email skipped: missing recipient", { txnId });
     return;
   }
-  const tpl = (payload as any)?.templateId || process.env.MS_TPL_RESERVATION_OWNER;
-  if (!tpl) {
+  const tpl = (payload as { templateId?: unknown }).templateId;
+  const templateId = typeof tpl === 'string' ? tpl : process.env.MS_TPL_RESERVATION_OWNER;
+  if (!templateId) {
     console.warn("Owner email skipped: missing templateId", { txnId });
     return;
   }
@@ -131,7 +161,7 @@ async function claimAndSendOwnerEmail(
   });
   if (claimed.count === 1) {
     try {
-      await sendReservationOwnerEmail(payload as any);
+      await sendReservationOwnerEmail(payload);
     } catch (e) {
       await prisma.transaction.update({ where: { id: txnId }, data: { emailSentOwner: false } });
       throw e;
@@ -140,7 +170,7 @@ async function claimAndSendOwnerEmail(
 }
 async function claimAndSendFailedEmail(
   txnId: string,
-  payload: { toEmail: string; toName: string; templateId: string; data: Record<string, any> }
+  payload: { toEmail: string; toName: string; templateId: string; data: Record<string, string | number | boolean | null> }
 ) {
   const claimed = await prisma.transaction.updateMany({
     where: { id: txnId, emailSentFailed: false },
@@ -168,7 +198,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
       if (!okSig || !fresh(headers.timestamp)) return { statusCode: 401 };
     }
 
-    let body: any;
+    let body: CashfreeWebhookPayload;
     try {
       body = JSON.parse(raw);
     } catch {
@@ -178,9 +208,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
     const orderId = pickOrderId(body);
     if (!orderId) return { statusCode: 200 };
 
-    const status = mapStatus(pickPayStatus(body));
-    console.log("Webhook parsed", { orderId, status });
     const cfPaymentId = pickPaymentId(body);
+    const status = mapStatus(pickPayStatus(body));
+    console.warn("[Webhook] Cashfree payment status", { orderId, status, cfPaymentId });
 
     const txn = await prisma.transaction.findFirst({
       where: { cfOrderId: orderId },
@@ -201,7 +231,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
     if (txn.status !== status || txn.cfPaymentId !== cfPaymentId) {
       await prisma.transaction.update({
         where: { id: txn.id },
-        data: { status, cfPaymentId, cfWebhookPayload: body, cfSignature: headers.signature || undefined },
+        data: { status, cfPaymentId, cfWebhookPayload: body as never, cfSignature: headers.signature || undefined },
       });
     }
 
@@ -229,7 +259,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             db.user.findUnique({ where: { id: freshTxn.userId! }, select: { email: true, name: true, phone: true } }),
           ]);
 
-          const md: any = freshTxn.metadata || {};
+          const md = (freshTxn.metadata || {}) as TransactionMetadata;
           const startDateYmd = String(md.startDate || "");
           const startDate = localMidnightFromYmd(startDateYmd);
           const startTime = String(md.startTime ?? "");
@@ -244,7 +274,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               endTime,
               totalPrice: freshTxn.amount,
               selectedAddons: md.selectedAddons ?? null,
-              isApproved: (listing?.instantBooking ? 1 : 0) as any,
+              isApproved: (listing?.instantBooking ? 1 : 0),
               Transaction: { connect: { id: freshTxn.id } },
             },
             select: { id: true },
@@ -283,7 +313,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               studioLocation,
               additionalInfo,
             };
-            console.log("Prepared customer email", { txnId: freshTxn.id, to: user.email });
+            console.warn('[Webhook] Customer email prepared', { txnId: freshTxn.id, toEmail: user.email });
           }
           if (listing?.user?.email) {
             afterOwner = {
@@ -296,12 +326,13 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               totalPrice,
               customerName: user?.name || "",
               templateId: process.env.MS_TPL_RESERVATION_OWNER || "",
-            } as any;
-            (afterOwner as any).bookingId = reservation.id;
-            (afterOwner as any).addons = addonsStr;
-            (afterOwner as any).formattedStartDate = startDateYmd;
-            (afterOwner as any).formattedStartTime = startTime;
-            (afterOwner as any).formattedEndTime = endTime;
+            };
+            const ownerEmailWithExtras = afterOwner as OwnerEmailPayload & Record<string, unknown>;
+            ownerEmailWithExtras.bookingId = reservation.id;
+            ownerEmailWithExtras.addons = addonsStr;
+            ownerEmailWithExtras.formattedStartDate = startDateYmd;
+            ownerEmailWithExtras.formattedStartTime = startTime;
+            ownerEmailWithExtras.formattedEndTime = endTime;
             if (listing?.user?.googleCalendarConnected) {
               afterCalendar = {
                 ownerUserId: listing.user.id,
@@ -310,7 +341,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 endIso: combineUtcIso(startDateYmd, endTime),
               };
             }
-            console.log("Prepared owner email", { txnId: freshTxn.id, to: listing.user.email });
+            console.warn('[Webhook] Owner email prepared', { txnId: freshTxn.id, toEmail: listing.user.email });
           }
         } else {
           const resv = await db.reservation.findUnique({
@@ -344,7 +375,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 studioLocation,
                 additionalInfo,
               };
-              console.log("Prepared customer email (existing)", { txnId: freshTxn.id, to: resv.user.email });
+              console.warn('[Webhook] Customer email prepared (existing reservation)', { txnId: freshTxn.id, toEmail: resv.user.email });
             }
             if (resv.listing?.user?.email) {
               afterOwner = {
@@ -357,12 +388,13 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 totalPrice,
                 customerName: resv.user?.name || "",
                 templateId: process.env.MS_TPL_RESERVATION_OWNER || "",
-              } as any;
-              (afterOwner as any).bookingId = resv.id;
-              (afterOwner as any).addons = addonsStr;
-              (afterOwner as any).formattedStartDate = startDateYmd;
-              (afterOwner as any).formattedStartTime = resv.startTime || "";
-              (afterOwner as any).formattedEndTime = resv.endTime || "";
+              };
+              const ownerEmailWithExtras = afterOwner as OwnerEmailPayload & Record<string, unknown>;
+              ownerEmailWithExtras.bookingId = resv.id;
+              ownerEmailWithExtras.addons = addonsStr;
+              ownerEmailWithExtras.formattedStartDate = startDateYmd;
+              ownerEmailWithExtras.formattedStartTime = resv.startTime || "";
+              ownerEmailWithExtras.formattedEndTime = resv.endTime || "";
               if (resv.listing?.user?.googleCalendarConnected) {
                 afterCalendar = {
                   ownerUserId: resv.listing.user.id,
@@ -371,7 +403,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                   endIso: combineUtcIso(startDateYmd, resv.endTime || "00:00"),
                 };
               }
-              console.log("Prepared owner email (existing)", { txnId: freshTxn.id, to: resv.listing.user.email });
+              console.warn('[Webhook] Owner email prepared (existing reservation)', { txnId: freshTxn.id, toEmail: resv.listing.user.email });
             }
           }
         }
@@ -386,7 +418,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           });
           afterInvoiceAttachment = invoiceResult.attachment;
         } catch (e) {
-          console.error("Invoice generation failed", { txnId: afterTxnId, error: (e as any)?.message || e });
+          console.error("[Webhook] Invoice generation failed", { txnId: afterTxnId, error: (e instanceof Error ? e.message : String(e)) });
         }
       }
 
@@ -411,9 +443,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             const before = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentCustomer: true } });
             await claimAndSendCustomerEmail(afterTxnId, afterCustomer);
             const after = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentCustomer: true } });
-            console.log("Customer email claim", { txnId: afterTxnId, before: before?.emailSentCustomer, after: after?.emailSentCustomer });
+            console.warn('[Webhook] Customer email claim result', { txnId: afterTxnId, before: before?.emailSentCustomer, after: after?.emailSentCustomer });
           } catch (e) {
-            console.error("Customer email dispatch error", { txnId: afterTxnId, error: (e as any)?.message || e });
+            console.error("[Webhook] Customer email dispatch error", { txnId: afterTxnId, error: (e instanceof Error ? e.message : String(e)) });
           }
 
           let customerPhone: string | null | undefined;
@@ -429,10 +461,10 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 locationLink: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(afterCustomer.studioLocation || "")}`
               });
             }
-          } catch (e: any) {
-            console.error("Customer WhatsApp dispatch error", {
+          } catch (e: unknown) {
+            console.error("[Webhook] Customer WhatsApp dispatch error", {
               txnId: afterTxnId,
-              error: e?.message || e,
+              error: e instanceof Error ? e.message : String(e),
               phone: customerPhone
             });
           }
@@ -443,9 +475,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             const before = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentOwner: true } });
             await claimAndSendOwnerEmail(afterTxnId, afterOwner);
             const after = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentOwner: true } });
-            console.log("Owner email claim", { txnId: afterTxnId, before: before?.emailSentOwner, after: after?.emailSentOwner });
+            console.warn('[Webhook] Owner email claim result', { txnId: afterTxnId, before: before?.emailSentOwner, after: after?.emailSentOwner });
           } catch (e) {
-            console.error("Owner email dispatch error", { txnId: afterTxnId, error: (e as any)?.message || e });
+            console.error("[Webhook] Owner email dispatch error", { txnId: afterTxnId, error: (e instanceof Error ? e.message : String(e)) });
           }
 
           let hostPhone: string | null | undefined;
@@ -458,14 +490,14 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 hostName: afterOwner.toName || "",
                 customerName: afterOwner.customerName || "",
                 listingTitle: afterOwner.studioName || "",
-                startDate: (afterOwner as any).formattedStartDate || "",
-                startTime: (afterOwner as any).formattedStartTime || ""
+                startDate: (afterOwner as OwnerEmailPayload & { formattedStartDate?: string }).formattedStartDate || "",
+                startTime: (afterOwner as OwnerEmailPayload & { formattedStartTime?: string }).formattedStartTime || ""
               });
             }
-          } catch (e: any) {
-            console.error("Host WhatsApp dispatch error", {
+          } catch (e: unknown) {
+            console.error("[Webhook] Host WhatsApp dispatch error", {
               txnId: afterTxnId,
-              error: e?.message || e,
+              error: e instanceof Error ? e.message : String(e),
               hostPhone
             });
           }

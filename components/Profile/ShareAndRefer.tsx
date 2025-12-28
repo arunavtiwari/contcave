@@ -12,21 +12,18 @@ import {
     FaWhatsapp
 } from "react-icons/fa";
 import Heading from "@/components/Heading";
-
-interface Profile {
-    id: string;
-    email?: string;
-}
+import { SafeUser } from "@/types/user";
 
 interface Props {
-    profile: Profile;
+    profile: SafeUser | null;
 }
 
 const ShareAndRefer: React.FC<Props> = ({ profile }) => {
     const [copied, setCopied] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
 
-    const generateReferralCode = useCallback((user: Profile): string => {
+    const generateReferralCode = useCallback((user: SafeUser | null): string => {
+        if (!user) return "";
         const base = user.email || user.id;
         const hash = Buffer.from(base).toString("base64").replace(/[^a-zA-Z0-9]/g, "");
         return hash.slice(0, 8).toUpperCase();
@@ -83,7 +80,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 draggable: true,
             });
         } catch (err) {
-            if (err.name !== 'AbortError') {
+            if (err instanceof Error && err.name !== 'AbortError') {
                 console.error("Error sharing:", err);
                 toast.error("Failed to share. Link copied instead!", {
                     position: "top-center",
@@ -138,7 +135,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 subtitle="Refer your friends to ContCave and both of you can earn rewards"
             />
 
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+            <div className="bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
                     <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-2">
                         <MdQuestionMark />
@@ -147,17 +144,17 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 </h3>
                 <ol className="space-y-3 text-slate-700">
                     <li className="flex items-start">
-                        <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">1</span>
+                        <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0">1</span>
                         <span>Share your unique referral link or code with friends.</span>
                     </li>
                     <li className="flex items-start">
-                        <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">2</span>
+                        <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0">2</span>
                         <span>When someone signs up and books their first space using your referral link or code, you both earn rewards!</span>
                     </li>
                 </ol>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
                 <h3 className="text-lg font-semibold text-slate-900 mb-4">Your Referral Link</h3>
 
                 <div className="space-y-4">
@@ -251,7 +248,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
 
             <div className="border-t border-gray-200"></div>
 
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
+            <div className="bg-linear-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
                 <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center">
                     <span className="mr-2">🎉</span>
                     Promote and Earn
@@ -266,15 +263,15 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                         <h3 className="text-lg font-semibold text-slate-900 mb-3">How It Works</h3>
                         <ol className="space-y-2 text-slate-700">
                             <li className="flex items-start">
-                                <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">1</span>
+                                <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">1</span>
                                 <span className="text-sm">Shoot content at one of our featured properties and tag us in your posts or videos.</span>
                             </li>
                             <li className="flex items-start">
-                                <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">2</span>
+                                <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">2</span>
                                 <span className="text-sm">Share your content with your audience and mention your experience with us.</span>
                             </li>
                             <li className="flex items-start">
-                                <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">3</span>
+                                <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">3</span>
                                 <span className="text-sm">Contact us with links to your posts or videos to claim your rewards!</span>
                             </li>
                         </ol>
@@ -300,7 +297,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                                 href="https://instagram.com/contcave"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full flex items-center justify-center transition-all duration-200 transform hover:scale-105"
+                                className="w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full flex items-center justify-center transition-all duration-200 transform hover:scale-105"
                                 title="Follow us on Instagram"
                             >
                                 <FaInstagram className="w-5 h-5 text-white" />

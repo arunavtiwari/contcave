@@ -3,27 +3,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Modal from "../modals/Modal";
+import Modal from "@/components/modals/Modal";
 import { FaCheckCircle, FaSpinner, FaExclamationCircle, FaShieldAlt } from "react-icons/fa";
 
-interface User {
-  phone?: string;
-  email?: string;
-  phone_verified?: boolean;
-  email_verified?: boolean;
-  aadhaar_verified?: boolean;
-  bank_verified?: boolean;
-  aadhaar_last4?: string;
-  bank_verified_name?: string;
-  kyc_pan?: string;
-  kyc_gst?: string;
-  name?: string;
-}
+import { SafeUser } from "@/types/user";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  currentUser: User | null;
+  currentUser: SafeUser | null;
   onComplete?: () => void;
 };
 
@@ -49,7 +37,7 @@ const isValidEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.te
 const generateVendorId = (): string =>
   `vendor_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
-const getInitialStep = (user: User | null): number => {
+const getInitialStep = (user: SafeUser | null): number => {
   if (!user) return 1;
   if (!user.phone_verified || !user.email_verified) return 1;
   if (!user.aadhaar_verified) return 2;
@@ -63,7 +51,7 @@ const VerificationModal: React.FC<Props> = ({
   currentUser,
   onComplete,
 }) => {
-  const [userState, setUserState] = useState<User | null>(currentUser);
+  const [userState, setUserState] = useState<SafeUser | null>(currentUser);
   const [step, setStep] = useState(getInitialStep(currentUser));
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -85,8 +73,8 @@ const VerificationModal: React.FC<Props> = ({
 
   // Aadhaar
   const [aadhaarState, setAadhaarState] = useState({
-    aadhaarNumber: currentUser?.aadhaar_last4
-      ? "********" + currentUser?.aadhaar_last4
+    aadhaarNumber: (currentUser as unknown as Record<string, unknown>)?.aadhaar_last4
+      ? "********" + (currentUser as unknown as Record<string, unknown>)?.aadhaar_last4
       : "",
     refId: null as string | number | null,
     otp: "",
@@ -99,8 +87,8 @@ const VerificationModal: React.FC<Props> = ({
     accountNumber: "",
     confirmAccountNumber: "",
     ifsc: "",
-    pan: currentUser?.kyc_pan || "",
-    gst: currentUser?.kyc_gst || "",
+    pan: (currentUser as unknown as Record<string, unknown>)?.kyc_pan as string || "",
+    gst: (currentUser as unknown as Record<string, unknown>)?.kyc_gst as string || "",
   });
 
   // Clear errors when inputs change
@@ -128,8 +116,8 @@ const VerificationModal: React.FC<Props> = ({
         checking: false,
       });
       setAadhaarState({
-        aadhaarNumber: currentUser?.aadhaar_last4
-          ? "********" + currentUser?.aadhaar_last4
+        aadhaarNumber: (currentUser as unknown as Record<string, unknown>)?.aadhaar_last4
+          ? "********" + (currentUser as unknown as Record<string, unknown>)?.aadhaar_last4
           : "",
         refId: null,
         otp: "",
@@ -140,8 +128,8 @@ const VerificationModal: React.FC<Props> = ({
         accountNumber: "",
         confirmAccountNumber: "",
         ifsc: "",
-        pan: currentUser?.kyc_pan || "",
-        gst: currentUser?.kyc_gst || "",
+        pan: (currentUser as unknown as Record<string, unknown>)?.kyc_pan as string || "",
+        gst: (currentUser as unknown as Record<string, unknown>)?.kyc_gst as string || "",
       });
       setErrors({});
     }
@@ -180,12 +168,12 @@ const VerificationModal: React.FC<Props> = ({
         setErrors({ email: "Email address is not deliverable" });
         toast.error("Email verification failed");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Email verification error:", err);
       setEmailState((s) => ({ ...s, verified: false, checking: false }));
-      const errorMsg = err?.response?.data?.message || "Email verification failed";
-      setErrors({ email: errorMsg });
-      toast.error(errorMsg);
+      const errorMsg = axios.isAxiosError(err) ? err.response?.data?.message : "Email verification failed";
+      setErrors({ email: errorMsg || "Email verification failed" });
+      toast.error(errorMsg || "Email verification failed");
     }
   };
 
@@ -218,12 +206,12 @@ const VerificationModal: React.FC<Props> = ({
         phoneValid: true,
       }));
       toast.success("Phone number verified successfully");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Phone verification error:", err);
       setPhoneState((s) => ({ ...s, verified: false, checking: false }));
-      const errorMsg = err?.response?.data?.message || "Phone verification failed";
-      setErrors({ phone: errorMsg });
-      toast.error(errorMsg);
+      const errorMsg = axios.isAxiosError(err) ? err.response?.data?.message : "Phone verification failed";
+      setErrors({ phone: errorMsg || "Phone verification failed" });
+      toast.error(errorMsg || "Phone verification failed");
     }
   };
 
@@ -283,10 +271,10 @@ const VerificationModal: React.FC<Props> = ({
               setErrors({ aadhaar: resp.data.message || "Failed to send OTP" });
               toast.error(resp.data.message || "Failed to send OTP");
             }
-          } catch (err: any) {
-            const errorMsg = err?.response?.data?.message || "Failed to send OTP";
-            setErrors({ aadhaar: errorMsg });
-            toast.error(errorMsg);
+          } catch (err: unknown) {
+            const errorMsg = axios.isAxiosError(err) ? err.response?.data?.message : "Failed to send OTP";
+            setErrors({ aadhaar: errorMsg || "Failed to send OTP" });
+            toast.error(errorMsg || "Failed to send OTP");
           }
           setLoading(false);
           return;
@@ -319,10 +307,10 @@ const VerificationModal: React.FC<Props> = ({
             setErrors({ otp: errorMsg });
             toast.error(errorMsg);
           }
-        } catch (err: any) {
-          const errorMsg = err?.response?.data?.message || "Verification failed";
-          setErrors({ otp: errorMsg });
-          toast.error(errorMsg);
+        } catch (err: unknown) {
+          const errorMsg = axios.isAxiosError(err) ? err.response?.data?.message : "Verification failed";
+          setErrors({ otp: errorMsg || "Verification failed" });
+          toast.error(errorMsg || "Verification failed");
         }
         setLoading(false);
         return;
@@ -399,19 +387,19 @@ const VerificationModal: React.FC<Props> = ({
           toast.success("Bank details verified successfully");
           onComplete?.();
           onClose();
-        } catch (err: any) {
-          const errorMsg = err?.response?.data?.message || "Failed to verify bank details";
-          toast.error(errorMsg);
-          setErrors({ submit: errorMsg });
+        } catch (err: unknown) {
+          const errorMsg = axios.isAxiosError(err) ? err.response?.data?.message : "Failed to verify bank details";
+          toast.error(errorMsg || "Failed to verify bank details");
+          setErrors({ submit: errorMsg || "Failed to verify bank details" });
         }
         setLoading(false);
         return;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Verification error:", err);
-      const errorMsg = err?.response?.data?.message || "Something went wrong. Please try again.";
-      toast.error(errorMsg);
-      setErrors({ submit: errorMsg });
+      const errorMsg = axios.isAxiosError(err) ? err.response?.data?.message : "Something went wrong. Please try again.";
+      toast.error(errorMsg || "Something went wrong. Please try again.");
+      setErrors({ submit: errorMsg || "Something went wrong. Please try again." });
       setLoading(false);
     }
   };
@@ -617,7 +605,7 @@ const VerificationModal: React.FC<Props> = ({
 
           {aadhaarState.verified || userState?.aadhaar_verified ? (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-              <FaCheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <FaCheckCircle className="w-5 h-5 text-green-600 shrink-0" />
               <div>
                 <p className="font-medium text-green-900">Aadhaar Verified</p>
                 <p className="text-sm text-green-700">
@@ -703,7 +691,7 @@ const VerificationModal: React.FC<Props> = ({
 
           {userState?.bank_verified ? (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-              <FaCheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <FaCheckCircle className="w-5 h-5 text-green-600 shrink-0" />
               <div>
                 <p className="font-medium text-green-900">Bank Account Verified</p>
                 <p className="text-sm text-green-700">
@@ -905,7 +893,7 @@ const VerificationModal: React.FC<Props> = ({
           {renderStep()}
           {errors.submit && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-              <FaExclamationCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+              <FaExclamationCircle className="w-4 h-4 text-red-600 shrink-0" />
               <p className="text-sm text-red-600">{errors.submit}</p>
             </div>
           )}

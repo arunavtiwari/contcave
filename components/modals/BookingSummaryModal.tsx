@@ -99,11 +99,15 @@ export default function BookingSummaryModal({
         const invoiceData = await invoiceRes.json();
         if (!invoiceRes.ok) throw new Error(invoiceData.message || "Invoice creation failed");
 
-        console.log("Invoice URL:", invoiceData.invoiceUrl);
+        console.warn("Invoice URL:", invoiceData.invoiceUrl);
         onConfirmAction();
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setGstError(err.message || "Something went wrong");
+        if (err instanceof Error) {
+          setGstError(err.message);
+        } else {
+          setGstError("Something went wrong");
+        }
       } finally {
         setSaving(false);
       }
@@ -116,7 +120,7 @@ export default function BookingSummaryModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby={`${sectionId}-booking-summary-title`}

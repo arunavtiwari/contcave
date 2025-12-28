@@ -1,37 +1,41 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
-import { NextResponse } from "next/server";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 interface IParams {
   listingId?: string;
 }
 
 export async function GET(request: Request, props: { params: Promise<IParams> }) {
-  const params = await props.params;
-  const currentUser = await getCurrentUser();
+  try {
+    const params = await props.params;
+    const currentUser = await getCurrentUser();
 
-  const { listingId } = params;
+    const { listingId } = params;
 
-  if (!listingId || typeof listingId !== "string") {
-    throw new Error("Invalid Listing Id");
-  }
+    if (!listingId || typeof listingId !== "string") {
+      return createErrorResponse("Invalid Listing Id", 400);
+    }
 
-  const reviews = await prisma.review.findMany({
-    where: {
-      listingId: listingId,
-    },
-    include: {
-      user: {
-        select: {
-          name: true,
-          image: true,
+    const reviews = await prisma.review.findMany({
+      where: {
+        listingId: listingId,
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-  return NextResponse.json(reviews);
+    return createSuccessResponse(reviews);
+  } catch (error) {
+    return handleRouteError(error, "GET /api/reviews/[list]/[listingId]");
+  }
 }

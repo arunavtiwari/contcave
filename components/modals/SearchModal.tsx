@@ -6,9 +6,9 @@ import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import qs from "query-string";
 import { useCallback, useMemo, useState } from "react";
-import Heading from "../Heading";
-import Calendar from "../inputs/Calendar";
-import CitySelect, { CitySelectValue } from "../inputs/CitySelect";
+import Heading from "@/components/Heading";
+import Calendar from "@/components/inputs/Calendar";
+import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import Modal from "./Modal";
 
 enum STEPS {
@@ -51,7 +51,8 @@ function SearchModal({ }: Props) {
       currentQuery = qs.parse(params.toString());
     }
 
-    const updatedQuery: any = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updatedQuery: Record<string, any> = {
       ...currentQuery,
       locationValue: location?.value,
       selectedDate: selectedDate ? formatISO(selectedDate) : undefined,

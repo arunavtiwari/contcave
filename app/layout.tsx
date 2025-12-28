@@ -143,7 +143,7 @@ export default async function RootLayout({
           <Navbar currentUser={currentUser} />
           <CookieConsent />
         </ClientOnly>
-        <div className="min-h-[100vh] pt-[84px]">{children}</div>
+        <div className="min-h-screen pt-[84px]">{children}</div>
         <ScrollToTop />
         <Footer />
       </body>

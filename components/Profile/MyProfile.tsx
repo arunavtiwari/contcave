@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Image from "next/image";
 import ImageUpload from "@/components/inputs/ImageUpload";
@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import Heading from "@/components/Heading";
 import { toast } from "react-toastify";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
+import { SafeUser } from "@/types/user";
 
 import {
     FaUser,
@@ -20,26 +21,27 @@ import {
     FaCamera,
     FaEdit,
     FaSave,
-    FaTimes,
     FaCheck,
     FaShieldAlt,
-    FaPlus,
     FaHome,
     FaCreditCard,
     FaSpinner
 } from "react-icons/fa";
-import VerificationModal from "../modals/VerificationModal";
+import VerificationModal from "@/components/modals/VerificationModal";
 
-const ProfileClient = ({ profile }) => {
+interface ProfileClientProps {
+    profile: SafeUser | null;
+}
+
+const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
     const router = useRouter();
-    const rentModel = useRentModal();
-    const loginModel = useLoginModel();
-    const [currentUser, setCurrentUser] = useState(null);
-    const [editMode, setEditMode] = useState(false);
+    const [currentUser, setCurrentUser] = useState<SafeUser | null>(null);
     const [isVerified, setIsVerified] = useState(false);
-    const [selectedMenu, setSelectedMenu] = useState("Profile");
+    const [editMode, setEditMode] = useState(false);
     const [showOwnerModal, setShowOwnerModal] = useState(false);
     const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const rentModel = useRentModal();
+    const loginModel = useLoginModel();
     const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
 
@@ -113,11 +115,11 @@ const ProfileClient = ({ profile }) => {
     }, [profile]);
 
 
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setUserData({ ...userData, [e.target.name]: e.target.value });
     };
 
-    const handleLanguageToggle = (language) => {
+    const handleLanguageToggle = (language: string) => {
         const newLanguages = userData.languages.includes(language)
             ? userData.languages.filter(lang => lang !== language)
             : userData.languages.length < 2
@@ -126,7 +128,7 @@ const ProfileClient = ({ profile }) => {
         setUserData({ ...userData, languages: newLanguages });
     };
 
-    const handleTitleChange = (title) => {
+    const handleTitleChange = (title: string) => {
         setUserData({ ...userData, title });
     };
 
@@ -166,7 +168,7 @@ const ProfileClient = ({ profile }) => {
                 {/* Main Profile Section */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Profile Card */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="bg-white rounded-2xl shadow-xs border border-gray-200 overflow-hidden">
                         {/* Profile Header */}
                         <div
                             className="relative h-32 bg-center bg-no-repeat bg-cover"
@@ -261,7 +263,7 @@ const ProfileClient = ({ profile }) => {
                     </div>
 
                     {/* Personal Details Card */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                    <div className="bg-white rounded-2xl shadow-xs border border-gray-200 p-8">
                         <h3 className="text-xl font-semibold text-gray-900 mb-6">Personal Details</h3>
 
                         <div className="space-y-6">
@@ -321,7 +323,7 @@ const ProfileClient = ({ profile }) => {
                                             maxLength={10}
                                             onChange={(e) => {
                                                 const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                                handleChange({ target: { name: 'phone', value: digitsOnly } });
+                                                handleChange({ target: { name: 'phone', value: digitsOnly } } as unknown as React.ChangeEvent<HTMLInputElement>);
                                             }}
                                             className="bg-transparent focus:outline-none focus:ring-0 placeholder-slate-400 border-none w-28 h-fit p-0"
                                         />
@@ -398,52 +400,52 @@ const ProfileClient = ({ profile }) => {
                 </div>
 
                 {/* Sidebar Actions */}
-<div className="space-y-6">
-  {!userData.is_owner ? (
-    // Not an owner yet
-    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-          <FaUser className="w-8 h-8 text-blue-600" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-blue-900">Become an Owner</h3>
-          <p className="text-blue-700 text-sm mt-2">
-            Register yourself as a space owner to start hosting and get verified.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowOwnerModal(true)}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-        >
-          Register as Owner
-        </button>
-      </div>
-    </div>
-  ) : !isVerified ? (
-    // Owner but not verified
-    <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6">
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
-          <FaShieldAlt className="w-8 h-8 text-orange-600" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-orange-900">Verification Pending</h3>
-          <p className="text-orange-700 text-sm mt-2">
-            Verify your details to unlock space owner features and start hosting.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowVerificationModal(true)}
-          className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors"
-        >
-          Start Verification
-        </button>
-      </div>
-    </div>
-  ) : (
-    // Verified card
-    <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
+                <div className="space-y-6">
+                    {!userData.is_owner ? (
+                        // Not an owner yet
+                        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+                            <div className="text-center space-y-4">
+                                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                                    <FaUser className="w-8 h-8 text-blue-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-blue-900">Become an Owner</h3>
+                                    <p className="text-blue-700 text-sm mt-2">
+                                        Register yourself as a space owner to start hosting and get verified.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setShowOwnerModal(true)}
+                                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                    Register as Owner
+                                </button>
+                            </div>
+                        </div>
+                    ) : !isVerified ? (
+                        // Owner but not verified
+                        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6">
+                            <div className="text-center space-y-4">
+                                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
+                                    <FaShieldAlt className="w-8 h-8 text-orange-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-orange-900">Verification Pending</h3>
+                                    <p className="text-orange-700 text-sm mt-2">
+                                        Verify your details to unlock space owner features and start hosting.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setShowVerificationModal(true)}
+                                    className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors"
+                                >
+                                    Start Verification
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        // Verified card
+                        <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
                             <div className="text-center space-y-4">
                                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                                     <FaCheck className="w-8 h-8 text-green-600" />
@@ -472,10 +474,10 @@ const ProfileClient = ({ profile }) => {
                                 </div>
                             </div>
                         </div>
-  )}
-</div>
+                    )}
+                </div>
 
-               
+
             </div>
 
             <OwnerEnableModal
@@ -486,38 +488,38 @@ const ProfileClient = ({ profile }) => {
                 }}
                 onSuccess={(newPhone?: string, newEmail?: string) => {
                     const updatedData = {
-                        ...userData, 
-                        is_owner: true, 
+                        ...userData,
+                        is_owner: true,
                         phone: newPhone || userData.phone,
                         email: newEmail || userData.email,
                     };
-                    
+
                     axios.put("/api/user", updatedData)
-                    .then((res) => {
-                        const updatedUser = res.data;
-                        setUserData(updatedUser);
-                        setCurrentUser(updatedUser); // Update currentUser for VerificationModal
-                        
-                        // Show loading for 1.5 seconds, then open verification modal
-                        setTimeout(() => {
+                        .then((res) => {
+                            const updatedUser = res.data;
+                            setUserData(updatedUser);
+                            setCurrentUser(updatedUser); // Update currentUser for VerificationModal
+
+                            // Show loading for 1.5 seconds, then open verification modal
+                            setTimeout(() => {
+                                setShowLoadingOverlay(false);
+                                setShowVerificationModal(true);
+                            }, 1500);
+                        })
+                        .catch((err) => {
+                            console.error("Failed to update owner status:", err);
                             setShowLoadingOverlay(false);
-                            setShowVerificationModal(true);
-                        }, 1500);
-                    })
-                    .catch((err) => {
-                        console.error("Failed to update owner status:", err);
-                        setShowLoadingOverlay(false);
-                        toast.error(err?.response?.data?.error || "Failed to update owner status");
-                    });
+                            toast.error(err?.response?.data?.error || "Failed to update owner status");
+                        });
                 }}
                 initialEmail={userData.email}
                 initialPhone={userData.phone}
-                />
+            />
 
 
             {/* Full-screen loading overlay */}
             {showLoadingOverlay && (
-                <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-md flex items-center justify-center">
+                <div className="fixed inset-0 z-1000 bg-black/60 backdrop-blur-md flex items-center justify-center">
                     <div className="flex flex-col items-center justify-center gap-4">
                         <FaSpinner className="w-12 h-12 text-white animate-spin" />
                         <p className="text-xl font-semibold text-white">Starting Verification...</p>

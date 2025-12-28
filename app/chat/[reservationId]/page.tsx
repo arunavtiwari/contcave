@@ -1,7 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
-import ChatClient from "../ChatClient";
+import ChatClient from "@/app/chat/ChatClient";
 import Container from "@/components/Container";
 import type { Metadata } from "next";
 import { BRAND_NAME } from "@/lib/seo";

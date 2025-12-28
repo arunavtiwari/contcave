@@ -3,6 +3,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import Heading from "@/components/Heading";
 import TransactionHistory from "@/components/Profile/ManagePayments/TransactionHistory";
 import PaymentDetails from "@/components/Profile/ManagePayments/PaymentDetails";
+import { SafeUser } from "@/types/user";
 
 // Types
 interface Transaction {
@@ -19,15 +20,8 @@ interface Transaction {
 
 type TransactionStatus = 'Pending' | 'Successful' | 'Success' | 'Failed' | 'Failure';
 
-interface Profile {
-    id: string;
-    name?: string;
-    email?: string;
-    [key: string]: any;
-}
-
 interface Props {
-    profile: Profile;
+    profile: SafeUser | null;
     paymentDetails?: any;
     transactions?: Transaction[];
     paymentDataLoaded?: boolean;
@@ -215,7 +209,7 @@ const ManagePayments: React.FC<Props> = ({
             >
                 {/* Sliding indicator */}
                 <div
-                    className="absolute top-1 bottom-1 bg-white rounded-full shadow-sm transition-all duration-300 ease-in-out"
+                    className="absolute top-1 bottom-1 bg-white rounded-full shadow-xs transition-all duration-300 ease-in-out"
                     style={tabIndicatorStyles}
                     aria-hidden="true"
                 />

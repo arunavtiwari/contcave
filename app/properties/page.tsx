@@ -1,7 +1,7 @@
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
-import getCurrentUser from "../actions/getCurrentUser";
-import getListings from "../actions/getListings";
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getListings from "@/app/actions/getListings";
 import PropertiesClient from "./PropertiesClient";
 import type { Metadata } from "next";
 import { BRAND_NAME } from "@/lib/seo";

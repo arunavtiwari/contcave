@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { Amenities } from "@prisma/client";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import AddonsSelection, { Addon } from "./inputs/AddonsSelection";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import AddonsSelection from "./inputs/AddonsSelection";
 import CustomAddonModal from "./modals/CustomAddonModal";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -15,21 +15,33 @@ import Calendar from "@/components/Calendar";
 import { SessionProvider, signIn } from "next-auth/react";
 import Sidebar from "@/components/Sidebar";
 import ManageTimings from "./ManageTimings";
-import PackagesForm, { Package as ListingPackage } from "./inputs/PackagesForm";
+import { FullListing } from "@/types/listing";
+import { Addon } from "@/types/addon";
+import { Package as ListingPackage } from "@/types/package";
+import PackagesForm from "./inputs/PackagesForm";
 import { MdOutlineCurrencyRupee, MdClose } from "react-icons/md";
 import { FaBolt } from "react-icons/fa";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 
 type Props = {
-    listing: any;
+    listing: FullListing;
     predefinedAmenities: Amenities[];
-    predefinedAddons: any[];
+    predefinedAddons: Addon[];
 };
+
+interface NormalizedPackage {
+    id?: string;
+    title: string;
+    originalPrice: number;
+    offeredPrice: number;
+    features: string[];
+    durationHours: number;
+}
 
 const dayOptions = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
-function setDeep<T extends object>(obj: T, path: string, value: any): T {
+function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
     const keys = path.split(".");
     const clone: any = Array.isArray(obj) ? [...(obj as any)] : { ...obj };
     let cur: any = clone;
@@ -89,32 +101,14 @@ const TIME_SLOTS: TimeLabel[] = [
 
 const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Props) => {
     const [selectedMenu, setSelectedMenu] = useState("Edit Property");
-    const [initialListing, setListing] = useState(() => ({
+    const { getAll } = useIndianCities();
+    const indianCities = getAll();
+    const [amenities] = useState(predefinedAmenities);
+    const [addons, setAddons] = useState<Addon[]>(predefinedAddons);
+
+    const [initialListing, setListing] = useState<FullListing>(() => ({
         ...listing,
-        imageSrc: Array.isArray(listing?.imageSrc) ? listing.imageSrc : [],
-        operationalDays: listing?.operationalDays ?? { start: "Mon", end: "Sun" },
-        operationalHours: listing?.operationalHours ?? { start: "", end: "" },
-        amenities: listing?.amenities ?? [],
-        otherAmenities: listing?.otherAmenities ?? [],
-        addons: listing?.addons ?? [],
-        packages: Array.isArray(listing?.packages)
-            ? listing.packages.map((pkg: any) => ({
-                id: pkg.id,
-                title: pkg.title ?? "",
-                originalPrice: Number(pkg.originalPrice ?? 0),
-                offeredPrice: Number(pkg.offeredPrice ?? 0),
-                features: Array.isArray(pkg.features) ? pkg.features : [],
-                durationHours: Number(pkg.durationHours ?? 1) || 1,
-            }))
-            : [],
-        locationValue: listing?.locationValue ?? listing?.location ?? "",
-        actualLocation: listing?.actualLocation ?? null,
     }));
-
-    const [amenities, setAmenities] = useState<Amenities[]>(predefinedAmenities ?? []);
-    const [addons, setAddons] = useState<any[]>(predefinedAddons ?? []);
-
-    const indianCities = useIndianCities().getAll();
 
     useEffect(() => {
         window.scrollTo({ top: 0 });
@@ -132,7 +126,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             durationHours: Number(pkg.durationHours ?? 0),
         }));
 
-        const packagesWithData = normalizedPackages.filter((pkg) =>
+        const packagesWithData = normalizedPackages.filter((pkg: NormalizedPackage) =>
             pkg.title.length > 0 ||
             pkg.originalPrice > 0 ||
             pkg.offeredPrice > 0 ||
@@ -140,7 +134,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             (pkg.features && pkg.features.length > 0)
         );
 
-        const hasIncompletePackage = packagesWithData.some((pkg) =>
+        const hasIncompletePackage = packagesWithData.some((pkg: NormalizedPackage) =>
             !pkg.title || pkg.durationHours <= 0 || pkg.originalPrice <= 0 || pkg.offeredPrice <= 0
         );
 
@@ -149,10 +143,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             return;
         }
 
-        const { id: _ignoredId, user: _ignoredUser, createdAt: _ignoredCreatedAt, updatedAt: _ignoredUpdatedAt, packages: _ignoredPackages, ...listingWithoutMeta } = initialListing;
+        const { id: _ignoredId, user: _ignoredUser, createdAt: _ignoredCreatedAt, ...listingWithoutMeta } = initialListing;
+        // Handle updatedAt if it exists, otherwise ignore
+        const { updatedAt: _ignoredUpdatedAt, ...rest } = listingWithoutMeta as any;
 
         const payload = {
-            ...listingWithoutMeta,
+            ...rest,
             packages: packagesWithData,
         };
 
@@ -168,8 +164,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             });
     };
 
-    const handleInputChange = useCallback((field: string, value: any) => {
-        setListing((prev: any) => {
+    const handleInputChange = useCallback((field: string, value: unknown) => {
+        setListing((prev: FullListing) => {
             if (field === "locationValue" || field === "actualLocation") {
                 return { ...prev, [field]: value };
             }
@@ -184,14 +180,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     };
 
     const handleAddonChange = (updatedAddons: Addon[]) => {
-        setListing((prev: any) => {
+        setListing((prev: FullListing) => {
             if (JSON.stringify(prev.addons) === JSON.stringify(updatedAddons)) return prev;
             return { ...prev, addons: updatedAddons };
         });
     };
 
     const handlePackagesChange = useCallback((updatedPackages: ListingPackage[]) => {
-        setListing((prev: any) => ({
+        setListing((prev: FullListing) => ({
             ...prev,
             packages: updatedPackages,
         }));
@@ -200,7 +196,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
     const removeImage = (indexToRemove: number) => {
         const images = Array.isArray(initialListing.imageSrc) ? initialListing.imageSrc : [];
-        const updatedImages = images.filter((_: any, index: number) => index !== indexToRemove);
+        const updatedImages = images.filter((_: unknown, index: number) => index !== indexToRemove);
         handleInputChange("imageSrc", updatedImages);
     };
 
@@ -220,13 +216,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         if (newStartIdx !== -1 && (currentEndIdx === -1 || currentEndIdx < newStartIdx)) {
             nextEnd = TIME_SLOTS[newStartIdx];
         }
-        setListing((prev: any) =>
+        setListing((prev: FullListing) =>
             setDeep(setDeep(prev, "operationalHours.start", val), "operationalHours.end", nextEnd)
         );
     };
 
     const onEndChange = (val: TimeLabel) => {
-        setListing((prev: any) => setDeep(prev, "operationalHours.end", val));
+        setListing((prev: FullListing) => setDeep(prev, "operationalHours.end", val));
     };
 
     return (
@@ -245,7 +241,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="text"
                                 id="listingName"
-                                className="border rounded-full pl-3 py-2 shadow-sm w-full"
+                                className="border rounded-full pl-3 py-2 shadow-xs w-full"
                                 placeholder="Enter the listing name"
                                 value={initialListing.title ?? ""}
                                 onChange={(e) => handleInputChange("title", e.target.value)}
@@ -257,7 +253,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Description</label>
                             <textarea
                                 id="listingDescription"
-                                className="border rounded-xl pl-3 py-2 shadow-sm w-full resize-none"
+                                className="border rounded-xl pl-3 py-2 shadow-xs w-full resize-none"
                                 placeholder="Enter the description"
                                 value={initialListing.description ?? ""}
                                 onChange={(e) => handleInputChange("description", e.target.value)}
@@ -269,7 +265,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Category</label>
                             <select
-                                className="border rounded-full pl-3 py-2 shadow-sm w-full"
+                                className="border rounded-full pl-3 py-2 shadow-xs w-full"
                                 value={initialListing.category ?? CATEGORY_OPTIONS[0]?.label}
                                 onChange={(e) => handleInputChange("category", e.target.value)}
                             >
@@ -292,7 +288,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 <input
                                     type="number"
                                     id="listingPrice"
-                                    className="border rounded-full py-2 shadow-sm w-full pl-10 focus:border-black"
+                                    className="border rounded-full py-2 shadow-xs w-full pl-10 focus:border-black"
                                     placeholder="Price"
                                     value={Number.isFinite(initialListing.price) ? initialListing.price : ""}
                                     onChange={(e) => handleInputChange("price", Number(e.target.value))}
@@ -304,7 +300,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Location</label>
                             <select
-                                className="border rounded-full pl-3 py-2 shadow-sm w-full"
+                                className="border rounded-full pl-3 py-2 shadow-xs w-full"
                                 value={initialListing.locationValue ?? ""}
                                 onChange={(e) => handleInputChange("locationValue", e.target.value)}
                             >
@@ -361,7 +357,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Amenities</label>
                             <div className="flex w-full">
                                 <AmenitiesCheckbox
-                                    checked={initialListing.amenities}
+                                    checked={Array.isArray(initialListing.amenities) ? initialListing.amenities : []}
                                     amenities={amenities}
                                     onChange={handleAmenitiesChange}
                                     customAmenities={initialListing.otherAmenities}
@@ -380,7 +376,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 />
                                 <CustomAddonModal
                                     save={(value) => {
-                                        const updated = [...addons, value];
+                                        const updated = [...addons, { ...value, price: 0, qty: 0, imageUrl: value.imageUrl ?? "" }];
                                         setAddons(updated);
                                     }}
                                 />
@@ -401,7 +397,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="number"
                                 id="carpetArea"
-                                className="border rounded-full  pl-3 py-2 shadow-sm w-full"
+                                className="border rounded-full  pl-3 py-2 shadow-xs w-full"
                                 placeholder="Enter the carpet area"
                                 value={initialListing.carpetArea ?? ""}
                                 onChange={(e) => handleInputChange("carpetArea", e.target.value)}
@@ -480,7 +476,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="text"
                                 id="minBookingHours"
-                                className="border rounded-full  pl-3 py-2 shadow-sm w-full"
+                                className="border rounded-full  pl-3 py-2 shadow-xs w-full"
                                 placeholder="Enter the minimum booking hours"
                                 value={initialListing.minimumBookingHours ?? ""}
                                 onChange={(e) => handleInputChange("minimumBookingHours", e.target.value)}
@@ -493,7 +489,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="text"
                                 id="maxPax"
-                                className="border rounded-full  pl-3 py-2 shadow-sm w-full"
+                                className="border rounded-full  pl-3 py-2 shadow-xs w-full"
                                 placeholder="Enter the maximum PAX"
                                 value={initialListing.maximumPax ?? ""}
                                 onChange={(e) => handleInputChange("maximumPax", e.target.value)}
@@ -523,7 +519,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="col-span-3 pt-5 flex justify-end">
                             <button
                                 type="button"
-                                className="inline-flex py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-full hover:opacity-85 text-white bg-black"
+                                className="inline-flex py-2 px-6 border border-transparent shadow-xs text-sm font-medium rounded-full hover:opacity-85 text-white bg-black"
                                 onClick={update}
                             >
                                 Save
@@ -538,7 +534,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 title="Connect Your Google Calendar"
                                 subtitle="Sync offline and ContCave bookings to keep your availability up to date—automatically"
                             />
-                            {!listing.user.googleCalendarConnected && (
+                            {!listing.user?.googleCalendarConnected && (
                                 <button
                                     className="bg-black text-white px-15 h-fit py-2 rounded-full hover:opacity-90 flex gap-4 justify-center items-center"
                                     onClick={() => signIn("google-calendar")}
@@ -556,8 +552,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         </div>
 
                         <Calendar
-                            operationalStart={initialListing.operationalDays?.start}
-                            operationalEnd={initialListing.operationalDays?.end}
+                            operationalStart={initialListing.operationalDays?.start ?? ""}
+                            operationalEnd={initialListing.operationalDays?.end ?? ""}
                             listingId={initialListing.id}
                         />
                     </div>
@@ -567,16 +563,16 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <Heading title="Manage Studio Availability" subtitle="Update your working hours manually" />
                         <ManageTimings
                             listingId={initialListing.id}
-                            defaultStartTime={initialListing.operationalHours?.start}
-                            defaultEndTime={initialListing.operationalHours?.end}
-                            defaultStartDay={initialListing.operationalDays?.start}
-                            defaultEndDay={initialListing.operationalDays?.end}
+                            defaultStartTime={initialListing.operationalHours?.start ?? ""}
+                            defaultEndTime={initialListing.operationalHours?.end ?? ""}
+                            defaultStartDay={initialListing.operationalDays?.start ?? ""}
+                            defaultEndDay={initialListing.operationalDays?.end ?? ""}
                         />
                     </div>
 
                     {/* Settings */}
                     <div className={selectedMenu === "Settings" ? "flex flex-col gap-5" : "hidden"}>
-                        <button className="border-2 border-red px-6 py-2 rounded-full hover:opacity-85 text-red w-fit shadow-sm">
+                        <button className="border-2 border-red px-6 py-2 rounded-full hover:opacity-85 text-red w-fit shadow-xs">
                             DELETE PROPERTY
                         </button>
                         <p>
@@ -586,7 +582,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     </div>
                 </div>
             </div>
-        </SessionProvider>
+        </SessionProvider >
     );
 };
 

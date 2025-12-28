@@ -49,11 +49,13 @@ export interface Meta {
 export interface BlogBlock {
   id: string;
   blockType: "heading" | "paragraph" | "image" | "quote" | "list";
-  content?: string; 
-  src?: string; 
+  content?: string;
+  src?: string;
   alt?: string;
-  items?: string[]; 
+  items?: string[];
 }
+
+export type BlogContent = BlogBlock;
 
 export interface BlogPost {
   id: string;
@@ -73,6 +75,6 @@ export interface BlogPost {
     id: string;
     name: string;
   }[];
-  premiumContent: any[];
+  premiumContent: BlogContent[];
   tags: string[];
 }

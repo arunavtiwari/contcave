@@ -1,7 +1,7 @@
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import React from "react";
-import getCurrentUser from "../actions/getCurrentUser";
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import Image from "next/image";
 import { Building2, Heart, Users } from "lucide-react";
 import Hero from "./hero";
@@ -51,8 +51,8 @@ const About = async () => {
         </div>
       </div> */}
 
-<Hero />
-      
+      <Hero />
+
 
       <Container>
         <div className="py-20 space-y-24">
@@ -80,7 +80,7 @@ const About = async () => {
               What We Stand For
             </h2>
             <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition">
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-xs hover:shadow-lg transition">
                 <Building2 className="mx-auto mb-4 w-10 h-10 text-black" />
                 <h3 className="text-xl font-semibold mb-3 text-black">
                   Space Utilisation
@@ -91,7 +91,7 @@ const About = async () => {
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition">
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-xs hover:shadow-lg transition">
                 <Heart className="mx-auto mb-4 w-10 h-10 text-black" />
                 <h3 className="text-xl font-semibold mb-3 text-black">
                   Sustaining Human Creativity
@@ -102,7 +102,7 @@ const About = async () => {
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition">
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-xs hover:shadow-lg transition">
                 <Users className="mx-auto mb-4 w-10 h-10 text-black" />
                 <h3 className="text-xl font-semibold mb-3 text-black">
                   Community First

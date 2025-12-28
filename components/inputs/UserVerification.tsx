@@ -1,19 +1,18 @@
-import React, { useCallback, useState } from 'react';
-import { FiUpload } from "react-icons/fi";
-type Props = {
+import { useCallback, useState } from 'react';
+
+import { FiUpload } from 'react-icons/fi';
+
+interface UserVerificationProps {
   onSubmit: () => void;
+  disabled?: boolean;
 }
-const UserVerification = ({onSubmit}: Props) => {
+
+const UserVerification: React.FC<UserVerificationProps> = ({ onSubmit, disabled }) => {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [otpPhone, setOtpPhone] = useState('');
-  const [otpEmail, setOtpEmail] = useState('');
-  const disabled = false;
-  const handleSubmit = useCallback(() => {
-    if (disabled) {
-      return;
-    }
 
+  const handleSubmit = useCallback(() => {
+    if (disabled) return;
     onSubmit();
   }, [onSubmit, disabled]);
 
@@ -111,8 +110,8 @@ const UserVerification = ({onSubmit}: Props) => {
                   placeholder="Enter OTP"
                   className="border-2 border-gray-300 px-2 rounded w-1/4"
                 />
-               
-               <button
+
+                <button
                   className="text-purple-600  px-4 rounded border border-purple-600 hover:bg-purple-600 hover:text-white focus:outline-none text-sm"
                 >
                   Verify
@@ -122,8 +121,8 @@ const UserVerification = ({onSubmit}: Props) => {
 
             <div className="items-center px-4 py-3">
               <button id="ok-btn"
-              onClick={handleSubmit}
-              className="bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 font-medium hover:opacity-80 mt-4 px-4 py-3 rounded-xl shadow-sm text-base text-white w-[40vw]">
+                onClick={handleSubmit}
+                className="bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 font-medium hover:opacity-80 mt-4 px-4 py-3 rounded-xl shadow-xs text-base text-white w-[40vw]">
                 Complete Verification
               </button>
             </div>

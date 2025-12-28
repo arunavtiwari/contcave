@@ -1,3 +1,5 @@
+"use server";
+
 import prisma from "@/lib/prismadb";
 
 interface IParams {
@@ -37,7 +39,7 @@ export default async function getReservations(params: IParams) {
       },
     });
 
-    const safeReservations = reservation.map((reservation) => ({
+    const safeReservations = reservation.map((reservation: any) => ({
       ...reservation,
       createdAt: reservation.createdAt.toISOString(),
       startDate: reservation.startDate,

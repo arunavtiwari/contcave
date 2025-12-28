@@ -144,7 +144,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
 
     return (
         <main className="max-w-3xl mx-auto p-6 flex items-center min-h-[calc(100vh-85px)]">
-            <div className="mx-auto rounded-xl border bg-white/90 backdrop-blur p-6 shadow-sm">
+            <div className="mx-auto rounded-xl border bg-white/90 backdrop-blur p-6 shadow-xs">
                 <h2 className="text-3xl font-bold text-center">{heading}</h2>
                 {(isConfirmed || isFailed) && (
                     <div className="flex justify-center my-6">

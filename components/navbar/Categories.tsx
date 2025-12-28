@@ -6,9 +6,9 @@ import {
 } from "react-icons/gi";
 import { IoIosPartlySunny } from "react-icons/io";
 import { FaPodcast, FaBuilding } from "react-icons/fa";
-import { MdOutlineRoofing, MdHomeWork, MdLocalCafe, MdCelebration } from "react-icons/md";
-import CategoryBox from "../CategoryBox";
-import FilterModal from "../modals/FilterModal";
+import { MdHomeWork, MdLocalCafe, MdCelebration } from "react-icons/md";
+import CategoryBox from "@/components/CategoryBox";
+import FilterModal from "@/components/modals/FilterModal";
 
 
 export const categories = [
@@ -28,11 +28,6 @@ export const categories = [
     description: "Set up for audio/video podcast productions.",
   },
 
-  // {
-  //   label: "Rooftop / Terrace",
-  //   icon: MdOutlineRoofing,
-  //   description: "Urban rooftops with stunning skyline views.",
-  // },
   {
     label: "Café / Restaurant",
     icon: MdLocalCafe,
@@ -44,16 +39,7 @@ export const categories = [
     icon: GiCycle,
     description: "Infinity walls for seamless product and fashion shoots.",
   },
-  // {
-  //   label: "Themed Studio",
-  //   icon: GiPerspectiveDiceSixFacesRandom,
-  //   description: "Stylized, pre-set environments for creative projects.",
-  // },
-  // {
-  //   label: "Green Screen Studio",
-  //   icon: GiGreenPower,
-  //   description: "Perfect for VFX, digital compositing, and YouTube content.",
-  // },
+
   {
     label: "Recording Studio",
     icon: GiMusicalNotes,
@@ -80,7 +66,7 @@ export const categories = [
 type Props = {};
 
 function Categories({ }: Props) {
-  const params = useSearchParams()!; 
+  const params = useSearchParams()!;
   const category = params.get("category");
 
 

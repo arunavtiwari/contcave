@@ -62,7 +62,14 @@ export async function cfCreateOrder(input: {
         cache: "no-store",
     });
 
-    const j: any = await res.json().catch(() => ({}));
+    interface CashfreeOrderResponse {
+        payment_session_id?: string;
+        order_id?: string;
+        message?: string;
+        error?: string;
+    }
+
+    const j: CashfreeOrderResponse = await res.json().catch(() => ({}));
     if (!res.ok || !j?.payment_session_id || !j?.order_id) {
         throw new Error(
             j?.message || j?.error || JSON.stringify(j) || "Cashfree create order failed"
@@ -70,8 +77,8 @@ export async function cfCreateOrder(input: {
     }
 
     return {
-        payment_session_id: j.payment_session_id as string,
-        order_id: j.order_id as string,
+        payment_session_id: j.payment_session_id,
+        order_id: j.order_id,
     };
 }
 
