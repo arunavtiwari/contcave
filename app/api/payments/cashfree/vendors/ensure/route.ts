@@ -36,7 +36,6 @@ export async function POST(req: NextRequest) {
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            include: { paymentDetails: true },
             select: {
                 id: true,
                 name: true,

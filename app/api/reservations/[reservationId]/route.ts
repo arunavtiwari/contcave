@@ -100,7 +100,6 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
 
     const body = await request.json().catch(() => ({}));
 
-    const allowedFields = ["isApproved", "rejectReason"];
     const updateData: Record<string, unknown> = {};
 
     if ("isApproved" in body) {

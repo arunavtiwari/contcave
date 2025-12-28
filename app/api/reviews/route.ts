@@ -3,13 +3,6 @@ import prisma from "@/lib/prismadb";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { NextRequest } from "next/server";
 
-interface IBody {
-  listingId: string;
-  reservationId: string;
-  rating: number;
-  comment: string;
-}
-
 export async function POST(request: NextRequest) {
   try {
     if (!request.headers.get("content-type")?.includes("application/json")) {

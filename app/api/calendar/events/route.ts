@@ -23,7 +23,7 @@ async function refreshCalendarAccessToken(account: { refresh_token: string }): P
     const responseText = await response.text();
     try {
       refreshedTokens = JSON.parse(responseText);
-    } catch (jsonError) {
+    } catch (_jsonError) {
       throw new Error(`Failed to parse token refresh response: ${responseText.substring(0, 200)}`);
     }
 
