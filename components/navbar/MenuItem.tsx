@@ -1,6 +1,6 @@
 "use client";
 
-
+import { memo } from "react";
 import { IconType } from "react-icons";
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
   icon?: IconType;
 };
 
-function MenuItem({ onClick, label, icon: Icon }: Props) {
+const MenuItem = memo(function MenuItem({ onClick, label, icon: Icon }: Props) {
   return (
     <div
       className="flex items-center gap-3 px-4 py-2.5 hover:bg-neutral-100 transition font-semibold rounded-xl cursor-pointer"
@@ -19,6 +19,8 @@ function MenuItem({ onClick, label, icon: Icon }: Props) {
       <span>{label}</span>
     </div>
   );
-}
+});
+
+MenuItem.displayName = "MenuItem";
 
 export default MenuItem;

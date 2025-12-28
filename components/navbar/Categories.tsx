@@ -1,15 +1,17 @@
 "use client";
+
+import { memo, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   GiMusicalNotes,
-  GiCycle, GiPhotoCamera,
+  GiCycle,
+  GiPhotoCamera,
 } from "react-icons/gi";
 import { IoIosPartlySunny } from "react-icons/io";
 import { FaPodcast, FaBuilding } from "react-icons/fa";
 import { MdHomeWork, MdLocalCafe, MdCelebration } from "react-icons/md";
 import CategoryBox from "@/components/CategoryBox";
 import FilterModal from "@/components/modals/FilterModal";
-
 
 export const categories = [
   {
@@ -63,31 +65,33 @@ export const categories = [
 ];
 
 
-type Props = {};
+const Categories = memo(function Categories() {
+  const params = useSearchParams();
+  const category = useMemo(() => params?.get("category"), [params]);
 
-function Categories({ }: Props) {
-  const params = useSearchParams()!;
-  const category = params.get("category");
-
+  const categoryItems = useMemo(
+    () =>
+      categories.map((item) => (
+        <CategoryBox
+          key={item.label}
+          icon={item.icon}
+          label={item.label}
+          selected={category === item.label}
+        />
+      )),
+    [category]
+  );
 
   return (
     <div className="mt-4 mb-6 w-full flex flex-row items-center justify-between gap-2 border-b border-gray-200">
-      {/* Category List */}
       <div className="flex-1 overflow-x-auto hide-scrollbar flex gap-4 items-center">
-        {categories.map((item, index) => (
-          <CategoryBox
-            key={index}
-            icon={item.icon}
-            label={item.label}
-            selected={category === item.label}
-          />
-        ))}
+        {categoryItems}
       </div>
-
-      {/* More Filters Button + Dialog */}
       <FilterModal />
     </div>
   );
-}
+});
+
+Categories.displayName = "Categories";
 
 export default Categories;

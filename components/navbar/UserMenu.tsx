@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback, useState, useRef, useEffect } from "react";
 import useLoginModel from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";
 import useRentModal from "@/hook/useRentModal";
@@ -7,7 +8,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SafeUser } from "@/types/user";
 import { signOut } from "next-auth/react";
-import { useCallback, useState, useRef, useEffect } from "react";
 import { AiOutlineMenu } from "react-icons/ai";
 import {
   FiCalendar,
@@ -27,7 +27,7 @@ type Props = {
   currentUser?: SafeUser | null;
 };
 
-function UserMenu({ currentUser }: Props) {
+const UserMenu = memo(function UserMenu({ currentUser }: Props) {
   const router = useRouter();
   const registerModel = useRegisterModal();
   const loginModel = useLoginModel();
@@ -44,6 +44,8 @@ function UserMenu({ currentUser }: Props) {
   }, []);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (event: PointerEvent) => {
       if (
         menuRef.current &&
@@ -59,7 +61,7 @@ function UserMenu({ currentUser }: Props) {
     return () => {
       document.removeEventListener("pointerdown", handleClickOutside);
     };
-  }, [closeMenu]);
+  }, [isOpen]);
 
   const navigateTo = useCallback(
     (path: string) => () => {
@@ -144,6 +146,8 @@ function UserMenu({ currentUser }: Props) {
       )}
     </div>
   );
-}
+});
+
+UserMenu.displayName = "UserMenu";
 
 export default UserMenu;
