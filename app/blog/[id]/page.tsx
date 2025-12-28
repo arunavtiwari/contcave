@@ -43,15 +43,37 @@ export async function generateMetadata({
         title,
         description,
         url: `${SITE_URL}${canonical}`,
-        images: [image],
+        siteName: BRAND_NAME,
+        images: [
+          {
+            url: image,
+            width: 1200,
+            height: 630,
+            alt: post.title,
+          },
+        ],
         publishedTime: published,
         modifiedTime: updated,
+        locale: "en_IN",
+        authors: post.authors?.map((name) => `${SITE_URL}/#author-${name}`) || [BRAND_NAME],
       },
       twitter: {
         card: "summary_large_image",
         title,
         description,
+        site: "@ContCave",
+        creator: "@ContCave",
         images: [image],
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
       },
     };
   } catch (_error) {
@@ -73,24 +95,19 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
+    "@id": `${SITE_URL}/blog/${id}#article`,
     headline: post.title,
     description,
     image: [absoluteUrl(post.meta?.image?.url ?? OG_IMAGE)],
     author: (post.authors ?? []).map((name) => ({ "@type": "Person", name })),
-    publisher: {
-      "@type": "Organization",
-      name: BRAND_NAME,
-      logo: {
-        "@type": "ImageObject",
-        url: absoluteUrl(OG_IMAGE),
-      },
-    },
+    publisher: { "@id": `${SITE_URL}/#localbusiness` },
     datePublished: post.publishedAt,
     dateModified: post.updatedAt ?? post.publishedAt,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": absoluteUrl(`/blog/${id}`),
     },
+    isPartOf: { "@id": `${SITE_URL}/#website` },
   };
 
   return (

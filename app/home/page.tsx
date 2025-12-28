@@ -23,19 +23,43 @@ export const metadata: Metadata = {
     "creative studio",
     "ContCave listings",
     "studio spaces India",
+    "book studio online",
+    "hourly studio rental",
   ],
   alternates: { canonical: "/home" },
   openGraph: {
     title: `Explore Studios for Rent | ${BRAND_NAME}`,
     description: LISTINGS_DESCRIPTION,
     url: `${SITE_URL}/home`,
-    images: [OG_IMAGE],
+    siteName: BRAND_NAME,
+    type: "website",
+    images: [
+      {
+        url: absoluteUrl(OG_IMAGE),
+        width: 1200,
+        height: 630,
+        alt: "ContCave Studio Listings",
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
     title: `Explore Studios for Rent | ${BRAND_NAME}`,
     description: LISTINGS_DESCRIPTION,
-    images: [OG_IMAGE],
+    site: "@ContCave",
+    creator: "@ContCave",
+    images: [absoluteUrl(OG_IMAGE)],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -53,8 +77,10 @@ export default async function Home(props: HomeProps) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
+    "@id": `${SITE_URL}/home#itemlist`,
     name: "Studios available on ContCave",
     url: `${SITE_URL}/home`,
+    publisher: { "@id": `${SITE_URL}/#localbusiness` },
     itemListElement: listing.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,

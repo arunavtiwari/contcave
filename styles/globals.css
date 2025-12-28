@@ -312,6 +312,10 @@ body,
 	border-radius: 5px;
 }
 
+button:not(:disabled) {
+	cursor: pointer;
+}
+
 input:focus,
 textarea:focus,
 select:focus {

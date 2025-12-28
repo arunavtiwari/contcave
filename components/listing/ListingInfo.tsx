@@ -90,7 +90,11 @@ function ListingInfo({
       try {
         const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
         setReviews(res.data || []);
-      } catch { }
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ListingInfo] Error fetching reviews:', error);
+        }
+      }
     };
     const checkBooking = async () => {
       try {
@@ -215,7 +219,7 @@ function ListingInfo({
       <div className="text-base font-normal">
         <p>{displayedText}</p>
         {shouldTruncate && (
-          <button onClick={toggleExpand} className="underline font-medium text-sm mt-1">
+          <button onClick={toggleExpand} className="underline font-medium text-sm mt-1 cursor-pointer">
             {isExpanded ? "See less" : "See more"}
           </button>
         )}
@@ -370,7 +374,7 @@ function ListingInfo({
                       className="w-[calc(100%-16px)] h-[120px] resize-none text-left border-0 text-sm bg-transparent focus:ring-0"
                     />
                     <div className="w-4 h-4">
-                      <Image src="/assets/edit.svg" height={18} width={18} className="w-full h-full object-contain" alt="" />
+                      <Image src="/assets/edit.svg" height={18} width={18} className="w-full h-full object-contain" alt="Edit review" />
                     </div>
                   </div>
                 </div>
@@ -390,7 +394,7 @@ function ListingInfo({
                     ))}
                   </div>
                 </div>
-                <button type="button" onClick={handleReviewSubmit} className="rounded-full bg-black w-full py-2.5 text-white hover:opacity-90">
+                <button type="button" onClick={handleReviewSubmit} className="rounded-full bg-black w-full py-2.5 text-white hover:opacity-90 cursor-pointer">
                   Submit
                 </button>
               </div>

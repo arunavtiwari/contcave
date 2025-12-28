@@ -11,6 +11,7 @@ import {
   DEFAULT_KEYWORDS,
   OG_IMAGE,
   SITE_URL,
+  absoluteUrl,
 } from "@/lib/seo";
 
 const HOME_DESCRIPTION =
@@ -23,12 +24,26 @@ const homeJsonLd = {
   name: BRAND_TITLE,
   description: HOME_DESCRIPTION,
   isPartOf: { "@id": `${SITE_URL}/#website` },
-  inLanguage: "en",
+  publisher: { "@id": `${SITE_URL}/#localbusiness` },
+  inLanguage: "en-IN",
   primaryImageOfPage: {
     "@type": "ImageObject",
     url: `${SITE_URL}${OG_IMAGE}`,
+    width: 1200,
+    height: 630,
   },
-  about: BRAND_NAME,
+  about: { "@id": `${SITE_URL}/#localbusiness` },
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SITE_URL,
+      },
+    ],
+  },
 } as const;
 
 export const metadata: Metadata = {
@@ -42,7 +57,17 @@ export const metadata: Metadata = {
     title: BRAND_TITLE,
     description: HOME_DESCRIPTION,
     type: "website",
-    images: [OG_IMAGE],
+    url: SITE_URL,
+    siteName: BRAND_NAME,
+    images: [
+      {
+        url: absoluteUrl(OG_IMAGE),
+        width: 1200,
+        height: 630,
+        alt: BRAND_NAME,
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
@@ -50,7 +75,18 @@ export const metadata: Metadata = {
     description: HOME_DESCRIPTION,
     site: "@ContCave",
     creator: "@ContCave",
-    images: [OG_IMAGE],
+    images: [absoluteUrl(OG_IMAGE)],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 

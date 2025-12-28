@@ -17,6 +17,8 @@ export const metadata: Metadata = {
     "photography studio guide",
     "production workflow",
     "shoot locations India",
+    "content creation tips",
+    "studio rental guide",
   ],
   alternates: {
     canonical: "/blog",
@@ -27,7 +29,15 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/blog`,
     siteName: BRAND_NAME,
     type: "website",
-    images: [OG_IMAGE],
+    images: [
+      {
+        url: `${SITE_URL}${OG_IMAGE}`,
+        width: 1200,
+        height: 630,
+        alt: "ContCave Blog",
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
@@ -35,7 +45,17 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     site: "@ContCave",
     creator: "@ContCave",
-    images: [OG_IMAGE],
+    images: [`${SITE_URL}${OG_IMAGE}`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

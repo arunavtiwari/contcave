@@ -60,19 +60,49 @@ export async function generateMetadata({
   return {
     title,
     description,
+    keywords: [
+      listing.title,
+      listing.locationValue,
+      listing.category,
+      "studio rental",
+      "photography studio",
+      "shoot space",
+      "ContCave",
+      ...DEFAULT_KEYWORDS.slice(0, 10),
+    ],
     alternates: { canonical: `/listings/${listingId}` },
     openGraph: {
       type: "website",
       title,
       description,
       url,
-      images: [image],
+      siteName: BRAND_NAME,
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: listing.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      site: "@ContCave",
+      creator: "@ContCave",
       images: [image],
+    },
+    robots: {
+      index: listing.active && listing.status === "VERIFIED",
+      follow: true,
+      googleBot: {
+        index: listing.active && listing.status === "VERIFIED",
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
   };
 }
@@ -218,6 +248,14 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
 
   const url = absoluteUrl(`/listings/${listing.id}`);
 
+  const aggregateRating = listing.reviews && listing.reviews.length > 0
+    ? {
+        "@type": "AggregateRating",
+        ratingValue: listing.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / listing.reviews.length,
+        reviewCount: listing.reviews.length,
+      }
+    : undefined;
+
   const eventVenueJsonLd = {
     "@context": "https://schema.org",
     "@type": "EventVenue",
@@ -242,11 +280,39 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
             ? "https://schema.org/InStock"
             : "https://schema.org/LimitedAvailability",
           url,
+          seller: { "@id": `${SITE_URL}/#localbusiness` },
         },
       ]
       : undefined,
     openingHoursSpecification,
     areaServed: clean(listing.locationValue),
+    aggregateRating,
+    provider: { "@id": `${SITE_URL}/#localbusiness` },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SITE_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Listings",
+        item: `${SITE_URL}/home`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: listing.title,
+        item: url,
+      },
+    ],
   };
 
   return (
@@ -255,6 +321,10 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
         <ListingClient
           listing={listing}

@@ -9,7 +9,15 @@ type Props = {
 
 function ErrorState({ error }: Props) {
   useEffect(() => {
-    console.error("🚀 ~ file: error.tsx:12 ~ ErrorState ~ error:", error);
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[Error Boundary]', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+    } else {
+      console.error("🚀 ~ file: error.tsx:12 ~ ErrorState ~ error:", error);
+    }
   }, [error]);
 
   return <EmptyState title="Uh Oh" subtitle="Something went wrong!" />;

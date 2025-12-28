@@ -12,8 +12,25 @@ const FAQ = () => {
     activeFaq === id ? setActiveFaq(0) : setActiveFaq(id);
   };
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqData.map((faq) => ({
+      "@type": "Question",
+      name: faq.quest,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.ans,
+      },
+    })),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* <!-- ===== FAQ Start ==== --> */}
       <section className="overflow-hidden pb-20 lg:pb-25 xl:pb-30">
         <div className="relative mx-auto max-w-c-1235 px-4 md:px-8 xl:px-0">

@@ -33,6 +33,7 @@ function Button({
       disabled={disabled || loading}
       onClick={onClick}
       className={`relative 
+        cursor-pointer
         disabled:opacity-70 
         disabled:cursor-not-allowed 
         hover:opacity-90 

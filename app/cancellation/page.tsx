@@ -16,14 +16,34 @@ export const metadata: Metadata = {
     description:
       "Review the cancellation timeframes and refund process for bookings made through ContCave.",
     url: `${SITE_URL}/cancellation`,
-    images: [OG_IMAGE],
+    siteName: BRAND_NAME,
+    type: "article",
+    images: [
+      {
+        url: `${SITE_URL}${OG_IMAGE}`,
+        width: 1200,
+        height: 630,
+        alt: "Cancellation Policy",
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
     title: `Cancellation Policy | ${BRAND_NAME}`,
     description:
       "Understand the timelines and process for cancelling or rescheduling ContCave bookings.",
-    images: [OG_IMAGE],
+    site: "@ContCave",
+    images: [`${SITE_URL}${OG_IMAGE}`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
   },
 };
 

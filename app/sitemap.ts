@@ -5,18 +5,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://contcave.com";
 
   const routes: MetadataRoute.Sitemap = [
-    "",
-    "/home",
-    "/about",
-    "/blog",
-    "/privacy-policy",
-    "/terms-and-conditions",
-    "/cancellation",
-  ].map((path) => ({
+    { path: "", priority: 1.0, changeFrequency: "daily" as const },
+    { path: "/home", priority: 0.9, changeFrequency: "daily" as const },
+    { path: "/about", priority: 0.7, changeFrequency: "monthly" as const },
+    { path: "/blog", priority: 0.8, changeFrequency: "weekly" as const },
+    { path: "/privacy-policy", priority: 0.3, changeFrequency: "yearly" as const },
+    { path: "/terms-and-conditions", priority: 0.3, changeFrequency: "yearly" as const },
+    { path: "/cancellation", priority: 0.5, changeFrequency: "monthly" as const },
+  ].map(({ path, priority, changeFrequency }) => ({
     url: `${base}${path}`,
     lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: path === "" ? 1 : 0.8,
+    changeFrequency,
+    priority,
   }));
 
   try {
@@ -34,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       routes.push({
         url: `${base}/listings/${listing.id}`,
         lastModified: listing.createdAt ?? new Date(),
-        changeFrequency: "weekly",
+        changeFrequency: "weekly" as const,
         priority: 0.9,
       });
     }
@@ -46,8 +46,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       routes.push({
         url: `${base}/blog/${post.id}`,
         lastModified: post.updatedAt ? new Date(post.updatedAt) : new Date(post.publishedAt ?? Date.now()),
-        changeFrequency: "monthly",
-        priority: 0.6,
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
       });
     }
   } catch (error) {

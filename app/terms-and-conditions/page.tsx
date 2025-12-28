@@ -15,14 +15,33 @@ export const metadata: Metadata = {
         title: `Terms & Conditions | ${BRAND_NAME}`,
         description: DESCRIPTION,
         url: `${SITE_URL}/terms-and-conditions`,
+        siteName: BRAND_NAME,
         type: "article",
-        images: [OG_IMAGE],
+        images: [
+            {
+                url: `${SITE_URL}${OG_IMAGE}`,
+                width: 1200,
+                height: 630,
+                alt: "Terms & Conditions",
+            },
+        ],
+        locale: "en_IN",
     },
     twitter: {
         card: "summary_large_image",
         title: `Terms & Conditions | ${BRAND_NAME}`,
         description: DESCRIPTION,
-        images: [OG_IMAGE],
+        site: "@ContCave",
+        images: [`${SITE_URL}${OG_IMAGE}`],
+    },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+        },
     },
 };
 

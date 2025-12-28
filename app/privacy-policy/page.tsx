@@ -18,14 +18,24 @@ export const metadata: Metadata = {
     title: `Privacy Policy | ${BRAND_NAME}`,
     description: DESCRIPTION,
     url: `${SITE_URL}/privacy-policy`,
+    siteName: BRAND_NAME,
     type: "article",
-    images: [OG_IMAGE],
+    images: [
+      {
+        url: `${SITE_URL}${OG_IMAGE}`,
+        width: 1200,
+        height: 630,
+        alt: "Privacy Policy",
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
     title: `Privacy Policy | ${BRAND_NAME}`,
     description: DESCRIPTION,
-    images: [OG_IMAGE],
+    site: "@ContCave",
+    images: [`${SITE_URL}${OG_IMAGE}`],
   },
   robots: {
     index: true,

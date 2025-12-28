@@ -14,18 +14,45 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   title: `About ${BRAND_NAME}`,
   description: DESCRIPTION,
+  keywords: [
+    "ContCave about",
+    "studio marketplace",
+    "creative platform India",
+    "Arkanet Ventures",
+  ],
   alternates: { canonical: "/about" },
   openGraph: {
     title: `About ${BRAND_NAME}`,
     description: DESCRIPTION,
     url: `${SITE_URL}/about`,
-    images: [OG_IMAGE],
+    siteName: BRAND_NAME,
+    type: "website",
+    images: [
+      {
+        url: `${SITE_URL}${OG_IMAGE}`,
+        width: 1200,
+        height: 630,
+        alt: `About ${BRAND_NAME}`,
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
     title: `About ${BRAND_NAME}`,
     description: DESCRIPTION,
-    images: [OG_IMAGE],
+    site: "@ContCave",
+    creator: "@ContCave",
+    images: [`${SITE_URL}${OG_IMAGE}`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
   },
 };
 

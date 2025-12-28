@@ -1,12 +1,9 @@
-"use client";
 import React from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/components/navbar/Logo"
 
 function Footer() {
-  const router = useRouter();
-
   return (
     <>
       <div
@@ -20,7 +17,7 @@ function Footer() {
             <p className="text-base font-semibold text-center md:text-start">Subscribe to our newsletter</p>
             <div className="flex flex-wrap gap-4 justify-center md:justify-start">
               <input type="email" placeholder="Enter your email" className="border py-2 px-4 rounded-full" />
-              <button className="bg-black text-white px-8 py-2 rounded-full hover:opacity-90">Subscribe</button>
+              <button className="bg-black text-white px-8 py-2 rounded-full hover:opacity-90 cursor-pointer">Subscribe</button>
             </div>
           </div>
 
@@ -56,10 +53,10 @@ function Footer() {
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-8 text-base font-medium text-center">
           <div className="flex flex-col space-y-2">
             <p className="text-xl font-bold text-black">Company</p>
-            <a onClick={() => { router.push("/about") }} className="cursor-pointer text-btndark/80 hover:text-black transition-all">About</a>
-            <a onClick={() => { router.push("/privacy-policy") }} className="cursor-pointer text-btndark/80 hover:text-black transition-all">Privacy Policy</a>
-            <a onClick={() => { router.push("/terms-and-conditions") }} className="cursor-pointer text-btndark/80 hover:text-black transition-all">Terms & Conditions</a>
-            <a onClick={() => { router.push("/blog") }} className="cursor-pointer text-btndark/80 hover:text-black transition-all">Blogs</a>
+            <Link href="/about" className="cursor-pointer text-btndark/80 hover:text-black transition-all">About</Link>
+            <Link href="/privacy-policy" className="cursor-pointer text-btndark/80 hover:text-black transition-all">Privacy Policy</Link>
+            <Link href="/terms-and-conditions" className="cursor-pointer text-btndark/80 hover:text-black transition-all">Terms & Conditions</Link>
+            <Link href="/blog" className="cursor-pointer text-btndark/80 hover:text-black transition-all">Blogs</Link>
           </div>
 
           <div className="flex flex-col space-y-2">
