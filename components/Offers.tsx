@@ -1,6 +1,6 @@
 "use client";
 
-
+import { useMemo } from "react";
 import { AiOutlineCar } from "react-icons/ai";
 import { BiCctv } from "react-icons/bi";
 import { BsFire } from "react-icons/bs";
@@ -25,7 +25,7 @@ interface Amenity {
 interface AmenityProp {
   id: string;
   name: string;
-  icon: IconType | null;
+  icon?: string | null;
   createdAt: Date;
 }
 
@@ -165,11 +165,17 @@ const getIconByName = (name: string) => {
 };
 
 function Offers({ amenities, definedAmenities }: Props) {
+  const displayAmenities = useMemo(() => {
+    if (!definedAmenities || !amenities) return [];
 
-  definedAmenities = definedAmenities?.filter((item) => amenities?.includes(item.id))
-  definedAmenities?.forEach((item) => {
-    item.icon = getIconByName(item.name)
-  })
+    return definedAmenities
+      .filter((item) => amenities.includes(item.id))
+      .map((item) => ({
+        ...item,
+        icon: getIconByName(item.name) as IconType | null,
+      }));
+  }, [amenities, definedAmenities]);
+
   return (
     <>
 
@@ -177,33 +183,17 @@ function Offers({ amenities, definedAmenities }: Props) {
       <div>
         <p className="text-xl font-semibold mb-4">What this space offers</p>
         <div className="grid grid-cols-2 gap-4">
-          {definedAmenities?.map((item) =>
+          {displayAmenities.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 cursor-pointer">
-              {item.icon && <item.icon size={22} className="text-neutral-700" />}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              {item.icon && (
+                <item.icon size={22} className="text-neutral-700" />
+              )}
               <p className="text-neutral-800 text-sm">{item.name}</p>
             </div>
-            // (
-            //   <motion.div
-            //     key={item.id}
-            //     initial={{
-            //       x: -200,
-            //       opacity: 0,
-            //     }}
-            //     transition={{ duration: 1 }}
-            //     whileInView={{ opacity: 1, x: 0 }}
-            //     viewport={{ once: true }}
-            //     className="flex cursor-pointer gap-3 items-center"
-            //   >
-            //     {item.icon && (
-            //       <item.icon size={25} className="" />
-            //     )}
-            //     <p className="">{item.name}</p>
-            //   </motion.div>
-            // )
-
-          )}
+          ))}
         </div>
       </div>
     </>

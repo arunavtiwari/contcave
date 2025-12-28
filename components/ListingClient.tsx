@@ -1,7 +1,7 @@
 "use client";
 
 import { SafeUser } from "@/types/user";
-import { safeListing, FullListing } from "@/types/listing";
+import { FullListing } from "@/types/listing";
 import { SafeReservation } from "@/types/reservation";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -20,7 +20,7 @@ import { Package } from "@/types/package";
 
 type Props = {
   reservations?: SafeReservation[];
-  listing: safeListing & { user: SafeUser };
+  listing: FullListing;
   currentUser?: SafeUser | null;
 
 };
@@ -340,7 +340,7 @@ function ListingClient({
     return { starts: merged.map(x => x.s), ends: merged.map(x => x.e) };
   }, [selectedDate, buildMergedIntervalsFor]);
 
-  const getRequiredMinutes = useCallback((selPkg: Package | null, lst: safeListing) => {
+  const getRequiredMinutes = useCallback((selPkg: Package | null, lst: FullListing) => {
     const pkgMin = Math.max(0, Number(selPkg?.durationHours ?? 0)) * 60;
     const listingMin = Math.max(0, Number(lst.minimumBookingHours ?? 0)) * 60;
     const mins = SLOT_LABELS.map(labelToMinutes).filter(n => Number.isFinite(n));

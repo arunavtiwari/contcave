@@ -15,8 +15,7 @@ export type ActualLocation = {
     [key: string]: unknown;
 };
 
-export type FullListing = Omit<safeListing, "amenities" | "addons" | "packages"> & {
-    amenities: string[] | Record<string, unknown>;
+export type FullListing = Omit<safeListing, "addons" | "packages" | "operationalDays" | "operationalHours" | "carpetArea" | "maximumPax" | "minimumBookingHours" | "actualLocation" | "avgReviewRating" | "instantBooking"> & {
     addons: Addon[];
     packages: Package[];
     operationalDays?: { start?: string; end?: string };
@@ -28,12 +27,12 @@ export type FullListing = Omit<safeListing, "amenities" | "addons" | "packages">
     avgReviewRating?: number;
     actualLocation?: ActualLocation | null;
     otherAmenities?: string[];
-    description?: string;
-    category?: string;
-    locationValue?: string;
-    imageSrc?: string[];
-    title?: string;
-    price?: number;
+    description: string;
+    category: string;
+    locationValue: string;
+    imageSrc: string[];
+    title: string;
+    price: number;
     instantBooking?: boolean;
-    user?: SafeUser;
+    user: SafeUser;
 };
