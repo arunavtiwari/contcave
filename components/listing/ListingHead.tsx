@@ -42,7 +42,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
 
   const NextArrow: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
     <div
-      className="absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-md border border-[rgba(255,255,255,0.5)]"
+      className="absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-sm border border-[rgba(255,255,255,0.5)]"
       onClick={onClick}
     >
       <HiOutlineChevronRight className="text-white" size={20} />
@@ -51,7 +51,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
 
   const PrevArrow: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
     <div
-      className="absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-md border border-[rgba(255,255,255,0.5)]"
+      className="absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-sm border border-[rgba(255,255,255,0.5)]"
       onClick={onClick}
     >
       <HiOutlineChevronLeft className="text-white" size={20} />
@@ -177,7 +177,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
                     onClick={() => handleImageClick(4)}
                   />
                   <button
-                    className="absolute bottom-3 right-3 bg-white text-black px-4 py-1.5 rounded-lg shadow-md hover:bg-neutral-200 transition font-medium text-base"
+                    className="absolute bottom-3 right-3 bg-white text-black px-4 py-1.5 rounded-lg shadow-sm hover:bg-neutral-200 transition font-medium text-base"
                     onClick={() => handleImageClick(0)}
                   >
                     Show all photos

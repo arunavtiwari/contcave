@@ -68,19 +68,19 @@ function ListingInfo({
   const coordinates = getByValue(locationValue)?.latlng;
 
   const getValidCenter = useCallback((): number[] | undefined => {
-    if (fullListing.actualLocation && 
-        typeof fullListing.actualLocation.lat === 'number' && 
-        typeof fullListing.actualLocation.lng === 'number' &&
-        Number.isFinite(fullListing.actualLocation.lat) &&
-        Number.isFinite(fullListing.actualLocation.lng)) {
+    if (fullListing.actualLocation &&
+      typeof fullListing.actualLocation.lat === 'number' &&
+      typeof fullListing.actualLocation.lng === 'number' &&
+      Number.isFinite(fullListing.actualLocation.lat) &&
+      Number.isFinite(fullListing.actualLocation.lng)) {
       return [fullListing.actualLocation.lat, fullListing.actualLocation.lng];
     }
-    if (Array.isArray(coordinates) && 
-        coordinates.length >= 2 &&
-        typeof coordinates[0] === 'number' &&
-        typeof coordinates[1] === 'number' &&
-        Number.isFinite(coordinates[0]) &&
-        Number.isFinite(coordinates[1])) {
+    if (Array.isArray(coordinates) &&
+      coordinates.length >= 2 &&
+      typeof coordinates[0] === 'number' &&
+      typeof coordinates[1] === 'number' &&
+      Number.isFinite(coordinates[0]) &&
+      Number.isFinite(coordinates[1])) {
       return [coordinates[0], coordinates[1]];
     }
     return undefined;
@@ -366,7 +366,7 @@ function ListingInfo({
             <>
               <div className="flex flex-col relative gap-4 pb-4">
                 {reviews.map((rv) => (
-                  <div className="flex items-center p-5 shadow-md rounded-2xl border" key={rv.id}>
+                  <div className="flex items-center p-5 shadow-sm rounded-2xl border" key={rv.id}>
                     <div className="h-fit">
                       <Avatar src={rv.user?.image} size={45} />
                     </div>

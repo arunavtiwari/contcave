@@ -63,7 +63,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
             alt={label || "image"}
             width={80}
             height={80}
-            className="rounded-md w-20 mt-6 mb-2"
+            className="rounded-md w-20 h-20 mt-6 mb-2 object-cover"
             onClick={onClickChange}
           />
         )}
@@ -73,7 +73,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
             alt={label || "image"}
             width={97}
             height={97}
-            className="rounded-md mt-2"
+            className="rounded-md mt-2 object-cover w-[97px] h-[97px]"
           />
         )}
 
@@ -82,8 +82,8 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
           <span className="addon-name truncate mt-2">{label}</span>
           {/* Price */}
           {!hideInputFields && (
-            <div className='flex items-center gap-4 w-full justify-between'>
-              <label className="text-sm">Price</label>
+            <div className='flex items-center gap-2 w-full justify-start px-2'>
+              <label className="text-sm font-semibold w-14 shrink-0">Price</label>
               <div className="relative flex items-center">
                 <span className="absolute left-2 text-gray-500 border-r pr-2">₹</span>
                 <input
@@ -100,13 +100,13 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
 
           {/* Quantity */}
           {!hideInputFields && (
-            <div className='flex items-center gap-4 w-full justify-between'>
-              <label className="text-sm">Quantity</label>
+            <div className='flex items-center gap-2 w-full justify-start px-2'>
+              <label className="text-sm font-semibold w-14 shrink-0">Quantity</label>
               <input
                 type="number"
                 value={addon?.qty ? addon.qty : qty}
                 onChange={handleQtyChange}
-                className="w-[150px] text-center border rounded-xl py-1 pl-7"
+                className="w-[150px] text-center border rounded-xl py-1 px-3"
                 placeholder="Quantity"
                 disabled={!isChecked}
               />

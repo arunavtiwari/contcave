@@ -1,6 +1,6 @@
 import axios from "axios";
-import { HttpsProxyAgent } from "https-proxy-agent";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { getFixieProxyAgent, handleProxyError } from "@/lib/fixie-proxy";
 import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 
@@ -49,9 +49,8 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Server configuration error", 500);
         }
 
-        const httpsAgent = process.env.FIXIE_URL
-            ? new HttpsProxyAgent(process.env.FIXIE_URL)
-            : undefined;
+        // Get reusable proxy agent
+        const httpsAgent = getFixieProxyAgent();
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -79,6 +78,18 @@ export async function POST(req: NextRequest) {
             return createSuccessResponse(resp.data, resp.status);
         } catch (fetchError) {
             clearTimeout(timeoutId);
+            
+            // Check for proxy-specific errors
+            const proxyErrorInfo = handleProxyError(fetchError, "verification");
+            if (proxyErrorInfo.isProxyError) {
+                // Log proxy error for monitoring
+                console.error("[Fixie Proxy] Proxy error in verification:", proxyErrorInfo.message);
+                return createErrorResponse(
+                    "Service temporarily unavailable. Please try again later.",
+                    503
+                );
+            }
+
             if (axios.isAxiosError(fetchError)) {
                 const status = fetchError.response?.status || 500;
                 const errorData = fetchError.response?.data || fetchError.message;

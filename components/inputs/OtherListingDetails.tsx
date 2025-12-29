@@ -16,6 +16,7 @@ export type ListingDetails = {
 
 type Props = {
     onDetailsChange: (details: ListingDetails) => void;
+    initialDetails?: ListingDetails;
 };
 
 const dayOptions = [
@@ -53,17 +54,25 @@ const selectClasses = {
     option: () => "text-lg cursor-pointer",
 };
 
-const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
+const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails }) => {
     const timeOptions = useMemo(() => buildTimeOptions(30), []);
-    const [details, setDetails] = useState<ListingDetails>({
-        carpetArea: "",
-        operationalDays: { start: "Mon", end: "Sun" },
-        operationalHours: { start: "9:00 AM", end: "9:00 PM" },
-        minimumBookingHours: "",
-        maximumPax: "",
-        instantBooking: false,
-        type: [],
-    });
+    const [details, setDetails] = useState<ListingDetails>(
+        initialDetails || {
+            carpetArea: "",
+            operationalDays: { start: "Mon", end: "Sun" },
+            operationalHours: { start: "9:00 AM", end: "9:00 PM" },
+            minimumBookingHours: "",
+            maximumPax: "",
+            instantBooking: false,
+            type: [],
+        }
+    );
+
+    useEffect(() => {
+        if (initialDetails) {
+            setDetails(initialDetails);
+        }
+    }, [initialDetails]);
 
     useEffect(() => {
         onDetailsChange(details);

@@ -14,6 +14,7 @@ export async function runDueSplits(limit = 200) {
             vendorId: { not: null },
             cfOrderId: { not: null },
             payoutDueAt: { lte: now },
+            payoutDoneAt: null,
         },
         orderBy: { payoutDueAt: "asc" },
         take: limit,
@@ -54,6 +55,12 @@ export async function runDueSplits(limit = 200) {
                 split: [{ vendor_id: vendorId, percentage: pct }],
                 idempotencyKey: `easy-split:${t.id}`,
             });
+
+            await prisma.transaction.update({
+                where: { id: t.id },
+                data: { payoutDoneAt: new Date() },
+            });
+
             results.push({ id: t.id, ok: true });
 
             const hostPhone = t.listing?.user?.phone;
@@ -75,7 +82,14 @@ export async function runDueSplits(limit = 200) {
                 }
             }
         } catch (e: unknown) {
-            results.push({ id: t.id, ok: false, error: e instanceof Error ? e.message : "split failed" });
+            const errorMessage = e instanceof Error ? e.message : "split failed";
+            results.push({ id: t.id, ok: false, error: errorMessage });
+            console.error("Failed to process payout split", {
+                transactionId: t.id,
+                orderId,
+                vendorId,
+                error: errorMessage,
+            });
         }
     }
 

@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { IoMdClose } from "react-icons/io";
 import axios from "axios";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -18,13 +19,13 @@ import Modal from "./Modal";
 import Input from "@/components/inputs/Input";
 import CategoryInput from "@/components/inputs/CategoryInput";
 import CitySelect from "@/components/inputs/CitySelect";
-import AutoComplete from "@/components/inputs/AutoComplete";
+import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import AddonsSelection from "@/components/inputs/AddonsSelection";
 import { Addon } from "@/types/addon";
 import OtherListingDetails, { ListingDetails } from "@/components/inputs/OtherListingDetails";
-import SpaceVerification, { VerificationPayload } from "@/components/inputs/SpaceVerification";
+import SpaceVerification, { VerificationPayload, VerificationDocument } from "@/components/inputs/SpaceVerification";
 import TermsAndConditionsModal, { TermsRef, SignatureMeta } from "@/components/inputs/TermsAndConditions";
 import CustomAddonModal from "./CustomAddonModal";
 import PackagesForm from "@/components/inputs/PackagesForm";
@@ -65,6 +66,7 @@ export default function RentModal() {
   const [terms, setTerms] = useState(false);
   const [signature, setSignature] = useState<SignatureMeta | null>(null);
   const [, setAgreementPdf] = useState<unknown>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -91,7 +93,7 @@ export default function RentModal() {
       imageSrc: [],
       title: "",
       description: "",
-      price: 1,
+      price: "",
       addons: [],
     },
   });
@@ -126,25 +128,62 @@ export default function RentModal() {
     [setValue]
   );
 
-  const hasVerification = useMemo(() => {
-    const docs = verifications?.documents || [];
-    const vids = verifications?.videos || [];
-    return docs.length > 0 || vids.length > 0;
-  }, [verifications]);
-
   const onBack = () => setStep((v) => v - 1);
 
   const onNext = () => {
-    // validations before moving to next step
-    if (step === STEPS.CATEGORY && !category)
+    if (step === STEPS.CATEGORY && !category) {
       return toast.error("Please select a category");
-    if (step === STEPS.LOCATION && !location)
-      return toast.error("Please select a location");
-    if (step === STEPS.IMAGES && (!imageSrc || imageSrc.length === 0))
-      return toast.error("Please upload at least one image");
+    }
+    if (step === STEPS.LOCATION) {
+      if (!location) {
+        return toast.error("Please select a location");
+      }
+      if (!actualLocation || !actualLocation.display_name) {
+        return toast.error("Please select an accurate location using the address search");
+      }
+    }
+    if (step === STEPS.IMAGES) {
+      const remoteImages = (imageSrc || []).filter(
+        (url: string) => typeof url === "string" && !url.startsWith("blob:")
+      );
+      const totalImages = remoteImages.length + (imageFiles?.length || 0);
+      if (totalImages === 0) {
+        return toast.error("Please upload at least one image");
+      }
+      if (totalImages > 20) {
+        return toast.error("Maximum 20 images allowed");
+      }
+    }
+    if (step === STEPS.DESCRIPTION) {
+      const title = watch("title");
+      const description = watch("description");
+      if (!title || String(title).trim().length < 5) {
+        return toast.error("Title must be at least 5 characters long");
+      }
+      if (String(title).trim().length > 200) {
+        return toast.error("Title is too long (max 200 characters)");
+      }
+      if (!description || String(description).trim().length < 50) {
+        return toast.error("Description must be at least 50 characters long");
+      }
+      if (String(description).trim().length > 5000) {
+        return toast.error("Description is too long (max 5000 characters)");
+      }
+    }
+    if (step === STEPS.PRICE) {
+      const priceValue = watch("price");
+      const numericPrice = Number(priceValue);
+      if (!priceValue || isNaN(numericPrice) || numericPrice <= 0) {
+        return toast.error("Please enter a valid price (must be greater than 0)");
+      }
+      if (numericPrice > 10000000) {
+        return toast.error("Price exceeds maximum limit (₹10,000,000)");
+      }
+    }
     if (step === STEPS.OTHERDETAILS) {
-      if (!listingDetails)
+      if (!listingDetails) {
         return toast.error("Please complete all 'Other Details'");
+      }
 
       const {
         carpetArea,
@@ -155,27 +194,41 @@ export default function RentModal() {
         type,
       } = listingDetails;
 
-      if (!carpetArea || String(carpetArea).trim() === "")
+      if (!carpetArea || String(carpetArea).trim() === "") {
         return toast.error("Please enter Carpet Area");
-      if (!/^\d+(?:\.\d+)?$/.test(String(carpetArea).trim()))
+      }
+      if (!/^\d+(?:\.\d+)?$/.test(String(carpetArea).trim())) {
         return toast.error("Carpet Area must be a number");
-      if (!operationalDays?.start || !operationalDays?.end)
+      }
+      if (!operationalDays?.start || !operationalDays?.end) {
         return toast.error("Please select Operational Days (start and end)");
-      if (!operationalHours?.start || !operationalHours?.end)
+      }
+      if (!operationalHours?.start || !operationalHours?.end) {
         return toast.error("Please select Opening Hours (start and end)");
-      if (!minimumBookingHours || String(minimumBookingHours).trim() === "")
+      }
+      if (!minimumBookingHours || String(minimumBookingHours).trim() === "") {
         return toast.error("Please enter Minimum Booking Hours");
-      if (!/^\d+(?:\.\d+)?$/.test(String(minimumBookingHours).trim()))
+      }
+      if (!/^\d+(?:\.\d+)?$/.test(String(minimumBookingHours).trim())) {
         return toast.error("Minimum Booking Hours must be a number");
-      if (!maximumPax || String(maximumPax).trim() === "")
+      }
+      if (!maximumPax || String(maximumPax).trim() === "") {
         return toast.error("Please enter Maximum Pax");
-      if (!/^\d+$/.test(String(maximumPax).trim()))
+      }
+      if (!/^\d+$/.test(String(maximumPax).trim())) {
         return toast.error("Maximum Pax must be an integer");
-      if (!Array.isArray(type) || type.length === 0)
+      }
+      if (!Array.isArray(type) || type.length === 0) {
         return toast.error("Please select at least one Type");
+      }
     }
-    if (step === STEPS.VERIFICATION && !hasVerification)
-      return toast.error("Please upload verification documents");
+    if (step === STEPS.VERIFICATION) {
+      const hasDocs = verifications?.documents && verifications.documents.length > 0;
+      const hasCode = verifications?.code && verifications.code.trim().length > 0;
+      if (!hasDocs && !hasCode) {
+        return toast.error("Please upload verification documents OR generate a verification code");
+      }
+    }
     setStep((v) => v + 1);
   };
 
@@ -188,20 +241,32 @@ export default function RentModal() {
     setSignature(null);
     setPackages([]);
     setAgreementPdf(null);
+    setImageFiles([]);
+    setShowSuccessModal(false);
+    setIsLoading(false);
     reset();
     setStep(STEPS.CATEGORY);
   }, [reset]);
+
+  useEffect(() => {
+    if (!rentModel.isOpen) {
+      resetFormStates();
+    }
+  }, [rentModel.isOpen, resetFormStates]);
 
   const removeImage = (idx: number) => {
     setCustomValue(
       "imageSrc",
       imageSrc.filter((_: unknown, i: number) => i !== idx)
     );
+    setImageFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleTermsAndConditions = (accept: boolean) => setTerms(accept);
   const handleSignature = (sig: SignatureMeta) => setSignature(sig);
   const handleVerificationChange = (v: VerificationPayload) => setVerifications(v);
+  const handleImageFilesChange = (files: File[]) =>
+    setImageFiles((prev) => [...prev, ...files]);
   const handleAmenitiesChange = (v: typeof selectedAmenities) =>
     setSelectedAmenities({
       predefined: Object.fromEntries(
@@ -212,9 +277,12 @@ export default function RentModal() {
   const handleAddonChange = (v: Addon[]) => setSelectedAddons(v);
   const handleDetailsChange = (v: ListingDetails) => setListingDetails(v);
 
-  // Submit
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) return onNext();
+
+    if (!terms || !signature) {
+      return toast.error("Please accept the terms and conditions and provide your signature");
+    }
 
     const locationValue =
       data.location?.value ||
@@ -222,18 +290,73 @@ export default function RentModal() {
       data.location?.name ||
       "";
 
-    if (!locationValue) return toast.error("Please select a valid city/location");
+    if (!locationValue) {
+      return toast.error("Please select a valid city/location");
+    }
+
+    if (!data.actualLocation || !data.actualLocation.display_name) {
+      return toast.error("Please select an accurate location using the address search");
+    }
+
+    const remoteImages = (data.imageSrc || []).filter(
+      (url: string) => typeof url === "string" && !url.startsWith("blob:")
+    );
+
+    const finalImageUrls: string[] = [];
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+
+    if (imageFiles.length > 0) {
+      if (!cloudName) {
+        return toast.error("Image upload service is not configured");
+      }
+      try {
+        for (const file of imageFiles) {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("upload_preset", "phxjukr6");
+
+          const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData?.error?.message || `Image upload failed for ${file.name}`);
+          }
+
+          const uploadData = await response.json();
+          if (uploadData.secure_url) {
+            finalImageUrls.push(uploadData.secure_url);
+          } else {
+            throw new Error("No secure URL returned from image upload service");
+          }
+        }
+      } catch (imgErr) {
+        const msg = imgErr instanceof Error ? imgErr.message : "Image upload failed";
+        setIsLoading(false);
+        return toast.error(msg);
+      }
+    }
+
+    const allImages = [...remoteImages, ...finalImageUrls];
+    if (allImages.length === 0) {
+      setIsLoading(false);
+      return toast.error("Please upload at least one image");
+    }
 
     const payload = {
       title: data.title,
       description: data.description,
-      imageSrc: data.imageSrc,
+      imageSrc: allImages,
       category: data.category,
       locationValue,
-      actualLocation: data.actualLocation ? {
-        ...data.actualLocation,
-        additionalInfo: data.additionalInfo || "",
-      } : null,
+      actualLocation: data.actualLocation
+        ? {
+          ...data.actualLocation,
+          additionalInfo: data.additionalInfo || "",
+        }
+        : null,
       price: Number(data.price),
       amenities: Object.keys(selectedAmenities.predefined).filter(
         (k) => selectedAmenities.predefined[k]
@@ -255,36 +378,117 @@ export default function RentModal() {
 
     setIsLoading(true);
     try {
-      // Create the listing
       const createRes = await axios.post("/api/listings", payload);
-      const listingId = createRes.data?.id;
+      const listingId = createRes.data?.data?.id || createRes.data?.id;
 
-      if (!listingId) throw new Error("Listing creation failed");
+      if (!listingId) {
+        throw new Error("Listing creation failed: No listing ID returned");
+      }
 
-      // Generate/upload agreement PDF if terms & signature are present
+      const uploadedVerificationDocs: VerificationDocument[] = [];
+
+      if (verifications?.documents && verifications.documents.length > 0) {
+        const docsWithFiles = verifications.documents.filter((doc) => doc.file);
+        if (docsWithFiles.length > 0) {
+          try {
+            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+            if (!cloudName) {
+              throw new Error("Upload service is not configured");
+            }
+
+            for (const doc of docsWithFiles) {
+              if (!doc.file) continue;
+
+              const formData = new FormData();
+              formData.append("file", doc.file);
+              formData.append("upload_preset", "phxjukr6");
+              formData.append("resource_type", "raw");
+              formData.append("folder", `verifications/${listingId}`);
+
+              const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+                method: "POST",
+                body: formData,
+              });
+
+              if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData?.error?.message || `Upload failed for ${doc.original_filename}`);
+              }
+
+              const data = await response.json();
+              if (data.secure_url) {
+                uploadedVerificationDocs.push({
+                  original_filename: doc.original_filename,
+                  bytes: doc.bytes,
+                  format: 'pdf',
+                  resource_type: 'raw',
+                  public_id: data.public_id,
+                  version: data.version,
+                  url: data.secure_url,
+                });
+              }
+            }
+          } catch (uploadError) {
+            const errorMessage = uploadError instanceof Error ? uploadError.message : "Failed to upload verification documents";
+            toast.error(`Listing created but ${errorMessage}. Please contact support to upload documents.`);
+          }
+        }
+      }
+
+      const finalVerifications: Record<string, unknown> = {
+        ...(verifications || {}),
+        documents: uploadedVerificationDocs.length > 0 ? uploadedVerificationDocs : verifications?.documents || [],
+      };
+
       if (signature && terms && termsRef.current?.generateAndUploadPdf) {
-        const meta = await termsRef.current.generateAndUploadPdf(`agreements/${listingId}`);
-        setAgreementPdf(meta);
+        try {
+          const meta = await termsRef.current.generateAndUploadPdf(`agreements/${listingId}`);
+          setAgreementPdf(meta);
 
-        const mergedVerifications = {
-          ...(verifications || {}),
-          agreementPdf: meta,
-        };
+          finalVerifications.agreementPdf = meta;
+        } catch (pdfError) {
+          const errorMessage = pdfError instanceof Error ? pdfError.message : "Failed to save agreement PDF";
+          toast.error(`Listing created but ${errorMessage}. Please contact support.`);
+        }
+      }
 
-        await axios.patch(`/api/listings/${listingId}`, {
-          verifications: mergedVerifications,
-        });
-
-        console.warn("[RentModal] Saved agreement PDF inside verifications");
+      if (uploadedVerificationDocs.length > 0 || (signature && terms)) {
+        try {
+          await axios.patch(`/api/listings/${listingId}`, {
+            verifications: finalVerifications,
+          });
+        } catch (updateError) {
+          const errorMessage = updateError instanceof Error ? updateError.message : "Failed to update verification documents";
+          toast.error(`Listing created but ${errorMessage}. Please contact support.`);
+        }
       }
 
       setShowSuccessModal(true);
       rentModel.onClose();
       resetFormStates();
       toast.success("Listing created successfully!");
-    } catch (e) {
-      console.error(e);
-      toast.error("Something went wrong while creating the listing.");
+    } catch (error) {
+      let errorMessage = "Something went wrong while creating the listing.";
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const responseError = error.response?.data?.error;
+        if (typeof responseError === "string") {
+          errorMessage = responseError;
+        } else if (status === 401) {
+          errorMessage = "Authentication required. Please log in again.";
+        } else if (status === 403) {
+          errorMessage = "Only owners can create listings. Please verify your account.";
+        } else if (status === 400) {
+          errorMessage = responseError || "Invalid data. Please check your inputs.";
+        } else if (status && status >= 500) {
+          errorMessage = "Server error. Please try again later.";
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -333,7 +537,7 @@ export default function RentModal() {
           <CitySelect value={location} onChange={(v) => setCustomValue("location", v)} />
           <AutoComplete
             value={actualLocation?.display_name || ""}
-            onChange={(sel: { display_name?: string; latlng?: unknown;[key: string]: unknown }) => {
+            onChange={(sel: AutoCompleteValue) => {
               setCustomValue("actualLocation", {
                 display_name: sel.display_name,
                 latlng: sel.latlng,
@@ -385,15 +589,20 @@ export default function RentModal() {
                 />
                 <button
                   onClick={() => removeImage(index)}
-                  className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                  className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center"
                   aria-label="Remove image"
                 >
-                  ✕
+                  <IoMdClose size={18} />
                 </button>
               </div>
             ))}
-            {imageSrc.length < 8 && (
-              <ImageUpload onChange={(v) => setCustomValue("imageSrc", v)} values={imageSrc} />
+            {imageSrc.length < 20 && (
+              <ImageUpload
+                onChange={(v) => setCustomValue("imageSrc", v)}
+                values={imageSrc}
+                deferUpload
+                onFilesChange={handleImageFilesChange}
+              />
             )}
           </div>
         </div>
@@ -456,7 +665,10 @@ export default function RentModal() {
       bodyContent = (
         <div className="flex flex-col gap-6">
           <Heading title="Other Details" />
-          <OtherListingDetails onDetailsChange={handleDetailsChange} />
+          <OtherListingDetails
+            onDetailsChange={handleDetailsChange}
+            initialDetails={listingDetails}
+          />
         </div>
       );
       break;
@@ -465,7 +677,11 @@ export default function RentModal() {
       bodyContent = (
         <div className="flex flex-col gap-6">
           <Heading title="Space Verification" subtitle="Upload verification documents" />
-          <SpaceVerification onVerification={handleVerificationChange} />
+          <SpaceVerification
+            onVerification={handleVerificationChange}
+            initialDocuments={verifications?.documents || []}
+            initialCode={verifications?.code || ''}
+          />
         </div>
       );
       break;

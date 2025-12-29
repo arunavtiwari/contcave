@@ -8,12 +8,16 @@ type Props = {
   onChange: (value: string[]) => void;
   values: string[];
   circle?: boolean;
+  deferUpload?: boolean;
+  onFilesChange?: (files: File[]) => void;
 };
 
 function ImageUpload({
   onChange,
   values,
   circle = false,
+  deferUpload = false,
+  onFilesChange,
 }: Props) {
   const [uploading, setUploading] = useState(false);
 
@@ -21,32 +25,74 @@ function ImageUpload({
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
+    const maxSize = 10 * 1024 * 1024;
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+    for (const file of Array.from(files)) {
+      if (file.size > maxSize) {
+        alert(`Image "${file.name}" is too large. Maximum size is 10MB.`);
+        event.target.value = "";
+        return;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        alert(`Image "${file.name}" format not supported. Please use JPEG, PNG, or WebP.`);
+        event.target.value = "";
+        return;
+      }
+    }
+
+    if (deferUpload) {
+      const previews = Array.from(files).map((file) => URL.createObjectURL(file));
+      onChange([...values, ...previews]);
+      onFilesChange?.(Array.from(files));
+      event.target.value = "";
+      return;
+    }
+
     setUploading(true);
 
     const uploadedUrls: string[] = [];
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+
+    if (!cloudName) {
+      alert("Image upload service is not configured. Please contact support.");
+      setUploading(false);
+      event.target.value = "";
+      return;
+    }
 
     for (const file of Array.from(files)) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", "phxjukr6");
-      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+
       try {
         const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
           method: "POST",
           body: formData,
         });
 
+        if (!response.ok) {
+          throw new Error(`Upload failed with status ${response.status}`);
+        }
+
         const data = await response.json();
         if (data.secure_url) {
           uploadedUrls.push(data.secure_url);
+        } else {
+          throw new Error("No secure URL returned from upload service");
         }
       } catch (error) {
-        console.error("Upload failed:", error);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        alert(`Failed to upload "${file.name}": ${errorMessage}`);
       }
     }
 
     setUploading(false);
-    onChange([...values, ...uploadedUrls]);
+    if (uploadedUrls.length > 0) {
+      onChange([...values, ...uploadedUrls]);
+    }
+    event.target.value = "";
   };
 
   return (

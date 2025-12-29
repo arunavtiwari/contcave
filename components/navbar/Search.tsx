@@ -38,7 +38,7 @@ const SearchContent = memo(function SearchContent() {
   return (
     <div
       onClick={handleClick}
-      className="border-2 md:w-auto p-2 rounded-full shadow-xs hover:shadow-md transition cursor-pointer"
+      className="border-2 md:w-auto p-2 rounded-full shadow-xs hover:shadow-sm transition cursor-pointer"
     >
       <div className="flex flex-row items-center justify-between">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>

@@ -85,11 +85,11 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                 {selectedAddons.length > 0 && (
                     <div>
                         <h2 className="text-lg font-semibold mb-5">Selected Addons</h2>
-                        <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6 place-items-start`}>
+                        <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6`}>
                             {selectedAddons.map((addon) => (
                                 <div
                                     key={addon.name}
-                                    className="border border-solid border-gray-300 rounded-xl shadow-md p-5 bg-gray-50"
+                                    className="border border-solid border-gray-300 rounded-xl shadow-sm p-5 bg-gray-50 h-full"
                                 >
                                     <ImageCheckbox
                                         addon={addon}
@@ -103,7 +103,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                                 </div>
                             ))}
                             {availableAddons.length === 0 && (
-                                <div className="flex justify-center">
+                                <div className="flex justify-center h-full">
                                     <ImageCheckbox
                                         imageUrl="https://cdn-icons-png.flaticon.com/512/992/992651.png"
                                         label="Create your own"
@@ -127,11 +127,11 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                         {!rentModal && (
                             <h2 className="text-lg font-semibold mb-5">Available Addons</h2>
                         )}
-                        <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6 place-items-start`}>
+                        <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6`}>
                             {availableAddons.map((addon) => (
                                 <div
                                     key={addon.name}
-                                    className="border border-solid border-gray-300 rounded-xl shadow-md p-5"
+                                    className="border border-solid border-gray-300 rounded-xl shadow-sm p-5 h-full"
                                 >
                                     <ImageCheckbox
                                         addon={addon}
@@ -145,7 +145,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                                 </div>
                             ))}
                             {/* Custom Addon Option */}
-                            <div className="flex justify-center">
+                            <div className="flex justify-center h-full">
                                 <ImageCheckbox
                                     imageUrl="https://cdn-icons-png.flaticon.com/512/992/992651.png"
                                     label="Create your own"

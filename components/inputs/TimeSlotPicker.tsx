@@ -189,7 +189,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
             <div className="flex justify-between bg-gray-200 p-1.5 rounded-xl">
                 <button
                     type="button"
-                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-white shadow-md" : "bg-transparent"
+                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-white shadow-sm" : "bg-transparent"
                         }`}
                     onClick={() => setActiveSegment("start")}
                     disabled={noDatePicked}
@@ -201,7 +201,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                 </button>
                 <button
                     type="button"
-                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "end" ? "bg-white shadow-md" : "bg-transparent"
+                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "end" ? "bg-white shadow-sm" : "bg-transparent"
                         }`}
                     onClick={() => setActiveSegment("end")}
                     disabled={noDatePicked}

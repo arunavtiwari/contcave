@@ -38,7 +38,7 @@ export default function PackageList({ packages, onSelect }: Props) {
             onClick={() => handleSelect(pkg)}
             className={`border rounded-xl p-6 cursor-pointer transition-all transform ${selectedId === pkg.id
               ? "border-black shadow-lg bg-gray-100 scale-105"
-              : "border-gray-300 hover:shadow-md hover:bg-gray-50 hover:scale-105"
+              : "border-gray-300 hover:shadow-sm hover:bg-gray-50 hover:scale-105"
               }`}
           >
             {/* Header */}
