@@ -23,11 +23,11 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
 
     const { listingId } = await props.params;
     const currentUser = await getCurrentUser();
-    
+
     if (!currentUser?.id) {
       return createErrorResponse("Authentication required", 401);
     }
-    
+
     if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
       return createErrorResponse("Invalid listing ID", 400);
     }
@@ -46,12 +46,20 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
     }
 
     const body = await request.json().catch(() => ({}));
-    
+
     if (!body || typeof body !== "object" || Object.keys(body).length === 0) {
       return createErrorResponse("Request body is required and must not be empty", 400);
     }
 
     const { packages, ...listingData } = body;
+
+    // Ensure fields that expect String but might receive Number are converted
+    const stringFields = ['carpetArea', 'minimumBookingHours', 'maximumPax'];
+    for (const field of stringFields) {
+      if (listingData[field] !== undefined && listingData[field] !== null) {
+        listingData[field] = String(listingData[field]);
+      }
+    }
 
     if (Object.keys(listingData).length > 0) {
       await prisma.listing.update({
@@ -115,12 +123,12 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
           return createErrorResponse("Package durationHours cannot exceed 168 hours (7 days)", 400);
         }
 
-        const features = Array.isArray(p.features) 
+        const features = Array.isArray(p.features)
           ? p.features
-              .filter((f: unknown) => typeof f === "string")
-              .map((f: string) => f.trim())
-              .filter((f: string) => f.length > 0 && f.length <= 200)
-              .slice(0, 20)
+            .filter((f: unknown) => typeof f === "string")
+            .map((f: string) => f.trim())
+            .filter((f: string) => f.length > 0 && f.length <= 200)
+            .slice(0, 20)
           : [];
 
         const data = {

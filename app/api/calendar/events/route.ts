@@ -118,20 +118,21 @@ export async function GET(request: Request) {
       responseData = response.data.items || [];
     } catch (error: unknown) {
       // Check if error is due to invalid credentials and we have a refresh token
-      const isInvalidCredentials = 
-        error instanceof Error &&
-        error.message &&
-        (error.message.includes("Invalid Credentials") ||
-         error.message.includes("invalid_grant") ||
-         error.message.includes("401") ||
-         error.message.includes("unauthorized"));
+      const err = error as { code?: number; status?: number; message?: string };
+      const isInvalidCredentials =
+        (err.code === 401 || err.status === 401) ||
+        (err.message &&
+          (err.message.toLowerCase().includes("invalid credentials") ||
+            err.message.toLowerCase().includes("invalid authentication credentials") ||
+            err.message.includes("invalid_grant") ||
+            err.message.toLowerCase().includes("unauthorized")));
 
       if (isInvalidCredentials && googleAccount && googleAccount.refresh_token) {
         try {
-          const refreshedTokens = await refreshCalendarAccessToken({ 
-            refresh_token: googleAccount.refresh_token 
+          const refreshedTokens = await refreshCalendarAccessToken({
+            refresh_token: googleAccount.refresh_token
           });
-          
+
           if (!refreshedTokens.access_token) {
             throw new Error('Token refresh did not return access_token');
           }
@@ -139,10 +140,10 @@ export async function GET(request: Request) {
           // Update the access token in the database
           await prisma.account.update({
             where: { id: googleAccount.id },
-            data: { 
+            data: {
               access_token: refreshedTokens.access_token,
-              expires_at: refreshedTokens.expires_in 
-                ? Math.floor(Date.now() / 1000) + refreshedTokens.expires_in 
+              expires_at: refreshedTokens.expires_in
+                ? Math.floor(Date.now() / 1000) + refreshedTokens.expires_in
                 : null,
             },
           });
@@ -160,8 +161,8 @@ export async function GET(request: Request) {
           responseData = response.data.items || [];
         } catch (refreshError) {
           // If token refresh fails, throw the original error with context
-          const errorMessage = refreshError instanceof Error 
-            ? refreshError.message 
+          const errorMessage = refreshError instanceof Error
+            ? refreshError.message
             : 'Unknown error during token refresh';
           throw new Error(`Failed to refresh calendar access token: ${errorMessage}. Original error: ${error instanceof Error ? error.message : 'Unknown'}`);
         }

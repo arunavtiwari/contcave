@@ -130,7 +130,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
             const res = await axios.get("/api/calendar/events", {
                 params: { listingId },
             });
-            const data = res.data;
+            const data = res.data.data;
 
             if (data) {
                 const formattedEvents: Event[] = (data as CalendarEventResponse[]).map((event) => ({

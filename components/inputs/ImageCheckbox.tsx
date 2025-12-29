@@ -82,8 +82,8 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
           <span className="addon-name truncate mt-2">{label}</span>
           {/* Price */}
           {!hideInputFields && (
-            <div className='flex items-center gap-2 w-full justify-start px-2'>
-              <label className="text-sm font-semibold w-14 shrink-0">Price</label>
+            <div className='flex items-center gap-2 w-full justify-between'>
+              <label className="text-sm font-semibold shrink-0">Price</label>
               <div className="relative flex items-center">
                 <span className="absolute left-2 text-gray-500 border-r pr-2">₹</span>
                 <input
@@ -100,8 +100,8 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
 
           {/* Quantity */}
           {!hideInputFields && (
-            <div className='flex items-center gap-2 w-full justify-start px-2'>
-              <label className="text-sm font-semibold w-14 shrink-0">Quantity</label>
+            <div className='flex items-center gap-2 w-full justify-between'>
+              <label className="text-sm font-semibold shrink-0">Quantity</label>
               <input
                 type="number"
                 value={addon?.qty ? addon.qty : qty}
