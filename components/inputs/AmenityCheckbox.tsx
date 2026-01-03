@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import Checkbox from './Checkbox';
 import { Amenities } from '@prisma/client';
+import React, { useEffect,useState } from 'react';
+
+import Checkbox from './Checkbox';
 
 export interface AmenitiesData {
   predefined: { [key: number | string]: boolean };

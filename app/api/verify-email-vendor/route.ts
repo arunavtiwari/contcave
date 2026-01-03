@@ -1,7 +1,8 @@
 import axios from "axios";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { NextRequest } from "next/server";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 function validateEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

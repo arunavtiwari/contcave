@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+
 import { BlogPost } from "@/types/blog";
 
 const postsDirectory = path.join(process.cwd(), "content/posts");

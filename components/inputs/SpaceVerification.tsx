@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useState } from 'react';
-import { FiUpload, FiX } from "react-icons/fi";
 import { CiFileOn } from "react-icons/ci";
+import { FiUpload, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 export interface VerificationDocument {

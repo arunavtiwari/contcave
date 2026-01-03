@@ -1,9 +1,7 @@
 "use client"
-import { useState } from "react";
-import useLoginModel from "@/hook/useLoginModal";
-import useRegisterModal from "@/hook/useRegisterModal";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
 import { useCallback } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
@@ -12,6 +10,9 @@ import { toast } from "react-toastify";
 import Button from "@/components/Button";
 import Heading from "@/components/Heading";
 import Input from "@/components/inputs/Input";
+import useLoginModel from "@/hook/useLoginModal";
+import useRegisterModal from "@/hook/useRegisterModal";
+
 import Modal from "./Modal";
 
 type Props = {};

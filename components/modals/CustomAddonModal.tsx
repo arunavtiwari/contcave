@@ -1,12 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import Input from "@/components/inputs/Input";
-import Modal from "./Modal";
-import useAddonModal from "@/hook/useAddonModal";
+
 import ImageUpload from "@/components/inputs/ImageUpload";
-import Image from "next/image";
+import Input from "@/components/inputs/Input";
+import useAddonModal from "@/hook/useAddonModal";
+
+import Modal from "./Modal";
 
 type Props = {
   save: (value: { imageUrl?: string, name: string }) => void;

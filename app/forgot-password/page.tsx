@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useForm, FieldValues, SubmitHandler } from "react-hook-form";
 import axios from "axios";
+import { useState } from "react";
+import { FieldValues, SubmitHandler,useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import Input from "@/components/inputs/Input";
-import Heading from "@/components/Heading";
+
 import Button from "@/components/Button";
+import Heading from "@/components/Heading";
+import Input from "@/components/inputs/Input";
 
 const ForgotPasswordPage = () => {
     const [isLoading, setIsLoading] = useState(false);

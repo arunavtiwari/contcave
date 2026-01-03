@@ -1,9 +1,10 @@
-import Link from "next/link";
-import { getSortedPostsData, groupPostsByCategory } from "@/lib/posts";
-import { BlogPost } from "@/types/blog";
-import Image from "next/image";
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+
+import { getSortedPostsData, groupPostsByCategory } from "@/lib/posts";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { BlogPost } from "@/types/blog";
 
 const DESCRIPTION =
   "Read ContCave's latest articles on studio booking, production workflows, and creative industry insights across India." as const;

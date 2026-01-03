@@ -1,13 +1,8 @@
 "use client";
 
-import { memo, useCallback, useState, useRef, useEffect } from "react";
-import useLoginModel from "@/hook/useLoginModal";
-import useRegisterModal from "@/hook/useRegisterModal";
-import useRentModal from "@/hook/useRentModal";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { SafeUser } from "@/types/user";
 import { signOut } from "next-auth/react";
+import { memo, useCallback, useEffect,useRef, useState } from "react";
 import { AiOutlineMenu } from "react-icons/ai";
 import {
   FiCalendar,
@@ -20,7 +15,13 @@ import {
   FiUserPlus,
 } from "react-icons/fi";
 import { MdApartment } from "react-icons/md";
+
 import Avatar from "@/components/Avatar";
+import useLoginModel from "@/hook/useLoginModal";
+import useRegisterModal from "@/hook/useRegisterModal";
+import useRentModal from "@/hook/useRentModal";
+import { SafeUser } from "@/types/user";
+
 import MenuItem from "./MenuItem";
 
 type Props = {
@@ -28,7 +29,7 @@ type Props = {
 };
 
 const UserMenu = memo(function UserMenu({ currentUser }: Props) {
-  const router = useRouter();
+
   const registerModel = useRegisterModal();
   const loginModel = useLoginModel();
   const rentModel = useRentModal();
@@ -63,13 +64,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
     };
   }, [isOpen]);
 
-  const navigateTo = useCallback(
-    (path: string) => () => {
-      router.push(path);
-      closeMenu();
-    },
-    [router, closeMenu]
-  );
+
 
   const handleRent = useCallback(() => {
     rentModel.onOpen();
@@ -122,16 +117,16 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
           <div className="flex flex-col">
             {currentUser ? (
               <>
-                <MenuItem onClick={navigateTo("/bookings")} label="My Bookings" icon={FiCalendar} />
-                <MenuItem onClick={navigateTo("/favorites")} label="My Favorites" icon={FiHeart} />
+                <MenuItem onClick={closeMenu} href="/bookings" label="My Bookings" icon={FiCalendar} />
+                <MenuItem onClick={closeMenu} href="/favorites" label="My Favorites" icon={FiHeart} />
                 {currentUser?.is_owner && (
                   <>
-                    <MenuItem onClick={navigateTo("/reservations")} label="Guest Reservations" icon={FiUserCheck} />
-                    <MenuItem onClick={navigateTo("/properties")} label="My Properties" icon={MdApartment} />
+                    <MenuItem onClick={closeMenu} href="/reservations" label="Guest Reservations" icon={FiUserCheck} />
+                    <MenuItem onClick={closeMenu} href="/properties" label="My Properties" icon={MdApartment} />
                     <MenuItem onClick={handleRent} label="List your space" icon={FiPlusCircle} />
                   </>
                 )}
-                <MenuItem onClick={navigateTo("/Profile")} label="My Profile" icon={FiUser} />
+                <MenuItem onClick={closeMenu} href="/Profile" label="My Profile" icon={FiUser} />
                 <hr className="my-2" />
                 <MenuItem onClick={handleLogout} label="Logout" icon={FiLogOut} />
               </>

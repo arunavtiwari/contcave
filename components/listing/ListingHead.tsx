@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import useCities from "@/hook/useCities";
-import { SafeUser } from "@/types/user";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
 import Image from "next/image";
+import React, { useEffect, useRef, useState } from "react";
+import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
+import Slider, { Settings } from "react-slick";
+
 import Heading from "@/components/Heading";
 import HeartButton from "@/components/HeartButton";
 import Modal from "@/components/modals/Modal";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import Slider, { Settings } from "react-slick";
-import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
+import useCities from "@/hook/useCities";
+import { SafeUser } from "@/types/user";
 
 type Props = {
   title: string;

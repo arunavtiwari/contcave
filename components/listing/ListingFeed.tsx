@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import ListingCard from "./ListingCard";
-import { SafeUser } from "@/types/user";
+
 import { safeListing } from "@/types/listing";
+import { SafeUser } from "@/types/user";
+
+import ListingCard from "./ListingCard";
 
 type Props = {
   listings: safeListing[];

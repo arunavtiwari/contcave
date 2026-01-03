@@ -1,4 +1,4 @@
-import { PrismaClient, PaymentDetails } from '@prisma/client';
+import { PaymentDetails,PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -6,10 +6,14 @@ export interface PaymentDetailsData {
     userId: string;
     accountHolderName: string;
     bankName: string;
-    accountNumber?: string; // Optional for updates
+    accountNumber?: string;
     ifscCode: string;
     companyName?: string;
     gstin?: string;
+    accountNumberIV?: string;
+    gstinIV?: string;
+    ifscCodeIV?: string;
+    encryptionVersion?: string;
 }
 
 export interface PaymentDetailsResponse {
@@ -23,7 +27,6 @@ export interface DeleteResponse {
     error?: string;
 }
 
-// Fetch payment details by userId
 export async function getPaymentDetailsByUserId(userId: string): Promise<PaymentDetails | null> {
     try {
         return await prisma.paymentDetails.findFirst({
@@ -35,7 +38,6 @@ export async function getPaymentDetailsByUserId(userId: string): Promise<Payment
     }
 }
 
-// Create or update payment details (accountNumber required for create only)
 export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<PaymentDetails> {
     try {
         const existing = await prisma.paymentDetails.findFirst({
@@ -50,6 +52,8 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
             ifscCode: data.ifscCode,
             companyName: data.companyName ?? null,
             gstin: normalizedGstin,
+            gstinIV: data.gstinIV ?? null,
+            ifscCodeIV: data.ifscCodeIV ?? null,
             updatedAt: new Date(),
         };
 
@@ -57,7 +61,7 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
             return await prisma.paymentDetails.update({
                 where: { id: existing.id },
                 data: data.accountNumber
-                    ? { ...commonData, accountNumber: data.accountNumber }
+                    ? { ...commonData, accountNumber: data.accountNumber, accountNumberIV: data.accountNumberIV ?? null, encryptionVersion: data.encryptionVersion ?? null }
                     : commonData,
             });
         }
@@ -73,9 +77,14 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
                 accountNumber: data.accountNumber,
                 companyName: data.companyName ?? null,
                 gstin: normalizedGstin,
+                gstinIV: data.gstinIV ?? null,
+                accountNumberIV: data.accountNumberIV ?? null,
+                ifscCodeIV: data.ifscCodeIV ?? null,
+                encryptionVersion: data.encryptionVersion ?? 'v1',
                 createdAt: new Date(),
             },
         });
+
     } catch (error) {
         console.error('Error upserting payment details:', error);
         throw error;
@@ -126,6 +135,10 @@ export async function upsertPaymentDetailsSafe(data: PaymentDetailsData): Promis
                 gstin: string | null;
                 updatedAt: Date;
                 accountNumber?: string;
+                accountNumberIV?: string | null;
+                gstinIV?: string | null;
+                ifscCodeIV?: string | null;
+                encryptionVersion?: string | null;
             }
 
             const updateData: PaymentDetailsUpdate = {
@@ -134,11 +147,15 @@ export async function upsertPaymentDetailsSafe(data: PaymentDetailsData): Promis
                 ifscCode: data.ifscCode,
                 companyName: data.companyName ?? null,
                 gstin: normalizedGstin,
+                gstinIV: data.gstinIV ?? null,
+                ifscCodeIV: data.ifscCodeIV ?? null,
                 updatedAt: new Date(),
             };
 
             if (data.accountNumber) {
                 updateData.accountNumber = data.accountNumber;
+                updateData.accountNumberIV = data.accountNumberIV ?? null;
+                updateData.encryptionVersion = data.encryptionVersion ?? null;
             }
 
             paymentDetails = await prisma.paymentDetails.update({
@@ -162,6 +179,10 @@ export async function upsertPaymentDetailsSafe(data: PaymentDetailsData): Promis
                     ifscCode: data.ifscCode,
                     companyName: data.companyName ?? null,
                     gstin: normalizedGstin,
+                    gstinIV: data.gstinIV ?? null,
+                    accountNumberIV: data.accountNumberIV ?? null,
+                    ifscCodeIV: data.ifscCodeIV ?? null,
+                    encryptionVersion: data.encryptionVersion ?? 'v1',
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 },

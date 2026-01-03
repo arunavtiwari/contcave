@@ -1,9 +1,10 @@
-import getCurrentUser from "@/app/actions/getCurrentUser";
-import ClientOnly from "@/components/ClientOnly";
-import EmptyState from "@/components/EmptyState";
-import ChatClient from "@/app/chat/ChatClient";
-import Container from "@/components/Container";
 import type { Metadata } from "next";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import ChatClient from "@/app/chat/ChatClient";
+import ClientOnly from "@/components/ClientOnly";
+import Container from "@/components/Container";
+import EmptyState from "@/components/EmptyState";
 import { BRAND_NAME } from "@/lib/seo";
 
 export const metadata: Metadata = {

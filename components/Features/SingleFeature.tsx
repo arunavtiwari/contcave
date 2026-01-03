@@ -1,7 +1,8 @@
-import React from "react";
-import { Feature } from "@/types/feature";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import React from "react";
+
+import { Feature } from "@/types/feature";
 
 const SingleFeature = ({ feature }: { feature: Feature }) => {
   const { icon, title, description, button_text } = feature;

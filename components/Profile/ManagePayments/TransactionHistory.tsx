@@ -1,6 +1,7 @@
 "use client";
-import Heading from "@/components/Heading";
 import React from "react";
+
+import Heading from "@/components/Heading";
 
 interface Transaction {
     id: string;

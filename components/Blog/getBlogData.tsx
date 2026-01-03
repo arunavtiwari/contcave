@@ -1,5 +1,6 @@
 // components/Blog/getBlogData.ts
 import axios from "axios";
+
 import { BlogPost } from "@/types/blog";
 
 const getBlogData = async (): Promise<BlogPost[]> => {

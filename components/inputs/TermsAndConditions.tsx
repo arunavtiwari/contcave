@@ -1,5 +1,5 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState, ChangeEvent } from 'react';
 import Image from 'next/image';
+import React, { ChangeEvent,forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
 export type TermsRef = { generateAndUploadPdf: (folderOverride?: string) => Promise<{ url: string; pdfUrl: string }> };
 

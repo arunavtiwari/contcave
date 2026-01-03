@@ -1,10 +1,12 @@
-import ClientOnly from "@/components/ClientOnly";
-import EmptyState from "@/components/EmptyState";
+import type { Metadata } from "next";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings from "@/app/actions/getListings";
-import PropertiesClient from "./PropertiesClient";
-import type { Metadata } from "next";
+import ClientOnly from "@/components/ClientOnly";
+import EmptyState from "@/components/EmptyState";
 import { BRAND_NAME } from "@/lib/seo";
+
+import PropertiesClient from "./PropertiesClient";
 
 export const metadata: Metadata = {
   title: `My Properties | ${BRAND_NAME}`,

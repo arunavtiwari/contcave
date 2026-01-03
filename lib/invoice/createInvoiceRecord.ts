@@ -1,8 +1,9 @@
+import { Invoice } from "@prisma/client";
 import crypto from "crypto";
+
 import { AttachmentInput } from "@/lib/email/mailer";
 import { generateInvoicePDFBlob } from "@/lib/invoice/pdfBlob";
 import prisma from "@/lib/prismadb";
-import { Invoice } from "@prisma/client";
 
 type CreateInvoiceParams = {
   userId: string;

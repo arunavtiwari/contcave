@@ -1,18 +1,12 @@
 "use client";
 
-import { memo, useCallback } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { memo } from "react";
 
 const Logo = memo(function Logo() {
-  const router = useRouter();
-
-  const handleClick = useCallback(() => {
-    router.push("/");
-  }, [router]);
-
   return (
-    <div onClick={handleClick}>
+    <Link href="/">
       <div className="logo-container">
         <Image
           alt="logo-large"
@@ -31,7 +25,7 @@ const Logo = memo(function Logo() {
           priority
         />
       </div>
-    </div>
+    </Link>
   );
 });
 

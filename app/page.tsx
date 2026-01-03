@@ -1,17 +1,18 @@
+import type { Metadata } from "next";
+
 import CTA from "@/components/CTA";
 import FAQ from "@/components/FAQ";
 import Feature from "@/components/Features";
 import FeaturesTab from "@/components/FeaturesTab";
 import FunFact from "@/components/FunFact";
 import Hero from "@/components/Hero";
-import type { Metadata } from "next";
 import {
+  absoluteUrl,
   BRAND_NAME,
   BRAND_TITLE,
   DEFAULT_KEYWORDS,
   OG_IMAGE,
   SITE_URL,
-  absoluteUrl,
 } from "@/lib/seo";
 
 const HOME_DESCRIPTION =

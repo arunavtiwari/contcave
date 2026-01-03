@@ -1,18 +1,18 @@
 "use client";
 
-import { SafeUser } from "@/types/user";
-import { safeListing } from "@/types/listing";
-import { SafeReservation } from "@/types/reservation";
+import { IconButton } from "@chakra-ui/button";
 import { motion } from "framer-motion";
 import Image from "next/image";
-
-import React, { useCallback, useState, useEffect } from "react";
-import Button from "@/components/Button";
-import { IconButton } from "@chakra-ui/button";
-import { IoMdCloseCircle } from "react-icons/io";
-import { Addon } from "@/types/addon";
-import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
+import React, { useCallback, useEffect,useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
+import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
+import { IoMdCloseCircle } from "react-icons/io";
+
+import Button from "@/components/Button";
+import { Addon } from "@/types/addon";
+import { safeListing } from "@/types/listing";
+import { SafeReservation } from "@/types/reservation";
+import { SafeUser } from "@/types/user";
 
 interface BookingDetails {
     startDate: string;

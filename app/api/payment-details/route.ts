@@ -1,29 +1,18 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import getCurrentUser from '@/app/actions/getCurrentUser';
-import { upsertPaymentDetails, PaymentDetailsData } from '@/lib/payment-details';
-import { createErrorResponse, createSuccessResponse, handleRouteError } from '@/lib/api-utils';
 
-const createSchema = z.object({
+import getCurrentUser from '@/app/actions/getCurrentUser';
+import { createErrorResponse, createSuccessResponse, handleRouteError } from '@/lib/api-utils';
+import { PaymentDetailsData,upsertPaymentDetails } from '@/lib/payment-details';
+import { paymentDetailsSchema, paymentDetailsUpdateSchema } from '@/lib/schemas/payment';
+import { encryptionService } from '@/lib/security/encryption';
+
+const createSchema = paymentDetailsSchema.extend({
     userId: z.string().min(1, 'User ID is required'),
-    accountHolderName: z.string()
-        .min(2, 'Account holder name must be at least 2 characters')
-        .max(100, 'Too long')
-        .regex(/^[a-zA-Z\s.'-]+$/, 'Invalid characters'),
-    bankName: z.string().min(1, 'Bank name is required').max(100),
-    accountNumber: z.string()
-        .min(9, 'Too short')
-        .max(20, 'Too long')
-        .regex(/^\d+$/, 'Must contain only digits'),
-    ifscCode: z.string()
-        .length(11, 'Must be exactly 11 characters')
-        .regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Invalid IFSC format'),
-    companyName: z.string().max(100).optional(),
-    gstin: z.string().max(15).regex(/^[0-9A-Z]{15}$/i, 'Invalid GSTIN').optional()
 });
 
-const updateSchema = createSchema.extend({
-    accountNumber: createSchema.shape.accountNumber.optional()
+const updateSchema = paymentDetailsUpdateSchema.extend({
+    userId: z.string().min(1, 'User ID is required'),
 });
 
 const maskGstin = (value: string) =>
@@ -65,12 +54,42 @@ export async function POST(request: NextRequest) {
         const schema = isUpdate ? updateSchema : createSchema;
 
         const validated = schema.parse(rawData);
-        const { accountNumber, ...rest } = validated;
+        const { accountNumber, ifscCode, gstin, ...rest } = validated;
 
-        const paymentDetailsData = {
+        let encryptedAccountNumber = undefined;
+        let accountNumberIV = undefined;
+        if (accountNumber) {
+            const result = encryptionService.encrypt(accountNumber);
+            encryptedAccountNumber = result.encrypted;
+            accountNumberIV = result.iv;
+        }
+
+        const encryptedIfscCode = encryptionService.encrypt(ifscCode.toUpperCase());
+
+        let encryptedGstin = undefined;
+        let gstinIV = undefined;
+        if (gstin) {
+            const result = encryptionService.encrypt(gstin.toUpperCase());
+            encryptedGstin = result.encrypted;
+            gstinIV = result.iv;
+        }
+
+        const paymentDetailsData: PaymentDetailsData = {
             ...rest,
-            ...(accountNumber ? { accountNumber } : {})
-        } as PaymentDetailsData;
+            userId: currentUser.id,
+            ifscCode: encryptedIfscCode.encrypted,
+            ifscCodeIV: encryptedIfscCode.iv,
+            companyName: rest.companyName || undefined,
+            ...(encryptedAccountNumber ? {
+                accountNumber: encryptedAccountNumber,
+                accountNumberIV: accountNumberIV
+            } : {}),
+            ...(encryptedGstin ? {
+                gstin: encryptedGstin,
+                gstinIV: gstinIV
+            } : {}),
+            encryptionVersion: encryptionService.getKeyVersion(),
+        };
 
         const result = await upsertPaymentDetails(paymentDetailsData);
 

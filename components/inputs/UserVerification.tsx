@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-
 import { FiUpload } from 'react-icons/fi';
 
 interface UserVerificationProps {

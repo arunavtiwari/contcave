@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useCallback, useTransition, useEffect, useMemo } from "react";
 import Image from "next/image";
+import React, { useCallback, useEffect, useMemo,useState, useTransition } from "react";
 import { toast } from "react-toastify";
+
 import Heading from "@/components/Heading";
-import { SafeUser } from "@/types/user";
 import { PaymentProfile } from "@/types/payment";
+import { SafeUser } from "@/types/user";
 
 // Types
 interface BankField {

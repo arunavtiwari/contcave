@@ -1,6 +1,7 @@
-import { sendBookingReminders } from "@/lib/cron/sendBookingReminders";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { NextRequest } from "next/server";
+
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { sendBookingReminders } from "@/lib/cron/sendBookingReminders";
 
 export const dynamic = 'force-dynamic';
 

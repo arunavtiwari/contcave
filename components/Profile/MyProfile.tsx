@@ -1,39 +1,38 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Image from "next/image";
-import ImageUpload from "@/components/inputs/ImageUpload";
-import useRentModal from "@/hook/useRentModal";
-import { useRouter } from "next/navigation";
-import Heading from "@/components/Heading";
-import { toast } from "react-toastify";
-import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
-import { SafeUser } from "@/types/user";
-
+import Link from "next/link";
+import { useCallback,useEffect, useState } from "react";
 import {
-    FaUser,
-    FaEnvelope,
-    FaPhone,
-    FaMapMarkerAlt,
-    FaGlobe,
     FaCamera,
-    FaEdit,
-    FaSave,
     FaCheck,
-    FaShieldAlt,
-    FaHome,
     FaCreditCard,
-    FaSpinner
-} from "react-icons/fa";
+    FaEdit,
+    FaEnvelope,
+    FaGlobe,
+    FaHome,
+    FaMapMarkerAlt,
+    FaPhone,
+    FaSave,
+    FaShieldAlt,
+    FaSpinner,
+    FaUser} from "react-icons/fa";
+import { toast } from "react-toastify";
+
+import Heading from "@/components/Heading";
+import ImageUpload from "@/components/inputs/ImageUpload";
+import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
+import useRentModal from "@/hook/useRentModal";
+import { SafeUser } from "@/types/user";
 
 interface ProfileClientProps {
     profile: SafeUser | null;
 }
 
 const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
-    const router = useRouter();
+
     const [currentUser, setCurrentUser] = useState<SafeUser | null>(null);
     const [isVerified, setIsVerified] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -462,13 +461,13 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                         <FaHome className="w-4 h-4" />
                                         List Your Space
                                     </button>
-                                    <button
-                                        onClick={() => router.push("/payment-details")}
+                                    <Link
+                                        href="/Profile?tab=manage-payments"
                                         className="w-full bg-gray-100 text-gray-900 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
                                     >
                                         <FaCreditCard className="w-4 h-4" />
                                         Payment Details
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         </div>

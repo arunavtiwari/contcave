@@ -1,17 +1,19 @@
 "use client";
 
-import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
+
 import Button from "@/components/Button";
 import Heading from "@/components/Heading";
 import Input from "@/components/inputs/Input";
+import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
+
 import Modal from "./Modal";
-import { FcGoogle } from "react-icons/fc";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 function OwnerRegisterModal() {
     const ownerRegisterModal = useOwnerRegisterModal();

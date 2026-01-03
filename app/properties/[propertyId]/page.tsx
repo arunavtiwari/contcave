@@ -7,8 +7,8 @@ import ClientOnly from '@/components/ClientOnly';
 import EmptyState from '@/components/EmptyState';
 import PropertyClient from '@/components/PropertyClient';
 export const dynamic = "force-dynamic"
-import React from 'react';
 import type { Metadata } from 'next';
+import React from 'react';
 
 export const metadata: Metadata = {
   title: "Manage Property | ContCave",

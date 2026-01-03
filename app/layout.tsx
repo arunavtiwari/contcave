@@ -1,20 +1,21 @@
+import "../styles/globals.css";
+
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import type { Metadata, Viewport } from "next";
+import { Montserrat } from "next/font/google";
+
 import ClientOnly from "@/components/ClientOnly";
+import CookieConsent from "@/components/CookieConsentBanner";
 import Footer from "@/components/Footer";
-import ToastContainerBar from "@/components/ToastContainerBar";
 import LoginModal from "@/components/modals/LoginModal";
+import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
 import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
 import Navbar from "@/components/navbar/Navbar";
-import { Montserrat } from "next/font/google";
-import type { Metadata, Viewport } from "next";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import "../styles/globals.css";
-import getCurrentUser from "./actions/getCurrentUser";
 import ScrollToTop from "@/components/ScrollToTop";
-import CookieConsent from "@/components/CookieConsentBanner";
-import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
+import ToastContainerBar from "@/components/ToastContainerBar";
 import {
   BRAND_DESCRIPTION,
   BRAND_NAME,
@@ -23,6 +24,8 @@ import {
   OG_IMAGE,
   SITE_URL,
 } from "@/lib/seo";
+
+import getCurrentUser from "./actions/getCurrentUser";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

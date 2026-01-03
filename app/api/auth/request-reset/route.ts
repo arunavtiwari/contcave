@@ -1,8 +1,9 @@
-import prisma from "@/lib/prismadb";
-import { sendTemplateEmail } from "@/lib/email/mailer";
 import crypto from "crypto";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { NextRequest } from "next/server";
+
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { sendTemplateEmail } from "@/lib/email/mailer";
+import prisma from "@/lib/prismadb";
 
 function validateEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

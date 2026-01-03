@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+
 import SectionHeader from "@/components/Common/SectionHeader";
+import { BlogPost } from "@/types/blog";
+
 import BlogItem from "./BlogItem";
 import getBlogData from "./getBlogData";
-import { BlogPost } from "@/types/blog";
 
 const Blog = () => {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);

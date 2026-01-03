@@ -1,8 +1,9 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import ImageCheckbox from './ImageCheckbox';
-import useAddonModal from '@/hook/useAddonModal';
+import React, { useCallback, useEffect,useState } from 'react';
 
+import useAddonModal from '@/hook/useAddonModal';
 import { Addon } from "@/types/addon";
+
+import ImageCheckbox from './ImageCheckbox';
 
 interface AddonsCheckboxProps {
     addons: Addon[];

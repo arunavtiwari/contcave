@@ -1,17 +1,17 @@
 "use client";
 
-import useCities from "@/hook/useCities";
-import { SafeUser } from "@/types/user";
-import { safeListing } from "@/types/listing";
-import { SafeReservation } from "@/types/reservation";
-
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import React, { useMemo } from "react";
+import { FaStar } from "react-icons/fa6";
+
 import Button from "@/components/Button";
 import HeartButton from "@/components/HeartButton";
-import { FaStar } from "react-icons/fa6";
+import useCities from "@/hook/useCities";
+import { safeListing } from "@/types/listing";
+import { SafeReservation } from "@/types/reservation";
+import { SafeUser } from "@/types/user";
 
 type Props = {
   data: safeListing;
@@ -36,7 +36,7 @@ const ListingCard: React.FC<Props> = ({
   onChat,
   currentUser
 }) => {
-  const router = useRouter();
+
   const { getByValue } = useCities();
   const location = getByValue(data.locationValue);
 
@@ -59,22 +59,23 @@ const ListingCard: React.FC<Props> = ({
         delay: 0.5,
         ease: [0, 0.71, 0.2, 1.01],
       }}
-      onClick={() => onEdit ? router.push(`/properties/${data.id}`) : router.push(`/listings/${data.id}`)}
       className="col-span-1 cursor-pointer group p-5 shadow-sm rounded-2xl border border-neutral-200"
     >
       <div className="flex flex-col gap-2 w-full">
         <div className="aspect-square w-full relative overflow-hidden rounded-xl">
-          <Image
-            fill
-            className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-700"
-            src={data.imageSrc[0] || "/assets/listing-image-default.png"}
-            alt="listing"
-          />
+          <Link href={onEdit ? `/properties/${data.id}` : `/listings/${data.id}`}>
+            <Image
+              fill
+              className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-700"
+              src={data.imageSrc[0] || "/assets/listing-image-default.png"}
+              alt="listing"
+            />
+          </Link>
           <div className="absolute top-3 right-3">
             <HeartButton listingId={data.id} currentUser={currentUser} />
           </div>
         </div>
-        <div>
+        <Link href={onEdit ? `/properties/${data.id}` : `/listings/${data.id}`}>
           <div className="flex justify-between items-center">
             <div className="font-semibold text-lg">
               {data.title}
@@ -89,7 +90,7 @@ const ListingCard: React.FC<Props> = ({
           <div className="font-light text-neutral-500">
             {data.category} | {location?.label}
           </div>
-        </div>
+        </Link>
         <div className="flex flex-row items-center">
           <div className="flex gap-1 font-semibold">
             ₹{price} {!reservation && <div className="font-light">/ Hour</div>}
@@ -99,12 +100,12 @@ const ListingCard: React.FC<Props> = ({
         {(onEdit || (!reservation?.isApproved && onApprove) || (reservation?.isApproved !== 0 && onChat)) && (
           <div className="flex mt-2">
             {onEdit && (
-              <Button
-                rounded
-                label="Manage"
-                onClick={() => router.push(`/properties/${data.id}`)}
-                classNames="button"
-              />
+              <Link
+                href={`/properties/${data.id}`}
+                className="button rounded-full px-4 py-2 bg-black text-white font-semibold hover:bg-neutral-800 transition"
+              >
+                Manage
+              </Link>
             )}
 
             {!reservation?.isApproved && onApprove && (

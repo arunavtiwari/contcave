@@ -1,14 +1,15 @@
 "use client";
 
-import Container from "@/components/Container";
-import Heading from "@/components/Heading";
-import ListingCard from "@/components/listing/ListingCard";
-import { SafeUser } from "@/types/user";
-import { safeListing } from "@/types/listing";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
+
+import Container from "@/components/Container";
+import Heading from "@/components/Heading";
+import ListingCard from "@/components/listing/ListingCard";
+import { safeListing } from "@/types/listing";
+import { SafeUser } from "@/types/user";
 
 type Props = {
   listings: safeListing[];

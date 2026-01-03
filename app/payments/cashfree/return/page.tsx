@@ -1,8 +1,9 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+
 import getReservation from "@/app/actions/getReservation";
 import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/PaymentSuccessAnimation";
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { BRAND_NAME } from "@/lib/seo";
 
 export const metadata: Metadata = {

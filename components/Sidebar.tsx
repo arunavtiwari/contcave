@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-
-import { FaCalendar, FaClock, FaArrowUpRightDots } from "react-icons/fa6";
-import { FaHome, FaCogs } from "react-icons/fa";
+import Link from "next/link";
 import React from "react";
+import { FaCogs,FaHome } from "react-icons/fa";
+import { FaArrowUpRightDots,FaCalendar, FaClock } from "react-icons/fa6";
 
 interface SidebarProps {
     selectedMenu: string;

@@ -1,10 +1,12 @@
-import ClientOnly from "@/components/ClientOnly";
-import ProfileClient from "./ProfileClient";
-import getCurrentUser from "@/app/actions/getCurrentUser";
-import EmptyState from "@/components/EmptyState";
-import Container from "@/components/Container";
 import type { Metadata } from "next";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import ClientOnly from "@/components/ClientOnly";
+import Container from "@/components/Container";
+import EmptyState from "@/components/EmptyState";
 import { BRAND_NAME } from "@/lib/seo";
+
+import ProfileClient from "./ProfileClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {

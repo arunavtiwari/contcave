@@ -1,7 +1,9 @@
-import React from "react";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
+
+import React from "react";
 import { Calendar as ReactDateRangeCalendar } from "react-date-range";
+
 import type { DayKey, OperationalDays } from "@/types/scheduling";
 
 type Props = {

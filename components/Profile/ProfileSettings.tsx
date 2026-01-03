@@ -1,11 +1,12 @@
 "use client";
-import { useMemo, useState } from "react";
-import Heading from "@/components/Heading";
 import Link from "next/link";
-import Modal from "@/components/modals/Modal";
-import { toast } from "react-toastify";
-import { SafeUser } from "@/types/user";
 import { signOut } from "next-auth/react";
+import { useMemo, useState } from "react";
+import { toast } from "react-toastify";
+
+import Heading from "@/components/Heading";
+import Modal from "@/components/modals/Modal";
+import { SafeUser } from "@/types/user";
 
 type Props = {
   profile: SafeUser | null;

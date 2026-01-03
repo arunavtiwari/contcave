@@ -1,17 +1,44 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import Sidebar from "@/components/Sidebar";
-import MyProfile from "@/components/Profile/MyProfile";
-import ManagePayments from "@/components/Profile/ManagePayments/ManagePayments";
-import ShareAndRefer from "@/components/Profile/ShareAndRefer";
-import Settings from "@/components/Profile/ProfileSettings";
+import { usePathname,useRouter, useSearchParams } from "next/navigation";
+import { useCallback,useEffect, useState } from "react";
 
-import { SafeUser } from "@/types/user";
+import ManagePayments from "@/components/Profile/ManagePayments/ManagePayments";
+import MyProfile from "@/components/Profile/MyProfile";
+import Settings from "@/components/Profile/ProfileSettings";
+import ShareAndRefer from "@/components/Profile/ShareAndRefer";
+import Sidebar from "@/components/Sidebar";
 import { PaymentProfile } from "@/types/payment";
+import { SafeUser } from "@/types/user";
 
 const ProfileClient = ({ profile }: { profile: SafeUser | null }) => {
-  const [selectedMenu, setSelectedMenu] = useState("Profile");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const tabParam = searchParams?.get('tab');
+
+  const getMenuFromParam = useCallback((param: string | null) => {
+    switch (param) {
+      case 'manage-payments': return 'Manage Payments';
+      case 'share-refer': return 'Share & Refer';
+      case 'settings': return 'Settings';
+      default: return 'Profile';
+    }
+  }, []);
+
+  const selectedMenu = getMenuFromParam(tabParam);
+
+  const setSelectedMenu = useCallback((menu: string) => {
+    let param = '';
+    switch (menu) {
+      case 'Manage Payments': param = 'manage-payments'; break;
+      case 'Share & Refer': param = 'share-refer'; break;
+      case 'Settings': param = 'settings'; break;
+      default: param = 'profile';
+    }
+    router.push(`${pathname}?tab=${param}`);
+  }, [pathname, router]);
   const [paymentDetails, setPaymentDetails] = useState<PaymentProfile | null>(null);
   const [transactions, setTransactions] = useState([]);
   const [paymentDataLoaded, setPaymentDataLoaded] = useState(false);

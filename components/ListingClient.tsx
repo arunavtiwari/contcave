@@ -1,22 +1,24 @@
 "use client";
 
-import { SafeUser } from "@/types/user";
-import { FullListing } from "@/types/listing";
-import { SafeReservation } from "@/types/reservation";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { FullListing } from "@/types/listing";
+import { Package } from "@/types/package";
+import { SafeReservation } from "@/types/reservation";
+import {
+  buildOperationalTimings,
+  ReservationOperationalTimings,
+  TimeHM,
+  TimeLabel,
+} from "@/types/scheduling";
+import { SafeUser } from "@/types/user";
+
 import Container from "./Container";
 import ListingHead from "./listing/ListingHead";
 import ListingInfo from "./listing/ListingInfo";
 import ListingReservation from "./listing/ListingReservation";
 import { categories } from "./navbar/Categories";
-import {
-  ReservationOperationalTimings,
-  TimeHM,
-  TimeLabel,
-  buildOperationalTimings,
-} from "@/types/scheduling";
-import { Package } from "@/types/package";
 
 type Props = {
   reservations?: SafeReservation[];

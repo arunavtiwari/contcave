@@ -1,8 +1,10 @@
 "use client";
 import React from "react";
+
+import SectionHeader from "@/components/Common/SectionHeader";
+
 import featuresData from "./featuresData";
 import SingleFeature from "./SingleFeature";
-import SectionHeader from "@/components/Common/SectionHeader";
 
 const Feature = () => {
   return (

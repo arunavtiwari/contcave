@@ -1,4 +1,5 @@
 import { Listing } from "@prisma/client";
+
 import { Addon } from "./addon";
 import { Package } from "./package";
 import { SafeUser } from "./user";

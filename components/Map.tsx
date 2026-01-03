@@ -1,8 +1,9 @@
 "use client";
 
+import "leaflet/dist/leaflet.css";
+
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import Flag from "react-world-flags";
 
 type IconDefaultWithUrl = L.Icon.Default & { _getIconUrl?: string };

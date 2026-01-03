@@ -1,20 +1,22 @@
 "use client";
 
-import useLoginModal from "@/hook/useLoginModal";
-import useRegisterModal from "@/hook/useRegisterModal";
-import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useCallback, useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+
 import Button from "@/components/Button";
 import Heading from "@/components/Heading";
 import Input from "@/components/inputs/Input";
+import useLoginModal from "@/hook/useLoginModal";
+import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
+import useRegisterModal from "@/hook/useRegisterModal";
+
 import Modal from "./Modal";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function RegisterModal() {
   const registerModal = useRegisterModal();

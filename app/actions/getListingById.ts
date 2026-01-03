@@ -2,8 +2,8 @@
 
 import prisma from "@/lib/prismadb";
 import { Addon } from "@/types/addon";
+import { ActualLocation,FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
-import { FullListing, ActualLocation } from "@/types/listing";
 
 interface IParams {
   listingId?: string;

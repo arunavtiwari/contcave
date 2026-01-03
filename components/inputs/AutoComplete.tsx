@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Libraries, StandaloneSearchBox, useLoadScript } from '@react-google-maps/api';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 const LIBRARIES: Libraries = ['places'];
 

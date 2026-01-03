@@ -1,5 +1,5 @@
-import prisma from "@/lib/prismadb";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import prisma from "@/lib/prismadb";
 
 interface IParams {
   listingId?: string;

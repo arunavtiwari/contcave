@@ -1,9 +1,11 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, Suspense } from "react";
+import { Suspense,useEffect, useMemo, useState } from "react";
+
+import CitySelect from "@/components/inputs/CitySelect";
 import { spaceTypes } from "@/constants/spaceTypes";
 import useIndianCities from "@/hook/useCities";
-import CitySelect from "@/components/inputs/CitySelect";
+
 import Modal from "./Modal";
 
 const FilterModalContent = () => {

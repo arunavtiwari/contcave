@@ -1,7 +1,8 @@
-import { auth } from "@/auth";
 import { google } from 'googleapis';
-import prisma from "@/lib/prismadb";
+
+import { auth } from "@/auth";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import prisma from "@/lib/prismadb";
 
 async function refreshCalendarAccessToken(account: { refresh_token: string }): Promise<{ access_token: string; expires_in?: number; refresh_token?: string }> {
   try {

@@ -1,12 +1,13 @@
+import type { Metadata } from "next";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getListings, { IListingsParams } from "@/app/actions/getListings";
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
 import ListingFeed from "@/components/listing/ListingFeed";
 import Categories from "@/components/navbar/Categories";
-import getCurrentUser from "@/app/actions/getCurrentUser";
-import getListings, { IListingsParams } from "@/app/actions/getListings";
-import type { Metadata } from "next";
-import { BRAND_NAME, OG_IMAGE, SITE_URL, absoluteUrl } from "@/lib/seo";
+import { absoluteUrl,BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 

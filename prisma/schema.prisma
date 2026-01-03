@@ -241,10 +241,16 @@ model PaymentDetails {
   companyName             String?
   gstin                   String?
   cashfreeVendorId        String?
+  accountNumberIV         String?
+  ifscCodeIV              String?
+  gstinIV                 String?
+  vendorIdIV              String?
+  encryptionVersion       String?  @default("v1")
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   user                    User     @relation("UserPaymentDetails", fields: [userId], references: [id])
 }
+
 
 model BillingDetails {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -324,4 +330,20 @@ model Invoice {
   reservation    Reservation?    @relation(fields: [reservationId], references: [id])
   transaction    Transaction?    @relation(fields: [transactionId], references: [id])
   billingDetails BillingDetails? @relation(fields: [billingId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  action     String
+  resource   String
+  resourceId String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }

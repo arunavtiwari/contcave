@@ -1,8 +1,9 @@
 import axios from "axios";
+import { NextRequest } from "next/server";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { getFixieProxyAgent, handleProxyError } from "@/lib/fixie-proxy";
-import { NextRequest } from "next/server";
-import getCurrentUser from "@/app/actions/getCurrentUser";
 
 function validateOTP(otp: string): boolean {
   return /^\d{6}$/.test(otp);

@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useCallback, useMemo,useState } from "react";
+
 import Heading from "@/components/Heading";
-import TransactionHistory from "@/components/Profile/ManagePayments/TransactionHistory";
 import PaymentDetails from "@/components/Profile/ManagePayments/PaymentDetails";
-import { SafeUser } from "@/types/user";
+import TransactionHistory from "@/components/Profile/ManagePayments/TransactionHistory";
 import { PaymentProfile } from "@/types/payment";
+import { SafeUser } from "@/types/user";
 
 // Types
 interface Transaction {
@@ -120,11 +121,18 @@ const ManagePayments: React.FC<Props> = ({
         }
 
         const finalAccountNumber = form.get('accountNumber') as string;
-        if (finalAccountNumber) {
+
+        // Skip validation if account number is masked (user didn't change it)
+        const isMasked = finalAccountNumber && (finalAccountNumber.includes('*') || /^\*+$/.test(finalAccountNumber));
+
+        if (finalAccountNumber && !isMasked) {
             const cleanAccountNumber = finalAccountNumber.trim();
             if (!/^\d+$/.test(cleanAccountNumber)) throw new Error('Account number must contain only digits');
             if (cleanAccountNumber.length < 9) throw new Error('Account number must be at least 9 digits');
-            if (cleanAccountNumber.length > 18) throw new Error('Account number must be 18 digits or less');
+            if (cleanAccountNumber.length > 20) throw new Error('Account number must be 20 digits or less');
+        } else if (isMasked) {
+            // Remove masked account number from form so backend doesn't try to save it
+            form.delete('accountNumber');
         }
 
         try {

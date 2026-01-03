@@ -1,7 +1,8 @@
-import { auth } from "@/auth";
 import { google } from 'googleapis';
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { NextRequest } from "next/server";
+
+import { auth } from "@/auth";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function DELETE(request: NextRequest) {
   try {

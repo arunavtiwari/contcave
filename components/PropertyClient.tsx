@@ -1,28 +1,30 @@
 "use client";
 
-import Image from "next/image";
 import { Amenities } from "@prisma/client";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import AddonsSelection from "./inputs/AddonsSelection";
-import CustomAddonModal from "./modals/CustomAddonModal";
 import axios from "axios";
-import { toast } from "react-toastify";
-import ImageUpload from "./inputs/ImageUpload";
-import useIndianCities, { City } from "@/hook/useCities";
-import ReactSwitch from "react-switch";
-import Heading from "@/components/Heading";
-import Calendar from "@/components/Calendar";
+import Image from "next/image";
 import { SessionProvider, signIn } from "next-auth/react";
-import Sidebar from "@/components/Sidebar";
-import ManageTimings from "./ManageTimings";
-import { FullListing } from "@/types/listing";
-import { Addon } from "@/types/addon";
-import { Package as ListingPackage } from "@/types/package";
-import PackagesForm from "./inputs/PackagesForm";
-import { MdOutlineCurrencyRupee, MdClose } from "react-icons/md";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FaBolt } from "react-icons/fa";
+import { MdClose,MdOutlineCurrencyRupee } from "react-icons/md";
+import ReactSwitch from "react-switch";
+import { toast } from "react-toastify";
+
+import Calendar from "@/components/Calendar";
+import Heading from "@/components/Heading";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
+import Sidebar from "@/components/Sidebar";
+import useIndianCities, { City } from "@/hook/useCities";
+import { Addon } from "@/types/addon";
+import { FullListing } from "@/types/listing";
+import { Package as ListingPackage } from "@/types/package";
+
+import AddonsSelection from "./inputs/AddonsSelection";
+import ImageUpload from "./inputs/ImageUpload";
+import PackagesForm from "./inputs/PackagesForm";
+import ManageTimings from "./ManageTimings";
+import CustomAddonModal from "./modals/CustomAddonModal";
 
 type Props = {
     listing: FullListing;

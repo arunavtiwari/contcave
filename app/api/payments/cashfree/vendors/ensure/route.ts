@@ -1,14 +1,15 @@
 import { NextRequest } from "next/server";
-import prisma from "@/lib/prismadb";
-import { cfEnsureVendor } from "@/lib/cashfree/cashfree";
 import { z } from "zod";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { cfEnsureVendor } from "@/lib/cashfree/cashfree";
+import prisma from "@/lib/prismadb";
+import { ensureVendorSchema } from "@/lib/schemas/cashfree";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const Body = z.object({ userId: z.string() });
 
 export async function POST(req: NextRequest) {
     try {
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json().catch(() => ({}));
-        const parsed = Body.safeParse(body);
+        const parsed = ensureVendorSchema.safeParse(body);
 
         if (!parsed.success) {
             return createErrorResponse("Invalid request body", 400, { issues: parsed.error.issues });

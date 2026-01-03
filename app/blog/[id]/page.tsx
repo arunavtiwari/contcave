@@ -1,5 +1,6 @@
-import Image from "next/image";
 import type { Metadata } from "next";
+import Image from "next/image";
+
 import { getPostData, getSortedPostsData } from "@/lib/posts";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 

@@ -1,7 +1,8 @@
-import prisma from "@/lib/prismadb";
 import bcrypt from "bcryptjs";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { NextRequest } from "next/server";
+
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import prisma from "@/lib/prismadb";
 
 function normalizePhone(phone?: string | null): string | null {
   if (!phone) return null;

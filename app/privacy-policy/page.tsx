@@ -1,6 +1,7 @@
-import Container from "@/components/Container";
-import Image from "next/image";
 import type { Metadata } from "next";
+import Image from "next/image";
+
+import Container from "@/components/Container";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";

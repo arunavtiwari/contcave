@@ -1,8 +1,10 @@
-import { SafeUser } from "@/types/user";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
+
+import { SafeUser } from "@/types/user";
+
 import useLoginModel from "./useLoginModal";
 
 type Props = {

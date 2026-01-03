@@ -1,8 +1,9 @@
-import { NextRequest } from 'next/server';
 import { TransactionStatus } from '@prisma/client';
-import prisma from "@/lib/prismadb";
+import { NextRequest } from 'next/server';
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import prisma from "@/lib/prismadb";
 
 export async function GET(
     request: NextRequest,

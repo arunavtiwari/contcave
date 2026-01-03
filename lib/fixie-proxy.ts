@@ -1,5 +1,5 @@
-import { HttpsProxyAgent } from "https-proxy-agent";
 import type { Agent } from "https";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 let proxyAgent: Agent | null = null;
 let proxyAgentError: Error | null = null;

@@ -1,13 +1,14 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import type { EventContentArg, EventClickArg } from '@fullcalendar/core';
-import { useSession } from 'next-auth/react';
-import FullCalendar from '@fullcalendar/react';
+import type { EventClickArg,EventContentArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
-import Modal from './modals/Modal';
+import FullCalendar from '@fullcalendar/react';
+import timeGridPlugin from '@fullcalendar/timegrid';
 import axios from "axios";
+import { useSession } from 'next-auth/react';
+import { useCallback,useEffect, useMemo, useRef, useState } from 'react';
+
+import Modal from './modals/Modal';
 
 interface Event {
     id: string;

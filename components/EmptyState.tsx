@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import React from "react";
+
 import Heading from "./Heading";
 
 type Props = {
@@ -16,7 +17,7 @@ function EmptyState({
   subtitle = "Try changing or removing some of your filters.",
   showReset,
 }: Props) {
-  const router = useRouter();
+
 
   return (
     <motion.div
@@ -28,12 +29,12 @@ function EmptyState({
       <Heading center title={title} subtitle={subtitle} />
       <div className="mt-3">
         {showReset && (
-          <button
-            onClick={() => router.push("/home")}
+          <Link
+            href="/home"
             className="hover:bg-black hover:text-white py-1.5 px-4 rounded-full bg-white text-black border border-black transition-colors duration-300"
           >
             Clear Filters
-          </button>
+          </Link>
         )}
       </div>
     </motion.div >

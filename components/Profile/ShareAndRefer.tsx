@@ -1,16 +1,16 @@
 "use client";
-import React, { useState, useCallback } from "react";
-import { toast } from "react-toastify";
-import {
-    MdContentCopy,
-    MdShare,
-    MdMessage,
-    MdQuestionMark
-} from "react-icons/md";
+import React, { useCallback,useState } from "react";
 import {
     FaInstagram,
     FaWhatsapp
 } from "react-icons/fa";
+import {
+    MdContentCopy,
+    MdMessage,
+    MdQuestionMark,
+    MdShare} from "react-icons/md";
+import { toast } from "react-toastify";
+
 import Heading from "@/components/Heading";
 import { SafeUser } from "@/types/user";
 

@@ -1,7 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import prisma from "@/lib/prismadb";
-import { normalizePhone } from "@/lib/phone";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { normalizePhone } from "@/lib/phone";
+import prisma from "@/lib/prismadb";
 
 export async function PUT(request: Request) {
   try {

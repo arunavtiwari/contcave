@@ -1,28 +1,27 @@
 "use client";
 
-import useCities from "@/hook/useCities";
-import { SafeUser } from "@/types/user";
-import { FullListing } from "@/types/listing";
+import { Amenities } from "@prisma/client";
+import axios from "axios";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { IconType } from "react-icons";
-import Avatar from "@/components/Avatar";
-import ListingCategory from "./ListingCategory";
-import Offers from "@/components/Offers";
-import AddonsList from "./AddonList";
-import Image from "next/image";
-import axios from "axios";
+import { FaStar } from "react-icons/fa";
+
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
-
-import { FaStar } from "react-icons/fa";
-import PackageList from "./PackageList";
-
-import { Amenities } from "@prisma/client";
-
-import Link from "next/link";
+import Avatar from "@/components/Avatar";
+import Offers from "@/components/Offers";
+import useCities from "@/hook/useCities";
 import { Addon } from "@/types/addon";
+import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
+import { SafeUser } from "@/types/user";
+
+import AddonsList from "./AddonList";
+import ListingCategory from "./ListingCategory";
+import PackageList from "./PackageList";
 
 const Map = dynamic(() => import("../Map"), { ssr: false });
 

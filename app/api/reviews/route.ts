@@ -1,7 +1,8 @@
-import getCurrentUser from "@/app/actions/getCurrentUser";
-import prisma from "@/lib/prismadb";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { NextRequest } from "next/server";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import prisma from "@/lib/prismadb";
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import React, { useCallback,useEffect, useState } from "react";
+import { FaCheckCircle, FaExclamationCircle, FaShieldAlt,FaSpinner } from "react-icons/fa";
 import { toast } from "react-toastify";
-import Modal from "@/components/modals/Modal";
-import { FaCheckCircle, FaSpinner, FaExclamationCircle, FaShieldAlt } from "react-icons/fa";
 
+import Modal from "@/components/modals/Modal";
 import { SafeUser } from "@/types/user";
 
 type Props = {
@@ -382,6 +382,12 @@ const VerificationModal: React.FC<Props> = ({
           const updated = await axios.patch("/api/user/verify", {
             step: "bank",
             bankVerifiedName: bankState.accountHolder,
+            vendorId: payload.vendor_id,
+            accountNumber: bankState.accountNumber,
+            ifscCode: bankState.ifsc,
+            gstin: bankState.gst || undefined,
+            companyName: userState?.name || undefined,
+            bankName: undefined,
           });
           setUserState(updated.data);
           toast.success("Bank details verified successfully");

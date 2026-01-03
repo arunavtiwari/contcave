@@ -1,11 +1,13 @@
-import ClientOnly from "@/components/ClientOnly";
-import EmptyState from "@/components/EmptyState";
+import type { Metadata } from "next";
 import React from "react";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getFavoriteListings from "@/app/actions/getFavoriteListings";
-import FavoritesClient from "./FavoritesClient";
-import type { Metadata } from "next";
+import ClientOnly from "@/components/ClientOnly";
+import EmptyState from "@/components/EmptyState";
 import { BRAND_NAME } from "@/lib/seo";
+
+import FavoritesClient from "./FavoritesClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {

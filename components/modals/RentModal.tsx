@@ -1,5 +1,9 @@
 "use client";
 
+import { Amenities } from "@prisma/client";
+import axios from "axios";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 import React, {
   useCallback,
   useEffect,
@@ -7,33 +11,31 @@ import React, {
   useRef,
   useState,
 } from "react";
-import dynamic from "next/dynamic";
-import Image from "next/image";
-import { IoMdClose } from "react-icons/io";
-import axios from "axios";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { IoMdClose } from "react-icons/io";
 import { toast } from "react-toastify";
-import useRentModal from "@/hook/useRentModal";
+
+import getAddons from "@/app/actions/getAddons";
+import getAmenities from "@/app/actions/getAmenities";
 import Heading from "@/components/Heading";
-import Modal from "./Modal";
-import Input from "@/components/inputs/Input";
+import AddonsSelection from "@/components/inputs/AddonsSelection";
+import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
+import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
 import CategoryInput from "@/components/inputs/CategoryInput";
 import CitySelect from "@/components/inputs/CitySelect";
-import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
 import ImageUpload from "@/components/inputs/ImageUpload";
-import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
-import AddonsSelection from "@/components/inputs/AddonsSelection";
-import { Addon } from "@/types/addon";
+import Input from "@/components/inputs/Input";
 import OtherListingDetails, { ListingDetails } from "@/components/inputs/OtherListingDetails";
-import SpaceVerification, { VerificationPayload, VerificationDocument } from "@/components/inputs/SpaceVerification";
-import TermsAndConditionsModal, { TermsRef, SignatureMeta } from "@/components/inputs/TermsAndConditions";
-import CustomAddonModal from "./CustomAddonModal";
 import PackagesForm from "@/components/inputs/PackagesForm";
-import { Package } from "@/types/package";
+import SpaceVerification, { VerificationDocument,VerificationPayload } from "@/components/inputs/SpaceVerification";
+import TermsAndConditionsModal, { SignatureMeta,TermsRef } from "@/components/inputs/TermsAndConditions";
 import { categories } from "@/components/navbar/Categories";
-import getAmenities from "@/app/actions/getAmenities";
-import getAddons from "@/app/actions/getAddons";
-import { Amenities } from "@prisma/client";
+import useRentModal from "@/hook/useRentModal";
+import { Addon } from "@/types/addon";
+import { Package } from "@/types/package";
+
+import CustomAddonModal from "./CustomAddonModal";
+import Modal from "./Modal";
 
 enum STEPS {
   CATEGORY = 0,

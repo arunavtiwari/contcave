@@ -1,8 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import { FC, useState, useEffect } from "react";
 import Ably from "ably";
+import Image from "next/image";
+import { FC, useEffect,useState } from "react";
+
 import Heading from "@/components/Heading";
 import Loader from "@/components/Loader";
 import { SafeUser } from "@/types/user";

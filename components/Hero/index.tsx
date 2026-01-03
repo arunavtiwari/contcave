@@ -1,14 +1,14 @@
 "use client";
-import { useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from 'next/image'
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useEffect } from "react";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Hero = () => {
-  const router = useRouter();
+
   useEffect(() => {
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -56,12 +56,12 @@ const Hero = () => {
             <p className="text-lg sm:text-xl md:text-2xl opacity-70 mt-4">
               Whether you're telling a story or capturing a moment, find the space that elevates your vision.
             </p>
-            <button
-              onClick={() => router.push('/home')}
-              className="bg-white mt-10 w-fit text-black px-6 py-2.5 rounded-full font-semibold text-lg shadow-sm hover:scale-105 duration-300 relative z-20 cursor-pointer"
+            <Link
+              href="/home"
+              className="bg-white mt-10 w-fit text-black px-6 py-2.5 rounded-full font-semibold text-lg shadow-sm hover:scale-105 duration-300 relative z-20 cursor-pointer inline-block"
             >
               Book Now
-            </button>
+            </Link>
           </div>
         </div>
 

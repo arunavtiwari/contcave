@@ -1,11 +1,12 @@
 "use client";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState } from "react";
-import FeaturesTabItem from "./FeaturesTabItem";
-import featuresTabData from "./featuresTabData";
 
-import { motion } from "framer-motion";
 import SectionHeader from "@/components/Common/SectionHeader";
+
+import featuresTabData from "./featuresTabData";
+import FeaturesTabItem from "./FeaturesTabItem";
 
 const FeaturesTab = () => {
   const [currentTab, setCurrentTab] = useState("tabOne");

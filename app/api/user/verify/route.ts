@@ -1,6 +1,11 @@
+import { z } from "zod";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import prisma from "@/lib/prismadb";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import prisma from "@/lib/prismadb";
+import { paymentDetailsSchema } from "@/lib/schemas/payment";
+import { auditService } from "@/lib/security/audit";
+import { encryptionService } from "@/lib/security/encryption";
 
 export async function PATCH(request: Request) {
   try {
@@ -14,7 +19,18 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { step, phone, aadhaarRefId, bankVerifiedName } = body;
+    const {
+      step,
+      phone,
+      aadhaarRefId,
+      bankVerifiedName,
+      vendorId,
+      accountNumber,
+      ifscCode,
+      gstin,
+      companyName,
+      bankName
+    } = body;
 
     if (!step || typeof step !== "string") {
       return createErrorResponse("step is required and must be a string", 400);
@@ -62,6 +78,102 @@ export async function PATCH(request: Request) {
         }
       }
       updates.verified_via = { push: "bank_verification" };
+
+      if (accountNumber && ifscCode && bankVerifiedName) {
+        // Validate using shared schema
+        try {
+          const validationData = {
+            accountHolderName: bankVerifiedName.trim(),
+            bankName: (bankName && typeof bankName === "string") ? bankName.trim() : "Unknown",
+            accountNumber: accountNumber.trim(),
+            ifscCode: ifscCode.trim().toUpperCase(),
+            companyName: (companyName && typeof companyName === "string") ? companyName.trim() : null,
+            gstin: (gstin && typeof gstin === "string") ? gstin.trim().toUpperCase() : null,
+          };
+
+          // This throws if validation fails
+          paymentDetailsSchema.parse(validationData);
+
+          const encryptedAccountNumber = encryptionService.encrypt(validationData.accountNumber);
+          const encryptedIfscCode = encryptionService.encrypt(validationData.ifscCode);
+
+          let encryptedGstin = null;
+          let gstinIV = null;
+          if (validationData.gstin) {
+            const gstinResult = encryptionService.encrypt(validationData.gstin);
+            encryptedGstin = gstinResult.encrypted;
+            gstinIV = gstinResult.iv;
+          }
+
+          let encryptedVendorId = null;
+          let vendorIdIV = null;
+          if (vendorId && typeof vendorId === "string") {
+            const vendorResult = encryptionService.encrypt(vendorId.trim());
+            encryptedVendorId = vendorResult.encrypted;
+            vendorIdIV = vendorResult.iv;
+          }
+
+          const paymentData = {
+            userId: currentUser.id,
+            accountHolderName: validationData.accountHolderName,
+            accountNumber: encryptedAccountNumber.encrypted,
+            accountNumberIV: encryptedAccountNumber.iv,
+            ifscCode: encryptedIfscCode.encrypted,
+            ifscCodeIV: encryptedIfscCode.iv,
+            bankName: validationData.bankName,
+            companyName: validationData.companyName,
+            gstin: encryptedGstin,
+            gstinIV: gstinIV,
+            cashfreeVendorId: encryptedVendorId,
+            vendorIdIV: vendorIdIV,
+            encryptionVersion: encryptionService.getKeyVersion(),
+          };
+
+          await prisma.paymentDetails.upsert({
+            where: { userId: currentUser.id },
+            create: paymentData,
+            update: paymentData,
+          });
+
+          await auditService.logPaymentDetailsAccess(
+            currentUser.id,
+            'CREATE',
+            currentUser.id,
+            request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+            request.headers.get('user-agent') || undefined,
+            {
+              hasAccountNumber: !!accountNumber,
+              hasIfscCode: !!ifscCode,
+              hasGstin: !!gstin,
+              hasVendorId: !!vendorId,
+              encryptionVersion: encryptionService.getKeyVersion(),
+            }
+          );
+
+          await auditService.logEncryptionOperation(
+            currentUser.id,
+            'ENCRYPT',
+            'accountNumber,ifscCode',
+            true,
+            request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined
+          );
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            const msg = error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+            return createErrorResponse(`Validation failed: ${msg}`, 400);
+          }
+
+          await auditService.logEncryptionOperation(
+            currentUser.id,
+            'ENCRYPT',
+            'accountNumber,ifscCode',
+            false,
+            request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined
+          );
+
+          throw new Error(`Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
     }
 
     updates.verification_stage = { increment: 1 };
@@ -90,7 +202,7 @@ export async function PATCH(request: Request) {
       await prisma.user.update({
         where: { id: currentUser.id },
         data: { is_verified: true, verified_at: new Date() },
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     return createSuccessResponse(updated);

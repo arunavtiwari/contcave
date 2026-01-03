@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useEffect,useMemo, useState } from "react";
 import { FaBolt } from "react-icons/fa";
 import Select, { Theme } from "react-select";
 import ReactSwitch from "react-switch";
+
 import { spaceTypes } from "@/constants/spaceTypes";
 
 export type ListingDetails = {

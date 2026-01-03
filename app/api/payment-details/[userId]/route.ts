@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server';
-import getCurrentUser from '@/app/actions/getCurrentUser';
-import { getPaymentDetailsByUserId } from '@/lib/payment-details';
 import { z } from 'zod';
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
-const userIdSchema = z.string().min(1, 'User ID cannot be empty').trim();
+import getCurrentUser from '@/app/actions/getCurrentUser';
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { getPaymentDetailsByUserId } from '@/lib/payment-details';
+import { userIdSchema } from '@/lib/schemas/common';
+import { encryptionService } from '@/lib/security/encryption';
 
 const maskGstin = (value: string) =>
     value.length <= 8 ? value : value.replace(/^(.{4}).+(.{4})$/, '$1******$2');
@@ -22,6 +23,8 @@ const sanitizePaymentDetails = (paymentDetails: { accountNumber?: string; gstin?
 interface RouteParams {
     params: Promise<{ userId: string }>;
 }
+
+
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
     try {
@@ -45,9 +48,34 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             return createErrorResponse("Payment details not found", 404);
         }
 
+        let accountNumber = paymentDetails.accountNumber;
+        if (paymentDetails.accountNumberIV) {
+            try {
+                accountNumber = encryptionService.decrypt({
+                    encrypted: paymentDetails.accountNumber,
+                    iv: paymentDetails.accountNumberIV
+                });
+            } catch (error) {
+                console.error('Failed to decrypt account number:', error);
+            }
+        }
+
+        let gstin = paymentDetails.gstin;
+        if (paymentDetails.gstin && paymentDetails.gstinIV) {
+            try {
+                gstin = encryptionService.decrypt({
+                    encrypted: paymentDetails.gstin,
+                    iv: paymentDetails.gstinIV
+                });
+            } catch (error) {
+                console.error('Failed to decrypt GSTIN:', error);
+            }
+        }
+
         const sanitizedData = sanitizePaymentDetails({
             ...paymentDetails,
-            gstin: paymentDetails.gstin || undefined
+            accountNumber,
+            gstin: gstin || undefined
         });
 
         return createSuccessResponse(sanitizedData);

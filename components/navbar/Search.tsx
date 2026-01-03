@@ -1,10 +1,11 @@
 "use client";
 
-import { memo, useMemo, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { memo, Suspense,useCallback, useMemo } from "react";
+import { BiSearch } from "react-icons/bi";
+
 import useCountries from "@/hook/useCities";
 import useSearchModal from "@/hook/useSearchModal";
-import { useSearchParams } from "next/navigation";
-import { BiSearch } from "react-icons/bi";
 
 const SearchContent = memo(function SearchContent() {
   const searchModel = useSearchModal();

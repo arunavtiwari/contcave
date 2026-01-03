@@ -1,7 +1,8 @@
 "use client";
 
-import { useId, useState } from "react";
 import Link from "next/link";
+import { useId, useState } from "react";
+
 import Checkbox from "@/components/inputs/Checkbox";
 
 type GSTDetails = {

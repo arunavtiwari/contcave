@@ -1,5 +1,5 @@
-import { MetadataRoute } from "next";
 import { PrismaClient } from "@prisma/client";
+import { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://contcave.com";

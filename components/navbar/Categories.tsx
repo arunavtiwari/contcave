@@ -1,15 +1,16 @@
 "use client";
 
-import { memo, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { memo, Suspense,useMemo } from "react";
+import { FaBuilding,FaPodcast } from "react-icons/fa";
 import {
-  GiMusicalNotes,
   GiCycle,
+  GiMusicalNotes,
   GiPhotoCamera,
 } from "react-icons/gi";
 import { IoIosPartlySunny } from "react-icons/io";
-import { FaPodcast, FaBuilding } from "react-icons/fa";
-import { MdHomeWork, MdLocalCafe, MdCelebration } from "react-icons/md";
+import { MdCelebration,MdHomeWork, MdLocalCafe } from "react-icons/md";
+
 import CategoryBox from "@/components/CategoryBox";
 import FilterModal from "@/components/modals/FilterModal";
 

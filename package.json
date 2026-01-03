@@ -9,6 +9,7 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"type-check": "tsc --noEmit",
+		"typecheck": "tsc --noEmit",
 		"check": "npm run type-check && npm run lint",
 		"postinstall": "npx prisma generate"
 	},
@@ -94,6 +95,7 @@
 		"@types/react-slick": "^0.23.13",
 		"@types/react-world-flags": "^1.6.0",
 		"eslint-config-next": "^16.1.1",
+		"eslint-plugin-simple-import-sort": "^12.1.1",
 		"prisma": "6.19.0"
 	}
 }

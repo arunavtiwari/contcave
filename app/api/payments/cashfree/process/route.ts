@@ -1,10 +1,11 @@
-import { NextRequest } from "next/server";
-import { z } from "zod";
-import prisma from "@/lib/prismadb";
 import { randomUUID } from "crypto";
-import { cfCreateOrder } from "@/lib/cashfree/cashfree";
+import { NextRequest } from "next/server";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { cfCreateOrder } from "@/lib/cashfree/cashfree";
+import prisma from "@/lib/prismadb";
+import { processPaymentSchema } from "@/lib/schemas/cashfree";
 
 function normalizePhone(phone?: string | null) {
     if (!phone) return null;
@@ -12,9 +13,6 @@ function normalizePhone(phone?: string | null) {
     const stripped = digits.startsWith("91") && digits.length === 12 ? digits.slice(2) : digits;
     return stripped.length === 10 ? stripped : null;
 }
-
-const toNum = (v: unknown) => (typeof v === "string" ? Number(v) : v);
-const trimStr = (v: unknown) => (typeof v === "string" ? v.trim() : v);
 
 function sanitizeAddons(input: unknown): Array<{ price: number; qty?: number; name?: string; id?: string }> {
     if (!input || typeof input !== 'object') return [];
@@ -32,30 +30,6 @@ function sanitizeAddons(input: unknown): Array<{ price: number; qty?: number; na
         .filter((a) => a.price > 0 && a.qty > 0);
 }
 
-const Body = z.object({
-    listingId: z.preprocess(trimStr, z.string().min(1, "listingId required")),
-    startDate: z
-        .preprocess(trimStr, z.string().min(1, "startDate required"))
-        .refine((s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s)), "startDate must be YYYY-MM-DD")
-        .refine((s) => {
-            const inputDate = new Date(String(s));
-            const now = new Date();
-            const istDate = new Date(now.getTime() + 330 * 60000);
-            const today = new Date(Date.UTC(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate()));
-            return inputDate >= today;
-        }, "Past dates are not allowed"),
-    startTime: z.preprocess(trimStr, z.string().min(1, "startTime required")),
-    endTime: z.preprocess(trimStr, z.string().min(1, "endTime required")),
-
-    totalPrice: z.preprocess(toNum, z.number().positive("totalPrice must be > 0")),
-    selectedAddons: z.any().optional(),
-    instantBooking: z.boolean().default(false),
-
-    customerPhone: z.preprocess(trimStr, z.string().optional()),
-    customerName: z.preprocess(trimStr, z.string().optional()),
-    customerEmail: z.preprocess(trimStr, z.string().email().optional()),
-});
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -66,7 +40,7 @@ export async function POST(req: NextRequest) {
         }
 
         const raw = await req.json();
-        const parsed = Body.safeParse(raw);
+        const parsed = processPaymentSchema.safeParse(raw);
         if (!parsed.success) {
             return createErrorResponse("Invalid request", 400, { issues: parsed.error.issues });
         }
@@ -85,17 +59,17 @@ export async function POST(req: NextRequest) {
 
         const tId = "tid_" + randomUUID().replace(/-/g, "").slice(0, 20);
         const amount = Math.round(Number(data.totalPrice));
-        
+
         if (amount <= 0 || !Number.isFinite(amount)) {
             return createErrorResponse("Invalid amount: must be a positive number", 400);
         }
-        
+
         if (amount > 10000000) {
             return createErrorResponse("Amount exceeds maximum limit", 400);
         }
-        
+
         const cleanedAddons = sanitizeAddons(data.selectedAddons);
-        
+
         const appUrl = process.env.APP_URL;
         if (!appUrl || typeof appUrl !== "string" || !appUrl.startsWith("http")) {
             return createErrorResponse(
@@ -130,11 +104,11 @@ export async function POST(req: NextRequest) {
         try {
             const customerName = (currentUser.name || data.customerName || "Customer").trim().slice(0, 100);
             const customerEmail = currentUser.email || data.customerEmail;
-            
+
             if (customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
                 return createErrorResponse("Invalid email format", 400);
             }
-            
+
             const orderResult = await cfCreateOrder({
                 transaction_id: tId,
                 order_amount: amount,
@@ -150,16 +124,16 @@ export async function POST(req: NextRequest) {
         } catch (orderError) {
             await prisma.transaction.update({
                 where: { id: txn.id },
-                data: { 
+                data: {
                     status: "FAILED",
                     description: `Payment initialization failed: ${orderError instanceof Error ? orderError.message : "Unknown error"}`,
                 },
-            }).catch(() => {});
+            }).catch(() => { });
 
-            const errorMessage = orderError instanceof Error 
-                ? orderError.message 
+            const errorMessage = orderError instanceof Error
+                ? orderError.message
                 : "Failed to create payment order";
-            
+
             if (errorMessage.includes("authentication") || errorMessage.includes("credentials")) {
                 return createErrorResponse(
                     "Payment service configuration error. Please contact support.",

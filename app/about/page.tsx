@@ -1,10 +1,12 @@
+import { Building2, Heart, Users } from "lucide-react";
+import type { Metadata } from "next";
+import React from "react";
+
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
-import React from "react";
-import { Building2, Heart, Users } from "lucide-react";
-import Hero from "./hero";
-import type { Metadata } from "next";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+
+import Hero from "./hero";
 
 export const dynamic = "force-dynamic";
 

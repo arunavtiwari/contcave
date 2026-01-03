@@ -1,4 +1,5 @@
 "use client";
+import { Cashfree,load } from "@cashfreepayments/cashfree-js";
 import {
   useCallback,
   useEffect,
@@ -7,23 +8,23 @@ import {
   useRef,
   useState,
 } from "react";
+import { FaBolt } from "react-icons/fa";
+
 import Calendar from "@/components/inputs/Calendar";
 import TimeSlotPicker from "@/components/inputs/TimeSlotPicker";
-import { load, Cashfree } from "@cashfreepayments/cashfree-js";
+import BookingSummaryModal from "@/components/modals/BookingSummaryModal";
+import PhoneModal from "@/components/modals/PhoneModal";
+import useLoginModal from "@/hook/useLoginModal";
+import { normalizePhone } from "@/lib/phone";
+import { Package } from "@/types/package";
 import {
+  DayKey,
+  OperationalDays,
   ReservationOperationalTimings,
   TimeHM,
   TimeLabel,
-  DayKey,
-  OperationalDays,
 } from "@/types/scheduling";
-import useLoginModal from "@/hook/useLoginModal";
-import PhoneModal from "@/components/modals/PhoneModal";
-import BookingSummaryModal from "@/components/modals/BookingSummaryModal";
-import { normalizePhone } from "@/lib/phone";
-import { Package } from "@/types/package";
 import { SafeUser } from "@/types/user";
-import { FaBolt } from "react-icons/fa";
 
 const INR = new Intl.NumberFormat("en-IN", {
   style: "currency",

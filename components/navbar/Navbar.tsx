@@ -1,8 +1,10 @@
 "use client";
 
 import { memo } from "react";
-import { SafeUser } from "@/types/user";
+
 import Container from "@/components/Container";
+import { SafeUser } from "@/types/user";
+
 import Logo from "./Logo";
 import Search from "./Search";
 import UserMenu from "./UserMenu";

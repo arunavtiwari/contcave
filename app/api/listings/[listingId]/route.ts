@@ -1,6 +1,6 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import prisma from "@/lib/prismadb";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import prisma from "@/lib/prismadb";
 
 export const runtime = "nodejs";
 

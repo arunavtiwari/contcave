@@ -1,12 +1,13 @@
+import { ListingStatus } from "@prisma/client"; // adjust path if needed
+import type { Metadata } from "next";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListingById from "@/app/actions/getListingById";
 import getReservation from "@/app/actions/getReservations";
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 import ListingClient from "@/components/ListingClient";
-import type { Metadata } from "next";
-import { BRAND_NAME, OG_IMAGE, SITE_URL, absoluteUrl } from "@/lib/seo";
-import { ListingStatus } from "@prisma/client"; // adjust path if needed
+import { absoluteUrl,BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 

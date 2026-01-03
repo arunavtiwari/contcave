@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import React, { useEffect,useState } from 'react';
+
 import { Addon } from "@/types/addon";
 
 type Props = {

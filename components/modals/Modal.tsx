@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useRef,useState } from "react";
 import { IoMdCloseCircle } from "react-icons/io";
+
 import Button from "@/components/Button";
 
 type Props = {

@@ -1,9 +1,9 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
-
-import { toast } from "react-toastify";
-import Modal from "./Modal";
+import React, { useCallback,useEffect, useState } from "react";
 import { FaExclamationCircle, FaInfoCircle } from "react-icons/fa";
+import { toast } from "react-toastify";
+
+import Modal from "./Modal";
 
 type Props = {
   isOpen: boolean;

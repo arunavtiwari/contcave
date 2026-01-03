@@ -3,6 +3,7 @@ const reactPlugin = require('eslint-plugin-react');
 const hooksPlugin = require('eslint-plugin-react-hooks');
 const tsPlugin = require('@typescript-eslint/eslint-plugin');
 const tsParser = require('@typescript-eslint/parser');
+const simpleImportSort = require('eslint-plugin-simple-import-sort');
 
 module.exports = [
   {
@@ -35,11 +36,15 @@ module.exports = [
       'react': reactPlugin,
       'react-hooks': hooksPlugin,
       '@typescript-eslint': tsPlugin,
+      'simple-import-sort': simpleImportSort,
     },
     rules: {
+      // Import sorting
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
       // Next.js rules
       '@next/next/no-html-link-for-pages': 'error',
-      '@next/next/no-img-element': 'warn',
+      '@next/next/no-img-element': 'error',
 
       // React rules  
       'react/jsx-uses-react': 'off',
@@ -52,9 +57,9 @@ module.exports = [
       'react-hooks/exhaustive-deps': 'warn',
 
       // TypeScript rules
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
@@ -63,7 +68,7 @@ module.exports = [
       ],
 
       // General JavaScript/TypeScript rules
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': ['error', { allow: ['warn', 'error'] }],
       'prefer-const': 'error',
       'no-var': 'error',
     },

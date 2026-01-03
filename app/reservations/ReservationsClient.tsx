@@ -1,7 +1,5 @@
 "use client";
 
-import { SafeUser } from "@/types/user";
-import { SafeReservation } from "@/types/reservation";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
@@ -11,6 +9,8 @@ import Container from "@/components/Container";
 import Heading from "@/components/Heading";
 import BookingCard from "@/components/listing/BookingCard";
 import Modal from "@/components/modals/Modal";
+import { SafeReservation } from "@/types/reservation";
+import { SafeUser } from "@/types/user";
 
 type Props = {
   reservations: SafeReservation[];

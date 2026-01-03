@@ -1,4 +1,5 @@
 import { Reservation } from "@prisma/client";
+
 import { safeListing } from "./listing";
 
 export type SafeReservation = Omit<

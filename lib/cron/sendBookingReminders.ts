@@ -1,6 +1,7 @@
+import { addDays, endOfDay,startOfDay } from "date-fns";
+
 import prisma from "@/lib/prismadb";
 import { WhatsappService } from "@/lib/whatsapp/service";
-import { addDays, startOfDay, endOfDay } from "date-fns";
 
 export async function sendBookingReminders() {
     const tomorrow = addDays(new Date(), 1);
