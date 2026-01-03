@@ -1,8 +1,8 @@
 "use client";
 
 import axios from "axios";
-import React, { useCallback,useEffect, useState } from "react";
-import { FaCheckCircle, FaExclamationCircle, FaShieldAlt,FaSpinner } from "react-icons/fa";
+import React, { useCallback, useEffect, useState } from "react";
+import { FaCheckCircle, FaExclamationCircle, FaShieldAlt, FaSpinner } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import Modal from "@/components/modals/Modal";
@@ -645,8 +645,8 @@ const VerificationModal: React.FC<Props> = ({
                   {errors.aadhaar}
                 </p>
               )}
-              <p className="mt-2 text-xs text-gray-500">
-                <FaShieldAlt className="w-3 h-3 inline mr-1" />
+              <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                <FaShieldAlt className="w-3 h-3" />
                 Your Aadhaar data is secure and encrypted
               </p>
             </div>
