@@ -2,7 +2,8 @@ import crypto from "crypto";
 import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
-import { sendTemplateEmail } from "@/lib/email/mailer";
+import { resetPasswordEmail } from "@/lib/email/email";
+import { sendEmail } from "@/lib/email/mailer";
 import prisma from "@/lib/prismadb";
 
 function validateEmail(email: string): boolean {
@@ -67,24 +68,15 @@ export async function POST(request: NextRequest) {
         }
 
         const resetUrl = `${nextAuthUrl}/reset-password?token=${resetToken}`;
-        const TEMPLATE_ID = process.env.MS_TPL_RESET_PASSWORD;
-
-        if (!TEMPLATE_ID || typeof TEMPLATE_ID !== "string") {
-            if (process.env.NODE_ENV === "development") {
-                console.error("[Request Reset] MS_TPL_RESET_PASSWORD is missing");
-            }
-            return createErrorResponse("Server configuration error", 500);
-        }
 
         try {
-            await sendTemplateEmail({
+            const html = resetPasswordEmail(user.name || "User", resetUrl);
+
+            await sendEmail({
                 toEmail: user.email,
                 toName: user.name || "User",
-                templateId: TEMPLATE_ID,
-                data: {
-                    reset_url: resetUrl,
-                    user_name: user.name || "User",
-                },
+                subject: "Reset your password",
+                html,
             });
         } catch (emailError) {
             if (process.env.NODE_ENV === "development") {
@@ -96,7 +88,7 @@ export async function POST(request: NextRequest) {
                     resetToken: null,
                     resetTokenExpiry: null,
                 },
-            }).catch(() => {});
+            }).catch(() => { });
             return createErrorResponse("Failed to send reset email. Please try again later.", 500);
         }
 
