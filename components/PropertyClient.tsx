@@ -6,7 +6,7 @@ import Image from "next/image";
 import { SessionProvider, signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FaBolt } from "react-icons/fa";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdOutlineCurrencyRupee } from "react-icons/md";
 import ReactSwitch from "react-switch";
 import { toast } from "react-toastify";
 
@@ -15,8 +15,6 @@ import Heading from "@/components/Heading";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 import Sidebar from "@/components/Sidebar";
-import Input from "@/components/ui/Input";
-import Textarea from "@/components/ui/Textarea";
 import useIndianCities, { City } from "@/hook/useCities";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
@@ -115,42 +113,6 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     const [initialListing, setListing] = useState<FullListing>(() => ({
         ...listing,
     }));
-
-    // Initialize pricing state based on existing sets
-    const [setsHaveSamePrice, setSetsHaveSamePrice] = useState<boolean | null>(() => {
-        if (!listing.hasSets || !listing.sets || listing.sets.length === 0) return null;
-        // Check if all sets have the same price
-        const firstPrice = listing.sets[0].price;
-        return listing.sets.every(s => s.price === firstPrice);
-    });
-
-    const [unifiedSetPrice, setUnifiedSetPrice] = useState<number | null>(() => {
-        if (!listing.hasSets || !listing.sets || listing.sets.length === 0) return null;
-        return listing.sets[0].price;
-    });
-
-    // Sync sets when switching to uniform pricing or updating unified price
-    useEffect(() => {
-        if (setsHaveSamePrice && initialListing.sets && initialListing.sets.length > 0) {
-            const currentSets = initialListing.sets;
-            // If we switch to same price, use the first set's price as the default uniform price if not set
-            const newPrice = unifiedSetPrice !== null ? unifiedSetPrice : (currentSets[0].price || 0);
-
-            if (unifiedSetPrice !== newPrice) {
-                setUnifiedSetPrice(newPrice);
-            }
-
-            // Update all sets to have this price
-            const updatedSets = currentSets.map(s => ({ ...s, price: newPrice }));
-
-            // Only update if there's a change to avoid infinite loops
-            const hasChanges = updatedSets.some((s, i) => s.price !== currentSets[i].price);
-
-            if (hasChanges) {
-                setListing(prev => ({ ...prev, sets: updatedSets }));
-            }
-        }
-    }, [setsHaveSamePrice, unifiedSetPrice, initialListing.sets]);
 
     useEffect(() => {
         window.scrollTo({ top: 0 });
@@ -299,9 +261,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         {/* Name */}
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <Input
+                            <label className="text-sm font-medium text-gray-700 sm:w-1/3">Name</label>
+                            <input
+                                type="text"
                                 id="listingName"
-                                label="Name"
+                                className="border rounded-full pl-3 py-2 shadow-xs w-full"
+                                placeholder="Enter the listing name"
                                 value={initialListing.title ?? ""}
                                 onChange={(e) => handleInputChange("title", e.target.value)}
                             />
@@ -309,9 +274,11 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         {/* Description */}
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <Textarea
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Description</label>
+                            <textarea
                                 id="listingDescription"
-                                label="Description"
+                                className="border rounded-xl pl-3 py-2 shadow-xs w-full resize-none"
+                                placeholder="Enter the description"
                                 value={initialListing.description ?? ""}
                                 onChange={(e) => handleInputChange("description", e.target.value)}
                                 rows={5}
@@ -336,14 +303,21 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         {/* Price */}
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <Input
-                                id="listingPrice"
-                                label="Price"
-                                type="number"
-                                formatPrice
-                                value={Number.isFinite(initialListing.price) ? initialListing.price : ""}
-                                onChange={(e) => handleInputChange("price", Number(e.target.value))}
-                            />
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Price</label>
+                            <div className="w-full relative">
+                                <MdOutlineCurrencyRupee
+                                    size={24}
+                                    className="text-neutral-700 absolute top-2.5 left-2 border-r pr-1 border-neutral-300"
+                                />
+                                <input
+                                    type="number"
+                                    id="listingPrice"
+                                    className="border rounded-full py-2 shadow-xs w-full pl-10 focus:border-black"
+                                    placeholder="Price"
+                                    value={Number.isFinite(initialListing.price) ? initialListing.price : ""}
+                                    onChange={(e) => handleInputChange("price", Number(e.target.value))}
+                                />
+                            </div>
                         </div>
 
                         {/* Location */}
@@ -442,10 +416,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         {/* Carpet Area */}
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <Input
-                                id="carpetArea"
-                                label="Carpet Area"
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Carpet Area</label>
+                            <input
                                 type="number"
+                                id="carpetArea"
+                                className="border rounded-full  pl-3 py-2 shadow-xs w-full"
+                                placeholder="Enter the carpet area"
                                 value={initialListing.carpetArea ?? ""}
                                 onChange={(e) => handleInputChange("carpetArea", e.target.value)}
                             />
@@ -517,10 +493,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         {/* Min Booking Hours */}
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <Input
-                                id="minBookingHours"
-                                label="Min. Booking Hours"
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
+                                Min. Booking Hours
+                            </label>
+                            <input
                                 type="text"
+                                id="minBookingHours"
+                                className="border rounded-full  pl-3 py-2 shadow-xs w-full"
+                                placeholder="Enter the minimum booking hours"
                                 value={initialListing.minimumBookingHours ?? ""}
                                 onChange={(e) => handleInputChange("minimumBookingHours", e.target.value)}
                             />
@@ -528,10 +508,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         {/* Max PAX */}
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <Input
-                                id="maxPax"
-                                label="Max PAX"
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Max PAX</label>
+                            <input
                                 type="text"
+                                id="maxPax"
+                                className="border rounded-full  pl-3 py-2 shadow-xs w-full"
+                                placeholder="Enter the maximum PAX"
                                 value={initialListing.maximumPax ?? ""}
                                 onChange={(e) => handleInputChange("maximumPax", e.target.value)}
                             />
@@ -606,52 +588,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
 
 
-                                    {/* Pricing Consistency Question */}
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">Will all sets have the same price?</label>
-                                        <div className="flex gap-4">
-                                            <label
-                                                className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
-                                                    ? "border-black bg-neutral-50 ring-1 ring-black"
-                                                    : "border-neutral-200 hover:border-neutral-300"
-                                                    }`}
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    name="priceConsistency"
-                                                    checked={setsHaveSamePrice === true}
-                                                    onChange={() => setSetsHaveSamePrice(true)}
-                                                    className="hidden"
-                                                />
-                                                <div className="font-medium text-center">Yes, same price</div>
-                                            </label>
-                                            <label
-                                                className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === false
-                                                    ? "border-black bg-neutral-50 ring-1 ring-black"
-                                                    : "border-neutral-200 hover:border-neutral-300"
-                                                    }`}
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    name="priceConsistency"
-                                                    checked={setsHaveSamePrice === false}
-                                                    onChange={() => setSetsHaveSamePrice(false)}
-                                                    className="hidden"
-                                                />
-                                                <div className="font-medium text-center">No, different prices</div>
-                                            </label>
-                                        </div>
-                                    </div>
-
                                     <div className="flex flex-col gap-4">
                                         <label className="block text-sm font-medium text-gray-700">Manage Sets</label>
                                         <SetsEditor
                                             sets={initialListing.sets ?? []}
                                             onChange={(updated) => handleInputChange("sets", updated)}
                                             pricingType={initialListing.additionalSetPricingType || null}
-                                            isPricingUniform={setsHaveSamePrice === true}
-                                            uniformPrice={unifiedSetPrice}
-                                            onUniformPriceChange={setUnifiedSetPrice}
                                         />
                                     </div>
 
@@ -742,4 +684,3 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 };
 
 export default PropertyClient;
-

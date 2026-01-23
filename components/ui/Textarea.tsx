@@ -14,25 +14,16 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         const hasError = errors?.[id];
 
         return (
-            <div className="w-full relative">
+            <div className="w-full">
                 {label && (
                     <label
                         htmlFor={id}
                         className={`
-              absolute 
-              text-md
-              duration-150 
-              transform 
-              -translate-y-3 
-              top-5 
-              z-10 
-              origin-left 
-              left-4
-              peer-placeholder-shown:scale-100 
-              peer-placeholder-shown:translate-y-0 
-              peer-focus:scale-75
-              peer-focus:-translate-y-4
-              ${hasError ? "text-rose-500" : "text-zinc-400"}
+              block 
+              text-sm 
+              font-medium 
+              mb-1
+              ${hasError ? "text-rose-500" : "text-gray-700"}
             `}
                     >
                         {label}
@@ -42,10 +33,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                 <textarea
                     id={id}
                     className={`
-            peer
             w-full
-            p-4
-            pt-6 
+            p-3
             font-light 
             bg-white 
             border-2
@@ -59,7 +48,6 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             ${hasError ? "focus:border-rose-500" : "focus:border-black"}
             ${className}
           `}
-                    placeholder=" "
                     ref={ref}
                     {...props}
                 />

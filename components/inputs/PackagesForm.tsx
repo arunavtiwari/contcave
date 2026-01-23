@@ -80,9 +80,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
 
           {/* Package Title */}
           <div className="w-full">
-            <label htmlFor={`title-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
-              Package Title
-            </label>
+
             <Input
               id={`title-${idx}`}
               label="Package Title"
@@ -95,9 +93,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
 
           {/* Duration */}
           <div className="w-full">
-            <label htmlFor={`duration-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
-              Duration (Hours)
-            </label>
+
             <Input
               id={`duration-${idx}`}
               label="Duration (Hours)"
@@ -113,9 +109,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
           {/* Price inputs */}
           <div className="flex gap-4 flex-wrap">
             <div className="flex-1">
-              <label htmlFor={`original-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
-                Original Price (₹)
-              </label>
+
               <Input
                 id={`original-${idx}`}
                 label="Original Price"
@@ -130,9 +124,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             </div>
 
             <div className="flex-1">
-              <label htmlFor={`offered-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
-                Offered Price (₹)
-              </label>
+
               <Input
                 id={`offered-${idx}`}
                 label="Offered Price"
@@ -220,9 +212,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 <div className="flex flex-col gap-4 pl-6 border-l-2 border-neutral-100">
                   <div className="grid grid-cols-1 gap-4">
                     <div className="flex flex-col gap-1">
-                      <label htmlFor={`req-sets-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
-                        Number of Sets Included
-                      </label>
+
                       <Input
                         id={`req-sets-${idx}`}
                         label="Number of Sets Included"
