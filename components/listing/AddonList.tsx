@@ -27,14 +27,7 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
   const add = useCallback(() => onQtyChange(1), [onQtyChange]);
 
   return (
-    // <motion.div
-    //   initial={{ x: -200, opacity: 0 }}
-    //   transition={{ duration: 1 }}
-    //   whileInView={{ opacity: 1, x: 0 }}
-    //   viewport={{ once: true }}
-    //   className="flex space-x-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200"
-    // >
-    <div className="flex space-x-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200">
+    <div className="flex gap-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200">
       <div className="rounded-lg h-fit w-fit">
         <div
           className="h-16 w-16 rounded-lg bg-neutral-100 bg-cover bg-center"
@@ -42,30 +35,32 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
         />
       </div>
 
-      <div className="text-sm overflow-hidden">
-        <p className="truncate w-full" title={addon.name}>
-          <strong>{addon.name}</strong>
-        </p>
-        <p>₹ {toPrice(addon.price)}</p>
+      <div className="text-sm overflow-hidden flex flex-col gap-2 w-full">
+        <div>
+          <p className="truncate w-full" title={addon.name}>
+            <strong>{addon.name}</strong>
+          </p>
+          <p>₹ {toPrice(addon.price)}</p>
+        </div>
 
         {qty === 0 ? (
-          <button onClick={add} className="bg-black text-white px-4 py-1.5 mt-1 rounded-full">
+          <button onClick={add} className="bg-black text-white h-8 rounded-full">
             ADD
           </button>
         ) : (
-          <div className="flex items-center mt-1">
+          <div className="flex items-center w-full">
             <button
               onClick={dec}
-              className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-8 rounded-l-xl text-lg font-medium transition"
+              className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-20 rounded-l-xl text-lg font-medium transition border border-[#D6D3D1]"
             >
               −
             </button>
-            <span className="px-5 bg-white text-[#2F2F2F] border border-[#D6D3D1] py-1.5 w-13 text-center">
+            <span className="bg-white text-[#2F2F2F] border-y flex items-center justify-center border-[#D6D3D1] h-8 w-full text-center">
               {qty}
             </span>
             <button
               onClick={inc}
-              className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-8 rounded-r-xl text-lg font-medium transition"
+              className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-20 rounded-r-xl text-lg font-medium transition border border-[#D6D3D1]"
             >
               +
             </button>
@@ -73,7 +68,6 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
         )}
       </div>
     </div>
-    // </motion.div>
   );
 };
 
