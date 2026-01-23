@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { signOut } from "next-auth/react";
-import { memo, useCallback, useEffect,useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineMenu } from "react-icons/ai";
 import {
   FiCalendar,
@@ -16,7 +16,7 @@ import {
 } from "react-icons/fi";
 import { MdApartment } from "react-icons/md";
 
-import Avatar from "@/components/Avatar";
+import Avatar from "@/components/ui/Avatar";
 import useLoginModel from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";
 import useRentModal from "@/hook/useRentModal";

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useState } from "react";
 import { IoCheckmark, IoChevronBack, IoChevronForward, IoClose } from "react-icons/io5";
 
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 import { ListingSet } from "@/types/set";
 
 interface SetDetailModalProps {
@@ -45,20 +45,20 @@ export default function SetDetailModal({
     if (!isOpen || !set) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-opacity duration-300" onClick={onClose}>
             <div
-                className="relative w-full max-w-3xl bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
+                className="relative w-full max-w-4xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition"
+                    className="absolute top-4 right-4 z-20 p-2 bg-white/10 hover:bg-black/20 text-black md:text-white rounded-full transition backdrop-blur-md"
                 >
-                    <IoClose size={20} />
+                    <IoClose size={24} />
                 </button>
 
                 {/* Image Section */}
-                <div className="w-full md:w-1/2 bg-neutral-100 relative min-h-[300px] md:min-h-full">
+                <div className="w-full md:w-3/5 bg-neutral-100 relative min-h-[300px] md:min-h-full group">
                     {set.images.length > 0 ? (
                         <>
                             <Image
@@ -66,28 +66,29 @@ export default function SetDetailModal({
                                 alt={set.name}
                                 fill
                                 className="object-cover"
+                                priority
                             />
 
                             {set.images.length > 1 && (
                                 <>
                                     <button
                                         onClick={handlePrevImage}
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/80 hover:bg-white rounded-full shadow-md transition"
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white text-black rounded-full shadow-lg transition opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 duration-300"
                                     >
                                         <IoChevronBack size={20} />
                                     </button>
                                     <button
                                         onClick={handleNextImage}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/80 hover:bg-white rounded-full shadow-md transition"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white text-black rounded-full shadow-lg transition opacity-0 group-hover:opacity-100 translate-x-[10px] group-hover:translate-x-0 duration-300"
                                     >
                                         <IoChevronForward size={20} />
                                     </button>
 
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm">
                                         {set.images.map((_, idx) => (
                                             <div
                                                 key={idx}
-                                                className={`w-2 h-2 rounded-full transition-all ${idx === currentImageIndex ? "bg-white w-4" : "bg-white/50"
+                                                className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? "bg-white w-6" : "bg-white/50 w-1.5"
                                                     }`}
                                             />
                                         ))}
@@ -96,34 +97,37 @@ export default function SetDetailModal({
                             )}
                         </>
                     ) : (
-                        <div className="flex items-center justify-center h-full text-neutral-400">
-                            No images available
+                        <div className="flex items-center justify-center h-full text-neutral-400 bg-neutral-50">
+                            <span className="text-lg font-medium">No images available</span>
                         </div>
                     )}
                 </div>
 
                 {/* Content Section */}
-                <div className="w-full md:w-1/2 p-6 flex flex-col overflow-y-auto">
+                <div className="w-full md:w-2/5 p-8 flex flex-col overflow-y-auto bg-white">
                     <div className="flex-1">
-                        <h2 className="text-2xl font-bold mb-2">{set.name}</h2>
-                        <div className="inline-block px-3 py-1 bg-neutral-100 rounded-full text-sm font-medium text-neutral-800 mb-6">
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                            <h2 className="text-3xl font-bold text-neutral-900 leading-tight">{set.name}</h2>
+                        </div>
+
+                        <div className="inline-flex items-center px-3 py-1 bg-neutral-900 text-white rounded-full text-sm font-medium mb-6 shadow-sm">
                             {priceLabel}
                         </div>
 
-                        <div className="prose prose-sm text-neutral-600 mb-8">
+                        <div className="prose prose-neutral text-neutral-600 mb-8 leading-relaxed">
                             <p>{set.description || "No description available for this set."}</p>
                         </div>
                     </div>
 
-                    <div className="mt-auto pt-6 border-t border-neutral-100 space-y-3">
+                    <div className="mt-auto pt-6 border-t border-neutral-100 space-y-4">
                         {!isAvailable && (
-                            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm text-center font-medium">
+                            <div className="p-4 bg-red-50 text-red-700 rounded-xl text-sm text-center font-medium border border-red-100">
                                 Not available for the selected time
                             </div>
                         )}
 
                         {!isEligible && (
-                            <div className="p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm text-center font-medium">
+                            <div className="p-4 bg-yellow-50 text-yellow-800 rounded-xl text-sm text-center font-medium border border-yellow-100">
                                 Not eligible for the selected package
                             </div>
                         )}
@@ -137,6 +141,9 @@ export default function SetDetailModal({
                             disabled={!isAvailable || !isEligible}
                             outline={isSelected}
                             icon={isSelected ? IoCheckmark : undefined}
+                        // Assuming Button component accepts custom classes or we rely on default styles. 
+                        // If Button doesn't accept className, we might need to wrap it or modify it.
+                        // Checking Button usage in other files, it seems standard.
                         />
                     </div>
                 </div>

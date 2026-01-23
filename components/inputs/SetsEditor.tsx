@@ -5,6 +5,8 @@ import { useCallback, useState } from "react";
 import { IoAdd, IoClose, IoTrash } from "react-icons/io5";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
 import { AdditionalSetPricingType } from "@/types/set";
 
 interface SetEditorItem {
@@ -116,22 +118,19 @@ export default function SetsEditor({
             {/* Unified Price Input */}
             {isPricingUniform && (
                 <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200">
-                    <label className="block text-sm font-medium mb-1">
-                        {priceLabel} (₹) - Applies to ALL sets
-                    </label>
-                    <input
+                    <Input
+                        id="uniform-price"
+                        label={`${priceLabel} (₹) - Applies to ALL sets`}
                         type="number"
                         value={uniformPrice || ""}
                         onChange={(e) => {
                             const val = Math.max(0, parseInt(e.target.value || "0", 10));
                             if (onUniformPriceChange) onUniformPriceChange(val);
-                            // Update all existing sets with this price
                             const updated = sets.map(s => ({ ...s, price: val }));
                             onChange(updated);
                         }}
                         disabled={disabled}
                         min={0}
-                        className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10 disabled:opacity-50"
                         placeholder="0"
                     />
                     <p className="text-xs text-neutral-500 mt-1">
@@ -187,44 +186,41 @@ export default function SetsEditor({
                             {expandedIndex === index && (
                                 <div className="border-t border-neutral-200 p-4 space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">
-                                            Set Name *
-                                        </label>
-                                        <input
+                                        <Input
+                                            id={`set-name-${index}`}
+                                            label="Set Name *"
                                             type="text"
                                             value={set.name}
                                             onChange={(e) =>
                                                 updateSet(index, { name: e.target.value })
                                             }
                                             disabled={disabled}
-                                            className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10 disabled:opacity-50"
                                             placeholder="e.g., Studio A, Main Hall"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">
-                                            Description
-                                        </label>
-                                        <textarea
+                                        <Textarea
+                                            id={`set-desc-${index}`}
+                                            label="Description"
                                             value={set.description || ""}
                                             onChange={(e) =>
                                                 updateSet(index, { description: e.target.value })
                                             }
                                             disabled={disabled}
                                             rows={3}
-                                            className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10 disabled:opacity-50 resize-none"
+                                            className="resize-none"
                                             placeholder="Describe what's included in this set..."
                                         />
                                     </div>
 
                                     {/* Only show individual price input if NOT uniform pricing */}
                                     {!isPricingUniform && (
+
                                         <div>
-                                            <label className="block text-sm font-medium mb-1">
-                                                {priceLabel} (₹)
-                                            </label>
-                                            <input
+                                            <Input
+                                                id={`set-price-${index}`}
+                                                label={`${priceLabel} (₹)`}
                                                 type="number"
                                                 value={set.price === null ? "" : set.price}
                                                 onChange={(e) => {
@@ -235,7 +231,6 @@ export default function SetsEditor({
                                                 }}
                                                 disabled={disabled}
                                                 min={0}
-                                                className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10 disabled:opacity-50"
                                                 placeholder="0"
                                             />
                                         </div>
@@ -282,6 +277,7 @@ export default function SetsEditor({
                                             />
                                         )}
                                     </div>
+
                                 </div>
                             )}
                         </div>

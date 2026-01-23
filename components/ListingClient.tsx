@@ -4,6 +4,9 @@ import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  calculateSetPricing,
+} from "@/lib/pricing";
+import {
   dateFromLabel,
   getRoundedNowIST_HHMM,
   hhmmToMinutes,
@@ -27,6 +30,7 @@ import Container from "./Container";
 import ListingHead from "./listing/ListingHead";
 import ListingInfo from "./listing/ListingInfo";
 import ListingReservation from "./listing/ListingReservation";
+import PackageSetModal from "./modals/PackageSetModal";
 import { categories } from "./navbar/Categories";
 
 type Props = {
@@ -99,10 +103,22 @@ function ListingClient({
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [googleCalendarEvents, setGoogleCalendarEvents] = useState<GoogleCalendarEvent[]>([]);
+
+  // Hoisted Multi-set state
   const [selectedSetIds, setSelectedSetIds] = useState<string[]>([]);
+  const [isEntireStudioBooked, setIsEntireStudioBooked] = useState(false);
+  const [isPackageSetModalOpen, setIsPackageSetModalOpen] = useState(false);
+
   const ownerHasGoogleCalendar = !!listing?.user?.googleCalendarConnected;
   const abortRef = useRef<AbortController | null>(null);
   const lastSigRef = useRef("");
+
+  // Initialize selectedSetIds with the first set if available and no package selected
+  useEffect(() => {
+    if (listing.hasSets && listing.sets && listing.sets.length > 0 && selectedSetIds.length === 0 && !selectedPackage) {
+      setSelectedSetIds([listing.sets[0].id]);
+    }
+  }, [listing.hasSets, listing.sets, selectedPackage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!selectedDate || !selectedPackage || !selectedTimeSlot[0]) return;
@@ -488,6 +504,113 @@ function ListingClient({
     [listing.category]
   );
 
+  // --- Hoisted Logic Start ---
+
+  const availableSetIds = useMemo(() => {
+    if (!listing.hasSets || !listing.sets || !selectedDate || !selectedTimeSlot[0] || !selectedTimeSlot[1]) {
+      return listing.sets?.map(s => s.id) || [];
+    }
+
+    const startMin = labelToMinutes(selectedTimeSlot[0]);
+    const endMin = labelToMinutes(selectedTimeSlot[1]);
+    const dayStr = istToDateOnly(selectedDate).toDateString();
+
+    return listing.sets.filter(set => {
+      // Check reservations
+      const hasResConflict = reservations.some(r => {
+        const rDay = istToDateOnly(new Date(r.startDate as unknown as Date)).toDateString();
+        if (rDay !== dayStr) return false;
+        const rs = labelToMinutes(r.startTime);
+        const re = labelToMinutes(r.endTime);
+        const isSetBooked = !r.setIds || r.setIds.length === 0 || r.setIds.includes(set.id);
+        return isSetBooked && (startMin < re && rs < endMin);
+      });
+
+      if (hasResConflict) return false;
+
+      // Check blocks
+      const hasBlockConflict = listing.blocks?.some(b => {
+        const bDay = istToDateOnly(new Date(b.date)).toDateString();
+        if (bDay !== dayStr) return false;
+        const bs = labelToMinutes(b.startTime);
+        const be = labelToMinutes(b.endTime);
+        // Listing-wide block (empty setIds) or set-specific block
+        const isSetBlocked = !b.setIds || b.setIds.length === 0 || b.setIds.includes(set.id);
+        return isSetBlocked && (startMin < be && bs < endMin);
+      });
+
+      return !hasBlockConflict;
+    }).map(s => s.id);
+  }, [listing.hasSets, listing.sets, listing.blocks, selectedDate, selectedTimeSlot, reservations]);
+
+  const pricingResult = useMemo(() => {
+    if (!listing.hasSets || !listing.sets) return null;
+    return calculateSetPricing({
+      baseHourlyRate: listing.price,
+      durationMinutes: timeDifferenceInHours * 60,
+      selectedSetIds,
+      sets: listing.sets,
+      pricingType: listing.additionalSetPricingType,
+      selectedPackage: selectedPackage,
+    });
+  }, [
+    listing.hasSets,
+    listing.price,
+    timeDifferenceInHours,
+    selectedSetIds,
+    listing.sets,
+    listing.additionalSetPricingType,
+    selectedPackage,
+  ]);
+
+  const handleSetToggle = useCallback((setId: string) => {
+    if (isEntireStudioBooked) return;
+
+    setSelectedSetIds((prev) => {
+      if (prev.includes(setId)) {
+        return prev.filter((id) => id !== setId);
+      }
+      return [...prev, setId];
+    });
+  }, [isEntireStudioBooked]);
+
+  const handleSelectAllSets = useCallback(() => {
+    if (!listing.sets) return;
+
+    if (isEntireStudioBooked) {
+      setIsEntireStudioBooked(false);
+      setSelectedSetIds([listing.sets[0].id]);
+    } else {
+      setIsEntireStudioBooked(true);
+      setSelectedSetIds(listing.sets.map(s => s.id));
+    }
+  }, [listing.sets, isEntireStudioBooked]);
+
+  const handlePackageSelect = useCallback((pkg: Package | null) => {
+    setSelectedPackage(pkg);
+    setSelectedDate(null);
+    setSelectedTimeSlot([null, null]);
+
+    if (pkg) {
+      setIsPackageSetModalOpen(true);
+    } else {
+      setIsPackageSetModalOpen(false);
+      setIsEntireStudioBooked(false);
+      if (listing.sets && listing.sets.length > 0) {
+        setSelectedSetIds([listing.sets[0].id]);
+      } else {
+        setSelectedSetIds([]);
+      }
+    }
+  }, [listing.sets]);
+
+  const handlePackageSetConfirm = useCallback((setIds: string[]) => {
+    setSelectedSetIds(setIds);
+    setIsPackageSetModalOpen(false);
+  }, []);
+
+  // --- Hoisted Logic End ---
+
   const handleAddonChange = useCallback((payload: unknown) => {
     const next = normalizeAddons(payload);
     const sig = addonsSig(next);
@@ -522,11 +645,19 @@ function ListingClient({
                 fullListing={listing as unknown as FullListing}
                 onAddonChange={handleAddonChange}
                 services={[]}
-                onPackageSelect={(pkg) => {
-                  setSelectedPackage(pkg);
-                  setSelectedDate(null);
-                  setSelectedTimeSlot([null, null]);
-                }}
+                onPackageSelect={handlePackageSelect}
+
+                // Set Selection Props
+                selectedSetIds={selectedSetIds}
+                onSetToggle={handleSetToggle}
+                onSelectAllSets={handleSelectAllSets}
+                availableSetIds={availableSetIds}
+                isEntireStudioBooked={isEntireStudioBooked}
+                setPricingType={listing.additionalSetPricingType}
+                setHours={timeDifferenceInHours || 1}
+                includedSetId={pricingResult?.includedSetId || null}
+                selectedPackage={selectedPackage}
+                isSetSelectionDisabled={!!selectedPackage}
               />
               <div className="order-first mb-10 md:order-last md:col-span-3">
                 <ListingReservation
@@ -554,14 +685,33 @@ function ListingClient({
                   sets={listing.sets}
                   additionalSetPricingType={listing.additionalSetPricingType}
 
-                  onSetIdsChangeAction={setSelectedSetIds}
+                  // Hoisted props
+                  selectedSetIds={selectedSetIds}
+                  pricingResult={pricingResult}
+
+                  selectedPackageId={selectedPackage?.id || null}
+                  setSelectionError={null} // Validation is now handled via UI disable, but we satisfy the prop
+
                   reservations={reservations}
-                  blocks={listing.blocks}
                 />
               </div>
             </div>
           </div>
         </div>
+
+        {/* Package Set Selection Modal */}
+        {selectedPackage && (
+          <PackageSetModal
+            isOpen={isPackageSetModalOpen}
+            onClose={() => {
+              handlePackageSelect(null);
+            }}
+            onConfirm={handlePackageSetConfirm}
+            sets={listing.sets || []}
+            packageItem={selectedPackage}
+            availableSetIds={availableSetIds}
+          />
+        )}
       </Container>
     </div>
   );

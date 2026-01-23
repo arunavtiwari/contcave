@@ -6,7 +6,7 @@ import Link from "next/link";
 import React, { useMemo } from "react";
 import { FaStar } from "react-icons/fa6";
 
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 import HeartButton from "@/components/HeartButton";
 import useCities from "@/hook/useCities";
 import { safeListing } from "@/types/listing";

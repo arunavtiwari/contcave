@@ -11,8 +11,9 @@ import { FaStar } from "react-icons/fa";
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
-import Avatar from "@/components/Avatar";
+import Avatar from "@/components/ui/Avatar";
 import Offers from "@/components/Offers";
+import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hook/useCities";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
@@ -22,6 +23,7 @@ import { SafeUser } from "@/types/user";
 import AddonsList from "./AddonList";
 import ListingCategory from "./ListingCategory";
 import PackageList from "./PackageList";
+import SetSelector from "./SetSelector";
 
 const Map = dynamic(() => import("../Map"), { ssr: false });
 
@@ -51,6 +53,18 @@ type Props = {
   onAddonChange: (addons: Addon[]) => void;
   services: string[];
   onPackageSelect?: (pkg: Package | null) => void;
+
+  // Set Selection Props
+  selectedSetIds?: string[];
+  onSetToggle?: (setId: string) => void;
+  onSelectAllSets?: () => void;
+  availableSetIds?: string[];
+  isEntireStudioBooked?: boolean;
+  setPricingType?: "FIXED" | "HOURLY" | null;
+  setHours?: number;
+  includedSetId?: string | null;
+  selectedPackage?: Package | null;
+  isSetSelectionDisabled?: boolean;
 };
 
 function ListingInfo({
@@ -62,6 +76,17 @@ function ListingInfo({
   definedAmenities,
   onAddonChange,
   onPackageSelect,
+
+  selectedSetIds = [],
+  onSetToggle,
+  onSelectAllSets,
+  availableSetIds = [],
+  isEntireStudioBooked = false,
+  setPricingType = null,
+  setHours = 1,
+  includedSetId = null,
+  selectedPackage = null,
+  isSetSelectionDisabled = false,
 }: Props) {
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
@@ -234,6 +259,26 @@ function ListingInfo({
 
       <hr />
 
+      {/* Set Selector */}
+      {fullListing.hasSets && fullListing.sets && fullListing.sets.length > 0 && (
+        <>
+          <SetSelector
+            sets={fullListing.sets}
+            selectedSetIds={selectedSetIds}
+            onSetToggle={onSetToggle || (() => { })}
+            onSelectAll={onSelectAllSets}
+            includedSetId={includedSetId}
+            pricingType={setPricingType}
+            hours={setHours}
+            disabled={isSetSelectionDisabled}
+            selectedPackage={selectedPackage}
+            availableSetIds={availableSetIds}
+            isEntireStudioBooked={isEntireStudioBooked}
+          />
+          <hr />
+        </>
+      )}
+
       {category && (
         <ListingCategory
           icon={category.icon}
@@ -274,6 +319,7 @@ function ListingInfo({
             onSelect={(pkg) => {
               onPackageSelect?.(pkg ?? null);
             }}
+            selectedPackageId={selectedPackage?.id}
           />
           <hr />
         </>
@@ -394,10 +440,12 @@ function ListingInfo({
                 <div className="relative">
                   <div className="text-sm font-bold mb-2">Write your message</div>
                   <div className="flex w-full bg-white border border-slate-400 items-end px-2 py-2 rounded-md">
-                    <textarea
+                    <Textarea
+                      id="review-comment"
                       value={review.comment}
                       onChange={(e) => setReview({ ...review, comment: e.target.value })}
-                      className="w-[calc(100%-16px)] h-[120px] resize-none text-left border-0 text-sm bg-transparent focus:ring-0"
+                      className="min-h-[120px] border-0 focus:ring-0 p-0"
+                      placeholder="Write your message"
                     />
                     <div className="w-4 h-4">
                       <Image src="/assets/edit.svg" height={18} width={18} className="w-full h-full object-contain" alt="Edit review" />

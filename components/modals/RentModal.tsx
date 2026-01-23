@@ -24,13 +24,13 @@ import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplet
 import CategoryInput from "@/components/inputs/CategoryInput";
 import CitySelect from "@/components/inputs/CitySelect";
 import ImageUpload from "@/components/inputs/ImageUpload";
-import Input from "@/components/inputs/Input";
 import OtherListingDetails, { ListingDetails } from "@/components/inputs/OtherListingDetails";
 import PackagesForm from "@/components/inputs/PackagesForm";
 import SetsEditor, { SetEditorItem } from "@/components/inputs/SetsEditor";
 import SpaceVerification, { VerificationDocument, VerificationPayload } from "@/components/inputs/SpaceVerification";
 import TermsAndConditionsModal, { SignatureMeta, TermsRef } from "@/components/inputs/TermsAndConditions";
 import { categories } from "@/components/navbar/Categories";
+import Input from "@/components/ui/Input";
 import useRentModal from "@/hook/useRentModal";
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";

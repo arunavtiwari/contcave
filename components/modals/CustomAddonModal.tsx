@@ -5,7 +5,7 @@ import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
-import Input from "@/components/inputs/Input";
+import Input from "@/components/ui/Input";
 import useAddonModal from "@/hook/useAddonModal";
 
 import Modal from "./Modal";

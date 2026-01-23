@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 
-import Checkbox from "@/components/inputs/Checkbox";
+import Checkbox from "@/components/ui/Checkbox";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
 
 type GSTDetails = {
   companyName: string;
@@ -168,7 +170,7 @@ export default function BookingSummaryModal({
         <div className="mb-4">
           <Checkbox
             label="Need GST Invoice?"
-            isChecked={needGST}
+            checked={needGST}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNeedGST(e.target.checked)}
           />
         </div>
@@ -176,23 +178,23 @@ export default function BookingSummaryModal({
         {/* GST Fields */}
         {needGST && (
           <div className="space-y-3 mb-4 text-gray-700">
+
             <div>
-              <label className="block text-sm mb-1">Company Name</label>
-              <input
-                type="text"
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
+              <Input
+                id="companyName"
+                label="Company Name"
                 value={gstDetails.companyName}
                 onChange={(e) =>
                   setGstDetailsAction({ ...gstDetails, companyName: e.target.value })
                 }
               />
             </div>
+
             <div>
-              <label className="block text-sm mb-1">GSTIN</label>
-              <input
-                type="text"
+              <Input
+                id="gstin"
+                label="GSTIN"
                 maxLength={15}
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
                 value={gstDetails.gstin}
                 onChange={(e) =>
                   setGstDetailsAction({ ...gstDetails, gstin: e.target.value.toUpperCase() })
@@ -200,10 +202,11 @@ export default function BookingSummaryModal({
                 placeholder="XXABCDE1234F2Z5"
               />
             </div>
+
             <div>
-              <label className="block text-sm mb-1">Billing Address</label>
-              <textarea
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
+              <Textarea
+                id="billingAddress"
+                label="Billing Address"
                 value={gstDetails.billingAddress}
                 onChange={(e) =>
                   setGstDetailsAction({ ...gstDetails, billingAddress: e.target.value })
@@ -220,7 +223,7 @@ export default function BookingSummaryModal({
           <div className="flex items-center gap-1 text-sm text-gray-700">
             <Checkbox
               label="I agree to the"
-              isChecked={agree}
+              checked={agree}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAgree(e.target.checked)}
             />
             <span className="font-medium">

@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { IoMdCloseCircle } from "react-icons/io";
 
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 
 type Props = {
   isOpen?: boolean;

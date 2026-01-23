@@ -1,7 +1,7 @@
 import { Amenities } from '@prisma/client';
 import React, { useEffect, useState } from 'react';
 
-import Checkbox from './Checkbox';
+import Checkbox from '../ui/Checkbox';
 
 export interface AmenitiesData {
   predefined: { [key: number | string]: boolean };
@@ -80,7 +80,7 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
           <Checkbox
             key={id}
             label={name}
-            isChecked={!!checkedItems[id]}
+            checked={!!checkedItems[id]}
             onChange={() => handleCheckboxChange(id)}
           />
         ))}

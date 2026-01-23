@@ -8,7 +8,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
 import { IoMdCloseCircle } from "react-icons/io";
 
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 import { Addon } from "@/types/addon";
 import { safeListing } from "@/types/listing";
 import { SafeReservation } from "@/types/reservation";

@@ -18,10 +18,7 @@ import PhoneModal from "@/components/modals/PhoneModal";
 import useLoginModal from "@/hook/useLoginModal";
 import { normalizePhone } from "@/lib/phone";
 import {
-  calculateSetPricing,
-  validateSetSelection,
 } from "@/lib/pricing";
-import { istToDateOnly, labelToMinutes } from "@/lib/scheduling";
 import { Package } from "@/types/package";
 import {
   DayKey,
@@ -32,13 +29,9 @@ import {
 } from "@/types/scheduling";
 import {
   AdditionalSetPricingType,
-  ListingBlock,
   ListingSet,
 } from "@/types/set";
 import { SafeUser } from "@/types/user";
-
-import PackageSelector from "./PackageSelector";
-import SetSelector from "./SetSelector";
 
 interface SafeReservation {
   startDate: Date | string;
@@ -91,11 +84,16 @@ type Props = {
   // Multi-set props
   hasSets?: boolean;
   sets?: ListingSet[];
-  setPackages?: Package[];
+
   additionalSetPricingType?: AdditionalSetPricingType | null;
 
-  onSetIdsChangeAction?: (setIds: string[]) => void;
-  blocks?: ListingBlock[];
+  // Hoisted State Props
+  selectedSetIds?: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pricingResult?: any;
+
+  selectedPackageId?: string | null;
+  setSelectionError?: string | null;
 };
 
 let cashfreePromise: Promise<Cashfree | null> | null = null;
@@ -163,17 +161,21 @@ export default function ListingReservation({
   currentUserPhone = null,
   isAuthenticated,
   minBookingHours,
-  reservations = [],
+
 
   selectedPackage = null,
 
   hasSets = false,
-  sets = [],
-  setPackages = [],
+
+
   additionalSetPricingType = null,
 
-  onSetIdsChangeAction,
-  blocks = [],
+  selectedSetIds = [],
+  pricingResult = null,
+
+  selectedPackageId = null,
+  setSelectionError = null,
+
 }: Props) {
   const loginModel = useLoginModal();
 
@@ -199,14 +201,6 @@ export default function ListingReservation({
     gstin: "",
     billingAddress: "",
   });
-
-  // Multi-set state
-  const [selectedSetIds, setSelectedSetIds] = useState<string[]>([]);
-  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
-
-  useEffect(() => {
-    onSetIdsChangeAction?.(selectedSetIds);
-  }, [selectedSetIds, onSetIdsChangeAction]);
 
   const mountedRef = useRef(true);
   const inflight = useRef<AbortController | null>(null);
@@ -256,30 +250,7 @@ export default function ListingReservation({
     [time]
   );
 
-  const currentSetPackage = useMemo(
-    () => setPackages.find((p) => p.id === selectedPackageId) || null,
-    [setPackages, selectedPackageId]
-  );
 
-  const pricingResult = useMemo(() => {
-    if (!hasSets) return null;
-    return calculateSetPricing({
-      baseHourlyRate: price,
-      durationMinutes: safeHours * 60,
-      selectedSetIds,
-      sets,
-      pricingType: additionalSetPricingType,
-      selectedPackage: currentSetPackage,
-    });
-  }, [
-    hasSets,
-    price,
-    safeHours,
-    selectedSetIds,
-    sets,
-    additionalSetPricingType,
-    currentSetPackage,
-  ]);
 
   const bookingFee = useMemo(() => {
     if (selectedPackage) return Number(selectedPackage.offeredPrice || 0);
@@ -321,46 +292,8 @@ export default function ListingReservation({
 
   const setValidation = useMemo(() => {
     if (!hasSets) return { valid: true };
-    return validateSetSelection(
-      selectedSetIds,
-      currentSetPackage
-    );
-  }, [hasSets, selectedSetIds, currentSetPackage]);
-
-  const availableSetIds = useMemo(() => {
-    if (!hasSets || !selectedDate || !localTimes.start || !localTimes.end) return sets.map(s => s.id);
-
-    const startMin = labelToMinutes(localTimes.start);
-    const endMin = labelToMinutes(localTimes.end);
-    const dayStr = istToDateOnly(selectedDate).toDateString();
-
-    return sets.filter(set => {
-      // Check reservations
-      const hasResConflict = reservations.some(r => {
-        const rDay = istToDateOnly(new Date(r.startDate as unknown as Date)).toDateString();
-        if (rDay !== dayStr) return false;
-        const rs = labelToMinutes(r.startTime);
-        const re = labelToMinutes(r.endTime);
-        const isSetBooked = !r.setIds || r.setIds.length === 0 || r.setIds.includes(set.id);
-        return isSetBooked && (startMin < re && rs < endMin);
-      });
-
-      if (hasResConflict) return false;
-
-      // Check blocks
-      const hasBlockConflict = blocks.some(b => {
-        const bDay = istToDateOnly(new Date(b.date)).toDateString();
-        if (bDay !== dayStr) return false;
-        const bs = labelToMinutes(b.startTime);
-        const be = labelToMinutes(b.endTime);
-        // Listing-wide block (empty setIds) or set-specific block
-        const isSetBlocked = !b.setIds || b.setIds.length === 0 || b.setIds.includes(set.id);
-        return isSetBlocked && (startMin < be && bs < endMin);
-      });
-
-      return !hasBlockConflict;
-    }).map(s => s.id);
-  }, [hasSets, selectedDate, localTimes, sets, reservations, blocks]);
+    return { valid: !setSelectionError, error: setSelectionError };
+  }, [hasSets, setSelectionError]);
 
   const ready = useMemo(
     () =>
@@ -389,32 +322,6 @@ export default function ListingReservation({
       );
     },
     [selectedPackage]
-  );
-
-  const handleSetToggle = useCallback(
-    (setId: string) => {
-      setSelectedSetIds((prev) => {
-        if (prev.includes(setId)) {
-          return prev.filter((id) => id !== setId);
-        }
-        return [...prev, setId];
-      });
-    },
-    []
-  );
-
-  const handleSelectAllSets = useCallback(() => {
-    if (disabled || !hasSets) return;
-    setSelectedSetIds(availableSetIds);
-  }, [disabled, hasSets, availableSetIds]);
-
-  const handlePackageSelect = useCallback(
-    (packageId: string | null) => {
-      setSelectedPackageId(packageId);
-      // Reset selected sets when switching packages to avoid invalid states
-      setSelectedSetIds([]);
-    },
-    []
   );
 
   const allowedDays = useMemo<OperationalDays | DayKey[] | undefined>(
@@ -628,31 +535,10 @@ export default function ListingReservation({
         aria-labelledby={`${sectionId}-date-label`}
       />
       <hr />
+      <hr />
       {hasSets && (
         <>
           <div className="p-4">
-            <PackageSelector
-              packages={setPackages}
-              selectedPackageId={selectedPackageId}
-              onPackageSelect={handlePackageSelect}
-              disabled={disabled || isPaying}
-            />
-          </div>
-          <hr />
-          <div className="p-4">
-            <SetSelector
-              sets={sets}
-              selectedSetIds={selectedSetIds}
-              onSetToggle={handleSetToggle}
-              onSelectAll={handleSelectAllSets}
-              includedSetId={pricingResult?.includedSetId || null}
-              pricingType={additionalSetPricingType}
-              hours={pricingResult?.hours || 1}
-
-              disabled={disabled || isPaying}
-              selectedPackage={currentSetPackage}
-              availableSetIds={availableSetIds}
-            />
             {!setValidation.valid && selectedSetIds.length > 0 && (
               <p className="mt-2 text-sm text-red-500">{setValidation.error}</p>
             )}
@@ -702,7 +588,8 @@ export default function ListingReservation({
           ) : hasSets && pricingResult ? (
             <div className="flex-1">
               <p>Base booking ({pricingResult.breakdown.includedSetName})</p>
-              {pricingResult.breakdown.additionalSets.map((s) => (
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {pricingResult.breakdown.additionalSets.map((s: any) => (
                 <p key={s.id} className="text-sm text-neutral-500">
                   + {s.name} ({additionalSetPricingType === "HOURLY" ? `${INR.format(s.price)}/hr` : INR.format(s.price)})
                 </p>

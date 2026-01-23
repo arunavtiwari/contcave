@@ -3,10 +3,10 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
+import Checkbox from "@/components/ui/Checkbox";
+import Input from "@/components/ui/Input";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
-
-import Input from "./Input";
 
 
 
@@ -196,28 +196,24 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
           {availableSets.length > 0 && (
             <div className="border-t pt-4 mt-2">
               <div className="flex items-center gap-2 mb-4">
-                <input
-                  type="checkbox"
+                <Checkbox
                   id={`has-sets-${idx}`}
+                  label="Include Set Configuration"
                   checked={pkg.requiredSetCount !== null && pkg.requiredSetCount !== undefined}
-                  onChange={(e) => {
+                  onCheckedChange={(checked) => {
                     const updated = packages.map((p, i) =>
                       i === idx
                         ? {
                           ...p,
-                          requiredSetCount: e.target.checked ? 1 : null,
-                          fixedAddOn: e.target.checked ? 0 : null,
+                          requiredSetCount: checked ? 1 : null,
+                          fixedAddOn: checked ? 0 : null,
                           eligibleSetIds: [],
                         }
                         : p
                     );
                     updatePackages(updated);
                   }}
-                  className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
                 />
-                <label htmlFor={`has-sets-${idx}`} className="text-sm font-medium cursor-pointer">
-                  Include Set Configuration
-                </label>
               </div>
 
               {pkg.requiredSetCount !== null && pkg.requiredSetCount !== undefined && (

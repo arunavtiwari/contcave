@@ -3,7 +3,7 @@
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback,useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     FaCamera,
     FaCheck,
@@ -17,13 +17,16 @@ import {
     FaSave,
     FaShieldAlt,
     FaSpinner,
-    FaUser} from "react-icons/fa";
+    FaUser
+} from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import Heading from "@/components/Heading";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
 import useRentModal from "@/hook/useRentModal";
 import { SafeUser } from "@/types/user";
 
@@ -207,12 +210,12 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                             <div className="flex justify-between mb-6 gap-8 items-center">
                                 <div className="flex-1">
                                     {editMode ? (
-                                        <input
-                                            type="text"
+                                        <Input
+                                            id="name"
                                             name="name"
                                             value={userData.name}
                                             onChange={handleChange}
-                                            className="text-2xl font-bold text-gray-900 bg-transparent border border-gray-300 focus:border-black outline-none py-1.5 px-3 w-full rounded-lg"
+                                            className="text-2xl font-bold"
                                             placeholder="Your name"
                                         />
                                     ) : (
@@ -243,12 +246,13 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                             {/* Description */}
                             <div className="mb-2">
                                 {editMode ? (
-                                    <textarea
+                                    <Textarea
+                                        id="description"
                                         name="description"
                                         value={userData.description}
                                         onChange={handleChange}
                                         placeholder="Tell everyone about yourself..."
-                                        className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none resize-none h-32"
+                                        className="h-32"
                                     />
                                 ) : (
                                     <p className="text-gray-600 leading-relaxed">
@@ -311,18 +315,18 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                 >
                                     <span className="mr-2 pr-2 border-r whitespace-nowrap">+91</span>
                                     {editMode ? (
-                                        <input
-                                            type="tel"
+                                        <Input
+                                            id="phone"
                                             name="phone"
+                                            type="tel"
                                             value={userData.phone}
                                             placeholder="99xxxxxx21"
-                                            inputMode="numeric"
                                             maxLength={10}
                                             onChange={(e) => {
                                                 const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
                                                 handleChange({ target: { name: 'phone', value: digitsOnly } } as unknown as React.ChangeEvent<HTMLInputElement>);
                                             }}
-                                            className="bg-transparent focus:outline-none focus:ring-0 placeholder-slate-400 border-none w-28 h-fit p-0"
+                                            className="w-28 p-0 border-none focus:ring-0"
                                         />
                                     ) : (
                                         <span className="text-gray-900 font-medium whitespace-nowrap">
@@ -340,12 +344,12 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                     <span className="font-medium text-gray-700">Location</span>
                                 </div>
                                 {editMode ? (
-                                    <input
-                                        type="text"
+                                    <Input
+                                        id="location"
                                         name="location"
                                         value={userData.location}
                                         onChange={handleChange}
-                                        className="border border-gray-300 rounded-xl px-3 py-2 w-48 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                                        className="w-48"
                                         placeholder="Enter location"
                                     />
                                 ) : (
