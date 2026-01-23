@@ -80,7 +80,7 @@ export default function SetSelector({
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-lg">Select Sets</h3>
+                <h3 className="text-xl font-semibold">Select Sets</h3>
                 {onSelectAll && !selectedPackage && (
                     <button
                         onClick={onSelectAll}
@@ -135,9 +135,11 @@ export default function SetSelector({
 
                             {/* Overlay - Title on Hover */}
                             <div className={`absolute inset-0 transition-all duration-300 flex items-center justify-center p-2 text-center
-                                ${isSelected ? "bg-black/10" : "bg-black/0 group-hover:bg-black/40"}
+                                ${isSelected ? "bg-black/40" : "bg-black/0 group-hover:bg-black/40"}
                             `}>
-                                <h4 className="font-bold text-white text-lg drop-shadow-md leading-tight opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <h4 className={`font-bold text-white text-lg drop-shadow-md leading-tight transition-opacity duration-300
+                                    ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
+                                `}>
                                     {set.name}
                                 </h4>
                             </div>

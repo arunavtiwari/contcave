@@ -41,7 +41,7 @@ function useFavorite({ listingId, currentUser }: Props) {
 
         await request();
         router.refresh();
-        toast.success("Success", {
+        toast.success(hasFavorite ? "Removed from favourites" : "Added to favourites", {
           toastId: "Favorites"
         });
       } catch (_error: unknown) {

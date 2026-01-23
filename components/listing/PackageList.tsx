@@ -29,8 +29,8 @@ export default function PackageList({ packages, onSelect, selectedPackageId }: P
   if (!packages || packages.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <p className="text-2xl font-semibold text-gray-900">Available Packages</p>
+    <div className="flex flex-col gap-4">
+      <p className="text-xl font-semibold">Available Packages</p>
 
       <div
         className={`grid gap-4 ${packages.length > 1 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"

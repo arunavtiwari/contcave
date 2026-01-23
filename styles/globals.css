@@ -323,30 +323,6 @@ select:focus {
 	border-color: #000000 !important;
 }
 
-/* Notifications */
-.Toastify__toast-container {
-	top: 10px !important;
-	left: 50% !important;
-	transform: translateX(-50%) !important;
-	position: fixed !important;
-	width: max-content;
-	height: fit-content !important;
-	overflow: hidden;
-}
-
-.Toastify__toast {
-	border-radius: 999px;
-	min-height: fit-content !important;
-	padding-left: 20px;
-	padding-right: 20px;
-	margin-top: 10px;
-	overflow: hidden;
-}
-
-.Toastify__close-button {
-	display: none !important;
-}
-
 .hide-scrollbar {
 	scrollbar-width: thin;
 	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
