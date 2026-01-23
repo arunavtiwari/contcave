@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef,useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { IoMdCloseCircle } from "react-icons/io";
 
 import Button from "@/components/Button";
@@ -37,13 +37,12 @@ function Modal({
   secondaryAction,
   verificationBtn,
   customWidth,
-  fixedHeight,
   selfActionButton,
   secondaryActionLabel,
   termsAndConditionsAccept,
   isLoading,
-
-}: Props) {
+  bodyRef, // New prop for scrolling
+}: Props & { bodyRef?: React.RefObject<HTMLDivElement | null> }) {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -111,9 +110,9 @@ function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <div className="flex flex-col w-full bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden max-h-[90vh]">
+        <div className="flex flex-col w-full bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden h-[85vh] max-h-[85vh]">
           {/* Header */}
-          <div className="flex items-center justify-center p-5 border-b border-gray-200 bg-gray-50 relative">
+          <div className="flex items-center justify-center p-5 border-b border-gray-200 bg-gray-50 relative shrink-0">
             <h2 id="modal-title" className="text-lg font-semibold text-center text-gray-900">
               {title}
             </h2>
@@ -128,15 +127,15 @@ function Modal({
 
           {/* Body */}
           <div
-            className={`px-6 py-5 overflow-y-auto text-gray-800 ${fixedHeight ? "max-h-[60vh]" : ""
-              }`}
+            ref={bodyRef}
+            className="flex-1 px-6 py-5 overflow-y-auto text-gray-800"
           >
             {body}
           </div>
 
           {/* Footer */}
           {!selfActionButton && (
-            <div className="px-6 py-4 border-t border-gray-200 flex flex-col md:flex-row gap-3 justify-end items-center bg-gray-50">
+            <div className="px-6 py-4 border-t border-gray-200 flex flex-col md:flex-row gap-3 justify-end items-center bg-gray-50 shrink-0">
               {secondaryAction && secondaryActionLabel && (
                 <Button
                   outline
@@ -158,7 +157,7 @@ function Modal({
           )}
 
 
-          {footer && <div className="px-6 pb-4">{footer}</div>}
+          {footer && <div className="px-6 pb-4 shrink-0">{footer}</div>}
         </div>
       </div>
     </div>

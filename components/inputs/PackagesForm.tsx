@@ -2,18 +2,13 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import Select, { Theme } from "react-select";
 
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
 
 import Input from "./Input";
 
-const selectTheme = (theme: Theme): Theme => ({
-  ...theme,
-  borderRadius: 10,
-  colors: { ...theme.colors, primary: "black", primary25: "#F3F4F6", primary50: "#E5E7EB" },
-});
+
 
 interface PackagesFormProps {
   value: Package[];
@@ -227,7 +222,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
 
               {pkg.requiredSetCount !== null && pkg.requiredSetCount !== undefined && (
                 <div className="flex flex-col gap-4 pl-6 border-l-2 border-neutral-100">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="flex flex-col gap-1">
                       <label htmlFor={`req-sets-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
                         Number of Sets Included
@@ -243,47 +238,6 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                       />
                       <p className="text-xs text-neutral-500">How many sets are included in this package price</p>
                     </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor={`fixed-addon-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
-                        Extra Set Price (₹)
-                      </label>
-                      <Input
-                        id={`fixed-addon-${idx}`}
-                        label="Extra Set Price (₹)"
-                        type="number"
-                        formatPrice
-                        value={pkg.fixedAddOn || 0}
-                        onChange={(e) => updatePackage(idx, "fixedAddOn", Math.max(0, parseInt(e.target.value) || 0))}
-                        required
-                        errors={{}}
-                      />
-                      <p className="text-xs text-neutral-500">Price per additional set beyond the included count</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium">Eligible Sets (Optional)</label>
-                    <Select
-                      isMulti
-                      options={availableSets.map(s => ({ value: s.id, label: s.name }))}
-                      value={availableSets
-                        .filter(s => pkg.eligibleSetIds?.includes(s.id))
-                        .map(s => ({ value: s.id, label: s.name }))}
-                      onChange={(selected) =>
-                        updatePackage(
-                          idx,
-                          "eligibleSetIds",
-                          selected ? selected.map(opt => opt.value) : []
-                        )
-                      }
-                      placeholder="All sets are eligible if none selected"
-                      theme={selectTheme}
-                      className="text-sm"
-                    />
-                    <p className="text-xs text-neutral-500">
-                      If you leave this empty, any set can be picked for this package.
-                    </p>
                   </div>
                 </div>
               )}

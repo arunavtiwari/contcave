@@ -40,24 +40,37 @@ interface Props {
     initialCode?: string;
 }
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_DOCUMENTS = 10;
+
 const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments = [], initialCode = '' }) => {
     const [documents, setDocuments] = useState<VerificationDocument[]>(initialDocuments);
     const [videos] = useState<VerificationVideo[]>([]);
     const [verificationCode, setVerificationCode] = useState(initialCode);
 
-    const MAX_FILE_SIZE = 10 * 1024 * 1024;
-    const MAX_DOCUMENTS = 10;
 
+
+    // Notify parent of verification data changes
+    const notifyParent = useCallback((docs: VerificationDocument[], vids: VerificationVideo[], code: string) => {
+        onVerification({
+            documents: docs,
+            videos: vids,
+            code: code
+        });
+    }, [onVerification]);
+
+    // Initialize from props only once
+    const isInitialized = React.useRef(false);
     useEffect(() => {
-        if (initialDocuments.length > 0 && documents.length === 0) {
+        if (!isInitialized.current && (initialDocuments.length > 0 || initialCode)) {
             setDocuments(initialDocuments);
-        }
-        if (initialCode && !verificationCode) {
             setVerificationCode(initialCode);
+            // notifyParent(initialDocuments, videos, initialCode); // Causing infinite loop
+            isInitialized.current = true;
         }
-    }, [initialDocuments, initialCode, documents.length, verificationCode]);
+    }, [initialDocuments, initialCode]);
 
-    const handleLocalDocs = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const handleLocalDocs = useCallback((evt: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(evt.target.files || []).filter((f) => f.type === 'application/pdf');
 
         if (files.length === 0) {
@@ -98,23 +111,23 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
 
         const nextDocs = [...documents, ...mapped];
         setDocuments(nextDocs);
-        setVerificationPayload(nextDocs, videos, verificationCode);
+        notifyParent(nextDocs, videos, verificationCode);
         toast.success(`${files.length} document(s) added. They will be uploaded after listing creation.`);
         evt.target.value = "";
-    };
+    }, [documents, videos, verificationCode, notifyParent]);
 
-    const removeDocument = (index: number) => {
+    const removeDocument = useCallback((index: number) => {
         const doc = documents[index];
         if (doc.previewUrl) {
             URL.revokeObjectURL(doc.previewUrl);
         }
         const updatedDocs = documents.filter((_, i) => i !== index);
         setDocuments(updatedDocs);
-        setVerificationPayload(updatedDocs, videos, verificationCode);
+        notifyParent(updatedDocs, videos, verificationCode);
         toast.info("Document removed");
-    };
+    }, [documents, videos, verificationCode, notifyParent]);
 
-    const generateVerificationCode = () => {
+    const generateVerificationCode = useCallback(() => {
         let result = '';
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const charactersLength = characters.length;
@@ -122,37 +135,20 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         setVerificationCode(result);
-        setVerificationPayload(documents, videos, result);
+        notifyParent(documents, videos, result);
         toast.success("Verification code generated");
-    };
+    }, [documents, videos, notifyParent]);
 
-    const setVerificationPayload = useCallback((documents: VerificationDocument[] = [], videos: VerificationVideo[] = [], code: string = "") => {
-        const verifications: VerificationPayload = {
-            documents: documents,
-            videos: videos,
-            code: code
-        };
-        onVerification(verifications);
-    }, [onVerification]);
-
-    useEffect(() => {
-        setVerificationPayload(documents, videos, verificationCode);
-    }, [documents, videos, verificationCode, setVerificationPayload]);
-
-    const documentsRef = React.useRef(documents);
-    useEffect(() => {
-        documentsRef.current = documents;
-    }, [documents]);
-
+    // Cleanup blob URLs on unmount
     useEffect(() => {
         return () => {
-            documentsRef.current.forEach((doc) => {
+            documents.forEach((doc) => {
                 if (doc.previewUrl) {
                     URL.revokeObjectURL(doc.previewUrl);
                 }
             });
         };
-    }, []);
+    }, [documents]);
 
     return (
         <div className="bg-opacity-50 overflow-y-auto h-full w-full">

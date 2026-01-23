@@ -9,10 +9,11 @@ import { AdditionalSetPricingType } from "@/types/set";
 
 interface SetEditorItem {
     id?: string;
+    tempId?: string; // For stable keys
     name: string;
     description?: string | null;
     images: string[];
-    price: number;
+    price: number | null; // Allow null for empty input
     position: number;
 }
 
@@ -34,22 +35,32 @@ export default function SetsEditor({
     onChange,
     pricingType,
     disabled = false,
-}: SetsEditorProps) {
+    onImageFilesChange,
+    isPricingUniform = false,
+    uniformPrice,
+    onUniformPriceChange,
+}: SetsEditorProps & {
+    onImageFilesChange?: (files: File[]) => void;
+    isPricingUniform?: boolean;
+    uniformPrice?: number | null;
+    onUniformPriceChange?: (price: number) => void;
+}) {
     const [expandedIndex, setExpandedIndex] = useState<number | null>(
         sets.length === 0 ? null : 0
     );
 
     const addSet = useCallback(() => {
         const newSet: SetEditorItem = {
+            tempId: Math.random().toString(36).substr(2, 9),
             name: "",
             description: "",
             images: [],
-            price: 0,
+            price: isPricingUniform && uniformPrice ? uniformPrice : 0,
             position: sets.length,
         };
         onChange([...sets, newSet]);
         setExpandedIndex(sets.length);
-    }, [sets, onChange]);
+    }, [sets, onChange, isPricingUniform, uniformPrice]);
 
     const removeSet = useCallback(
         (index: number) => {
@@ -89,6 +100,12 @@ export default function SetsEditor({
         [sets, onChange]
     );
 
+    const handleSetImageFiles = useCallback((files: File[]) => {
+        if (onImageFilesChange) {
+            onImageFilesChange(files);
+        }
+    }, [onImageFilesChange]);
+
     const priceLabel =
         pricingType === "HOURLY"
             ? "Additional set price per hour"
@@ -96,11 +113,38 @@ export default function SetsEditor({
 
     return (
         <div className="space-y-4">
+            {/* Unified Price Input */}
+            {isPricingUniform && (
+                <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200">
+                    <label className="block text-sm font-medium mb-1">
+                        {priceLabel} (₹) - Applies to ALL sets
+                    </label>
+                    <input
+                        type="number"
+                        value={uniformPrice || ""}
+                        onChange={(e) => {
+                            const val = Math.max(0, parseInt(e.target.value || "0", 10));
+                            if (onUniformPriceChange) onUniformPriceChange(val);
+                            // Update all existing sets with this price
+                            const updated = sets.map(s => ({ ...s, price: val }));
+                            onChange(updated);
+                        }}
+                        disabled={disabled}
+                        min={0}
+                        className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10 disabled:opacity-50"
+                        placeholder="0"
+                    />
+                    <p className="text-xs text-neutral-500 mt-1">
+                        This price will be used for every set you add.
+                    </p>
+                </div>
+            )}
+
             {sets.length > 0 && (
                 <div className="space-y-3">
                     {sets.map((set, index) => (
                         <div
-                            key={set.id || `new-${index}`}
+                            key={set.id || set.tempId || `new-${index}`}
                             className="border border-neutral-200 rounded-xl overflow-hidden bg-white"
                         >
                             <div
@@ -117,12 +161,11 @@ export default function SetsEditor({
                                         <p className="font-medium">
                                             {set.name || `Set ${index + 1}`}
                                         </p>
-                                        {set.price > 0 && (
-                                            <p className="text-sm text-neutral-500">
-                                                {INR.format(set.price)}
-                                                {pricingType === "HOURLY" ? "/hr" : ""}
-                                            </p>
-                                        )}
+                                        {/* Show price summary if not uniform or just for info */}
+                                        <p className="text-sm text-neutral-500">
+                                            {INR.format(set.price || 0)}
+                                            {pricingType === "HOURLY" ? "/hr" : ""}
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -175,34 +218,28 @@ export default function SetsEditor({
                                         />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">
-                                            {priceLabel} (₹)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={set.price || ""}
-                                            onChange={(e) =>
-                                                updateSet(index, {
-                                                    price: Math.max(
-                                                        0,
-                                                        parseInt(e.target.value || "0", 10)
-                                                    ),
-                                                })
-                                            }
-                                            disabled={disabled}
-                                            min={0}
-                                            className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10 disabled:opacity-50"
-                                            placeholder="0"
-                                        />
-                                        <p className="text-xs text-neutral-500 mt-1">
-                                            {index === 0
-                                                ? "The lowest-priced set is included in the base price"
-                                                : pricingType === "HOURLY"
-                                                    ? "This amount will be charged per hour for additional sets"
-                                                    : "This is a flat add-on price for additional sets"}
-                                        </p>
-                                    </div>
+                                    {/* Only show individual price input if NOT uniform pricing */}
+                                    {!isPricingUniform && (
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">
+                                                {priceLabel} (₹)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={set.price === null ? "" : set.price}
+                                                onChange={(e) => {
+                                                    const val = e.target.value === "" ? null : parseInt(e.target.value, 10);
+                                                    updateSet(index, {
+                                                        price: val,
+                                                    });
+                                                }}
+                                                disabled={disabled}
+                                                min={0}
+                                                className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10 disabled:opacity-50"
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                    )}
 
                                     <div>
                                         <label className="block text-sm font-medium mb-2">
@@ -235,14 +272,13 @@ export default function SetsEditor({
                                             <ImageUpload
                                                 uid={`set-upload-${index}`}
                                                 onChange={(newUrls) => {
-                                                    if (newUrls.length > set.images.length) {
-                                                        const addedImages = newUrls.slice(set.images.length);
-                                                        updateSet(index, { images: [...set.images, ...addedImages] });
-                                                    } else {
-                                                        updateSet(index, { images: newUrls });
-                                                    }
+                                                    // ImageUpload with deferUpload returns all URLs (existing + new previews)
+                                                    // We need to update the set images
+                                                    updateSet(index, { images: newUrls });
                                                 }}
                                                 values={set.images}
+                                                deferUpload={true}
+                                                onFilesChange={handleSetImageFiles}
                                             />
                                         )}
                                     </div>

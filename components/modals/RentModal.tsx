@@ -76,6 +76,37 @@ export default function RentModal() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [additionalSetPricingType, setAdditionalSetPricingType] = useState<AdditionalSetPricingType | null>(null);
   const [sets, setSets] = useState<SetEditorItem[]>([]);
+  const [setImagesFiles, setSetImagesFiles] = useState<File[]>([]);
+  const [setsHaveSamePrice, setSetsHaveSamePrice] = useState<boolean | null>(null);
+  const [unifiedSetPrice, setUnifiedSetPrice] = useState<number | null>(null);
+
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top when step changes
+  useEffect(() => {
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = 0;
+    }
+  }, [step]);
+
+  // Sync sets when switching to uniform pricing
+  useEffect(() => {
+    if (setsHaveSamePrice && sets.length > 0) {
+      // If we switch to same price, use the first set's price as the default uniform price if not set
+      const newPrice = unifiedSetPrice !== null ? unifiedSetPrice : (sets[0].price || 0);
+      if (unifiedSetPrice !== newPrice) {
+        setUnifiedSetPrice(newPrice);
+      }
+
+      // Update all sets to have this price
+      const updatedSets = sets.map(s => ({ ...s, price: newPrice }));
+      // Only update if there's a change to avoid infinite loops
+      const hasChanges = updatedSets.some((s, i) => s.price !== sets[i].price);
+      if (hasChanges) {
+        setSets(updatedSets);
+      }
+    }
+  }, [setsHaveSamePrice, unifiedSetPrice, sets]);
 
 
   const hasSets = listingDetails?.hasSets ?? false;
@@ -208,6 +239,9 @@ export default function RentModal() {
           if (!sets[i].name || sets[i].name.trim().length === 0) {
             return toast.error(`Please enter a name for Set ${i + 1}`);
           }
+          if (sets[i].price === null) {
+            return toast.error(`Please enter a price for Set ${i + 1}`);
+          }
         }
 
       }
@@ -295,6 +329,9 @@ export default function RentModal() {
     setIsLoading(false);
     setAdditionalSetPricingType(null);
     setSets([]);
+    setSetImagesFiles([]);
+    setSetsHaveSamePrice(null);
+    setUnifiedSetPrice(null);
 
     reset();
     setStep(STEPS.CATEGORY);
@@ -314,20 +351,22 @@ export default function RentModal() {
     setImageFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleTermsAndConditions = (accept: boolean) => setTerms(accept);
-  const handleSignature = (sig: SignatureMeta) => setSignature(sig);
-  const handleVerificationChange = (v: VerificationPayload) => setVerifications(v);
-  const handleImageFilesChange = (files: File[]) =>
-    setImageFiles((prev) => [...prev, ...files]);
-  const handleAmenitiesChange = (v: typeof selectedAmenities) =>
+  const handleTermsAndConditions = useCallback((accept: boolean) => setTerms(accept), []);
+  const handleSignature = useCallback((sig: SignatureMeta) => setSignature(sig), []);
+  const handleVerificationChange = useCallback((v: VerificationPayload) => setVerifications(v), []);
+  const handleImageFilesChange = useCallback((files: File[]) =>
+    setImageFiles((prev) => [...prev, ...files]), []);
+  const handleSetImageFilesChange = useCallback((files: File[]) =>
+    setSetImagesFiles((prev) => [...prev, ...files]), []);
+  const handleAmenitiesChange = useCallback((v: typeof selectedAmenities) =>
     setSelectedAmenities({
       predefined: Object.fromEntries(
         Object.entries(v.predefined || {}).map(([k, val]) => [String(k), Boolean(val)])
       ),
       custom: Array.isArray(v.custom) ? v.custom : [],
-    });
-  const handleAddonChange = (v: Addon[]) => setSelectedAddons(v);
-  const handleDetailsChange = (v: ListingDetails) => setListingDetails(v);
+    }), []);
+  const handleAddonChange = useCallback((v: Addon[]) => setSelectedAddons(v), []);
+  const handleDetailsChange = useCallback((v: ListingDetails) => setListingDetails(v), []);
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) return onNext();
@@ -432,7 +471,7 @@ export default function RentModal() {
       sets: hasSets ? sets.map((s, i) => ({
         name: s.name.trim(),
         description: s.description?.trim() || null,
-        images: s.images,
+        images: s.images, // These are just the preview URLs for now, will be replaced by cloud URLs if they are blobs
         price: s.price,
         position: i,
       })) : [],
@@ -440,6 +479,93 @@ export default function RentModal() {
 
     setIsLoading(true);
     try {
+      // Upload Set Images if any
+      const finalSets = [...payload.sets];
+      if (hasSets && setImagesFiles.length > 0) {
+        if (!cloudName) {
+          throw new Error("Image upload service is not configured");
+        }
+
+        // We need to map files to specific sets. 
+        // Since we just have a flat list of files and sets have preview URLs, 
+        // we need to upload all files and then replace the blob URLs in sets with the secure URLs.
+        // However, matching them back is tricky if we don't know which file belongs to which set.
+        // A simpler approach for now: Upload all files, and then we need to know which URL corresponds to which blob.
+        // But wait, ImageUpload component returns blob URLs immediately.
+        // We can iterate through sets, find images that are blob URLs, and find the corresponding file?
+        // Actually, the standard ImageUpload pattern we implemented just appends files to a list.
+        // We need a way to link the file to the specific set image.
+
+        // BETTER APPROACH:
+        // Iterate through all sets. For each image in a set:
+        // 1. If it's a http/https URL, keep it.
+        // 2. If it's a blob URL, find the corresponding File object in setImagesFiles?
+        //    No, setImagesFiles is just a flat list. We can't easily match by name because names might not be unique or available in blob URL.
+
+        // Let's look at how main images are handled. They use `imageFiles` state.
+        // But for sets, we have multiple sets.
+
+        // We can upload ALL files in `setImagesFiles` first.
+        // But we need to know which file corresponds to which blob URL to replace it correctly in the set.
+
+        // Alternative: When uploading, we can create a map of blobURL -> secureURL.
+        // But we need the blob URL for the file. `URL.createObjectURL(file)` creates a new one each time.
+
+        // FIX: We should probably upload images immediately in SetsEditor? 
+        // User requested "just like how we have for the images step right where we show the image instantly but actually upload it later".
+
+        // To do this correctly:
+        // We need to store the File object AND its generated blob URL together.
+        // But `ImageUpload` just calls `onChange` with URLs and `onFilesChange` with Files.
+
+        // Let's try to match by index? No, images can be removed.
+
+        // Strategy:
+        // 1. Upload all files in `setImagesFiles`.
+        // 2. But wait, we don't know where to put the resulting URL.
+
+        // REVISED STRATEGY for Set Images:
+        // We will upload files one by one.
+        // We need to find which set has the blob URL corresponding to the file.
+        // But we can't easily get blob URL from File object again.
+
+        // Let's rely on the fact that we can iterate through sets, find blob URLs.
+        // For each blob URL, we need the File.
+        // We can fetch the blob from the blob URL to get the data, then upload that!
+        // `fetch(blobUrl).then(r => r.blob())`
+
+        for (let i = 0; i < finalSets.length; i++) {
+          const set = finalSets[i];
+          const newImages = [];
+
+          for (const img of set.images) {
+            if (img.startsWith('blob:')) {
+              // It's a local preview. Fetch the blob data.
+              const blobRes = await fetch(img);
+              const blob = await blobRes.blob();
+              const file = new File([blob], "image.jpg", { type: blob.type }); // Name doesn't matter much for Cloudinary
+
+              const formData = new FormData();
+              formData.append("file", file);
+              formData.append("upload_preset", "phxjukr6");
+
+              const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+                method: "POST",
+                body: formData,
+              });
+
+              if (!response.ok) throw new Error("Failed to upload set image");
+              const data = await response.json();
+              newImages.push(data.secure_url);
+            } else {
+              newImages.push(img);
+            }
+          }
+          finalSets[i].images = newImages;
+        }
+      }
+
+      payload.sets = finalSets;
       const createRes = await axios.post("/api/listings", payload);
       const listingId = createRes.data?.data?.id || createRes.data?.id;
 
@@ -759,22 +885,58 @@ export default function RentModal() {
             </div>
           </div>
 
+          {/* Pricing Consistency Question */}
           <div>
-            <label className="block text-sm font-medium mb-2">Your Sets</label>
-            <SetsEditor
-              sets={sets}
-              onChange={setSets}
-              pricingType={additionalSetPricingType}
-              disabled={isLoading}
-            />
+            <label className="block text-sm font-medium mb-2">Will all sets have the same price?</label>
+            <div className="flex gap-4">
+              <label
+                className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
+                  ? "border-black bg-neutral-50 ring-1 ring-black"
+                  : "border-neutral-200 hover:border-neutral-300"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  name="priceConsistency"
+                  checked={setsHaveSamePrice === true}
+                  onChange={() => setSetsHaveSamePrice(true)}
+                  className="hidden"
+                />
+                <div className="font-medium text-center">Yes, same price</div>
+              </label>
+              <label
+                className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === false
+                  ? "border-black bg-neutral-50 ring-1 ring-black"
+                  : "border-neutral-200 hover:border-neutral-300"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  name="priceConsistency"
+                  checked={setsHaveSamePrice === false}
+                  onChange={() => setSetsHaveSamePrice(false)}
+                  className="hidden"
+                />
+                <div className="font-medium text-center">No, different prices</div>
+              </label>
+            </div>
           </div>
 
-
-
-          <p className="text-sm text-neutral-500">
-            💡 The lowest-priced set is automatically included in the base price. Additional sets are charged based on
-            the pricing type you selected.
-          </p>
+          {setsHaveSamePrice !== null && (
+            <div>
+              <label className="block text-sm font-medium mb-2">Your Sets</label>
+              <SetsEditor
+                sets={sets}
+                onChange={setSets}
+                pricingType={additionalSetPricingType}
+                disabled={isLoading}
+                onImageFilesChange={handleSetImageFilesChange}
+                isPricingUniform={setsHaveSamePrice}
+                uniformPrice={unifiedSetPrice}
+                onUniformPriceChange={setUnifiedSetPrice}
+              />
+            </div>
+          )}
         </div>
       );
       break;
@@ -816,7 +978,7 @@ export default function RentModal() {
                 name: s.name,
                 description: s.description,
                 images: s.images,
-                price: s.price,
+                price: s.price || 0,
                 position: i,
                 listingId: "",
                 createdAt: "",
@@ -903,6 +1065,7 @@ export default function RentModal() {
         }
         verificationBtn={step === STEPS.TERMS}
         fixedHeight={step === STEPS.ADDONS}
+        bodyRef={bodyRef}
         termsAndConditionsAccept={terms}
       />
 
