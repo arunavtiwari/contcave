@@ -115,7 +115,7 @@ export default function SetSelector({
                             onClick={() => !isDisabled && handleCardClick(set)}
                             className={`
                                 relative shrink-0 w-40 aspect-4/3 rounded-xl overflow-hidden cursor-pointer group transition-all
-                                ${isSelected ? "ring-2 ring-black ring-offset-2" : "hover:shadow-lg"}
+                                ${isSelected ? "ring-2 ring-black ring-offset-2" : ""}
                                 ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
                             `}
                         >
