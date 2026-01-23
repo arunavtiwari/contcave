@@ -1,5 +1,5 @@
 import { Amenities } from '@prisma/client';
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import Checkbox from './Checkbox';
 
@@ -86,17 +86,23 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
         ))}
       </div>
 
-      <div className="flex gap-2 mt-8">
-        <input
-          type="text"
-          value={otherAmenity}
-          onChange={(e) => setOtherAmenity(e.target.value)}
-          placeholder="Other amenity"
-          className="border-b-2 border-gray-300 rounded-2xl px-4 py-2 w-full"
-        />
-        <button onClick={handleAddAmenity} className="bg-black hover:opacity-90 text-white px-8 py-2 rounded-2xl">
-          ADD
-        </button>
+      <div className="mt-8">
+        <label htmlFor="custom-amenity" className="block text-sm font-medium text-gray-700 mb-1">
+          Custom Amenity
+        </label>
+        <div className="flex gap-2">
+          <input
+            id="custom-amenity"
+            type="text"
+            value={otherAmenity}
+            onChange={(e) => setOtherAmenity(e.target.value)}
+            placeholder="Enter custom amenity"
+            className="border-b-2 border-gray-300 rounded-2xl px-4 py-2 w-full"
+          />
+          <button onClick={handleAddAmenity} className="bg-black hover:opacity-90 text-white px-8 py-2 rounded-2xl">
+            ADD
+          </button>
+        </div>
       </div>
 
       {amenitiesList.length > 0 && (

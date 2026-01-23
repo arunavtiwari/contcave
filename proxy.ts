@@ -1,4 +1,4 @@
-import { type NextRequest,NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import NextAuth from 'next-auth';
 
 import { createErrorResponse, handleRouteError } from '@/lib/api-utils';
@@ -16,9 +16,7 @@ const securityHeaders = {
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
     'Content-Security-Policy':
-        process.env.NODE_ENV === 'production'
-            ? "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.cashfree.com https://graph.facebook.com https://www.googleapis.com wss:; frame-src 'self' https://www.google.com;"
-            : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https: blob:; connect-src 'self' http://localhost:* https: wss:;",
+        "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: https://maps.gstatic.com https://maps.googleapis.com; connect-src 'self' https://api.cashfree.com https://graph.facebook.com https://www.googleapis.com https://maps.googleapis.com https://api.cloudinary.com wss:; frame-src 'self' https://www.google.com;"
 } as const;
 
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -30,20 +28,12 @@ const RATE_LIMIT = {
 } as const;
 
 function getClientIP(request: NextRequest): string {
-    const forwarded = request.headers.get('x-forwarded-for');
-    const realIP = request.headers.get('x-real-ip');
-    const cfConnectingIP = request.headers.get('cf-connecting-ip');
-
-    if (forwarded) {
-        return forwarded.split(',')[0].trim();
-    }
-    if (realIP) {
-        return realIP;
-    }
-    if (cfConnectingIP) {
-        return cfConnectingIP;
-    }
-    return 'unknown';
+    return (
+        request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+        request.headers.get('x-real-ip') ||
+        request.headers.get('cf-connecting-ip') ||
+        'unknown'
+    );
 }
 
 function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetTime: number } {
@@ -88,54 +78,31 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number; rese
 
 function logSecurityEvent(
     event: 'auth_success' | 'auth_failure' | 'rate_limit' | 'error',
-    context: {
-        path: string;
-        method: string;
-        ip: string;
-        user?: string;
-        userAgent?: string;
-        error?: string;
-    }
+    context: Record<string, unknown>
 ): void {
-    const timestamp = new Date().toISOString();
-    const logData = {
-        timestamp,
-        event,
-        ...context,
-    };
-
     if (process.env.NODE_ENV === 'production') {
-        console.warn(`[Security Event] ${event}`, JSON.stringify(logData));
-    } else {
-        console.warn(`[Security Event] ${event}`, logData);
+        const timestamp = new Date().toISOString();
+        console.warn(`[Security Event] ${event}`, JSON.stringify({ timestamp, event, ...context }));
     }
 }
+
+const publicPaths = [
+    '/api/auth',
+    '/api/register',
+    '/api/generate_otp',
+    '/api/verify_email',
+    '/api/payments/cashfree/webhook',
+    '/',
+    '/about',
+    '/blog',
+    '/privacy-policy',
+    '/terms-and-conditions',
+    '/forgot-password',
+    '/reset-password',
+];
 
 function isPublicPath(pathname: string): boolean {
-    const publicPaths = [
-        '/api/auth',
-        '/api/register',
-        '/api/generate_otp',
-        '/api/verify_email',
-        '/api/payments/cashfree/webhook',
-        '/',
-        '/about',
-        '/blog',
-        '/privacy-policy',
-        '/terms-and-conditions',
-        '/forgot-password',
-        '/reset-password',
-    ];
-
     return publicPaths.some(path => pathname.startsWith(path));
-}
-
-function isStaticAsset(pathname: string): boolean {
-    return (
-        pathname.startsWith('/_next/') ||
-        pathname.startsWith('/static/') ||
-        pathname.match(/\.(jpg|jpeg|gif|png|svg|ico|webp|woff|woff2|ttf|eot|css|js)$/i) !== null
-    );
 }
 
 export async function proxy(request: NextRequest) {
@@ -146,64 +113,31 @@ export async function proxy(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
     try {
-        if (isStaticAsset(pathname)) {
-            return NextResponse.next();
-        }
-
         const rateLimit = checkRateLimit(ip);
         if (!rateLimit.allowed) {
-            logSecurityEvent('rate_limit', {
-                path: pathname,
-                method,
-                ip,
-                userAgent,
-            });
+            logSecurityEvent('rate_limit', { path: pathname, method, ip, userAgent });
 
             const rateLimitResponse = createErrorResponse(
                 'Rate limit exceeded. Please try again later.',
                 429
             );
-            rateLimitResponse.headers.set(
-                'Retry-After',
-                String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000))
-            );
+            rateLimitResponse.headers.set('Retry-After', String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)));
             rateLimitResponse.headers.set('X-RateLimit-Limit', String(RATE_LIMIT.maxRequests));
             rateLimitResponse.headers.set('X-RateLimit-Remaining', '0');
-            rateLimitResponse.headers.set(
-                'X-RateLimit-Reset',
-                String(Math.ceil(rateLimit.resetTime / 1000))
-            );
+            rateLimitResponse.headers.set('X-RateLimit-Reset', String(Math.ceil(rateLimit.resetTime / 1000)));
             return rateLimitResponse;
         }
 
         if (!isPublicPath(pathname)) {
             try {
-                const authResult = await auth(
-                    request as unknown as Parameters<typeof auth>[0]
-                );
+                const authResult = await (auth as unknown as (req: NextRequest) => Promise<Response | void>)(request);
 
-                if (authResult && authResult instanceof NextResponse) {
-                    if (authResult.status === 401 || authResult.status === 403) {
-                        logSecurityEvent('auth_failure', {
-                            path: pathname,
-                            method,
-                            ip,
-                            userAgent,
-                        });
-                    }
-                    return authResult;
-                }
-
-                if (authResult && typeof authResult === 'object' && 'user' in authResult) {
-                    const session = authResult as { user?: { email?: string; id?: string } };
-                    if (session.user) {
-                        logSecurityEvent('auth_success', {
-                            path: pathname,
-                            method,
-                            ip,
-                            user: session.user.email || session.user.id,
-                            userAgent,
-                        });
+                if (authResult instanceof Response) {
+                    if (authResult.status !== 200) {
+                        if (authResult.status === 401 || authResult.status === 403) {
+                            logSecurityEvent('auth_failure', { path: pathname, method, ip, userAgent });
+                        }
+                        return authResult;
                     }
                 }
             } catch (authError) {
@@ -218,7 +152,6 @@ export async function proxy(request: NextRequest) {
                 if (process.env.NODE_ENV === 'production') {
                     return createErrorResponse('An error occurred during authentication', 500);
                 }
-
                 throw authError;
             }
         }
@@ -240,14 +173,8 @@ export async function proxy(request: NextRequest) {
         if (origin && process.env.ALLOWED_ORIGINS?.split(',').includes(origin)) {
             response.headers.set('Access-Control-Allow-Origin', origin);
             response.headers.set('Access-Control-Allow-Credentials', 'true');
-            response.headers.set(
-                'Access-Control-Allow-Methods',
-                'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-            );
-            response.headers.set(
-                'Access-Control-Allow-Headers',
-                'Content-Type, Authorization, X-Requested-With'
-            );
+            response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+            response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
         }
 
         return response;

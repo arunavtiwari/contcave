@@ -11,6 +11,8 @@ export async function sendReservationCustomerEmail(input: {
     addons: string;
     studioLocation: string;
     additionalInfo?: string;
+    setNames?: string;
+    packageTitle?: string | null;
     templateId?: string;
     attachments?: AttachmentInput[];
 }) {
@@ -28,6 +30,8 @@ export async function sendReservationCustomerEmail(input: {
             addons: input.addons,
             studio_location: input.studioLocation,
             additional_info: input.additionalInfo || "",
+            set_names: input.setNames || "",
+            package_title: input.packageTitle || "",
         },
         attachments: input.attachments,
     });

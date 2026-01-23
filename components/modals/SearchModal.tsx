@@ -4,7 +4,7 @@ import { formatISO } from "date-fns";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import qs from "query-string";
-import { Suspense,useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 
 import Heading from "@/components/Heading";
 import Calendar from "@/components/inputs/Calendar";
@@ -27,6 +27,7 @@ function SearchModalContent({ }: Props) {
   const [location, setLocation] = useState<CitySelectValue>();
   const [step, setStep] = useState(STEPS.LOCATION);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [hasSets, setHasSets] = useState(false);
 
 
   const Map = useMemo(
@@ -57,6 +58,7 @@ function SearchModalContent({ }: Props) {
       ...currentQuery,
       locationValue: location?.value,
       selectedDate: selectedDate ? formatISO(selectedDate) : undefined,
+      hasSets: hasSets ? "true" : undefined,
     };
 
     const url = qs.stringifyUrl(
@@ -71,7 +73,7 @@ function SearchModalContent({ }: Props) {
     searchModel.onClose();
 
     router.push(url);
-  }, [step, searchModel, location, router, selectedDate, params]);
+  }, [step, searchModel, location, router, selectedDate, params, hasSets]);
 
   const actionLabel = useMemo(() => {
     if (step === STEPS.DATE) {
@@ -99,6 +101,18 @@ function SearchModalContent({ }: Props) {
         value={location}
         onChange={(value) => setLocation(value as CitySelectValue)}
       />
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-col">
+          <div className="font-medium">Multi-set listings</div>
+          <div className="font-light text-neutral-500">Only show studios with multiple sets</div>
+        </div>
+        <input
+          type="checkbox"
+          checked={hasSets}
+          onChange={(e) => setHasSets(e.target.checked)}
+          className="w-5 h-5 cursor-pointer"
+        />
+      </div>
       <hr />
       <Map center={location?.latlng} />
     </div>

@@ -1,11 +1,18 @@
+import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { checkSetConflicts } from "@/lib/availability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import prisma from "@/lib/prismadb";
 import { processPaymentSchema } from "@/lib/schemas/cashfree";
+
+
+type ListingWithSets = Prisma.ListingGetPayload<{
+    include: { sets: true; packages: true };
+}>;
 
 function normalizePhone(phone?: string | null) {
     if (!phone) return null;
@@ -57,6 +64,47 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("A valid 10-digit phone number is required (e.g., 9876543210).", 400);
         }
 
+        // 1. Fetch Listing with Sets and Packages
+        const listing = await prisma.listing.findUnique({
+            where: { id: data.listingId },
+            include: {
+                sets: true,
+                packages: true,
+            }
+        });
+
+        if (!listing) {
+            return createErrorResponse("Listing not found", 404);
+        }
+
+        // 2. Check Listing Status
+        if (listing.status !== "VERIFIED" || !listing.active) {
+            return createErrorResponse("This listing is currently not accepting bookings", 400);
+        }
+
+        // 3. Pricing Consistency Verification
+        const selectedSetIds = data.setIds || [];
+        const selectedPackage = data.setPackageId
+            ? (listing as ListingWithSets).packages.find((p) => p.id === data.setPackageId && p.isActive)
+            : null;
+
+        if (data.setPackageId && !selectedPackage) {
+            return createErrorResponse("Selected package is no longer available", 400);
+        }
+
+        // 4. Race Condition Check: Re-verify Availability
+        const conflict = await checkSetConflicts({
+            listingId: data.listingId,
+            date: new Date(data.startDate),
+            startTime: data.startTime,
+            endTime: data.endTime,
+            setIds: selectedSetIds,
+        });
+
+        if (conflict.hasConflict) {
+            return createErrorResponse(conflict.conflictDetails || "One or more sets are no longer available for this time slot", 400);
+        }
+
         const tId = "tid_" + randomUUID().replace(/-/g, "").slice(0, 20);
         const amount = Math.round(Number(data.totalPrice));
 
@@ -94,6 +142,9 @@ export async function POST(req: NextRequest) {
                     endTime: data.endTime,
                     selectedAddons: cleanedAddons,
                     instantBooking: !!data.instantBooking,
+                    setIds: Array.isArray(data.setIds) ? data.setIds : [],
+                    setPackageId: data.setPackageId || null,
+                    pricingSnapshot: data.pricingSnapshot || null,
                 },
             },
         });

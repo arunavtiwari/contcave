@@ -10,6 +10,7 @@ type Props = {
   circle?: boolean;
   deferUpload?: boolean;
   onFilesChange?: (files: File[]) => void;
+  uid?: string;
 };
 
 function ImageUpload({
@@ -18,6 +19,7 @@ function ImageUpload({
   circle = false,
   deferUpload = false,
   onFilesChange,
+  uid = "file-upload",
 }: Props) {
   const [uploading, setUploading] = useState(false);
 
@@ -97,7 +99,7 @@ function ImageUpload({
 
   return (
     <label
-      htmlFor="file-upload"
+      htmlFor={uid}
       className={`relative cursor-pointer hover:opacity-85 transition border-dashed flex flex-col justify-center items-center text-neutral-600 ${circle ? "rounded-full" : "rounded-xl"
         } ${circle ? "w-full h-full" : "w-32 h-32 p-2 border-2 border-neutral-300"}`}
     >
@@ -126,7 +128,7 @@ function ImageUpload({
       )}
 
       <input
-        id="file-upload"
+        id={uid}
         type="file"
         multiple
         onChange={handleUpload}

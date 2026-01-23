@@ -1,9 +1,19 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
+
 import prisma from "@/lib/prismadb";
 import { Addon } from "@/types/addon";
-import { ActualLocation,FullListing } from "@/types/listing";
-import { Package } from "@/types/package";
+import { ActualLocation, FullListing } from "@/types/listing";
+
+type ListingWithRelations = Prisma.ListingGetPayload<{
+  include: {
+    user: true;
+    packages: true;
+    sets: true;
+    blocks: true;
+  };
+}>;
 
 interface IParams {
   listingId?: string;
@@ -28,7 +38,13 @@ export default async function getListingById(params: IParams): Promise<FullListi
       },
       include: {
         user: true,
-        packages: true
+        packages: true,
+        sets: {
+          orderBy: {
+            position: "asc",
+          },
+        },
+        blocks: true,
       },
     });
 
@@ -36,30 +52,45 @@ export default async function getListingById(params: IParams): Promise<FullListi
       return null;
     }
 
+    const l = listing as ListingWithRelations;
+
     return {
-      ...listing,
-      createdAt: listing.createdAt.toISOString(),
-      amenities: (listing.amenities as string[]) || [],
-      addons: castJson<Addon[]>(listing.addons, []),
-      packages: castJson<Package[]>(listing.packages, []),
-      operationalDays: castJson<{ start?: string; end?: string } | undefined>(listing.operationalDays, undefined),
-      operationalHours: castJson<{ start?: string; end?: string } | undefined>(listing.operationalHours, undefined),
-      actualLocation: castJson<ActualLocation | null>(listing.actualLocation, null),
-      carpetArea: listing.carpetArea ? Number(listing.carpetArea) : undefined,
-      maximumPax: listing.maximumPax ? Number(listing.maximumPax) : undefined,
-      minimumBookingHours: listing.minimumBookingHours ? Number(listing.minimumBookingHours) : undefined,
-      avgReviewRating: listing.avgReviewRating ?? undefined,
-      instantBooking: listing.instantBooking ?? undefined,
+      ...l,
+      createdAt: l.createdAt.toISOString(),
+      amenities: (l.amenities as string[]) || [],
+      addons: castJson<Addon[]>(l.addons, []),
+      packages: l.packages?.map((pkg) => ({
+        ...pkg,
+        createdAt: pkg.createdAt.toISOString(),
+      })) || [],
+      operationalDays: castJson<{ start?: string; end?: string } | undefined>(l.operationalDays, undefined),
+      operationalHours: castJson<{ start?: string; end?: string } | undefined>(l.operationalHours, undefined),
+      actualLocation: castJson<ActualLocation | null>(l.actualLocation, null),
+      sets: l.sets?.map((set) => ({
+        ...set,
+        createdAt: set.createdAt.toISOString(),
+        updatedAt: set.updatedAt.toISOString(),
+      })) || [],
+      blocks: l.blocks?.map((block) => ({
+        ...block,
+        date: block.date.toISOString(),
+        createdAt: block.createdAt.toISOString(),
+      })) || [],
+      carpetArea: l.carpetArea ? Number(l.carpetArea) : undefined,
+      maximumPax: l.maximumPax ? Number(l.maximumPax) : undefined,
+      minimumBookingHours: l.minimumBookingHours ? Number(l.minimumBookingHours) : undefined,
+      avgReviewRating: l.avgReviewRating ?? undefined,
+      instantBooking: l.instantBooking ?? undefined,
       user: {
-        ...listing.user,
-        createdAt: listing.user.createdAt.toISOString(),
-        updatedAt: listing.user.updatedAt.toISOString(),
-        emailVerified: listing.user.emailVerified?.toISOString() || null,
-        verified_at: listing.user.verified_at
-          ? listing.user.verified_at.toISOString()
+        ...l.user,
+        createdAt: l.user.createdAt.toISOString(),
+        updatedAt: l.user.updatedAt.toISOString(),
+        emailVerified: l.user.emailVerified?.toISOString() || null,
+        verified_at: l.user.verified_at
+          ? l.user.verified_at.toISOString()
           : null,
-        markedForDeletionAt: listing.user.markedForDeletionAt
-          ? listing.user.markedForDeletionAt.toISOString()
+        markedForDeletionAt: l.user.markedForDeletionAt
+          ? l.user.markedForDeletionAt.toISOString()
           : null,
       },
     };

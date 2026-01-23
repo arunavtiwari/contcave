@@ -9,6 +9,7 @@ export interface IListingsParams {
   locationValue?: string;
   category?: string;
   type?: string;
+  hasSets?: string;
 }
 
 export default async function getListings(params: IListingsParams) {
@@ -20,6 +21,7 @@ export default async function getListings(params: IListingsParams) {
       endDate,
       category,
       type,
+      hasSets,
     } = params;
 
     const query: {
@@ -28,6 +30,7 @@ export default async function getListings(params: IListingsParams) {
       category?: string;
       locationValue?: string;
       type?: { has: string };
+      hasSets?: boolean;
       NOT?: {
         reservations: {
           some: {
@@ -61,6 +64,9 @@ export default async function getListings(params: IListingsParams) {
     }
     if (type) {
       query.type = { has: type };
+    }
+    if (hasSets === "true") {
+      query.hasSets = true;
     }
 
 

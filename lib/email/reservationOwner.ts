@@ -10,6 +10,8 @@ export async function sendReservationOwnerEmail(input: {
     endTime: string;
     totalPrice: number;
     customerName: string;
+    setNames?: string;
+    packageTitle?: string | null;
     templateId?: string;
     bookingId?: string;
     addons?: string;
@@ -32,6 +34,8 @@ export async function sendReservationOwnerEmail(input: {
             formattedEndTime: input.formattedEndTime || input.endTime,
             totalPrice: Math.round(input.totalPrice),
             selectedAddonsList: input.addons || "None",
+            set_names: input.setNames || "",
+            package_title: input.packageTitle || "",
         },
         attachments: input.attachments,
     });

@@ -1,18 +1,27 @@
 "use client";
 
-import { Plus,Trash2 } from "lucide-react";
-import { useCallback,useEffect, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import Select, { Theme } from "react-select";
 
 import { Package } from "@/types/package";
+import { ListingSet } from "@/types/set";
 
 import Input from "./Input";
+
+const selectTheme = (theme: Theme): Theme => ({
+  ...theme,
+  borderRadius: 10,
+  colors: { ...theme.colors, primary: "black", primary25: "#F3F4F6", primary50: "#E5E7EB" },
+});
 
 interface PackagesFormProps {
   value: Package[];
   onChange: (packages: Package[]) => void;
+  availableSets?: ListingSet[];
 }
 
-export default function PackagesForm({ value, onChange }: PackagesFormProps) {
+export default function PackagesForm({ value, onChange, availableSets = [] }: PackagesFormProps) {
   const [packages, setPackages] = useState<Package[]>(value || []);
 
   // Sync external changes
@@ -31,11 +40,23 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
   const addPackage = () => {
     updatePackages([
       ...packages,
-      { id: undefined, title: "", originalPrice: 0, offeredPrice: 0, features: [], durationHours: 1 },
+      {
+        id: undefined,
+        title: "",
+        originalPrice: 0,
+        offeredPrice: 0,
+        features: [],
+        durationHours: 1,
+        requiredSetCount: null,
+
+        fixedAddOn: null,
+        eligibleSetIds: [],
+        isActive: true
+      },
     ]);
   };
 
-  const updatePackage = (index: number, key: keyof Package, val: string | number | string[]) => {
+  const updatePackage = (index: number, key: keyof Package, val: string | number | string[] | boolean | null) => {
     const updated = packages.map((pkg, i) => (i === index ? { ...pkg, [key]: val } : pkg));
     updatePackages(updated);
   };
@@ -63,30 +84,43 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
           </button>
 
           {/* Package Title */}
-          <Input
-            id={`title-${idx}`}
-            label="Package Title"
-            value={pkg.title}
-            onChange={(e) => updatePackage(idx, "title", e.target.value)}
-            required
-            errors={{}}
-          />
+          <div className="w-full">
+            <label htmlFor={`title-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+              Package Title
+            </label>
+            <Input
+              id={`title-${idx}`}
+              label="Package Title"
+              value={pkg.title}
+              onChange={(e) => updatePackage(idx, "title", e.target.value)}
+              required
+              errors={{}}
+            />
+          </div>
 
           {/* Duration */}
-          <Input
-            id={`duration-${idx}`}
-            label="Duration (Hours)"
-            type="number"
-            value={pkg.durationHours}
-            onChange={(e) => updatePackage(idx, "durationHours", Number(e.target.value))}
-            required
-            errors={{}}
-          />
-          <p className="text-xs text-neutral-500">Minimum duration is 1 hour</p>
+          <div className="w-full">
+            <label htmlFor={`duration-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+              Duration (Hours)
+            </label>
+            <Input
+              id={`duration-${idx}`}
+              label="Duration (Hours)"
+              type="number"
+              value={pkg.durationHours}
+              onChange={(e) => updatePackage(idx, "durationHours", Number(e.target.value))}
+              required
+              errors={{}}
+            />
+            <p className="text-xs text-neutral-500 mt-1">Minimum duration is 1 hour</p>
+          </div>
 
           {/* Price inputs */}
           <div className="flex gap-4 flex-wrap">
             <div className="flex-1">
+              <label htmlFor={`original-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+                Original Price (₹)
+              </label>
               <Input
                 id={`original-${idx}`}
                 label="Original Price"
@@ -97,10 +131,13 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
                 required
                 errors={{}}
               />
-              <p className="text-xs text-neutral-500">Price before discount</p>
+              <p className="text-xs text-neutral-500 mt-1">Price before discount</p>
             </div>
 
             <div className="flex-1">
+              <label htmlFor={`offered-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+                Offered Price (₹)
+              </label>
               <Input
                 id={`offered-${idx}`}
                 label="Offered Price"
@@ -111,7 +148,7 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
                 required
                 errors={{}}
               />
-              <p className="text-xs text-neutral-500">Discounted price</p>
+              <p className="text-xs text-neutral-500 mt-1">Discounted price</p>
             </div>
           </div>
 
@@ -159,6 +196,99 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
             </div>
             <p className="text-xs text-neutral-500">Press Enter to add a feature</p>
           </div>
+
+          {/* Set Configuration */}
+          {availableSets.length > 0 && (
+            <div className="border-t pt-4 mt-2">
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  id={`has-sets-${idx}`}
+                  checked={pkg.requiredSetCount !== null && pkg.requiredSetCount !== undefined}
+                  onChange={(e) => {
+                    const updated = packages.map((p, i) =>
+                      i === idx
+                        ? {
+                          ...p,
+                          requiredSetCount: e.target.checked ? 1 : null,
+                          fixedAddOn: e.target.checked ? 0 : null,
+                          eligibleSetIds: [],
+                        }
+                        : p
+                    );
+                    updatePackages(updated);
+                  }}
+                  className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
+                />
+                <label htmlFor={`has-sets-${idx}`} className="text-sm font-medium cursor-pointer">
+                  Include Set Configuration
+                </label>
+              </div>
+
+              {pkg.requiredSetCount !== null && pkg.requiredSetCount !== undefined && (
+                <div className="flex flex-col gap-4 pl-6 border-l-2 border-neutral-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor={`req-sets-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+                        Number of Sets Included
+                      </label>
+                      <Input
+                        id={`req-sets-${idx}`}
+                        label="Number of Sets Included"
+                        type="number"
+                        value={pkg.requiredSetCount || 1}
+                        onChange={(e) => updatePackage(idx, "requiredSetCount", Math.max(1, parseInt(e.target.value) || 1))}
+                        required
+                        errors={{}}
+                      />
+                      <p className="text-xs text-neutral-500">How many sets are included in this package price</p>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor={`fixed-addon-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+                        Extra Set Price (₹)
+                      </label>
+                      <Input
+                        id={`fixed-addon-${idx}`}
+                        label="Extra Set Price (₹)"
+                        type="number"
+                        formatPrice
+                        value={pkg.fixedAddOn || 0}
+                        onChange={(e) => updatePackage(idx, "fixedAddOn", Math.max(0, parseInt(e.target.value) || 0))}
+                        required
+                        errors={{}}
+                      />
+                      <p className="text-xs text-neutral-500">Price per additional set beyond the included count</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-medium">Eligible Sets (Optional)</label>
+                    <Select
+                      isMulti
+                      options={availableSets.map(s => ({ value: s.id, label: s.name }))}
+                      value={availableSets
+                        .filter(s => pkg.eligibleSetIds?.includes(s.id))
+                        .map(s => ({ value: s.id, label: s.name }))}
+                      onChange={(selected) =>
+                        updatePackage(
+                          idx,
+                          "eligibleSetIds",
+                          selected ? selected.map(opt => opt.value) : []
+                        )
+                      }
+                      placeholder="All sets are eligible if none selected"
+                      theme={selectTheme}
+                      className="text-sm"
+                    />
+                    <p className="text-xs text-neutral-500">
+                      If you leave this empty, any set can be picked for this package.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ))}
 

@@ -70,6 +70,7 @@ const Hero = () => {
           alt="Hero background"
           fill
           className="object-cover"
+          priority
         />
       </div>
     </div>

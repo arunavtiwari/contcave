@@ -26,6 +26,11 @@ enum ListingStatus {
   REJECTED
 }
 
+enum AdditionalSetPricingType {
+  FIXED
+  HOURLY
+}
+
 /**
  * ---------------------------- Models -----------------------------
  */
@@ -95,52 +100,64 @@ model Account {
 }
 
 model Listing {
-  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
-  title               String
-  description         String
-  imageSrc            String[]
-  createdAt           DateTime      @default(now())
-  category            String
-  locationValue       String
-  actualLocation      Json?
-  userId              String        @db.ObjectId
-  price               Int
-  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reservations        Reservation[]
-  amenities           String[]
-  otherAmenities      String[]
-  addons              Json?
-  carpetArea          String?
-  operationalDays     Json?
-  operationalHours    Json?
-  minimumBookingHours String?
-  maximumPax          String?
-  instantBooking      Boolean?
-  type                String[]
-  verifications       Json?
-  terms               Boolean?
-  Addons              Addons[]
-  reviews             Review[]
-  DayStatus           DayStatus[]
-  avgReviewRating     Float?
-  Transaction         Transaction[]
-  packages            Package[]
-  status              ListingStatus @default(PENDING)
-  active              Boolean       @default(false)
+  id                       String                    @id @default(auto()) @map("_id") @db.ObjectId
+  title                    String
+  description              String
+  imageSrc                 String[]
+  createdAt                DateTime                  @default(now())
+  category                 String
+  locationValue            String
+  actualLocation           Json?
+  userId                   String                    @db.ObjectId
+  price                    Int
+  user                     User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reservations             Reservation[]
+  amenities                String[]
+  otherAmenities           String[]
+  addons                   Json?
+  carpetArea               String?
+  operationalDays          Json?
+  operationalHours         Json?
+  minimumBookingHours      String?
+  maximumPax               String?
+  instantBooking           Boolean?
+  type                     String[]
+  verifications            Json?
+  terms                    Boolean?
+  Addons                   Addons[]
+  reviews                  Review[]
+  DayStatus                DayStatus[]
+  avgReviewRating          Float?
+  Transaction              Transaction[]
+  packages                 Package[]
+  status                   ListingStatus             @default(PENDING)
+  active                   Boolean                   @default(false)
+  hasSets                  Boolean                   @default(false)
+  additionalSetPricingType AdditionalSetPricingType?
+
+  sets                     ListingSet[]
+
+  blocks                   ListingBlock[]
 
   @@index([userId])
 }
 
 model Package {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  title         String
-  originalPrice Int
-  offeredPrice  Int
-  features      String[]
-  durationHours Int
-  listingId     String   @db.ObjectId
-  listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  createdAt     DateTime @default(now())
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  description      String?
+  originalPrice    Int
+  offeredPrice     Int
+  features         String[]
+  durationHours    Int
+  requiredSetCount Int?
+
+  fixedAddOn       Int?
+  eligibleSetIds   String[] @db.ObjectId
+  isActive         Boolean  @default(true)
+  listingId        String   @db.ObjectId
+  listing          Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
 }
 
 model DayStatus {
@@ -179,10 +196,16 @@ model Reservation {
   billingDetail       BillingDetails? @relation(fields: [billingDetailId], references: [id])
   markedForDeletion   Boolean         @default(false)
   markedForDeletionAt DateTime?
+  setIds              String[]        @db.ObjectId
+  includedSetId       String?         @db.ObjectId
+  setPackageId        String?         @db.ObjectId
+  pricingSnapshot     Json?
+  totalPriceInt       Int?
 
   @@index([userId])
   @@index([listingId])
   @@index([billingDetailId])
+  @@index([startDate])
 }
 
 model Amenities {
@@ -347,3 +370,37 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
 }
+
+model ListingSet {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  listingId   String   @db.ObjectId
+  name        String
+  description String?
+  images      String[]
+  price       Int      @default(0)
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+}
+
+
+
+model ListingBlock {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  listingId String   @db.ObjectId
+  date      DateTime
+  startTime String
+  endTime   String
+  setIds    String[] @db.ObjectId
+  reason    String?
+  createdAt DateTime @default(now())
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, date])
+}
+

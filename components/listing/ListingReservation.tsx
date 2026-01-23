@@ -1,5 +1,6 @@
 "use client";
-import { Cashfree,load } from "@cashfreepayments/cashfree-js";
+
+import { Cashfree, load } from "@cashfreepayments/cashfree-js";
 import {
   useCallback,
   useEffect,
@@ -16,6 +17,11 @@ import BookingSummaryModal from "@/components/modals/BookingSummaryModal";
 import PhoneModal from "@/components/modals/PhoneModal";
 import useLoginModal from "@/hook/useLoginModal";
 import { normalizePhone } from "@/lib/phone";
+import {
+  calculateSetPricing,
+  validateSetSelection,
+} from "@/lib/pricing";
+import { istToDateOnly, labelToMinutes } from "@/lib/scheduling";
 import { Package } from "@/types/package";
 import {
   DayKey,
@@ -24,7 +30,22 @@ import {
   TimeHM,
   TimeLabel,
 } from "@/types/scheduling";
+import {
+  AdditionalSetPricingType,
+  ListingBlock,
+  ListingSet,
+} from "@/types/set";
 import { SafeUser } from "@/types/user";
+
+import PackageSelector from "./PackageSelector";
+import SetSelector from "./SetSelector";
+
+interface SafeReservation {
+  startDate: Date | string;
+  startTime: string;
+  endTime: string;
+  setIds?: string[];
+}
 
 const INR = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -63,8 +84,18 @@ type Props = {
   currentUserPhone?: string | null;
   isAuthenticated: boolean;
   minBookingHours?: number;
+  reservations?: SafeReservation[];
 
   selectedPackage?: Package | null;
+
+  // Multi-set props
+  hasSets?: boolean;
+  sets?: ListingSet[];
+  setPackages?: Package[];
+  additionalSetPricingType?: AdditionalSetPricingType | null;
+
+  onSetIdsChangeAction?: (setIds: string[]) => void;
+  blocks?: ListingBlock[];
 };
 
 let cashfreePromise: Promise<Cashfree | null> | null = null;
@@ -132,8 +163,17 @@ export default function ListingReservation({
   currentUserPhone = null,
   isAuthenticated,
   minBookingHours,
+  reservations = [],
 
   selectedPackage = null,
+
+  hasSets = false,
+  sets = [],
+  setPackages = [],
+  additionalSetPricingType = null,
+
+  onSetIdsChangeAction,
+  blocks = [],
 }: Props) {
   const loginModel = useLoginModal();
 
@@ -159,6 +199,14 @@ export default function ListingReservation({
     gstin: "",
     billingAddress: "",
   });
+
+  // Multi-set state
+  const [selectedSetIds, setSelectedSetIds] = useState<string[]>([]);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+
+  useEffect(() => {
+    onSetIdsChangeAction?.(selectedSetIds);
+  }, [selectedSetIds, onSetIdsChangeAction]);
 
   const mountedRef = useRef(true);
   const inflight = useRef<AbortController | null>(null);
@@ -208,10 +256,36 @@ export default function ListingReservation({
     [time]
   );
 
+  const currentSetPackage = useMemo(
+    () => setPackages.find((p) => p.id === selectedPackageId) || null,
+    [setPackages, selectedPackageId]
+  );
+
+  const pricingResult = useMemo(() => {
+    if (!hasSets) return null;
+    return calculateSetPricing({
+      baseHourlyRate: price,
+      durationMinutes: safeHours * 60,
+      selectedSetIds,
+      sets,
+      pricingType: additionalSetPricingType,
+      selectedPackage: currentSetPackage,
+    });
+  }, [
+    hasSets,
+    price,
+    safeHours,
+    selectedSetIds,
+    sets,
+    additionalSetPricingType,
+    currentSetPackage,
+  ]);
+
   const bookingFee = useMemo(() => {
     if (selectedPackage) return Number(selectedPackage.offeredPrice || 0);
+    if (hasSets && pricingResult) return pricingResult.subtotal;
     return price * safeHours;
-  }, [selectedPackage, price, safeHours]);
+  }, [selectedPackage, hasSets, pricingResult, price, safeHours]);
 
   const addonsSum = useMemo(
     () =>
@@ -245,9 +319,57 @@ export default function ListingReservation({
     [localTimes.start, localTimes.end]
   );
 
+  const setValidation = useMemo(() => {
+    if (!hasSets) return { valid: true };
+    return validateSetSelection(
+      selectedSetIds,
+      currentSetPackage
+    );
+  }, [hasSets, selectedSetIds, currentSetPackage]);
+
+  const availableSetIds = useMemo(() => {
+    if (!hasSets || !selectedDate || !localTimes.start || !localTimes.end) return sets.map(s => s.id);
+
+    const startMin = labelToMinutes(localTimes.start);
+    const endMin = labelToMinutes(localTimes.end);
+    const dayStr = istToDateOnly(selectedDate).toDateString();
+
+    return sets.filter(set => {
+      // Check reservations
+      const hasResConflict = reservations.some(r => {
+        const rDay = istToDateOnly(new Date(r.startDate as unknown as Date)).toDateString();
+        if (rDay !== dayStr) return false;
+        const rs = labelToMinutes(r.startTime);
+        const re = labelToMinutes(r.endTime);
+        const isSetBooked = !r.setIds || r.setIds.length === 0 || r.setIds.includes(set.id);
+        return isSetBooked && (startMin < re && rs < endMin);
+      });
+
+      if (hasResConflict) return false;
+
+      // Check blocks
+      const hasBlockConflict = blocks.some(b => {
+        const bDay = istToDateOnly(new Date(b.date)).toDateString();
+        if (bDay !== dayStr) return false;
+        const bs = labelToMinutes(b.startTime);
+        const be = labelToMinutes(b.endTime);
+        // Listing-wide block (empty setIds) or set-specific block
+        const isSetBlocked = !b.setIds || b.setIds.length === 0 || b.setIds.includes(set.id);
+        return isSetBlocked && (startMin < be && bs < endMin);
+      });
+
+      return !hasBlockConflict;
+    }).map(s => s.id);
+  }, [hasSets, selectedDate, localTimes, sets, reservations, blocks]);
+
   const ready = useMemo(
-    () => !disabled && hasPickedDate && hasValidTime && !isPaying,
-    [disabled, hasPickedDate, hasValidTime, isPaying]
+    () =>
+      !disabled &&
+      hasPickedDate &&
+      hasValidTime &&
+      !isPaying &&
+      setValidation.valid,
+    [disabled, hasPickedDate, hasValidTime, isPaying, setValidation.valid]
   );
 
   const minBookingMinutes = useMemo(
@@ -267,6 +389,32 @@ export default function ListingReservation({
       );
     },
     [selectedPackage]
+  );
+
+  const handleSetToggle = useCallback(
+    (setId: string) => {
+      setSelectedSetIds((prev) => {
+        if (prev.includes(setId)) {
+          return prev.filter((id) => id !== setId);
+        }
+        return [...prev, setId];
+      });
+    },
+    []
+  );
+
+  const handleSelectAllSets = useCallback(() => {
+    if (disabled || !hasSets) return;
+    setSelectedSetIds(availableSetIds);
+  }, [disabled, hasSets, availableSetIds]);
+
+  const handlePackageSelect = useCallback(
+    (packageId: string | null) => {
+      setSelectedPackageId(packageId);
+      // Reset selected sets when switching packages to avoid invalid states
+      setSelectedSetIds([]);
+    },
+    []
   );
 
   const allowedDays = useMemo<OperationalDays | DayKey[] | undefined>(
@@ -361,6 +509,12 @@ export default function ListingReservation({
         };
       }
 
+      if (hasSets && pricingResult) {
+        (payload as PaymentPayload & { setIds?: string[]; setPackageId?: string | null; pricingSnapshot?: unknown }).setIds = selectedSetIds;
+        (payload as PaymentPayload & { setIds?: string[]; setPackageId?: string | null; pricingSnapshot?: unknown }).setPackageId = selectedPackageId;
+        (payload as PaymentPayload & { setIds?: string[]; setPackageId?: string | null; pricingSnapshot?: unknown }).pricingSnapshot = pricingResult.breakdown;
+      }
+
       const res = await fetch("/api/payments/cashfree/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -389,6 +543,10 @@ export default function ListingReservation({
       selectedAddons,
       instantBooking,
       selectedPackage,
+      hasSets,
+      pricingResult,
+      selectedSetIds,
+      selectedPackageId,
     ]
   );
 
@@ -470,6 +628,38 @@ export default function ListingReservation({
         aria-labelledby={`${sectionId}-date-label`}
       />
       <hr />
+      {hasSets && (
+        <>
+          <div className="p-4">
+            <PackageSelector
+              packages={setPackages}
+              selectedPackageId={selectedPackageId}
+              onPackageSelect={handlePackageSelect}
+              disabled={disabled || isPaying}
+            />
+          </div>
+          <hr />
+          <div className="p-4">
+            <SetSelector
+              sets={sets}
+              selectedSetIds={selectedSetIds}
+              onSetToggle={handleSetToggle}
+              onSelectAll={handleSelectAllSets}
+              includedSetId={pricingResult?.includedSetId || null}
+              pricingType={additionalSetPricingType}
+              hours={pricingResult?.hours || 1}
+
+              disabled={disabled || isPaying}
+              selectedPackage={currentSetPackage}
+              availableSetIds={availableSetIds}
+            />
+            {!setValidation.valid && selectedSetIds.length > 0 && (
+              <p className="mt-2 text-sm text-red-500">{setValidation.error}</p>
+            )}
+          </div>
+          <hr />
+        </>
+      )}
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
         <h2 className="text-lg" id={`${sectionId}-time-label`}>
           Pick your Time Slot
@@ -509,6 +699,20 @@ export default function ListingReservation({
         <div className="flex justify-between">
           {selectedPackage ? (
             <p>Package: {selectedPackage.title}</p>
+          ) : hasSets && pricingResult ? (
+            <div className="flex-1">
+              <p>Base booking ({pricingResult.breakdown.includedSetName})</p>
+              {pricingResult.breakdown.additionalSets.map((s) => (
+                <p key={s.id} className="text-sm text-neutral-500">
+                  + {s.name} ({additionalSetPricingType === "HOURLY" ? `${INR.format(s.price)}/hr` : INR.format(s.price)})
+                </p>
+              ))}
+              {pricingResult.breakdown.packageTitle && (
+                <p className="text-sm text-neutral-500">
+                  + Package: {pricingResult.breakdown.packageTitle}
+                </p>
+              )}
+            </div>
           ) : (
             <p>
               Base booking fee {INR.format(price)} × {safeHours} hr

@@ -3,6 +3,15 @@
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import {
+  dateFromLabel,
+  getRoundedNowIST_HHMM,
+  hhmmToMinutes,
+  istSameDay,
+  istToDateOnly,
+  labelToMinutes,
+  toHHMM,
+} from "@/lib/scheduling";
 import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
 import { SafeReservation } from "@/types/reservation";
@@ -49,75 +58,8 @@ const SLOT_LABELS: string[] = [
   "9:00 PM", "9:30 PM", "10:00 PM"
 ];
 
-const IST_OFFSET_MIN = 5 * 60 + 30;
-const toISTDateParts = (d: Date) => {
-  const utc = d.getTime() + d.getTimezoneOffset() * 60000;
-  const ist = new Date(utc + IST_OFFSET_MIN * 60000);
-  return { y: ist.getFullYear(), m: ist.getMonth(), d: ist.getDate(), hh: ist.getHours(), mm: ist.getMinutes() };
-};
-const istSameDay = (a: Date, b: Date) => {
-  const A = toISTDateParts(a);
-  const B = toISTDateParts(b);
-  return A.y === B.y && A.m === B.m && A.d === B.d;
-};
-const istToDateOnly = (d: Date) => {
-  const p = toISTDateParts(d);
-  return new Date(p.y, p.m, p.d);
-};
-
-const getRoundedNowIST_HHMM = (): TimeHM => {
-  const parts = toISTDateParts(new Date());
-  const roundUp = (15 - (parts.mm % 15)) % 15;
-  const hh = (parts.hh + Math.floor((parts.mm + roundUp) / 60)) % 24;
-  const mm = (parts.mm + roundUp) % 60;
-  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}` as TimeHM;
-};
-
-const toHHMM = (input: unknown): TimeHM | null => {
-  const fromDate = (d: Date): TimeHM | null => {
-    if (!(d instanceof Date) || Number.isNaN(d.getTime())) return null;
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    return `${hh}:${mm}` as TimeHM;
-  };
-  if (input instanceof Date) return fromDate(input);
-  if (typeof input === "string") {
-    const s = input.trim();
-    if (!s) return null;
-    const twelve = s.match(/^(\d{1,2}):([0-5]\d)\s*([AP]M)$/i);
-    if (twelve) {
-      let h = parseInt(twelve[1], 10);
-      const m = twelve[2];
-      const ap = twelve[3].toUpperCase();
-      if (ap === "PM" && h < 12) h += 12;
-      if (ap === "AM" && h === 12) h = 0;
-      return `${String(h).padStart(2, "0")}:${m}` as TimeHM;
-    }
-    const twentyFour = s.match(/^([01]?\d|2[0-3]):([0-5]\d)(?::\d{2})?$/);
-    if (twentyFour) {
-      const h = parseInt(twentyFour[1], 10);
-      const m = twentyFour[2];
-      return `${String(h).padStart(2, "0")}:${m}` as TimeHM;
-    }
-    return fromDate(new Date(s));
-  }
-  return null;
-};
-
-const parseLabel = (label: string) => {
-  const m = label.match(/^\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*$/i);
-  if (!m) return { hours: 0, minutes: 0 };
-  let h = parseInt(m[1], 10);
-  const min = parseInt(m[2], 10);
-  const period = m[3].toUpperCase();
-  if (period === "PM" && h < 12) h += 12;
-  if (period === "AM" && h === 12) h = 0;
-  return { hours: h, minutes: min };
-};
-const dateFromLabel = (base: Date, label: string) => {
-  const { hours, minutes } = parseLabel(label);
-  return new Date(base.getFullYear(), base.getMonth(), base.getDate(), hours, minutes, 0, 0);
-};
+const EARLIEST_SLOT_HHMM: TimeHM = (toHHMM("6:00 AM") ?? "06:00") as TimeHM;
+const LATEST_FAKE_CUTOFF: TimeHM = "23:59" as TimeHM;
 
 const toNum = (v: unknown, def = 0) => {
   if (typeof v === "number" && Number.isFinite(v)) return v;
@@ -127,6 +69,7 @@ const toNum = (v: unknown, def = 0) => {
   }
   return def;
 };
+
 const normalizeAddons = (input: unknown): AddonItem[] => {
   const base = Array.isArray(input) ? input : input && typeof input === "object" ? (Object.values(input as Record<string, unknown>) as unknown[]) : [];
   return base
@@ -140,33 +83,9 @@ const normalizeAddons = (input: unknown): AddonItem[] => {
     })
     .filter((a) => a.price > 0 && a.qty > 0);
 };
+
 const addonsSig = (arr: AddonItem[]) =>
   arr.map((a) => `${a.name ?? ""}|${a.price}|${a.qty}`).sort().join(",");
-
-const hhmmToMinutes = (hm: TimeHM) => {
-  const [h, m] = hm.split(":").map((n) => parseInt(n, 10));
-  return h * 60 + m;
-};
-const ampmToMinutes = (label: string): number => {
-  const m = label.match(/^(\d{1,2}):([0-5]\d)\s*(AM|PM)$/i);
-  if (!m) return NaN;
-  let h = Number(m[1]);
-  const min = Number(m[2]);
-  const period = m[3].toUpperCase();
-  if (period === "PM" && h < 12) h += 12;
-  if (period === "AM" && h === 12) h = 0;
-  return h * 60 + min;
-};
-const labelToMinutes = (s?: string | null): number => {
-  if (!s) return NaN;
-  const m12 = ampmToMinutes(s);
-  if (!Number.isNaN(m12)) return m12;
-  const m24 = s.match(/^(\d{1,2}):([0-5]\d)$/);
-  return m24 ? Number(m24[1]) * 60 + Number(m24[2]) : NaN;
-};
-
-const EARLIEST_SLOT_HHMM: TimeHM = (toHHMM(SLOT_LABELS[0]) ?? "06:00") as TimeHM;
-const LATEST_FAKE_CUTOFF: TimeHM = "23:59" as TimeHM;
 
 function ListingClient({
   reservations = [],
@@ -180,6 +99,7 @@ function ListingClient({
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [googleCalendarEvents, setGoogleCalendarEvents] = useState<GoogleCalendarEvent[]>([]);
+  const [selectedSetIds, setSelectedSetIds] = useState<string[]>([]);
   const ownerHasGoogleCalendar = !!listing?.user?.googleCalendarConnected;
   const abortRef = useRef<AbortController | null>(null);
   const lastSigRef = useRef("");
@@ -273,16 +193,38 @@ function ListingClient({
     return Array.from(set.values());
   }, [googleCalendarEvents, operationalTimings]);
 
-  const buildMergedIntervalsFor = useCallback((day: Date) => {
+  const buildMergedIntervalsFor = useCallback((day: Date, currentSelectedSetIds: string[] = []) => {
     const dayStr = istToDateOnly(day).toDateString();
-    const intervals: Array<{ s: TimeHM; e: TimeHM }> = [];
+    const listingWideBusy: Array<{ s: TimeHM; e: TimeHM }> = [];
+    const setBusyIntervals: Record<string, Array<{ s: TimeHM; e: TimeHM }>> = {};
+
+    // Helper to add intervals
+    const addInterval = (s: TimeHM, e: TimeHM, setIds?: string[]) => {
+      if (!s || !e || hhmmToMinutes(s) >= hhmmToMinutes(e)) return;
+      if (!setIds || setIds.length === 0) {
+        listingWideBusy.push({ s, e });
+      } else {
+        setIds.forEach((id) => {
+          if (!setBusyIntervals[id]) setBusyIntervals[id] = [];
+          setBusyIntervals[id].push({ s, e });
+        });
+      }
+    };
 
     reservations.forEach((r) => {
       const rDay = istToDateOnly(new Date(r.startDate as unknown as Date)).toDateString();
       if (rDay !== dayStr) return;
       const s = toHHMM(r.startTime);
       const e = toHHMM(r.endTime);
-      if (s && e && hhmmToMinutes(s) < hhmmToMinutes(e)) intervals.push({ s, e });
+      if (s && e) addInterval(s, e, r.setIds);
+    });
+
+    listing.blocks?.forEach((block) => {
+      const bDay = istToDateOnly(new Date(block.date)).toDateString();
+      if (bDay !== dayStr) return;
+      const s = toHHMM(block.startTime);
+      const e = toHHMM(block.endTime);
+      if (s && e) addInterval(s, e, block.setIds);
     });
 
     googleCalendarEvents.forEach((ev) => {
@@ -294,13 +236,13 @@ function ListingClient({
       if (istToDateOnly(sDate).toDateString() !== dayStr) return;
       const s = toHHMM(sDate);
       const e = toHHMM(eDate);
-      if (s && e && hhmmToMinutes(s) < hhmmToMinutes(e)) intervals.push({ s, e });
+      if (s && e) listingWideBusy.push({ s, e });
     });
 
     if (istSameDay(day, new Date())) {
       const cutoff = getRoundedNowIST_HHMM();
       if (hhmmToMinutes(EARLIEST_SLOT_HHMM) < hhmmToMinutes(cutoff)) {
-        intervals.push({ s: EARLIEST_SLOT_HHMM, e: cutoff });
+        listingWideBusy.push({ s: EARLIEST_SLOT_HHMM, e: cutoff });
       }
     }
 
@@ -310,19 +252,71 @@ function ListingClient({
     const closeHM = dayTiming?.close ? (String(dayTiming.close) as TimeHM) : null;
 
     if (dayTiming?.enabled === false) {
-      intervals.push({ s: EARLIEST_SLOT_HHMM, e: LATEST_FAKE_CUTOFF });
+      listingWideBusy.push({ s: EARLIEST_SLOT_HHMM, e: LATEST_FAKE_CUTOFF });
     } else if (openHM && closeHM && hhmmToMinutes(openHM) < hhmmToMinutes(closeHM)) {
       if (hhmmToMinutes(EARLIEST_SLOT_HHMM) < hhmmToMinutes(openHM)) {
-        intervals.push({ s: EARLIEST_SLOT_HHMM, e: openHM });
+        listingWideBusy.push({ s: EARLIEST_SLOT_HHMM, e: openHM });
       }
       if (hhmmToMinutes(closeHM) < hhmmToMinutes(LATEST_FAKE_CUTOFF)) {
-        intervals.push({ s: closeHM, e: LATEST_FAKE_CUTOFF });
+        listingWideBusy.push({ s: closeHM, e: LATEST_FAKE_CUTOFF });
       }
     }
 
-    intervals.sort((a, b) => hhmmToMinutes(a.s) - hhmmToMinutes(b.s));
+    // Now we need to determine which slots are "busy" based on set availability
+    // This is tricky because we want to return a list of merged intervals.
+    // We'll use a 15-minute resolution to find busy slots.
+    const busyIntervals: Array<{ s: TimeHM; e: TimeHM }> = [...listingWideBusy];
+
+    if (listing.hasSets && listing.sets && listing.sets.length > 0) {
+      const allSetIds = listing.sets.map(s => s.id);
+      const minSets = 1;
+      const targetSets = currentSelectedSetIds.length > 0 ? currentSelectedSetIds : null;
+
+      const isBusyAt = (min: number) => {
+        // Check listing-wide
+        if (listingWideBusy.some(b => min >= hhmmToMinutes(b.s) && min < hhmmToMinutes(b.e))) return true;
+
+        if (targetSets) {
+          // If specific sets are selected, any of them being busy makes the slot busy
+          return targetSets.some(id =>
+            (setBusyIntervals[id] || []).some(b => min >= hhmmToMinutes(b.s) && min < hhmmToMinutes(b.e))
+          );
+        } else {
+          // If no sets selected, busy if available sets < minSets
+          let available = 0;
+          for (const id of allSetIds) {
+            if (!(setBusyIntervals[id] || []).some(b => min >= hhmmToMinutes(b.s) && min < hhmmToMinutes(b.e))) {
+              available++;
+            }
+          }
+          return available < minSets;
+        }
+      };
+
+      let currentStart: number | null = null;
+      for (let m = 0; m < 24 * 60; m += 15) {
+        if (isBusyAt(m)) {
+          if (currentStart === null) currentStart = m;
+        } else {
+          if (currentStart !== null) {
+            const s = `${String(Math.floor(currentStart / 60)).padStart(2, "0")}:${String(currentStart % 60).padStart(2, "0")}` as TimeHM;
+            const e = `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}` as TimeHM;
+            busyIntervals.push({ s, e });
+            currentStart = null;
+          }
+        }
+      }
+      if (currentStart !== null) {
+        busyIntervals.push({
+          s: `${String(Math.floor(currentStart / 60)).padStart(2, "0")}:${String(currentStart % 60).padStart(2, "0")}` as TimeHM,
+          e: LATEST_FAKE_CUTOFF
+        });
+      }
+    }
+
+    busyIntervals.sort((a, b) => hhmmToMinutes(a.s) - hhmmToMinutes(b.s));
     const merged: Array<{ s: TimeHM; e: TimeHM }> = [];
-    for (const cur of intervals) {
+    for (const cur of busyIntervals) {
       if (!merged.length) merged.push({ s: cur.s, e: cur.e });
       else {
         const last = merged[merged.length - 1];
@@ -334,13 +328,13 @@ function ListingClient({
       }
     }
     return merged;
-  }, [reservations, googleCalendarEvents, operationalTimings]);
+  }, [reservations, googleCalendarEvents, operationalTimings, listing]);
 
   const disabledPairsForPicker = useMemo(() => {
     if (!selectedDate) return { starts: [] as TimeHM[], ends: [] as TimeHM[] };
-    const merged = buildMergedIntervalsFor(selectedDate);
+    const merged = buildMergedIntervalsFor(selectedDate, selectedSetIds);
     return { starts: merged.map(x => x.s), ends: merged.map(x => x.e) };
-  }, [selectedDate, buildMergedIntervalsFor]);
+  }, [selectedDate, buildMergedIntervalsFor, selectedSetIds]);
 
   const getRequiredMinutes = useCallback((selPkg: Package | null, lst: FullListing) => {
     const pkgMin = Math.max(0, Number(selPkg?.durationHours ?? 0)) * 60;
@@ -356,6 +350,7 @@ function ListingClient({
     const labelMinutes = SLOT_LABELS.map(labelToMinutes);
     const rawStart = operationalTimings?.operationalHours?.start?.trim?.();
     const rawEnd = operationalTimings?.operationalHours?.end?.trim?.();
+
     const toMinFromOps = (s?: string | null): number | null => {
       if (!s) return null;
       const idx = s ? SLOT_LABELS.indexOf(s) : -1;
@@ -363,29 +358,101 @@ function ListingClient({
       const m = labelToMinutes(s);
       return Number.isNaN(m) ? null : m;
     };
+
     const opsStartMin = toMinFromOps(rawStart) ?? labelMinutes[0];
     const opsEndMin = toMinFromOps(rawEnd) ?? labelMinutes[labelMinutes.length - 1];
+
     let startIdx = 0;
     while (startIdx < labelMinutes.length && labelMinutes[startIdx] < opsStartMin) startIdx++;
     let endIdx = labelMinutes.length - 1;
     while (endIdx >= 0 && labelMinutes[endIdx] > opsEndMin) endIdx--;
+
     if (endIdx < startIdx) { startIdx = 0; endIdx = labelMinutes.length - 1; }
+
     const step = labelMinutes.length >= 2 ? Math.max(1, labelMinutes[1] - labelMinutes[0]) : 30;
     const lastUsableStartIdx = Math.max(startIdx, endIdx - Math.ceil(required / step));
     if (lastUsableStartIdx < startIdx) return false;
-    const merged = buildMergedIntervalsFor(day);
-    const busy: Array<{ s: number; e: number }> = merged
-      .map(({ s, e }) => ({ s: labelToMinutes(s), e: labelToMinutes(e) }))
-      .filter(({ s, e }) => Number.isFinite(s) && Number.isFinite(e) && s < e);
-    const overlapsBusy = (a: number, b: number) => busy.some(({ s, e }) => !(b <= s || a >= e));
+
+    const dayStr = istToDateOnly(day).toDateString();
+
+    // Build set-specific busy intervals
+    const setBusyIntervals: Record<string, Array<{ s: number; e: number }>> = {};
+    const listingWideBusy: Array<{ s: number; e: number }> = [];
+
+    // Add reservations
+    reservations.forEach((r) => {
+      const rDay = istToDateOnly(new Date(r.startDate as unknown as Date)).toDateString();
+      if (rDay !== dayStr) return;
+      const s = labelToMinutes(r.startTime);
+      const e = labelToMinutes(r.endTime);
+      if (Number.isFinite(s) && Number.isFinite(e) && s < e) {
+        if (!r.setIds || r.setIds.length === 0) {
+          listingWideBusy.push({ s, e });
+        } else {
+          r.setIds.forEach((id) => {
+            if (!setBusyIntervals[id]) setBusyIntervals[id] = [];
+            setBusyIntervals[id].push({ s, e });
+          });
+        }
+      }
+    });
+
+    // Add blocks
+    listing.blocks?.forEach((b) => {
+      const bDay = istToDateOnly(new Date(b.date)).toDateString();
+      if (bDay !== dayStr) return;
+      const s = labelToMinutes(b.startTime);
+      const e = labelToMinutes(b.endTime);
+      if (Number.isFinite(s) && Number.isFinite(e) && s < e) {
+        if (!b.setIds || b.setIds.length === 0) {
+          listingWideBusy.push({ s, e });
+        } else {
+          b.setIds.forEach((id) => {
+            if (!setBusyIntervals[id]) setBusyIntervals[id] = [];
+            setBusyIntervals[id].push({ s, e });
+          });
+        }
+      }
+    });
+
+    // Add current time cutoff if today
+    if (istSameDay(day, new Date())) {
+      const cutoff = labelToMinutes(getRoundedNowIST_HHMM());
+      const start = labelToMinutes(EARLIEST_SLOT_HHMM);
+      if (start < cutoff) listingWideBusy.push({ s: start, e: cutoff });
+    }
+
+    const overlaps = (a: number, b: number, intervals: Array<{ s: number; e: number }>) =>
+      intervals.some(({ s, e }) => !(b <= s || a >= e));
+
+    const minSets = 1;
+    const allSetIds = listing.sets?.map((s) => s.id) || [];
+
     for (let i = startIdx; i <= lastUsableStartIdx; i++) {
       const startMin = labelMinutes[i];
       const endMin = startMin + required;
       if (endMin > opsEndMin + step) continue;
-      if (!overlapsBusy(startMin, endMin)) return true;
+
+      // If listing-wide busy, this slot is out
+      if (overlaps(startMin, endMin, listingWideBusy)) continue;
+
+      if (!listing.hasSets || allSetIds.length === 0) {
+        // Single unit logic: if no listing-wide busy, it's valid
+        return true;
+      }
+
+      // Multi-set logic: count available sets
+      let availableCount = 0;
+      for (const setId of allSetIds) {
+        if (!overlaps(startMin, endMin, setBusyIntervals[setId] || [])) {
+          availableCount++;
+        }
+      }
+
+      if (availableCount >= minSets) return true;
     }
     return false;
-  }, [operationalTimings, buildMergedIntervalsFor, selectedPackage, listing, getRequiredMinutes]);
+  }, [operationalTimings, reservations, listing, getRequiredMinutes, selectedPackage]);
 
   const disabledDates = useMemo(() => {
     const set = new Map<string, Date>();
@@ -483,6 +550,13 @@ function ListingClient({
                   minBookingHours={Number(listing.minimumBookingHours)}
 
                   selectedPackage={selectedPackage}
+                  hasSets={listing.hasSets && (listing.sets?.length ?? 0) >= 2}
+                  sets={listing.sets}
+                  additionalSetPricingType={listing.additionalSetPricingType}
+
+                  onSetIdsChangeAction={setSelectedSetIds}
+                  reservations={reservations}
+                  blocks={listing.blocks}
                 />
               </div>
             </div>

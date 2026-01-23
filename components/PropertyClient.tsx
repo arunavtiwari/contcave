@@ -6,7 +6,7 @@ import Image from "next/image";
 import { SessionProvider, signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FaBolt } from "react-icons/fa";
-import { MdClose,MdOutlineCurrencyRupee } from "react-icons/md";
+import { MdClose, MdOutlineCurrencyRupee } from "react-icons/md";
 import ReactSwitch from "react-switch";
 import { toast } from "react-toastify";
 
@@ -20,9 +20,11 @@ import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
 import { Package as ListingPackage } from "@/types/package";
 
+import BlocksManager from "./BlocksManager";
 import AddonsSelection from "./inputs/AddonsSelection";
 import ImageUpload from "./inputs/ImageUpload";
 import PackagesForm from "./inputs/PackagesForm";
+import SetsEditor from "./inputs/SetsEditor";
 import ManageTimings from "./ManageTimings";
 import CustomAddonModal from "./modals/CustomAddonModal";
 
@@ -126,6 +128,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 ? pkg.features.filter((feature) => typeof feature === "string" && feature.trim().length > 0)
                 : [],
             durationHours: Number(pkg.durationHours ?? 0),
+            requiredSetCount: pkg.requiredSetCount ? Number(pkg.requiredSetCount) : null,
         }));
 
         const packagesWithData = normalizedPackages.filter((pkg: NormalizedPackage) =>
@@ -145,6 +148,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             return;
         }
 
+        if (initialListing.hasSets) {
+            if (!initialListing.sets || initialListing.sets.length < 2) {
+                toast.error("Please add at least 2 sets for a multi-set listing");
+                return;
+            }
+
+        }
+
         const { id: _ignoredId, user: _ignoredUser, createdAt: _ignoredCreatedAt, ...listingWithoutMeta } = initialListing;
         // Handle updatedAt if it exists, otherwise ignore
         const { updatedAt: _ignoredUpdatedAt, ...rest } = listingWithoutMeta as Record<string, unknown>;
@@ -152,6 +163,17 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         const payload = {
             ...rest,
             packages: packagesWithData,
+            hasSets: initialListing.hasSets,
+            additionalSetPricingType: initialListing.hasSets ? initialListing.additionalSetPricingType : null,
+
+            sets: initialListing.hasSets ? (initialListing.sets ?? []).map((s, i) => ({
+                id: s.id,
+                name: s.name.trim(),
+                description: s.description?.trim() || null,
+                images: s.images,
+                price: s.price,
+                position: i,
+            })) : [],
         };
 
         axios
@@ -517,6 +539,68 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
+                        <hr />
+
+                        {/* Multi-Set Settings */}
+                        <div className="flex flex-col gap-6">
+                            <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
+                                <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
+                                    Multi-Set Mode
+                                    <p className="text-xs font-normal text-neutral-500 mt-1">
+                                        Enable multiple bookable sets (studios, rooms, etc.)
+                                    </p>
+                                </label>
+                                <div className="w-full flex items-center">
+                                    <ReactSwitch
+                                        checked={Boolean(initialListing.hasSets)}
+                                        onChange={(checked) => handleInputChange("hasSets", checked)}
+                                        offColor="#d1d5db"
+                                        onColor="#000"
+                                        uncheckedIcon={false}
+                                        offHandleColor="#000"
+                                        activeBoxShadow="0 0 2px 3px #000"
+                                        checkedIcon={false}
+                                        height={30}
+                                        handleDiameter={20}
+                                    />
+                                </div>
+                            </div>
+
+                            {initialListing.hasSets && (
+                                <div className="flex flex-col gap-6 pl-4 border-l-2 border-neutral-100 ml-2">
+                                    <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
+                                        <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Pricing Type</label>
+                                        <div className="flex gap-4 w-full">
+                                            <button
+                                                onClick={() => handleInputChange("additionalSetPricingType", "FIXED")}
+                                                className={`flex-1 py-2 px-4 rounded-full border transition ${initialListing.additionalSetPricingType === "FIXED" ? "bg-black text-white border-black" : "bg-white text-black border-neutral-300 hover:border-black"}`}
+                                            >
+                                                Fixed Add-on
+                                            </button>
+                                            <button
+                                                onClick={() => handleInputChange("additionalSetPricingType", "HOURLY")}
+                                                className={`flex-1 py-2 px-4 rounded-full border transition ${initialListing.additionalSetPricingType === "HOURLY" ? "bg-black text-white border-black" : "bg-white text-black border-neutral-300 hover:border-black"}`}
+                                            >
+                                                Hourly Add-on
+                                            </button>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div className="flex flex-col gap-4">
+                                        <label className="block text-sm font-medium text-gray-700">Manage Sets</label>
+                                        <SetsEditor
+                                            sets={initialListing.sets ?? []}
+                                            onChange={(updated) => handleInputChange("sets", updated)}
+                                            pricingType={initialListing.additionalSetPricingType || null}
+                                        />
+                                    </div>
+
+                                </div>
+                            )}
+                        </div>
+
                         <div className="col-span-3 pt-5 flex justify-end">
                             <button
                                 type="button"
@@ -580,6 +664,18 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <span className="font-semibold">Warning:</span> Deleting your property will permanently remove all your
                             data and cannot be undone.
                         </p>
+                    </div>
+
+                    {/* Manage Blocks */}
+                    <div className={selectedMenu === "Manage Blocks" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
+                        <Heading
+                            title="Manage Availability Blocks"
+                            subtitle="Block specific sets or the entire listing for maintenance or personal use"
+                        />
+                        <BlocksManager
+                            listingId={initialListing.id}
+                            sets={initialListing.sets ?? []}
+                        />
                     </div>
                 </div>
             </div>

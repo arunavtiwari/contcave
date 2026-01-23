@@ -3,7 +3,7 @@
 import { IconButton } from "@chakra-ui/button";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import React, { useCallback, useEffect,useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
 import { IoMdCloseCircle } from "react-icons/io";
@@ -14,12 +14,19 @@ import { safeListing } from "@/types/listing";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
 
+interface PricingSnapshot {
+    packageTitle?: string;
+    includedSetName?: string;
+    additionalSets?: Array<{ id: string; name: string }>;
+}
+
 interface BookingDetails {
     startDate: string;
     startTime: string;
     endTime: string;
     totalPrice: number;
     selectedAddons: Addon[];
+    pricingSnapshot?: PricingSnapshot;
 }
 
 interface BookingCardProps {
@@ -346,6 +353,31 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                     ₹ {(booking?.totalPrice ?? 0) - (booking?.selectedAddons.reduce((acc: number, value: Addon) => acc + (value.qty * value.price), 0) ?? 0)}
                                 </span>
                             </div>
+
+                            {booking?.pricingSnapshot?.packageTitle && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-700 font-medium">Package:</span>
+                                    <span className="text-gray-900">{booking.pricingSnapshot.packageTitle}</span>
+                                </div>
+                            )}
+
+                            {(booking?.pricingSnapshot?.includedSetName || (booking?.pricingSnapshot?.additionalSets && booking.pricingSnapshot.additionalSets.length > 0)) && (
+                                <div className="flex flex-col gap-1 pt-1">
+                                    <span className="text-gray-700 font-medium">Booked Sets:</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {booking.pricingSnapshot.includedSetName && (
+                                            <span className="px-2 py-0.5 bg-neutral-100 text-neutral-700 text-xs rounded-md border border-neutral-200">
+                                                {booking.pricingSnapshot.includedSetName}
+                                            </span>
+                                        )}
+                                        {booking.pricingSnapshot.additionalSets?.map((s) => (
+                                            <span key={s.id} className="px-2 py-0.5 bg-neutral-100 text-neutral-700 text-xs rounded-md border border-neutral-200">
+                                                {s.name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex justify-between mt-4 border-t pt-4">

@@ -15,6 +15,7 @@ const Logo = memo(function Logo() {
           src="/assets/logo.png"
           className="hidden sm:block cursor-pointer"
           priority
+          style={{ width: 'auto', height: 'auto' }}
         />
         <Image
           alt="logo-small"
@@ -23,6 +24,7 @@ const Logo = memo(function Logo() {
           src="/assets/logo_small.png"
           className="block sm:hidden cursor-pointer"
           priority
+          style={{ width: 'auto', height: 'auto' }}
         />
       </div>
     </Link>

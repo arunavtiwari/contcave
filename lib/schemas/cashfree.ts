@@ -29,4 +29,9 @@ export const processPaymentSchema = z.object({
     customerPhone: z.preprocess(trimStr, z.string().optional()),
     customerName: z.preprocess(trimStr, z.string().optional()),
     customerEmail: z.preprocess(trimStr, z.string().email().optional()),
+
+    setIds: z.array(z.string()).optional(),
+    setPackageId: z.string().optional(),
+    pricingSnapshot: z.any().optional(),
 });
+

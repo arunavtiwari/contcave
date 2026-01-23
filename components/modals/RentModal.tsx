@@ -27,12 +27,14 @@ import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/inputs/Input";
 import OtherListingDetails, { ListingDetails } from "@/components/inputs/OtherListingDetails";
 import PackagesForm from "@/components/inputs/PackagesForm";
-import SpaceVerification, { VerificationDocument,VerificationPayload } from "@/components/inputs/SpaceVerification";
-import TermsAndConditionsModal, { SignatureMeta,TermsRef } from "@/components/inputs/TermsAndConditions";
+import SetsEditor, { SetEditorItem } from "@/components/inputs/SetsEditor";
+import SpaceVerification, { VerificationDocument, VerificationPayload } from "@/components/inputs/SpaceVerification";
+import TermsAndConditionsModal, { SignatureMeta, TermsRef } from "@/components/inputs/TermsAndConditions";
 import { categories } from "@/components/navbar/Categories";
 import useRentModal from "@/hook/useRentModal";
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
+import { AdditionalSetPricingType } from "@/types/set";
 
 import CustomAddonModal from "./CustomAddonModal";
 import Modal from "./Modal";
@@ -45,8 +47,9 @@ enum STEPS {
   PRICE,
   AMENITIES,
   ADDONS,
-  PACKAGES,
   OTHERDETAILS,
+  SETS,
+  PACKAGES,
   VERIFICATION,
   TERMS,
 }
@@ -71,6 +74,11 @@ export default function RentModal() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [additionalSetPricingType, setAdditionalSetPricingType] = useState<AdditionalSetPricingType | null>(null);
+  const [sets, setSets] = useState<SetEditorItem[]>([]);
+
+
+  const hasSets = listingDetails?.hasSets ?? false;
 
 
 
@@ -130,7 +138,13 @@ export default function RentModal() {
     [setValue]
   );
 
-  const onBack = () => setStep((v) => v - 1);
+  const onBack = () => {
+    if (step === STEPS.PACKAGES && !hasSets) {
+      setStep(STEPS.OTHERDETAILS);
+      return;
+    }
+    setStep((v) => v - 1);
+  };
 
   const onNext = () => {
     if (step === STEPS.CATEGORY && !category) {
@@ -182,6 +196,22 @@ export default function RentModal() {
         return toast.error("Price exceeds maximum limit (₹10,000,000)");
       }
     }
+    if (step === STEPS.SETS) {
+      if (hasSets) {
+        if (!additionalSetPricingType) {
+          return toast.error("Please select a pricing type for additional sets");
+        }
+        if (sets.length === 0) {
+          return toast.error("Please add at least one set or disable multi-set");
+        }
+        for (let i = 0; i < sets.length; i++) {
+          if (!sets[i].name || sets[i].name.trim().length === 0) {
+            return toast.error(`Please enter a name for Set ${i + 1}`);
+          }
+        }
+
+      }
+    }
     if (step === STEPS.OTHERDETAILS) {
       if (!listingDetails) {
         return toast.error("Please complete all 'Other Details'");
@@ -231,6 +261,23 @@ export default function RentModal() {
         return toast.error("Please upload verification documents OR generate a verification code");
       }
     }
+
+    if (step === STEPS.SETS) {
+      if (hasSets) {
+        if (sets.length < 2) {
+          return toast.error("Please add at least 2 sets for a multi-set listing");
+        }
+
+      }
+    }
+
+    if (step === STEPS.OTHERDETAILS) {
+      if (!hasSets) {
+        setStep(STEPS.PACKAGES);
+        return;
+      }
+    }
+
     setStep((v) => v + 1);
   };
 
@@ -246,6 +293,9 @@ export default function RentModal() {
     setImageFiles([]);
     setShowSuccessModal(false);
     setIsLoading(false);
+    setAdditionalSetPricingType(null);
+    setSets([]);
+
     reset();
     setStep(STEPS.CATEGORY);
   }, [reset]);
@@ -376,6 +426,16 @@ export default function RentModal() {
       verifications,
       agreementSignature: signature,
       terms,
+      hasSets,
+      additionalSetPricingType: hasSets ? additionalSetPricingType : null,
+
+      sets: hasSets ? sets.map((s, i) => ({
+        name: s.name.trim(),
+        description: s.description?.trim() || null,
+        images: s.images,
+        price: s.price,
+        position: i,
+      })) : [],
     };
 
     setIsLoading(true);
@@ -500,7 +560,6 @@ export default function RentModal() {
   // Dynamic labels
   const actionLabel = useMemo(() => {
     if (step === STEPS.TERMS) return "Create";
-    if (step === STEPS.OTHERDETAILS) return "Verification";
     return "Next";
   }, [step]);
 
@@ -536,17 +595,27 @@ export default function RentModal() {
       bodyContent = (
         <div className="flex flex-col gap-4">
           <Heading title="Where is your space?" subtitle="Help creators find you" />
-          <CitySelect value={location} onChange={(v) => setCustomValue("location", v)} />
-          <AutoComplete
-            value={actualLocation?.display_name || ""}
-            onChange={(sel: AutoCompleteValue) => {
-              setCustomValue("actualLocation", {
-                display_name: sel.display_name,
-                latlng: sel.latlng,
-                additionalInfo: additionalInfo || actualLocation?.additionalInfo || "",
-              });
-            }}
-          />
+          <div className="w-full">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              City
+            </label>
+            <CitySelect value={location} onChange={(v) => setCustomValue("location", v)} />
+          </div>
+          <div className="w-full">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Address
+            </label>
+            <AutoComplete
+              value={actualLocation?.display_name || ""}
+              onChange={(sel: AutoCompleteValue) => {
+                setCustomValue("actualLocation", {
+                  display_name: sel.display_name,
+                  latlng: sel.latlng,
+                  additionalInfo: additionalInfo || actualLocation?.additionalInfo || "",
+                });
+              }}
+            />
+          </div>
           <div className="w-full">
             <label htmlFor="additionalInfo" className="block text-sm font-medium text-gray-700 mb-1">
               Additional Info (Optional)
@@ -615,8 +684,18 @@ export default function RentModal() {
       bodyContent = (
         <div className="flex flex-col gap-4">
           <Heading title="Describe your space" subtitle="Add title & description" />
-          <Input id="title" label="Title" disabled={isLoading} register={register("title", { required: "Required" })} errors={errors} />
-          <Input id="description" label="Description" disabled={isLoading} register={register("description", { required: "Required" })} errors={errors} />
+          <div className="w-full">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+              Title
+            </label>
+            <Input id="title" label="Title" disabled={isLoading} register={register("title", { required: "Required" })} errors={errors} />
+          </div>
+          <div className="w-full">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <Input id="description" label="Description" disabled={isLoading} register={register("description", { required: "Required" })} errors={errors} />
+          </div>
         </div>
       );
       break;
@@ -625,7 +704,77 @@ export default function RentModal() {
       bodyContent = (
         <div className="flex flex-col gap-4">
           <Heading title="Set your hourly price" />
-          <Input id="price" label="Price" type="number" formatPrice disabled={isLoading} register={register("price", { required: "Required" })} errors={errors} />
+          <div className="w-full">
+            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+              Price per Hour (₹)
+            </label>
+            <Input id="price" label="Price" type="number" formatPrice disabled={isLoading} register={register("price", { required: "Required" })} errors={errors} />
+          </div>
+        </div>
+      );
+      break;
+
+    case STEPS.SETS:
+      bodyContent = (
+        <div className="flex flex-col gap-6">
+          <Heading title="Multiple Sets" subtitle="Configure your bookable sets" />
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Additional Set Pricing Type *</label>
+            <div className="flex gap-4">
+              <label
+                className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "FIXED"
+                  ? "border-black bg-neutral-50 ring-1 ring-black"
+                  : "border-neutral-200 hover:border-neutral-300"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  name="pricingType"
+                  value="FIXED"
+                  checked={additionalSetPricingType === "FIXED"}
+                  onChange={() => setAdditionalSetPricingType("FIXED")}
+                  className="hidden"
+                />
+                <div className="font-medium">Fixed Add-on</div>
+                <div className="text-sm text-neutral-500 mt-1">Each additional set adds a flat fee</div>
+              </label>
+              <label
+                className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "HOURLY"
+                  ? "border-black bg-neutral-50 ring-1 ring-black"
+                  : "border-neutral-200 hover:border-neutral-300"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  name="pricingType"
+                  value="HOURLY"
+                  checked={additionalSetPricingType === "HOURLY"}
+                  onChange={() => setAdditionalSetPricingType("HOURLY")}
+                  className="hidden"
+                />
+                <div className="font-medium">Hourly Add-on</div>
+                <div className="text-sm text-neutral-500 mt-1">Each additional set adds per-hour charges</div>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Your Sets</label>
+            <SetsEditor
+              sets={sets}
+              onChange={setSets}
+              pricingType={additionalSetPricingType}
+              disabled={isLoading}
+            />
+          </div>
+
+
+
+          <p className="text-sm text-neutral-500">
+            💡 The lowest-priced set is automatically included in the base price. Additional sets are charged based on
+            the pricing type you selected.
+          </p>
         </div>
       );
       break;
@@ -656,9 +805,25 @@ export default function RentModal() {
 
     case STEPS.PACKAGES:
       bodyContent = (
-        <div className="flex flex-col gap-6">
-          <Heading title="Custom Packages" subtitle="Bundle your offerings" />
-          <PackagesForm value={packages} onChange={setPackages} />
+        <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-6">
+            <Heading title="Custom Packages" subtitle="Bundle your offerings" />
+            <PackagesForm
+              value={packages}
+              onChange={setPackages}
+              availableSets={hasSets ? sets.map((s, i) => ({
+                id: s.id || `temp-${i}`,
+                name: s.name,
+                description: s.description,
+                images: s.images,
+                price: s.price,
+                position: i,
+                listingId: "",
+                createdAt: "",
+                updatedAt: ""
+              })) : []}
+            />
+          </div>
         </div>
       );
       break;

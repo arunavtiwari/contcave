@@ -2,6 +2,7 @@ import { Listing } from "@prisma/client";
 
 import { Addon } from "./addon";
 import { Package } from "./package";
+import { AdditionalSetPricingType, ListingBlock, ListingSet } from "./set";
 import { SafeUser } from "./user";
 
 export type safeListing = Omit<Listing, "createdAt"> & {
@@ -36,4 +37,10 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
     price: number;
     instantBooking?: boolean;
     user: SafeUser;
+    hasSets?: boolean;
+    additionalSetPricingType?: AdditionalSetPricingType | null;
+
+    sets?: ListingSet[];
+    blocks?: ListingBlock[];
 };
+

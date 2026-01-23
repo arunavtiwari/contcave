@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
 import { AttachmentInput, sendTemplateEmail } from "@/lib/email/mailer";
@@ -37,7 +39,40 @@ type TransactionMetadata = {
   startTime?: unknown;
   endTime?: unknown;
   selectedAddons?: unknown;
+  setIds?: unknown;
+  setPackageId?: unknown;
+  pricingSnapshot?: unknown;
   [key: string]: unknown;
+};
+
+type ListingSetData = {
+  id: string;
+  name: string;
+  price: number;
+  position: number;
+};
+
+type PricingSnapshotData = {
+  includedSetName?: string | null;
+  packageTitle?: string | null;
+  additionalSets?: Array<{ id: string; name: string; price: number }>;
+  [key: string]: unknown;
+};
+
+type ListingWithSetsAndUser = {
+  id: string;
+  title?: string;
+  instantBooking?: boolean;
+  actualLocation?: unknown;
+  sets?: ListingSetData[];
+  user?: {
+    id: string;
+    email?: string | null;
+    name?: string | null;
+    phone?: string | null;
+    googleCalendarConnected?: boolean;
+    paymentDetails?: { cashfreeVendorId?: string | null } | null;
+  } | null;
 };
 
 const MAX_SKEW_SEC = Number(process.env.WEBHOOK_MAX_SKEW_SEC || 600);
@@ -118,6 +153,21 @@ function combineUtcIso(ymd: string, hm: string): string {
 
 type CustomerEmailPayload = Parameters<typeof sendReservationCustomerEmail>[0];
 type OwnerEmailPayload = Parameters<typeof sendReservationOwnerEmail>[0];
+
+type ExtendedCustomerEmailPayload = CustomerEmailPayload & {
+  setNames?: string;
+  packageTitle?: string | null;
+};
+
+type ExtendedOwnerEmailPayload = OwnerEmailPayload & {
+  setNames?: string;
+  packageTitle?: string | null;
+  bookingId?: string;
+  addons?: string;
+  formattedStartDate?: string;
+  formattedStartTime?: string;
+  formattedEndTime?: string;
+};
 
 async function claimAndSendCustomerEmail(
   txnId: string,
@@ -251,19 +301,38 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
         if (!freshTxn) return;
 
         if (!freshTxn.reservationId) {
-          const [listing, user] = await Promise.all([
+          const [listingResult, user] = await Promise.all([
             db.listing.findUnique({
               where: { id: freshTxn.listingId! },
-              include: { user: { include: { paymentDetails: true } } },
+              include: {
+                user: { include: { paymentDetails: true } },
+                sets: { orderBy: { position: "asc" as const } },
+              },
             }),
             db.user.findUnique({ where: { id: freshTxn.userId! }, select: { email: true, name: true, phone: true } }),
           ]);
+          const listing = listingResult as ListingWithSetsAndUser | null;
 
           const md = (freshTxn.metadata || {}) as TransactionMetadata;
           const startDateYmd = String(md.startDate || "");
           const startDate = localMidnightFromYmd(startDateYmd);
           const startTime = String(md.startTime ?? "");
           const endTime = String(md.endTime ?? "");
+
+          const setIds = Array.isArray(md.setIds) ? md.setIds.filter((id): id is string => typeof id === "string") : [];
+          const setPackageId = typeof md.setPackageId === "string" ? md.setPackageId : null;
+          const pricingSnapshot = md.pricingSnapshot || null;
+
+          let includedSetId: string | null = null;
+          if (setIds.length > 0 && listing?.sets) {
+            const selectedSets = listing.sets
+              .filter((s: ListingSetData) => setIds.includes(s.id))
+              .sort((a: ListingSetData, b: ListingSetData) => {
+                if (a.price !== b.price) return a.price - b.price;
+                return a.position - b.position;
+              });
+            includedSetId = selectedSets[0]?.id || null;
+          }
 
           const reservation = await db.reservation.create({
             data: {
@@ -273,11 +342,15 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               startTime,
               endTime,
               totalPrice: freshTxn.amount,
-              selectedAddons: md.selectedAddons ?? null,
+              selectedAddons: (md.selectedAddons ?? null) as Prisma.InputJsonValue,
               isApproved: (listing?.instantBooking ? 1 : 0),
               Transaction: { connect: { id: freshTxn.id } },
+              setIds,
+              includedSetId,
+              setPackageId,
+              pricingSnapshot: pricingSnapshot as Prisma.InputJsonValue,
+              totalPriceInt: Math.round(freshTxn.amount),
             },
-            select: { id: true },
           });
 
           await db.transaction.update({
@@ -300,6 +373,13 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           const totalPrice = Math.round(Number(freshTxn.amount || 0));
           afterTxnId = freshTxn.id;
 
+          const ps = pricingSnapshot as PricingSnapshotData | null;
+          const setNames = [
+            ps?.includedSetName,
+            ...(ps?.additionalSets?.map((s) => s.name) || [])
+          ].filter(Boolean).join(", ");
+          const packageTitle = ps?.packageTitle || null;
+
           if (user?.email) {
             afterCustomer = {
               toEmail: user.email,
@@ -312,7 +392,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               addons: addonsStr,
               studioLocation,
               additionalInfo,
-            };
+              setNames,
+              packageTitle,
+            } as ExtendedCustomerEmailPayload;
             console.warn('[Webhook] Customer email prepared', { txnId: freshTxn.id, toEmail: user.email });
           }
           if (listing?.user?.email) {
@@ -326,17 +408,21 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               totalPrice,
               customerName: user?.name || "",
               templateId: process.env.MS_TPL_RESERVATION_OWNER || "",
-            };
-            const ownerEmailWithExtras = afterOwner as OwnerEmailPayload & Record<string, unknown>;
-            ownerEmailWithExtras.bookingId = reservation.id;
-            ownerEmailWithExtras.addons = addonsStr;
-            ownerEmailWithExtras.formattedStartDate = startDateYmd;
-            ownerEmailWithExtras.formattedStartTime = startTime;
-            ownerEmailWithExtras.formattedEndTime = endTime;
+              setNames,
+              packageTitle,
+            } as ExtendedOwnerEmailPayload;
+            afterOwner.bookingId = reservation.id;
+            afterOwner.addons = addonsStr;
+            afterOwner.formattedStartDate = startDateYmd;
+            afterOwner.formattedStartTime = startTime;
+            afterOwner.formattedEndTime = endTime;
             if (listing?.user?.googleCalendarConnected) {
+              const calendarTitle = setNames
+                ? `${studioName} (${setNames}) - ${user?.name || "Customer"}`
+                : `${studioName} booking by ${user?.name || "Customer"}`;
               afterCalendar = {
                 ownerUserId: listing.user.id,
-                title: `${studioName} booking by ${user?.name || "Customer"}`,
+                title: calendarTitle,
                 startIso: combineUtcIso(startDateYmd, startTime),
                 endIso: combineUtcIso(startDateYmd, endTime),
               };
@@ -362,6 +448,13 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             const startDateYmd = resv.startDate?.toISOString().slice(0, 10) || "";
             afterTxnId = freshTxn.id;
 
+            const ps = resv.pricingSnapshot as PricingSnapshotData | null;
+            const setNames = [
+              ps?.includedSetName,
+              ...(ps?.additionalSets?.map((s) => s.name) || [])
+            ].filter(Boolean).join(", ");
+            const packageTitle = ps?.packageTitle || null;
+
             if (resv.user?.email) {
               afterCustomer = {
                 toEmail: resv.user.email,
@@ -374,7 +467,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 addons: addonsStr,
                 studioLocation,
                 additionalInfo,
-              };
+                setNames,
+                packageTitle,
+              } as ExtendedCustomerEmailPayload;
               console.warn('[Webhook] Customer email prepared (existing reservation)', { txnId: freshTxn.id, toEmail: resv.user.email });
             }
             if (resv.listing?.user?.email) {
@@ -388,17 +483,21 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 totalPrice,
                 customerName: resv.user?.name || "",
                 templateId: process.env.MS_TPL_RESERVATION_OWNER || "",
-              };
-              const ownerEmailWithExtras = afterOwner as OwnerEmailPayload & Record<string, unknown>;
-              ownerEmailWithExtras.bookingId = resv.id;
-              ownerEmailWithExtras.addons = addonsStr;
-              ownerEmailWithExtras.formattedStartDate = startDateYmd;
-              ownerEmailWithExtras.formattedStartTime = resv.startTime || "";
-              ownerEmailWithExtras.formattedEndTime = resv.endTime || "";
+                setNames,
+                packageTitle,
+              } as ExtendedOwnerEmailPayload;
+              afterOwner.bookingId = resv.id;
+              afterOwner.addons = addonsStr;
+              afterOwner.formattedStartDate = startDateYmd;
+              afterOwner.formattedStartTime = resv.startTime || "";
+              afterOwner.formattedEndTime = resv.endTime || "";
               if (resv.listing?.user?.googleCalendarConnected) {
+                const calendarTitle = setNames
+                  ? `${studioName} (${setNames}) - ${resv.user?.name || "Customer"}`
+                  : `${studioName} booking by ${resv.user?.name || "Customer"}`;
                 afterCalendar = {
                   ownerUserId: resv.listing.user.id,
-                  title: `${studioName} booking by ${resv.user?.name || "Customer"}`,
+                  title: calendarTitle,
                   startIso: combineUtcIso(startDateYmd, resv.startTime || "00:00"),
                   endIso: combineUtcIso(startDateYmd, resv.endTime || "00:00"),
                 };

@@ -27,11 +27,27 @@ const jitterLatLng = (latlng: unknown): [number, number] | null => {
 
 type PackageInput = {
   title: unknown;
+  description?: unknown;
   originalPrice?: unknown;
   offeredPrice: unknown;
   features?: unknown;
   durationHours: unknown;
+  requiredSetCount?: unknown;
+
+  fixedAddOn?: unknown;
+  eligibleSetIds?: unknown;
+  isActive?: unknown;
 };
+
+type SetInput = {
+  name: unknown;
+  description?: unknown;
+  images?: unknown;
+  price?: unknown;
+  position?: unknown;
+};
+
+
 
 export async function POST(request: Request) {
   try {
@@ -54,6 +70,7 @@ export async function POST(request: Request) {
       price, amenities, otherAmenities, addons, carpetArea, operationalDays,
       operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
       verifications, terms, packages,
+      hasSets, additionalSetPricingType, sets,
     } = body;
 
     if (!title || typeof title !== "string") {
@@ -150,6 +167,18 @@ export async function POST(request: Request) {
       ? type.filter((t: unknown) => typeof t === "string" && t.trim().length > 0 && t.trim().length <= 100).slice(0, 20)
       : [];
 
+    const validPricingTypes = ["FIXED", "HOURLY"];
+    const sanitizedPricingType = hasSets && validPricingTypes.includes(additionalSetPricingType)
+      ? additionalSetPricingType
+      : null;
+
+    if (hasSets) {
+      if (!Array.isArray(sets) || sets.length < 2) {
+        return createErrorResponse("Multi-set listings must have at least 2 sets", 400);
+      }
+
+    }
+
     const listing = await prisma.listing.create({
       data: {
         title: trimmedTitle,
@@ -174,9 +203,66 @@ export async function POST(request: Request) {
         terms: Boolean(terms),
         status: "PENDING",
         active: false,
+        hasSets: Boolean(hasSets),
+        additionalSetPricingType: sanitizedPricingType,
+
       },
     });
 
+    // 1. Create Sets first if needed
+    let createdSets: { id: string; position: number }[] = [];
+    if (hasSets && Array.isArray(sets) && sets.length > 0) {
+      if (sets.length > 50) {
+        return createErrorResponse("Maximum 50 sets allowed per listing", 400);
+      }
+
+      const setData = sets.map((s: SetInput, index: number) => {
+        if (!s.name || typeof s.name !== "string") {
+          throw new Error(`Set ${index + 1}: name is required and must be a string`);
+        }
+
+        const setName = String(s.name).trim();
+        if (setName.length < 1 || setName.length > 200) {
+          throw new Error(`Set ${index + 1}: name must be between 1 and 200 characters`);
+        }
+
+        const setPrice = typeof s.price === "number" && Number.isFinite(s.price) && s.price >= 0
+          ? Math.round(s.price)
+          : 0;
+
+        if (setPrice > 10000000) {
+          throw new Error(`Set ${index + 1}: price exceeds maximum limit`);
+        }
+
+        const setImages = Array.isArray(s.images)
+          ? s.images
+            .filter((img: unknown) => typeof img === "string" && img.trim().length > 0)
+            .slice(0, 20)
+          : [];
+
+        return {
+          name: setName,
+          description: typeof s.description === "string" ? s.description.trim().slice(0, 2000) : null,
+          images: setImages,
+          price: setPrice,
+          position: typeof s.position === "number" ? Math.round(s.position) : index,
+          listingId: listing.id,
+        };
+      });
+
+      await prisma.listingSet.createMany({
+        data: setData,
+      });
+
+      // Fetch created sets to map IDs
+      createdSets = await prisma.listingSet.findMany({
+        where: { listingId: listing.id },
+        orderBy: { position: "asc" },
+        select: { id: true, position: true },
+      });
+    }
+
+    // 2. Create Packages (now with set awareness)
     if (Array.isArray(packages) && packages.length > 0) {
       if (packages.length > 20) {
         return createErrorResponse("Maximum 20 packages allowed per listing", 400);
@@ -224,12 +310,40 @@ export async function POST(request: Request) {
             .slice(0, 20)
           : [];
 
+        // Handle set-related fields
+        let requiredSetCount: number | null = null;
+        let fixedAddOn: number | null = null;
+        let eligibleSetIds: string[] = [];
+
+        if (hasSets && p.fixedAddOn != null) {
+          requiredSetCount = p.requiredSetCount ? Math.max(1, Number(p.requiredSetCount) || 1) : null;
+          fixedAddOn = Math.max(0, Number(p.fixedAddOn) || 0);
+
+          if (Array.isArray(p.eligibleSetIds)) {
+            eligibleSetIds = p.eligibleSetIds
+              .map((id: unknown) => {
+                const sId = String(id);
+                if (sId.startsWith("temp-")) {
+                  const idx = parseInt(sId.replace("temp-", ""), 10);
+                  return createdSets[idx]?.id;
+                }
+                return createdSets.find(s => s.id === sId)?.id;
+              })
+              .filter((id): id is string => !!id);
+          }
+        }
+
         return {
           title: pTitle,
+          description: typeof p.description === "string" ? p.description.trim().slice(0, 500) : null,
           originalPrice: Math.round(pOriginalPrice),
           offeredPrice: Math.round(p.offeredPrice),
           features: pFeatures,
           durationHours: Math.round(p.durationHours),
+          requiredSetCount,
+          fixedAddOn,
+          eligibleSetIds,
+          isActive: p.isActive !== false,
           listingId: listing.id,
         };
       });
@@ -239,14 +353,21 @@ export async function POST(request: Request) {
       });
     }
 
-    const withPackages = await prisma.listing.findUnique({
+    // Sets creation logic moved above
+
+
+
+    const withRelations = await prisma.listing.findUnique({
       where: { id: listing.id },
-      include: { packages: true },
+      include: {
+        packages: true,
+        sets: { orderBy: { position: "asc" } },
+      },
     });
 
-    return createSuccessResponse(withPackages, 201, "Listing created successfully");
+    return createSuccessResponse(withRelations, 201, "Listing created successfully");
   } catch (error) {
-    if (error instanceof Error && error.message.includes("Package")) {
+    if (error instanceof Error && (error.message.includes("Package") || error.message.includes("Set"))) {
       return createErrorResponse(error.message, 400);
     }
     return handleRouteError(error, "POST /api/listings");

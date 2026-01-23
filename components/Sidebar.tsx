@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import { FaCogs,FaHome } from "react-icons/fa";
-import { FaArrowUpRightDots,FaCalendar, FaClock } from "react-icons/fa6";
+import { FaCogs, FaHome } from "react-icons/fa";
+import { FaArrowUpRightDots, FaCalendar, FaClock } from "react-icons/fa6";
 
 interface SidebarProps {
     selectedMenu: string;
@@ -21,6 +21,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedM
         { name: "Sync Calendar", icon: <FaCalendar size={22} className="hover:text-white sm:hover:text-black transition" /> },
         { name: "Manage Timings", icon: <FaClock size={22} className="hover:text-white sm:hover:text-black transition" /> },
         { name: "Settings", icon: <FaCogs size={22} className="hover:text-white sm:hover:text-black transition" /> },
+        { name: "Manage Blocks", icon: <FaCalendar size={22} className="hover:text-white sm:hover:text-black transition" /> },
         {
             name: "Profile",
             icon: <Image src="/assets/user.svg" width={22} height={22} alt="Profile" className="object-contain" />,
@@ -40,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedM
     ], []);
 
     const itemsToDisplay = React.useMemo(() =>
-        menuType === "profile" ? sidebarMenuItems.slice(4) : sidebarMenuItems.slice(0, 4),
+        menuType === "profile" ? sidebarMenuItems.slice(5) : sidebarMenuItems.slice(0, 5),
         [sidebarMenuItems, menuType]
     );
 

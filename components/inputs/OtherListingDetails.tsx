@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect,useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FaBolt } from "react-icons/fa";
 import Select, { Theme } from "react-select";
 import ReactSwitch from "react-switch";
@@ -13,6 +13,7 @@ export type ListingDetails = {
     maximumPax: string;
     instantBooking: boolean;
     type: string[];
+    hasSets: boolean;
 };
 
 type Props = {
@@ -66,6 +67,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
             maximumPax: "",
             instantBooking: false,
             type: [],
+            hasSets: false,
         }
     );
 
@@ -237,6 +239,33 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
                     checkedHandleIcon={<FaBolt color="#FFD700" className="w-full h-full py-[2px]" />}
                 />
             </div>
+
+            <hr />
+
+            <div className="flex justify-between items-center">
+                <label className="text-sm font-medium mb-1 w-[40vw]">
+                    <strong>MULTI-SET</strong>
+                    <br />
+                    Enable multiple bookable sets
+                </label>
+                <ReactSwitch
+                    checked={details.hasSets}
+                    onChange={(checked) => handleInputChange("hasSets", !!checked)}
+                    offColor="#d1d5db"
+                    onColor="#000"
+                    uncheckedIcon={false}
+                    offHandleColor="#000"
+                    activeBoxShadow="0 0 2px 3px #000"
+                    checkedIcon={false}
+                    height={30}
+                    handleDiameter={20}
+                />
+            </div>
+            {details.hasSets && (
+                <p className="text-xs text-neutral-500 -mt-2">
+                    Configure your sets (studios, rooms, etc.) in the next step.
+                </p>
+            )}
 
             <hr />
 

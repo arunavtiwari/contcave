@@ -13,7 +13,19 @@ type PackageInput = {
   offeredPrice: unknown;
   features?: unknown;
   durationHours: unknown;
+  requiredSetCount?: unknown;
 };
+
+type SetInput = {
+  id?: string;
+  name: unknown;
+  description?: unknown;
+  images?: unknown;
+  price?: unknown;
+  position?: unknown;
+};
+
+
 
 export async function PATCH(request: Request, props: { params: Promise<IParams> }) {
   try {
@@ -51,15 +63,23 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       return createErrorResponse("Request body is required and must not be empty", 400);
     }
 
-    const { packages, ...listingData } = body;
+    const { packages, sets, ...listingData } = body;
 
-    // Ensure fields that expect String but might receive Number are converted
     const stringFields = ['carpetArea', 'minimumBookingHours', 'maximumPax'];
     for (const field of stringFields) {
       if (listingData[field] !== undefined && listingData[field] !== null) {
         listingData[field] = String(listingData[field]);
       }
     }
+
+    const validPricingTypes = ["FIXED", "HOURLY"];
+    if (listingData.additionalSetPricingType !== undefined) {
+      if (!validPricingTypes.includes(listingData.additionalSetPricingType)) {
+        listingData.additionalSetPricingType = null;
+      }
+    }
+
+
 
     if (Object.keys(listingData).length > 0) {
       await prisma.listing.update({
@@ -84,7 +104,7 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
           .map((p: PackageInput) => String(p.id))
       );
 
-      const toDelete = [...existingIds].filter(id => !incomingIds.has(id));
+      const toDelete = [...existingIds].filter((id: string) => !incomingIds.has(id));
       if (toDelete.length > 0) {
         await prisma.package.deleteMany({ where: { id: { in: toDelete } } });
       }
@@ -137,6 +157,7 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
           offeredPrice: Math.round(p.offeredPrice),
           features,
           durationHours: Math.round(p.durationHours),
+          requiredSetCount: p.requiredSetCount ? Math.max(1, Number(p.requiredSetCount) || 1) : null,
           listingId,
         };
 
@@ -148,12 +169,108 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       }
     }
 
+    if (Array.isArray(sets)) {
+      if (sets.length > 50) {
+        return createErrorResponse("Maximum 50 sets allowed per listing", 400);
+      }
+
+      const existingSets = await prisma.listingSet.findMany({
+        where: { listingId },
+        select: { id: true },
+      });
+      const existingSetIds = new Set(existingSets.map((s) => s.id));
+      const incomingSetIds = new Set(
+        sets
+          .filter((s: SetInput) => s.id && typeof s.id === "string")
+          .map((s: SetInput) => String(s.id))
+      );
+
+      const setsToDelete = [...existingSetIds].filter((id: string) => !incomingSetIds.has(id));
+      if (setsToDelete.length > 0) {
+        // Edge Case: Check for future reservations
+        const futureReservations = await prisma.reservation.findFirst({
+          where: {
+            listingId,
+            setIds: { hasSome: setsToDelete },
+            startDate: { gte: new Date() },
+            markedForDeletion: false,
+          }
+        });
+
+        if (futureReservations) {
+          return createErrorResponse("Cannot delete sets that have future reservations", 400);
+        }
+
+        await prisma.listingSet.deleteMany({ where: { id: { in: setsToDelete } } });
+
+        const affectedPackages = await prisma.package.findMany({
+          where: { listingId, eligibleSetIds: { hasSome: setsToDelete } }
+        });
+
+        for (const pkg of affectedPackages) {
+          const newEligibleIds = pkg.eligibleSetIds.filter((id: string) => !setsToDelete.includes(id));
+          await prisma.package.update({
+            where: { id: pkg.id },
+            data: { eligibleSetIds: newEligibleIds }
+          });
+        }
+      }
+
+      for (let i = 0; i < sets.length; i++) {
+        const s = sets[i] as SetInput;
+
+        if (!s.name || typeof s.name !== "string") {
+          return createErrorResponse(`Set ${i + 1}: name is required and must be a string`, 400);
+        }
+
+        const setName = String(s.name).trim();
+        if (setName.length < 1 || setName.length > 200) {
+          return createErrorResponse(`Set ${i + 1}: name must be between 1 and 200 characters`, 400);
+        }
+
+        const setPrice = typeof s.price === "number" && Number.isFinite(s.price) && s.price >= 0
+          ? Math.round(s.price)
+          : 0;
+
+        if (setPrice > 10000000) {
+          return createErrorResponse(`Set ${i + 1}: price exceeds maximum limit`, 400);
+        }
+
+        const setImages = Array.isArray(s.images)
+          ? s.images
+            .filter((img: unknown) => typeof img === "string" && (img as string).trim().length > 0)
+            .slice(0, 20)
+          : [];
+
+        const setData = {
+          name: setName,
+          description: typeof s.description === "string" ? s.description.trim().slice(0, 2000) : null,
+          images: setImages,
+          price: setPrice,
+          position: typeof s.position === "number" ? Math.round(s.position) : i,
+          listingId,
+        };
+
+        if (s.id && typeof s.id === "string" && existingSetIds.has(s.id)) {
+          await prisma.listingSet.update({ where: { id: s.id }, data: setData });
+        } else {
+          await prisma.listingSet.create({ data: setData });
+        }
+      }
+    }
+
+
+
     const out = await prisma.listing.findUnique({
       where: { id: listingId },
-      include: { packages: true },
+      include: {
+        packages: true,
+        sets: { orderBy: { position: "asc" } },
+      },
     });
     return createSuccessResponse(out);
   } catch (error) {
     return handleRouteError(error, "PATCH /api/listings/[listingId]");
   }
 }
+

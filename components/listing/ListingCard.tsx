@@ -93,6 +93,7 @@ const ListingCard: React.FC<Props> = ({
         </Link>
         <div className="flex flex-row items-center">
           <div className="flex gap-1 font-semibold">
+            {data.hasSets && <span className="font-light text-neutral-500 mr-1">Starting from</span>}
             ₹{price} {!reservation && <div className="font-light">/ Hour</div>}
           </div>
         </div>
