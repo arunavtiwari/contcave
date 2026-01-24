@@ -30,6 +30,15 @@ const Heading: React.FC<HeadingProps> = ({
         h6: "text-base font-bold",
     };
 
+    const subtitleVariants: Record<HeadingVariant, string> = {
+        h1: "text-xl",
+        h2: "text-lg",
+        h3: "text-base",
+        h4: "text-sm",
+        h5: "text-xs",
+        h6: "text-xs",
+    };
+
     return (
         <div className={`${center ? "text-center" : "text-start"} ${className}`}>
             <Component
@@ -39,7 +48,7 @@ const Heading: React.FC<HeadingProps> = ({
                 {title}
             </Component>
             {subtitle && (
-                <p className="text-gray-500 mt-2 font-light">
+                <p className={`text-gray-500 mt-1 font-light ${subtitleVariants[variant]}`}>
                     {subtitle}
                 </p>
             )}

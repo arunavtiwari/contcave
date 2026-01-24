@@ -652,7 +652,7 @@ export default function RentModal() {
     case STEPS.CATEGORY:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Choose your space type" subtitle="Pick a category" variant="h4" />
+          <Heading title="Choose your space type" subtitle="Pick a category" variant="h3" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-2">
             {categories.map((item) => (
               <CategoryInput
@@ -671,7 +671,7 @@ export default function RentModal() {
     case STEPS.LOCATION:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Where is your space?" subtitle="Help creators find you" variant="h4" />
+          <Heading title="Where is your space?" subtitle="Help creators find you" variant="h3" />
           <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               City <span className="text-rose-500 ml-1">*</span>
@@ -724,7 +724,7 @@ export default function RentModal() {
     case STEPS.IMAGES:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Add photos" subtitle="Show what your space looks like" variant="h4" />
+          <Heading title="Add photos" subtitle="Show what your space looks like" variant="h3" />
           <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
             {imageSrc.map((item: string, index: number) => (
               <div key={index} className="relative group">
@@ -760,7 +760,7 @@ export default function RentModal() {
     case STEPS.DESCRIPTION:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Describe your space" subtitle="Add title, description & price" variant="h4" />
+          <Heading title="Describe your space" subtitle="Add title, description & price" variant="h3" />
           <div className="w-full">
             <Input id="title" label="Title" disabled={isLoading} register={register("title", { required: "Required" })} errors={errors} required />
           </div>
@@ -777,7 +777,7 @@ export default function RentModal() {
     case STEPS.SETS:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Multiple Sets" subtitle="Configure your bookable sets" variant="h4" />
+          <Heading title="Multiple Sets" subtitle="Configure your bookable sets" variant="h3" />
 
           <div>
             <label className="block text-sm font-medium mb-2">Additional Set Pricing Type *</label>
@@ -878,7 +878,7 @@ export default function RentModal() {
     case STEPS.AMENITIES:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Amenities" subtitle="Select all available amenities" variant="h4" />
+          <Heading title="Amenities" subtitle="Select all available amenities" variant="h3" />
           <AmenitiesCheckbox
             amenities={amenities}
             checked={Object.keys(selectedAmenities.predefined).filter((k) => selectedAmenities.predefined[k])}
@@ -892,7 +892,7 @@ export default function RentModal() {
     case STEPS.ADDONS:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Add-ons" subtitle="Additional chargeable facilities" variant="h4" />
+          <Heading title="Add-ons" subtitle="Additional chargeable facilities" variant="h3" />
           <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons} onSelectedAddonsChange={handleAddonChange} rentModal />
           <CustomAddonModal save={(v: unknown) => setAddons([...addons, v as Addon])} />
         </div>
@@ -902,7 +902,7 @@ export default function RentModal() {
     case STEPS.PACKAGES:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Custom Packages" subtitle="Bundle your offerings" variant="h4" />
+          <Heading title="Custom Packages" subtitle="Bundle your offerings" variant="h3" />
           <PackagesForm
             value={packages}
             onChange={setPackages}
@@ -925,7 +925,7 @@ export default function RentModal() {
     case STEPS.OTHERDETAILS:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Other Details" variant="h4" />
+          <Heading title="Other Details" variant="h3" />
           <OtherListingDetails
             onDetailsChange={handleDetailsChange}
             initialDetails={listingDetails}
@@ -937,7 +937,7 @@ export default function RentModal() {
     case STEPS.VERIFICATION:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Space Verification" subtitle="Upload verification documents" variant="h4" />
+          <Heading title="Space Verification" subtitle="Upload verification documents" variant="h3" />
           <SpaceVerification
             onVerification={handleVerificationChange}
             initialDocuments={verifications?.documents || []}
