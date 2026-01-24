@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect,useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import useAddonModal from '@/hook/useAddonModal';
 import { Addon } from "@/types/addon";
@@ -82,8 +82,8 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
     return (
         <div className="space-y-8">
             {/* Selected Addons Section */}
-            <div className='flex justify-start'>
-                {selectedAddons.length > 0 && (
+            {selectedAddons.length > 0 && (
+                <div className='flex justify-start'>
                     <div>
                         <h2 className="text-lg font-semibold mb-5">Selected Addons</h2>
                         <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6`}>
@@ -117,8 +117,8 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                             )}
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
             {rentModal && selectedAddons.length > 0 && <hr className="my-4" />}
 
             {/* Available Addons Section */}
