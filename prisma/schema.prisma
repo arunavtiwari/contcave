@@ -133,6 +133,8 @@ model Listing {
   status                   ListingStatus             @default(PENDING)
   active                   Boolean                   @default(false)
   hasSets                  Boolean                   @default(false)
+  setsHaveSamePrice        Boolean                   @default(false)
+  unifiedSetPrice          Int?
   additionalSetPricingType AdditionalSetPricingType?
 
   sets                     ListingSet[]

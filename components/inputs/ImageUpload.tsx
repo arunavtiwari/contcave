@@ -29,7 +29,8 @@ function ImageUpload({
   maxSize = 10 * 1024 * 1024, // 10MB
   label = "Upload Image",
   icon: Icon = TbPhotoPlus,
-}: Props) {
+  className,
+}: Props & { className?: string }) {
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,11 +107,14 @@ function ImageUpload({
   return (
     <label
       htmlFor={uid}
-      className={`relative cursor-pointer hover:opacity-85 transition border-dashed flex flex-col justify-center items-center text-neutral-600 ${circle ? "rounded-full" : "rounded-xl"
-        } ${circle ? "w-full h-full" : "w-32 h-32 p-2 border-2 border-neutral-300"}`}
+      className={`relative cursor-pointer hover:bg-neutral-50 transition border-dashed flex flex-col justify-center items-center text-neutral-600 ${circle ? "rounded-full" : "rounded-xl"
+        } ${circle ? "w-full h-full" : className || "w-32 h-32 p-4 border-2 border-neutral-300"}`}
     >
       {uploading ? (
-        <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-sm font-medium">Uploading...</span>
+        </div>
       ) : circle ? (
         values && values.length > 0 ? (
           <Image
@@ -124,12 +128,29 @@ function ImageUpload({
           <Icon size={30} className="text-neutral-600" />
         )
       ) : (
-        <Icon size={30} className="text-neutral-600" />
-      )}
-
-      {!circle && (
-        <div className="font-semibold mt-1 flex items-center gap-2 text-sm">
-          {uploading ? "Uploading" : label}
+        <div className="flex flex-col items-center gap-2 text-center">
+          {className ? (
+            // Full version for larger areas
+            <>
+              <div className="p-3 bg-neutral-100 rounded-full">
+                <Icon size={28} className="text-neutral-600" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-sm text-gray-900">{label}</span>
+                <span className="text-xs text-gray-500 mt-1">
+                  Drag & drop or click to browse
+                </span>
+              </div>
+            </>
+          ) : (
+            // Compact version for small squares
+            <>
+              <Icon size={30} className="text-neutral-600" />
+              <div className="font-semibold mt-1 text-xs text-neutral-600">
+                {label === "Upload Image" ? "Upload" : label}
+              </div>
+            </>
+          )}
         </div>
       )}
 

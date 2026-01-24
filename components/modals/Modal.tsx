@@ -40,7 +40,8 @@ function Modal({
 
   isLoading,
   bodyRef, // New prop for scrolling
-}: Props & { bodyRef?: React.RefObject<HTMLDivElement | null> }) {
+  customHeight,
+}: Props & { bodyRef?: React.RefObject<HTMLDivElement | null>; customHeight?: string }) {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -86,17 +87,17 @@ function Modal({
   }, [handleClose, disabled]);
 
   // Close when clicking backdrop (not inner content)
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleBackdropClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) handleClose();
-  };
+  }, [handleClose]);
 
   if (!isOpen && !showModal) return null;
 
   return (
     <div
+      onClick={handleBackdropClick}
       className={`fixed inset-0 z-999 flex items-center justify-center bg-black/60 px-4 transition-all duration-300 ${isOpen ? "opacity-100" : "opacity-0"
         } ${isLoading ? "backdrop-blur-md" : "backdrop-blur-sm"}`}
-      onClick={handleBackdropClick}
     >
       <div
         ref={modalRef}
@@ -108,7 +109,7 @@ function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <div className="flex flex-col w-full bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden h-[85vh] max-h-[85vh]">
+        <div className={`flex flex-col w-full bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden ${customHeight || "h-[85vh] max-h-[85vh]"}`}>
           {/* Header */}
           <div className="flex items-center justify-center p-5 border-b border-gray-200 bg-gray-50 relative shrink-0">
             <h2 id="modal-title" className="text-lg font-semibold text-center text-gray-900">

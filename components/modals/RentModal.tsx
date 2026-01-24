@@ -463,6 +463,7 @@ export default function RentModal() {
       agreementSignature: signature,
       terms,
       hasSets,
+      setsHaveSamePrice: Boolean(setsHaveSamePrice),
       additionalSetPricingType: hasSets ? additionalSetPricingType : null,
 
       sets: hasSets ? sets.map((s, i) => ({
@@ -724,35 +725,42 @@ export default function RentModal() {
     case STEPS.IMAGES:
       bodyContent = (
         <div className="flex flex-col gap-4">
-          <Heading title="Add photos" subtitle="Show what your space looks like" variant="h3" />
-          <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
-            {imageSrc.map((item: string, index: number) => (
-              <div key={index} className="relative group">
-                <Image
-                  src={item}
-                  alt={`Image ${index}`}
-                  width={128}
-                  height={128}
-                  className="h-32 w-32 rounded-xl object-cover border border-neutral-200 shadow-xs"
-                />
-                <button
-                  onClick={() => removeImage(index)}
-                  className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center"
-                  aria-label="Remove image"
-                >
-                  <IoMdClose size={18} />
-                </button>
-              </div>
-            ))}
-            {imageSrc.length < 20 && (
+          <Heading title="Add photos" subtitle="Show what your space looks like (Max 20 images)" variant="h3" />
+
+          {imageSrc.length < 20 && (
+            <div className="w-full h-40">
               <ImageUpload
                 onChange={(v) => setCustomValue("imageSrc", v)}
                 values={imageSrc}
                 deferUpload
                 onFilesChange={handleImageFilesChange}
+                className="w-full h-full p-4 border-2 border-neutral-300"
               />
-            )}
-          </div>
+            </div>
+          )}
+
+          {imageSrc.length > 0 && (
+            <div className="flex flex-wrap gap-4 justify-center sm:justify-start mt-2">
+              {imageSrc.map((item: string, index: number) => (
+                <div key={index} className="relative group">
+                  <Image
+                    src={item}
+                    alt={`Image ${index}`}
+                    width={128}
+                    height={128}
+                    className="h-32 w-32 rounded-xl object-cover border border-neutral-200 shadow-xs"
+                  />
+                  <button
+                    onClick={() => removeImage(index)}
+                    className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
+                    aria-label="Remove image"
+                  >
+                    <IoMdClose size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       );
       break;
@@ -996,7 +1004,8 @@ export default function RentModal() {
         }
 
         bodyRef={bodyRef}
-
+        customWidth="w-full md:w-5/6 lg:w-4/6 xl:w-3/6"
+        customHeight="h-[90vh]"
       />
 
       <Modal

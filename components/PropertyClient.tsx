@@ -114,6 +114,9 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         ...listing,
     }));
 
+    const [setsHaveSamePrice, setSetsHaveSamePrice] = useState<boolean | null>(initialListing.setsHaveSamePrice ?? null);
+    const [unifiedSetPrice, setUnifiedSetPrice] = useState<number | null>(null);
+
     useEffect(() => {
         window.scrollTo({ top: 0 });
     }, [selectedMenu]);
@@ -164,6 +167,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             ...rest,
             packages: packagesWithData,
             hasSets: initialListing.hasSets,
+            setsHaveSamePrice: setsHaveSamePrice ?? initialListing.setsHaveSamePrice ?? false,
             additionalSetPricingType: initialListing.hasSets ? initialListing.additionalSetPricingType : null,
 
             sets: initialListing.hasSets ? (initialListing.sets ?? []).map((s, i) => ({
@@ -196,6 +200,22 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             return setDeep(prev, field, value);
         });
     }, []);
+
+    useEffect(() => {
+        if (setsHaveSamePrice && initialListing.sets && initialListing.sets.length > 0) {
+            const newPrice = unifiedSetPrice !== null ? unifiedSetPrice : (initialListing.sets[0].price || 0);
+            if (unifiedSetPrice !== newPrice) {
+                setUnifiedSetPrice(newPrice);
+            }
+
+            const updatedSets = initialListing.sets.map(s => ({ ...s, price: newPrice }));
+            const hasChanges = updatedSets.some((s, i) => s.price !== (initialListing.sets?.[i]?.price));
+
+            if (hasChanges) {
+                handleInputChange("sets", updatedSets);
+            }
+        }
+    }, [setsHaveSamePrice, unifiedSetPrice, initialListing.sets, handleInputChange]);
 
     const handleAmenitiesChange = (updated: { predefined: { [key: string]: boolean }; custom: string[] }) => {
         const selectedPredefined = Object.keys(updated.predefined).filter((k) => updated.predefined[k]).map(String);
@@ -410,7 +430,11 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Packages</label>
                             <div className="flex flex-col w-full">
-                                <PackagesForm value={initialListing.packages ?? []} onChange={handlePackagesChange} />
+                                <PackagesForm
+                                    value={initialListing.packages ?? []}
+                                    onChange={handlePackagesChange}
+                                    availableSets={initialListing.hasSets ? (initialListing.sets ?? []) : []}
+                                />
                             </div>
                         </div>
 
@@ -567,7 +591,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
 
                             {initialListing.hasSets && (
-                                <div className="flex flex-col gap-6 pl-4 border-l-2 border-neutral-100 ml-2">
+                                <div className="flex flex-col gap-6 pl-4">
                                     <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                                         <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Pricing Type</label>
                                         <div className="flex gap-4 w-full">
@@ -589,11 +613,50 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
 
                                     <div className="flex flex-col gap-4">
+                                        <label className="block text-sm font-medium text-gray-700">Will all sets have the same price?</label>
+                                        <div className="flex gap-4">
+                                            <label
+                                                className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
+                                                    ? "border-black bg-neutral-50 ring-1 ring-black"
+                                                    : "border-neutral-200 hover:border-neutral-300"
+                                                    }`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="priceConsistency"
+                                                    checked={setsHaveSamePrice === true}
+                                                    onChange={() => setSetsHaveSamePrice(true)}
+                                                    className="hidden"
+                                                />
+                                                <div className="font-medium text-center">Yes, same price</div>
+                                            </label>
+                                            <label
+                                                className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === false
+                                                    ? "border-black bg-neutral-50 ring-1 ring-black"
+                                                    : "border-neutral-200 hover:border-neutral-300"
+                                                    }`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="priceConsistency"
+                                                    checked={setsHaveSamePrice === false}
+                                                    onChange={() => setSetsHaveSamePrice(false)}
+                                                    className="hidden"
+                                                />
+                                                <div className="font-medium text-center">No, different prices</div>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-4">
                                         <label className="block text-sm font-medium text-gray-700">Manage Sets</label>
                                         <SetsEditor
                                             sets={initialListing.sets ?? []}
                                             onChange={(updated) => handleInputChange("sets", updated)}
                                             pricingType={initialListing.additionalSetPricingType || null}
+                                            isPricingUniform={setsHaveSamePrice ?? undefined}
+                                            uniformPrice={unifiedSetPrice}
+                                            onUniformPriceChange={setUnifiedSetPrice}
                                         />
                                     </div>
 

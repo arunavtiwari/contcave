@@ -89,7 +89,7 @@ function Footer() {
         {/* <p className="text-sm md:col-span-5 hidden">{country}</p> */}
       </div>
       <div className="bg-black text-white py-2 text-sm text-center">
-        © 2025 ContCave by Arkanet Ventures LLP. All rights reserved.
+        © {new Date().getFullYear()} ContCave by Arkanet Ventures LLP. All rights reserved.
       </div>
     </>
   );

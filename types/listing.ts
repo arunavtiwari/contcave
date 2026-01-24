@@ -38,6 +38,7 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
     instantBooking?: boolean;
     user: SafeUser;
     hasSets?: boolean;
+    setsHaveSamePrice?: boolean;
     additionalSetPricingType?: AdditionalSetPricingType | null;
 
     sets?: ListingSet[];

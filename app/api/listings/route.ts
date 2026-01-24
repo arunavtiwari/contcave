@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       price, amenities, otherAmenities, addons, carpetArea, operationalDays,
       operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
       verifications, terms, packages,
-      hasSets, additionalSetPricingType, sets,
+      hasSets, setsHaveSamePrice, additionalSetPricingType, sets,
     } = body;
 
     if (!title || typeof title !== "string") {
@@ -204,6 +204,7 @@ export async function POST(request: Request) {
         status: "PENDING",
         active: false,
         hasSets: Boolean(hasSets),
+        setsHaveSamePrice: Boolean(setsHaveSamePrice),
         additionalSetPricingType: sanitizedPricingType,
 
       },
