@@ -17,10 +17,9 @@ type Props = {
   customWidth?: string;
   fixedHeight?: boolean;
   selfActionButton?: boolean;
-  verificationBtn?: boolean;
   secondaryAction?: () => void;
   secondaryActionLabel?: string;
-  termsAndConditionsAccept?: boolean;
+
   isLoading?: boolean;
 
 };
@@ -35,11 +34,10 @@ function Modal({
   footer,
   disabled,
   secondaryAction,
-  verificationBtn,
   customWidth,
   selfActionButton,
   secondaryActionLabel,
-  termsAndConditionsAccept,
+
   isLoading,
   bodyRef, // New prop for scrolling
 }: Props & { bodyRef?: React.RefObject<HTMLDivElement | null> }) {
@@ -148,8 +146,8 @@ function Modal({
 
               <Button
                 rounded
-                disabled={verificationBtn ? !termsAndConditionsAccept || disabled : disabled}
-                label={verificationBtn ? "Complete Listing" : actionLabel}
+                disabled={disabled}
+                label={actionLabel}
                 onClick={handleSubmit}
                 loading={isLoading}
               />

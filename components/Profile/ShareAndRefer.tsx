@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback,useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
     FaInstagram,
     FaWhatsapp
@@ -8,10 +8,11 @@ import {
     MdContentCopy,
     MdMessage,
     MdQuestionMark,
-    MdShare} from "react-icons/md";
+    MdShare
+} from "react-icons/md";
 import { toast } from "react-toastify";
 
-import Heading from "@/components/Heading";
+import Heading from "@/components/ui/Heading";
 import { SafeUser } from "@/types/user";
 
 interface Props {

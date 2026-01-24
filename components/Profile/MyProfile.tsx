@@ -21,10 +21,10 @@ import {
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 
-import Heading from "@/components/Heading";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
+import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import useRentModal from "@/hook/useRentModal";

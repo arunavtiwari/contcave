@@ -6,7 +6,7 @@ import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 import Button from "@/components/ui/Button";
-import Heading from "@/components/Heading";
+import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 
 const ForgotPasswordPage = () => {

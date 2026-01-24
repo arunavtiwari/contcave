@@ -11,8 +11,8 @@ import { FaStar } from "react-icons/fa";
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
-import Avatar from "@/components/ui/Avatar";
 import Offers from "@/components/Offers";
+import Avatar from "@/components/ui/Avatar";
 import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hook/useCities";
 import { Addon } from "@/types/addon";

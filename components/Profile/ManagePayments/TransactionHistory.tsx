@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 
-import Heading from "@/components/Heading";
+import Heading from "@/components/ui/Heading";
 
 interface Transaction {
     id: string;
@@ -78,7 +78,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     if (loading) {
         return (
             <div className="flex flex-col w-full gap-5">
-                <Heading title="Transaction History" subtitle="View your past transactions." headingSmall></Heading>
+                <Heading title="Transaction History" subtitle="View your past transactions." variant="h4"></Heading>
                 <div className="p-10 rounded-xl border border-gray-200">
                     <div className="text-center py-10">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
@@ -114,7 +114,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     if (!transactions || transactions.length === 0) {
         return (
             <div className="flex flex-col w-full gap-5">
-                <Heading title="Transaction History" subtitle="View your past transactions." headingSmall></Heading>
+                <Heading title="Transaction History" subtitle="View your past transactions." variant="h4"></Heading>
                 <div className="p-10 rounded-xl border border-gray-200">
                     <div className="text-center py-10">
                         <p className="text-gray-500">No transactions found</p>
@@ -127,7 +127,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     // Main render
     return (
         <div className="flex flex-col w-full gap-5">
-            <Heading title="Transaction History" subtitle="View your past transactions." headingSmall></Heading>
+            <Heading title="Transaction History" subtitle="View your past transactions." variant="h4"></Heading>
             <div className="p-10 rounded-xl border border-gray-200">
                 <div className="space-y-6">
                     {transactions.map((transaction, index) => {

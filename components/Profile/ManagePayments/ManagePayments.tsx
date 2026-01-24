@@ -1,9 +1,9 @@
 "use client";
-import React, { useCallback, useMemo,useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
-import Heading from "@/components/Heading";
 import PaymentDetails from "@/components/Profile/ManagePayments/PaymentDetails";
 import TransactionHistory from "@/components/Profile/ManagePayments/TransactionHistory";
+import Heading from "@/components/ui/Heading";
 import { PaymentProfile } from "@/types/payment";
 import { SafeUser } from "@/types/user";
 

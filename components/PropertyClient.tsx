@@ -11,10 +11,10 @@ import ReactSwitch from "react-switch";
 import { toast } from "react-toastify";
 
 import Calendar from "@/components/Calendar";
-import Heading from "@/components/Heading";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 import Sidebar from "@/components/Sidebar";
+import Heading from "@/components/ui/Heading";
 import useIndianCities, { City } from "@/hook/useCities";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";

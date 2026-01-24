@@ -4,8 +4,8 @@ import { signOut } from "next-auth/react";
 import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
-import Heading from "@/components/Heading";
 import Modal from "@/components/modals/Modal";
+import Heading from "@/components/ui/Heading";
 import { SafeUser } from "@/types/user";
 
 type Props = {

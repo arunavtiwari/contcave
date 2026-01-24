@@ -26,7 +26,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               text-sm 
               font-medium 
               mb-1
-              ${hasError ? "text-rose-500" : "text-gray-700"}
+              ${hasError ? "text-gray-700" : "text-gray-700"}
             `}
                     >
                         {label}

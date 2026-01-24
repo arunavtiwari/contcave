@@ -2,8 +2,8 @@
 import Link from "next/link";
 import React, { useState } from "react";
 
-import Heading from "@/components/Heading";
 import Sidebar from "@/components/Sidebar";
+import Heading from "@/components/ui/Heading";
 
 const ProfileTransactionClient = () => {
 

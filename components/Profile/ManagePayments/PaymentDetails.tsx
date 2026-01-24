@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import React, { useCallback, useEffect, useMemo,useState, useTransition } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "react-toastify";
 
-import Heading from "@/components/Heading";
+import Heading from "@/components/ui/Heading";
 import { PaymentProfile } from "@/types/payment";
 import { SafeUser } from "@/types/user";
 
@@ -316,7 +316,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     <Heading
                         title="Bank Account Information"
                         subtitle="Provide your Bank information."
-                        headingSmall
+                        variant="h4"
                     />
 
                     {/* Action Buttons */}
@@ -371,7 +371,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                 <Heading
                     title="Tax Information"
                     subtitle="Provide your tax information."
-                    headingSmall
+                    variant="h4"
                 />
 
                 {/* Tax Information Fields */}

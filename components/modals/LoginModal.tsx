@@ -8,7 +8,7 @@ import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 
 import Button from "@/components/ui/Button";
-import Heading from "@/components/Heading";
+import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useLoginModel from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";

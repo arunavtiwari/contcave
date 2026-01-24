@@ -98,7 +98,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
                 <label className="text-sm font-medium w-[40vw]">
                     <strong>PROPERTY SPECIFICATIONS</strong>
                     <br />
-                    Carpet Area
+                    Carpet Area <span className="text-rose-500 ml-1">*</span>
                 </label>
                 <input
                     type="text"
@@ -116,7 +116,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
                     <label className="font-medium text-sm w-[40vw]">
                         <strong>TIMINGS</strong>
                         <br />
-                        Operational Days
+                        Operational Days <span className="text-rose-500 ml-1">*</span>
                     </label>
                     <div className="flex items-center space-x-2 justify-end w-full">
                         <Select
@@ -150,7 +150,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
                 </div>
 
                 <div className="flex items-center">
-                    <label className="font-medium text-sm w-[40vw]">Opening Hours</label>
+                    <label className="font-medium text-sm w-[40vw]">Opening Hours <span className="text-rose-500 ml-1">*</span></label>
                     <div className="flex items-center space-x-2 justify-end w-full">
                         <Select
                             options={timeOptions}
@@ -183,7 +183,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
                 </div>
 
                 <div className="flex items-center">
-                    <label className="font-medium text-sm w-[40vw]">Minimum Booking Hours</label>
+                    <label className="font-medium text-sm w-[40vw]">Minimum Booking Hours <span className="text-rose-500 ml-1">*</span></label>
                     <input
                         type="text"
                         placeholder="2 hrs"
@@ -200,7 +200,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
                 <label className="text-sm font-medium w-[40vw]">
                     <strong>ACCOMMODATION</strong>
                     <br />
-                    Maximum Pax
+                    Maximum Pax <span className="text-rose-500 ml-1">*</span>
                 </label>
                 <input
                     type="text"
@@ -271,7 +271,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
 
             <div className="justify-between items-center">
                 <label className="text-sm font-medium mb-1 w-[40vw]">
-                    <strong>TYPE</strong>
+                    <strong>TYPE</strong> <span className="text-rose-500 ml-1">*</span>
                 </label>
                 <div className="flex flex-wrap gap-2 w-100 mt-2">
                     {spaceTypes.map((t) => (

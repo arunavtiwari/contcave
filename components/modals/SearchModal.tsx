@@ -6,9 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import qs from "query-string";
 import { Suspense, useCallback, useMemo, useState } from "react";
 
-import Heading from "@/components/Heading";
 import Calendar from "@/components/inputs/Calendar";
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
+import Heading from "@/components/ui/Heading";
 import useSearchModal from "@/hook/useSearchModal";
 
 import Modal from "./Modal";

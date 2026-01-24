@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import React from "react";
 
-import Heading from "./Heading";
+import Heading from "./ui/Heading";
 
 type Props = {
   title?: string;

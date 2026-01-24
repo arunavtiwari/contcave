@@ -2,10 +2,10 @@
 
 import Ably from "ably";
 import Image from "next/image";
-import { FC, useEffect,useState } from "react";
+import { FC, useEffect, useState } from "react";
 
-import Heading from "@/components/Heading";
 import Loader from "@/components/Loader";
+import Heading from "@/components/ui/Heading";
 import { SafeUser } from "@/types/user";
 
 export const dynamic = "force-dynamic";

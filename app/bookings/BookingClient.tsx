@@ -6,9 +6,9 @@ import React, { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 
 import Container from "@/components/Container";
-import Heading from "@/components/Heading";
 import BookingCard from "@/components/listing/BookingCard";
 import Modal from "@/components/modals/Modal";
+import Heading from "@/components/ui/Heading";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
 export const dynamic = "force-dynamic";

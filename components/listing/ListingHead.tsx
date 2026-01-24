@@ -8,9 +8,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import Slider, { Settings } from "react-slick";
 
-import Heading from "@/components/Heading";
 import HeartButton from "@/components/HeartButton";
 import Modal from "@/components/modals/Modal";
+import Heading from "@/components/ui/Heading";
 import useCities from "@/hook/useCities";
 import { SafeUser } from "@/types/user";
 
