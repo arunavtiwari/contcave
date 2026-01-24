@@ -79,6 +79,10 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       }
     }
 
+    if (listingData.unifiedSetPrice !== undefined) {
+      listingData.unifiedSetPrice = listingData.unifiedSetPrice !== null ? Math.round(Number(listingData.unifiedSetPrice)) : null;
+    }
+
 
 
     if (Object.keys(listingData).length > 0) {

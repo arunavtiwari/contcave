@@ -115,7 +115,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     }));
 
     const [setsHaveSamePrice, setSetsHaveSamePrice] = useState<boolean | null>(initialListing.setsHaveSamePrice ?? null);
-    const [unifiedSetPrice, setUnifiedSetPrice] = useState<number | null>(null);
+    const [unifiedSetPrice, setUnifiedSetPrice] = useState<number | null>(initialListing.unifiedSetPrice ?? null);
 
     useEffect(() => {
         window.scrollTo({ top: 0 });
@@ -168,6 +168,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             packages: packagesWithData,
             hasSets: initialListing.hasSets,
             setsHaveSamePrice: setsHaveSamePrice ?? initialListing.setsHaveSamePrice ?? false,
+            unifiedSetPrice: setsHaveSamePrice ? Number(unifiedSetPrice) : null,
             additionalSetPricingType: initialListing.hasSets ? initialListing.additionalSetPricingType : null,
 
             sets: initialListing.hasSets ? (initialListing.sets ?? []).map((s, i) => ({

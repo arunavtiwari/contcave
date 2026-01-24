@@ -39,6 +39,7 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
     user: SafeUser;
     hasSets?: boolean;
     setsHaveSamePrice?: boolean;
+    unifiedSetPrice?: number | null;
     additionalSetPricingType?: AdditionalSetPricingType | null;
 
     sets?: ListingSet[];

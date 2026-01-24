@@ -464,6 +464,7 @@ export default function RentModal() {
       terms,
       hasSets,
       setsHaveSamePrice: Boolean(setsHaveSamePrice),
+      unifiedSetPrice: setsHaveSamePrice ? Number(unifiedSetPrice) : null,
       additionalSetPricingType: hasSets ? additionalSetPricingType : null,
 
       sets: hasSets ? sets.map((s, i) => ({

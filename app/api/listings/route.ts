@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       price, amenities, otherAmenities, addons, carpetArea, operationalDays,
       operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
       verifications, terms, packages,
-      hasSets, setsHaveSamePrice, additionalSetPricingType, sets,
+      hasSets, setsHaveSamePrice, unifiedSetPrice, additionalSetPricingType, sets,
     } = body;
 
     if (!title || typeof title !== "string") {
@@ -205,6 +205,7 @@ export async function POST(request: Request) {
         active: false,
         hasSets: Boolean(hasSets),
         setsHaveSamePrice: Boolean(setsHaveSamePrice),
+        unifiedSetPrice: setsHaveSamePrice ? Math.round(Number(unifiedSetPrice)) : null,
         additionalSetPricingType: sanitizedPricingType,
 
       },
