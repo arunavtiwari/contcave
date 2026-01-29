@@ -443,7 +443,7 @@ const VerificationModal: React.FC<Props> = ({
                   >
                     {stepItem.title}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">{stepItem.description}</p>
+                  {/* <p className="text-xs text-gray-400 mt-0.5">{stepItem.description}</p> */}
                 </div>
               </div>
               {index < steps.length - 1 && (
