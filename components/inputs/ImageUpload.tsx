@@ -160,6 +160,7 @@ function ImageUpload({
         multiple
         onChange={handleUpload}
         className="hidden"
+        style={{ display: "none" }}
         accept={allowedTypes.join(",")}
       />
     </label>

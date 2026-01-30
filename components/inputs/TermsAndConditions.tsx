@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import React, { ChangeEvent,forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import React, { ChangeEvent, forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
 export type TermsRef = { generateAndUploadPdf: (folderOverride?: string) => Promise<{ url: string; pdfUrl: string }> };
 
@@ -162,9 +162,9 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
 
     return (
         <div className=" flex justify-center items-center">
-            <div className="bg-white w-full max-w-xl mx-auto rounded-lg overflow-auto" style={{ maxHeight: '90vh' }}>
+            <div className="bg-white w-full max-w-xl mx-auto rounded-lg">
                 <div className="px-4">
-                    <div ref={containerRef} className="my-4 text-sm overflow-auto scrollbar-thin" style={{ maxHeight: '65vh' }}>
+                    <div ref={containerRef} className="my-4 text-sm">
                         <p>
                             This Agreement (“Agreement”) is entered into between <strong>Arkanet Ventures LLP</strong> (hereinafter referred to as "Company") and the individual or entity (“Host”) who wishes to list their property (“Property”) on the Company’s platform, ContCave (“Platform”).
                             By listing the Property, Host agrees to comply with the terms and conditions outlined below.
@@ -198,15 +198,19 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                         <div className="mb-3">
                             <div className="font-semibold text-sm mb-1">Host Signature</div>
                             {!signature ? (
-                                <input
-                                    type="file"
-                                    accept="image/png,image/jpeg,image/webp"
-                                    onChange={(e) => {
-                                        const f = e.target.files?.[0];
-                                        if (f) handleSignatureFile(f);
-                                    }}
-                                    className="text-sm"
-                                />
+                                <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition">
+                                    <span>Upload Signature Image</span>
+                                    <input
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/webp"
+                                        onChange={(e) => {
+                                            const f = e.target.files?.[0];
+                                            if (f) handleSignatureFile(f);
+                                        }}
+                                        className="hidden"
+                                        style={{ display: "none" }}
+                                    />
+                                </label>
                             ) : (
                                 <div className="flex items-center gap-3">
                                     <Image

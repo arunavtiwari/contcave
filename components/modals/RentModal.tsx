@@ -902,8 +902,10 @@ export default function RentModal() {
       bodyContent = (
         <div className="flex flex-col gap-4">
           <Heading title="Add-ons" subtitle="Additional chargeable facilities" variant="h3" />
-          <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons} onSelectedAddonsChange={handleAddonChange} rentModal />
-          <CustomAddonModal save={(v: unknown) => setAddons([...addons, v as Addon])} />
+          <div className="flex flex-col items-center w-full gap-4">
+            <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons} onSelectedAddonsChange={handleAddonChange} rentModal />
+            <CustomAddonModal save={(v: unknown) => setAddons([...addons, v as Addon])} />
+          </div>
         </div>
       );
       break;

@@ -5,10 +5,10 @@ import axios from "axios";
 import Image from "next/image";
 import { SessionProvider, signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FaBolt } from "react-icons/fa";
 import { MdClose, MdOutlineCurrencyRupee } from "react-icons/md";
-import ReactSwitch from "react-switch";
 import { toast } from "react-toastify";
+
+import Switch from "@/components/ui/Switch";
 
 import Calendar from "@/components/Calendar";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
@@ -548,18 +548,10 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Instant Book</label>
                             <div className="w-full flex items-center">
-                                <ReactSwitch
+                                <Switch
                                     checked={Boolean(initialListing.instantBooking)}
                                     onChange={(checked) => handleInputChange("instantBooking", checked)}
-                                    offColor="#d1d5db"
-                                    onColor="#000"
-                                    uncheckedIcon={false}
-                                    offHandleColor="#000"
-                                    activeBoxShadow="0 0 2px 3px #000"
-                                    checkedIcon={false}
-                                    height={30}
-                                    handleDiameter={20}
-                                    checkedHandleIcon={<FaBolt color="#FFD700" className="w-full h-full py-[2px]" />}
+                                    variant="bolt"
                                 />
                             </div>
                         </div>
@@ -576,17 +568,9 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     </p>
                                 </label>
                                 <div className="w-full flex items-center">
-                                    <ReactSwitch
+                                    <Switch
                                         checked={Boolean(initialListing.hasSets)}
                                         onChange={(checked) => handleInputChange("hasSets", checked)}
-                                        offColor="#d1d5db"
-                                        onColor="#000"
-                                        uncheckedIcon={false}
-                                        offHandleColor="#000"
-                                        activeBoxShadow="0 0 2px 3px #000"
-                                        checkedIcon={false}
-                                        height={30}
-                                        handleDiameter={20}
                                     />
                                 </div>
                             </div>

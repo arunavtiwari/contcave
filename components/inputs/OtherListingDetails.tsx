@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FaBolt } from "react-icons/fa";
 import Select, { Theme } from "react-select";
-import ReactSwitch from "react-switch";
+
+import Switch from "@/components/ui/Switch";
 
 import { spaceTypes } from "@/constants/spaceTypes";
 
@@ -225,18 +225,10 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
                     <br />
                     Instant Book
                 </label>
-                <ReactSwitch
+                <Switch
                     checked={details.instantBooking}
                     onChange={(checked) => handleInputChange("instantBooking", !!checked)}
-                    offColor="#d1d5db"
-                    onColor="#000"
-                    uncheckedIcon={false}
-                    offHandleColor="#000"
-                    activeBoxShadow="0 0 2px 3px #000"
-                    checkedIcon={false}
-                    height={30}
-                    handleDiameter={20}
-                    checkedHandleIcon={<FaBolt color="#FFD700" className="w-full h-full py-[2px]" />}
+                    variant="bolt"
                 />
             </div>
 
@@ -248,17 +240,9 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
                     <br />
                     Enable multiple bookable sets
                 </label>
-                <ReactSwitch
+                <Switch
                     checked={details.hasSets}
                     onChange={(checked) => handleInputChange("hasSets", !!checked)}
-                    offColor="#d1d5db"
-                    onColor="#000"
-                    uncheckedIcon={false}
-                    offHandleColor="#000"
-                    activeBoxShadow="0 0 2px 3px #000"
-                    checkedIcon={false}
-                    height={30}
-                    handleDiameter={20}
                 />
             </div>
             {details.hasSets && (
@@ -270,10 +254,10 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
             <hr />
 
             <div className="justify-between items-center">
-                <label className="text-sm font-medium mb-1 w-[40vw]">
+                <label className="text-sm font-medium mb-1">
                     <strong>TYPE</strong> <span className="text-rose-500 ml-1">*</span>
                 </label>
-                <div className="flex flex-wrap gap-2 w-100 mt-2">
+                <div className="flex flex-wrap gap-2 mt-2">
                     {spaceTypes.map((t) => (
                         <button
                             key={t}
