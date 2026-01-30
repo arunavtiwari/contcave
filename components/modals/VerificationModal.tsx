@@ -2,11 +2,12 @@
 
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
-import { FaCheckCircle, FaExclamationCircle, FaShieldAlt, FaSpinner } from "react-icons/fa";
+import { FaCheckCircle, FaExclamationCircle, FaShieldAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import { FieldErrors } from "react-hook-form";
 import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 import Modal from "@/components/modals/Modal";
 import { SafeUser } from "@/types/user";
@@ -146,7 +147,6 @@ const VerificationModal: React.FC<Props> = ({
     }
   }, [isOpen, currentUser]);
 
-  // --- Email verification ---
   const verifyEmail = async () => {
     if (!emailState.value) {
       setErrors({ email: "Email is required" });
@@ -165,24 +165,28 @@ const VerificationModal: React.FC<Props> = ({
       const resp = await axios.post("/api/verify_email", {
         email: emailState.value,
       });
-      const deliverable =
-        resp.data?.data?.result?.valid &&
-        resp.data?.data?.result?.result === "deliverable";
 
-      if (deliverable) {
-        const updated = await axios.patch("/api/user/verify", { step: "email" });
-        setUserState(updated.data);
-        setEmailState((s) => ({ ...s, verified: true, checking: false }));
-        toast.success("Email verified successfully");
-      } else {
+      const verificationResult = resp.data?.data?.result;
+
+      if (verificationResult === "undeliverable") {
         setEmailState((s) => ({ ...s, verified: false, checking: false }));
         setErrors({ email: "Email address is not deliverable" });
-        toast.error("Email verification failed");
+        toast.error("Email address is not deliverable");
+        return;
       }
+
+      const updated = await axios.patch("/api/user/verify", { step: "email" });
+      setUserState(updated.data);
+      setEmailState((s) => ({ ...s, verified: true, checking: false }));
+      toast.success("Email verified successfully");
     } catch (err: unknown) {
       console.error("Email verification error:", err);
       setEmailState((s) => ({ ...s, verified: false, checking: false }));
-      const errorMsg = axios.isAxiosError(err) ? err.response?.data?.message : "Email verification failed";
+
+      const errorMsg = axios.isAxiosError(err)
+        ? err.response?.data?.message
+        : "Email verification failed";
+
       setErrors({ email: errorMsg || "Email verification failed" });
       toast.error(errorMsg || "Email verification failed");
     }
@@ -424,24 +428,38 @@ const VerificationModal: React.FC<Props> = ({
 
   // Step Progress Indicator
   const renderStepProgress = () => (
-    <div className="mb-8 px-2">
-      <div className="flex items-center justify-between relative">
-        {/* Progress Bar Background */}
-        <div className="absolute left-0 top-5 w-full h-0.5 bg-gray-200 -z-10" />
-
+    <div className="mb-8 px-4">
+      <div className="flex items-start w-full">
         {steps.map((stepItem, index) => {
           const isActive = step === stepItem.id;
           const isCompleted = step > stepItem.id;
           const stepNumber = index + 1;
 
           return (
-            <div key={stepItem.id} className="flex flex-col items-center flex-1">
+            <div key={stepItem.id} className="flex-1 flex flex-col items-center relative">
+              {/* Left Connector */}
+              {index > 0 && (
+                <div
+                  className={`absolute top-5 left-0 w-[50%] h-[2px] -translate-y-1/2 transition-colors duration-300 ${step >= stepItem.id ? "bg-black" : "bg-gray-200"
+                    }`}
+                />
+              )}
+
+              {/* Right Connector */}
+              {index < steps.length - 1 && (
+                <div
+                  className={`absolute top-5 right-0 w-[50%] h-[2px] -translate-y-1/2 transition-colors duration-300 ${step > stepItem.id ? "bg-black" : "bg-gray-200"
+                    }`}
+                />
+              )}
+
+              {/* Step Circle */}
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all border-2 z-10 bg-white ${isCompleted
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all border-2 relative z-10 ${isCompleted
                   ? "border-black bg-black text-white"
                   : isActive
-                    ? "border-black text-black ring-4 ring-gray-100"
-                    : "border-gray-300 text-gray-400"
+                    ? "border-black text-black ring-4 ring-gray-100 bg-white"
+                    : "border-gray-200 text-gray-400 bg-white"
                   }`}
               >
                 {isCompleted ? (
@@ -450,9 +468,9 @@ const VerificationModal: React.FC<Props> = ({
                   stepNumber
                 )}
               </div>
-              <div className="mt-2 text-center">
+              <div className="mt-3 text-center px-1">
                 <p
-                  className={`text-xs font-medium ${isActive ? "text-black" : isCompleted ? "text-black" : "text-gray-400"
+                  className={`text-xs font-semibold uppercase tracking-wider ${isActive || isCompleted ? "text-black" : "text-gray-400"
                     }`}
                 >
                   {stepItem.title}
@@ -474,13 +492,16 @@ const VerificationModal: React.FC<Props> = ({
             <p className="text-sm text-gray-600">Verify your email and phone number to continue</p>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-6">
+            {/* Email Field */}
             <div>
-              <div className="flex gap-3">
+              <label className="block text-sm font-medium mb-1 text-gray-700">
+                Email Address <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex gap-3 items-start">
                 <div className="flex-1">
                   <Input
                     id="email"
-                    label="Email Address"
                     type="email"
                     value={emailState.value}
                     onChange={(e) => {
@@ -494,37 +515,31 @@ const VerificationModal: React.FC<Props> = ({
                     className={`${emailState.verified ? "border-green-500 bg-green-50 text-green-700" : ""}`}
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={verifyEmail}
-                  disabled={emailState.checking || emailState.verified || !emailState.value}
-                  className={`px-6 h-[70px] rounded-lg font-medium transition-all whitespace-nowrap min-w-[120px] flex justify-center items-center mt-px ${emailState.verified
-                    ? "bg-green-100 text-green-700 border border-green-200 cursor-default"
-                    : emailState.checking
-                      ? "bg-neutral-100 text-neutral-500 cursor-wait"
-                      : "bg-black text-white hover:opacity-90 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
-                    }`}
-                >
-                  {emailState.checking ? (
-                    <FaSpinner className="w-4 h-4 animate-spin" />
-                  ) : emailState.verified ? (
-                    <span className="flex items-center gap-2">
-                      <FaCheckCircle className="w-4 h-4" />
-                      Verified
-                    </span>
-                  ) : (
-                    "Verify"
-                  )}
-                </button>
+                <div className="min-w-[160px]">
+                  <Button
+                    label={emailState.verified ? "Verified" : "Verify"}
+                    onClick={verifyEmail}
+                    disabled={emailState.checking || emailState.verified || !emailState.value}
+                    loading={emailState.checking}
+                    icon={emailState.verified ? FaCheckCircle : undefined}
+                    classNames={`h-[48px] ${emailState.verified
+                      ? "bg-green-100 text-green-700 border-green-200 disabled:opacity-100"
+                      : "bg-black text-white disabled:bg-neutral-200 disabled:text-neutral-400 disabled:opacity-100"
+                      }`}
+                  />
+                </div>
               </div>
             </div>
 
+            {/* Phone Field */}
             <div>
-              <div className="flex gap-3 items-end">
+              <label className="block text-sm font-medium mb-1 text-gray-700">
+                Phone Number <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex gap-3 items-start">
                 <div className="flex-1">
                   <Input
                     id="phone"
-                    label="Phone Number"
                     type="tel"
                     value={phoneState.phoneValue}
                     onChange={(e) => {
@@ -546,28 +561,19 @@ const VerificationModal: React.FC<Props> = ({
                     className={`${phoneState.verified ? "border-green-500 bg-green-50 text-green-700" : ""}`}
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={verifyPhone}
-                  disabled={phoneState.checking || phoneState.verified || !phoneState.phoneValue}
-                  className={`px-6 h-[48px] rounded-lg font-medium transition-all whitespace-nowrap min-w-[120px] flex justify-center items-center mb-px ${phoneState.verified
-                    ? "bg-green-100 text-green-700 border border-green-200 cursor-default"
-                    : phoneState.checking
-                      ? "bg-neutral-100 text-neutral-500 cursor-wait"
-                      : "bg-black text-white hover:opacity-90 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
-                    }`}
-                >
-                  {phoneState.checking ? (
-                    <FaSpinner className="w-4 h-4 animate-spin" />
-                  ) : phoneState.verified ? (
-                    <span className="flex items-center gap-2">
-                      <FaCheckCircle className="w-4 h-4" />
-                      Verified
-                    </span>
-                  ) : (
-                    "Verify"
-                  )}
-                </button>
+                <div className="min-w-[160px]">
+                  <Button
+                    label={phoneState.verified ? "Verified" : "Verify"}
+                    onClick={verifyPhone}
+                    disabled={phoneState.checking || phoneState.verified || !phoneState.phoneValue}
+                    loading={phoneState.checking}
+                    icon={phoneState.verified ? FaCheckCircle : undefined}
+                    classNames={`h-[48px] ${phoneState.verified
+                      ? "bg-green-100 text-green-700 border-green-200 disabled:opacity-100"
+                      : "bg-black text-white disabled:bg-neutral-200 disabled:text-neutral-400 disabled:opacity-100"
+                      }`}
+                  />
+                </div>
               </div>
             </div>
           </div>
