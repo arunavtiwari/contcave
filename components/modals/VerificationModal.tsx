@@ -279,15 +279,17 @@ const VerificationModal: React.FC<Props> = ({
               aadhaarNumber: cleanedAadhaar,
             });
 
-            if (resp.data.status === "SUCCESS") {
-              setAadhaarState((s) => ({ ...s, refId: resp.data.ref_id }));
+            if (resp.data.success) {
+              setAadhaarState((s) => ({ ...s, refId: resp.data.data.ref_id }));
               toast.success("OTP sent to Aadhaar-linked mobile number");
             } else {
-              setErrors({ aadhaar: resp.data.message || "Failed to send OTP" });
-              toast.error(resp.data.message || "Failed to send OTP");
+              setErrors({ aadhaar: resp.data.error || "Failed to send OTP" });
+              toast.error(resp.data.error || "Failed to send OTP");
             }
           } catch (err: unknown) {
-            const errorMsg = axios.isAxiosError(err) ? err.response?.data?.message : "Failed to send OTP";
+            const errorMsg = axios.isAxiosError(err)
+              ? (err.response?.data?.error || err.response?.data?.message)
+              : "Failed to send OTP";
             setErrors({ aadhaar: errorMsg || "Failed to send OTP" });
             toast.error(errorMsg || "Failed to send OTP");
           }
@@ -308,7 +310,7 @@ const VerificationModal: React.FC<Props> = ({
             otp: aadhaarState.otp,
           });
 
-          if (verifyResp.data.status === "VALID") {
+          if (verifyResp.data.success) {
             const updated = await axios.patch("/api/user/verify", {
               step: "aadhaar",
               aadhaarRefId: aadhaarState.refId,
@@ -319,12 +321,14 @@ const VerificationModal: React.FC<Props> = ({
             toast.success("Aadhaar verified successfully");
             setStep(3);
           } else {
-            const errorMsg = verifyResp.data.error?.message || verifyResp.data.message || "Verification failed";
+            const errorMsg = verifyResp.data.error || "Verification failed";
             setErrors({ otp: errorMsg });
             toast.error(errorMsg);
           }
         } catch (err: unknown) {
-          const errorMsg = axios.isAxiosError(err) ? err.response?.data?.message : "Verification failed";
+          const errorMsg = axios.isAxiosError(err)
+            ? (err.response?.data?.error || err.response?.data?.message)
+            : "Verification failed";
           setErrors({ otp: errorMsg || "Verification failed" });
           toast.error(errorMsg || "Verification failed");
         }

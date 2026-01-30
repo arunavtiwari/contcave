@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       return createSuccessResponse(resp.data, resp.status);
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      
+
       // Check for proxy-specific errors
       const proxyErrorInfo = handleProxyError(fetchError, "generate_otp");
       if (proxyErrorInfo.isProxyError) {
@@ -82,9 +82,26 @@ export async function POST(req: NextRequest) {
       if (axios.isAxiosError(fetchError)) {
         const status = fetchError.response?.status || 500;
         const errorData = fetchError.response?.data || fetchError.message;
-        
+
+        console.error(`[Aadhaar OTP] Upstream Error (${status}):`, JSON.stringify(errorData));
+
         if (status === 401 || status === 403) {
-          return createErrorResponse("Verification service authentication failed", 500);
+          // Detailed error for debugging configuration issues (IP Whitelist vs Credentials)
+          return createErrorResponse(
+            `Verification service access denied. Check API credentials or IP Whitelist. Upstream: ${JSON.stringify(errorData)}`,
+            500 // Keeping 500 to indicate server-side config/network failure to the client
+          );
+        }
+
+        if (status === 409) {
+          // Handle "verification_pending" (OTP already generated)
+          const errorObj = typeof errorData === 'string' ? JSON.parse(errorData) : errorData;
+          if (errorObj?.code === 'verification_pending') {
+            return createErrorResponse(
+              "OTP already generated. Please enter the OTP you received or wait before retrying.",
+              409
+            );
+          }
         }
 
         return createErrorResponse(

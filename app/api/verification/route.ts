@@ -6,11 +6,11 @@ import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/
 import { getFixieProxyAgent, handleProxyError } from "@/lib/fixie-proxy";
 
 function validateOTP(otp: string): boolean {
-  return /^\d{6}$/.test(otp);
+    return /^\d{6}$/.test(otp);
 }
 
 function validateRefId(refId: string): boolean {
-  return typeof refId === "string" && refId.trim().length > 0 && refId.length <= 100;
+    return typeof refId === "string" && refId.trim().length > 0 && refId.length <= 100;
 }
 
 export async function POST(req: NextRequest) {
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
             return createSuccessResponse(resp.data, resp.status);
         } catch (fetchError) {
             clearTimeout(timeoutId);
-            
+
             // Check for proxy-specific errors
             const proxyErrorInfo = handleProxyError(fetchError, "verification");
             if (proxyErrorInfo.isProxyError) {
@@ -94,9 +94,14 @@ export async function POST(req: NextRequest) {
             if (axios.isAxiosError(fetchError)) {
                 const status = fetchError.response?.status || 500;
                 const errorData = fetchError.response?.data || fetchError.message;
-                
+
+                console.error(`[Aadhaar Verify] Upstream Error (${status}):`, JSON.stringify(errorData));
+
                 if (status === 401 || status === 403) {
-                    return createErrorResponse("Verification service authentication failed", 500);
+                    return createErrorResponse(
+                        `Verification service access denied. Check API credentials or IP Whitelist. Upstream: ${JSON.stringify(errorData)}`,
+                        500
+                    );
                 }
 
                 if (status === 400) {

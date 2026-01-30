@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { getFixieProxyAgent } from "@/lib/fixie-proxy";
 
 function validateEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -43,6 +44,9 @@ export async function POST(request: NextRequest) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000);
 
+        // Get reusable proxy agent
+        const httpsAgent = getFixieProxyAgent();
+
         try {
             const response = await axios.post(
                 "https://control.msg91.com/api/v5/email/validate",
@@ -53,6 +57,7 @@ export async function POST(request: NextRequest) {
                         authkey: authKey,
                         "Content-Type": "application/json",
                     },
+                    httpsAgent,
                     signal: controller.signal,
                     timeout: 30000,
                 }
@@ -65,6 +70,13 @@ export async function POST(request: NextRequest) {
             if (axios.isAxiosError(fetchError)) {
                 const status = fetchError.response?.status || 500;
                 const errorData = fetchError.response?.data || fetchError.message;
+
+                console.error(`[MSG91 Vendor Email] Upstream Error (${status}):`, JSON.stringify(errorData));
+
+                if (status === 401 || status === 403) {
+                    return createErrorResponse(`Email verification service auth failed. check MSG91_AUTH_KEY or IP Whitelist. Upstream: ${JSON.stringify(errorData)}`, 500);
+                }
+
                 return createErrorResponse(
                     typeof errorData === "object" ? JSON.stringify(errorData) : String(errorData),
                     status

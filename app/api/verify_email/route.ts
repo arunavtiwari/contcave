@@ -1,6 +1,8 @@
+import axios from "axios";
 import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { getFixieProxyAgent } from "@/lib/fixie-proxy";
 
 function validateEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -36,39 +38,50 @@ export async function POST(req: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    let resp: Response;
+    const httpsAgent = getFixieProxyAgent();
+
     try {
-      resp = await fetch("https://control.msg91.com/api/v5/email/validate", {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          authkey: authKey,
-        },
-        body: JSON.stringify({ email: trimmedEmail }),
-        signal: controller.signal,
-      });
+      const resp = await axios.post(
+        "https://control.msg91.com/api/v5/email/validate",
+        { email: trimmedEmail },
+        {
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+            authkey: authKey,
+          },
+          httpsAgent,
+          signal: controller.signal,
+          timeout: 30000,
+        }
+      );
+
+      clearTimeout(timeoutId);
+      return createSuccessResponse(resp.data);
     } catch (fetchError) {
       clearTimeout(timeoutId);
+
+      if (axios.isAxiosError(fetchError)) {
+        const status = fetchError.response?.status || 500;
+        const errorData = fetchError.response?.data || fetchError.message;
+
+        console.error(`[MSG91 Email Verify] Upstream Error (${status}):`, JSON.stringify(errorData));
+
+        if (status === 401 || status === 403) {
+          return createErrorResponse(`Email verification service auth failed. check MSG91_AUTH_KEY or IP Whitelist. Upstream: ${JSON.stringify(errorData)}`, 500);
+        }
+
+        return createErrorResponse(
+          typeof errorData === "object" ? JSON.stringify(errorData) : String(errorData),
+          status
+        );
+      }
+
       if (fetchError instanceof Error && fetchError.name === "AbortError") {
         return createErrorResponse("Request timeout", 408);
       }
       throw new Error(`Network error: ${fetchError instanceof Error ? fetchError.message : "Unknown error"}`);
-    } finally {
-      clearTimeout(timeoutId);
     }
-
-    if (!resp.ok) {
-      const errorText = await resp.text().catch(() => "Unknown error");
-      return createErrorResponse(
-        `Email validation service error: ${errorText}`,
-        resp.status
-      );
-    }
-
-    const data = await resp.json().catch(() => ({}));
-
-    return createSuccessResponse(data);
   } catch (err) {
     return handleRouteError(err, "POST /api/verify_email");
   }

@@ -105,9 +105,18 @@ export async function POST(req: NextRequest) {
         const errorData = fetchError.response?.data || fetchError.message;
 
         if (status === 401 || status === 403) {
+          console.error(`[Cashfree Vendor] Auth Error (${status}):`, JSON.stringify(errorData));
           return createErrorResponse(
-            `Cashfree authentication failed. Please verify credentials for ${cfEnv()} environment.`,
+            `Cashfree authentication failed (IP/Creds). Upstream: ${JSON.stringify(errorData)}`,
             500
+          );
+        }
+
+        if (status === 409) {
+          // Vendor likely already exists
+          return createErrorResponse(
+            typeof errorData === "object" ? (errorData as any).message || "Vendor already exists" : String(errorData),
+            409
           );
         }
 

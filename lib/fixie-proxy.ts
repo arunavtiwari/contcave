@@ -25,11 +25,11 @@ function validateFixieUrl(url: string): boolean {
 }
 
 export function getFixieProxyAgent(): Agent | undefined {
-    const fixieUrl = process.env.FIXIE_URL;
+    const fixieUrl = process.env.PROXY_URL;
 
     if (!fixieUrl) {
         if (process.env.NODE_ENV === "development") {
-            console.warn("[Fixie Proxy] FIXIE_URL not set, requests will not use proxy");
+            console.warn("[Fixie Proxy] PROXY_URL not set, requests will not use proxy");
         }
         return undefined;
     }
@@ -38,11 +38,11 @@ export function getFixieProxyAgent(): Agent | undefined {
         const now = Date.now();
         if (now - lastProxyCheck > PROXY_CHECK_INTERVAL) {
             console.error(
-                "[Fixie Proxy] Invalid FIXIE_URL format. Expected: http(s)://fixie:token@host:port"
+                "[Fixie Proxy] Invalid PROXY_URL format. Expected: http(s)://user:pass@host:port"
             );
             lastProxyCheck = now;
         }
-        proxyAgentError = new Error("Invalid FIXIE_URL format");
+        proxyAgentError = new Error("Invalid PROXY_URL format");
         return undefined;
     }
 
@@ -82,7 +82,7 @@ export function getFixieProxyAgent(): Agent | undefined {
 }
 
 export function isProxyAvailable(): boolean {
-    return !!process.env.FIXIE_URL && !!getFixieProxyAgent();
+    return !!process.env.PROXY_URL && !!getFixieProxyAgent();
 }
 
 export function resetProxyAgent(): void {

@@ -57,8 +57,12 @@ function OwnerRegisterModal() {
                     toastId: "Owner_Login_Error"
                 });
             }
-        } catch (_error) {
-            toast.error("Something went wrong during registration.", {
+        } catch (err: unknown) {
+            let errorMsg = "Something went wrong during registration.";
+            if (axios.isAxiosError(err)) {
+                errorMsg = err.response?.data?.error || err.response?.data || errorMsg;
+            }
+            toast.error(errorMsg, {
                 toastId: "Owner_Error_1"
             });
         } finally {
