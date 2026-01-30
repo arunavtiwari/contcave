@@ -11,4 +11,5 @@ export type SafeUser = Omit<
     googleCalendarConnected: boolean;
     markedForDeletion: boolean;
     markedForDeletionAt: string | null;
+    aadhaar_last4: string | null;
 };

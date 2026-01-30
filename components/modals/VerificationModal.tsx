@@ -73,8 +73,8 @@ const VerificationModal: React.FC<Props> = ({
 
   // Aadhaar
   const [aadhaarState, setAadhaarState] = useState({
-    aadhaarNumber: (currentUser as unknown as Record<string, unknown>)?.aadhaar_last4
-      ? "********" + (currentUser as unknown as Record<string, unknown>)?.aadhaar_last4
+    aadhaarNumber: currentUser?.aadhaar_last4
+      ? "********" + currentUser.aadhaar_last4
       : "",
     refId: null as string | number | null,
     otp: "",
@@ -116,8 +116,8 @@ const VerificationModal: React.FC<Props> = ({
         checking: false,
       });
       setAadhaarState({
-        aadhaarNumber: (currentUser as unknown as Record<string, unknown>)?.aadhaar_last4
-          ? "********" + (currentUser as unknown as Record<string, unknown>)?.aadhaar_last4
+        aadhaarNumber: currentUser?.aadhaar_last4
+          ? "********" + currentUser.aadhaar_last4
           : "",
         refId: null,
         otp: "",
@@ -297,6 +297,7 @@ const VerificationModal: React.FC<Props> = ({
             const updated = await axios.patch("/api/user/verify", {
               step: "aadhaar",
               aadhaarRefId: aadhaarState.refId,
+              aadhaarLast4: aadhaarState.aadhaarNumber.slice(-4),
             });
             setUserState(updated.data);
             setAadhaarState((s) => ({ ...s, verified: true }));

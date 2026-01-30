@@ -45,6 +45,7 @@ export default async function getCurrentUser() {
       markedForDeletionAt: currentUser.markedForDeletionAt?.toISOString() || null,
       markedForDeletion: Boolean(currentUser.markedForDeletion),
       verified_at: currentUser.verified_at?.toISOString() || null,
+      aadhaar_last4: currentUser.aadhaar_last4,
     };
   } catch (error) {
     console.error('[getCurrentUser] Error:', error instanceof Error ? error.message : 'Unknown error');

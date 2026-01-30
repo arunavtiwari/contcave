@@ -78,6 +78,7 @@ model User {
   email_verified     Boolean   @default(false)
   verified_via       String[]  @default([]) // ["aadhaar_okyc", "phone_otp"]
   verified_at        DateTime?
+  aadhaar_last4      String?
 }
 
 model Account {

@@ -29,7 +29,8 @@ export async function PATCH(request: Request) {
       ifscCode,
       gstin,
       companyName,
-      bankName
+      bankName,
+      aadhaarLast4
     } = body;
 
     if (!step || typeof step !== "string") {
@@ -67,6 +68,9 @@ export async function PATCH(request: Request) {
       updates.aadhaar_verified = true;
       updates.aadhaar_ref_id = aadhaarRefId.trim();
       updates.verified_via = { push: "aadhaar_okyc" };
+      if (aadhaarLast4 && typeof aadhaarLast4 === "string") {
+        updates.aadhaar_last4 = aadhaarLast4;
+      }
     }
 
     if (step === "bank") {
@@ -176,7 +180,21 @@ export async function PATCH(request: Request) {
       }
     }
 
-    updates.verification_stage = { increment: 1 };
+    const currentStage = currentUser.verification_stage || 0;
+
+    if (step === "email" || step === "phone") {
+      if (currentStage < 1) {
+        updates.verification_stage = 1;
+      }
+    } else if (step === "aadhaar") {
+      if (currentStage < 2) {
+        updates.verification_stage = 2;
+      }
+    } else if (step === "bank") {
+      if (currentStage < 3) {
+        updates.verification_stage = 3;
+      }
+    }
 
     const updated = await prisma.user.update({
       where: { id: currentUser.id },
@@ -189,6 +207,7 @@ export async function PATCH(request: Request) {
         bank_verified: true,
         is_verified: true,
         verification_stage: true,
+        aadhaar_last4: true,
       },
     });
 
