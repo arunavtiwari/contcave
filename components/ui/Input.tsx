@@ -53,7 +53,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         type={type}
                         className={`
               w-full
-              p-3
+              px-4
+              py-2.5
               font-light 
               bg-white 
               border-2

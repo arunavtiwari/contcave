@@ -5,6 +5,9 @@ import React, { useCallback, useEffect, useState } from "react";
 import { FaCheckCircle, FaExclamationCircle, FaShieldAlt, FaSpinner } from "react-icons/fa";
 import { toast } from "react-toastify";
 
+import { FieldErrors } from "react-hook-form";
+import Input from "@/components/ui/Input";
+
 import Modal from "@/components/modals/Modal";
 import { SafeUser } from "@/types/user";
 
@@ -55,6 +58,14 @@ const VerificationModal: React.FC<Props> = ({
   const [step, setStep] = useState(getInitialStep(currentUser));
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Helper to convert simple errors to FieldErrors for Input component
+  const fieldErrors: FieldErrors = Object.keys(errors).reduce((acc, key) => {
+    return {
+      ...acc,
+      [key]: { type: 'manual', message: errors[key] }
+    };
+  }, {});
 
   // Phone
   const [phoneState, setPhoneState] = useState({
@@ -413,47 +424,41 @@ const VerificationModal: React.FC<Props> = ({
 
   // Step Progress Indicator
   const renderStepProgress = () => (
-    <div className="mb-8">
-      <div className="flex items-center justify-between">
+    <div className="mb-8 px-2">
+      <div className="flex items-center justify-between relative">
+        {/* Progress Bar Background */}
+        <div className="absolute left-0 top-5 w-full h-0.5 bg-gray-200 -z-10" />
+
         {steps.map((stepItem, index) => {
           const isActive = step === stepItem.id;
           const isCompleted = step > stepItem.id;
           const stepNumber = index + 1;
 
           return (
-            <React.Fragment key={stepItem.id}>
-              <div className="flex flex-col items-center flex-1">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all ${isCompleted
-                    ? "bg-green-500 text-white"
-                    : isActive
-                      ? "bg-blue-600 text-white ring-4 ring-blue-100"
-                      : "bg-gray-200 text-gray-500"
+            <div key={stepItem.id} className="flex flex-col items-center flex-1">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all border-2 z-10 bg-white ${isCompleted
+                  ? "border-black bg-black text-white"
+                  : isActive
+                    ? "border-black text-black ring-4 ring-gray-100"
+                    : "border-gray-300 text-gray-400"
+                  }`}
+              >
+                {isCompleted ? (
+                  <FaCheckCircle className="w-5 h-5" />
+                ) : (
+                  stepNumber
+                )}
+              </div>
+              <div className="mt-2 text-center">
+                <p
+                  className={`text-xs font-medium ${isActive ? "text-black" : isCompleted ? "text-black" : "text-gray-400"
                     }`}
                 >
-                  {isCompleted ? (
-                    <FaCheckCircle className="w-5 h-5" />
-                  ) : (
-                    stepNumber
-                  )}
-                </div>
-                <div className="mt-2 text-center">
-                  <p
-                    className={`text-xs font-medium ${isActive ? "text-blue-600" : isCompleted ? "text-green-600" : "text-gray-500"
-                      }`}
-                  >
-                    {stepItem.title}
-                  </p>
-                  {/* <p className="text-xs text-gray-400 mt-0.5">{stepItem.description}</p> */}
-                </div>
+                  {stepItem.title}
+                </p>
               </div>
-              {index < steps.length - 1 && (
-                <div
-                  className={`flex-1 h-0.5 mx-2 mt-[-20px] ${isCompleted ? "bg-green-500" : "bg-gray-200"
-                    }`}
-                />
-              )}
-            </React.Fragment>
+            </div>
           );
         })}
       </div>
@@ -471,12 +476,11 @@ const VerificationModal: React.FC<Props> = ({
 
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address <span className="text-red-500">*</span>
-              </label>
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <input
+                  <Input
+                    id="email"
+                    label="Email Address"
                     type="email"
                     value={emailState.value}
                     onChange={(e) => {
@@ -484,37 +488,25 @@ const VerificationModal: React.FC<Props> = ({
                       clearError("email");
                     }}
                     disabled={emailState.verified}
-                    className={`w-full px-4 py-3 rounded-lg border transition-colors ${errors.email
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                      : emailState.verified
-                        ? "border-green-300 bg-green-50"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      } focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:cursor-not-allowed`}
+                    required
+                    errors={fieldErrors}
                     placeholder="your.email@example.com"
+                    className={`${emailState.verified ? "border-green-500 bg-green-50 text-green-700" : ""}`}
                   />
-                  {errors.email && (
-                    <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                      <FaExclamationCircle className="w-3 h-3" />
-                      {errors.email}
-                    </p>
-                  )}
                 </div>
                 <button
                   type="button"
                   onClick={verifyEmail}
                   disabled={emailState.checking || emailState.verified || !emailState.value}
-                  className={`px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${emailState.verified
-                    ? "bg-green-100 text-green-700 border border-green-300 cursor-not-allowed"
+                  className={`px-6 h-[70px] rounded-lg font-medium transition-all whitespace-nowrap min-w-[120px] flex justify-center items-center mt-px ${emailState.verified
+                    ? "bg-green-100 text-green-700 border border-green-200 cursor-default"
                     : emailState.checking
-                      ? "bg-blue-100 text-blue-700 cursor-wait"
-                      : "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+                      ? "bg-neutral-100 text-neutral-500 cursor-wait"
+                      : "bg-black text-white hover:opacity-90 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
                     }`}
                 >
                   {emailState.checking ? (
-                    <span className="flex items-center gap-2">
-                      <FaSpinner className="w-4 h-4 animate-spin" />
-                      Verifying...
-                    </span>
+                    <FaSpinner className="w-4 h-4 animate-spin" />
                   ) : emailState.verified ? (
                     <span className="flex items-center gap-2">
                       <FaCheckCircle className="w-4 h-4" />
@@ -528,15 +520,11 @@ const VerificationModal: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number <span className="text-red-500">*</span>
-              </label>
-              <div className="flex gap-3">
-                <div className="flex items-center gap-2 flex-1">
-                  <span className="px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 font-medium whitespace-nowrap">
-                    +91
-                  </span>
-                  <input
+              <div className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <Input
+                    id="phone"
+                    label="Phone Number"
                     type="tel"
                     value={phoneState.phoneValue}
                     onChange={(e) => {
@@ -545,37 +533,32 @@ const VerificationModal: React.FC<Props> = ({
                         ...s,
                         phoneValue: value,
                         phoneValid: /^\d{10}$/.test(value),
-                        verified: false, // Reset verification if phone changes
+                        verified: false,
                       }));
                       clearError("phone");
                     }}
                     disabled={phoneState.verified}
-                    className={`flex-1 px-4 py-3 rounded-lg border transition-colors ${errors.phone
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                      : phoneState.verified
-                        ? "border-green-300 bg-green-50"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      } focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:cursor-not-allowed`}
+                    required
+                    errors={fieldErrors}
                     placeholder="10-digit mobile number"
                     maxLength={10}
+                    formatPrice={false}
+                    className={`${phoneState.verified ? "border-green-500 bg-green-50 text-green-700" : ""}`}
                   />
                 </div>
                 <button
                   type="button"
                   onClick={verifyPhone}
                   disabled={phoneState.checking || phoneState.verified || !phoneState.phoneValue}
-                  className={`px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${phoneState.verified
-                    ? "bg-green-100 text-green-700 border border-green-300 cursor-not-allowed"
+                  className={`px-6 h-[48px] rounded-lg font-medium transition-all whitespace-nowrap min-w-[120px] flex justify-center items-center mb-px ${phoneState.verified
+                    ? "bg-green-100 text-green-700 border border-green-200 cursor-default"
                     : phoneState.checking
-                      ? "bg-blue-100 text-blue-700 cursor-wait"
-                      : "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+                      ? "bg-neutral-100 text-neutral-500 cursor-wait"
+                      : "bg-black text-white hover:opacity-90 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
                     }`}
                 >
                   {phoneState.checking ? (
-                    <span className="flex items-center gap-2">
-                      <FaSpinner className="w-4 h-4 animate-spin" />
-                      Verifying...
-                    </span>
+                    <FaSpinner className="w-4 h-4 animate-spin" />
                   ) : phoneState.verified ? (
                     <span className="flex items-center gap-2">
                       <FaCheckCircle className="w-4 h-4" />
@@ -586,12 +569,6 @@ const VerificationModal: React.FC<Props> = ({
                   )}
                 </button>
               </div>
-              {errors.phone && (
-                <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                  <FaExclamationCircle className="w-3 h-3" />
-                  {errors.phone}
-                </p>
-              )}
             </div>
           </div>
         </div>
@@ -611,21 +588,22 @@ const VerificationModal: React.FC<Props> = ({
           </div>
 
           {aadhaarState.verified || userState?.aadhaar_verified ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-              <FaCheckCircle className="w-5 h-5 text-green-600 shrink-0" />
+            <div className="bg-green-50 border border-green-200 rounded-lg p-5 flex items-center gap-4">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                <FaCheckCircle className="w-5 h-5 text-green-600" />
+              </div>
               <div>
-                <p className="font-medium text-green-900">Aadhaar Verified</p>
+                <p className="font-medium text-green-900 text-lg">Aadhaar Verified</p>
                 <p className="text-sm text-green-700">
-                  Your Aadhaar has been successfully verified
+                  Your identity has been successfully verified
                 </p>
               </div>
             </div>
           ) : !aadhaarState.refId ? (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Aadhaar Number <span className="text-red-500">*</span>
-              </label>
-              <input
+              <Input
+                id="aadhaar"
+                label="Aadhaar Number"
                 type="text"
                 value={aadhaarState.aadhaarNumber}
                 onChange={(e) => {
@@ -633,30 +611,21 @@ const VerificationModal: React.FC<Props> = ({
                   setAadhaarState((s) => ({ ...s, aadhaarNumber: value }));
                   clearError("aadhaar");
                 }}
-                className={`w-full px-4 py-3 rounded-lg border transition-colors ${errors.aadhaar
-                  ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  } focus:outline-none focus:ring-2`}
+                required
+                errors={fieldErrors}
                 placeholder="Enter 12-digit Aadhaar number"
                 maxLength={12}
               />
-              {errors.aadhaar && (
-                <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                  <FaExclamationCircle className="w-3 h-3" />
-                  {errors.aadhaar}
-                </p>
-              )}
-              <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
-                <FaShieldAlt className="w-3 h-3" />
+              <p className="mt-3 text-xs text-gray-500 flex items-center gap-1.5 p-2 bg-gray-50 rounded-md border border-gray-100">
+                <FaShieldAlt className="w-3 h-3 text-gray-400" />
                 Your Aadhaar data is secure and encrypted
               </p>
             </div>
           ) : (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Enter OTP <span className="text-red-500">*</span>
-              </label>
-              <input
+              <Input
+                id="otp"
+                label="Enter OTP"
                 type="text"
                 value={aadhaarState.otp}
                 onChange={(e) => {
@@ -664,22 +633,23 @@ const VerificationModal: React.FC<Props> = ({
                   setAadhaarState((s) => ({ ...s, otp: value }));
                   clearError("otp");
                 }}
-                className={`w-full px-4 py-3 rounded-lg border transition-colors text-center text-2xl tracking-widest ${errors.otp
-                  ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  } focus:outline-none focus:ring-2`}
+                required
+                errors={fieldErrors}
                 placeholder="000000"
                 maxLength={6}
+                className="text-center text-2xl tracking-widest font-mono"
               />
-              {errors.otp && (
-                <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                  <FaExclamationCircle className="w-3 h-3" />
-                  {errors.otp}
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-xs text-gray-500">
+                  OTP sent to your Aadhaar-linked mobile
                 </p>
-              )}
-              <p className="mt-2 text-xs text-gray-500">
-                OTP sent to your Aadhaar-linked mobile number
-              </p>
+                <button
+                  onClick={() => setAadhaarState(s => ({ ...s, refId: null, otp: "" }))}
+                  className="text-xs font-medium text-black underline hover:opacity-80"
+                >
+                  Change Aadhaar Number
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -697,10 +667,12 @@ const VerificationModal: React.FC<Props> = ({
           </div>
 
           {userState?.bank_verified ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-              <FaCheckCircle className="w-5 h-5 text-green-600 shrink-0" />
+            <div className="bg-green-50 border border-green-200 rounded-lg p-5 flex items-center gap-4">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                <FaCheckCircle className="w-5 h-5 text-green-600" />
+              </div>
               <div>
-                <p className="font-medium text-green-900">Bank Account Verified</p>
+                <p className="font-medium text-green-900 text-lg">Bank Account Verified</p>
                 <p className="text-sm text-green-700">
                   Account holder: {userState.bank_verified_name}
                 </p>
@@ -709,35 +681,25 @@ const VerificationModal: React.FC<Props> = ({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Account Holder Name <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  id="accountHolder"
+                  label="Account Holder Name"
                   type="text"
                   value={bankState.accountHolder}
                   onChange={(e) => {
                     setBankState((s) => ({ ...s, accountHolder: e.target.value }));
                     clearError("accountHolder");
                   }}
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${errors.accountHolder
-                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    } focus:outline-none focus:ring-2`}
+                  required
+                  errors={fieldErrors}
                   placeholder="Enter account holder name"
                 />
-                {errors.accountHolder && (
-                  <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                    <FaExclamationCircle className="w-3 h-3" />
-                    {errors.accountHolder}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Account Number <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  id="accountNumber"
+                  label="Account Number"
                   type="text"
                   value={bankState.accountNumber}
                   onChange={(e) => {
@@ -745,25 +707,16 @@ const VerificationModal: React.FC<Props> = ({
                     clearError("accountNumber");
                     clearError("confirmAccountNumber");
                   }}
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${errors.accountNumber
-                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    } focus:outline-none focus:ring-2`}
+                  required
+                  errors={fieldErrors}
                   placeholder="Enter account number"
                 />
-                {errors.accountNumber && (
-                  <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                    <FaExclamationCircle className="w-3 h-3" />
-                    {errors.accountNumber}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm Account Number <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  id="confirmAccountNumber"
+                  label="Confirm Account Number"
                   type="text"
                   value={bankState.confirmAccountNumber}
                   onChange={(e) => {
@@ -773,99 +726,64 @@ const VerificationModal: React.FC<Props> = ({
                     }));
                     clearError("confirmAccountNumber");
                   }}
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors ${errors.confirmAccountNumber
-                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                    : bankState.accountNumber &&
-                      bankState.accountNumber === bankState.confirmAccountNumber
-                      ? "border-green-300"
-                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    } focus:outline-none focus:ring-2`}
+                  required
+                  errors={fieldErrors}
                   placeholder="Re-enter account number"
+                  className={bankState.accountNumber && bankState.accountNumber === bankState.confirmAccountNumber ? "border-green-500 focus:ring-green-500" : ""}
                 />
-                {errors.confirmAccountNumber && (
-                  <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                    <FaExclamationCircle className="w-3 h-3" />
-                    {errors.confirmAccountNumber}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  IFSC Code <span className="text-red-500">*</span>
-                </label>
-                <input
+                <Input
+                  id="ifsc"
+                  label="IFSC Code"
                   type="text"
                   value={bankState.ifsc}
                   onChange={(e) => {
                     setBankState((s) => ({ ...s, ifsc: e.target.value.toUpperCase().slice(0, 11) }));
                     clearError("ifsc");
                   }}
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors uppercase ${errors.ifsc
-                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    } focus:outline-none focus:ring-2`}
+                  required
+                  errors={fieldErrors}
                   placeholder="ABCD0123456"
                   maxLength={11}
+                  className="uppercase"
                 />
-                {errors.ifsc && (
-                  <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                    <FaExclamationCircle className="w-3 h-3" />
-                    {errors.ifsc}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  PAN Number
-                </label>
-                <input
+                <Input
+                  id="pan"
+                  label="PAN Number"
                   type="text"
                   value={bankState.pan}
                   onChange={(e) => {
                     setBankState((s) => ({ ...s, pan: e.target.value.toUpperCase().slice(0, 10) }));
                     clearError("pan");
                   }}
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors uppercase ${errors.pan
-                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    } focus:outline-none focus:ring-2`}
+                  errors={fieldErrors}
                   placeholder="ABCDE1234F"
                   maxLength={10}
+                  className="uppercase"
                 />
-                {errors.pan && (
-                  <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                    <FaExclamationCircle className="w-3 h-3" />
-                    {errors.pan}
-                  </p>
-                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  GST Number <span className="text-gray-400 text-xs">(Optional)</span>
-                </label>
-                <input
+                <Input
+                  id="gst"
+                  label="GST Number"
                   type="text"
                   value={bankState.gst}
                   onChange={(e) => {
                     setBankState((s) => ({ ...s, gst: e.target.value.toUpperCase().slice(0, 15) }));
                     clearError("gst");
                   }}
-                  className={`w-full px-4 py-3 rounded-lg border transition-colors uppercase ${errors.gst
-                    ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    } focus:outline-none focus:ring-2`}
+                  errors={fieldErrors}
                   placeholder="22AAAAA0000A1Z5"
                   maxLength={15}
+                  className="uppercase"
                 />
-                {errors.gst && (
-                  <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                    <FaExclamationCircle className="w-3 h-3" />
-                    {errors.gst}
-                  </p>
-                )}
+                <p className="text-xs text-gray-400 mt-1 pl-1">Optional</p>
               </div>
             </div>
           )}
@@ -893,7 +811,7 @@ const VerificationModal: React.FC<Props> = ({
       actionLabel={step === 3 ? "Complete Verification" : step === 4 ? "Close" : "Continue"}
       disabled={loading}
       isLoading={loading}
-      customWidth="max-w-4xl"
+      customWidth="w-full md:w-4/6 lg:w-3/6 xl:w-2/5"
       body={
         <div>
           {renderStepProgress()}
