@@ -39,7 +39,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
 
-    // New block form state
+
     const [newBlock, setNewBlock] = useState({
         date: format(new Date(), "yyyy-MM-dd"),
         startTime: "9:00 AM",

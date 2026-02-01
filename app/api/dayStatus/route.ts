@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}));
 
-    // Validate with Zod
+
     const validation = dayStatusSchema.safeParse(body);
     if (!validation.success) {
       return createErrorResponse(validation.error.issues[0].message, 400);

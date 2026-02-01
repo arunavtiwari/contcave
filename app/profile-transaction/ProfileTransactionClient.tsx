@@ -11,7 +11,7 @@ const ProfileTransactionClient = () => {
   return (
 
     <div className="flex">
-      {/* Sidebar */}
+      
       <Sidebar selectedMenu={selectedMenu} setSelectedMenu={setSelectedMenu} menuType="profile" />
 
       <div className="flex flex-col sm:p-8 sm:pt-12 w-full gap-5 sm:border-l-2 border-gray-200">

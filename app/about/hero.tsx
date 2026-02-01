@@ -5,7 +5,7 @@ import Image from "next/image";
 const Hero = () => {
   return (
     <div className="relative h-[80vh] w-full overflow-hidden">
-      {/* Background Image */}
+      
       <motion.div
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
@@ -21,7 +21,7 @@ const Hero = () => {
         />
       </motion.div>
 
-      {/* Overlay */}
+      
       <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center px-6">
         <motion.h1
           initial={{ opacity: 0, y: 40 }}

@@ -1,4 +1,4 @@
-import { ListingStatus } from "@prisma/client"; // adjust path if needed
+import { ListingStatus } from "@prisma/client";
 import type { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
@@ -99,7 +99,7 @@ const DemoListingPage = async ({ params }: { params: Promise<RouteParams> }) => 
     );
   }
 
-  // JSON-LD Schema
+
   const imageUrls = Array.isArray(listing.imageSrc) && listing.imageSrc.length > 0
     ? listing.imageSrc.map((src: string) => absoluteUrl(src))
     : [absoluteUrl(OG_IMAGE)];

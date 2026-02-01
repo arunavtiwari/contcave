@@ -54,12 +54,12 @@ const VerificationModal: React.FC<Props> = ({
   const [step, setStep] = useState(getInitialStep(currentUser));
   const [loading, setLoading] = useState(false);
 
-  // Custom error state for Steps 1 & 2 (Manual Validation)
+
   const [customErrors, setCustomErrors] = useState<Record<string, string>>({});
 
-  // ---------------------------------------------------------
-  // Step 1 State (Contact)
-  // ---------------------------------------------------------
+
+
+
   const [phoneState, setPhoneState] = useState({
     phoneValue: currentUser?.phone || "",
     verified: !!currentUser?.phone_verified,
@@ -72,9 +72,9 @@ const VerificationModal: React.FC<Props> = ({
     checking: false,
   });
 
-  // ---------------------------------------------------------
-  // Step 2 State (Aadhaar)
-  // ---------------------------------------------------------
+
+
+
   const [aadhaarState, setAadhaarState] = useState({
     aadhaarNumber: currentUser?.aadhaar_last4 ? "********" + currentUser.aadhaar_last4 : "",
     refId: null as string | null,
@@ -82,9 +82,9 @@ const VerificationModal: React.FC<Props> = ({
     verified: !!currentUser?.aadhaar_verified,
   });
 
-  // ---------------------------------------------------------
-  // Step 3 Form (Bank) - RHF
-  // ---------------------------------------------------------
+
+
+
   const {
     register,
     handleSubmit,
@@ -95,12 +95,12 @@ const VerificationModal: React.FC<Props> = ({
     defaultValues: {
       accountHolderName: currentUser?.bank_verified_name || "",
       accountNumber: "",
-      bankName: "", // We don't have this stored usually, or it's implied
+      bankName: "",
       ifscCode: "",
     },
   });
 
-  // Sync state when modal opens
+
   useEffect(() => {
     if (isOpen && currentUser) {
       setUserState(currentUser);
@@ -132,7 +132,7 @@ const VerificationModal: React.FC<Props> = ({
     }
   }, [isOpen, currentUser, resetBankForm]);
 
-  // Helper to merge custom errors into a format Input accepts
+
   const getFieldError = (fieldName: string) => {
     return customErrors[fieldName]
       ? { type: "manual", message: customErrors[fieldName] }
@@ -147,9 +147,9 @@ const VerificationModal: React.FC<Props> = ({
     });
   };
 
-  // ---------------------------------------------------------
-  // Handlers: Step 1
-  // ---------------------------------------------------------
+
+
+
   const verifyEmail = async () => {
     const emailCheck = z.string().email("Invalid email").safeParse(emailState.value);
     if (!emailCheck.success) {
@@ -211,9 +211,9 @@ const VerificationModal: React.FC<Props> = ({
     }
   };
 
-  // ---------------------------------------------------------
-  // Handlers: Step 2
-  // ---------------------------------------------------------
+
+
+
   const handleGenerateOtp = async () => {
     const cleaned = aadhaarState.aadhaarNumber.replace(/\s/g, "");
     const check = aadhaarSchema.pick({ aadhaarNumber: true }).safeParse({ aadhaarNumber: cleaned });
@@ -277,9 +277,9 @@ const VerificationModal: React.FC<Props> = ({
     }
   };
 
-  // ---------------------------------------------------------
-  // Handlers: Step 3 (RHF Submit)
-  // ---------------------------------------------------------
+
+
+
   const onBankSubmit = async (data: BankSchema) => {
     setLoading(true);
     try {
@@ -289,7 +289,7 @@ const VerificationModal: React.FC<Props> = ({
         name: userState?.name,
         email: userState?.email,
         phone: userState?.phone,
-        verify_account: true, // Auto verify bank
+        verify_account: true,
         dashboard_access: false,
         bank: {
           account_number: data.accountNumber,
@@ -299,7 +299,7 @@ const VerificationModal: React.FC<Props> = ({
         kyc_details: {
           account_type: "BUSINESS",
           business_type: "B2B",
-          // Removed PAN/GST from mandatory check for now as per schema or added if present
+
         },
       };
 
@@ -326,9 +326,9 @@ const VerificationModal: React.FC<Props> = ({
     }
   };
 
-  // ---------------------------------------------------------
-  // Orchestrator
-  // ---------------------------------------------------------
+
+
+
   const handleNextClick = () => {
     setCustomErrors({});
     if (step === 1) {
@@ -352,15 +352,15 @@ const VerificationModal: React.FC<Props> = ({
         }
       }
     } else if (step === 3) {
-      // Trigger RHF submit
+
       handleSubmit(onBankSubmit)();
     }
   };
 
 
-  // ---------------------------------------------------------
-  // Renderers
-  // ---------------------------------------------------------
+
+
+
   const renderStep = () => {
     if (step === 1) {
       return (
@@ -370,7 +370,7 @@ const VerificationModal: React.FC<Props> = ({
             <p className="text-sm text-gray-500">Verify email and phone to continue.</p>
           </div>
 
-          {/* Email */}
+          
           <div className="flex gap-3 items-end">
             <div className="flex-1">
               <Input
@@ -397,7 +397,7 @@ const VerificationModal: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Phone */}
+          
           <div className="flex gap-3 items-end">
             <div className="flex-1">
               <Input
@@ -557,7 +557,7 @@ const VerificationModal: React.FC<Props> = ({
 
   const renderStepProgress = () => (
     <div className="mb-8 px-4 flex justify-between relative">
-      {/* Simple Progress Bar Background */}
+      
       <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -z-10 -translate-y-1/2" />
 
       {steps.map((s, _idx) => {

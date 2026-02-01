@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Shared sub-schemas
+
 export const imageSchema = z.string().url("Invalid image URL").max(500, "URL too long");
 
 export const locationSchema = z.object({
@@ -24,10 +24,10 @@ export const operationalDaysSchema = z.object({
     end: z.string(),
 }).optional().nullable();
 
-// Listings Set Schema
+
 export const listingSetSchema = z.object({
-    id: z.string().optional(), // Optional for new sets
-    tempId: z.string().optional(), // For frontend tracking
+    id: z.string().optional(),
+    tempId: z.string().optional(),
     name: z.string().min(1, "Name is required").max(200, "Name too long"),
     description: z.string().max(2000, "Description too long").optional().nullable(),
     images: z.array(imageSchema).max(20, "Maximum 20 images per set"),
@@ -35,7 +35,7 @@ export const listingSetSchema = z.object({
     position: z.number().int().optional(),
 });
 
-// Package Schema
+
 export const packageSchema = z.object({
     id: z.string().optional(),
     title: z.string().min(3, "Title too short").max(200, "Title too long"),
@@ -58,35 +58,35 @@ export const packageSchema = z.object({
     path: ["offeredPrice"],
 });
 
-// Main Listing Schema
+
 export const listingSchema = z.object({
     category: z.string().min(1, "Category is required").max(100),
     locationValue: z.string().min(1, "Country is required"),
     actualLocation: locationSchema,
     imageSrc: z.array(imageSchema).min(1, "At least one image is required").max(20),
 
-    // Basic Info
+
     title: z.string().min(5, "Title must be at least 5 chars").max(200),
     description: z.string().min(50, "Description must be at least 50 chars").max(5000),
 
-    // Details
+
     price: z.number().min(0).max(10000000),
     minimumBookingHours: z.string().optional().nullable(),
     maximumPax: z.string().optional().nullable(),
     carpetArea: z.string().optional().nullable(),
 
-    // Amenities & Types
+
     amenities: z.array(z.string()).max(50).optional(),
     otherAmenities: z.array(z.string()).max(50).optional(),
     type: z.array(z.string()).max(20).optional(),
 
-    // Operations
+
     instantBooking: z.boolean().default(false),
     terms: z.boolean().refine(val => val === true, "You must accept the terms"),
     operationalHours: operationalHoursSchema,
     operationalDays: operationalDaysSchema,
 
-    // Sets & Packages
+
     hasSets: z.boolean().default(false),
     sets: z.array(listingSetSchema).optional(),
     setsHaveSamePrice: z.boolean().default(false),
@@ -94,12 +94,12 @@ export const listingSchema = z.object({
     additionalSetPricingType: z.enum(["FIXED", "HOURLY"]).nullable().optional(),
     packages: z.array(packageSchema).optional(),
 
-    // Addons (Keep flexible for now or strictly type if structure is known)
+
     addons: z.unknown().optional(),
 }).refine((data) => {
     if (data.hasSets) {
         if (!data.sets || data.sets.length < 2) {
-            return false; // Multi-set listings must have at least 2 sets
+            return false;
         }
     }
     return true;

@@ -29,7 +29,7 @@ const OwnerEnableModal: React.FC<Props> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Reset form when modal opens/closes or initial values change
+
   useEffect(() => {
     if (isOpen) {
       setEmail(initialEmail);
@@ -49,7 +49,7 @@ const OwnerEnableModal: React.FC<Props> = ({
   const handleSubmit = async () => {
     setErrors({});
 
-    // Validation
+
     const newErrors: Record<string, string> = {};
 
     if (!email.trim()) {
@@ -69,11 +69,11 @@ const OwnerEnableModal: React.FC<Props> = ({
       return;
     }
 
-    // Close modal immediately and trigger loading overlay
+
     onClose();
     onLoadingStart?.();
 
-    // Call onSuccess after a brief delay to allow modal to close
+
     setTimeout(() => {
       onSuccess?.(phone, email);
     }, 300);

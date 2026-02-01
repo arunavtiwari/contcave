@@ -7,26 +7,18 @@ import {
     SetPricingResult,
 } from "@/types/set";
 
-/**
- * Calculate hours from duration in minutes using ceiling rounding.
- * Enforces minimum 1 hour.
- */
+
 export function calculateHours(durationMinutes: number): number {
     if (durationMinutes <= 0) return 1;
     return Math.ceil(durationMinutes / 60);
 }
 
-/**
- * Calculate base price (hourly rate × hours).
- */
+
 export function calculateBaseCost(baseHourlyRate: number, hours: number): number {
     return Math.round(baseHourlyRate * hours);
 }
 
-/**
- * Find the included set (lowest price, tie-breaker by position).
- * Returns null if no sets are selected.
- */
+
 export function findIncludedSet(
     selectedSetIds: string[],
     sets: ListingSet[]
@@ -43,9 +35,7 @@ export function findIncludedSet(
     return selectedSets[0] || null;
 }
 
-/**
- * Calculate additional sets cost based on pricing type.
- */
+
 export function calculateAdditionalSetsCost(
     selectedSetIds: string[],
     includedSetId: string | null,
@@ -73,9 +63,7 @@ export function calculateAdditionalSetsCost(
     return { additionalSets, totalCost: Math.round(totalCost) };
 }
 
-/**
- * Calculate complete set pricing including packages.
- */
+
 export function calculateSetPricing(params: SetPricingParams): SetPricingResult {
     const {
         baseHourlyRate,
@@ -139,9 +127,7 @@ export function calculateSetPricing(params: SetPricingParams): SetPricingResult 
     };
 }
 
-/**
- * Validate set selection against listing constraints.
- */
+
 export function validateSetSelection(
     selectedSetIds: string[],
     selectedPackage?: Package | null
@@ -178,9 +164,7 @@ export function validateSetSelection(
     return { valid: true };
 }
 
-/**
- * Calculate full booking total including addons, platform fee, and GST.
- */
+
 export function calculateBookingTotal(params: {
     setSubtotal: number;
     addonsTotal: number;

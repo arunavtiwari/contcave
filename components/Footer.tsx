@@ -10,7 +10,6 @@ function Footer() {
       <div
         className="grid grid-cols-1 md:grid-cols-2 gap-10 px-10 lg:px-20 py-15 bg-gray-100 text-gray-600 mt-20"
       >
-        {/* Left Part */}
         <div className="grid place-items-center md:place-items-start gap-8">
           <Logo />
 
@@ -22,7 +21,6 @@ function Footer() {
             </div>
           </div>
 
-          {/* Social Media */}
           <div className="flex flex-wrap justify-center sm:justify-normal gap-4 items-center w-full">
             <p className="text-base font-semibold">Follow Us</p>
             <a href="https://www.linkedin.com/company/contcave/?viewAsMember=true" target="_blank" rel="noopener noreferrer">
@@ -50,7 +48,6 @@ function Footer() {
 
         </div>
 
-        {/* Right Part */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-8 text-base font-medium text-center">
           <div className="flex flex-col space-y-2">
             <p className="text-xl font-bold text-black">Company</p>
@@ -85,8 +82,6 @@ function Footer() {
             <a href="#" className="text-btndark/80 hover:text-black transition-all">Kolkata</a>
           </div>
         </div>
-
-        {/* <p className="text-sm md:col-span-5 hidden">{country}</p> */}
       </div>
       <div className="bg-black text-white py-2 text-sm text-center">
         © {new Date().getFullYear()} ContCave by Arkanet Ventures LLP. All rights reserved.

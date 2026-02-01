@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
 
-    // Validate with Zod
+
     const validation = emailVerificationSchema.safeParse(body);
     if (!validation.success) {
       return createErrorResponse(validation.error.issues[0].message, 400);

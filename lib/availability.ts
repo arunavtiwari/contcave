@@ -1,8 +1,6 @@
 import prisma from "@/lib/prismadb";
 
-/**
- * Parse time label (e.g., "2:30 PM" or "14:30") to minutes from midnight.
- */
+
 export function parseTimeToMinutes(timeStr: string): number {
     if (!timeStr) return 0;
 
@@ -24,10 +22,7 @@ export function parseTimeToMinutes(timeStr: string): number {
     return 0;
 }
 
-/**
- * Check if two time ranges overlap.
- * Overlap exists if: existingStart < requestedEnd AND requestedStart < existingEnd
- */
+
 export function checkTimeOverlap(
     existingStart: number,
     existingEnd: number,
@@ -37,9 +32,7 @@ export function checkTimeOverlap(
     return existingStart < requestedEnd && requestedStart < existingEnd;
 }
 
-/**
- * Check if two arrays of set IDs have any intersection.
- */
+
 export function hasSetIntersection(setIds1: string[], setIds2: string[]): boolean {
     if (setIds1.length === 0 || setIds2.length === 0) return false;
     const set1 = new Set(setIds1);
@@ -61,10 +54,7 @@ export interface ConflictResult {
     conflictDetails?: string;
 }
 
-/**
- * Check for set-aware booking conflicts.
- * Handles both listing-wide and set-specific blocks and reservations.
- */
+
 export async function checkSetConflicts(
     params: ConflictCheckParams
 ): Promise<ConflictResult> {
@@ -171,11 +161,7 @@ export async function checkSetConflicts(
     return { hasConflict: false };
 }
 
-/**
- * Get blocked time slots for a specific date and optional set IDs.
- * If setIds is empty, returns listing-wide blocks only.
- * If setIds is provided, returns blocks that affect any of those sets.
- */
+
 export async function getBlockedSlots(
     listingId: string,
     date: Date,
@@ -241,10 +227,7 @@ export async function getBlockedSlots(
     return blockedSlots;
 }
 
-/**
- * Get available sets for a specific time slot.
- * Returns set IDs that are not blocked or booked during the requested time.
- */
+
 export async function getAvailableSets(
     listingId: string,
     date: Date,
@@ -295,7 +278,7 @@ export async function getAvailableSets(
     for (const set of allSets) {
         let hasConflict = false;
 
-        // Check blocks
+
         for (const block of blocks) {
             const blockStart = parseTimeToMinutes(block.startTime);
             const blockEnd = parseTimeToMinutes(block.endTime);
@@ -311,7 +294,7 @@ export async function getAvailableSets(
 
         if (hasConflict) continue;
 
-        // Check reservations
+
         for (const res of reservations) {
             const resStart = parseTimeToMinutes(res.startTime);
             const resEnd = parseTimeToMinutes(res.endTime);

@@ -54,7 +54,7 @@ type Props = {
   services: string[];
   onPackageSelect?: (pkg: Package | null) => void;
 
-  // Set Selection Props
+
   selectedSetIds?: string[];
   onSetToggle?: (setId: string) => void;
   onSelectAllSets?: () => void;
@@ -208,7 +208,7 @@ function ListingInfo({
     [fullListing?.amenities, normalizeSelectedAmenityKeys]
   );
 
-  // Transform Amenities[] to AmenityProp[] for Offers component
+
   const transformedAmenityDefs = useMemo(() => {
     return amenityDefs.map((amenity) => ({
       id: amenity.id,
@@ -239,7 +239,7 @@ function ListingInfo({
       setReviews(res.data);
       setReview({ rating: 5, comment: "" });
     } catch {
-      // ignore
+
     }
   };
 
@@ -259,7 +259,7 @@ function ListingInfo({
 
       <hr />
 
-      {/* Set Selector */}
+      
       {fullListing.hasSets && fullListing.sets && fullListing.sets.length > 0 && (
         <>
           <SetSelector

@@ -46,7 +46,7 @@ export function cfHeaders(): Record<string, string> {
 
 
 
-// ... existing code ...
+
 
 export async function cfCreateOrder(input: {
     transaction_id: string;
@@ -58,7 +58,7 @@ export async function cfCreateOrder(input: {
     customer_email?: string;
     customer_phone: string;
 }): Promise<{ payment_session_id: string; order_id: string }> {
-    // ... validation checks ...
+
     if (!input.transaction_id || typeof input.transaction_id !== "string" || input.transaction_id.trim().length === 0) {
         throw new Error("transaction_id is required and must be a non-empty string");
     }
@@ -67,7 +67,7 @@ export async function cfCreateOrder(input: {
         throw new Error("order_amount must be a positive number");
     }
 
-    // ... other checks ...
+
 
     if (input.customer_email && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.customer_email))) {
         throw new Error("customer_email must be a valid email address if provided");
@@ -92,13 +92,13 @@ export async function cfCreateOrder(input: {
         },
     };
 
-    const httpsAgent = getFixieProxyAgent(); // Get Proxy
+    const httpsAgent = getFixieProxyAgent();
 
     try {
         const res = await axios.post(url, requestBody, {
             headers,
             httpsAgent,
-            timeout: 30000 // 30s timeout
+            timeout: 30000
         });
 
         const j = res.data;
@@ -193,7 +193,7 @@ export async function cfEnsureVendor(payload: {
             errorMessage = data?.message || error.message;
             console.error(`[Cashfree EnsureVendor] Error (${status}):`, JSON.stringify(data));
 
-            if (status === 409) return payload.vendor_id; // already exists
+            if (status === 409) return payload.vendor_id;
         } else if (error instanceof Error) {
             errorMessage = error.message;
         }

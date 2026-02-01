@@ -64,7 +64,7 @@ function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
     return clone;
 }
 
-/* ---- Time slots dropdown source ---- */
+
 type TimeLabel = string;
 const TIME_SLOTS: TimeLabel[] = [
     "6:00 AM",
@@ -159,7 +159,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         }
 
         const { id: _ignoredId, user: _ignoredUser, createdAt: _ignoredCreatedAt, ...listingWithoutMeta } = initialListing;
-        // Handle updatedAt if it exists, otherwise ignore
+
         const { updatedAt: _ignoredUpdatedAt, ...rest } = listingWithoutMeta as Record<string, unknown>;
 
         const payload = {
@@ -275,11 +275,11 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 <Sidebar selectedMenu={selectedMenu} setSelectedMenu={setSelectedMenu} listingId={initialListing.id} />
 
                 <div className="flex flex-col sm:p-8 sm:pt-12 w-full gap-5 sm:border-l-2 border-gray-200">
-                    {/* Edit Property */}
+                    
                     <div className={selectedMenu === "Edit Property" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
                         <Heading title="Edit Property" />
 
-                        {/* Name */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="text-sm font-medium text-gray-700 sm:w-1/3">Name</label>
                             <input
@@ -292,7 +292,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                         </div>
 
-                        {/* Description */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Description</label>
                             <textarea
@@ -305,7 +305,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                         </div>
 
-                        {/* Category */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Category</label>
                             <select
@@ -321,7 +321,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </select>
                         </div>
 
-                        {/* Price */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Price</label>
                             <div className="w-full relative">
@@ -340,7 +340,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        {/* Location */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Location</label>
                             <select
@@ -356,7 +356,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </select>
                         </div>
 
-                        {/* Images */}
+                        
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
                                 Images (Max 8 Pictures)
@@ -395,7 +395,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        {/* Amenities */}
+                        
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Amenities</label>
                             <div className="flex w-full">
@@ -408,7 +408,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        {/* Addons */}
+                        
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Addons</label>
                             <div className="flex flex-col w-full">
@@ -426,7 +426,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        {/* Packages */}
+                        
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Packages</label>
                             <div className="flex flex-col w-full">
@@ -438,7 +438,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        {/* Carpet Area */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Carpet Area</label>
                             <input
@@ -451,7 +451,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                         </div>
 
-                        {/* Operational Days */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Days</label>
                             <div className="flex space-x-2 w-full">
@@ -481,7 +481,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        {/* Operational Hours */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Hours</label>
                             <div className="flex space-x-2 w-full">
@@ -515,7 +515,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        {/* Min Booking Hours */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
                                 Min. Booking Hours
@@ -530,7 +530,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                         </div>
 
-                        {/* Max PAX */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Max PAX</label>
                             <input
@@ -543,7 +543,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                         </div>
 
-                        {/* Instant Book */}
+                        
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Instant Book</label>
                             <div className="w-full flex items-center">
@@ -557,7 +557,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         <hr />
 
-                        {/* Multi-Set Settings */}
+                        
                         <div className="flex flex-col gap-6">
                             <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                                 <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
@@ -659,7 +659,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         </div>
                     </div>
 
-                    {/* Calendar */}
+                    
                     <div className={selectedMenu === "Sync Calendar" ? "flex flex-col gap-5 sm:gap-8 items-center" : "hidden"}>
                         <div className="flex justify-between w-full items-center">
                             <Heading
@@ -690,7 +690,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         />
                     </div>
 
-                    {/* Manage Timings */}
+                    
                     <div className={selectedMenu === "Manage Timings" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
                         <Heading title="Manage Studio Availability" subtitle="Update your working hours manually" />
                         <ManageTimings
@@ -702,7 +702,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         />
                     </div>
 
-                    {/* Settings */}
+                    
                     <div className={selectedMenu === "Settings" ? "flex flex-col gap-5" : "hidden"}>
                         <button className="border-2 border-red px-6 py-2 rounded-full hover:opacity-85 text-red w-fit shadow-xs">
                             DELETE PROPERTY
@@ -713,7 +713,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         </p>
                     </div>
 
-                    {/* Manage Blocks */}
+                    
                     <div className={selectedMenu === "Manage Blocks" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
                         <Heading
                             title="Manage Availability Blocks"

@@ -3,9 +3,7 @@ import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/
 import prisma from "@/lib/prismadb";
 import { billingSchema } from "@/lib/schemas/billing";
 
-/**
- * POST → Create new or update existing BillingDetails (if GSTIN already exists)
- */
+
 export async function POST(req: Request) {
   try {
     if (!req.headers.get("content-type")?.includes("application/json")) {
@@ -20,7 +18,7 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { companyName, gstin, billingAddress, isDefault } = body;
 
-    // Validate using Zod schema
+
     const validation = billingSchema.safeParse({ companyName, gstin, billingAddress });
 
     if (!validation.success) {
@@ -76,9 +74,7 @@ export async function POST(req: Request) {
   }
 }
 
-/**
- * GET → Retrieve all billing records for the current user
- */
+
 export async function GET() {
   try {
     const currentUser = await getCurrentUser();
@@ -97,9 +93,7 @@ export async function GET() {
   }
 }
 
-/**
- * PUT → Update specific billing record by ID
- */
+
 export async function PUT(req: Request) {
   try {
     const currentUser = await getCurrentUser();

@@ -11,11 +11,11 @@ import { AdditionalSetPricingType } from "@/types/set";
 
 interface SetEditorItem {
     id?: string;
-    tempId?: string; // For stable keys
+    tempId?: string;
     name: string;
     description?: string | null;
     images: string[];
-    price: number | null; // Allow null for empty input
+    price: number | null;
     position: number;
 }
 
@@ -115,7 +115,7 @@ export default function SetsEditor({
 
     return (
         <div className="space-y-4">
-            {/* Unified Price Input */}
+            
             {isPricingUniform && (
                 <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200">
                     <Input
@@ -160,7 +160,7 @@ export default function SetsEditor({
                                         <p className="font-medium">
                                             {set.name || `Set ${index + 1}`}
                                         </p>
-                                        {/* Show price summary if not uniform or just for info */}
+                                        
                                         <p className="text-sm text-neutral-500">
                                             {INR.format(set.price || 0)}
                                             {pricingType === "HOURLY" ? "/hr" : ""}
@@ -214,7 +214,7 @@ export default function SetsEditor({
                                         />
                                     </div>
 
-                                    {/* Only show individual price input if NOT uniform pricing */}
+                                    
                                     {!isPricingUniform && (
 
                                         <div>
@@ -267,8 +267,8 @@ export default function SetsEditor({
                                             <ImageUpload
                                                 uid={`set-upload-${index}`}
                                                 onChange={(newUrls) => {
-                                                    // ImageUpload with deferUpload returns all URLs (existing + new previews)
-                                                    // We need to update the set images
+
+
                                                     updateSet(index, { images: newUrls });
                                                 }}
                                                 values={set.images}

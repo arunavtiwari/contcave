@@ -15,7 +15,7 @@ export type ReservationOperationalTimings = {
     byDay?: DayTiming[];
 };
 
-// ---------------- Normalizers ----------------
+
 const DAY_MAP: Record<string, DayKey> = {
     mon: "Mon", monday: "Mon",
     tue: "Tue", tues: "Tue", tuesday: "Tue",

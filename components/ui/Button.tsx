@@ -2,7 +2,7 @@
 
 import React from "react";
 import { IconType } from "react-icons";
-import { AiOutlineLoading3Quarters } from "react-icons/ai"; // spinner icon
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 type ButtonVariant = "default" | "outline" | "success" | "danger" | "ghost" | "secondary";
 
@@ -31,7 +31,7 @@ function Button({
   classNames,
   variant = "default",
 }: Props) {
-  // Determine usage variant (backward compatibility)
+
   const effectiveVariant = outline ? "outline" : variant;
 
   const baseClasses = "relative cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 py-[10px] transition w-full flex justify-center items-center gap-2 border hover:opacity-80";

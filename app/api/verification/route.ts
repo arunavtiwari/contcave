@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
         const body = await req.json().catch(() => ({}));
 
-        // Validate with Zod
+
         const validation = otpSchema.safeParse(body);
         if (!validation.success) {
             return createErrorResponse(validation.error.issues[0].message, 400);
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Server configuration error", 500);
         }
 
-        // Get reusable proxy agent
+
         const httpsAgent = getFixieProxyAgent();
 
         const controller = new AbortController();
@@ -64,10 +64,10 @@ export async function POST(req: NextRequest) {
         } catch (fetchError) {
             clearTimeout(timeoutId);
 
-            // Check for proxy-specific errors
+
             const proxyErrorInfo = handleProxyError(fetchError, "verification");
             if (proxyErrorInfo.isProxyError) {
-                // Log proxy error for monitoring
+
                 console.error("[Fixie Proxy] Proxy error in verification:", proxyErrorInfo.message);
                 return createErrorResponse(
                     "Service temporarily unavailable. Please try again later.",

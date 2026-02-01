@@ -121,7 +121,6 @@ export const authConfig = {
             if (account && user) {
                 token.id = user.id;
 
-                // Store additional user fields in token
                 if ('is_owner' in user) {
                     token.is_owner = user.is_owner;
                 }
@@ -170,7 +169,6 @@ export const authConfig = {
                 | string
                 | undefined;
 
-            // Populate additional user fields from token
             if (token.is_owner !== undefined) {
                 session.user.is_owner = token.is_owner as boolean;
             }

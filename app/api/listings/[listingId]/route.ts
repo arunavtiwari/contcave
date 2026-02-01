@@ -191,7 +191,7 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
 
       const setsToDelete = [...existingSetIds].filter((id: string) => !incomingSetIds.has(id));
       if (setsToDelete.length > 0) {
-        // Edge Case: Check for future reservations
+
         const futureReservations = await prisma.reservation.findFirst({
           where: {
             listingId,

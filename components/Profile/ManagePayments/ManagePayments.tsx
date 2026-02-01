@@ -7,7 +7,7 @@ import Heading from "@/components/ui/Heading";
 import { PaymentProfile } from "@/types/payment";
 import { SafeUser } from "@/types/user";
 
-// Types
+
 interface Transaction {
     id: string;
     businessName?: string;
@@ -122,7 +122,7 @@ const ManagePayments: React.FC<Props> = ({
 
         const finalAccountNumber = form.get('accountNumber') as string;
 
-        // Skip validation if account number is masked (user didn't change it)
+
         const isMasked = finalAccountNumber && (finalAccountNumber.includes('*') || /^\*+$/.test(finalAccountNumber));
 
         if (finalAccountNumber && !isMasked) {
@@ -131,7 +131,7 @@ const ManagePayments: React.FC<Props> = ({
             if (cleanAccountNumber.length < 9) throw new Error('Account number must be at least 9 digits');
             if (cleanAccountNumber.length > 20) throw new Error('Account number must be 20 digits or less');
         } else if (isMasked) {
-            // Remove masked account number from form so backend doesn't try to save it
+
             form.delete('accountNumber');
         }
 
@@ -210,20 +210,20 @@ const ManagePayments: React.FC<Props> = ({
                 subtitle="View your payment details and past transactions."
             />
 
-            {/* Tab Navigation */}
+            
             <nav
                 className="relative inline-flex bg-gray-100 rounded-full p-1 w-fit self-center border border-gray-200"
                 role="tablist"
                 aria-label="Payment management tabs"
             >
-                {/* Sliding indicator */}
+                
                 <div
                     className="absolute top-1 bottom-1 bg-white rounded-full shadow-xs transition-all duration-300 ease-in-out"
                     style={tabIndicatorStyles}
                     aria-hidden="true"
                 />
 
-                {/* Tab buttons */}
+                
                 {TABS.map((tab) => (
                     <button
                         key={tab}
@@ -242,7 +242,7 @@ const ManagePayments: React.FC<Props> = ({
                 ))}
             </nav>
 
-            {/* Content Area */}
+            
             <main
                 role="tabpanel"
                 id={`${selectedTab.toLowerCase().replace(' ', '-')}-panel`}

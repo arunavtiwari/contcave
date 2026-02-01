@@ -211,7 +211,7 @@ export async function POST(request: Request) {
       },
     });
 
-    // 1. Create Sets first if needed
+
     let createdSets: { id: string; position: number }[] = [];
     if (hasSets && Array.isArray(sets) && sets.length > 0) {
       if (sets.length > 50) {
@@ -256,7 +256,7 @@ export async function POST(request: Request) {
         data: setData,
       });
 
-      // Fetch created sets to map IDs
+
       createdSets = await prisma.listingSet.findMany({
         where: { listingId: listing.id },
         orderBy: { position: "asc" },
@@ -264,7 +264,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 2. Create Packages (now with set awareness)
+
     if (Array.isArray(packages) && packages.length > 0) {
       if (packages.length > 20) {
         return createErrorResponse("Maximum 20 packages allowed per listing", 400);
@@ -312,7 +312,7 @@ export async function POST(request: Request) {
             .slice(0, 20)
           : [];
 
-        // Handle set-related fields
+
         let requiredSetCount: number | null = null;
         let fixedAddOn: number | null = null;
         let eligibleSetIds: string[] = [];
@@ -355,7 +355,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Sets creation logic moved above
+
 
 
 

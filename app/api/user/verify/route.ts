@@ -84,7 +84,7 @@ export async function PATCH(request: Request) {
       updates.verified_via = { push: "bank_verification" };
 
       if (accountNumber && ifscCode && bankVerifiedName) {
-        // Validate using shared schema
+
         try {
           const validationData = {
             accountHolderName: bankVerifiedName.trim(),
@@ -95,7 +95,7 @@ export async function PATCH(request: Request) {
             gstin: (gstin && typeof gstin === "string") ? gstin.trim().toUpperCase() : null,
           };
 
-          // This throws if validation fails
+
           paymentDetailsSchema.parse(validationData);
 
           const encryptedAccountNumber = encryptionService.encrypt(validationData.accountNumber);

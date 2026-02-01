@@ -66,7 +66,7 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
       return createErrorResponse("No reservation found", 404);
     }
 
-    // Determine if the reservation has concluded (end datetime <= now)
+
     const ymd = latestReservation.startDate.toISOString().slice(0, 10);
     const parseHm = (label?: string | null): { h: number, m: number } | null => {
       if (!label) return null;

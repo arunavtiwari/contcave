@@ -74,7 +74,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         return transaction.guestName || transaction.customerName || 'N/A';
     };
 
-    // Loading state
+
     if (loading) {
         return (
             <div className="flex flex-col w-full gap-5">
@@ -89,7 +89,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         );
     }
 
-    // Error state
+
     if (error) {
         return (
             <div className="flex flex-col w-full gap-5">
@@ -110,7 +110,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         );
     }
 
-    // Empty state
+
     if (!transactions || transactions.length === 0) {
         return (
             <div className="flex flex-col w-full gap-5">
@@ -124,7 +124,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         );
     }
 
-    // Main render
+
     return (
         <div className="flex flex-col w-full gap-5">
             <Heading title="Transaction History" subtitle="View your past transactions." variant="h4"></Heading>

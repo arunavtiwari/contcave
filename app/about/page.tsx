@@ -64,27 +64,15 @@ const About = async () => {
 
   return (
     <ClientOnly>
-      {/* Hero Section */}
-      {/* <div className="relative h-[40vh] w-full">
-        <Image
-          src="/assets/footer-banner.jpg"
-          fill
-          alt="Banner Image"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-white text-center max-w-3xl leading-tight">
-            Sustaining & Growing <span className="underline">Creative Ecosytem</span>
-          </h1>
-        </div>
-      </div> */}
+      
+      
 
       <Hero />
 
 
       <Container>
         <div className="py-20 space-y-24">
-          {/* Founders Note */}
+          
           <section className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-black mb-6">
               Our Story
@@ -102,7 +90,7 @@ const About = async () => {
             </p>
           </section>
 
-          {/* Core Values */}
+          
           <section>
             <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-14">
               What We Stand For
@@ -143,7 +131,7 @@ const About = async () => {
             </div>
           </section>
 
-          {/* Vision Timeline */}
+          
           <section>
             <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-14">
               Our Vision
@@ -182,7 +170,7 @@ const About = async () => {
             </div>
           </section>
 
-          {/* Call to Action */}
+          
           <section className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-black mb-6">
               Join the First Wave

@@ -22,7 +22,7 @@ type Props = { searchParams: Promise<Search> };
 const pickFirst = (v: string | string[] | undefined) =>
     typeof v === "string" ? v : v?.[0] ?? "";
 
-// isApprove: 0 = Pending, 1 = Approved
+
 const getApproveCode = (r: { isApproved?: number | null; isApprove?: number | null }) => {
     const v = r?.isApproved ?? r?.isApprove;
     if (v === 0 || v === 1) return v;
@@ -64,7 +64,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
         return (
             <main className="max-w-xl mx-auto p-6 flex items-center justify-center">
                 <div className="flex flex-col items-center space-y-6">
-                    {/* Spinner */}
+                    
                     <div className="w-14 h-14 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
 
                     <h2 className="text-2xl font-bold text-center">Verifying your payment...</h2>

@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("A valid 10-digit phone number is required (e.g., 9876543210).", 400);
         }
 
-        // 1. Fetch Listing with Sets and Packages
+
         const listing = await prisma.listing.findUnique({
             where: { id: data.listingId },
             include: {
@@ -77,12 +77,12 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Listing not found", 404);
         }
 
-        // 2. Check Listing Status
+
         if (listing.status !== "VERIFIED" || !listing.active) {
             return createErrorResponse("This listing is currently not accepting bookings", 400);
         }
 
-        // 3. Pricing Consistency Verification
+
         const selectedSetIds = data.setIds || [];
         const selectedPackage = data.setPackageId
             ? (listing as ListingWithSets).packages.find((p) => p.id === data.setPackageId && p.isActive)
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Selected package is no longer available", 400);
         }
 
-        // 4. Race Condition Check: Re-verify Availability
+
         const conflict = await checkSetConflicts({
             listingId: data.listingId,
             date: new Date(data.startDate),

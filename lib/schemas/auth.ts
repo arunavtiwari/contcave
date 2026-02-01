@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Password reset schema
+
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, "Token is required"),
   password: z

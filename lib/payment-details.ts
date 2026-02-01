@@ -92,7 +92,7 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
 }
 
 
-// Delete payment details
+
 export async function deletePaymentDetails(userId: string): Promise<void> {
     try {
         const existing = await prisma.paymentDetails.findFirst({ where: { userId } });
@@ -108,7 +108,7 @@ export async function deletePaymentDetails(userId: string): Promise<void> {
     }
 }
 
-// Safe wrapper for fetching with error response
+
 export async function getPaymentDetailsSafe(userId: string): Promise<PaymentDetailsResponse> {
     try {
         const paymentDetails = await getPaymentDetailsByUserId(userId);
@@ -118,7 +118,7 @@ export async function getPaymentDetailsSafe(userId: string): Promise<PaymentDeta
     }
 }
 
-// Safe wrapper for upsert with response wrapping
+
 export async function upsertPaymentDetailsSafe(data: PaymentDetailsData): Promise<PaymentDetailsResponse> {
     try {
         const existing = await prisma.paymentDetails.findFirst({ where: { userId: data.userId } });
@@ -196,7 +196,7 @@ export async function upsertPaymentDetailsSafe(data: PaymentDetailsData): Promis
     }
 }
 
-// Safe delete with error response
+
 export async function deletePaymentDetailsSafe(userId: string): Promise<DeleteResponse> {
     try {
         await deletePaymentDetails(userId);
@@ -206,7 +206,7 @@ export async function deletePaymentDetailsSafe(userId: string): Promise<DeleteRe
     }
 }
 
-// Type guard to validate complete payment data
+
 export function validatePaymentDetailsData(data: Partial<PaymentDetailsData>): data is PaymentDetailsData {
     return !!(
         data.userId &&
@@ -217,7 +217,7 @@ export function validatePaymentDetailsData(data: Partial<PaymentDetailsData>): d
     );
 }
 
-// Type guard for Prisma errors
+
 export function isPrismaError(error: unknown): error is { code: string; message: string } {
     return typeof error === 'object' && error !== null && 'code' in error;
 }

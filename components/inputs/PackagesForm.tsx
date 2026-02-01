@@ -20,7 +20,7 @@ interface PackagesFormProps {
 export default function PackagesForm({ value, onChange, availableSets = [] }: PackagesFormProps) {
   const [packages, setPackages] = useState<Package[]>(value || []);
 
-  // Sync external changes
+
   useEffect(() => {
     setPackages(value || []);
   }, [value]);
@@ -69,7 +69,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
           key={idx}
           className="border border-black rounded-xl p-6 relative flex flex-col gap-4 bg-white shadow-xs"
         >
-          {/* Bin / Remove button */}
+          
           <button
             type="button"
             onClick={() => removePackage(idx)}
@@ -79,7 +79,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             <Trash2 size={16} />
           </button>
 
-          {/* Package Title */}
+          
           <div className="w-full">
 
             <Input
@@ -92,7 +92,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             />
           </div>
 
-          {/* Duration */}
+          
           <div className="w-full">
 
             <Input
@@ -107,7 +107,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             <p className="text-xs text-neutral-500 mt-1">Minimum duration is 1 hour</p>
           </div>
 
-          {/* Price inputs */}
+          
           <div className="flex gap-4 flex-wrap">
             <div className="flex-1">
 
@@ -140,7 +140,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             </div>
           </div>
 
-          {/* Features tag-style input */}
+          
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Features</label>
             <div className="flex flex-wrap gap-2">
@@ -185,7 +185,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             <p className="text-xs text-neutral-500">Press Enter to add a feature</p>
           </div>
 
-          {/* Set Configuration */}
+          
           {availableSets.length > 0 && (
             <div className="border-t pt-4 mt-2">
               <div className="flex items-center gap-2 mb-4">
@@ -233,7 +233,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
         </div>
       ))}
 
-      {/* Add Package button */}
+      
       <button
         type="button"
         onClick={addPackage}

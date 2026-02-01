@@ -51,7 +51,7 @@ export default async function getListings(params: IListingsParams) {
     if (userId) {
       query.userId = userId;
     } else {
-      // Only show active listings on public listings page
+
       query.active = true;
     }
 

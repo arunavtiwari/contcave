@@ -39,13 +39,13 @@ function Modal({
   secondaryActionLabel,
 
   isLoading,
-  bodyRef, // New prop for scrolling
+  bodyRef,
   customHeight,
 }: Props & { bodyRef?: React.RefObject<HTMLDivElement | null>; customHeight?: string }) {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Smooth transition open/close
+
   useEffect(() => {
     if (isOpen) setShowModal(true);
     else {
@@ -54,7 +54,7 @@ function Modal({
     }
   }, [isOpen]);
 
-  // Scroll lock while modal open
+
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
@@ -77,7 +77,7 @@ function Modal({
     secondaryAction();
   }, [disabled, secondaryAction]);
 
-  // Close on Esc key
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !disabled) handleClose();
@@ -86,7 +86,7 @@ function Modal({
     return () => window.removeEventListener("keydown", handleEsc);
   }, [handleClose, disabled]);
 
-  // Close when clicking backdrop (not inner content)
+
   const handleBackdropClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) handleClose();
   }, [handleClose]);
@@ -110,7 +110,7 @@ function Modal({
         aria-labelledby="modal-title"
       >
         <div className={`flex flex-col w-full bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden ${customHeight || "h-[85vh] max-h-[85vh]"}`}>
-          {/* Header */}
+          
           <div className="flex items-center justify-center p-5 border-b border-gray-200 bg-gray-50 relative shrink-0">
             <h2 id="modal-title" className="text-lg font-semibold text-center text-gray-900">
               {title}
@@ -124,7 +124,7 @@ function Modal({
             </button>
           </div>
 
-          {/* Body */}
+          
           <div
             ref={bodyRef}
             className="flex-1 px-6 py-5 overflow-y-auto text-gray-800"
@@ -132,7 +132,7 @@ function Modal({
             {body}
           </div>
 
-          {/* Footer */}
+          
           {!selfActionButton && (
             <div className="px-6 py-4 border-t border-gray-200 flex flex-col md:flex-row gap-3 justify-end items-center bg-gray-50 shrink-0">
               {secondaryAction && secondaryActionLabel && (

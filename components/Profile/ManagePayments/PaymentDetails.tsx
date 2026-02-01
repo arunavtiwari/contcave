@@ -8,7 +8,7 @@ import Heading from "@/components/ui/Heading";
 import { PaymentProfile } from "@/types/payment";
 import { SafeUser } from "@/types/user";
 
-// Types
+
 interface BankField {
     label: string;
     name: string;
@@ -98,7 +98,7 @@ const FieldInput = React.memo<{
 
 FieldInput.displayName = 'FieldInput';
 
-// Main Component
+
 const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails, onSave }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -107,7 +107,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [hasExistingData, setHasExistingData] = useState(false);
 
-    // Field definitions
+
     const BANK_FIELDS: BankField[] = useMemo(() => [
         {
             label: "Account Holder Name",
@@ -192,7 +192,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         return initialData;
     }, [BANK_FIELDS, TAX_FIELDS]);
 
-    // Initialize form data when payment details change
+
     useEffect(() => {
         const data = initializeFormData(paymentDetails || null);
         setFormData(data);
@@ -200,11 +200,11 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         setHasExistingData(!!paymentDetails && Object.keys(paymentDetails).length > 1);
     }, [paymentDetails, initializeFormData]);
 
-    // Handlers
+
     const handleFieldChange = useCallback((name: string, value: string) => {
         const normalizedValue = name === "gstin" ? value.toUpperCase() : value;
         setFormData(prev => ({ ...prev, [name]: normalizedValue }));
-        // Clear error when user starts typing
+
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
         }
@@ -213,21 +213,21 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
     const validateForm = useCallback((): boolean => {
         const newErrors: Record<string, string> = {};
 
-        // Validate required fields
+
         [...BANK_FIELDS, ...TAX_FIELDS].forEach(field => {
             if (field.required && !formData[field.name]?.trim()) {
                 newErrors[field.name] = `${field.label} is required`;
             }
         });
 
-        // Custom validations
+
         if (formData.accountNumber && formData.reAccountNumber) {
             if (formData.accountNumber !== formData.reAccountNumber) {
                 newErrors.reAccountNumber = 'Account numbers do not match';
             }
         }
 
-        // IFSC code validation
+
         if (formData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)) {
             newErrors.ifscCode = 'Invalid IFSC code format';
         }
@@ -272,7 +272,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                 form.append('accountHolderName', formData.accountHolderName || '');
                 form.append('bankName', formData.bankName || '');
 
-                // Handle masked account numbers
+
                 const isMasked = /^\*+$/.test(formData.accountNumber.trim()) || /\*{3,}/.test(formData.accountNumber.trim());
                 if (!isMasked) {
                     form.append('accountNumber', formData.accountNumber || '');
@@ -310,7 +310,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
     return (
         <div className="flex flex-col w-full gap-5">
             <form onSubmit={(e) => e.preventDefault()} className="xl:space-y-8 lg:space-y-8 md:space-y-8 space-y-3">
-                {/* Bank Info Header */}
+                
                 <div className="flex justify-between items-start">
                     <Heading
                         title="Bank Account Information"
@@ -318,7 +318,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                         variant="h4"
                     />
 
-                    {/* Action Buttons */}
+                    
                     <div className="flex h-fit gap-3">
                         {isEditing ? (
                             <>
@@ -351,7 +351,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     </div>
                 </div>
 
-                {/* Bank Information Fields */}
+                
                 <fieldset className="relative space-y-4 mt-3 p-6 rounded-xl border border-gray-200">
                     <legend className="sr-only">Bank Account Information</legend>
                     {BANK_FIELDS.map((field) => (
@@ -366,14 +366,14 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     ))}
                 </fieldset>
 
-                {/* Tax Information Header */}
+                
                 <Heading
                     title="Tax Information"
                     subtitle="Provide your tax information."
                     variant="h4"
                 />
 
-                {/* Tax Information Fields */}
+                
                 <fieldset className="relative space-y-4 p-6 rounded-xl border border-gray-200">
                     <legend className="sr-only">Tax Information</legend>
                     {TAX_FIELDS.map((field) => (
@@ -388,7 +388,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     ))}
                 </fieldset>
 
-                {/* Change indicator */}
+                
                 {isEditing && hasChanges && (
                     <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
                         You have unsaved changes

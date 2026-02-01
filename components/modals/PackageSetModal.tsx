@@ -28,7 +28,7 @@ export default function PackageSetModal({
 }: PackageSetModalProps) {
     const [selectedSetIds, setSelectedSetIds] = useState<string[]>([]);
 
-    // Reset selection when modal opens or package changes
+
     useEffect(() => {
         if (isOpen) {
             setSelectedSetIds([]);
@@ -58,7 +58,7 @@ export default function PackageSetModal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                {/* Header */}
+                
                 <div className="flex items-center justify-between p-4 border-b">
                     <h3 className="text-lg font-semibold">
                         Select Sets for {packageItem.title}
@@ -71,7 +71,7 @@ export default function PackageSetModal({
                     </button>
                 </div>
 
-                {/* Body */}
+                
                 <div className="p-6 overflow-y-auto">
                     <div className="mb-4">
                         <p className="text-neutral-600">
@@ -86,15 +86,15 @@ export default function PackageSetModal({
                         selectedSetIds={selectedSetIds}
                         onSetToggle={handleSetToggle}
                         includedSetId={null}
-                        pricingType={null} // Package pricing overrides set pricing
+                        pricingType={null}
                         selectedPackage={packageItem}
                         availableSetIds={availableSetIds}
-                        // Disable "Book Entire Studio" inside the modal as it's package specific
+
                         onSelectAll={undefined}
                     />
                 </div>
 
-                {/* Footer */}
+                
                 <div className="p-4 border-t bg-neutral-50 flex justify-end gap-3">
                     <Button
                         label="Cancel"

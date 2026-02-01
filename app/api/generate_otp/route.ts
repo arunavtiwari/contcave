@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
 
-    // Validate with Zod
+
     const validation = aadhaarSchema.safeParse(body);
     if (!validation.success) {
       return createErrorResponse(validation.error.issues[0].message, 400);
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("Server configuration error", 500);
     }
 
-    // Get reusable proxy agent
+
     const httpsAgent = getFixieProxyAgent();
 
     const controller = new AbortController();
@@ -62,10 +62,10 @@ export async function POST(req: NextRequest) {
     } catch (fetchError) {
       clearTimeout(timeoutId);
 
-      // Check for proxy-specific errors
+
       const proxyErrorInfo = handleProxyError(fetchError, "generate_otp");
       if (proxyErrorInfo.isProxyError) {
-        // Log proxy error for monitoring
+
         console.error("[Fixie Proxy] Proxy error in generate_otp:", proxyErrorInfo.message);
         return createErrorResponse(
           "Service temporarily unavailable. Please try again later.",
@@ -80,15 +80,15 @@ export async function POST(req: NextRequest) {
         console.error(`[Aadhaar OTP] Upstream Error (${status}):`, JSON.stringify(errorData));
 
         if (status === 401 || status === 403) {
-          // Detailed error for debugging configuration issues (IP Whitelist vs Credentials)
+
           return createErrorResponse(
             `Verification service access denied. Check API credentials or IP Whitelist. Upstream: ${JSON.stringify(errorData)}`,
-            500 // Keeping 500 to indicate server-side config/network failure to the client
+            500
           );
         }
 
         if (status === 409) {
-          // Handle "verification_pending" (OTP already generated)
+
           const errorObj = typeof errorData === 'string' ? JSON.parse(errorData) : errorData;
           if (errorObj?.code === 'verification_pending') {
             return createErrorResponse(

@@ -13,7 +13,7 @@ const FeaturesTab = () => {
 
   return (
     <>
-      {/* <!-- ===== Features Tab Start ===== --> */}
+      
       <section className="relative pb-20 pt-18.5 lg:pb-22.5">
 
 
@@ -39,7 +39,7 @@ const FeaturesTab = () => {
             />
           </div>
 
-          {/* <!-- Tab Menues Start --> */}
+          
           <motion.div
             variants={{
               hidden: {
@@ -113,9 +113,9 @@ const FeaturesTab = () => {
               </div>
             </div>
           </motion.div>
-          {/* <!-- Tab Menues End --> */}
+          
 
-          {/* <!-- Tab Content Start --> */}
+          
           <motion.div
             variants={{
               hidden: {
@@ -143,10 +143,10 @@ const FeaturesTab = () => {
               </div>
             ))}
           </motion.div>
-          {/* <!-- Tab Content End --> */}
+          
         </div>
       </section>
-      {/* <!-- ===== Features Tab End ===== --> */}
+      
     </>
   );
 };

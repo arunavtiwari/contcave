@@ -45,7 +45,7 @@ export async function generateInvoicePDFBlob(data: InvoiceData) {
     totalAmount,
   } = data;
 
-  // Create a hidden div for rendering invoice
+
   const container = document.createElement("div");
   container.style.width = "800px";
   container.style.padding = "24px";
@@ -97,9 +97,7 @@ export async function generateInvoicePDFBlob(data: InvoiceData) {
   return blob;
 }
 
-/**
- * Wrapper that creates the invoice record and returns a Blob URL.
- */
+
 export async function createInvoice({
   userId,
   reservationId,
@@ -152,7 +150,7 @@ export async function createInvoice({
   const totalAmount = amount + gstAmount;
   const invoiceNumber = `CC-${Date.now()}`;
 
-  // Generate PDF blob
+
   const blob = await generateInvoicePDFBlob({
     invoiceNumber,
     user,
@@ -164,7 +162,7 @@ export async function createInvoice({
     reservationId,
   });
 
-  // Store as Object URL or in S3 / Cloudflare R2 / Supabase (for production, use real file storage)
+
   const url = URL.createObjectURL(blob);
 
   await prisma.invoice.create({

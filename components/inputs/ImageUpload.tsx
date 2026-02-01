@@ -26,7 +26,7 @@ function ImageUpload({
   onFilesChange,
   uid = "file-upload",
   allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"],
-  maxSize = 10 * 1024 * 1024, // 10MB
+  maxSize = 10 * 1024 * 1024,
   label = "Upload Image",
   icon: Icon = TbPhotoPlus,
   className,
@@ -130,7 +130,7 @@ function ImageUpload({
       ) : (
         <div className="flex flex-col items-center gap-2 text-center">
           {className ? (
-            // Full version for larger areas
+
             <>
               <div className="p-3 bg-neutral-100 rounded-full">
                 <Icon size={28} className="text-neutral-600" />
@@ -143,7 +143,7 @@ function ImageUpload({
               </div>
             </>
           ) : (
-            // Compact version for small squares
+
             <>
               <Icon size={30} className="text-neutral-600" />
               <div className="font-semibold mt-1 text-xs text-neutral-600">

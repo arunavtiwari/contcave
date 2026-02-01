@@ -17,7 +17,7 @@ export async function PUT(request: Request) {
 
     const body = await request.json().catch(() => ({}));
 
-    // Validate using Zod schema
+
     const validation = userUpdateSchema.safeParse(body);
 
     if (!validation.success) {
@@ -27,7 +27,7 @@ export async function PUT(request: Request) {
 
     const validData = validation.data;
 
-    // Filter out undefined values (only update provided fields)
+
     const updateData: Record<string, unknown> = {};
     Object.entries(validData).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -90,7 +90,7 @@ export async function PATCH(request: Request) {
       return createErrorResponse("Enter a valid 10-digit mobile number", 400);
     }
 
-    // Validate using Zod schema
+
     const validation = phoneUpdateSchema.safeParse({ phone: normalized });
     if (!validation.success) {
       const firstError = validation.error.issues[0];

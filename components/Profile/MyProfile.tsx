@@ -45,13 +45,13 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
     const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
 
-    // Languages
+
     const languageOptions = [
         "English", "Hindi", "French", "German", "Italian",
         "Chinese", "Japanese", "Arabic", "Portuguese", "Russian"
     ];
 
-    // Titles
+
     const titleOptions = ["Mr", "Mrs", "Ms", "Dr", "Prof"];
 
     useEffect(() => {
@@ -153,7 +153,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
 
     return (
         <div className="flex flex-col w-full gap-5">
-            {/* Header */}
+            
             <div className="flex items-center justify-between">
                 <Heading title="My Profile" subtitle="Manage your personal information and preferences" />
                 {isVerified && (
@@ -165,11 +165,11 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
-                {/* Main Profile Section */}
+                
                 <div className="lg:col-span-2 space-y-8">
-                    {/* Profile Card */}
+                    
                     <div className="bg-white rounded-2xl shadow-xs border border-gray-200 overflow-hidden">
-                        {/* Profile Header */}
+                        
                         <div
                             className="relative h-32 bg-center bg-no-repeat bg-cover"
                             style={{ backgroundImage: "url('/images/banner.svg')" }}
@@ -205,7 +205,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                         </div>
 
 
-                        {/* Profile Content */}
+                        
                         <div className="pt-20 py-6 px-8">
                             <div className="flex justify-between mb-6 gap-8 items-center">
                                 <div className="flex-1">
@@ -243,7 +243,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                 </button>
                             </div>
 
-                            {/* Description */}
+                            
                             <div className="mb-2">
                                 {editMode ? (
                                     <Textarea
@@ -263,12 +263,12 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                         </div>
                     </div>
 
-                    {/* Personal Details Card */}
+                    
                     <div className="bg-white rounded-2xl shadow-xs border border-gray-200 p-8">
                         <h3 className="text-xl font-semibold text-gray-900 mb-6">Personal Details</h3>
 
                         <div className="space-y-6">
-                            {/* Title */}
+                            
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <FaUser className="w-5 h-5 text-gray-400" />
@@ -294,7 +294,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                 )}
                             </div>
 
-                            {/* Email */}
+                            
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <FaEnvelope className="w-5 h-5 text-gray-400" />
@@ -303,7 +303,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                 <span className="text-gray-900 font-medium">{userData.email}</span>
                             </div>
 
-                            {/* Phone */}
+                            
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <FaPhone className="w-5 h-5 text-gray-400" />
@@ -337,7 +337,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                             </div>
 
 
-                            {/* Location */}
+                            
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <FaMapMarkerAlt className="w-5 h-5 text-gray-400" />
@@ -357,7 +357,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                 )}
                             </div>
 
-                            {/* Languages */}
+                            
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
                                     <FaGlobe className="w-5 h-5 text-gray-400" />
@@ -400,10 +400,10 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                     </div>
                 </div>
 
-                {/* Sidebar Actions */}
+                
                 <div className="space-y-6">
                     {!userData.is_owner ? (
-                        // Not an owner yet
+
                         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
                             <div className="text-center space-y-4">
                                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
@@ -424,7 +424,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                             </div>
                         </div>
                     ) : !isVerified ? (
-                        // Owner but not verified
+
                         <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6">
                             <div className="text-center space-y-4">
                                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
@@ -445,7 +445,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                             </div>
                         </div>
                     ) : (
-                        // Verified card
+
                         <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
                             <div className="text-center space-y-4">
                                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
@@ -499,9 +499,9 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                         .then((res) => {
                             const updatedUser = res.data;
                             setUserData(updatedUser);
-                            setCurrentUser(updatedUser); // Update currentUser for VerificationModal
+                            setCurrentUser(updatedUser);
 
-                            // Show loading for 1.5 seconds, then open verification modal
+
                             setTimeout(() => {
                                 setShowLoadingOverlay(false);
                                 setShowVerificationModal(true);
@@ -518,7 +518,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
             />
 
 
-            {/* Full-screen loading overlay */}
+            
             {showLoadingOverlay && (
                 <div className="fixed inset-0 z-1000 bg-black/60 backdrop-blur-md flex items-center justify-center">
                     <div className="flex flex-col items-center justify-center gap-4">
@@ -534,10 +534,10 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                     onClose={() => setShowVerificationModal(false)}
                     currentUser={currentUser}
                     onComplete={() => {
-                        // Update local state after verification completes
+
                         setUserData((u) => ({ ...u, is_verified: true }));
                         setIsVerified(true);
-                        // Update currentUser to reflect verification status
+
                         setCurrentUser((u) => u ? { ...u, is_verified: true } : null);
                     }}
                 />

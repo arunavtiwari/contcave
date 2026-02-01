@@ -33,7 +33,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPrice = e.target.value === '' ? '' : parseInt(e.target.value, 10);
     setPrice(newPrice);
-    // Call onChange only if the checkbox is checked
+
     if (isChecked) {
       setIsChecked(isChecked);
       onChange({ checked: true, price: newPrice !== '' ? newPrice : undefined, qty: qty !== '' ? qty : undefined });
@@ -81,7 +81,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
 
         <div className="w-full flex flex-col items-center gap-3">
           <span className="addon-name truncate mt-2">{label}</span>
-          {/* Price */}
+          
           {!hideInputFields && (
             <div className='flex items-center gap-2 w-full justify-between'>
               <label className="text-sm font-semibold shrink-0">Price</label>
@@ -99,7 +99,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
             </div>
           )}
 
-          {/* Quantity */}
+          
           {!hideInputFields && (
             <div className='flex items-center gap-2 w-full justify-between'>
               <label className="text-sm font-semibold shrink-0">Quantity</label>

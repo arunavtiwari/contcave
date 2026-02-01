@@ -53,7 +53,7 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   return (
     <>
-      {/* Banner */}
+      
       <div className="relative h-64 w-full">
         <Image
           src="/assets/footer-banner.jpg"
@@ -175,8 +175,8 @@ export default function PrivacyPolicyPage() {
             <ul className="list-none pl-0 space-y-1 text-gray-700">
               <li><strong>Entity:</strong> Arkanet Ventures LLP (operating “ContCave”)</li>
               <li><strong>Email:</strong> info@contcave.com</li>
-              {/* <li><strong>Grievance Officer:</strong> [Name], [email], [phone]</li> */}
-              {/* <li><strong>Address:</strong> [Full registered address]</li> */}
+              
+              
               <li className="text-sm text-gray-500">
                 We aim to respond within <strong>30 days</strong> as per applicable Indian rules.
               </li>

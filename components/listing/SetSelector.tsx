@@ -119,7 +119,7 @@ export default function SetSelector({
                                 ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
                             `}
                         >
-                            {/* Image Background */}
+                            
                             {set.images.length > 0 ? (
                                 <Image
                                     src={set.images[0]}
@@ -133,7 +133,7 @@ export default function SetSelector({
                                 </div>
                             )}
 
-                            {/* Overlay - Title on Hover */}
+                            
                             <div className={`absolute inset-0 transition-all duration-300 flex items-center justify-center p-2 text-center
                                 ${isSelected ? "bg-black/40" : "bg-black/0 group-hover:bg-black/40"}
                             `}>
@@ -144,7 +144,7 @@ export default function SetSelector({
                                 </h4>
                             </div>
 
-                            {/* Status Indicators */}
+                            
                             <div className="absolute top-2 right-2 z-10">
                                 <Checkbox
                                     checked={isSelected}

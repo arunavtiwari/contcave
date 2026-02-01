@@ -131,14 +131,14 @@ const BookingCard: React.FC<BookingCardProps> = ({
             >
                 <div className="flex flex-col gap-2 w-full">
                     <div className="aspect-square w-full relative overflow-hidden rounded-xl">
-                        {/* Property Image */}
+                        
                         <Image
                             fill
                             className="object-cover h-full w-full"
                             src={data.imageSrc?.[0] ?? ""}
                             alt="listing"
                         />
-                        {/* Status Banner */}
+                        
                         <div
                             className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-white text-sm`}
                             style={{ backgroundColor: getBannerColor() }}
@@ -147,7 +147,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         </div>
                     </div>
 
-                    {/* Property Title */}
+                    
                     <div className="font-semibold text-lg">{data.title}</div>
                     {!reservation?.isApproved && onApprove && (
                         <div className="flex items-stretch">

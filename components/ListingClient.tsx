@@ -104,7 +104,7 @@ function ListingClient({
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [googleCalendarEvents, setGoogleCalendarEvents] = useState<GoogleCalendarEvent[]>([]);
 
-  // Hoisted Multi-set state
+
   const [selectedSetIds, setSelectedSetIds] = useState<string[]>([]);
   const [isEntireStudioBooked, setIsEntireStudioBooked] = useState(false);
   const [isPackageSetModalOpen, setIsPackageSetModalOpen] = useState(false);
@@ -113,12 +113,12 @@ function ListingClient({
   const abortRef = useRef<AbortController | null>(null);
   const lastSigRef = useRef("");
 
-  // Initialize selectedSetIds with the first set if available and no package selected
+
   useEffect(() => {
     if (listing.hasSets && listing.sets && listing.sets.length > 0 && selectedSetIds.length === 0 && !selectedPackage) {
       setSelectedSetIds([listing.sets[0].id]);
     }
-  }, [listing.hasSets, listing.sets, selectedPackage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [listing.hasSets, listing.sets, selectedPackage]);
 
   useEffect(() => {
     if (!selectedDate || !selectedPackage || !selectedTimeSlot[0]) return;
@@ -214,7 +214,7 @@ function ListingClient({
     const listingWideBusy: Array<{ s: TimeHM; e: TimeHM }> = [];
     const setBusyIntervals: Record<string, Array<{ s: TimeHM; e: TimeHM }>> = {};
 
-    // Helper to add intervals
+
     const addInterval = (s: TimeHM, e: TimeHM, setIds?: string[]) => {
       if (!s || !e || hhmmToMinutes(s) >= hhmmToMinutes(e)) return;
       if (!setIds || setIds.length === 0) {
@@ -278,9 +278,9 @@ function ListingClient({
       }
     }
 
-    // Now we need to determine which slots are "busy" based on set availability
-    // This is tricky because we want to return a list of merged intervals.
-    // We'll use a 15-minute resolution to find busy slots.
+
+
+
     const busyIntervals: Array<{ s: TimeHM; e: TimeHM }> = [...listingWideBusy];
 
     if (listing.hasSets && listing.sets && listing.sets.length > 0) {
@@ -289,16 +289,16 @@ function ListingClient({
       const targetSets = currentSelectedSetIds.length > 0 ? currentSelectedSetIds : null;
 
       const isBusyAt = (min: number) => {
-        // Check listing-wide
+
         if (listingWideBusy.some(b => min >= hhmmToMinutes(b.s) && min < hhmmToMinutes(b.e))) return true;
 
         if (targetSets) {
-          // If specific sets are selected, any of them being busy makes the slot busy
+
           return targetSets.some(id =>
             (setBusyIntervals[id] || []).some(b => min >= hhmmToMinutes(b.s) && min < hhmmToMinutes(b.e))
           );
         } else {
-          // If no sets selected, busy if available sets < minSets
+
           let available = 0;
           for (const id of allSetIds) {
             if (!(setBusyIntervals[id] || []).some(b => min >= hhmmToMinutes(b.s) && min < hhmmToMinutes(b.e))) {
@@ -391,11 +391,11 @@ function ListingClient({
 
     const dayStr = istToDateOnly(day).toDateString();
 
-    // Build set-specific busy intervals
+
     const setBusyIntervals: Record<string, Array<{ s: number; e: number }>> = {};
     const listingWideBusy: Array<{ s: number; e: number }> = [];
 
-    // Add reservations
+
     reservations.forEach((r) => {
       const rDay = istToDateOnly(new Date(r.startDate as unknown as Date)).toDateString();
       if (rDay !== dayStr) return;
@@ -413,7 +413,7 @@ function ListingClient({
       }
     });
 
-    // Add blocks
+
     listing.blocks?.forEach((b) => {
       const bDay = istToDateOnly(new Date(b.date)).toDateString();
       if (bDay !== dayStr) return;
@@ -431,7 +431,7 @@ function ListingClient({
       }
     });
 
-    // Add current time cutoff if today
+
     if (istSameDay(day, new Date())) {
       const cutoff = labelToMinutes(getRoundedNowIST_HHMM());
       const start = labelToMinutes(EARLIEST_SLOT_HHMM);
@@ -449,15 +449,15 @@ function ListingClient({
       const endMin = startMin + required;
       if (endMin > opsEndMin + step) continue;
 
-      // If listing-wide busy, this slot is out
+
       if (overlaps(startMin, endMin, listingWideBusy)) continue;
 
       if (!listing.hasSets || allSetIds.length === 0) {
-        // Single unit logic: if no listing-wide busy, it's valid
+
         return true;
       }
 
-      // Multi-set logic: count available sets
+
       let availableCount = 0;
       for (const setId of allSetIds) {
         if (!overlaps(startMin, endMin, setBusyIntervals[setId] || [])) {
@@ -504,7 +504,7 @@ function ListingClient({
     [listing.category]
   );
 
-  // --- Hoisted Logic Start ---
+
 
   const availableSetIds = useMemo(() => {
     if (!listing.hasSets || !listing.sets || !selectedDate || !selectedTimeSlot[0] || !selectedTimeSlot[1]) {
@@ -516,7 +516,7 @@ function ListingClient({
     const dayStr = istToDateOnly(selectedDate).toDateString();
 
     return listing.sets.filter(set => {
-      // Check reservations
+
       const hasResConflict = reservations.some(r => {
         const rDay = istToDateOnly(new Date(r.startDate as unknown as Date)).toDateString();
         if (rDay !== dayStr) return false;
@@ -528,13 +528,13 @@ function ListingClient({
 
       if (hasResConflict) return false;
 
-      // Check blocks
+
       const hasBlockConflict = listing.blocks?.some(b => {
         const bDay = istToDateOnly(new Date(b.date)).toDateString();
         if (bDay !== dayStr) return false;
         const bs = labelToMinutes(b.startTime);
         const be = labelToMinutes(b.endTime);
-        // Listing-wide block (empty setIds) or set-specific block
+
         const isSetBlocked = !b.setIds || b.setIds.length === 0 || b.setIds.includes(set.id);
         return isSetBlocked && (startMin < be && bs < endMin);
       });
@@ -609,7 +609,7 @@ function ListingClient({
     setIsPackageSetModalOpen(false);
   }, []);
 
-  // --- Hoisted Logic End ---
+
 
   const handleAddonChange = useCallback((payload: unknown) => {
     const next = normalizeAddons(payload);
@@ -647,7 +647,7 @@ function ListingClient({
                 services={[]}
                 onPackageSelect={handlePackageSelect}
 
-                // Set Selection Props
+
                 selectedSetIds={selectedSetIds}
                 onSetToggle={handleSetToggle}
                 onSelectAllSets={handleSelectAllSets}
@@ -685,12 +685,12 @@ function ListingClient({
                   sets={listing.sets}
                   additionalSetPricingType={listing.additionalSetPricingType}
 
-                  // Hoisted props
+
                   selectedSetIds={selectedSetIds}
                   pricingResult={pricingResult}
 
                   selectedPackageId={selectedPackage?.id || null}
-                  setSelectionError={null} // Validation is now handled via UI disable, but we satisfy the prop
+                  setSelectionError={null}
 
                   reservations={reservations}
                 />
@@ -699,7 +699,7 @@ function ListingClient({
           </div>
         </div>
 
-        {/* Package Set Selection Modal */}
+        
         {selectedPackage && (
           <PackageSetModal
             isOpen={isPackageSetModalOpen}

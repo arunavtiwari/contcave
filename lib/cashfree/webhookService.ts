@@ -180,10 +180,10 @@ async function claimAndSendCustomerEmail(
   if (claimed.count === 1) {
     try {
       await sendReservationCustomerEmail(payload);
-      // Send WhatsApp to Customer
-      if (payload.toEmail) { // Using email as a proxy for user existence, but we need phone.
-        // We need to fetch the user's phone. It's not in the payload.
-        // We will handle this in the main flow where we have the user object.
+
+      if (payload.toEmail) {
+
+
       }
     } catch (e) {
       await prisma.transaction.update({ where: { id: txnId }, data: { emailSentCustomer: false } });

@@ -81,7 +81,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
 
     return (
         <div className="space-y-8">
-            {/* Selected Addons Section */}
+            
             {selectedAddons.length > 0 && (
                 <div className='flex justify-start'>
                     <div>
@@ -121,7 +121,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
             )}
             {rentModal && selectedAddons.length > 0 && <hr className="my-4" />}
 
-            {/* Available Addons Section */}
+            
             <div className='flex justify-start'>
                 {availableAddons.length > 0 && (
                     <div>
@@ -145,7 +145,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                                     />
                                 </div>
                             ))}
-                            {/* Custom Addon Option */}
+                            
                             <div className="flex justify-center h-full">
                                 <ImageCheckbox
                                     imageUrl="https://cdn-icons-png.flaticon.com/512/992/992651.png"

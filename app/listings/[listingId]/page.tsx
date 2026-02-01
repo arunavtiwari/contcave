@@ -250,7 +250,7 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
 
   const url = absoluteUrl(`/listings/${listing.id}`);
 
-  // Fetch review count for aggregate rating
+
   const reviewCount = await prisma.review.count({
     where: { listingId: listing.id },
   });

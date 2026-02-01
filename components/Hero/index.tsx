@@ -25,7 +25,7 @@ const Hero = () => {
       duration: 1.5,
     })
 
-    // Text changing animation
+
     const textTl = gsap.timeline({ repeat: -1, repeatDelay: 1 });
     textTl.to('#changing-text', { opacity: 0, duration: 0.5 })
       .set('#changing-text', { textContent: 'Studio' })
@@ -42,7 +42,7 @@ const Hero = () => {
   return (
     <div id="hero-anim-track" className="overflow-hidden">
       <div className="flex items-center text-white relative h-[calc(100vh-80px)]">
-        {/* Overlay */}
+        
         <div className="absolute inset-0 bg-black opacity-65 z-10"></div>
 
         <div className="container flex z-20 px-4 sm:px-8 lg:px-16">

@@ -57,7 +57,7 @@ export default function SetDetailModal({
                     <IoClose size={24} />
                 </button>
 
-                {/* Image Section */}
+                
                 <div className="w-full md:w-3/5 bg-neutral-100 relative min-h-[300px] md:min-h-full group">
                     {set.images.length > 0 ? (
                         <>
@@ -103,7 +103,7 @@ export default function SetDetailModal({
                     )}
                 </div>
 
-                {/* Content Section */}
+                
                 <div className="w-full md:w-2/5 p-8 flex flex-col overflow-y-auto bg-white">
                     <div className="flex-1">
                         <div className="flex items-start justify-between gap-4 mb-4">
@@ -141,9 +141,9 @@ export default function SetDetailModal({
                             disabled={!isAvailable || !isEligible}
                             outline={isSelected}
                             icon={isSelected ? IoCheckmark : undefined}
-                        // Assuming Button component accepts custom classes or we rely on default styles. 
-                        // If Button doesn't accept className, we might need to wrap it or modify it.
-                        // Checking Button usage in other files, it seems standard.
+
+
+
                         />
                     </div>
                 </div>

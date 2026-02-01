@@ -113,7 +113,7 @@ function RegisterModal() {
             errors={errors}
           />
 
-          {/* Name Validation */}
+          
           <Input
             id="name"
             label="User Name"
@@ -122,7 +122,7 @@ function RegisterModal() {
             errors={errors}
           />
 
-          {/* Password Validation */}
+          
           <div className="relative">
             <Input
               id="password"

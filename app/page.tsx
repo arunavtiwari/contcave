@@ -104,10 +104,6 @@ export default function Home() {
       <FunFact />
       <FAQ />
       <CTA />
-      {/* Optional components */}
-      {/* <Cover /> */}
-      {/* <Contact /> */}
-      {/* <Blog /> */}
     </main>
   );
 }

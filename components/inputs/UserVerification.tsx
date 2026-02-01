@@ -28,17 +28,13 @@ const UserVerification: React.FC<UserVerificationProps> = ({ onSubmit, disabled 
                 <button className="flex bg-rose-500 shadow-lg text-white py-2 px-4 rounded-lg hover:bg-rose-500 focus:outline-none focus:bg-rose-700 mx-auto">
                   <FiUpload /> &nbsp; <label className="text-sm">Upload Document/s</label>
                 </button>
-                {/* Placeholder for uploaded documents */}
+                
                 <div className="mt-4 flex gap-2">
                   <div className="relative">
-                    {/*  <img src="/path/to/example-pdf-thumbnail.png" alt="example.pdf" className="h-20" />
-                    <button className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs">x</button>
-                    <p className="text-xs text-center">example.pdf</p> */}
+                    
                   </div>
                   <div className="relative">
-                    {/*   <img src="/path/to/agreement-pdf-thumbnail.png" alt="agreement.pdf" className="h-20" />
-                    <button className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs">x</button>
-                    <p className="text-xs text-center">agreement.pdf</p> */}
+                    
                   </div>
                 </div>
               </div>

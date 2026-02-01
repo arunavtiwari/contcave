@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     const isOwner = Boolean(is_owner);
 
-    // Choose appropriate schema based on user type
+
     const schema = isOwner ? ownerRegisterSchema : registerSchema;
     const validation = schema.safeParse({ email, name, password, phone });
 
@@ -36,10 +36,10 @@ export async function POST(request: NextRequest) {
     const trimmedEmail = validData.email.trim().toLowerCase();
     const trimmedName = validData.name.trim();
 
-    // Normalize phone for owners
+
     let normalizedPhone: string | null = null;
     if (isOwner) {
-      // Type assertion safe here because ownerRegisterSchema includes phone
+
       const phoneValue = (validData as unknown as { phone: string }).phone;
       normalizedPhone = normalizePhone(phoneValue);
       if (!normalizedPhone) {

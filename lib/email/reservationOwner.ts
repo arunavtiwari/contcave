@@ -1,4 +1,4 @@
-// lib/email/reservationOwner.ts
+
 import { AttachmentInput, sendTemplateEmail } from "./mailer";
 
 export async function sendReservationOwnerEmail(input: {

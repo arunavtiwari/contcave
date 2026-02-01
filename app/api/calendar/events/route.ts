@@ -118,7 +118,7 @@ export async function GET(request: Request) {
       });
       responseData = response.data.items || [];
     } catch (error: unknown) {
-      // Check if error is due to invalid credentials and we have a refresh token
+
       const err = error as { code?: number; status?: number; message?: string };
       const isInvalidCredentials =
         (err.code === 401 || err.status === 401) ||
@@ -138,7 +138,7 @@ export async function GET(request: Request) {
             throw new Error('Token refresh did not return access_token');
           }
 
-          // Update the access token in the database
+
           await prisma.account.update({
             where: { id: googleAccount.id },
             data: {
@@ -149,7 +149,7 @@ export async function GET(request: Request) {
             },
           });
 
-          // Retry the calendar API call with the new token
+
           accessToken = refreshedTokens.access_token;
           oauth2Client.setCredentials({ access_token: accessToken });
           const response = await calendar.events.list({
@@ -161,14 +161,14 @@ export async function GET(request: Request) {
           });
           responseData = response.data.items || [];
         } catch (refreshError) {
-          // If token refresh fails, throw the original error with context
+
           const errorMessage = refreshError instanceof Error
             ? refreshError.message
             : 'Unknown error during token refresh';
           throw new Error(`Failed to refresh calendar access token: ${errorMessage}. Original error: ${error instanceof Error ? error.message : 'Unknown'}`);
         }
       } else {
-        // Re-throw the original error if we can't handle it
+
         throw error;
       }
     }

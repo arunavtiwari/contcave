@@ -87,15 +87,15 @@ export async function createCalendarEventForUser(params: {
             const refreshed = await refreshAccessToken(acct.refresh_token);
             await prisma.account.update({ where: { id: acct.id }, data: { access_token: refreshed.access_token } });
             oauth2Client.setCredentials({ access_token: refreshed.access_token, refresh_token: acct.refresh_token });
-            // one immediate retry after refresh
+
             try {
                 return await attemptInsert();
             } catch (e2: unknown) {
-                // fall through to backoff if still retryable
+
                 err = e2;
             }
         }
-        // Retry with backoff for 429 and 5xx
+
         const retryable = status === 0 || status === 429 || (status >= 500 && status < 600) || /rate limit|quota|backend error/i.test(msg);
         if (retryable) {
             const maxAttempts = 3;
@@ -141,7 +141,7 @@ export async function ensureCalendarEventForUser(params: {
     });
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
-    // Check if an event with same title and overlapping exact start already exists
+
     const timeMin = toIsoMs(params.startIso);
     const timeMax = toIsoMs(params.endIso);
     try {
@@ -164,7 +164,7 @@ export async function ensureCalendarEventForUser(params: {
         });
         if (exists) return items[0];
     } catch {
-        // ignore list failures and fall back to create
+
     }
 
     return await createCalendarEventForUser(params);

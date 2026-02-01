@@ -137,7 +137,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
     <div className="flex flex-col gap-5">
       <Heading title={`Chat with ${booking?.listing?.title}`} />
       <div className="flex grow overflow-hidden w-full items-stretch h-[calc(100vh-180px)]">
-        {/* Chat Section */}
+        
         <div className="flex flex-col grow bg-gray-50 overflow-hidden rounded-l-xl border w-3/4">
           <div className="grow overflow-y-auto p-4">
             <div className="flex flex-col space-y-4">
@@ -164,7 +164,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
             </div>
           </div>
 
-          {/* Chat Input */}
+          
           <div className="flex-none p-4 border-t bg-white">
             <div className="flex items-stretch">
               <input
@@ -186,7 +186,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
           </div>
         </div>
 
-        {/* Booking Details Section */}
+        
         {booking && (
           <div className="border bg-white border-l-0 rounded-r-xl p-5 w-1/4">
             <Image

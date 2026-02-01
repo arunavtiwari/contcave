@@ -49,7 +49,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId }: P
             `}
           >
             <div className="flex items-center gap-6">
-              {/* Column 1: Checkmark */}
+              
               <div
                 className={`
                   w-6 h-6 rounded-full border-2 flex items-center justify-center transition shrink-0 mt-1
@@ -62,11 +62,11 @@ export default function PackageList({ packages, onSelect, selectedPackageId }: P
                 {selectedPackageId === pkg.id && <IoCheckmark size={16} />}
               </div>
 
-              {/* Column 2: Info */}
+              
               <div className="flex-1">
                 <h4 className="font-medium text-lg">{pkg.title}</h4>
 
-                {/* Features / Description */}
+                
                 {pkg.description && (
                   <p className="text-sm text-neutral-500 mt-1 line-clamp-2">
                     {pkg.description}
@@ -99,7 +99,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId }: P
                 </div>
               </div>
 
-              {/* Column 3: Pricing */}
+              
               <div className="flex items-center gap-2">
                 {(pkg.originalPrice || 0) > (pkg.offeredPrice || 0) && (
                   <span className="text-sm text-neutral-500 line-through">

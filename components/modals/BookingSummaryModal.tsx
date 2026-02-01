@@ -68,7 +68,7 @@ export default function BookingSummaryModal({
       }
 
       try {
-        // Save GST info first
+
         const billingRes = await fetch("/api/billing", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -85,7 +85,7 @@ export default function BookingSummaryModal({
 
         setGstDetailsAction({ ...gstDetails });
 
-        // Then create invoice
+
         const invoiceRes = await fetch("/api/invoice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -112,7 +112,7 @@ export default function BookingSummaryModal({
         setSaving(false);
       }
     } else {
-      // GST not needed, just confirm
+
       onConfirmAction();
       setSaving(false);
     }
@@ -137,7 +137,7 @@ export default function BookingSummaryModal({
           Booking Summary
         </h3>
 
-        {/* Summary */}
+        
         <div className="mb-4 space-y-2 text-gray-700">
           <div className="flex justify-between">
             <p>Booking Fee</p>
@@ -163,7 +163,7 @@ export default function BookingSummaryModal({
         </div>
 
 
-        {/* GST Toggle */}
+        
         <div className="mb-4">
           <Checkbox
             label="Need GST Invoice?"
@@ -172,7 +172,7 @@ export default function BookingSummaryModal({
           />
         </div>
 
-        {/* GST Fields */}
+        
         {needGST && (
           <div className="space-y-3 mb-4 text-gray-700">
 
@@ -215,7 +215,7 @@ export default function BookingSummaryModal({
 
         {gstError && <p className="text-sm text-red-600 mb-2">{gstError}</p>}
 
-        {/* Terms & Conditions */}
+        
         <div className="mt-4 mb-5">
           <div className="flex items-center gap-1 text-sm text-gray-700">
             <Checkbox
@@ -244,7 +244,7 @@ export default function BookingSummaryModal({
           </div>
         </div>
 
-        {/* Actions */}
+        
         <div className="mt-5 flex gap-2 justify-end">
           <button
             type="button"

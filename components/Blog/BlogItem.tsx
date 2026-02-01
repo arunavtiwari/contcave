@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-import { BlogPost } from "@/types/blog"; // Import the BlogPost type
+import { BlogPost } from "@/types/blog";
 
 const BlogItem = ({ blog }: { blog: BlogPost }) => {
   const { meta, title, id } = blog;

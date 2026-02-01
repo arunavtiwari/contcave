@@ -128,7 +128,7 @@ function BookingClient({ reservations, currentUser }: Props) {
         </div>
       </Container>
 
-      {/* Cancel / Delete */}
+      
       {isModalOpen && (
         <Modal
           isOpen={isModalOpen}
@@ -146,7 +146,7 @@ function BookingClient({ reservations, currentUser }: Props) {
         />
       )}
 
-      {/* Refund Info (after cancel) */}
+      
       {isRefundOpen && (
         <Modal
           isOpen={isRefundOpen}

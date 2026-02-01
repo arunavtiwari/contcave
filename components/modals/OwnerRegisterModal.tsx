@@ -85,7 +85,7 @@ function OwnerRegisterModal() {
                 <div className="flex flex-col gap-6">
                     <Heading title="Welcome to ContCave" subtitle="Create an Owner Account!" center />
 
-                    {/* Email Validation */}
+                    
                     <Input
                         id="email"
                         label="Email Address"
@@ -94,7 +94,7 @@ function OwnerRegisterModal() {
                         errors={errors}
                     />
 
-                    {/* Name Validation */}
+                    
                     <Input
                         id="name"
                         label="Full Name"
@@ -103,7 +103,7 @@ function OwnerRegisterModal() {
                         errors={errors}
                     />
 
-                    {/* Phone Validation */}
+                    
                     <Input
                         id="phone"
                         label="Phone Number"
@@ -113,7 +113,7 @@ function OwnerRegisterModal() {
                         errors={errors}
                     />
 
-                    {/* Password Validation */}
+                    
                     <Input
                         id="password"
                         label="Password"
@@ -123,7 +123,7 @@ function OwnerRegisterModal() {
                         errors={errors}
                     />
 
-                    {/* Toggle Password Visibility */}
+                    
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}

@@ -15,7 +15,7 @@ export const otpSchema = z.object({
 
 export const aadhaarSchema = z.object({
   aadhaarNumber: z.string().regex(/^[2-9]{1}[0-9]{3}\s[0-9]{4}\s[0-9]{4}$|^[2-9]{1}[0-9]{11}$/, "Invalid Aadhaar number format"),
-  verifyOtp: z.string().length(6, "OTP must be 6 digits").optional(), // For step 2
+  verifyOtp: z.string().length(6, "OTP must be 6 digits").optional(),
 });
 
 export const bankSchema = z.object({

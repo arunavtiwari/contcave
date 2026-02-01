@@ -82,13 +82,13 @@ type Props = {
 
   selectedPackage?: Package | null;
 
-  // Multi-set props
+
   hasSets?: boolean;
   sets?: ListingSet[];
 
   additionalSetPricingType?: AdditionalSetPricingType | null;
 
-  // Hoisted State Props
+
   selectedSetIds?: string[];
   pricingResult?: SetPricingResult | null;
 
@@ -120,7 +120,7 @@ function hoursToMinutes(h?: number, fallbackMinutes = 90) {
   return Math.max(0, Math.round(n * 60));
 }
 
-/* Helpers to parse/format 12-hour labels like "2:30 PM" */
+
 const parseLabel = (label: string) => {
   const m = label.match(/^\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*$/i);
   if (!m) return { hours: 0, minutes: 0 };
@@ -206,7 +206,7 @@ export default function ListingReservation({
   const inflight = useRef<AbortController | null>(null);
   const sectionId = useId();
 
-  /* If a package is selected and user chooses a start time, auto-calc end time */
+  
   const selectedStartLabel = selectedTime?.[0];
   useEffect(() => {
     if (selectedPackage && selectedStartLabel && selectedDate) {
@@ -457,7 +457,7 @@ export default function ListingReservation({
     ]
   );
 
-  // handleReserve now shows the BookingSummaryModal first
+
   const handleReserve = useCallback(() => {
     if (!ready) return;
     if (!isAuthenticated) {
@@ -487,7 +487,7 @@ export default function ListingReservation({
   return (
     <section className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
       <div className="flex items-center justify-between p-4">
-        {/* Left: Price */}
+        
         <p
           className="flex gap-1 text-2xl font-semibold"
           id={`${sectionId}-title`}
@@ -500,7 +500,7 @@ export default function ListingReservation({
           </span>
         </p>
 
-        {/* Right: Booking type chip */}
+        
         <span
           className={`flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full ${instantBooking
             ? "bg-green-100 text-green-700"

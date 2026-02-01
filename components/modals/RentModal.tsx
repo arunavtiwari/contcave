@@ -128,13 +128,13 @@ export default function RentModal() {
     reset,
     trigger,
   } = useForm<FieldValues>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     resolver: zodResolver(listingSchema) as any,
     mode: "onTouched",
     defaultValues: {
       category: "",
       locationValue: "",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       actualLocation: null as any,
       imageSrc: [],
       title: "",
@@ -175,7 +175,7 @@ export default function RentModal() {
 
   const setCustomValue = useCallback(
     (id: string, value: unknown) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       setValue(id as any, value, { shouldValidate: true, shouldDirty: true });
     },
     [setValue]
@@ -200,8 +200,8 @@ export default function RentModal() {
       if (!location) {
         return toast.error("Please select a location");
       }
-      // Schema validation for location happens on submit mostly, but we can partial check
-      // For now, manual check for city/address is safer as RHF might not have "location" object fully sync
+
+
       if (!actualLocation || !actualLocation.display_name) {
         return toast.error("Please select an accurate location using the address search");
       }
@@ -214,7 +214,7 @@ export default function RentModal() {
       const totalImages = remoteImages.length + (imageFiles?.length || 0);
 
       const _check = listingSchema.shape.imageSrc.safeParse(imageSrc);
-      // We manually check count because imageFiles are local
+
       if (totalImages === 0) {
         return toast.error("Please upload at least one image");
       }
@@ -231,10 +231,10 @@ export default function RentModal() {
     if (step === STEPS.SETS) {
       if (hasSets) {
         if (!additionalSetPricingType && sets.length > 0) {
-          // Schema might check this too
+
         }
 
-        // Manual check for sets array validation since it's local state
+
         if (sets.length === 0) {
           return toast.error("Please add at least one set or disable multi-set");
         }
@@ -250,7 +250,7 @@ export default function RentModal() {
             return toast.error(`Please enter a price for Set ${i + 1}`);
           }
         }
-        // Check pricing type
+
         if (!additionalSetPricingType) {
           return toast.error("Please select a pricing type for additional sets");
         }
@@ -260,10 +260,10 @@ export default function RentModal() {
     if (step === STEPS.OTHERDETAILS) {
       if (!listingDetails) return toast.error("Please complete details");
 
-      // Use schema shapes to validate parts
-      // But listingDetails is local state, not in RHF.
-      // We really should have moved listingDetails into RHF setValue...
-      // For now, strict manual check is fine, or parse:
+
+
+
+
 
       const { carpetArea, operationalDays, operationalHours, minimumBookingHours, maximumPax, type } = listingDetails;
 
@@ -282,7 +282,7 @@ export default function RentModal() {
       }
     }
 
-    // if (step === STEPS.SETS) ... removed dup check
+
 
     if (step === STEPS.OTHERDETAILS) {
       if (!hasSets) {
@@ -349,11 +349,11 @@ export default function RentModal() {
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) {
-      // Because we prevent default submit in Modal, we mostly rely on onNext for steps
-      // But if user hits enter, handleSubmit is called.
-      // We should check step validty here too if we want to support Enter key navigation
-      // For now, let's just delegate to onNext if it's not the last step
-      // Note: onNext is async now because of trigger()
+
+
+
+
+
       await onNext();
       return;
     }
@@ -663,7 +663,7 @@ export default function RentModal() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               City <span className="text-rose-500 ml-1">*</span>
             </label>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            
             <CitySelect value={actualLocation as any} onChange={(v) => setCustomValue("actualLocation", v)} />
           </div>
           <div className="w-full">
@@ -701,7 +701,7 @@ export default function RentModal() {
               className="peer w-full py-2.5 px-3 font-light bg-white border-2 border-gray-300 focus:border-black transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
             />
           </div>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          
           <Map center={actualLocation?.latlng as any} />
         </div>
       );

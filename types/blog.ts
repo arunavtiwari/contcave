@@ -1,4 +1,4 @@
-// types/blog.ts
+
 
 export interface Breadcrumb {
   doc: string;

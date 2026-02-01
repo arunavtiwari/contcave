@@ -6,7 +6,7 @@ import { auth } from "@/auth";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 
-// Schema for calendar event update
+
 const updateEventSchema = z.object({
   id: z.string().min(1, "Event ID is required"),
   title: z.string().min(1, "Title is required").max(500, "Title is too long (max 500 characters)"),
@@ -39,7 +39,7 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}));
 
-    // Validate with Zod
+
     const validation = updateEventSchema.safeParse(body);
     if (!validation.success) {
       return createErrorResponse(validation.error.issues[0].message, 400);

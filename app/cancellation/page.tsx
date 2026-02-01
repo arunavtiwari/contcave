@@ -51,7 +51,7 @@ export const metadata: Metadata = {
 const CancellationPolicy = () => {
   return (
     <div className="flex flex-col">
-      {/* Banner Section */}
+      
       <div className="relative w-full h-[400px] md:h-[500px]">
         <Image
           src="/assets/footer-banner.jpg"
@@ -67,10 +67,10 @@ const CancellationPolicy = () => {
         </div>
       </div>
 
-      {/* Content Section */}
+      
       <Container>
         <div className="pt-16 pb-32 max-w-4xl mx-auto space-y-10">
-          {/* Intro */}
+          
           <div className="bg-white p-8 rounded-2xl shadow-lg space-y-6">
             <h2 className="text-3xl font-bold text-gray-900">
               Our Cancellation Policy
@@ -83,7 +83,7 @@ const CancellationPolicy = () => {
             </p>
           </div>
 
-          {/* Timeframes */}
+          
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Cancellation Timeframes
@@ -105,7 +105,7 @@ const CancellationPolicy = () => {
             </ul>
           </div>
 
-          {/* Special Considerations */}
+          
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Special Considerations
@@ -117,7 +117,7 @@ const CancellationPolicy = () => {
             </p>
           </div>
 
-          {/* How to Cancel */}
+          
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               How to Cancel a Booking
@@ -134,7 +134,7 @@ const CancellationPolicy = () => {
             </ol>
           </div>
 
-          {/* Refund Process */}
+          
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Refund Process
@@ -147,7 +147,7 @@ const CancellationPolicy = () => {
             </p>
           </div>
 
-          {/* Support */}
+          
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">Need Help?</h3>
             <p className="text-gray-700 text-lg">

@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { cfSplitBaseURL } from "@/lib/cashfree/cashfree";
-// ... (omitting lines to keep it simple, I will use separate chunks if needed, but the tool supports one chunk per call unless multi_replace is used, wait. The valid usage allows replacing a block. I will use multi_replace for safety as lines are far apart)
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (status === 409) {
-          // Vendor likely already exists
+
           return createErrorResponse(
             typeof errorData === "object" ? (errorData as { message?: string }).message || "Vendor already exists" : String(errorData),
             409

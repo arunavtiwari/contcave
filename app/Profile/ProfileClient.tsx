@@ -100,7 +100,7 @@ const ProfileClient = ({ profile }: { profile: SafeUser | null }) => {
     setPaymentDetails(newPaymentDetails);
   }, []);
 
-  // Load payment details and transaction history on component mount
+
   useEffect(() => {
     const loadPaymentData = async () => {
       if (!profile?.id || paymentDataLoaded) return;
@@ -154,14 +154,14 @@ const ProfileClient = ({ profile }: { profile: SafeUser | null }) => {
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
+      
       <Sidebar
         selectedMenu={selectedMenu}
         setSelectedMenu={setSelectedMenu}
         menuType="profile"
       />
 
-      {/* Main Content Area */}
+      
       <div className="flex flex-col sm:p-8 sm:pt-12 w-full gap-5 sm:border-l-2 border-gray-200">
         {renderSelectedComponent()}
       </div>
