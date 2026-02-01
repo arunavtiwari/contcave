@@ -12,7 +12,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { FieldPath, FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { IoMdClose } from "react-icons/io";
 import { toast } from "react-toastify";
 
@@ -22,7 +22,7 @@ import AddonsSelection from "@/components/inputs/AddonsSelection";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
 import CategoryInput from "@/components/inputs/CategoryInput";
-import CitySelect from "@/components/inputs/CitySelect";
+import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import OtherListingDetails, { ListingDetails } from "@/components/inputs/OtherListingDetails";
 import PackagesForm from "@/components/inputs/PackagesForm";
@@ -37,6 +37,14 @@ import { listingSchema } from "@/lib/schemas/listing";
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
 import { AdditionalSetPricingType } from "@/types/set";
+
+/**
+ * Combined location value type that includes both city selection and autocomplete properties
+ */
+type LocationValue = CitySelectValue & {
+  display_name?: string;
+  additionalInfo?: string;
+};
 
 import CustomAddonModal from "./CustomAddonModal";
 import Modal from "./Modal";
@@ -128,14 +136,14 @@ export default function RentModal() {
     reset,
     trigger,
   } = useForm<FieldValues>({
-
-    resolver: zodResolver(listingSchema) as any,
+    // Type assertion is safe here as zodResolver properly handles the schema validation
+    resolver: zodResolver(listingSchema) as unknown as Parameters<typeof useForm<FieldValues>>[0]['resolver'],
     mode: "onTouched",
     defaultValues: {
       category: "",
       locationValue: "",
-
-      actualLocation: null as any,
+      // actualLocation can be null initially before user selects a location
+      actualLocation: null as LocationValue | null,
       imageSrc: [],
       title: "",
       description: "",
@@ -175,8 +183,8 @@ export default function RentModal() {
 
   const setCustomValue = useCallback(
     (id: string, value: unknown) => {
-
-      setValue(id as any, value, { shouldValidate: true, shouldDirty: true });
+      // Type assertion is safe as we're using string field names from our form schema
+      setValue(id as FieldPath<FieldValues>, value, { shouldValidate: true, shouldDirty: true });
     },
     [setValue]
   );
@@ -663,8 +671,8 @@ export default function RentModal() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               City <span className="text-rose-500 ml-1">*</span>
             </label>
-
-            <CitySelect value={actualLocation as any} onChange={(v) => setCustomValue("actualLocation", v)} />
+            {/* CitySelect expects CitySelectValue which is compatible with LocationValue */}
+            <CitySelect value={actualLocation as CitySelectValue | undefined} onChange={(v) => setCustomValue("actualLocation", v)} />
           </div>
           <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -701,8 +709,8 @@ export default function RentModal() {
               className="peer w-full py-2.5 px-3 font-light bg-white border-2 border-gray-300 focus:border-black transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
             />
           </div>
-
-          <Map center={actualLocation?.latlng as any} />
+          {/* Map expects number[] | undefined for center prop */}
+          <Map center={actualLocation?.latlng as number[] | undefined} />
         </div>
       );
       break;
