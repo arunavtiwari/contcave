@@ -17,8 +17,7 @@ import BookingSummaryModal from "@/components/modals/BookingSummaryModal";
 import PhoneModal from "@/components/modals/PhoneModal";
 import useLoginModal from "@/hook/useLoginModal";
 import { normalizePhone } from "@/lib/phone";
-import {
-} from "@/lib/pricing";
+
 import { Package } from "@/types/package";
 import {
   DayKey,
@@ -206,7 +205,7 @@ export default function ListingReservation({
   const inflight = useRef<AbortController | null>(null);
   const sectionId = useId();
 
-  
+
   const selectedStartLabel = selectedTime?.[0];
   useEffect(() => {
     if (selectedPackage && selectedStartLabel && selectedDate) {
@@ -429,15 +428,21 @@ export default function ListingReservation({
         signal: controller.signal,
       });
       const j = (await res.json().catch(() => ({}))) as {
-        paymentSessionId?: string;
+        success?: boolean;
+        data?: { paymentSessionId?: string };
         message?: string;
+        error?: string;
       };
-      if (!res.ok || !j?.paymentSessionId)
-        throw new Error(j?.message || "Failed to create reservation");
+
+      const sessionId = j?.data?.paymentSessionId;
+
+      if (!res.ok || !sessionId)
+        throw new Error(j?.error || j?.message || "Failed to create reservation");
+
       const cf = await getCashfree();
       if (!cf) throw new Error("Unable to initialize payment gateway");
       await cf.checkout({
-        paymentSessionId: j.paymentSessionId,
+        paymentSessionId: sessionId,
         redirectTarget: "_self",
       });
     },
@@ -487,7 +492,7 @@ export default function ListingReservation({
   return (
     <section className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
       <div className="flex items-center justify-between p-4">
-        
+
         <p
           className="flex gap-1 text-2xl font-semibold"
           id={`${sectionId}-title`}
@@ -500,7 +505,7 @@ export default function ListingReservation({
           </span>
         </p>
 
-        
+
         <span
           className={`flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full ${instantBooking
             ? "bg-green-100 text-green-700"
@@ -563,23 +568,23 @@ export default function ListingReservation({
         minBookingMinutes={minBookingMinutes}
       />
       <hr />
-      {true && (
-        <div className="p-4">
-          <button
-            type="button"
-            disabled={!ready}
-            className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
-            onClick={handleReserve}
-          >
-            {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
-          </button>
-          {!!err && (
-            <p className="mt-2 text-sm text-red-600" role="alert">
-              {err}
-            </p>
-          )}
-        </div>
-      )}
+
+      <div className="p-4">
+        <button
+          type="button"
+          disabled={!ready}
+          className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
+          onClick={handleReserve}
+        >
+          {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
+        </button>
+        {!!err && (
+          <p className="mt-2 text-sm text-red-600" role="alert">
+            {err}
+          </p>
+        )}
+      </div>
+
       <hr />
       <div className="p-4 flex flex-col text-neutral-600 gap-1" aria-live="polite">
         <div className="flex justify-between">

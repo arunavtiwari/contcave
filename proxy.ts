@@ -96,7 +96,7 @@ function buildCSP(): string {
     const directives: Record<string, string[]> = {
         'default-src': ["'self'"],
         'base-uri': ["'self'"],
-        'form-action': ["'self'"],
+        'form-action': ["'self'", 'https://sandbox.cashfree.com', 'https://api.cashfree.com', 'https://sbox.cashfree.com'],
         'frame-ancestors': ["'none'"],
         'object-src': ["'none'"],
 
