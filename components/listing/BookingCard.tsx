@@ -1,6 +1,4 @@
 "use client";
-
-import { IconButton } from "@chakra-ui/button";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import React, { useCallback, useEffect, useState } from "react";
@@ -154,15 +152,13 @@ const BookingCard: React.FC<BookingCardProps> = ({
                     {!reservation?.isApproved && onApprove && (
                         <div className="flex items-stretch">
                             <div className="w-1/4">
-                                <div className="lex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4]" onClick={toggleReceiptModal}>
-                                    <IconButton
-                                        icon={<FaCircleInfo />}
-                                        aria-label="Info"
-                                        size="xl"
-                                        className="p-0 w-full h-full"
-                                        color="white"
-                                    />
-                                </div>
+                                <button
+                                    className="flex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4] text-white hover:opacity-80 transition w-full"
+                                    onClick={toggleReceiptModal}
+                                    aria-label="Info"
+                                >
+                                    <FaCircleInfo size={24} />
+                                </button>
                             </div>
                             <div className="w-3/4">
                                 <Button
@@ -186,15 +182,13 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         <div className="flex flex-col gap-2">
                             <div className="flex items-stretch">
                                 <div className="w-1/4">
-                                    <div className="flex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4]" onClick={toggleReceiptModal}>
-                                        <IconButton
-                                            icon={<FaCircleInfo />}
-                                            aria-label="Info"
-                                            size="xl"
-                                            className="p-0 w-full h-full"
-                                            color="white"
-                                        />
-                                    </div>
+                                    <button
+                                        className="flex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4] text-white hover:opacity-80 transition w-full"
+                                        onClick={toggleReceiptModal}
+                                        aria-label="Info"
+                                    >
+                                        <FaCircleInfo size={24} />
+                                    </button>
                                 </div>
 
                                 <div className="w-3/4">

@@ -1,9 +1,10 @@
 "use client"
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useCallback } from "react";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 
@@ -12,6 +13,7 @@ import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useLoginModel from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";
+import { type LoginSchema,loginSchema } from "@/lib/schemas/auth";
 
 import Modal from "./Modal";
 
@@ -28,14 +30,15 @@ function LoginModal({ }: Props) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FieldValues>({
+  } = useForm<LoginSchema>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  const onSubmit: SubmitHandler<FieldValues> = (data) => {
+  const onSubmit: SubmitHandler<LoginSchema> = (data) => {
     setIsLoading(true);
 
     signIn("credentials", {
@@ -79,13 +82,7 @@ function LoginModal({ }: Props) {
             id="email"
             label="Email Address"
             disabled={isLoading}
-            register={register("email", {
-              required: "Email is required",
-              pattern: {
-                value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-                message: "Enter a valid email address",
-              },
-            })}
+            register={register("email")}
             errors={errors}
           />
 
@@ -93,13 +90,7 @@ function LoginModal({ }: Props) {
             id="password"
             label="Password"
             disabled={isLoading}
-            register={register("password", {
-              required: "Password is required",
-              minLength: {
-                value: 6,
-                message: "Password must be at least 6 characters",
-              },
-            })}
+            register={register("password")}
             errors={errors}
             type={showPassword ? "text" : "password"}
           />

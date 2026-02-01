@@ -16,7 +16,6 @@
 	"dependencies": {
 		"@auth/prisma-adapter": "^2.11.1",
 		"@cashfreepayments/cashfree-js": "^1.0.5",
-		"@chakra-ui/button": "^2.1.0",
 		"@emotion/react": "^11.14.0",
 		"@emotion/styled": "^11.14.1",
 		"@fullcalendar/daygrid": "^6.1.15",
@@ -25,8 +24,8 @@
 		"@fullcalendar/react": "^6.1.15",
 		"@fullcalendar/timegrid": "^6.1.15",
 		"@headlessui/react": "^2.2.7",
-		"@mui/material": "^7.3.6",
-		"@mui/x-date-pickers": "^8.23.0",
+		"@hookform/resolvers": "^5.2.2",
+		"@mui/x-date-pickers": "^8.26.0",
 		"@prisma/client": "6.19.0",
 		"@react-google-maps/api": "^2.20.6",
 		"@tailwindcss/forms": "^0.5.11",

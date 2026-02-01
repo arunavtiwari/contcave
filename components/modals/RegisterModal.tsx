@@ -1,10 +1,11 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useCallback, useState } from "react";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
@@ -15,6 +16,7 @@ import Input from "@/components/ui/Input";
 import useLoginModal from "@/hook/useLoginModal";
 import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
 import useRegisterModal from "@/hook/useRegisterModal";
+import { RegisterSchema,registerSchema } from "@/lib/schemas/auth";
 
 import Modal from "./Modal";
 
@@ -30,7 +32,8 @@ function RegisterModal() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FieldValues>({
+  } = useForm<RegisterSchema>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -38,7 +41,7 @@ function RegisterModal() {
     },
   });
 
-  const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+  const onSubmit: SubmitHandler<RegisterSchema> = async (data) => {
     setIsLoading(true);
 
     try {
@@ -106,13 +109,7 @@ function RegisterModal() {
             id="email"
             label="Email"
             disabled={isLoading}
-            register={register("email", {
-              required: "Email is required",
-              pattern: {
-                value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-                message: "Enter a valid email address",
-              },
-            })}
+            register={register("email")}
             errors={errors}
           />
 
@@ -121,17 +118,7 @@ function RegisterModal() {
             id="name"
             label="User Name"
             disabled={isLoading}
-            register={register("name", {
-              required: "Username is required",
-              minLength: {
-                value: 3,
-                message: "Username must be at least 3 characters",
-              },
-              maxLength: {
-                value: 20,
-                message: "Username cannot exceed 20 characters",
-              },
-            })}
+            register={register("name")}
             errors={errors}
           />
 
@@ -142,17 +129,7 @@ function RegisterModal() {
               label="Password"
               type={showPassword ? "text" : "password"}
               disabled={isLoading}
-              register={register("password", {
-                required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters",
-                },
-                // pattern: {
-                //   value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/,
-                //   message: "Password must contain letters and numbers",
-                // },
-              })}
+              register={register("password")}
               errors={errors}
             />
             <button

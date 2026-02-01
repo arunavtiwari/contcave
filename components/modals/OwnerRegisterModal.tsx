@@ -1,10 +1,11 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 
@@ -12,6 +13,7 @@ import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
+import { type OwnerRegisterSchema,ownerRegisterSchema } from "@/lib/schemas/auth";
 
 import Modal from "./Modal";
 
@@ -25,7 +27,8 @@ function OwnerRegisterModal() {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<FieldValues>({
+    } = useForm<OwnerRegisterSchema>({
+        resolver: zodResolver(ownerRegisterSchema),
         defaultValues: {
             name: "",
             email: "",
@@ -34,7 +37,7 @@ function OwnerRegisterModal() {
         },
     });
 
-    const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+    const onSubmit: SubmitHandler<OwnerRegisterSchema> = async (data) => {
         setIsLoading(true);
 
         try {
@@ -87,13 +90,7 @@ function OwnerRegisterModal() {
                         id="email"
                         label="Email Address"
                         disabled={isLoading}
-                        register={register("email", {
-                            required: "Email is required",
-                            pattern: {
-                                value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-                                message: "Please enter a valid email",
-                            },
-                        })}
+                        register={register("email")}
                         errors={errors}
                     />
 
@@ -102,17 +99,7 @@ function OwnerRegisterModal() {
                         id="name"
                         label="Full Name"
                         disabled={isLoading}
-                        register={register("name", {
-                            required: "Full name is required",
-                            minLength: {
-                                value: 2,
-                                message: "Name must be at least 2 characters long",
-                            },
-                            maxLength: {
-                                value: 50,
-                                message: "Name must be less than 50 characters",
-                            },
-                        })}
+                        register={register("name")}
                         errors={errors}
                     />
 
@@ -122,13 +109,7 @@ function OwnerRegisterModal() {
                         label="Phone Number"
                         type="tel"
                         disabled={isLoading}
-                        register={register("phone", {
-                            required: "Phone number is required",
-                            pattern: {
-                                value: /^[0-9]{10}$/,
-                                message: "Phone number must be exactly 10 digits",
-                            },
-                        })}
+                        register={register("phone")}
                         errors={errors}
                     />
 
@@ -137,17 +118,7 @@ function OwnerRegisterModal() {
                         id="password"
                         label="Password"
                         disabled={isLoading}
-                        register={register("password", {
-                            required: "Password is required",
-                            minLength: {
-                                value: 8,
-                                message: "Password must be at least 8 characters long",
-                            },
-                            // pattern: {
-                            //   value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/,
-                            //   message: "Password must contain letters and numbers",
-                            // },
-                        })}
+                        register={register("password")}
                         type={showPassword ? "text" : "password"}
                         errors={errors}
                     />

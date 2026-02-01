@@ -250,7 +250,6 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
     const handleSave = useCallback(async () => {
         if (!validateForm()) {
-            toast.error('Please fix the errors before saving');
             return;
         }
 

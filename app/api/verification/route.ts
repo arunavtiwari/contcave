@@ -4,14 +4,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { getFixieProxyAgent, handleProxyError } from "@/lib/fixie-proxy";
-
-function validateOTP(otp: string): boolean {
-    return /^\d{6}$/.test(otp);
-}
-
-function validateRefId(refId: string): boolean {
-    return typeof refId === "string" && refId.trim().length > 0 && refId.length <= 100;
-}
+import { otpSchema } from "@/lib/schemas/verification";
 
 export async function POST(req: NextRequest) {
     try {
@@ -25,23 +18,14 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json().catch(() => ({}));
-        const { refId, otp } = body;
 
-        if (!refId || typeof refId !== "string") {
-            return createErrorResponse("refId is required and must be a string", 400);
+        // Validate with Zod
+        const validation = otpSchema.safeParse(body);
+        if (!validation.success) {
+            return createErrorResponse(validation.error.issues[0].message, 400);
         }
 
-        if (!validateRefId(refId)) {
-            return createErrorResponse("Invalid refId format", 400);
-        }
-
-        if (!otp || typeof otp !== "string") {
-            return createErrorResponse("otp is required and must be a string", 400);
-        }
-
-        if (!validateOTP(otp)) {
-            return createErrorResponse("OTP must be exactly 6 digits", 400);
-        }
+        const { refId, otp } = validation.data;
 
         const clientId = process.env.CASHFREE_CLIENT_ID;
         const clientSecret = process.env.CASHFREE_CLIENT_SECRET;

@@ -30,6 +30,7 @@ import {
 import {
   AdditionalSetPricingType,
   ListingSet,
+  SetPricingResult,
 } from "@/types/set";
 import { SafeUser } from "@/types/user";
 
@@ -89,8 +90,7 @@ type Props = {
 
   // Hoisted State Props
   selectedSetIds?: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pricingResult?: any;
+  pricingResult?: SetPricingResult | null;
 
   selectedPackageId?: string | null;
   setSelectionError?: string | null;
@@ -588,8 +588,7 @@ export default function ListingReservation({
           ) : hasSets && pricingResult ? (
             <div className="flex-1">
               <p>Base booking ({pricingResult.breakdown.includedSetName})</p>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {pricingResult.breakdown.additionalSets.map((s: any) => (
+              {pricingResult.breakdown.additionalSets.map((s) => (
                 <p key={s.id} className="text-sm text-neutral-500">
                   + {s.name} ({additionalSetPricingType === "HOURLY" ? `${INR.format(s.price)}/hr` : INR.format(s.price)})
                 </p>

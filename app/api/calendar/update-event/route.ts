@@ -1,20 +1,25 @@
 import { google } from 'googleapis';
 import { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { auth } from "@/auth";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
-function validateDateTime(dateTime: string, isAllDay: boolean): boolean {
-  if (isAllDay) {
-    return /^\d{4}-\d{2}-\d{2}$/.test(dateTime);
-  }
-  try {
-    const date = new Date(dateTime);
-    return !isNaN(date.getTime()) && dateTime.includes('T');
-  } catch {
-    return false;
-  }
-}
+
+// Schema for calendar event update
+const updateEventSchema = z.object({
+  id: z.string().min(1, "Event ID is required"),
+  title: z.string().min(1, "Title is required").max(500, "Title is too long (max 500 characters)"),
+  start: z.string().min(1, "Start date/time is required"),
+  end: z.string().min(1, "End date/time is required"),
+}).refine((data) => {
+  const startDate = new Date(data.start);
+  const endDate = new Date(data.end);
+  return endDate > startDate;
+}, {
+  message: "End date/time must be after start date/time",
+  path: ["end"],
+});
 
 export async function PUT(request: NextRequest) {
   try {
@@ -33,48 +38,16 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { id, title, start, end } = body;
 
-    if (!id || typeof id !== "string" || id.trim().length === 0) {
-      return createErrorResponse("id is required and must be a non-empty string", 400);
+    // Validate with Zod
+    const validation = updateEventSchema.safeParse(body);
+    if (!validation.success) {
+      return createErrorResponse(validation.error.issues[0].message, 400);
     }
 
-    if (!title || typeof title !== "string") {
-      return createErrorResponse("title is required and must be a string", 400);
-    }
-
+    const { id, title, start, end } = validation.data;
     const trimmedTitle = title.trim();
-    if (trimmedTitle.length === 0) {
-      return createErrorResponse("title cannot be empty", 400);
-    }
-    if (trimmedTitle.length > 500) {
-      return createErrorResponse("title is too long (max 500 characters)", 400);
-    }
-
-    if (!start || typeof start !== "string") {
-      return createErrorResponse("start is required and must be a string", 400);
-    }
-
-    if (!end || typeof end !== "string") {
-      return createErrorResponse("end is required and must be a string", 400);
-    }
-
     const isAllDay = !start.includes('T') && !end.includes('T');
-
-    if (!validateDateTime(start, isAllDay)) {
-      return createErrorResponse(`Invalid start date/time format. ${isAllDay ? "Expected YYYY-MM-DD" : "Expected ISO 8601 datetime"}`, 400);
-    }
-
-    if (!validateDateTime(end, isAllDay)) {
-      return createErrorResponse(`Invalid end date/time format. ${isAllDay ? "Expected YYYY-MM-DD" : "Expected ISO 8601 datetime"}`, 400);
-    }
-
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-
-    if (endDate <= startDate) {
-      return createErrorResponse("end date/time must be after start date/time", 400);
-    }
 
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
       return createErrorResponse("Server configuration error", 500);

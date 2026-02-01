@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { dayStatusSchema } from "@/lib/schemas/dayStatus";
 
 function validateDate(dateString: string): Date | null {
   const date = new Date(dateString);
@@ -10,14 +11,6 @@ function validateDate(dateString: string): Date | null {
     return null;
   }
   return date;
-}
-
-function validateTime(timeString: string | null | undefined): boolean {
-  if (!timeString || typeof timeString !== "string") {
-    return false;
-  }
-  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-  return timeRegex.test(timeString.trim());
 }
 
 export async function GET(request: NextRequest) {
@@ -70,20 +63,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { listingId, date, listingActive, startTime, endTime } = body;
 
-    if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
-      return createErrorResponse("listingId is required and must be a non-empty string", 400);
+    // Validate with Zod
+    const validation = dayStatusSchema.safeParse(body);
+    if (!validation.success) {
+      return createErrorResponse(validation.error.issues[0].message, 400);
     }
 
-    if (!date || typeof date !== "string") {
-      return createErrorResponse("date is required and must be a string", 400);
-    }
-
-    const parsedDate = validateDate(date);
-    if (!parsedDate) {
-      return createErrorResponse("Invalid date format. Expected ISO date string", 400);
-    }
+    const { listingId, date, listingActive, startTime, endTime } = validation.data;
+    const parsedDate = new Date(date);
 
     const listing = await prisma.listing.findUnique({
       where: { id: listingId },
@@ -98,18 +86,6 @@ export async function POST(request: NextRequest) {
       return createErrorResponse("You don't have permission to update this listing's day status", 403);
     }
 
-    if (typeof listingActive !== "boolean") {
-      return createErrorResponse("listingActive must be a boolean", 400);
-    }
-
-    if (startTime !== null && startTime !== undefined && !validateTime(startTime)) {
-      return createErrorResponse("startTime must be in HH:MM format (24-hour) or null", 400);
-    }
-
-    if (endTime !== null && endTime !== undefined && !validateTime(endTime)) {
-      return createErrorResponse("endTime must be in HH:MM format (24-hour) or null", 400);
-    }
-
     if (startTime && endTime && startTime >= endTime) {
       return createErrorResponse("endTime must be after startTime", 400);
     }
@@ -120,15 +96,15 @@ export async function POST(request: NextRequest) {
       },
       update: {
         listingActive,
-        startTime: startTime?.trim() || null,
-        endTime: endTime?.trim() || null,
+        startTime: startTime || "",
+        endTime: endTime || "",
       },
       create: {
         listingId,
         date: parsedDate,
         listingActive,
-        startTime: startTime?.trim() || null,
-        endTime: endTime?.trim() || null,
+        startTime: startTime || "",
+        endTime: endTime || "",
       },
     });
 

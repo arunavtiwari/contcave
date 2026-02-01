@@ -5,10 +5,7 @@ import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/
 import { resetPasswordEmail } from "@/lib/email/email";
 import { sendEmail } from "@/lib/email/mailer";
 import prisma from "@/lib/prismadb";
-
-function validateEmail(email: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+import { emailVerificationSchema } from "@/lib/schemas/verification";
 
 export async function POST(request: NextRequest) {
     try {
@@ -17,20 +14,15 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json().catch(() => ({}));
-        const { email } = body;
 
-        if (!email || typeof email !== "string") {
-            return createErrorResponse("Email is required and must be a string", 400);
+        // Validate with Zod
+        const validation = emailVerificationSchema.safeParse(body);
+        if (!validation.success) {
+            return createErrorResponse(validation.error.issues[0].message, 400);
         }
 
+        const { email } = validation.data;
         const trimmedEmail = email.trim().toLowerCase();
-        if (!validateEmail(trimmedEmail)) {
-            return createErrorResponse("Invalid email format", 400);
-        }
-
-        if (trimmedEmail.length > 255) {
-            return createErrorResponse("Email is too long", 400);
-        }
 
         const user = await prisma.user.findUnique({
             where: { email: trimmedEmail },

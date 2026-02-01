@@ -6,6 +6,7 @@ import { useId, useState } from "react";
 import Checkbox from "@/components/ui/Checkbox";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
+import { billingSchema } from "@/lib/schemas/billing";
 
 type GSTDetails = {
   companyName: string;
@@ -58,14 +59,10 @@ export default function BookingSummaryModal({
     setSaving(true);
 
     if (needGST) {
-      // basic GSTIN validation: 15 alphanumeric characters
-      if (!gstDetails.gstin.match(/^[0-9A-Z]{15}$/i)) {
-        setGstError("Please enter a valid 15-character GSTIN.");
-        setSaving(false);
-        return;
-      }
-      if (!gstDetails.companyName || !gstDetails.billingAddress) {
-        setGstError("Please fill all GST fields.");
+      const check = billingSchema.pick({ companyName: true, gstin: true, billingAddress: true }).safeParse(gstDetails);
+
+      if (!check.success) {
+        setGstError(check.error.issues[0].message);
         setSaving(false);
         return;
       }

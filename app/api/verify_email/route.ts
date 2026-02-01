@@ -3,10 +3,7 @@ import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { getFixieProxyAgent } from "@/lib/fixie-proxy";
-
-function validateEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+import { emailVerificationSchema } from "@/lib/schemas/verification";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,20 +12,15 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { email } = body;
 
-    if (!email || typeof email !== "string") {
-      return createErrorResponse("email is required and must be a string", 400);
+    // Validate with Zod
+    const validation = emailVerificationSchema.safeParse(body);
+    if (!validation.success) {
+      return createErrorResponse(validation.error.issues[0].message, 400);
     }
 
+    const { email } = validation.data;
     const trimmedEmail = email.trim().toLowerCase();
-    if (!validateEmail(trimmedEmail)) {
-      return createErrorResponse("Invalid email format", 400);
-    }
-
-    if (trimmedEmail.length > 255) {
-      return createErrorResponse("Email is too long", 400);
-    }
 
     const authKey = process.env.MSG91_AUTH_KEY;
     if (!authKey || typeof authKey !== "string") {

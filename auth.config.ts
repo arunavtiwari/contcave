@@ -121,6 +121,17 @@ export const authConfig = {
             if (account && user) {
                 token.id = user.id;
 
+                // Store additional user fields in token
+                if ('is_owner' in user) {
+                    token.is_owner = user.is_owner;
+                }
+                if ('phone' in user) {
+                    token.phone = user.phone;
+                }
+                if ('is_verified' in user) {
+                    token.is_verified = user.is_verified;
+                }
+
                 if (account.provider === "google-calendar") {
                     token.calendarAccessToken = account.access_token;
                     token.calendarRefreshToken = account.refresh_token;
@@ -158,6 +169,17 @@ export const authConfig = {
             session.calendarRefreshToken = token.calendarRefreshToken as
                 | string
                 | undefined;
+
+            // Populate additional user fields from token
+            if (token.is_owner !== undefined) {
+                session.user.is_owner = token.is_owner as boolean;
+            }
+            if (token.phone !== undefined) {
+                session.user.phone = token.phone as string | null;
+            }
+            if (token.is_verified !== undefined) {
+                session.user.is_verified = token.is_verified as boolean;
+            }
 
             return session;
         },

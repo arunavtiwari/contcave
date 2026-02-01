@@ -1,6 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { billingSchema } from "@/lib/schemas/billing";
 
 /**
  * POST → Create new or update existing BillingDetails (if GSTIN already exists)
@@ -19,51 +20,26 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { companyName, gstin, billingAddress, isDefault } = body;
 
-    if (!companyName || typeof companyName !== "string") {
-      return createErrorResponse("companyName is required and must be a string", 400);
+    // Validate using Zod schema
+    const validation = billingSchema.safeParse({ companyName, gstin, billingAddress });
+
+    if (!validation.success) {
+      const firstError = validation.error.issues[0];
+      return createErrorResponse(firstError.message, 400);
     }
 
-    const trimmedCompanyName = companyName.trim();
-    if (trimmedCompanyName.length < 2) {
-      return createErrorResponse("companyName must be at least 2 characters long", 400);
-    }
-    if (trimmedCompanyName.length > 200) {
-      return createErrorResponse("companyName is too long (max 200 characters)", 400);
-    }
-
-    if (!gstin || typeof gstin !== "string") {
-      return createErrorResponse("gstin is required and must be a string", 400);
-    }
-
-    const upperGstin = gstin.trim().toUpperCase();
-    const gstRegex = /^[0-9A-Z]{15}$/;
-    if (!gstRegex.test(upperGstin)) {
-      return createErrorResponse("Invalid GSTIN format. Must be 15 alphanumeric characters", 400);
-    }
-
-    if (!billingAddress || typeof billingAddress !== "string") {
-      return createErrorResponse("billingAddress is required and must be a string", 400);
-    }
-
-    const trimmedAddress = billingAddress.trim();
-    if (trimmedAddress.length < 10) {
-      return createErrorResponse("billingAddress must be at least 10 characters long", 400);
-    }
-    if (trimmedAddress.length > 500) {
-      return createErrorResponse("billingAddress is too long (max 500 characters)", 400);
-    }
-
+    const validData = validation.data;
     const isDefaultValue = Boolean(isDefault);
 
     if (isDefaultValue) {
       await prisma.billingDetails.updateMany({
         where: { userId: currentUser.id, isDefault: true },
         data: { isDefault: false },
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     const existing = await prisma.billingDetails.findFirst({
-      where: { userId: currentUser.id, gstin: upperGstin },
+      where: { userId: currentUser.id, gstin: validData.gstin },
       select: { id: true, isDefault: true },
     });
 
@@ -73,8 +49,8 @@ export async function POST(req: Request) {
       billingRecord = await prisma.billingDetails.update({
         where: { id: existing.id },
         data: {
-          companyName: trimmedCompanyName,
-          billingAddress: trimmedAddress,
+          companyName: validData.companyName,
+          billingAddress: validData.billingAddress,
           isDefault: isDefaultValue,
           updatedAt: new Date(),
         },
@@ -83,9 +59,9 @@ export async function POST(req: Request) {
       billingRecord = await prisma.billingDetails.create({
         data: {
           userId: currentUser.id,
-          companyName: trimmedCompanyName,
-          gstin: upperGstin,
-          billingAddress: trimmedAddress,
+          companyName: validData.companyName,
+          gstin: validData.gstin,
+          billingAddress: validData.billingAddress,
           isDefault: isDefaultValue,
         },
       });

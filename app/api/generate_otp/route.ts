@@ -4,11 +4,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { getFixieProxyAgent, handleProxyError } from "@/lib/fixie-proxy";
-
-function validateAadhaarNumber(aadhaar: string): boolean {
-  const cleaned = aadhaar.replace(/\D/g, "");
-  return cleaned.length === 12 && /^\d{12}$/.test(cleaned);
-}
+import { aadhaarSchema } from "@/lib/schemas/verification";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,16 +18,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { aadhaarNumber } = body;
 
-    if (!aadhaarNumber || typeof aadhaarNumber !== "string") {
-      return createErrorResponse("aadhaarNumber is required and must be a string", 400);
+    // Validate with Zod
+    const validation = aadhaarSchema.safeParse(body);
+    if (!validation.success) {
+      return createErrorResponse(validation.error.issues[0].message, 400);
     }
 
-    if (!validateAadhaarNumber(aadhaarNumber)) {
-      return createErrorResponse("Invalid Aadhaar number format. Must be 12 digits", 400);
-    }
-
+    const { aadhaarNumber } = validation.data;
     const cleanedAadhaar = aadhaarNumber.replace(/\D/g, "");
 
     const clientId = process.env.CASHFREE_CLIENT_ID;

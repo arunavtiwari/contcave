@@ -1,7 +1,6 @@
 "use client";
-import React, { useCallback,useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FaExclamationCircle, FaInfoCircle } from "react-icons/fa";
-import { toast } from "react-toastify";
 
 import Modal from "./Modal";
 
@@ -67,7 +66,6 @@ const OwnerEnableModal: React.FC<Props> = ({
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      toast.error("Please fix the errors before submitting");
       return;
     }
 
