@@ -10,10 +10,11 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     register?: UseFormRegisterReturn;
     id: string;
     errors?: FieldErrors;
+    customRightContent?: React.ReactNode;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-    ({ className, type = "text", label, formatPrice, register, id, required, errors, ...props }, ref) => {
+    ({ className, type = "text", label, formatPrice, register, id, required, errors, customRightContent, ...props }, ref) => {
         const hasError = errors?.[id];
 
         return (
@@ -21,20 +22,20 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 {label && (
                     <label
                         htmlFor={id}
-                        className={`
+                        className="
               block 
               text-sm 
               font-medium 
               mb-1
-              ${hasError ? "text-gray-700" : "text-gray-700"}
-            `}
+              text-gray-700
+            "
                     >
                         {label}
                         {required && <span className="text-rose-500 ml-1">*</span>}
                     </label>
                 )}
 
-                <div className="relative">
+                <div className="relative group">
                     {formatPrice && (
                         <IndianRupee
                             size={18}
@@ -44,6 +45,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 top-1/2
                 -translate-y-1/2
                 left-3
+                pointer-events-none
               "
                         />
                     )}
@@ -67,7 +69,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               disabled:opacity-70
               disabled:cursor-not-allowed
               ${formatPrice ? "pl-10" : "pl-4"}
-              ${hasError ? "border-rose-500 focus:ring-rose-500" : "border-neutral-200"}
+              ${customRightContent ? "pr-12" : "pr-4"}
+              ${hasError ? "border-rose-500 focus:ring-rose-500" : "border-neutral-200 hover:border-neutral-300"}
               ${className}
             `}
                         ref={ref}
@@ -75,6 +78,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         {...register}
                         {...props}
                     />
+
+                    {customRightContent && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                            {customRightContent}
+                        </div>
+                    )}
                 </div>
 
                 {hasError && (

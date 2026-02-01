@@ -663,7 +663,7 @@ export default function RentModal() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               City <span className="text-rose-500 ml-1">*</span>
             </label>
-            
+
             <CitySelect value={actualLocation as any} onChange={(v) => setCustomValue("actualLocation", v)} />
           </div>
           <div className="w-full">
@@ -701,7 +701,7 @@ export default function RentModal() {
               className="peer w-full py-2.5 px-3 font-light bg-white border-2 border-gray-300 focus:border-black transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
             />
           </div>
-          
+
           <Map center={actualLocation?.latlng as any} />
         </div>
       );
@@ -758,6 +758,7 @@ export default function RentModal() {
             <Input
               id="title"
               label="Title"
+              placeholder="e.g. Modern Photo Studio"
               disabled={isLoading}
               register={register("title")}
               errors={errors}
@@ -768,6 +769,7 @@ export default function RentModal() {
             <Input
               id="description"
               label="Description"
+              placeholder="Tell creators what makes your space special..."
               disabled={isLoading}
               register={register("description")}
               errors={errors}
@@ -780,6 +782,7 @@ export default function RentModal() {
               label="Price"
               type="number"
               formatPrice
+              placeholder="999"
               disabled={isLoading}
               register={register("price")}
               errors={errors}

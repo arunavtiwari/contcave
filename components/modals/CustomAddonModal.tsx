@@ -51,7 +51,7 @@ function CustomAddonModal({ save }: Props) {
             <Input
               id="name"
               label="Name of Add-on"
-
+              placeholder="e.g. Smoke Machine"
               register={register("name", {
                 required: "Name of Add-on required",
               })}

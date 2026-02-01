@@ -370,12 +370,13 @@ const VerificationModal: React.FC<Props> = ({
             <p className="text-sm text-gray-500">Verify email and phone to continue.</p>
           </div>
 
-          
+
           <div className="flex gap-3 items-end">
             <div className="flex-1">
               <Input
                 id="email"
                 label="Email"
+                placeholder="you@example.com"
                 value={emailState.value}
                 onChange={(e) => {
                   setEmailState(s => ({ ...s, value: e.target.value, verified: false }));
@@ -397,12 +398,13 @@ const VerificationModal: React.FC<Props> = ({
             </div>
           </div>
 
-          
+
           <div className="flex gap-3 items-end">
             <div className="flex-1">
               <Input
                 id="phone"
                 label="Phone"
+                placeholder="10-digit mobile number"
                 value={phoneState.phoneValue}
                 onChange={(e) => {
                   setPhoneState(s => ({ ...s, phoneValue: e.target.value.replace(/\D/g, "").slice(0, 10), verified: false }));
@@ -509,6 +511,7 @@ const VerificationModal: React.FC<Props> = ({
                 <Input
                   id="accountHolderName"
                   label="Account Holder"
+                  placeholder="As per bank records"
                   register={register("accountHolderName")}
                   errors={bankErrors}
                   required
@@ -517,6 +520,7 @@ const VerificationModal: React.FC<Props> = ({
               <Input
                 id="accountNumber"
                 label="Account Number"
+                placeholder="Your bank account number"
                 register={register("accountNumber")}
                 errors={bankErrors}
                 required
@@ -526,6 +530,7 @@ const VerificationModal: React.FC<Props> = ({
               <Input
                 id="ifscCode"
                 label="IFSC Code"
+                placeholder="KKBK0000001"
                 register={register("ifscCode")}
                 errors={bankErrors}
                 required
@@ -534,6 +539,7 @@ const VerificationModal: React.FC<Props> = ({
               <Input
                 id="bankName"
                 label="Bank Name"
+                placeholder="e.g. HDFC Bank"
                 register={register("bankName")}
                 errors={bankErrors}
                 required
@@ -557,7 +563,7 @@ const VerificationModal: React.FC<Props> = ({
 
   const renderStepProgress = () => (
     <div className="mb-8 px-4 flex justify-between relative">
-      
+
       <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -z-10 -translate-y-1/2" />
 
       {steps.map((s, _idx) => {

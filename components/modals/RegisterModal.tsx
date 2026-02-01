@@ -16,7 +16,7 @@ import Input from "@/components/ui/Input";
 import useLoginModal from "@/hook/useLoginModal";
 import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
 import useRegisterModal from "@/hook/useRegisterModal";
-import { RegisterSchema,registerSchema } from "@/lib/schemas/auth";
+import { RegisterSchema, registerSchema } from "@/lib/schemas/auth";
 
 import Modal from "./Modal";
 
@@ -108,46 +108,49 @@ function RegisterModal() {
           <Input
             id="email"
             label="Email"
+            placeholder="Enter your email"
             disabled={isLoading}
             register={register("email")}
             errors={errors}
           />
 
-          
+
           <Input
             id="name"
             label="User Name"
+            placeholder="Enter your name"
             disabled={isLoading}
             register={register("name")}
             errors={errors}
           />
 
-          
-          <div className="relative">
-            <Input
-              id="password"
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              disabled={isLoading}
-              register={register("password")}
-              errors={errors}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-4 flex items-center text-black focus:outline-none"
-            >
-              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
-            </button>
-          </div>
+
+          <Input
+            id="password"
+            label="Password"
+            placeholder="Create a password"
+            type={showPassword ? "text" : "password"}
+            disabled={isLoading}
+            register={register("password")}
+            errors={errors}
+            customRightContent={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-neutral-500 hover:text-black focus:outline-none transition-colors"
+              >
+                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+              </button>
+            }
+          />
         </div>
       }
       footer={
         <div className="flex flex-col gap-4 mt-6">
           <hr className="border-neutral-300" />
           <Button
+            outline
             rounded
-            classNames="w-full py-2.5 bg-white border border-neutral-300 hover:bg-neutral-100 rounded-full flex items-center justify-center"
             label="Continue with Google"
             icon={FcGoogle}
             onClick={() => signIn("google")}
@@ -176,6 +179,7 @@ function RegisterModal() {
           </div>
         </div>
       }
+      customHeight="h-auto"
     />
   );
 }

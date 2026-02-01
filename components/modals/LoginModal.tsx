@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useCallback } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import Button from "@/components/ui/Button";
@@ -13,7 +14,7 @@ import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useLoginModel from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";
-import { type LoginSchema,loginSchema } from "@/lib/schemas/auth";
+import { type LoginSchema, loginSchema } from "@/lib/schemas/auth";
 
 import Modal from "./Modal";
 
@@ -81,28 +82,33 @@ function LoginModal({ }: Props) {
           <Input
             id="email"
             label="Email Address"
+            placeholder="Enter your email"
             disabled={isLoading}
             register={register("email")}
             errors={errors}
           />
 
+
           <Input
             id="password"
             label="Password"
+            placeholder="Enter your password"
             disabled={isLoading}
             register={register("password")}
             errors={errors}
             type={showPassword ? "text" : "password"}
+            customRightContent={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-neutral-500 hover:text-black focus:outline-none transition-colors"
+              >
+                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+              </button>
+            }
           />
 
-          <div className="flex justify-between items-center">
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="text-sm text-neutral-600 focus:outline-none"
-            >
-              {showPassword ? "Hide" : "Show"} Password
-            </button>
+          <div className="flex justify-end">
             <span
               onClick={() => {
                 loginModel.onClose();
@@ -119,8 +125,8 @@ function LoginModal({ }: Props) {
         <div className="flex flex-col gap-4 mt-3">
           <hr />
           <Button
+            outline
             rounded
-            classNames="w-full py-2.5 bg-white border border-neutral-300 hover:bg-neutral-100 rounded-full flex items-center justify-center"
             label="Continue with Google"
             icon={FcGoogle}
             onClick={() => signIn("google")}
@@ -138,6 +144,7 @@ function LoginModal({ }: Props) {
           </div>
         </div>
       }
+      customHeight="h-auto"
     />
   );
 }

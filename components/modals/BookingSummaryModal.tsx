@@ -137,7 +137,7 @@ export default function BookingSummaryModal({
           Booking Summary
         </h3>
 
-        
+
         <div className="mb-4 space-y-2 text-gray-700">
           <div className="flex justify-between">
             <p>Booking Fee</p>
@@ -163,7 +163,7 @@ export default function BookingSummaryModal({
         </div>
 
 
-        
+
         <div className="mb-4">
           <Checkbox
             label="Need GST Invoice?"
@@ -172,7 +172,7 @@ export default function BookingSummaryModal({
           />
         </div>
 
-        
+
         {needGST && (
           <div className="space-y-3 mb-4 text-gray-700">
 
@@ -180,6 +180,7 @@ export default function BookingSummaryModal({
               <Input
                 id="companyName"
                 label="Company Name"
+                placeholder="e.g. Acme Corp Pvt Ltd"
                 value={gstDetails.companyName}
                 onChange={(e) =>
                   setGstDetailsAction({ ...gstDetails, companyName: e.target.value })
@@ -204,6 +205,7 @@ export default function BookingSummaryModal({
               <Textarea
                 id="billingAddress"
                 label="Billing Address"
+                placeholder="123, Business Park, Sector 5, Kolkata, 700091"
                 value={gstDetails.billingAddress}
                 onChange={(e) =>
                   setGstDetailsAction({ ...gstDetails, billingAddress: e.target.value })
@@ -215,7 +217,7 @@ export default function BookingSummaryModal({
 
         {gstError && <p className="text-sm text-red-600 mb-2">{gstError}</p>}
 
-        
+
         <div className="mt-4 mb-5">
           <div className="flex items-center gap-1 text-sm text-gray-700">
             <Checkbox
@@ -244,7 +246,7 @@ export default function BookingSummaryModal({
           </div>
         </div>
 
-        
+
         <div className="mt-5 flex gap-2 justify-end">
           <button
             type="button"

@@ -69,7 +69,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
           key={idx}
           className="border border-black rounded-xl p-6 relative flex flex-col gap-4 bg-white shadow-xs"
         >
-          
+
           <button
             type="button"
             onClick={() => removePackage(idx)}
@@ -79,12 +79,13 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             <Trash2 size={16} />
           </button>
 
-          
+
           <div className="w-full">
 
             <Input
               id={`title-${idx}`}
               label="Package Title"
+              placeholder="e.g. Full Day Shoot"
               value={pkg.title}
               onChange={(e) => updatePackage(idx, "title", e.target.value)}
               required
@@ -92,13 +93,14 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             />
           </div>
 
-          
+
           <div className="w-full">
 
             <Input
               id={`duration-${idx}`}
               label="Duration (Hours)"
               type="number"
+              placeholder="8"
               value={pkg.durationHours}
               onChange={(e) => updatePackage(idx, "durationHours", Number(e.target.value))}
               required
@@ -107,7 +109,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             <p className="text-xs text-neutral-500 mt-1">Minimum duration is 1 hour</p>
           </div>
 
-          
+
           <div className="flex gap-4 flex-wrap">
             <div className="flex-1">
 
@@ -116,6 +118,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 label="Original Price"
                 type="number"
                 formatPrice
+                placeholder="10000"
                 value={pkg.originalPrice}
                 onChange={(e) => updatePackage(idx, "originalPrice", Number(e.target.value))}
                 required
@@ -131,6 +134,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 label="Offered Price"
                 type="number"
                 formatPrice
+                placeholder="8000"
                 value={pkg.offeredPrice}
                 onChange={(e) => updatePackage(idx, "offeredPrice", Number(e.target.value))}
                 required
@@ -140,7 +144,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             </div>
           </div>
 
-          
+
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Features</label>
             <div className="flex flex-wrap gap-2">
@@ -185,7 +189,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
             <p className="text-xs text-neutral-500">Press Enter to add a feature</p>
           </div>
 
-          
+
           {availableSets.length > 0 && (
             <div className="border-t pt-4 mt-2">
               <div className="flex items-center gap-2 mb-4">
@@ -218,6 +222,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                         id={`req-sets-${idx}`}
                         label="Number of Sets Included"
                         type="number"
+                        placeholder="1"
                         value={pkg.requiredSetCount || 1}
                         onChange={(e) => updatePackage(idx, "requiredSetCount", Math.max(1, parseInt(e.target.value) || 1))}
                         required
@@ -233,7 +238,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
         </div>
       ))}
 
-      
+
       <button
         type="button"
         onClick={addPackage}
