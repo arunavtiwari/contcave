@@ -12,6 +12,7 @@ import Calendar from "@/components/Calendar";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 import Sidebar from "@/components/Sidebar";
+import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Switch from "@/components/ui/Switch";
 import useIndianCities, { City } from "@/hook/useCities";
@@ -275,11 +276,11 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 <Sidebar selectedMenu={selectedMenu} setSelectedMenu={setSelectedMenu} listingId={initialListing.id} />
 
                 <div className="flex flex-col sm:p-8 sm:pt-12 w-full gap-5 sm:border-l-2 border-gray-200">
-                    
+
                     <div className={selectedMenu === "Edit Property" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
                         <Heading title="Edit Property" />
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="text-sm font-medium text-gray-700 sm:w-1/3">Name</label>
                             <input
@@ -292,7 +293,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                         </div>
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Description</label>
                             <textarea
@@ -305,7 +306,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                         </div>
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Category</label>
                             <select
@@ -321,7 +322,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </select>
                         </div>
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Price</label>
                             <div className="w-full relative">
@@ -340,7 +341,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Location</label>
                             <select
@@ -356,7 +357,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </select>
                         </div>
 
-                        
+
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
                                 Images (Max 8 Pictures)
@@ -395,7 +396,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        
+
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Amenities</label>
                             <div className="flex w-full">
@@ -408,7 +409,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        
+
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Addons</label>
                             <div className="flex flex-col w-full">
@@ -426,7 +427,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        
+
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Packages</label>
                             <div className="flex flex-col w-full">
@@ -438,7 +439,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Carpet Area</label>
                             <input
@@ -451,7 +452,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                         </div>
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Days</label>
                             <div className="flex space-x-2 w-full">
@@ -481,7 +482,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Hours</label>
                             <div className="flex space-x-2 w-full">
@@ -515,7 +516,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
                                 Min. Booking Hours
@@ -530,7 +531,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                         </div>
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Max PAX</label>
                             <input
@@ -543,7 +544,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                         </div>
 
-                        
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Instant Book</label>
                             <div className="w-full flex items-center">
@@ -557,7 +558,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         <hr />
 
-                        
+
                         <div className="flex flex-col gap-6">
                             <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                                 <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
@@ -659,7 +660,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         </div>
                     </div>
 
-                    
+
                     <div className={selectedMenu === "Sync Calendar" ? "flex flex-col gap-5 sm:gap-8 items-center" : "hidden"}>
                         <div className="flex justify-between w-full items-center">
                             <Heading
@@ -690,7 +691,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         />
                     </div>
 
-                    
+
                     <div className={selectedMenu === "Manage Timings" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
                         <Heading title="Manage Studio Availability" subtitle="Update your working hours manually" />
                         <ManageTimings
@@ -702,18 +703,29 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         />
                     </div>
 
-                    
-                    <div className={selectedMenu === "Settings" ? "flex flex-col gap-5" : "hidden"}>
-                        <button className="border-2 border-red px-6 py-2 rounded-full hover:opacity-85 text-red w-fit shadow-xs">
-                            DELETE PROPERTY
-                        </button>
-                        <p>
-                            <span className="font-semibold">Warning:</span> Deleting your property will permanently remove all your
-                            data and cannot be undone.
-                        </p>
+
+                    <div className={selectedMenu === "Settings" ? "flex flex-col gap-5 sm:gap-8 min-h-[600px]" : "hidden"}>
+                        <Heading title="Property Settings" subtitle="Manage your property settings and danger zone actions" />
+
+                        <div className="flex flex-col gap-4 p-6 border-2 border-red-200 rounded-xl bg-red-50">
+                            <h3 className="text-lg font-semibold text-red-600">Danger Zone</h3>
+                            <p className="text-sm text-gray-700">
+                                <span className="font-semibold">Warning:</span> Deleting your property will permanently remove all your
+                                data and cannot be undone. This action is irreversible.
+                            </p>
+                            <div className="w-fit">
+                                <Button
+                                    label="DELETE PROPERTY"
+                                    onClick={() => { }}
+                                    outline
+                                    rounded
+                                    classNames="px-6 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    
+
                     <div className={selectedMenu === "Manage Blocks" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
                         <Heading
                             title="Manage Availability Blocks"

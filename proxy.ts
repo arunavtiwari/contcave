@@ -102,7 +102,7 @@ function buildCSP(): string {
         'object-src': ["'none'"],
 
         'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-        'font-src': ["'self'", 'https://fonts.gstatic.com'],
+        'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
 
         'img-src': [
             "'self'",
