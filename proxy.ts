@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import NextAuth from 'next-auth'
-
 import { createErrorResponse, handleRouteError } from '@/lib/api-utils'
 import { authConfig } from './auth.config'
 

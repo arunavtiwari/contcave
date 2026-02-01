@@ -5,8 +5,8 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useCallback } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { FcGoogle } from "react-icons/fc";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 
 import Button from "@/components/ui/Button";

@@ -17,7 +17,6 @@ import BookingSummaryModal from "@/components/modals/BookingSummaryModal";
 import PhoneModal from "@/components/modals/PhoneModal";
 import useLoginModal from "@/hook/useLoginModal";
 import { normalizePhone } from "@/lib/phone";
-
 import { Package } from "@/types/package";
 import {
   DayKey,

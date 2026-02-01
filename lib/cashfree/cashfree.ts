@@ -236,3 +236,79 @@ export async function cfOnDemandTransfer(params: {
         throw new Error(errorMessage);
     }
 }
+
+export async function cfFetchOrder(orderId: string) {
+    const url = `${cfBaseURL()}/orders/${orderId}`;
+    const httpsAgent = getFixieProxyAgent();
+
+    try {
+        const res = await axios.get(url, {
+            headers: cfHeaders(),
+            httpsAgent,
+            timeout: 10000
+        });
+
+        return res.data;
+    } catch (error: unknown) {
+        let errorMessage = "Fetch order failed";
+        if (axios.isAxiosError(error)) {
+            const status = error.response?.status;
+            const data = error.response?.data;
+            errorMessage = data?.message || error.message;
+            console.error(`[Cashfree FetchOrder] Error (${status}):`, JSON.stringify(data));
+        } else if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        console.warn(`[Cashfree FetchOrder] Failed: ${errorMessage}`);
+        return null;
+    }
+}
+
+export function cfMapStatus(s?: string) {
+    const v = String(s || "").toUpperCase();
+    if (v === "PAID" || v === "SUCCESS" || v === "CAPTURED") return "SUCCESS";
+    if (v === "FAILED") return "FAILED";
+    if (v === "CANCELLED" || v === "USER_DROPPED") return "CANCELLED";
+    if (v === "EXPIRED") return "EXPIRED";
+    return "PENDING";
+}
+
+
+
+export async function cfCreateRefund(params: {
+    order_id: string;
+    refund_amount: number;
+    refund_id: string;
+    refund_note?: string;
+}) {
+    const url = `${cfBaseURL()}/orders/${params.order_id}/refunds`;
+    const httpsAgent = getFixieProxyAgent();
+
+    try {
+        const res = await axios.post(url, {
+            refund_amount: params.refund_amount,
+            refund_id: params.refund_id,
+            refund_note: params.refund_note,
+        }, {
+            headers: cfHeaders(),
+            httpsAgent,
+            timeout: 30000
+        });
+
+        return res.data;
+    } catch (error: unknown) {
+        let errorMessage = "Refund failed";
+        let status = 500;
+        let responseData: unknown = null;
+
+        if (axios.isAxiosError(error)) {
+            status = error.response?.status || 500;
+            responseData = error.response?.data;
+            errorMessage = error.response?.data?.message || error.message;
+            console.error(`[Cashfree Refund] Error (${status}):`, JSON.stringify(responseData));
+        } else if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        throw new Error(`Cashfree Refund API Error: ${errorMessage}`);
+    }
+}

@@ -118,7 +118,7 @@ function ListingClient({
     if (listing.hasSets && listing.sets && listing.sets.length > 0 && selectedSetIds.length === 0 && !selectedPackage) {
       setSelectedSetIds([listing.sets[0].id]);
     }
-  }, [listing.hasSets, listing.sets, selectedPackage]);
+  }, [listing.hasSets, listing.sets, selectedPackage, selectedSetIds.length]);
 
   useEffect(() => {
     if (!selectedDate || !selectedPackage || !selectedTimeSlot[0]) return;
@@ -699,7 +699,7 @@ function ListingClient({
           </div>
         </div>
 
-        
+
         {selectedPackage && (
           <PackageSetModal
             isOpen={isPackageSetModalOpen}

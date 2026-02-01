@@ -1,3 +1,5 @@
+import { Prisma, PrismaClient } from "@prisma/client";
+
 import prisma from "@/lib/prismadb";
 
 
@@ -46,6 +48,7 @@ export interface ConflictCheckParams {
     endTime: string;
     setIds: string[];
     excludeReservationId?: string;
+    tx?: Prisma.TransactionClient | PrismaClient;
 }
 
 export interface ConflictResult {
@@ -58,7 +61,8 @@ export interface ConflictResult {
 export async function checkSetConflicts(
     params: ConflictCheckParams
 ): Promise<ConflictResult> {
-    const { listingId, date, startTime, endTime, setIds, excludeReservationId } = params;
+    const { listingId, date, startTime, endTime, setIds, excludeReservationId, tx } = params;
+    const db = tx || prisma;
 
     const requestedStart = parseTimeToMinutes(startTime);
     const requestedEnd = parseTimeToMinutes(endTime);
@@ -68,19 +72,19 @@ export async function checkSetConflicts(
     const dateEnd = new Date(date);
     dateEnd.setHours(23, 59, 59, 999);
 
-    const listing = await prisma.listing.findUnique({
+    const listing = await db.listing.findUnique({
         where: { id: listingId },
         select: { hasSets: true },
     });
 
     const [blocks, reservations] = await Promise.all([
-        prisma.listingBlock.findMany({
+        db.listingBlock.findMany({
             where: {
                 listingId,
                 date: { gte: dateStart, lte: dateEnd },
             },
         }),
-        prisma.reservation.findMany({
+        db.reservation.findMany({
             where: {
                 listingId,
                 startDate: { gte: dateStart, lte: dateEnd },

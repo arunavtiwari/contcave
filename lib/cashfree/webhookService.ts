@@ -1,7 +1,8 @@
 import { Prisma } from "@prisma/client";
 
+import { checkSetConflicts } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
-import { cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
+import { cfCreateRefund, cfMapStatus, cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
 import { AttachmentInput, sendTemplateEmail } from "@/lib/email/mailer";
 import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
@@ -98,14 +99,7 @@ function fresh(tsHeader: string): boolean {
   const skew = Math.abs(Date.now() - t) / 1000;
   return skew <= MAX_SKEW_SEC;
 }
-function mapStatus(s?: string) {
-  const v = String(s || "").toUpperCase();
-  if (v === "PAID" || v === "SUCCESS" || v === "CAPTURED") return "SUCCESS";
-  if (v === "FAILED") return "FAILED";
-  if (v === "CANCELLED") return "CANCELLED";
-  if (v === "EXPIRED") return "EXPIRED";
-  return "PENDING";
-}
+
 function pickOrderId(p: CashfreeWebhookPayload) {
   return String(p?.data?.order?.order_id ?? "");
 }
@@ -259,7 +253,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
     if (!orderId) return { statusCode: 200 };
 
     const cfPaymentId = pickPaymentId(body);
-    const status = mapStatus(pickPayStatus(body));
+    const status = cfMapStatus(pickPayStatus(body));
     console.warn("[Webhook] Cashfree payment status", { orderId, status, cfPaymentId });
 
     const txn = await prisma.transaction.findFirst({
@@ -296,7 +290,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
       await prisma.$transaction(async (db) => {
         const freshTxn = await db.transaction.findUnique({
           where: { id: txn.id },
-          select: { id: true, reservationId: true, userId: true, listingId: true, amount: true, metadata: true },
+          select: { id: true, reservationId: true, userId: true, listingId: true, amount: true, metadata: true, cfOrderId: true, cfTxnRef: true },
         });
         if (!freshTxn) return;
 
@@ -332,6 +326,57 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 return a.position - b.position;
               });
             includedSetId = selectedSets[0]?.id || null;
+          }
+
+          const conflict = await checkSetConflicts({
+            listingId: freshTxn.listingId!,
+            date: startDate,
+            startTime,
+            endTime,
+            setIds,
+            tx: db,
+          });
+
+          if (conflict.hasConflict) {
+            console.error("[Webhook] Double Booking Detected!", { txnId: freshTxn.id, conflict });
+
+            // Auto-Refund Logic
+            let refundStatus = "PENDING";
+            let refundError = null;
+
+            if (freshTxn.cfOrderId) {
+              try {
+                const refundId = `ref_${freshTxn.cfTxnRef}`;
+                await cfCreateRefund({
+                  order_id: freshTxn.cfOrderId,
+                  refund_amount: freshTxn.amount,
+                  refund_id: refundId,
+                  refund_note: "System Auto-Refund: Double Booking"
+                });
+                refundStatus = "INITIATED";
+                console.warn("[Webhook] Auto-Refund Initiated", { refundId });
+              } catch (err) {
+                console.error("[Webhook] Auto-Refund Failed", err);
+                refundStatus = "FAILED";
+                refundError = err instanceof Error ? err.message : "Unknown error";
+              }
+            }
+
+            await db.transaction.update({
+              where: { id: freshTxn.id },
+              data: {
+                status: "FAILED",
+                metadata: {
+                  ...(typeof freshTxn.metadata === 'object' && freshTxn.metadata ? freshTxn.metadata : {}),
+                  failureReason: "DOUBLE_BOOKING_CONFLICT",
+                  conflictDetails: conflict as unknown as Prisma.InputJsonObject,
+                  refundNeeded: refundStatus === "FAILED",
+                  autoRefundStatus: refundStatus,
+                  autoRefundError: refundError
+                },
+              },
+            });
+            return;
           }
 
           const reservation = await db.reservation.create({
