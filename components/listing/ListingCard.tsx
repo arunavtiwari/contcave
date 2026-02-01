@@ -63,13 +63,19 @@ const ListingCard: React.FC<Props> = ({
     >
       <div className="flex flex-col gap-2 w-full">
         <div className="aspect-square w-full relative overflow-hidden rounded-xl">
-          <Link href={onEdit ? `/properties/${data.id}` : `/listings/${data.id}`}>
-            <Image
-              fill
-              className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-700"
-              src={data.imageSrc[0] || "/assets/listing-image-default.png"}
-              alt="listing"
-            />
+          <Link
+            href={onEdit ? `/properties/${data.id}` : `/listings/${data.id}`}
+            className="block h-full w-full"
+          >
+            <div className="relative h-full w-full">
+              <Image
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-700"
+                src={data.imageSrc[0] || "/assets/listing-image-default.png"}
+                alt="listing"
+              />
+            </div>
           </Link>
           <div className="absolute top-3 right-3">
             <HeartButton listingId={data.id} currentUser={currentUser} />
