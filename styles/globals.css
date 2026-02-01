@@ -316,13 +316,6 @@ button:not(:disabled) {
 	cursor: pointer;
 }
 
-input:focus,
-textarea:focus,
-select:focus {
-	box-shadow: none !important;
-	border-color: #000000 !important;
-}
-
 .hide-scrollbar {
 	scrollbar-width: thin;
 	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;

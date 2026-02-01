@@ -2,14 +2,13 @@
 
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
+import { FieldErrors } from "react-hook-form";
 import { FaCheckCircle, FaExclamationCircle, FaShieldAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
 
-import { FieldErrors } from "react-hook-form";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
-
 import Modal from "@/components/modals/Modal";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import { SafeUser } from "@/types/user";
 
 type Props = {
@@ -444,7 +443,7 @@ const VerificationModal: React.FC<Props> = ({
               {/* Left Connector */}
               {index > 0 && (
                 <div
-                  className={`absolute top-5 left-0 w-[50%] h-[2px] -translate-y-1/2 transition-colors duration-300 ${step >= stepItem.id ? "bg-black" : "bg-gray-200"
+                  className={`absolute top-5 left-0 w-[calc(50%+1px)] h-[2px] -translate-y-1/2 transition-colors duration-300 ${step >= stepItem.id ? "bg-black" : "bg-gray-200"
                     }`}
                 />
               )}
@@ -452,7 +451,7 @@ const VerificationModal: React.FC<Props> = ({
               {/* Right Connector */}
               {index < steps.length - 1 && (
                 <div
-                  className={`absolute top-5 right-0 w-[50%] h-[2px] -translate-y-1/2 transition-colors duration-300 ${step > stepItem.id ? "bg-black" : "bg-gray-200"
+                  className={`absolute top-5 right-0 w-[calc(50%+1px)] h-[2px] -translate-y-1/2 transition-colors duration-300 ${step > stepItem.id ? "bg-black" : "bg-gray-200"
                     }`}
                 />
               )}
@@ -462,7 +461,7 @@ const VerificationModal: React.FC<Props> = ({
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all border-2 relative z-10 ${isCompleted
                   ? "border-black bg-black text-white"
                   : isActive
-                    ? "border-black text-black ring-4 ring-gray-100 bg-white"
+                    ? "border-black text-black bg-white"
                     : "border-gray-200 text-gray-400 bg-white"
                   }`}
               >
@@ -793,7 +792,7 @@ const VerificationModal: React.FC<Props> = ({
                   maxLength={15}
                   className="uppercase"
                 />
-                <p className="text-xs text-gray-400 mt-1 pl-1">Optional</p>
+
               </div>
             </div>
           )}

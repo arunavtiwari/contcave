@@ -13,6 +13,8 @@ const Switch: React.FC<SwitchProps> = ({ variant = "default", ...props }) => {
 
     return (
         <ReactSwitch
+            onChange={props.onChange ?? (() => { })}
+            checked={props.checked ?? false}
             offColor="#d1d5db"
             onColor="#000"
             uncheckedIcon={false}

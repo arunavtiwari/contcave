@@ -11,7 +11,6 @@ type Props = {
   loading?: boolean;
   outline?: boolean;
   rounded?: boolean;
-  small?: boolean;
   icon?: IconType;
   isColor?: boolean;
   classNames?: string;
@@ -37,6 +36,10 @@ function Button({
         disabled:opacity-70 
         disabled:cursor-not-allowed 
         hover:opacity-90 
+        focus-visible:outline-none
+        focus-visible:ring-2
+        focus-visible:ring-black
+        focus-visible:ring-offset-2
         py-[10px]
         transition 
         w-full 
@@ -45,12 +48,12 @@ function Button({
         items-center
         gap-2
         border
-        ${rounded ? "rounded-full" : "rounded-md"}
-        ${classNames || (outline ? "bg-white border border-black text-black" : "bg-black border border-black text-white")}
+        ${rounded ? "rounded-full" : "rounded-xl"}
+        ${classNames || (outline ? "bg-white border-neutral-300 text-black hover:bg-neutral-50" : "bg-black border-black text-white hover:bg-neutral-800")}
       `}
     >
       {loading && (
-        <AiOutlineLoading3Quarters className="animate-spin text-white text-lg" />
+        <AiOutlineLoading3Quarters className={`animate-spin text-lg ${outline ? 'text-black' : 'text-white'}`} />
       )}
       {Icon && !loading && <Icon size={24} className={`${isColor && "text-blue-600"}`} />}
       <span>{loading ? "Processing..." : label}</span>

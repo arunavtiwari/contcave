@@ -38,14 +38,16 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             font-light 
             bg-white 
             border-2
-            rounded-md
-            outline-none
+            rounded-xl
+            focus:outline-none
+            focus:ring-2
+            focus:ring-black
+            focus:border-transparent
             transition
             disabled:opacity-70
             disabled:cursor-not-allowed
             min-h-[100px]
-            ${hasError ? "border-rose-500" : "border-neutral-300"}
-            ${hasError ? "focus:border-rose-500" : "focus:border-black"}
+            ${hasError ? "border-rose-500 focus:ring-rose-500" : "border-neutral-200"}
             ${className}
           `}
                     ref={ref}

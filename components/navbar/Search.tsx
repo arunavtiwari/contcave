@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { memo, Suspense,useCallback, useMemo } from "react";
+import { memo, Suspense, useCallback, useMemo } from "react";
 import { BiSearch } from "react-icons/bi";
 
 import useCountries from "@/hook/useCities";
@@ -37,9 +37,10 @@ const SearchContent = memo(function SearchContent() {
   }, [searchModel]);
 
   return (
-    <div
+    <button
+      type="button"
       onClick={handleClick}
-      className="border-2 md:w-auto p-2 rounded-full shadow-xs hover:shadow-sm transition cursor-pointer"
+      className="border-2 w-full md:w-auto p-2 rounded-full shadow-xs hover:shadow-sm transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
     >
       <div className="flex flex-row items-center justify-between">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>
@@ -52,7 +53,7 @@ const SearchContent = memo(function SearchContent() {
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 });
 

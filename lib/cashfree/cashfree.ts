@@ -1,4 +1,7 @@
+import axios from "axios";
 import crypto from "crypto";
+
+import { getFixieProxyAgent } from "@/lib/fixie-proxy";
 
 type CFEnv = "SANDBOX" | "PRODUCTION";
 
@@ -41,8 +44,7 @@ export function cfHeaders(): Record<string, string> {
     };
 }
 
-import axios from "axios";
-import { getFixieProxyAgent } from "@/lib/fixie-proxy";
+
 
 // ... existing code ...
 
@@ -112,7 +114,7 @@ export async function cfCreateOrder(input: {
     } catch (error: unknown) {
         let errorMessage = "Unknown error creating Cashfree order";
         let status = 500;
-        let responseData: any = null;
+        let responseData: unknown = null;
 
         if (axios.isAxiosError(error)) {
             status = error.response?.status || 500;

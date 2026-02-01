@@ -89,9 +89,10 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
   return (
     <div className="relative">
       <div className="flex">
-        <div
+        <button
+          type="button"
           onClick={toggleOpen}
-          className="ai-outline-menu p-4 md:py-1 md:px-2 border-2 flex flex-row items-center gap-3 rounded-full cursor-pointer hover:shadow-xs transition"
+          className="ai-outline-menu p-4 md:py-1 md:px-2 border-2 flex flex-row items-center gap-3 rounded-full cursor-pointer hover:shadow-xs transition focus:outline-none focus-visible:ring-2 focus-visible:ring-black bg-white"
         >
           <AiOutlineMenu />
           <div className="hidden md:block">
@@ -107,7 +108,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
               />
             )}
           </div>
-        </div>
+        </button>
       </div>
       {isOpen && (
         <div

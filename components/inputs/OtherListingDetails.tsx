@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Select, { Theme } from "react-select";
 
 import Switch from "@/components/ui/Switch";
-
 import { spaceTypes } from "@/constants/spaceTypes";
 
 export type ListingDetails = {

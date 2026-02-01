@@ -2,7 +2,10 @@
 
 import axios from "axios";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Clock, Plus, Trash2 } from "lucide-react";
+import CalendarIcon from "lucide-react/dist/esm/icons/calendar";
+import Clock from "lucide-react/dist/esm/icons/clock";
+import Plus from "lucide-react/dist/esm/icons/plus";
+import Trash2 from "lucide-react/dist/esm/icons/trash-2";
 import { useCallback, useEffect, useState } from "react";
 import Select, { Theme } from "react-select";
 import { toast } from "react-toastify";

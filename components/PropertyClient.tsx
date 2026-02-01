@@ -8,13 +8,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { MdClose, MdOutlineCurrencyRupee } from "react-icons/md";
 import { toast } from "react-toastify";
 
-import Switch from "@/components/ui/Switch";
-
 import Calendar from "@/components/Calendar";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 import Sidebar from "@/components/Sidebar";
 import Heading from "@/components/ui/Heading";
+import Switch from "@/components/ui/Switch";
 import useIndianCities, { City } from "@/hook/useCities";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";

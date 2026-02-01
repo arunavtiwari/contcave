@@ -1,4 +1,6 @@
-import { Building2, Heart, Users } from "lucide-react";
+import Building2 from "lucide-react/dist/esm/icons/building-2";
+import Heart from "lucide-react/dist/esm/icons/heart";
+import Users from "lucide-react/dist/esm/icons/users";
 import type { Metadata } from "next";
 import React from "react";
 

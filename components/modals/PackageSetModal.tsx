@@ -100,13 +100,11 @@ export default function PackageSetModal({
                         label="Cancel"
                         onClick={onClose}
                         outline
-                        small
                     />
                     <Button
                         label="Confirm Selection"
                         onClick={handleSubmit}
                         disabled={!isValid}
-                        small
                     />
                 </div>
             </div>
