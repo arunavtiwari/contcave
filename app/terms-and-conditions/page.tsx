@@ -49,20 +49,22 @@ export const metadata: Metadata = {
 const TermsAndConditions = () => {
     return (
         <>
-            <div className="banner">
-                <Image src="/assets/footer-banner.jpg" fill alt="Banner Image" />
-                <div className="overlay">
-                    <h1 className="banner-text">Terms & Conditions</h1>
+            <div className="relative h-64 w-full">
+                <Image
+                    src="/assets/footer-banner.jpg"
+                    alt="Banner Image"
+                    fill
+                    className="object-cover"
+                    priority
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <h1 className="text-white text-4xl font-bold">Terms & Conditions</h1>
                 </div>
             </div>
 
             <Container>
-                <div className="pt-10">
-                    <div className="container mx-auto mt-8 p-8 bg-white shadow-lg space-y-6">
-                        <h2 className="text-2xl font-bold text-gray-800">
-                            Terms & Conditions
-                        </h2>
-
+                <div className="max-w-3xl mx-auto py-10">
+                    <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 space-y-6">
                         <p className="text-gray-700">
                             Welcome to ContCave. By accessing or using our platform, you agree
                             to comply with these Terms & Conditions. Please read them
