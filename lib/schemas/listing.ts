@@ -15,8 +15,8 @@ export const locationSchema = z.object({
 });
 
 export const operationalHoursSchema = z.object({
-    start: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid start time"),
-    end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid end time"),
+    start: z.string().regex(/^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/, "Invalid start time (e.g. 9:00 AM)"),
+    end: z.string().regex(/^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/, "Invalid end time (e.g. 9:00 PM)"),
 }).optional().nullable();
 
 export const operationalDaysSchema = z.object({

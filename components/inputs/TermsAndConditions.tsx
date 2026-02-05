@@ -164,12 +164,12 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
         <div className=" flex justify-center items-center">
             <div className="bg-white w-full max-w-xl mx-auto rounded-lg">
                 <div className="px-4">
-                    <div ref={containerRef} className="my-4 text-sm">
+                    <div ref={containerRef} className="my-4 text-sm" style={{ color: '#000000', backgroundColor: '#ffffff' }}>
                         <p>
                             This Agreement (“Agreement”) is entered into between <strong>Arkanet Ventures LLP</strong> (hereinafter referred to as "Company") and the individual or entity (“Host”) who wishes to list their property (“Property”) on the Company’s platform, ContCave (“Platform”).
                             By listing the Property, Host agrees to comply with the terms and conditions outlined below.
                         </p><br /><br />
-                        
+
                         <strong>1. Listing Property</strong><br />
                         1.1 Host agrees to provide accurate and up-to-date information about the Property, including property type, location, amenities, availability, pricing, and any rules or restrictions associated with the Property.<br />
                         1.2 Host acknowledges that any photos, descriptions, or other content provided for the Property listing must accurately represent the Property and may be subject to review by the Company.<br />
@@ -198,7 +198,14 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                         <div className="mb-3">
                             <div className="font-semibold text-sm mb-1">Host Signature</div>
                             {!signature ? (
-                                <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition">
+                                <label
+                                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border rounded-md shadow-sm text-sm font-medium transition"
+                                    style={{
+                                        color: '#374151',
+                                        borderColor: '#d1d5db',
+                                        backgroundColor: '#ffffff'
+                                    }}
+                                >
                                     <span>Upload Signature Image</span>
                                     <input
                                         type="file"
@@ -219,8 +226,8 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                                         width={120}
                                         height={60}
                                         unoptimized
-                                        style={{ objectFit: 'contain' }}
-                                        className="rounded border bg-white"
+                                        style={{ objectFit: 'contain', backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
+                                        className="rounded border"
                                     />
                                 </div>
                             )}

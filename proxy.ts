@@ -125,6 +125,7 @@ function buildCSP(): string {
         'connect-src': [
             "'self'",
             'wss:',
+            'blob:',
             'https://api.cashfree.com',
             'https://sdk.cashfree.com',
             'https://api.cloudinary.com',

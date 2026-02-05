@@ -120,6 +120,8 @@ export default function RentModal() {
 
 
 
+
+
   const termsRef = useRef<TermsRef>(null);
   const Map = useMemo(() => dynamic(() => import("../Map"), { ssr: false }), []);
 
@@ -152,13 +154,37 @@ export default function RentModal() {
       unifiedSetPrice: null,
       sets: [],
       packages: [],
-      carpetArea: 0,
+      carpetArea: "",
       operationalDays: { start: "Mon", end: "Sun" },
       operationalHours: { start: "9:00 AM", end: "9:00 PM" },
-      minimumBookingHours: 0,
-      maximumPax: 0,
+      minimumBookingHours: "",
+      maximumPax: "",
     },
   });
+
+  // Sync sets state with form state for validation
+  useEffect(() => {
+    if (listingDetails?.hasSets) {
+      setValue("hasSets", true);
+      setValue("sets", sets.map(s => ({
+        ...s,
+        price: s.price ?? 0 // Ensure price is a number for schema validation
+      })), { shouldValidate: true });
+      setValue("setsHaveSamePrice", setsHaveSamePrice);
+      setValue("unifiedSetPrice", unifiedSetPrice);
+      setValue("additionalSetPricingType", additionalSetPricingType);
+    } else {
+      setValue("hasSets", false);
+      setValue("sets", []);
+    }
+  }, [
+    listingDetails?.hasSets,
+    sets,
+    setsHaveSamePrice,
+    unifiedSetPrice,
+    additionalSetPricingType,
+    setValue
+  ]);
 
   const category = watch("category");
   const actualLocation = watch("actualLocation");
@@ -186,6 +212,12 @@ export default function RentModal() {
     })();
   }, []);
 
+
+  useEffect(() => {
+    if (actualLocation?.value) {
+      setValue("locationValue", actualLocation.value, { shouldValidate: true });
+    }
+  }, [actualLocation, setValue]);
 
   const setCustomValue = useCallback(
     (id: string, value: unknown) => {
@@ -363,15 +395,32 @@ export default function RentModal() {
     setImageFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleTermsAndConditions = useCallback((accept: boolean) => setTerms(accept), []);
+  const handleTermsAndConditions = useCallback((accept: boolean) => {
+    setTerms(accept);
+    setValue("terms", accept, { shouldValidate: true });
+  }, [setValue]);
+
   const handleSignature = useCallback((sig: SignatureMeta) => setSignature(sig), []);
   const handleVerificationChange = useCallback((v: VerificationPayload) => {
     setVerifications(v);
     setVerificationError(""); // Clear error when user uploads verification docs
   }, []);
+
   const handleDetailsChange = useCallback((details: ListingDetails) => {
     setListingDetails(details);
-  }, []);
+
+    setValue("carpetArea", details.carpetArea, { shouldValidate: true });
+    setValue("minimumBookingHours", details.minimumBookingHours, { shouldValidate: true });
+    setValue("maximumPax", details.maximumPax, { shouldValidate: true });
+    setValue("instantBooking", details.instantBooking);
+    setValue("type", details.type);
+    setValue("hasSets", details.hasSets);
+    setValue("operationalDays", details.operationalDays);
+
+    if (details.operationalHours?.start && details.operationalHours?.end) {
+      setValue("operationalHours", details.operationalHours, { shouldValidate: true });
+    }
+  }, [setValue]);
   const handleImageFilesChange = useCallback((files: File[]) => {
     setImageFiles((prev) => [...prev, ...files]);
     setImageError(""); // Clear error when user uploads images
@@ -1069,6 +1118,7 @@ export default function RentModal() {
       <Modal
         disabled={isLoading || (step === STEPS.TERMS && !(terms && signature))}
         isOpen={rentModel.isOpen}
+        disableOverlayClose={true}
         title={
           step === STEPS.VERIFICATION
             ? "Space Verification"
@@ -1079,7 +1129,10 @@ export default function RentModal() {
         actionLabel={actionLabel}
         onSubmit={() => {
           if (step === STEPS.TERMS) {
-            handleSubmit(onSubmit)();
+            handleSubmit(onSubmit, (errors) => {
+              console.error("Form validation errors:", errors);
+              toast.error("Validation failed. Please check all steps for missing info.");
+            })();
           } else {
             onNext();
           }
