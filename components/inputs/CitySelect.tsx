@@ -44,6 +44,16 @@ function CitySelect({ value, onChange }: Props) {
           input: () => "text-lg cursor-pointer",
           option: () => "text-lg cursor-pointer",
         }}
+        styles={{
+          input: (base) => ({
+            ...base,
+            color: 'transparent',
+          }),
+          control: (base, state) => ({
+            ...base,
+            borderColor: state.isFocused ? 'black' : base.borderColor,
+          }),
+        }}
         theme={(theme) => ({
           ...theme,
           borderRadius: 10,

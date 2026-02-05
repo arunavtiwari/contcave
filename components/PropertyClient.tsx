@@ -387,9 +387,15 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 ))}
                                 {(!initialListing.imageSrc || initialListing.imageSrc.length < 8) && (
                                     <ImageUpload
-                                        onChange={(value) =>
-                                            handleInputChange("imageSrc", [...(initialListing.imageSrc ?? []), ...value])
-                                        }
+                                        onChange={(value) => {
+                                            const currentImages = initialListing.imageSrc ?? [];
+                                            if (currentImages.length + value.length > 8) {
+                                                toast.error("Maximum 8 images allowed");
+                                                return;
+                                            }
+                                            handleInputChange("imageSrc", [...currentImages, ...value]);
+                                            toast.success("Image uploaded successfully");
+                                        }}
                                         values={[]}
                                     />
                                 )}

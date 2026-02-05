@@ -62,15 +62,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               border-2
               rounded-xl
               focus:outline-none
-              focus:ring-2
-              focus:ring-black
-              focus:border-transparent
+              focus:border-black
               transition
               disabled:opacity-70
               disabled:cursor-not-allowed
               ${formatPrice ? "pl-10" : "pl-4"}
               ${customRightContent ? "pr-12" : "pr-4"}
-              ${hasError ? "border-rose-500 focus:ring-rose-500" : "border-neutral-200 hover:border-neutral-300"}
+              ${hasError ? "border-rose-500 focus:border-rose-500" : "border-neutral-200 hover:border-neutral-300"}
               ${className}
             `}
                         ref={ref}
