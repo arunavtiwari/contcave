@@ -124,12 +124,16 @@ function buildCSP(): string {
 
         'connect-src': [
             "'self'",
+            'ws:',
             'wss:',
             'blob:',
+            'data:',
             'https://api.cashfree.com',
             'https://sdk.cashfree.com',
             'https://api.cloudinary.com',
             'https://maps.googleapis.com',
+            'https://fonts.googleapis.com',
+            'https://fonts.gstatic.com',
             'https://graph.facebook.com',
             'https://www.googleapis.com',
             'https://vitals.vercel-insights.com'

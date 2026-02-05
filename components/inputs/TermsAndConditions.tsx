@@ -37,82 +37,20 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
 
     const generateAndUploadPdf = async (folderOverride?: string) => {
         try {
-            const node = containerRef.current;
-            if (!node) throw new Error("Container ref is null");
+            if (!signature?.url) throw new Error("Signature required");
 
-            const prevOverflow = node.style.overflow;
-            const prevMaxHeight = node.style.maxHeight;
-            const prevHeight = node.style.height;
-            const prevPaddingBottom = node.style.paddingBottom;
-            node.style.overflow = "visible";
-            node.style.maxHeight = "none";
-            node.style.height = "auto";
-            node.style.paddingBottom = "48px";
-            node.scrollTop = 0;
+            const { pdf } = await import("@react-pdf/renderer");
+            const AgreementDocument = (await import("@/components/pdfs/AgreementDocument")).default;
 
-            const html2canvas = (await import("html2canvas")).default;
-            const { jsPDF } = await import("jspdf");
+            const dateStr = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
 
-            const canvas = await html2canvas(node, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                width: node.scrollWidth,
-                height: node.scrollHeight,
-            });
-            node.style.overflow = prevOverflow;
-            node.style.maxHeight = prevMaxHeight;
-            node.style.height = prevHeight;
-            node.style.paddingBottom = prevPaddingBottom;
-
-            const pdf = new jsPDF("p", "mm", "a4");
-            pdf.setProperties({
-                title: "ContCave Host Agreement",
-                subject: "Host Agreement – Arkanet Ventures LLP",
-                author: "Arkanet Ventures LLP",
-                creator: "Arkanet Ventures LLP",
-            });
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const imgProps = { width: canvas.width, height: canvas.height };
-            const marginMm = 12;
-            const printableWidth = pageWidth - marginMm * 2;
-            const printableHeight = pageHeight - marginMm * 2;
-            const scale = printableWidth / imgProps.width;
-            const sliceHeightPx = Math.floor(printableHeight / scale);
-
-            let remainingPx = imgProps.height;
-            let sourceY = 0;
-            while (remainingPx > 0) {
-                const currentSlicePx = Math.min(sliceHeightPx, remainingPx);
-                const sliceCanvas = document.createElement('canvas');
-                sliceCanvas.width = imgProps.width;
-                sliceCanvas.height = currentSlicePx;
-                const sctx = sliceCanvas.getContext('2d');
-                if (sctx) {
-                    sctx.fillStyle = '#ffffff';
-                    sctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-                    sctx.drawImage(
-                        canvas,
-                        0,
-                        sourceY,
-                        imgProps.width,
-                        currentSlicePx,
-                        0,
-                        0,
-                        imgProps.width,
-                        currentSlicePx
-                    );
-                }
-                const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.92);
-                const sliceHeightMm = currentSlicePx * scale;
-                if (sourceY > 0) pdf.addPage();
-                pdf.addImage(sliceData, 'JPEG', marginMm, marginMm, printableWidth, sliceHeightMm);
-                sourceY += currentSlicePx;
-                remainingPx -= currentSlicePx;
-            }
-            const blob: Blob = pdf.output("blob");
+            // Create the blob using @react-pdf/renderer
+            const blob = await pdf(
+                <AgreementDocument
+                    signatureUrl={signature.url}
+                    dateStr={dateStr}
+                />
+            ).toBlob();
 
             const folder = folderOverride || "agreements";
             const timestamp = Math.floor(Date.now() / 1000);
@@ -125,21 +63,25 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                 body: JSON.stringify({ paramsToSign })
             });
             const sign = await signRes.json();
+            const signData = sign?.data;
 
-            if (!signRes.ok || !sign?.signature) throw new Error("Signature failed");
+            if (!signRes.ok || !signData?.signature) {
+                console.error("[Terms] Signature failed:", signRes.status, sign);
+                throw new Error(sign?.message || sign?.error || `Signature failed: ${signRes.status}`);
+            }
 
-            const cloud = (sign.cloud as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME as string);
-            const apiKey = (sign.apiKey as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY as string);
+            const cloud = (signData.cloud as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME as string);
+            const apiKey = (signData.apiKey as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY as string);
             if (!cloud || !apiKey) throw new Error("Missing Cloudinary client env");
 
             const fd = new FormData();
             const file = new File([blob], `${publicId}.pdf`, { type: "application/pdf" });
             fd.append("file", file);
             fd.append("folder", folder);
-            fd.append("timestamp", String(sign.timestamp));
+            fd.append("timestamp", String(signData.timestamp));
             fd.append("public_id", publicId);
             fd.append("api_key", apiKey);
-            fd.append("signature", sign.signature);
+            fd.append("signature", signData.signature);
 
             const upRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method: "POST", body: fd });
             const up = await upRes.json();
