@@ -72,7 +72,6 @@ export default function RentModal() {
     custom: [] as string[],
   });
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
-  const [listingDetails, setListingDetails] = useState<ListingDetails>();
   const [verifications, setVerifications] = useState<VerificationPayload>();
   const [terms, setTerms] = useState(false);
   const [signature, setSignature] = useState<SignatureMeta | null>(null);
@@ -80,6 +79,7 @@ export default function RentModal() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [listingDetails, setListingDetails] = useState<ListingDetails>();
   const [additionalSetPricingType, setAdditionalSetPricingType] = useState<AdditionalSetPricingType | null>(null);
   const [sets, setSets] = useState<SetEditorItem[]>([]);
   const [setImagesFiles, setSetImagesFiles] = useState<File[]>([]);
@@ -115,7 +115,8 @@ export default function RentModal() {
   }, [setsHaveSamePrice, unifiedSetPrice, sets]);
 
 
-  const hasSets = listingDetails?.hasSets ?? false;
+
+
 
 
 
@@ -132,6 +133,7 @@ export default function RentModal() {
     formState: { errors },
     reset,
     trigger,
+    control,
   } = useForm<FieldValues>({
     resolver: zodResolver(listingSchema) as unknown as Resolver<FieldValues>,
     mode: "onTouched",
@@ -152,12 +154,47 @@ export default function RentModal() {
       unifiedSetPrice: null,
       sets: [],
       packages: [],
+      carpetArea: "",
+      operationalDays: { start: "Mon", end: "Sun" },
+      operationalHours: { start: "9:00 AM", end: "9:00 PM" },
+      minimumBookingHours: "",
+      maximumPax: "",
     },
   });
+
+  // Sync sets state with form state for validation
+  useEffect(() => {
+    if (listingDetails?.hasSets) {
+      setValue("hasSets", true);
+      setValue("sets", sets.map(s => ({
+        ...s,
+        price: s.price ?? 0 // Ensure price is a number for schema validation
+      })), { shouldValidate: true });
+      setValue("setsHaveSamePrice", setsHaveSamePrice);
+      setValue("unifiedSetPrice", unifiedSetPrice);
+      setValue("additionalSetPricingType", additionalSetPricingType);
+    } else {
+      setValue("hasSets", false);
+      setValue("sets", []);
+    }
+  }, [
+    listingDetails?.hasSets,
+    sets,
+    setsHaveSamePrice,
+    unifiedSetPrice,
+    additionalSetPricingType,
+    setValue
+  ]);
 
   const category = watch("category");
   const actualLocation = watch("actualLocation");
   const imageSrc = watch("imageSrc");
+  const [categoryError, setCategoryError] = useState<string>("");
+  const [cityError, setCityError] = useState<string>("");
+  const [addressError, setAddressError] = useState<string>("");
+  const [imageError, setImageError] = useState<string>("");
+  const [setsError, setSetsError] = useState<string>("");
+  const [verificationError, setVerificationError] = useState<string>("");
 
 
   useEffect(() => {
@@ -176,6 +213,12 @@ export default function RentModal() {
   }, []);
 
 
+  useEffect(() => {
+    if (actualLocation?.value) {
+      setValue("locationValue", actualLocation.value, { shouldValidate: true });
+    }
+  }, [actualLocation, setValue]);
+
   const setCustomValue = useCallback(
     (id: string, value: unknown) => {
       setValue(id as FieldPath<FieldValues>, value, { shouldValidate: true, shouldDirty: true });
@@ -184,7 +227,7 @@ export default function RentModal() {
   );
 
   const onBack = () => {
-    if (step === STEPS.PACKAGES && !hasSets) {
+    if (step === STEPS.PACKAGES && !listingDetails?.hasSets) {
       setStep(STEPS.OTHERDETAILS);
       return;
     }
@@ -192,21 +235,33 @@ export default function RentModal() {
   };
 
   const onNext = async () => {
+    // Clear previous errors
+    setCategoryError("");
+    setCityError("");
+    setAddressError("");
+    setImageError("");
+    setSetsError("");
+    setVerificationError("");
+
     if (step === STEPS.CATEGORY) {
       const valid = await trigger("category");
-      if (!valid && !category) return toast.error("Please select a category");
-      if (!valid) return;
+      if (!valid) {
+        setCategoryError("Please select a category");
+        return;
+      }
     }
 
     if (step === STEPS.LOCATION) {
-      if (!location) {
-        return toast.error("Please select a location");
+      if (!actualLocation || !actualLocation.value) {
+        setCityError("Please select a city");
+        return;
       }
-
-
-      if (!actualLocation || !actualLocation.display_name) {
-        return toast.error("Please select an accurate location using the address search");
+      if (!actualLocation.display_name) {
+        setAddressError("Please enter a complete address");
+        return;
       }
+      const valid = await trigger("actualLocation");
+      if (!valid) return;
     }
 
     if (step === STEPS.IMAGES) {
@@ -215,14 +270,17 @@ export default function RentModal() {
       );
       const totalImages = remoteImages.length + (imageFiles?.length || 0);
 
-      const _check = listingSchema.shape.imageSrc.safeParse(imageSrc);
-
       if (totalImages === 0) {
-        return toast.error("Please upload at least one image");
+        setImageError("Please upload at least one image");
+        return;
       }
       if (totalImages > 20) {
-        return toast.error("Maximum 20 images allowed");
+        setImageError("Maximum 20 images allowed");
+        return;
       }
+
+      const valid = await trigger("imageSrc");
+      if (!valid) return;
     }
 
     if (step === STEPS.DESCRIPTION) {
@@ -231,63 +289,69 @@ export default function RentModal() {
     }
 
     if (step === STEPS.SETS) {
-      if (hasSets) {
-        if (!additionalSetPricingType && sets.length > 0) {
-
+      if (listingDetails?.hasSets) {
+        if (!additionalSetPricingType) {
+          setSetsError("Please select a pricing type for additional sets");
+          return;
         }
-
 
         if (sets.length === 0) {
-          return toast.error("Please add at least one set or disable multi-set");
+          setSetsError("Please add at least one set or disable multi-set");
+          return;
         }
         if (sets.length < 2) {
-          return toast.error("Please add at least 2 sets for a multi-set listing");
+          setSetsError("Please add at least 2 sets for a multi-set listing");
+          return;
         }
 
         for (let i = 0; i < sets.length; i++) {
           if (!sets[i].name || sets[i].name.trim().length === 0) {
-            return toast.error(`Please enter a name for Set ${i + 1}`);
+            setSetsError(`Please enter a name for Set ${i + 1}`);
+            return;
           }
           if (sets[i].price === null) {
-            return toast.error(`Please enter a price for Set ${i + 1}`);
+            setSetsError(`Please enter a price for Set ${i + 1}`);
+            return;
           }
-        }
-
-        if (!additionalSetPricingType) {
-          return toast.error("Please select a pricing type for additional sets");
         }
       }
     }
 
     if (step === STEPS.OTHERDETAILS) {
-      if (!listingDetails) return toast.error("Please complete details");
-
-
-
-
-
-
-      const { carpetArea, operationalDays, operationalHours, minimumBookingHours, maximumPax, type } = listingDetails;
-
-      if (!carpetArea) return toast.error("Please enter Carpet Area");
-      if (!minimumBookingHours) return toast.error("Enter Min Booking Hours");
-      if (!maximumPax) return toast.error("Enter Max Pax");
-      if (!type || type.length === 0) return toast.error("Select Type");
-      if (!operationalDays?.start) return toast.error("Select Operational Days");
-      if (!operationalHours?.start) return toast.error("Select Hours");
+      if (!listingDetails) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+      if (!listingDetails.carpetArea || listingDetails.carpetArea.trim() === "") {
+        toast.error("Please enter carpet area");
+        return;
+      }
+      if (!listingDetails.minimumBookingHours || listingDetails.minimumBookingHours.trim() === "") {
+        toast.error("Please enter minimum booking hours");
+        return;
+      }
+      if (!listingDetails.maximumPax || listingDetails.maximumPax.trim() === "") {
+        toast.error("Please enter maximum pax");
+        return;
+      }
+      if (!listingDetails.type || listingDetails.type.length === 0) {
+        toast.error("Please select at least one space type");
+        return;
+      }
     }
 
     if (step === STEPS.VERIFICATION) {
       const hasDocs = verifications?.documents && verifications.documents.length > 0;
       if (!hasDocs) {
-        return toast.error("Please upload verification documents");
+        setVerificationError("Please upload verification documents");
+        return;
       }
     }
 
 
 
     if (step === STEPS.OTHERDETAILS) {
-      if (!hasSets) {
+      if (!listingDetails?.hasSets) {
         setStep(STEPS.PACKAGES);
         return;
       }
@@ -299,12 +363,11 @@ export default function RentModal() {
   const resetFormStates = useCallback(() => {
     setSelectedAmenities({ predefined: {}, custom: [] });
     setSelectedAddons([]);
-    setListingDetails(undefined);
     setVerifications(undefined);
     setTerms(false);
     setSignature(null);
-    setPackages([]);
     setAgreementPdf(null);
+    setListingDetails(undefined);
     setImageFiles([]);
     setShowSuccessModal(false);
     setIsLoading(false);
@@ -332,11 +395,36 @@ export default function RentModal() {
     setImageFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleTermsAndConditions = useCallback((accept: boolean) => setTerms(accept), []);
+  const handleTermsAndConditions = useCallback((accept: boolean) => {
+    setTerms(accept);
+    setValue("terms", accept, { shouldValidate: true });
+  }, [setValue]);
+
   const handleSignature = useCallback((sig: SignatureMeta) => setSignature(sig), []);
-  const handleVerificationChange = useCallback((v: VerificationPayload) => setVerifications(v), []);
-  const handleImageFilesChange = useCallback((files: File[]) =>
-    setImageFiles((prev) => [...prev, ...files]), []);
+  const handleVerificationChange = useCallback((v: VerificationPayload) => {
+    setVerifications(v);
+    setVerificationError(""); // Clear error when user uploads verification docs
+  }, []);
+
+  const handleDetailsChange = useCallback((details: ListingDetails) => {
+    setListingDetails(details);
+
+    setValue("carpetArea", details.carpetArea, { shouldValidate: true });
+    setValue("minimumBookingHours", details.minimumBookingHours, { shouldValidate: true });
+    setValue("maximumPax", details.maximumPax, { shouldValidate: true });
+    setValue("instantBooking", details.instantBooking);
+    setValue("type", details.type);
+    setValue("hasSets", details.hasSets);
+    setValue("operationalDays", details.operationalDays);
+
+    if (details.operationalHours?.start && details.operationalHours?.end) {
+      setValue("operationalHours", details.operationalHours, { shouldValidate: true });
+    }
+  }, [setValue]);
+  const handleImageFilesChange = useCallback((files: File[]) => {
+    setImageFiles((prev) => [...prev, ...files]);
+    setImageError(""); // Clear error when user uploads images
+  }, []);
   const handleSetImageFilesChange = useCallback((files: File[]) =>
     setSetImagesFiles((prev) => [...prev, ...files]), []);
   const handleAmenitiesChange = useCallback((v: typeof selectedAmenities) =>
@@ -347,7 +435,6 @@ export default function RentModal() {
       custom: Array.isArray(v.custom) ? v.custom : [],
     }), []);
   const handleAddonChange = useCallback((v: Addon[]) => setSelectedAddons(v), []);
-  const handleDetailsChange = useCallback((v: ListingDetails) => setListingDetails(v), []);
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     if (step !== STEPS.TERMS) {
@@ -449,12 +536,12 @@ export default function RentModal() {
       verifications,
       agreementSignature: signature,
       terms,
-      hasSets,
+      hasSets: listingDetails?.hasSets,
       setsHaveSamePrice: Boolean(setsHaveSamePrice),
       unifiedSetPrice: setsHaveSamePrice ? Number(unifiedSetPrice) : null,
-      additionalSetPricingType: hasSets ? additionalSetPricingType : null,
+      additionalSetPricingType: listingDetails?.hasSets ? additionalSetPricingType : null,
 
-      sets: hasSets ? sets.map((s, i) => ({
+      sets: listingDetails?.hasSets ? sets.map((s, i) => ({
         name: s.name.trim(),
         description: s.description?.trim() || null,
         images: s.images,
@@ -467,7 +554,7 @@ export default function RentModal() {
     try {
 
       const finalSets = [...payload.sets];
-      if (hasSets && setImagesFiles.length > 0) {
+      if (listingDetails?.hasSets && setImagesFiles.length > 0) {
         if (!cloudName) {
           throw new Error("Image upload service is not configured");
         }
@@ -646,13 +733,21 @@ export default function RentModal() {
             {categories.map((item) => (
               <CategoryInput
                 key={item.label}
-                onClick={(c) => setCustomValue("category", c)}
+                onClick={(c) => {
+                  setCustomValue("category", c);
+                  setCategoryError(""); // Clear error when user selects category
+                }}
                 selected={category === item.label}
                 label={item.label}
                 icon={item.icon}
               />
             ))}
           </div>
+          {categoryError && (
+            <p className="text-rose-500 text-sm">
+              {categoryError}
+            </p>
+          )}
         </div>
       );
       break;
@@ -665,7 +760,22 @@ export default function RentModal() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               City <span className="text-rose-500 ml-1">*</span>
             </label>
-            <CitySelect value={actualLocation as CitySelectValue | undefined} onChange={(v) => setCustomValue("actualLocation", v)} />
+            <CitySelect
+              value={actualLocation as CitySelectValue | undefined}
+              onChange={(v) => {
+                // Merge city data with existing address data
+                setCustomValue("actualLocation", {
+                  ...actualLocation,
+                  ...v,
+                });
+                setCityError(""); // Clear error when user selects a city
+              }}
+            />
+            {cityError && (
+              <p className="text-rose-500 text-sm mt-1">
+                {cityError}
+              </p>
+            )}
           </div>
           <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -674,20 +784,25 @@ export default function RentModal() {
             <AutoComplete
               value={actualLocation?.display_name || ""}
               onChange={(sel: AutoCompleteValue) => {
+                // Merge address data with existing city data
                 setCustomValue("actualLocation", {
+                  ...actualLocation,
                   display_name: sel.display_name,
                   latlng: sel.latlng,
-                  additionalInfo: actualLocation?.additionalInfo || "",
                 });
+                setAddressError(""); // Clear error when user enters address
               }}
             />
+            {addressError && (
+              <p className="text-rose-500 text-sm mt-1">
+                {addressError}
+              </p>
+            )}
           </div>
           <div className="w-full">
-            <label htmlFor="additionalInfo" className="block text-sm font-medium text-gray-700 mb-1">
-              Additional Info
-            </label>
-            <input
+            <Input
               id="additionalInfo"
+              label="Additional Info"
               type="text"
               disabled={isLoading}
               placeholder="Apartment, suite, unit, building, floor, etc."
@@ -699,7 +814,6 @@ export default function RentModal() {
                   additionalInfo: value,
                 });
               }}
-              className="peer w-full py-2.5 px-3 font-light bg-white border-2 border-gray-300 focus:border-black transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
             />
           </div>
           <Map center={actualLocation?.latlng as number[] | undefined} />
@@ -713,14 +827,21 @@ export default function RentModal() {
           <Heading title="Add photos" subtitle="Show what your space looks like (Max 20 images)" variant="h3" />
 
           {imageSrc.length < 20 && (
-            <div className="w-full h-40">
-              <ImageUpload
-                onChange={(v) => setCustomValue("imageSrc", v)}
-                values={imageSrc}
-                deferUpload
-                onFilesChange={handleImageFilesChange}
-                className="w-full h-full p-4 border-2 border-neutral-300"
-              />
+            <div className="w-full">
+              <div className={`h-40 ${imageError ? 'border-rose-500' : ''}`}>
+                <ImageUpload
+                  onChange={(v) => setCustomValue("imageSrc", v)}
+                  values={imageSrc}
+                  deferUpload
+                  onFilesChange={handleImageFilesChange}
+                  className="w-full h-full p-4 border-2 border-neutral-300"
+                />
+              </div>
+              {imageError && (
+                <p className="text-rose-500 text-sm mt-1">
+                  {imageError}
+                </p>
+              )}
             </div>
           )}
 
@@ -784,7 +905,7 @@ export default function RentModal() {
               formatPrice
               placeholder="999"
               disabled={isLoading}
-              register={register("price")}
+              register={register("price", { valueAsNumber: true })}
               errors={errors}
               required
             />
@@ -890,6 +1011,12 @@ export default function RentModal() {
               />
             </div>
           )}
+
+          {setsError && (
+            <p className="text-rose-500 text-sm -mt-2">
+              {setsError}
+            </p>
+          )}
         </div>
       );
       break;
@@ -927,7 +1054,7 @@ export default function RentModal() {
           <PackagesForm
             value={packages}
             onChange={setPackages}
-            availableSets={hasSets ? sets.map((s, i) => ({
+            availableSets={listingDetails?.hasSets ? sets.map((s, i) => ({
               id: s.id || `temp-${i}`,
               name: s.name,
               description: s.description,
@@ -963,6 +1090,11 @@ export default function RentModal() {
             onVerification={handleVerificationChange}
             initialDocuments={verifications?.documents || []}
           />
+          {verificationError && (
+            <p className="text-rose-500 text-sm -mt-2">
+              {verificationError}
+            </p>
+          )}
         </div>
       );
       break;
@@ -986,6 +1118,7 @@ export default function RentModal() {
       <Modal
         disabled={isLoading || (step === STEPS.TERMS && !(terms && signature))}
         isOpen={rentModel.isOpen}
+        disableOverlayClose={true}
         title={
           step === STEPS.VERIFICATION
             ? "Space Verification"
@@ -994,7 +1127,16 @@ export default function RentModal() {
               : "List Your Space"
         }
         actionLabel={actionLabel}
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={() => {
+          if (step === STEPS.TERMS) {
+            handleSubmit(onSubmit, (errors) => {
+              console.error("Form validation errors:", errors);
+              toast.error("Validation failed. Please check all steps for missing info.");
+            })();
+          } else {
+            onNext();
+          }
+        }}
         secondaryActionLabel={secondActionLabel}
         secondaryAction={step === STEPS.CATEGORY ? undefined : onBack}
         onClose={rentModel.onClose}

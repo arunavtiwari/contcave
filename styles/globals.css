@@ -423,3 +423,37 @@ button:not(:disabled) {
 .rdrDay {
 	color: transparent !important;
 }
+
+/* Remove ALL blue outlines and shadows from inputs and selects */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+button:focus,
+button:focus-visible {
+	outline: none !important;
+	box-shadow: none !important;
+	-webkit-box-shadow: none !important;
+	-moz-box-shadow: none !important;
+}
+
+/* Remove blue outline from react-select */
+.css-1pahdxg-control:focus,
+.css-1pahdxg-control:focus-within,
+[class*="-control"]:focus,
+[class*="-control"]:focus-within {
+	outline: none !important;
+	box-shadow: none !important;
+	-webkit-box-shadow: none !important;
+	-moz-box-shadow: none !important;
+	border-color: black !important;
+}
+
+/* Ensure no blue outline on any focused element */
+*:focus,
+*:focus-visible {
+	outline: none !important;
+	box-shadow: none !important;
+}

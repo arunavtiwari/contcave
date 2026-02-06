@@ -21,6 +21,7 @@ type Props = {
   secondaryActionLabel?: string;
 
   isLoading?: boolean;
+  disableOverlayClose?: boolean;
 
 };
 
@@ -41,6 +42,7 @@ function Modal({
   isLoading,
   bodyRef,
   customHeight,
+  disableOverlayClose,
 }: Props & { bodyRef?: React.RefObject<HTMLDivElement | null>; customHeight?: string }) {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -88,8 +90,9 @@ function Modal({
 
 
   const handleBackdropClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (disableOverlayClose) return;
     if (e.target === e.currentTarget) handleClose();
-  }, [handleClose]);
+  }, [handleClose, disableOverlayClose]);
 
   if (!isOpen && !showModal) return null;
 
@@ -110,7 +113,7 @@ function Modal({
         aria-labelledby="modal-title"
       >
         <div className={`flex flex-col w-full bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden ${customHeight || "h-[85vh] max-h-[85vh]"}`}>
-          
+
           <div className="flex items-center justify-center p-5 border-b border-gray-200 bg-gray-50 relative shrink-0">
             <h2 id="modal-title" className="text-lg font-semibold text-center text-gray-900">
               {title}
@@ -124,7 +127,7 @@ function Modal({
             </button>
           </div>
 
-          
+
           <div
             ref={bodyRef}
             className="flex-1 px-6 py-5 overflow-y-auto text-gray-800"
@@ -132,7 +135,7 @@ function Modal({
             {body}
           </div>
 
-          
+
           {!selfActionButton && (
             <div className="px-6 py-4 border-t border-gray-200 flex flex-col md:flex-row gap-3 justify-end items-center bg-gray-50 shrink-0">
               {secondaryAction && secondaryActionLabel && (

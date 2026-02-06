@@ -30,23 +30,23 @@ const dayOptions = [
     { value: "Sun", label: "Sunday" },
 ];
 
-const buildTimeOptions = (stepMinutes = 30) => {
-    const out: { value: string; label: string }[] = [];
+const buildTimeOptions = (intervalMinutes: number) => {
+    const options = [];
     for (let h = 0; h < 24; h++) {
-        for (let m = 0; m < 60; m += stepMinutes) {
-            const am = h < 12;
-            const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-            const mm = String(m).padStart(2, "0");
-            const label = `${h12}:${mm} ${am ? "AM" : "PM"}`;
-            out.push({ value: label, label });
+        for (let m = 0; m < 60; m += intervalMinutes) {
+            const hour = h % 12 || 12;
+            const period = h < 12 ? "AM" : "PM";
+            const minute = m.toString().padStart(2, "0");
+            const label = `${hour}:${minute} ${period}`;
+            options.push({ value: label, label });
         }
     }
-    return out;
+    return options;
 };
 
 const selectTheme = (theme: Theme) => ({
     ...theme,
-    borderRadius: 10,
+    borderRadius: 9999,
     colors: { ...theme.colors, primary: "black", primary25: "#F3F4F6", primary50: "#E5E7EB" },
 });
 
@@ -93,6 +93,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
 
     return (
         <div className="space-y-4">
+            {/* Carpet Area Input */}
             <div className="flex justify-between items-center">
                 <label className="text-sm font-medium w-[40vw]">
                     <strong>PROPERTY SPECIFICATIONS</strong>
@@ -110,6 +111,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
 
             <hr />
 
+            {/* Operational Days and Hours */}
             <div className="space-y-4">
                 <div className="flex items-center">
                     <label className="font-medium text-sm w-[40vw]">
@@ -195,6 +197,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
 
             <hr />
 
+            {/* Maximum Pax */}
             <div className="flex justify-between items-center">
                 <label className="text-sm font-medium w-[40vw]">
                     <strong>ACCOMMODATION</strong>
@@ -218,6 +221,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
 
             <hr />
 
+            {/* Instant Booking */}
             <div className="flex justify-between items-center">
                 <label className="text-sm font-medium mb-1 w-[40vw]">
                     <strong>BOOKING</strong>
@@ -233,6 +237,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
 
             <hr />
 
+            {/* Multiple Sets */}
             <div className="flex justify-between items-center">
                 <label className="text-sm font-medium mb-1 w-[40vw]">
                     <strong>MULTI-SET</strong>
@@ -252,6 +257,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
 
             <hr />
 
+            {/* Space Type */}
             <div className="justify-between items-center">
                 <label className="text-sm font-medium mb-1">
                     <strong>TYPE</strong> <span className="text-rose-500 ml-1">*</span>
@@ -260,6 +266,7 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange, initialDetails 
                     {spaceTypes.map((t) => (
                         <button
                             key={t}
+                            type="button"
                             onClick={() => handleTypeSelect(t)}
                             className={`${details.type.includes(t) ? "bg-black text-white" : "bg-gray-200 text-gray-800"
                                 } text-sm py-1 px-3 rounded-full`}
