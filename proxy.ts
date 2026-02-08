@@ -91,7 +91,7 @@ function logSecurityEvent(
     console.warn(`[Security Event] ${event}`, JSON.stringify({ timestamp, event, ...context }))
 }
 
-function buildCSP(): string {
+function buildCSP(nonce: string): string {
     const isDev = process.env.NODE_ENV !== 'production'
 
     const directives: Record<string, string[]> = {
@@ -143,27 +143,17 @@ function buildCSP(): string {
 
         'script-src': [
             "'self'",
-            'https://www.googletagmanager.com',
-            'https://www.google-analytics.com',
-            'https://maps.googleapis.com',
-            'https://va.vercel-scripts.com',
-            'https://sdk.cashfree.com'
+            `'nonce-${nonce}'`,
+            "'strict-dynamic'",
+            'https:',
+            "'unsafe-inline'", // Backwards compatibility for older browsers
         ],
 
         'script-src-elem': [
             "'self'",
-            'https://www.googletagmanager.com',
-            'https://www.google-analytics.com',
-            'https://maps.googleapis.com',
-            'https://va.vercel-scripts.com',
-            'https://sdk.cashfree.com'
+            `'nonce-${nonce}'`,
+            'https:',
         ]
-    }
-
-    // Dev only
-    if (isDev) {
-        directives['script-src'].push("'unsafe-eval'", "'unsafe-inline'")
-        directives['script-src-elem'].push("'unsafe-inline'")
     }
 
     return Object.entries(directives)
@@ -182,7 +172,7 @@ function permissionsPolicyForPath(pathname: string): string {
     ].join(', ')
 }
 
-function applySecurityHeaders(res: NextResponse, pathname: string): void {
+function applySecurityHeaders(res: NextResponse, pathname: string, nonce: string): void {
     res.headers.set('X-DNS-Prefetch-Control', 'on')
     res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
     res.headers.set('X-Frame-Options', 'DENY')
@@ -190,7 +180,7 @@ function applySecurityHeaders(res: NextResponse, pathname: string): void {
     res.headers.set('X-XSS-Protection', '1; mode=block')
     res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
     res.headers.set('Permissions-Policy', permissionsPolicyForPath(pathname))
-    res.headers.set('Content-Security-Policy', buildCSP())
+    res.headers.set('Content-Security-Policy', buildCSP(nonce))
 }
 
 function applyCors(req: NextRequest, res: NextResponse): void {
@@ -211,9 +201,12 @@ function applyCors(req: NextRequest, res: NextResponse): void {
     res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
 }
 
+
+
 export async function proxy(request: NextRequest) {
     const start = Date.now()
     const pathname = request.nextUrl.pathname
+    const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
     const method = request.method
     const ip = getClientIP(request)
     const userAgent = request.headers.get('user-agent') || 'unknown'
@@ -239,7 +232,7 @@ export async function proxy(request: NextRequest) {
             res.headers.set('X-RateLimit-Reset', String(Math.ceil(rl.resetTime / 1000)))
             if (rl.blockedUntil) res.headers.set('X-RateLimit-Blocked-Until', String(Math.ceil(rl.blockedUntil / 1000)))
 
-            applySecurityHeaders(res as unknown as NextResponse, pathname)
+            applySecurityHeaders(res as unknown as NextResponse, pathname, nonce)
             applyCors(request, res as unknown as NextResponse)
             res.headers.set('X-Response-Time', `${Date.now() - start}ms`)
             return res
@@ -267,7 +260,7 @@ export async function proxy(request: NextRequest) {
 
                 if (process.env.NODE_ENV === 'production') {
                     const res = createErrorResponse('An error occurred during authentication', 500)
-                    applySecurityHeaders(res as unknown as NextResponse, pathname)
+                    applySecurityHeaders(res as unknown as NextResponse, pathname, nonce)
                     applyCors(request, res as unknown as NextResponse)
                     res.headers.set('X-Response-Time', `${Date.now() - start}ms`)
                     return res
@@ -277,9 +270,16 @@ export async function proxy(request: NextRequest) {
             }
         }
 
-        const res = NextResponse.next()
+        const requestHeaders = new Headers(request.headers)
+        requestHeaders.set('x-nonce', nonce)
 
-        applySecurityHeaders(res, pathname)
+        const res = NextResponse.next({
+            request: {
+                headers: requestHeaders,
+            },
+        })
+
+        applySecurityHeaders(res, pathname, nonce)
         applyCors(request, res)
 
         res.headers.set('X-RateLimit-Limit', String(RATE_LIMIT.maxRequests))
@@ -298,7 +298,7 @@ export async function proxy(request: NextRequest) {
         })
 
         const res = handleRouteError(err, `proxy: ${pathname}`)
-        applySecurityHeaders(res as unknown as NextResponse, pathname)
+        applySecurityHeaders(res as unknown as NextResponse, pathname, nonce)
         applyCors(request, res as unknown as NextResponse)
         res.headers.set('X-Response-Time', `${Date.now() - start}ms`)
         return res

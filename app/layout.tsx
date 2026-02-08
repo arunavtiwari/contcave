@@ -25,6 +25,8 @@ import {
   SITE_URL,
 } from "@/lib/seo";
 
+import { headers } from 'next/headers'
+
 
 import getCurrentUser from "./actions/getCurrentUser";
 
@@ -208,6 +210,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const nonce = (await headers()).get('x-nonce') || '';
   let currentUser = null;
   try {
     currentUser = await getCurrentUser();
@@ -222,6 +225,7 @@ export default async function RootLayout({
       <head>
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: JSON.stringify([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]),
           }}
