@@ -33,8 +33,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId }: P
       <p className="text-xl font-semibold">Available Packages</p>
 
       <div
-        className={`grid gap-4 ${packages.length > 1 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
-          }`}
+        className="grid gap-4"
       >
         {packages.map((pkg) => (
           <div

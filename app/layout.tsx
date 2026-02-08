@@ -25,7 +25,11 @@ import {
   SITE_URL,
 } from "@/lib/seo";
 
+
 import getCurrentUser from "./actions/getCurrentUser";
+
+export const dynamic = "force-dynamic";
+
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
