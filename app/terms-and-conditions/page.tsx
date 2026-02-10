@@ -9,11 +9,11 @@ const DESCRIPTION =
     "Review the terms, acceptable use, and booking policies that govern access to ContCave's studio marketplace." as const;
 
 export const metadata: Metadata = {
-    title: `Terms & Conditions | ${BRAND_NAME}`,
+    title: "Terms & Conditions",
     description: DESCRIPTION,
     alternates: { canonical: "/terms-and-conditions" },
     openGraph: {
-        title: `Terms & Conditions | ${BRAND_NAME}`,
+        title: "Terms & Conditions",
         description: DESCRIPTION,
         url: `${SITE_URL}/terms-and-conditions`,
         siteName: BRAND_NAME,
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: `Terms & Conditions | ${BRAND_NAME}`,
+        title: "Terms & Conditions",
         description: DESCRIPTION,
         site: "@ContCave",
         images: [`${SITE_URL}${OG_IMAGE}`],

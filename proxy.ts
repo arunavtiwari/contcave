@@ -92,7 +92,6 @@ function logSecurityEvent(
 }
 
 function buildCSP(nonce: string): string {
-    const isDev = process.env.NODE_ENV !== 'production'
 
     const directives: Record<string, string[]> = {
         'default-src': ["'self'"],
@@ -146,7 +145,7 @@ function buildCSP(nonce: string): string {
             `'nonce-${nonce}'`,
             "'strict-dynamic'",
             'https:',
-            "'unsafe-inline'", // Backwards compatibility for older browsers
+            "'unsafe-inline'",
         ],
 
         'script-src-elem': [

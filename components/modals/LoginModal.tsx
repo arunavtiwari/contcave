@@ -14,6 +14,7 @@ import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useLoginModel from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { type LoginSchema, loginSchema } from "@/lib/schemas/auth";
 
 import Modal from "./Modal";
@@ -39,27 +40,30 @@ function LoginModal({ }: Props) {
     },
   });
 
-  const onSubmit: SubmitHandler<LoginSchema> = (data) => {
+  const onSubmit: SubmitHandler<LoginSchema> = async (data) => {
     setIsLoading(true);
 
-    signIn("credentials", {
-      ...data,
-      redirect: false,
-    }).then((callback) => {
-      setIsLoading(false);
+    try {
+      const callback = await signIn("credentials", {
+        ...data,
+        redirect: false,
+      });
 
-      if (callback?.ok) {
-        toast.success("Login Successfully", {
-          toastId: "Login_Successfully"
-        });
+      if (callback?.error) {
+        const friendlyMessage = getAuthErrorMessage(callback.error);
+        toast.error(friendlyMessage, { toastId: "Login_Error_1" });
+      } else if (callback?.ok) {
+        toast.success("Login successful", { toastId: "Login_Successfully" });
         router.refresh();
         loginModel.onClose();
-      } else if (callback?.error) {
-        toast.error(callback.error, {
-          toastId: "Login_Error_1"
-        });
       }
-    });
+    } catch {
+      toast.error("Something went wrong. Please try again.", {
+        toastId: "Login_Error_Unexpected",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggle = useCallback(() => {

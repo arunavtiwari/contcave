@@ -8,12 +8,12 @@ import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `Cancellation Policy | ${BRAND_NAME}`,
+  title: "Cancellation Policy",
   description:
     "Understand ContCave's cancellation windows, refund rules, and how to manage changes to your booking with confidence.",
   alternates: { canonical: "/cancellation" },
   openGraph: {
-    title: `Cancellation Policy | ${BRAND_NAME}`,
+    title: "Cancellation Policy",
     description:
       "Review the cancellation timeframes and refund process for bookings made through ContCave.",
     url: `${SITE_URL}/cancellation`,
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `Cancellation Policy | ${BRAND_NAME}`,
+    title: "Cancellation Policy",
     description:
       "Understand the timelines and process for cancelling or rescheduling ContCave bookings.",
     site: "@ContCave",
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
 const CancellationPolicy = () => {
   return (
     <div className="flex flex-col">
-      
+
       <div className="relative w-full h-[400px] md:h-[500px]">
         <Image
           src="/assets/footer-banner.jpg"
@@ -67,10 +67,10 @@ const CancellationPolicy = () => {
         </div>
       </div>
 
-      
+
       <Container>
         <div className="pt-16 pb-32 max-w-4xl mx-auto space-y-10">
-          
+
           <div className="bg-white p-8 rounded-2xl shadow-lg space-y-6">
             <h2 className="text-3xl font-bold text-gray-900">
               Our Cancellation Policy
@@ -83,7 +83,7 @@ const CancellationPolicy = () => {
             </p>
           </div>
 
-          
+
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Cancellation Timeframes
@@ -105,7 +105,7 @@ const CancellationPolicy = () => {
             </ul>
           </div>
 
-          
+
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Special Considerations
@@ -117,7 +117,7 @@ const CancellationPolicy = () => {
             </p>
           </div>
 
-          
+
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               How to Cancel a Booking
@@ -134,7 +134,7 @@ const CancellationPolicy = () => {
             </ol>
           </div>
 
-          
+
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Refund Process
@@ -147,7 +147,7 @@ const CancellationPolicy = () => {
             </p>
           </div>
 
-          
+
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">Need Help?</h3>
             <p className="text-gray-700 text-lg">

@@ -16,6 +16,7 @@ import Input from "@/components/ui/Input";
 import useLoginModal from "@/hook/useLoginModal";
 import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
 import useRegisterModal from "@/hook/useRegisterModal";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { RegisterSchema, registerSchema } from "@/lib/schemas/auth";
 
 import Modal from "./Modal";
@@ -52,16 +53,16 @@ function RegisterModal() {
         redirect: false,
       });
 
-      if (callback?.ok) {
+      if (callback?.error) {
+        toast.error(getAuthErrorMessage(callback.error), {
+          toastId: "Login_Error_1"
+        });
+      } else if (callback?.ok) {
         toast.success("Successfully registered and logged in!", {
           toastId: "Registered"
         });
         router.refresh();
         registerModal.onClose();
-      } else if (callback?.error) {
-        toast.error("Login failed", {
-          toastId: "Login_Error_1"
-        });
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.data?.error) {

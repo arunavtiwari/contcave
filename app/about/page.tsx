@@ -16,7 +16,7 @@ const DESCRIPTION =
   "Learn how ContCave empowers creatives with a curated network of production-ready studios, industry partners, and hands-on support." as const;
 
 export const metadata: Metadata = {
-  title: `About ${BRAND_NAME}`,
+  title: "About Us",
   description: DESCRIPTION,
   keywords: [
     "ContCave about",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/about" },
   openGraph: {
-    title: `About ${BRAND_NAME}`,
+    title: "About Us",
     description: DESCRIPTION,
     url: `${SITE_URL}/about`,
     siteName: BRAND_NAME,
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `About ${BRAND_NAME}`,
+    title: "About Us",
     description: DESCRIPTION,
     site: "@ContCave",
     creator: "@ContCave",
@@ -64,15 +64,15 @@ const About = async () => {
 
   return (
     <ClientOnly>
-      
-      
+
+
 
       <Hero />
 
 
       <Container>
         <div className="py-20 space-y-24">
-          
+
           <section className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-black mb-6">
               Our Story
@@ -90,7 +90,7 @@ const About = async () => {
             </p>
           </section>
 
-          
+
           <section>
             <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-14">
               What We Stand For
@@ -131,7 +131,7 @@ const About = async () => {
             </div>
           </section>
 
-          
+
           <section>
             <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-14">
               Our Vision
@@ -170,7 +170,7 @@ const About = async () => {
             </div>
           </section>
 
-          
+
           <section className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-black mb-6">
               Join the First Wave

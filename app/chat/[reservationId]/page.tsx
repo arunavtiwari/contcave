@@ -5,10 +5,10 @@ import ChatClient from "@/app/chat/ChatClient";
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
-import { BRAND_NAME } from "@/lib/seo";
+
 
 export const metadata: Metadata = {
-  title: `Reservation Chat | ${BRAND_NAME}`,
+  title: "Reservation Chat",
   description: "Coordinate with guests and hosts in a secure ContCave chat room for this reservation.",
   robots: {
     index: false,

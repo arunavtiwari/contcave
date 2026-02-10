@@ -7,7 +7,7 @@ import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
 import ListingFeed from "@/components/listing/ListingFeed";
 import Categories from "@/components/navbar/Categories";
-import { absoluteUrl,BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ const LISTINGS_DESCRIPTION =
   "Browse verified photography, video, and event studios across India. Filter by city, amenities, or dates to find the perfect space." as const;
 
 export const metadata: Metadata = {
-  title: `Explore Studios for Rent | ${BRAND_NAME}`,
+  title: "Explore Studios for Rent",
   description: LISTINGS_DESCRIPTION,
   keywords: [
     "studio rental",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/home" },
   openGraph: {
-    title: `Explore Studios for Rent | ${BRAND_NAME}`,
+    title: "Explore Studios for Rent",
     description: LISTINGS_DESCRIPTION,
     url: `${SITE_URL}/home`,
     siteName: BRAND_NAME,
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `Explore Studios for Rent | ${BRAND_NAME}`,
+    title: "Explore Studios for Rent",
     description: LISTINGS_DESCRIPTION,
     site: "@ContCave",
     creator: "@ContCave",

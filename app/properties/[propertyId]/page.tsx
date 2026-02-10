@@ -11,7 +11,7 @@ import type { Metadata } from 'next';
 import React from 'react';
 
 export const metadata: Metadata = {
-  title: "Manage Property | ContCave",
+  title: "Manage Property",
   description:
     "Edit your listing details, amenities, and add-ons securely within your ContCave host dashboard.",
   robots: {

@@ -5,13 +5,12 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import getFavoriteListings from "@/app/actions/getFavoriteListings";
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
-import { BRAND_NAME } from "@/lib/seo";
 
 import FavoritesClient from "./FavoritesClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `Saved Spaces | ${BRAND_NAME}`,
+  title: "Saved Spaces",
   description: "Quickly access the studios and listings you've marked as favourites on ContCave.",
   robots: {
     index: false,

@@ -63,7 +63,7 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       return createErrorResponse("Request body is required and must not be empty", 400);
     }
 
-    const { packages, sets, blocks, ...listingData } = body;
+    const { packages, sets, blocks: _blocks, ...listingData } = body;
 
     const stringFields = ['carpetArea', 'minimumBookingHours', 'maximumPax'];
     for (const field of stringFields) {

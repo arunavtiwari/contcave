@@ -4,10 +4,10 @@ import { redirect } from "next/navigation";
 import getReservation from "@/app/actions/getReservation";
 import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/PaymentSuccessAnimation";
-import { BRAND_NAME } from "@/lib/seo";
+
 
 export const metadata: Metadata = {
-    title: `Payment Status | ${BRAND_NAME}`,
+    title: "Payment Status",
     description: "Review the outcome of your recent ContCave payment and see next steps.",
     robots: {
         index: false,
@@ -64,7 +64,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
         return (
             <main className="max-w-xl mx-auto p-6 flex items-center justify-center">
                 <div className="flex flex-col items-center space-y-6">
-                    
+
                     <div className="w-14 h-14 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
 
                     <h2 className="text-2xl font-bold text-center">Verifying your payment...</h2>

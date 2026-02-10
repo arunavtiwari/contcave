@@ -25,7 +25,6 @@ import {
   SITE_URL,
 } from "@/lib/seo";
 
-
 import getCurrentUser from "./actions/getCurrentUser";
 
 export const dynamic = "force-dynamic";

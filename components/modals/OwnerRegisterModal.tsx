@@ -14,6 +14,7 @@ import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { type OwnerRegisterSchema, ownerRegisterSchema } from "@/lib/schemas/auth";
 
 import Modal from "./Modal";
@@ -50,16 +51,16 @@ function OwnerRegisterModal() {
                 redirect: false,
             });
 
-            if (callback?.ok) {
+            if (callback?.error) {
+                toast.error(getAuthErrorMessage(callback.error), {
+                    toastId: "Owner_Login_Error"
+                });
+            } else if (callback?.ok) {
                 toast.success("Owner registered and logged in successfully!", {
                     toastId: "Owner_Registered"
                 });
                 router.refresh();
                 ownerRegisterModal.onClose();
-            } else if (callback?.error) {
-                toast.error("Login failed", {
-                    toastId: "Owner_Login_Error"
-                });
             }
         } catch (err: unknown) {
             let errorMsg = "Something went wrong during registration.";

@@ -4,13 +4,12 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
-import { BRAND_NAME } from "@/lib/seo";
 
 import ProfileClient from "./ProfileClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `Profile | ${BRAND_NAME}`,
+  title: "Profile",
   robots: {
     index: false,
     follow: false,

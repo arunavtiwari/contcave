@@ -7,7 +7,7 @@ import getReservation from "@/app/actions/getReservations";
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 import ListingClient from "@/components/ListingClient";
-import { absoluteUrl,BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { absoluteUrl, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<RouteParams
   const { listingId } = await params;
   if (!listingId) {
     return {
-      title: `Demo | ${BRAND_NAME}`,
+      title: "Demo",
       description: "Preview demo listing on ContCave.",
       robots: { index: false, follow: false },
     };
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<RouteParams
   const listing = await getListingById({ listingId });
   if (!listing) {
     return {
-      title: `Demo | ${BRAND_NAME}`,
+      title: "Demo",
       description: "Preview demo listing on ContCave.",
       robots: { index: false, follow: false },
     };
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<RouteParams
       : OG_IMAGE
   );
   const url = `${SITE_URL}/demo/${listingId}`;
-  const title = `${listing.title} (Demo) | ${BRAND_NAME}`;
+  const title = `${listing.title} (Demo)`;
 
   return {
     title,

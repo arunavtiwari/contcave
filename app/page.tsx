@@ -48,7 +48,7 @@ const homeJsonLd = {
 } as const;
 
 export const metadata: Metadata = {
-  title: BRAND_TITLE,
+  title: { absolute: BRAND_TITLE },
   description: HOME_DESCRIPTION,
   keywords: [...DEFAULT_KEYWORDS],
   alternates: {

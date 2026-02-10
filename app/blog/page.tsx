@@ -10,7 +10,7 @@ const DESCRIPTION =
   "Read ContCave's latest articles on studio booking, production workflows, and creative industry insights across India." as const;
 
 export const metadata: Metadata = {
-  title: `Blog | ${BRAND_NAME} Insights, Tips, and Updates`,
+  title: "Blog — Insights, Tips, and Updates",
   description: DESCRIPTION,
   keywords: [
     "ContCave blog",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     canonical: "/blog",
   },
   openGraph: {
-    title: `ContCave Blog | Insights & Tips`,
+    title: "Blog — Insights & Tips",
     description: DESCRIPTION,
     url: `${SITE_URL}/blog`,
     siteName: BRAND_NAME,
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `ContCave Blog | Insights & Tips`,
+    title: "Blog — Insights & Tips",
     description: DESCRIPTION,
     site: "@ContCave",
     creator: "@ContCave",

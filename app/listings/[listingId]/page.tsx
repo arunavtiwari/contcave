@@ -7,7 +7,7 @@ import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 import ListingClient from "@/components/ListingClient";
 import prisma from "@/lib/prismadb";
-import { absoluteUrl,BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { absoluteUrl, BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +31,7 @@ export async function generateMetadata({
   const { listingId } = await params;
   if (!listingId) {
     return {
-      title: `Listing | ${BRAND_NAME}`,
+      title: "Listing",
       description: "Discover verified studios available on ContCave.",
     };
   }
@@ -39,7 +39,7 @@ export async function generateMetadata({
   const listing = await getListingById({ listingId });
   if (!listing) {
     return {
-      title: `Listing | ${BRAND_NAME}`,
+      title: "Listing",
       description: "Discover verified studios available on ContCave.",
       robots: {
         index: false,
@@ -57,7 +57,7 @@ export async function generateMetadata({
       : [OG_IMAGE];
   const image = absoluteUrl(imageCandidates[0] ?? OG_IMAGE);
   const url = `${SITE_URL}/listings/${listingId}`;
-  const title = `${listing.title} | ${BRAND_NAME}`;
+  const title = listing.title;
 
   return {
     title,

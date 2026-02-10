@@ -10,13 +10,13 @@ const DESCRIPTION =
   "Learn how ContCave collects, uses, and protects personal data in line with Indian IT Act and SPDI Rules." as const;
 
 export const metadata: Metadata = {
-  title: `Privacy Policy | ${BRAND_NAME}`,
+  title: "Privacy Policy",
   description: DESCRIPTION,
   alternates: {
     canonical: "/privacy-policy",
   },
   openGraph: {
-    title: `Privacy Policy | ${BRAND_NAME}`,
+    title: "Privacy Policy",
     description: DESCRIPTION,
     url: `${SITE_URL}/privacy-policy`,
     siteName: BRAND_NAME,
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `Privacy Policy | ${BRAND_NAME}`,
+    title: "Privacy Policy",
     description: DESCRIPTION,
     site: "@ContCave",
     images: [`${SITE_URL}${OG_IMAGE}`],

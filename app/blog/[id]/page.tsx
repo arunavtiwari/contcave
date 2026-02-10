@@ -33,7 +33,7 @@ export async function generateMetadata({
     const published = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
     const updated = post.updatedAt ? new Date(post.updatedAt).toISOString() : published;
     const canonical = `/blog/${id}`;
-    const title = `${post.title} | ${BRAND_NAME} Blog`;
+    const title = post.title;
 
     return {
       title,
@@ -79,7 +79,7 @@ export async function generateMetadata({
     };
   } catch (_error) {
     return {
-      title: `Blog | ${BRAND_NAME}`,
+      title: "Blog",
       description: FALLBACK_DESCRIPTION,
     };
   }

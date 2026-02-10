@@ -4,12 +4,11 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings from "@/app/actions/getListings";
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
-import { BRAND_NAME } from "@/lib/seo";
 
 import PropertiesClient from "./PropertiesClient";
 
 export const metadata: Metadata = {
-  title: `My Properties | ${BRAND_NAME}`,
+  title: "My Properties",
   description: "Manage the listings you host on ContCave, update details, and keep availability in sync.",
   robots: {
     index: false,

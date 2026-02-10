@@ -133,7 +133,6 @@ export default function RentModal() {
     formState: { errors },
     reset,
     trigger,
-    control,
   } = useForm<FieldValues>({
     resolver: zodResolver(listingSchema) as unknown as Resolver<FieldValues>,
     mode: "onTouched",
