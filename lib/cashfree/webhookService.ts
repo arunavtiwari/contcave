@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { checkSetConflicts } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund, cfMapStatus, cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
+import { calculatePayoutDetails, hasValidGST } from "@/lib/constants/gst";
 import { AttachmentInput, sendTemplateEmail } from "@/lib/email/mailer";
 import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
@@ -77,7 +78,6 @@ type ListingWithSetsAndUser = {
 };
 
 const MAX_SKEW_SEC = Number(process.env.WEBHOOK_MAX_SKEW_SEC || 600);
-const OWNER_PAYOUT_PERCENT = Number(process.env.OWNER_PAYOUT_PERCENT || 80);
 
 type HandleInput = {
   raw: string;
@@ -299,7 +299,11 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             db.listing.findUnique({
               where: { id: freshTxn.listingId! },
               include: {
-                user: { include: { paymentDetails: true } },
+                user: {
+                  include: {
+                    paymentDetails: true
+                  }
+                },
                 sets: { orderBy: { position: "asc" as const } },
               },
             }),
@@ -398,13 +402,39 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             },
           });
 
+          // Calculate GST ownership and payout based on studio's GST status
+          const studioPaymentDetails = listing?.user?.paymentDetails as {
+            cashfreeVendorId?: string | null;
+            companyName?: string | null;
+            gstin?: string | null;
+          } | null | undefined;
+
+          const studioHasGST = studioPaymentDetails ? hasValidGST({
+            companyName: studioPaymentDetails.companyName ?? null,
+            gstin: studioPaymentDetails.gstin ?? null,
+          }) : false;
+          const payoutDetails = calculatePayoutDetails(freshTxn.amount, studioHasGST);
+
+          console.warn("[Webhook] GST Calculation", {
+            txnId: freshTxn.id,
+            totalAmount: freshTxn.amount,
+            studioHasGST,
+            gstOwnedBy: payoutDetails.gstOwnedBy,
+            baseAmount: payoutDetails.baseAmount,
+            payoutToStudio: payoutDetails.payoutToStudio,
+            payoutPercent: payoutDetails.payoutPercentOfTotal,
+            arkanetRetains: payoutDetails.arkanetRetains,
+          });
+
           await db.transaction.update({
             where: { id: freshTxn.id },
             data: {
               reservationId: reservation.id,
-              vendorId: listing?.user?.paymentDetails?.cashfreeVendorId || undefined,
-              payoutPercentToOwner: OWNER_PAYOUT_PERCENT,
+              vendorId: studioPaymentDetails?.cashfreeVendorId || undefined,
+              payoutPercentToOwner: payoutDetails.payoutPercentOfTotal,
               payoutDueAt: startDate,
+              gstOwnedBy: payoutDetails.gstOwnedBy,
+              baseAmountBeforeGst: payoutDetails.baseAmount,
             },
           });
 

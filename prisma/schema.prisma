@@ -319,6 +319,10 @@ model Transaction {
   payoutPercentToOwner Float?    @default(88)
   payoutDueAt          DateTime?
   payoutDoneAt         DateTime?
+  
+  // -------- GST Handling ----------
+  gstOwnedBy           String?   @default("STUDIO") // "STUDIO" or "ARKANET"
+  baseAmountBeforeGst  Float?    // Amount before GST (for calculation clarity)
 
   // -------- Common ----------
   customerPhone String?

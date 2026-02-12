@@ -1,6 +1,7 @@
 import { Invoice } from "@prisma/client";
 import crypto from "crypto";
 
+import { hasValidGST } from "@/lib/constants/gst";
 import { AttachmentInput } from "@/lib/email/mailer";
 import { generateInvoicePDFBlob } from "@/lib/invoice/pdfBlob";
 import prisma from "@/lib/prismadb";
@@ -129,16 +130,15 @@ export async function ensureInvoiceWithAttachment(
     );
   }
 
+  // Determine GST ownership and invoice details
   const ownerPayment =
-    reservation.listing?.user?.paymentDetails &&
-      reservation.listing.user.paymentDetails.companyName &&
-      reservation.listing.user.paymentDetails.gstin
+    hasValidGST(reservation.listing?.user?.paymentDetails)
       ? {
-        companyName: reservation.listing.user.paymentDetails.companyName,
-        gstin: reservation.listing.user.paymentDetails.gstin,
+        companyName: reservation.listing!.user!.paymentDetails!.companyName!,
+        gstin: reservation.listing!.user!.paymentDetails!.gstin!,
         ownerName:
-          reservation.listing.user.name ||
-          reservation.listing.user.email ||
+          reservation.listing!.user!.name ||
+          reservation.listing!.user!.email ||
           "Listing Owner",
       }
       : null;

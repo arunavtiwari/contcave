@@ -158,8 +158,17 @@ export default function RentModal() {
       operationalHours: { start: "9:00 AM", end: "9:00 PM" },
       minimumBookingHours: "",
       maximumPax: "",
+      terms: false,
     },
   });
+
+  useEffect(() => {
+    register("terms");
+    register("category");
+    register("locationValue");
+    register("actualLocation");
+    register("imageSrc");
+  }, [register]);
 
   // Sync sets state with form state for validation
   useEffect(() => {
@@ -285,6 +294,12 @@ export default function RentModal() {
     if (step === STEPS.DESCRIPTION) {
       const isValid = await trigger(["title", "description", "price"]);
       if (!isValid) return;
+
+      const currentPrice = Number(watch("price"));
+      if (currentPrice <= 0) {
+        toast.error("Price must be greater than 0");
+        return;
+      }
     }
 
     if (step === STEPS.SETS) {
@@ -308,10 +323,15 @@ export default function RentModal() {
             setSetsError(`Please enter a name for Set ${i + 1}`);
             return;
           }
-          if (sets[i].price === null) {
-            setSetsError(`Please enter a price for Set ${i + 1}`);
+          if ((sets[i].price ?? 0) <= 0) {
+            setSetsError(`Please enter a valid price for Set ${i + 1}`);
             return;
           }
+        }
+
+        if (setsHaveSamePrice && (unifiedSetPrice ?? 0) <= 0) {
+          setSetsError("Please enter a valid unified price for all sets");
+          return;
         }
       }
     }
@@ -415,6 +435,19 @@ export default function RentModal() {
     setValue("type", details.type);
     setValue("hasSets", details.hasSets);
     setValue("operationalDays", details.operationalDays);
+
+    if (!details.hasSets) {
+      setSets([]);
+      setSetsHaveSamePrice(null);
+      setUnifiedSetPrice(null);
+      setAdditionalSetPricingType(null);
+      setSetImagesFiles([]);
+
+      setValue("sets", [], { shouldValidate: true });
+      setValue("setsHaveSamePrice", false);
+      setValue("unifiedSetPrice", null);
+      setValue("additionalSetPricingType", null);
+    }
 
     if (details.operationalHours?.start && details.operationalHours?.end) {
       setValue("operationalHours", details.operationalHours, { shouldValidate: true });
@@ -854,6 +887,7 @@ export default function RentModal() {
                     width={128}
                     height={128}
                     className="h-32 w-32 rounded-xl object-cover border border-neutral-200 shadow-xs"
+                    unoptimized
                   />
                   <button
                     onClick={() => removeImage(index)}
@@ -1106,6 +1140,7 @@ export default function RentModal() {
             onChange={handleTermsAndConditions}
             onSignature={handleSignature}
             onAgreementPdf={setAgreementPdf}
+            value={signature}
           />
         </div>
       );
@@ -1115,7 +1150,7 @@ export default function RentModal() {
   return (
     <>
       <Modal
-        disabled={isLoading || (step === STEPS.TERMS && !(terms && signature))}
+        disabled={isLoading}
         isOpen={rentModel.isOpen}
         disableOverlayClose={true}
         title={
@@ -1129,8 +1164,33 @@ export default function RentModal() {
         onSubmit={() => {
           if (step === STEPS.TERMS) {
             handleSubmit(onSubmit, (errors) => {
-              console.error("Form validation errors:", errors);
-              toast.error("Validation failed. Please check all steps for missing info.");
+
+              const deepErrorMessages = (obj: any, path: string = ""): string[] => {
+                let messages: string[] = [];
+                for (const key in obj) {
+                  if (obj[key]?.message && typeof obj[key].message === "string") {
+                    messages.push(`${path}${key}: ${obj[key].message}`);
+                  } else if (typeof obj[key] === "object" && obj[key] !== null) {
+                    messages = [...messages, ...deepErrorMessages(obj[key], `${path}${key}.`)];
+                  }
+                }
+                return messages;
+              };
+
+              const detailedErrors = deepErrorMessages(errors);
+
+              if (detailedErrors.length > 0) {
+                toast.error(`Validation failed: ${detailedErrors.join(", ")}`);
+                return;
+              }
+
+              if (step === STEPS.TERMS && (!terms || !signature)) {
+                toast.error("Please sign the agreement and accept terms to complete listing.");
+                return;
+              }
+
+              const errorMessages = Object.keys(errors).join(", ");
+              toast.error(`Validation failed for: ${errorMessages}. Please check steps.`);
             })();
           } else {
             onNext();

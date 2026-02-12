@@ -70,7 +70,7 @@ export const listingSchema = z.object({
     description: z.string().min(50, "Description must be at least 50 chars").max(5000),
 
 
-    price: z.number().min(0).max(10000000),
+    price: z.coerce.number().min(1, "Price must be at least 1").max(10000000),
     minimumBookingHours: z.string().optional().nullable(),
     maximumPax: z.string().optional().nullable(),
     carpetArea: z.string().optional().nullable(),
@@ -89,7 +89,7 @@ export const listingSchema = z.object({
 
     hasSets: z.boolean().default(false),
     sets: z.array(listingSetSchema).optional(),
-    setsHaveSamePrice: z.boolean().default(false),
+    setsHaveSamePrice: z.boolean().nullable().default(false),
     unifiedSetPrice: z.number().min(0).optional().nullable(),
     additionalSetPricingType: z.enum(["FIXED", "HOURLY"]).nullable().optional(),
     packages: z.array(packageSchema).optional(),

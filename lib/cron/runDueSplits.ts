@@ -24,6 +24,8 @@ export async function runDueSplits(limit = 200) {
             vendorId: true,
             payoutPercentToOwner: true,
             amount: true,
+            gstOwnedBy: true,
+            baseAmountBeforeGst: true,
             listing: {
                 select: {
                     title: true,
@@ -48,6 +50,16 @@ export async function runDueSplits(limit = 200) {
         const pct = Number.isFinite(t.payoutPercentToOwner)
             ? Math.max(0, Math.min(100, Number(t.payoutPercentToOwner)))
             : OWNER_PAYOUT_PERCENT;
+
+        // Log GST details for transparency
+        console.warn("[Payout] Processing split", {
+            transactionId: t.id,
+            totalAmount: t.amount,
+            gstOwnedBy: t.gstOwnedBy,
+            baseAmount: t.baseAmountBeforeGst,
+            payoutPercent: pct,
+            calculatedPayout: (Number(t.amount) * (pct / 100)).toFixed(2),
+        });
 
         try {
             await createOrderSplit({

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import React, { ChangeEvent, forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import React, { ChangeEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 export type TermsRef = { generateAndUploadPdf: (folderOverride?: string) => Promise<{ url: string; pdfUrl: string }> };
 
@@ -12,12 +12,17 @@ interface TermsProps {
     onChange: (checked: boolean) => void;
     onSignature: (meta: SignatureMeta) => void;
     onAgreementPdf: (meta: { url: string; pdfUrl: string }) => void;
+    value?: SignatureMeta | null;
 }
 
-const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, onSignature, onAgreementPdf }, ref) => {
+const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, onSignature, onAgreementPdf, value }, ref) => {
     const [agree, setAgree] = useState(false);
-    const [signature, setSignature] = useState<SignatureMeta | null>(null);
+    const [signature, setSignature] = useState<SignatureMeta | null>(value || null);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (value) setSignature(value);
+    }, [value]);
 
     const handleSignatureFile = async (file: File) => {
         const reader = new FileReader();
