@@ -43,6 +43,10 @@ interface NormalizedPackage {
     durationHours: number;
 }
 
+const isVideo = (url: string) => {
+    return /\.(mp4|webm|mov)$/i.test(url);
+  };  
+
 const dayOptions = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
@@ -239,11 +243,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     }, []);
 
 
-    const removeImage = (indexToRemove: number) => {
-        const images = Array.isArray(initialListing.imageSrc) ? initialListing.imageSrc : [];
-        const updatedImages = images.filter((_: unknown, index: number) => index !== indexToRemove);
-        handleInputChange("imageSrc", updatedImages);
-    };
+    const removeMedia = (indexToRemove: number) => {
+        const media = Array.isArray(initialListing.imageSrc)
+          ? initialListing.imageSrc
+          : [];
+        const updated = media.filter((_, index) => index !== indexToRemove);
+        handleInputChange("imageSrc", updated);
+      };
+      
 
     const startTime: TimeLabel = initialListing.operationalHours?.start ?? "";
     const endTime: TimeLabel = initialListing.operationalHours?.end ?? "";
@@ -360,47 +367,55 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
-                                Images (Max 8 Pictures)
+                                Images / Videos
                             </label>
+
                             <div className="flex gap-6 w-full flex-wrap justify-center sm:justify-normal mt-2 sm:mt-0">
                                 {(initialListing.imageSrc ?? []).map((item: string, index: number) => (
-                                    <div key={index} className="relative">
-                                        <div className="h-32 w-32 rounded-xl flex items-center">
-                                            <Image
-                                                src={item}
-                                                alt={`Image ${index}`}
-                                                width={128}
-                                                height={128}
-                                                className="h-full w-full object-cover rounded-xl"
-                                            />
-                                        </div>
-                                        <button
-                                            onClick={() => removeImage(index)}
-                                            className="absolute top-2 right-2 rounded-full"
-                                        >
-                                            <MdClose
-                                                size={20}
-                                                className="text-white bg-black rounded-full hover:bg-white hover:text-black border-solid border-2 border-black transition-colors ease-in-out duration-300"
-                                            />
-                                        </button>
-                                    </div>
-                                ))}
-                                {(!initialListing.imageSrc || initialListing.imageSrc.length < 8) && (
-                                    <ImageUpload
-                                        onChange={(value) => {
-                                            const currentImages = initialListing.imageSrc ?? [];
-                                            if (currentImages.length + value.length > 8) {
-                                                toast.error("Maximum 8 images allowed");
-                                                return;
-                                            }
-                                            handleInputChange("imageSrc", [...currentImages, ...value]);
-                                            toast.success("Image uploaded successfully");
-                                        }}
-                                        values={[]}
+                                <div
+                                    key={index}
+                                    className="relative h-32 w-32 rounded-xl overflow-hidden border"
+                                >
+                                    {isVideo(item) ? (
+                                    <video
+                                        src={item}
+                                        className="h-full w-full object-cover"
+                                        controls
                                     />
-                                )}
+                                    ) : (
+                                    <Image
+                                        src={item}
+                                        alt={`Media ${index}`}
+                                        width={128}
+                                        height={128}
+                                        className="h-full w-full object-cover"
+                                    />
+                                    )}
+
+                                    <button
+                                    type="button"
+                                    onClick={() => removeMedia(index)}
+                                    className="absolute top-2 right-2 rounded-full"
+                                    >
+                                    <MdClose
+                                        size={20}
+                                        className="text-white bg-black rounded-full hover:bg-white hover:text-black border-2 border-black transition"
+                                    />
+                                    </button>
+                                </div>
+                                ))}
+
+                                <ImageUpload
+                                onChange={(value) => {
+                                    const currentMedia = initialListing.imageSrc ?? [];
+                                    handleInputChange("imageSrc", [...currentMedia, ...value]);
+                                    toast.success("Media uploaded successfully");
+                                }}
+                                values={[]}
+                                />
                             </div>
-                        </div>
+                            </div>
+
 
 
                         <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
