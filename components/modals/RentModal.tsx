@@ -12,7 +12,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { FieldPath, FieldValues, Resolver, SubmitHandler, useForm } from "react-hook-form";
+import { FieldErrors, FieldPath, FieldValues, Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { IoMdClose } from "react-icons/io";
 import { toast } from "react-toastify";
 
@@ -1165,13 +1165,16 @@ export default function RentModal() {
           if (step === STEPS.TERMS) {
             handleSubmit(onSubmit, (errors) => {
 
-              const deepErrorMessages = (obj: any, path: string = ""): string[] => {
+              const deepErrorMessages = (obj: FieldErrors | Record<string, unknown>, path: string = ""): string[] => {
                 let messages: string[] = [];
                 for (const key in obj) {
-                  if (obj[key]?.message && typeof obj[key].message === "string") {
-                    messages.push(`${path}${key}: ${obj[key].message}`);
-                  } else if (typeof obj[key] === "object" && obj[key] !== null) {
-                    messages = [...messages, ...deepErrorMessages(obj[key], `${path}${key}.`)];
+                  const val = (obj as Record<string, unknown>)[key];
+                  if (!val) continue;
+
+                  if (typeof val === 'object' && 'message' in val && typeof (val as { message: unknown }).message === "string") {
+                    messages.push(`${path}${key}: ${(val as { message: string }).message}`);
+                  } else if (typeof val === "object" && val !== null) {
+                    messages = [...messages, ...deepErrorMessages(val as FieldErrors, `${path}${key}.`)];
                   }
                 }
                 return messages;
