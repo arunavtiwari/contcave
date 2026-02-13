@@ -138,7 +138,7 @@ function buildCSP(nonce: string): string {
             'https://vitals.vercel-insights.com'
         ],
 
-        'frame-src': ["'self'", 'https://www.google.com', 'https://sdk.cashfree.com'],
+        'frame-src': ["'self'", 'https://www.google.com', 'https://sdk.cashfree.com', 'https://sandbox.cashfree.com', 'https://cashfree.com'],
 
         'script-src': [
             "'self'",
