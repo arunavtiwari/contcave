@@ -47,17 +47,17 @@ export default function SetDetailModal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-opacity duration-300" onClick={onClose}>
             <div
-                className="relative w-full max-w-4xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
+                className="relative w-full max-w-4xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row h-[70vh] animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-20 p-2 bg-white/10 hover:bg-black/20 text-black md:text-white rounded-full transition backdrop-blur-md"
+                    className="absolute top-4 right-4 z-20 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full transition backdrop-blur-md shadow-lg"
                 >
-                    <IoClose size={24} />
+                    <IoClose size={18} />
                 </button>
 
-                
+
                 <div className="w-full md:w-3/5 bg-neutral-100 relative min-h-[300px] md:min-h-full group">
                     {set.images.length > 0 ? (
                         <>
@@ -103,7 +103,7 @@ export default function SetDetailModal({
                     )}
                 </div>
 
-                
+
                 <div className="w-full md:w-2/5 p-8 flex flex-col overflow-y-auto bg-white">
                     <div className="flex-1">
                         <div className="flex items-start justify-between gap-4 mb-4">
