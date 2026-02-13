@@ -22,15 +22,11 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
     const addonModal = useAddonModal();
 
     useEffect(() => {
-        setSelectedAddons(initialSelectedAddons);
+        const uniqueSelected = Array.from(new Map(initialSelectedAddons.map(item => [item.name, item])).values());
+        setSelectedAddons(uniqueSelected);
     }, [initialSelectedAddons]);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            onSelectedAddonsChange(selectedAddons);
-        }, 0);
-        return () => clearTimeout(timer);
-    }, [selectedAddons, onSelectedAddonsChange]);
+
 
     const handleCreateCustomAddon = useCallback(() => {
         addonModal.onOpen();
@@ -42,46 +38,50 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
         qty?: number | string,
         checked?: boolean
     ) => {
-        setSelectedAddons((prevSelected) => {
-            const selectedIndex = prevSelected.findIndex((a) => a.name === addonName);
-            const currentAddon =
-                selectedIndex !== -1
-                    ? prevSelected[selectedIndex]
-                    : addons.find((a) => a.name === addonName) || {
-                        name: addonName,
-                        price: 0,
-                        qty: 0,
-                        imageUrl: '',
-                    };
+        const selectedIndex = selectedAddons.findIndex((a) => a.name === addonName);
+        const currentAddon =
+            selectedIndex !== -1
+                ? selectedAddons[selectedIndex]
+                : addons.find((a) => a.name === addonName) || {
+                    name: addonName,
+                    price: 0,
+                    qty: 0,
+                    imageUrl: '',
+                };
 
-            const updatedAddon: Addon = {
-                ...currentAddon,
-                price: price === undefined || price === '' ? currentAddon.price : Number(price),
-                qty: qty === undefined || qty === '' ? currentAddon.qty : Number(qty),
-            };
+        const updatedAddon: Addon = {
+            ...currentAddon,
+            price: price === undefined || price === '' ? currentAddon.price : Number(price),
+            qty: qty === undefined || qty === '' ? currentAddon.qty : Number(qty),
+        };
 
-            let newSelected: Addon[];
-            if (checked) {
-                if (selectedIndex !== -1) {
-                    newSelected = [...prevSelected];
-                    newSelected[selectedIndex] = updatedAddon;
-                } else {
-                    newSelected = [...prevSelected, updatedAddon];
-                }
+        let newSelected: Addon[];
+        if (checked) {
+            if (selectedIndex !== -1) {
+                newSelected = [...selectedAddons];
+                newSelected[selectedIndex] = updatedAddon;
             } else {
-                newSelected = prevSelected.filter((a) => a.name !== addonName);
+                newSelected = [...selectedAddons, updatedAddon];
             }
-            return newSelected;
-        });
+        } else {
+            newSelected = selectedAddons.filter((a) => a.name !== addonName);
+        }
+
+        // 1. Update internal state
+        setSelectedAddons(newSelected);
+        // 2. Notify parent (now safe because it's after/outside functional update calculations)
+        onSelectedAddonsChange(newSelected);
     };
 
-    const availableAddons = addons.filter(
+    // Deduplicate addons based on name
+    const uniqueAddons = Array.from(new Map(addons.map(item => [item.name, item])).values());
+    const availableAddons = uniqueAddons.filter(
         (addon) => !selectedAddons.some((selected) => selected.name === addon.name)
     );
 
     return (
         <div className="space-y-8">
-            
+
             {selectedAddons.length > 0 && (
                 <div className='flex justify-start'>
                     <div>
@@ -121,7 +121,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
             )}
             {rentModal && selectedAddons.length > 0 && <hr className="my-4" />}
 
-            
+
             <div className='flex justify-start'>
                 {availableAddons.length > 0 && (
                     <div>
@@ -145,7 +145,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                                     />
                                 </div>
                             ))}
-                            
+
                             <div className="flex justify-center h-full">
                                 <ImageCheckbox
                                     imageUrl="https://cdn-icons-png.flaticon.com/512/992/992651.png"

@@ -1108,8 +1108,8 @@ export default function RentModal() {
         <div className="flex flex-col gap-4">
           <Heading title="Other Details" variant="h3" />
           <OtherListingDetails
-            onDetailsChange={handleDetailsChange}
-            initialDetails={listingDetails}
+            onChange={handleDetailsChange}
+            data={listingDetails}
           />
         </div>
       );

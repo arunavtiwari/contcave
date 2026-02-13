@@ -37,9 +37,11 @@ interface CalendarProps {
     operationalStart: string;
     operationalEnd: string;
     listingId: string;
+    googleCalendarConnected?: boolean;
+    onError?: () => void;
 }
 
-export default function Calendar({ operationalStart, operationalEnd, listingId }: CalendarProps) {
+export default function Calendar({ operationalStart, operationalEnd, listingId, googleCalendarConnected, onError }: CalendarProps) {
     const { data: session } = useSession();
     const [events, setEvents] = useState<Event[]>([]);
     const [isCalendarLoaded, setIsCalendarLoaded] = useState(false);
@@ -127,6 +129,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
     }, [operationalStart, operationalEnd]);
 
     const fetchEvents = useCallback(async () => {
+        if (!googleCalendarConnected) return;
         try {
             const res = await axios.get("/api/calendar/events", {
                 params: { listingId },
@@ -152,8 +155,12 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
             }
         } catch (error) {
             console.error('Error fetching events:', error);
+            if (axios.isAxiosError(error) && error.response?.status === 400) {
+                if (onError) onError();
+            }
+            // toast.error('Failed to load calendar events'); 
         }
-    }, [listingId, businessDays]);
+    }, [listingId, businessDays, googleCalendarConnected, onError]);
 
     useEffect(() => {
         if (session) {

@@ -1,8 +1,10 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useState } from "react";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/ui/Input";
@@ -10,8 +12,14 @@ import useAddonModal from "@/hook/useAddonModal";
 
 import Modal from "./Modal";
 
+const customAddonSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
+
+type CustomAddonFormValues = z.infer<typeof customAddonSchema>;
+
 type Props = {
-  save: (value: { imageUrl?: string, name: string }) => void;
+  save: (value: { imageUrl?: string; name: string }) => void;
 };
 
 function CustomAddonModal({ save }: Props) {
@@ -23,26 +31,29 @@ function CustomAddonModal({ save }: Props) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FieldValues>({
+    reset,
+  } = useForm<CustomAddonFormValues>({
+    resolver: zodResolver(customAddonSchema),
     defaultValues: {
-
-      name: ""
+      name: "",
     },
   });
 
-  const onSubmit: SubmitHandler<FieldValues> = (data) => {
-    addonModel.onClose();
+  const onSubmit: SubmitHandler<CustomAddonFormValues> = (data) => {
     save({ name: data.name, imageUrl: image[image.length - 1] });
+    addonModel.onClose();
+    reset();
     setImage([]);
   };
 
   return (
     <Modal
-
+      customWidth="w-full max-w-md"
+      customHeight="h-auto max-h-[600px]"
+      nestedModal={true}
       isOpen={addonModel.isOpen}
       title="Create Add-On"
       actionLabel="Create"
-
       onClose={addonModel.onClose}
       onSubmit={handleSubmit(onSubmit)}
       body={
@@ -52,9 +63,7 @@ function CustomAddonModal({ save }: Props) {
               id="name"
               label="Name of Add-on"
               placeholder="e.g. Smoke Machine"
-              register={register("name", {
-                required: "Name of Add-on required",
-              })}
+              register={register("name")}
               errors={errors}
               required
             />

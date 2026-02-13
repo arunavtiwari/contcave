@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Addon } from "@/types/addon";
 
@@ -59,29 +59,44 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
           className="w-6 h-6 accent-black bg-gray-100 border-black border-2 rounded-full focus:ring-transparent checked:bg-black checked:border-black"
         />)}
         {hideCheckbox && (
-          <Image
-            src={imageUrl}
-            alt={label || "image"}
-            width={80}
-            height={80}
-            className="rounded-md w-20 h-20 mt-6 mb-2 object-cover"
-            onClick={onClickChange}
-          />
+          (imageUrl && imageUrl.trim() !== '') ? (
+            <Image
+              src={imageUrl}
+              alt={label || "image"}
+              width={80}
+              height={80}
+              className="rounded-md w-20 h-20 mt-6 mb-2 object-cover"
+              onClick={onClickChange}
+            />
+          ) : (
+            <div
+              className="rounded-md w-20 h-20 mt-6 mb-2 bg-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-1"
+              onClick={onClickChange}
+            >
+              No Image
+            </div>
+          )
         )}
         {!hideCheckbox && (
-          <Image
-            src={imageUrl}
-            alt={label || "image"}
-            width={97}
-            height={97}
-            className="rounded-md mt-2 object-cover w-[97px] h-[97px]"
-          />
+          (imageUrl && imageUrl.trim() !== '') ? (
+            <Image
+              src={imageUrl}
+              alt={label || "image"}
+              width={97}
+              height={97}
+              className="rounded-md mt-2 object-cover w-[97px] h-[97px]"
+            />
+          ) : (
+            <div className="rounded-md mt-2 w-[97px] h-[97px] bg-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-1">
+              No Image
+            </div>
+          )
         )}
 
 
         <div className="w-full flex flex-col items-center gap-3">
           <span className="addon-name truncate mt-2">{label}</span>
-          
+
           {!hideInputFields && (
             <div className='flex items-center gap-2 w-full justify-between'>
               <label className="text-sm font-semibold shrink-0">Price</label>
@@ -99,7 +114,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
             </div>
           )}
 
-          
+
           {!hideInputFields && (
             <div className='flex items-center gap-2 w-full justify-between'>
               <label className="text-sm font-semibold shrink-0">Quantity</label>

@@ -105,6 +105,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
               onChange={(e) => updatePackage(idx, "durationHours", Number(e.target.value))}
               required
               errors={{}}
+              onWheel={(e) => (e.target as HTMLInputElement).blur()}
             />
             <p className="text-xs text-neutral-500 mt-1">Minimum duration is 1 hour</p>
           </div>
@@ -123,6 +124,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 onChange={(e) => updatePackage(idx, "originalPrice", Number(e.target.value))}
                 required
                 errors={{}}
+                onWheel={(e) => (e.target as HTMLInputElement).blur()}
               />
               <p className="text-xs text-neutral-500 mt-1">Price before discount</p>
             </div>
@@ -139,6 +141,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 onChange={(e) => updatePackage(idx, "offeredPrice", Number(e.target.value))}
                 required
                 errors={{}}
+                onWheel={(e) => (e.target as HTMLInputElement).blur()}
               />
               <p className="text-xs text-neutral-500 mt-1">Discounted price</p>
             </div>
@@ -227,6 +230,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                         onChange={(e) => updatePackage(idx, "requiredSetCount", Math.max(1, parseInt(e.target.value) || 1))}
                         required
                         errors={{}}
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
                       />
                       <p className="text-xs text-neutral-500">How many sets are included in this package price</p>
                     </div>

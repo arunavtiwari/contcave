@@ -19,7 +19,7 @@ type Props = {
   selfActionButton?: boolean;
   secondaryAction?: () => void;
   secondaryActionLabel?: string;
-
+  nestedModal?: boolean;
   isLoading?: boolean;
   disableOverlayClose?: boolean;
 
@@ -38,7 +38,7 @@ function Modal({
   customWidth,
   selfActionButton,
   secondaryActionLabel,
-
+  nestedModal,
   isLoading,
   bodyRef,
   customHeight,
@@ -99,8 +99,9 @@ function Modal({
   return (
     <div
       onClick={handleBackdropClick}
-      className={`fixed inset-0 z-999 flex items-center justify-center bg-black/60 px-4 transition-all duration-300 ${isOpen ? "opacity-100" : "opacity-0"
-        } ${isLoading ? "backdrop-blur-md" : "backdrop-blur-sm"}`}
+      className={`fixed inset-0 z-999 flex items-center justify-center px-4 transition-all duration-300 ${nestedModal ? "bg-black/30" : "bg-black/60"
+        } ${isOpen ? "opacity-100" : "opacity-0"} ${nestedModal ? "" : isLoading ? "backdrop-blur-md" : "backdrop-blur-sm"
+        }`}
     >
       <div
         ref={modalRef}

@@ -53,16 +53,9 @@ interface GoogleCalendarEvent {
 
 type AddonItem = { name?: string; price: number; qty: number };
 
-const SLOT_LABELS: string[] = [
-  "6:00 AM", "6:30 AM", "7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM",
-  "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-  "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
-  "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM",
-  "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM", "8:30 PM",
-  "9:00 PM", "9:30 PM", "10:00 PM"
-];
+import { TIME_SLOTS as SLOT_LABELS } from "@/constants/timeSlots";
 
-const EARLIEST_SLOT_HHMM: TimeHM = (toHHMM("6:00 AM") ?? "06:00") as TimeHM;
+const EARLIEST_SLOT_HHMM: TimeHM = (toHHMM(SLOT_LABELS[0]) ?? "06:00") as TimeHM;
 const LATEST_FAKE_CUTOFF: TimeHM = "23:59" as TimeHM;
 
 const toNum = (v: unknown, def = 0) => {

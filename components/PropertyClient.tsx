@@ -45,7 +45,7 @@ interface NormalizedPackage {
 
 const isVideo = (url: string) => {
     return /\.(mp4|webm|mov)$/i.test(url);
-  };  
+};
 
 const dayOptions = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
@@ -71,41 +71,7 @@ function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
 
 
 type TimeLabel = string;
-const TIME_SLOTS: TimeLabel[] = [
-    "6:00 AM",
-    "6:30 AM",
-    "7:00 AM",
-    "7:30 AM",
-    "8:00 AM",
-    "8:30 AM",
-    "9:00 AM",
-    "9:30 AM",
-    "10:00 AM",
-    "10:30 AM",
-    "11:00 AM",
-    "11:30 AM",
-    "12:00 PM",
-    "12:30 PM",
-    "1:00 PM",
-    "1:30 PM",
-    "2:00 PM",
-    "2:30 PM",
-    "3:00 PM",
-    "3:30 PM",
-    "4:00 PM",
-    "4:30 PM",
-    "5:00 PM",
-    "5:30 PM",
-    "6:00 PM",
-    "6:30 PM",
-    "7:00 PM",
-    "7:30 PM",
-    "8:00 PM",
-    "8:30 PM",
-    "9:00 PM",
-    "9:30 PM",
-    "10:00 PM",
-];
+import { TIME_SLOTS } from "@/constants/timeSlots";
 
 const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Props) => {
     const [selectedMenu, setSelectedMenu] = useState("Edit Property");
@@ -113,6 +79,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     const indianCities = getAll();
     const [amenities] = useState(predefinedAmenities);
     const [addons, setAddons] = useState<Addon[]>(predefinedAddons);
+    const [isCalendarConnected, setIsCalendarConnected] = useState(listing.user?.googleCalendarConnected);
 
     const [initialListing, setListing] = useState<FullListing>(() => ({
         ...listing,
@@ -245,12 +212,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
     const removeMedia = (indexToRemove: number) => {
         const media = Array.isArray(initialListing.imageSrc)
-          ? initialListing.imageSrc
-          : [];
+            ? initialListing.imageSrc
+            : [];
         const updated = media.filter((_, index) => index !== indexToRemove);
         handleInputChange("imageSrc", updated);
-      };
-      
+    };
+
 
     const startTime: TimeLabel = initialListing.operationalHours?.start ?? "";
     const endTime: TimeLabel = initialListing.operationalHours?.end ?? "";
@@ -372,49 +339,49 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                             <div className="flex gap-6 w-full flex-wrap justify-center sm:justify-normal mt-2 sm:mt-0">
                                 {(initialListing.imageSrc ?? []).map((item: string, index: number) => (
-                                <div
-                                    key={index}
-                                    className="relative h-32 w-32 rounded-xl overflow-hidden border"
-                                >
-                                    {isVideo(item) ? (
-                                    <video
-                                        src={item}
-                                        className="h-full w-full object-cover"
-                                        controls
-                                    />
-                                    ) : (
-                                    <Image
-                                        src={item}
-                                        alt={`Media ${index}`}
-                                        width={128}
-                                        height={128}
-                                        className="h-full w-full object-cover"
-                                    />
-                                    )}
-
-                                    <button
-                                    type="button"
-                                    onClick={() => removeMedia(index)}
-                                    className="absolute top-2 right-2 rounded-full"
+                                    <div
+                                        key={index}
+                                        className="relative h-32 w-32 rounded-xl overflow-hidden border"
                                     >
-                                    <MdClose
-                                        size={20}
-                                        className="text-white bg-black rounded-full hover:bg-white hover:text-black border-2 border-black transition"
-                                    />
-                                    </button>
-                                </div>
+                                        {isVideo(item) ? (
+                                            <video
+                                                src={item}
+                                                className="h-full w-full object-cover"
+                                                controls
+                                            />
+                                        ) : (
+                                            <Image
+                                                src={item}
+                                                alt={`Media ${index}`}
+                                                width={128}
+                                                height={128}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        )}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => removeMedia(index)}
+                                            className="absolute top-2 right-2 rounded-full"
+                                        >
+                                            <MdClose
+                                                size={20}
+                                                className="text-white bg-black rounded-full hover:bg-white hover:text-black border-2 border-black transition"
+                                            />
+                                        </button>
+                                    </div>
                                 ))}
 
                                 <ImageUpload
-                                onChange={(value) => {
-                                    const currentMedia = initialListing.imageSrc ?? [];
-                                    handleInputChange("imageSrc", [...currentMedia, ...value]);
-                                    toast.success("Media uploaded successfully");
-                                }}
-                                values={[]}
+                                    onChange={(value) => {
+                                        const currentMedia = initialListing.imageSrc ?? [];
+                                        handleInputChange("imageSrc", [...currentMedia, ...value]);
+                                        toast.success("Media uploaded successfully");
+                                    }}
+                                    values={[]}
                                 />
                             </div>
-                            </div>
+                        </div>
 
 
 
@@ -688,7 +655,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 title="Connect Your Google Calendar"
                                 subtitle="Sync offline and ContCave bookings to keep your availability up to date—automatically"
                             />
-                            {!listing.user?.googleCalendarConnected && (
+                            {!isCalendarConnected && (
                                 <button
                                     className="bg-black text-white px-15 h-fit py-2 rounded-full hover:opacity-90 flex gap-4 justify-center items-center"
                                     onClick={() => signIn("google-calendar")}
@@ -709,6 +676,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             operationalStart={initialListing.operationalDays?.start ?? ""}
                             operationalEnd={initialListing.operationalDays?.end ?? ""}
                             listingId={initialListing.id}
+                            googleCalendarConnected={isCalendarConnected}
+                            onError={() => setIsCalendarConnected(false)}
                         />
                     </div>
 

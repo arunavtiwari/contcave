@@ -75,6 +75,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         required={required}
                         {...register}
                         {...props}
+                        onWheel={(e) => {
+                            if (type === 'number') {
+                                (e.target as HTMLInputElement).blur();
+                            }
+                        }}
                     />
 
                     {customRightContent && (
