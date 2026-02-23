@@ -329,24 +329,33 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Add-ons:</span>
-                                <span className="text-gray-900">
-                                    {booking?.selectedAddons.map((item: Addon) => item.name).join(", ") || "None"}
-                                </span>
+                                    {<span className="text-gray-900">
+                                        {(booking?.selectedAddons ?? [])
+                                            .map((item: Addon) => item.name)
+                                            .join(", ") || "None"}
+                                        </span>}
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Add-ons Charge:</span>
                                 <span className="text-gray-900 font-semibold">
-                                    ₹ {booking?.selectedAddons.reduce((acc: number, value: Addon) => acc + (value.qty * value.price), 0)}
+                                    ₹ {(booking?.selectedAddons ?? []).reduce(
+                                    (acc: number, value: Addon) => acc + value.qty * value.price,
+                                    0
+                                    )}
                                 </span>
-                            </div>
+                                </div>
 
-                            <div className="flex justify-between">
+                                <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Property Charge:</span>
                                 <span className="text-gray-900 font-semibold">
-                                    ₹ {(booking?.totalPrice ?? 0) - (booking?.selectedAddons.reduce((acc: number, value: Addon) => acc + (value.qty * value.price), 0) ?? 0)}
+                                    ₹ {(booking?.totalPrice ?? 0) -
+                                    (booking?.selectedAddons ?? []).reduce(
+                                        (acc: number, value: Addon) => acc + value.qty * value.price,
+                                        0
+                                    )}
                                 </span>
-                            </div>
+                                </div>
 
                             {booking?.pricingSnapshot?.packageTitle && (
                                 <div className="flex justify-between">
