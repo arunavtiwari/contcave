@@ -33,6 +33,7 @@ interface Props {
   value?: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 /* ---------------- LOAD INITIAL HTML ---------------- */
@@ -71,13 +72,16 @@ export default function RichTextEditor({
   value,
   onChange,
   placeholder = "Write something amazing about your space…",
+  disabled = false,
 }: Props) {
   return (
     <LexicalComposer initialConfig={editorConfig}>
       <div className="relative border rounded-xl bg-white">
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="min-h-[160px] max-h-[400px] overflow-y-auto p-4 outline-none text-base" />
+            <ContentEditable className={`min-h-[160px] p-4 outline-none text-base ${
+              disabled ? "pointer-events-none opacity-60" : ""
+            }`} />
           }
           placeholder={
             <div className="pointer-events-none absolute top-4 left-4 text-neutral-400 text-sm">
