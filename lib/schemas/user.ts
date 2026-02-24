@@ -12,6 +12,7 @@ export const userUpdateSchema = z.object({
         .optional(),
     title: z.string().max(100, "Title is too long (max 100 characters)").optional(),
     profileImage: z.string().url("Invalid URL").max(500, "Profile image URL is too long").nullable().optional(),
+    phone: z.string().regex(/^\d{10}$/, "Enter a valid 10-digit mobile number").optional(),
 });
 
 export const phoneUpdateSchema = z.object({
