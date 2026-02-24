@@ -3,9 +3,9 @@
 import { useEffect, useRef } from "react";
 import {
   $getRoot,
-  Editor,
+  $createParagraphNode,
   EditorState,
-  $createParagraphNode
+  type LexicalEditor,
 } from "lexical";
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 
@@ -54,10 +54,11 @@ function LoadInitialValue({ value }: { value?: string }) {
       const dom = parser.parseFromString(value, "text/html");
       const nodes = $generateNodesFromDOM(editor, dom);
 
-      const paragraph = $createParagraphNode();
-      paragraph.append(...nodes);
-
-      root.append(paragraph);
+      if (nodes.length === 0) {
+        root.append($createParagraphNode());
+      } else {
+        root.append(...nodes);
+      }
     });
   }, [value, editor]);
 
@@ -74,10 +75,9 @@ export default function RichTextEditor({
   return (
     <LexicalComposer initialConfig={editorConfig}>
       <div className="relative border rounded-xl bg-white">
-
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="min-h-[160px] p-4 outline-none text-base" />
+            <ContentEditable className="min-h-[160px] max-h-[400px] overflow-y-auto p-4 outline-none text-base" />
           }
           placeholder={
             <div className="pointer-events-none absolute top-4 left-4 text-neutral-400 text-sm">
@@ -90,7 +90,7 @@ export default function RichTextEditor({
         <HistoryPlugin />
 
         <OnChangePlugin
-          onChange={(editorState: EditorState, editor: Editor) => {
+          onChange={(editorState: EditorState, editor: LexicalEditor) => {
             editorState.read(() => {
               const html = $generateHtmlFromNodes(editor);
               onChange(html);
