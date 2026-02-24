@@ -123,8 +123,23 @@ function ListingInfo({
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
   const limit = 250;
-  const shouldTruncate = description.length > limit;
-  const displayedText = isExpanded || !shouldTruncate ? description : description.slice(0, limit) + "...";
+
+  const plainText = useMemo(() => {
+    if (typeof window === "undefined") return description;
+    const temp = document.createElement("div");
+    temp.innerHTML = description;
+    return temp.textContent || temp.innerText || "";
+  }, [description]);
+  
+  const shouldTruncate = useMemo(() => {
+    if (typeof window === "undefined") return false;
+  
+    const temp = document.createElement("div");
+    temp.innerHTML = description || "";
+    const text = temp.textContent || temp.innerText || "";
+  
+    return text.length > 250;
+  }, [description]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -288,9 +303,30 @@ function ListingInfo({
       )}
 
       <div className="text-base font-normal">
-        <p>{displayedText}</p>
+        <div
+          className={`prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1
+          prose-strong:text-black prose-headings:text-black
+          transition-all duration-300 ${
+            !isExpanded ? "max-h-[160px] overflow-hidden relative" : ""
+          }`}
+        >
+          <div
+            dangerouslySetInnerHTML={{
+              __html: description || "",
+            }}
+          />
+
+          {!isExpanded && shouldTruncate && (
+            <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-gradient-to-t from-white to-transparent" />
+          )}
+        </div>
+
         {shouldTruncate && (
-          <button onClick={toggleExpand} className="underline font-medium text-sm mt-1 cursor-pointer">
+          <button
+            onClick={toggleExpand}
+            className="underline font-medium text-sm mt-1 cursor-pointer"
+            type="button"
+          >
             {isExpanded ? "See less" : "See more"}
           </button>
         )}

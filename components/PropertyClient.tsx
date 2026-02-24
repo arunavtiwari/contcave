@@ -72,6 +72,7 @@ function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
 
 type TimeLabel = string;
 import { TIME_SLOTS } from "@/constants/timeSlots";
+import RichTextEditor from "./RichText/RichTextEditor";
 
 const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Props) => {
     const [selectedMenu, setSelectedMenu] = useState("Edit Property");
@@ -268,16 +269,17 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         </div>
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Description</label>
-                            <textarea
-                                id="listingDescription"
-                                className="border rounded-xl pl-3 py-2 shadow-xs w-full resize-none"
-                                placeholder="Enter the description"
+                        <div className="flex sm:items-start gap-1 sm:gap-10 flex-col sm:flex-row">
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
+                                Description
+                            </label>
+
+                            <div className="w-full">
+                                <RichTextEditor
                                 value={initialListing.description ?? ""}
-                                onChange={(e) => handleInputChange("description", e.target.value)}
-                                rows={5}
-                            />
+                                onChange={(html) => handleInputChange("description", html)}
+                                />
+                            </div>
                         </div>
 
 

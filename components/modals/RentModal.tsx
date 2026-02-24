@@ -15,6 +15,7 @@ import React, {
 import { FieldErrors, FieldPath, FieldValues, Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { IoMdClose } from "react-icons/io";
 import { toast } from "react-toastify";
+import LexicalEditor from "@/components/RichText/RichTextEditor"
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
@@ -87,7 +88,7 @@ export default function RentModal() {
   const [unifiedSetPrice, setUnifiedSetPrice] = useState<number | null>(null);
 
   const bodyRef = useRef<HTMLDivElement>(null);
-
+  
 
   useEffect(() => {
     if (bodyRef.current) {
@@ -113,11 +114,6 @@ export default function RentModal() {
       }
     }
   }, [setsHaveSamePrice, unifiedSetPrice, sets]);
-
-
-
-
-
 
 
 
@@ -161,6 +157,8 @@ export default function RentModal() {
       terms: false,
     },
   });
+  const descriptionValue = watch("description");
+  
 
   useEffect(() => {
     register("terms");
@@ -294,7 +292,6 @@ export default function RentModal() {
     if (step === STEPS.DESCRIPTION) {
       const isValid = await trigger(["title", "description", "price"]);
       if (!isValid) return;
-
       const currentPrice = Number(watch("price"));
       if (currentPrice <= 0) {
         toast.error("Price must be greater than 0");
@@ -920,15 +917,30 @@ export default function RentModal() {
             />
           </div>
           <div className="w-full">
-            <Input
-              id="description"
-              label="Description"
-              placeholder="Tell creators what makes your space special..."
-              disabled={isLoading}
-              register={register("description")}
-              errors={errors}
-              required
-            />
+          <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">
+                Description
+                <span className="text-rose-500 ml-1">*</span>
+              </label>
+
+              <LexicalEditor
+                value={descriptionValue}
+                onChange={(html) =>
+                  setValue("description", html, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+                placeholder="Tell creators what makes your space special..."
+                disabled={isLoading}
+              />
+
+              {errors.description && (
+                <span className="text-sm text-rose-500">
+                  {errors.description.message as string}
+                </span>
+              )}
+            </div>
           </div>
           <div className="w-full">
             <Input

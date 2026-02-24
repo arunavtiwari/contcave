@@ -1,6 +1,4 @@
 import { z } from "zod";
-
-
 export const imageSchema = z.string().url("Invalid image URL").max(500, "URL too long");
 
 export const locationSchema = z.object({
@@ -66,8 +64,8 @@ export const listingSchema = z.object({
     imageSrc: z.array(imageSchema).min(1, "At least one image is required").max(20),
 
 
-    title: z.string().min(5, "Title must be at least 5 chars").max(200),
-    description: z.string().min(50, "Description must be at least 50 chars").max(5000),
+    title: z.string().min(5, "Title must be at least 5 characters").max(200),
+    description: z.string().min(50, "Description must be at least 50 characters").max(5000),
 
 
     price: z.coerce.number().min(1, "Price must be at least 1").max(10000000),
