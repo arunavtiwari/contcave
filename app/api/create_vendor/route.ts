@@ -78,12 +78,18 @@ export async function POST(req: NextRequest) {
       const resp = await axios.post(
         url,
         {
-          ...body,
           vendor_id: vendor_id.trim(),
-          display_name: display_name.trim(),
-          account_holder: account_holder.trim(),
-          account_number: cleanedAccountNumber,
-          ifsc: upperIfsc,
+          name: display_name.trim(),
+          status: 'ACTIVE',
+          email: body.email,
+          phone: body.phone,
+          bank:{
+          account_holder: String(account_holder.trim()),
+          account_number: String(cleanedAccountNumber),
+          ifsc: upperIfsc},
+          verify_account: true,
+          dashboard_access: false,
+          kyc_details: body.kyc_details
         },
         {
           headers: {

@@ -97,7 +97,7 @@ const VerificationModal: React.FC<Props> = ({
       accountNumber: "",
       bankName: "",
       ifscCode: "",
-      gstNumber: "",
+      gstin: "",
     },
   });
 
@@ -128,7 +128,7 @@ const VerificationModal: React.FC<Props> = ({
         accountNumber: "",
         ifscCode: "",
         bankName: "",
-        gstNumber: "",
+        gstin: "",
       });
       setCustomErrors({});
     }
@@ -280,28 +280,22 @@ const VerificationModal: React.FC<Props> = ({
   };
 
 
-
-
   const onBankSubmit = async (data: BankSchema) => {
     setLoading(true);
     try {
       const vendorPayload = {
         vendor_id: generateVendorId(),
-        status: "ACTIVE",
-        name: userState?.name,
+        display_name: userState?.name,
         email: userState?.email,
-        phone: userState?.phone,
-        verify_account: true,
-        dashboard_access: false,
-        bank: {
-          account_number: data.accountNumber,
-          account_holder: data.accountHolderName,
-          ifsc: data.ifscCode,
-        },
+        phone: phoneState.phoneValue,
+        account_number: data.accountNumber,
+        account_holder: data.accountHolderName,
+        ifsc: data.ifscCode,
+        
         kyc_details: {
           account_type: "BUSINESS",
           business_type: "B2B",
-          ...(data.gstNumber && { gst: data.gstNumber }),
+          ...(data.gstin && { gst: data.gstin }),
         },
       };
 
@@ -547,10 +541,10 @@ const VerificationModal: React.FC<Props> = ({
                 required
               />
               <Input
-                id="gstNumber"
+                id="gstin"
                 label="GST Number"
                 placeholder="11XXXXXXXXXX1Z0"
-                register={register("gstNumber")}
+                register={register("gstin")}
                 errors={bankErrors}
                 
               />

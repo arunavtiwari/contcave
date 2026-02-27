@@ -50,16 +50,21 @@ function LoadInitialValue({ value }: { value?: string }) {
     editor.update(() => {
       const root = $getRoot();
       root.clear();
-
+    
       const parser = new DOMParser();
       const dom = parser.parseFromString(value, "text/html");
+    
       const nodes = $generateNodesFromDOM(editor, dom);
-
-      if (nodes.length === 0) {
-        root.append($createParagraphNode());
-      } else {
-        root.append(...nodes);
-      }
+    
+      nodes.forEach((node) => {
+        if (node.getType() === "paragraph") {
+          root.append(node);
+        } else {
+          const paragraph = $createParagraphNode();
+          paragraph.append(node);
+          root.append(paragraph);
+        }
+      });
     });
   }, [value, editor]);
 
