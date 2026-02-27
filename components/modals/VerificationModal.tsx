@@ -97,7 +97,7 @@ const VerificationModal: React.FC<Props> = ({
       accountNumber: "",
       bankName: "",
       ifscCode: "",
-      gstin: "",
+      gstNumber: "",
     },
   });
 
@@ -128,7 +128,7 @@ const VerificationModal: React.FC<Props> = ({
         accountNumber: "",
         ifscCode: "",
         bankName: "",
-        gstin: "",
+        gstNumber: "",
       });
       setCustomErrors({});
     }
@@ -291,11 +291,11 @@ const VerificationModal: React.FC<Props> = ({
         account_number: data.accountNumber,
         account_holder: data.accountHolderName,
         ifsc: data.ifscCode,
-        
+
         kyc_details: {
           account_type: "BUSINESS",
           business_type: "B2B",
-          ...(data.gstin && { gst: data.gstin }),
+          ...(data.gstNumber && { gst: data.gstNumber }),
         },
       };
 
@@ -541,12 +541,12 @@ const VerificationModal: React.FC<Props> = ({
                 required
               />
               <Input
-                id="gstin"
+                id="gstNumber"
                 label="GST Number"
                 placeholder="11XXXXXXXXXX1Z0"
-                register={register("gstin")}
+                register={register("gstNumber")}
                 errors={bankErrors}
-                
+
               />
             </div>
           )}

@@ -104,7 +104,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                 title: user.title || "",
                 email: user.email || "",
                 phone: user.phone || "",
-                profileImage: user.profileImage || user.image || null,
+                profileImage: user.profileImage || user.image || "",
                 is_owner: user.is_owner,
                 is_verified: user.is_verified,
                 joinYear: user.createdAt
@@ -153,7 +153,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
 
     return (
         <div className="flex flex-col w-full gap-5">
-            
+
             <div className="flex items-center justify-between">
                 <Heading title="My Profile" subtitle="Manage your personal information and preferences" />
                 {isVerified && (
@@ -165,11 +165,11 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
-                
+
                 <div className="lg:col-span-2 space-y-8">
-                    
+
                     <div className="bg-white rounded-2xl shadow-xs border border-gray-200 overflow-hidden">
-                        
+
                         <div
                             className="relative h-32 bg-center bg-no-repeat bg-cover"
                             style={{ backgroundImage: "url('/images/banner.svg')" }}
@@ -205,7 +205,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                         </div>
 
 
-                        
+
                         <div className="pt-20 py-6 px-8">
                             <div className="flex justify-between mb-6 gap-8 items-center">
                                 <div className="flex-1">
@@ -243,7 +243,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                 </button>
                             </div>
 
-                            
+
                             <div className="mb-2">
                                 {editMode ? (
                                     <Textarea
@@ -263,12 +263,12 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                         </div>
                     </div>
 
-                    
+
                     <div className="bg-white rounded-2xl shadow-xs border border-gray-200 p-8">
                         <h3 className="text-xl font-semibold text-gray-900 mb-6">Personal Details</h3>
 
                         <div className="space-y-6">
-                            
+
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <FaUser className="w-5 h-5 text-gray-400" />
@@ -294,7 +294,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                 )}
                             </div>
 
-                            
+
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <FaEnvelope className="w-5 h-5 text-gray-400" />
@@ -303,7 +303,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                 <span className="text-gray-900 font-medium">{userData.email}</span>
                             </div>
 
-                            
+
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <FaPhone className="w-5 h-5 text-gray-400" />
@@ -337,7 +337,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                             </div>
 
 
-                            
+
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <FaMapMarkerAlt className="w-5 h-5 text-gray-400" />
@@ -357,7 +357,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                 )}
                             </div>
 
-                            
+
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
                                     <FaGlobe className="w-5 h-5 text-gray-400" />
@@ -400,7 +400,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                     </div>
                 </div>
 
-                
+
                 <div className="space-y-6">
                     {!userData.is_owner ? (
 
@@ -518,7 +518,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
             />
 
 
-            
+
             {showLoadingOverlay && (
                 <div className="fixed inset-0 z-1000 bg-black/60 backdrop-blur-md flex items-center justify-center">
                     <div className="flex flex-col items-center justify-center gap-4">

@@ -72,6 +72,7 @@ function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
 
 type TimeLabel = string;
 import { TIME_SLOTS } from "@/constants/timeSlots";
+
 import RichTextEditor from "./RichText/RichTextEditor";
 
 const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Props) => {

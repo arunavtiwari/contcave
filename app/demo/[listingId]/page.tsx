@@ -122,7 +122,7 @@ const DemoListingPage = async ({ params }: { params: Promise<RouteParams> }) => 
       <>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd).replace(/</g, '\\u003c') }}
         />
         <div className="relative">
           <div className="absolute top-3 right-3 left-3 sm:left-auto sm:top-4 sm:right-4 

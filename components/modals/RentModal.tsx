@@ -15,7 +15,6 @@ import React, {
 import { FieldErrors, FieldPath, FieldValues, Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { IoMdClose } from "react-icons/io";
 import { toast } from "react-toastify";
-import LexicalEditor from "@/components/RichText/RichTextEditor"
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
@@ -31,6 +30,7 @@ import SetsEditor, { SetEditorItem } from "@/components/inputs/SetsEditor";
 import SpaceVerification, { VerificationDocument, VerificationPayload } from "@/components/inputs/SpaceVerification";
 import TermsAndConditionsModal, { SignatureMeta, TermsRef } from "@/components/inputs/TermsAndConditions";
 import { categories } from "@/components/navbar/Categories";
+import LexicalEditor from "@/components/RichText/RichTextEditor"
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useRentModal from "@/hook/useRentModal";

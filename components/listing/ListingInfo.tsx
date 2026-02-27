@@ -2,6 +2,7 @@
 
 import { Amenities } from "@prisma/client";
 import axios from "axios";
+import DOMPurify from "isomorphic-dompurify";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
@@ -122,22 +123,14 @@ function ListingInfo({
 
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
-  const limit = 250;
 
-  const plainText = useMemo(() => {
-    if (typeof window === "undefined") return description;
-    const temp = document.createElement("div");
-    temp.innerHTML = description;
-    return temp.textContent || temp.innerText || "";
-  }, [description]);
-  
   const shouldTruncate = useMemo(() => {
     if (typeof window === "undefined") return false;
-  
+
     const temp = document.createElement("div");
     temp.innerHTML = description || "";
     const text = temp.textContent || temp.innerText || "";
-  
+
     return text.length > 250;
   }, [description]);
 
@@ -274,7 +267,7 @@ function ListingInfo({
 
       <hr />
 
-      
+
       {fullListing.hasSets && fullListing.sets && fullListing.sets.length > 0 && (
         <>
           <SetSelector
@@ -306,13 +299,12 @@ function ListingInfo({
         <div
           className={`prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1
           prose-strong:text-black prose-headings:text-black
-          transition-all duration-300 ${
-            !isExpanded ? "max-h-[160px] overflow-hidden relative" : ""
-          }`}
+          transition-all duration-300 ${!isExpanded ? "max-h-[160px] overflow-hidden relative" : ""
+            }`}
         >
           <div
             dangerouslySetInnerHTML={{
-              __html: description || "",
+              __html: DOMPurify.sanitize(description || ""),
             }}
           />
 

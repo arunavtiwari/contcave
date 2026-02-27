@@ -115,7 +115,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
     <div className="max-w-3xl mx-auto px-4 py-8 select-text!">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, '\\u003c') }}
       />
 
       <h1 className="text-4xl font-extrabold mb-4">{post.title}</h1>
