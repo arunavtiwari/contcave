@@ -16,9 +16,11 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
+    console.log("BODY", body);
 
 
     const validation = userUpdateSchema.safeParse(body);
+    console.log(validation.error?.issues);
 
     if (!validation.success) {
       const firstError = validation.error.issues[0];

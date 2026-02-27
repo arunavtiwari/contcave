@@ -104,7 +104,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                 title: user.title || "",
                 email: user.email || "",
                 phone: user.phone || "",
-                profileImage: user.profileImage || user.image || "/assets/default-profile.svg",
+                profileImage: user.profileImage || user.image || null,
                 is_owner: user.is_owner,
                 is_verified: user.is_verified,
                 joinYear: user.createdAt
@@ -182,12 +182,12 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                                 onChange={(value) =>
                                                     setUserData({ ...userData, profileImage: value[value.length - 1] })
                                                 }
-                                                values={[userData.profileImage]}
+                                                values={userData.profileImage ? [userData.profileImage] : []}
                                                 circle={true}
                                             />
                                         ) : (
                                             <Image
-                                                src={userData.profileImage}
+                                                src={userData.profileImage || "/assets/default-profile.svg"}
                                                 width={128}
                                                 height={128}
                                                 alt="Profile"
