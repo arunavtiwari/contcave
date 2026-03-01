@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import { z } from "zod";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
@@ -19,7 +20,7 @@ const customAddonSchema = z.object({
 type CustomAddonFormValues = z.infer<typeof customAddonSchema>;
 
 type Props = {
-  save: (value: { imageUrl?: string; name: string }) => void;
+  save: (value: { imageUrl: string; name: string }) => void;
 };
 
 function CustomAddonModal({ save }: Props) {
@@ -40,6 +41,10 @@ function CustomAddonModal({ save }: Props) {
   });
 
   const onSubmit: SubmitHandler<CustomAddonFormValues> = (data) => {
+    if (image.length === 0) {
+      toast.error("Please upload an image for the add-on");
+      return;
+    }
     save({ name: data.name, imageUrl: image[image.length - 1] });
     addonModel.onClose();
     reset();

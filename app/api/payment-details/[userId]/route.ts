@@ -72,9 +72,22 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             }
         }
 
+        let ifscCode = paymentDetails.ifscCode;
+        if (paymentDetails.ifscCode && paymentDetails.ifscCodeIV) {
+            try {
+                ifscCode = encryptionService.decrypt({
+                    encrypted: paymentDetails.ifscCode,
+                    iv: paymentDetails.ifscCodeIV
+                });
+            } catch (error) {
+                console.error('Failed to decrypt IFSC Code:', error);
+            }
+        }
+
         const sanitizedData = sanitizePaymentDetails({
             ...paymentDetails,
             accountNumber,
+            ifscCode,
             gstin: gstin || undefined
         });
 

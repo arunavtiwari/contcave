@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
 import { IoMdCloseCircle } from "react-icons/io";
@@ -16,15 +16,6 @@ interface PricingSnapshot {
     packageTitle?: string;
     includedSetName?: string;
     additionalSets?: Array<{ id: string; name: string }>;
-}
-
-interface BookingDetails {
-    startDate: string;
-    startTime: string;
-    endTime: string;
-    totalPrice: number;
-    selectedAddons: Addon[];
-    pricingSnapshot?: PricingSnapshot;
 }
 
 interface BookingCardProps {
@@ -53,22 +44,21 @@ const BookingCard: React.FC<BookingCardProps> = ({
     disabled,
     actionId,
 }) => {
-    const [booking, setBooking] = useState<BookingDetails | null>(null);
     const [showReceipt, setShowReceipt] = useState(false);
 
-    useEffect(() => {
-        const fetchReservation = async () => {
-            const reservation_data = await fetch(`/api/reservations/${reservation?.id}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-            });
-            setBooking(await reservation_data.json());
-        };
+    const addons = useMemo(() =>
+        Array.isArray(reservation?.selectedAddons)
+            ? (reservation.selectedAddons as unknown as Addon[])
+            : [],
+        [reservation?.selectedAddons]
+    );
 
-        if (reservation?.id) {
-            fetchReservation();
-        }
-    }, [reservation?.id]);
+    const snapshot = useMemo(() =>
+        reservation?.pricingSnapshot
+            ? (reservation.pricingSnapshot as unknown as PricingSnapshot)
+            : undefined,
+        [reservation?.pricingSnapshot]
+    );
 
     const handleCancel = useCallback(
         (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -131,14 +121,14 @@ const BookingCard: React.FC<BookingCardProps> = ({
             >
                 <div className="flex flex-col gap-2 w-full">
                     <div className="aspect-square w-full relative overflow-hidden rounded-xl">
-                        
+
                         <Image
                             fill
                             className="object-cover h-full w-full"
                             src={data.imageSrc?.[0] ?? ""}
                             alt="listing"
                         />
-                        
+
                         <div
                             className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-white text-sm`}
                             style={{ backgroundColor: getBannerColor() }}
@@ -147,7 +137,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         </div>
                     </div>
 
-                    
+
                     <div className="font-semibold text-lg">{data.title}</div>
                     {!reservation?.isApproved && onApprove && (
                         <div className="flex items-stretch">
@@ -245,8 +235,10 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                     <p>
                                         Unfortunately, your booking request for {reservation?.listing?.title} on
                                         {" "}
-                                        {booking?.startDate ? new Date(booking.startDate).toLocaleDateString() : ""}
-                                        {booking?.startTime ? `, ${booking.startTime}` : ""}
+                                        {reservation?.startDate
+                                            ? new Date(reservation.startDate).toLocaleDateString()
+                                            : "—"}
+                                        {reservation?.startTime ? `, ${reservation.startTime}` : ""}
                                         {" "}was rejected by the host.
                                     </p>
                                 )}
@@ -287,14 +279,16 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Date of Booking:</span>
                                 <span className="text-gray-900">
-                                    {booking?.startDate ? new Date(booking.startDate).toLocaleDateString() : ""}
+                                    {reservation?.startDate
+                                        ? new Date(reservation.startDate).toLocaleDateString()
+                                        : "—"}
                                 </span>
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Time:</span>
                                 <span className="text-gray-900">
-                                    {(booking?.startTime || reservation?.startTime) ?? ""} – {(booking?.endTime || reservation?.endTime) ?? ""}
+                                    {reservation?.startTime ?? ""} – {reservation?.endTime ?? ""}
                                 </span>
                             </div>
 
@@ -313,8 +307,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                             if (ampm === "AM" && h === 12) h = 0;
                                             return h * 60 + min;
                                         };
-                                        const startStr = (booking?.startTime || reservation?.startTime) as string | undefined;
-                                        const endStr = (booking?.endTime || reservation?.endTime) as string | undefined;
+                                        const startStr = reservation?.startTime as string | undefined;
+                                        const endStr = reservation?.endTime as string | undefined;
                                         const startMin = parse12h(startStr);
                                         const endMin = parse12h(endStr);
                                         if (startMin == null || endMin == null) return "-";
@@ -329,51 +323,51 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Add-ons:</span>
-                                    {<span className="text-gray-900">
-                                        {(booking?.selectedAddons ?? [])
-                                            .map((item: Addon) => item.name)
-                                            .join(", ") || "None"}
-                                        </span>}
+                                {<span className="text-gray-900">
+                                    {addons
+                                        .map((item: Addon) => item.name)
+                                        .join(", ") || "None"}
+                                </span>}
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Add-ons Charge:</span>
                                 <span className="text-gray-900 font-semibold">
-                                    ₹ {(booking?.selectedAddons ?? []).reduce(
-                                    (acc: number, value: Addon) => acc + value.qty * value.price,
-                                    0
-                                    )}
-                                </span>
-                                </div>
-
-                                <div className="flex justify-between">
-                                <span className="text-gray-700 font-medium">Property Charge:</span>
-                                <span className="text-gray-900 font-semibold">
-                                    ₹ {(booking?.totalPrice ?? 0) -
-                                    (booking?.selectedAddons ?? []).reduce(
+                                    ₹ {addons.reduce(
                                         (acc: number, value: Addon) => acc + value.qty * value.price,
                                         0
                                     )}
                                 </span>
-                                </div>
+                            </div>
 
-                            {booking?.pricingSnapshot?.packageTitle && (
+                            <div className="flex justify-between">
+                                <span className="text-gray-700 font-medium">Property Charge:</span>
+                                <span className="text-gray-900 font-semibold">
+                                    ₹ {(reservation?.totalPrice ?? 0) -
+                                        addons.reduce(
+                                            (acc: number, value: Addon) => acc + value.qty * value.price,
+                                            0
+                                        )}
+                                </span>
+                            </div>
+
+                            {snapshot?.packageTitle && (
                                 <div className="flex justify-between">
                                     <span className="text-gray-700 font-medium">Package:</span>
-                                    <span className="text-gray-900">{booking.pricingSnapshot.packageTitle}</span>
+                                    <span className="text-gray-900">{snapshot.packageTitle}</span>
                                 </div>
                             )}
 
-                            {(booking?.pricingSnapshot?.includedSetName || (booking?.pricingSnapshot?.additionalSets && booking.pricingSnapshot.additionalSets.length > 0)) && (
+                            {(snapshot?.includedSetName || (snapshot?.additionalSets && snapshot.additionalSets.length > 0)) && (
                                 <div className="flex flex-col gap-1 pt-1">
                                     <span className="text-gray-700 font-medium">Booked Sets:</span>
                                     <div className="flex flex-wrap gap-2">
-                                        {booking.pricingSnapshot.includedSetName && (
+                                        {snapshot.includedSetName && (
                                             <span className="px-2 py-0.5 bg-neutral-100 text-neutral-700 text-xs rounded-md border border-neutral-200">
-                                                {booking.pricingSnapshot.includedSetName}
+                                                {snapshot.includedSetName}
                                             </span>
                                         )}
-                                        {booking.pricingSnapshot.additionalSets?.map((s) => (
+                                        {snapshot.additionalSets?.map((s) => (
                                             <span key={s.id} className="px-2 py-0.5 bg-neutral-100 text-neutral-700 text-xs rounded-md border border-neutral-200">
                                                 {s.name}
                                             </span>

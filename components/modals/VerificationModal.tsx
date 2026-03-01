@@ -285,10 +285,10 @@ const VerificationModal: React.FC<Props> = ({
     try {
       const vendorPayload = {
         vendor_id: generateVendorId(),
-        display_name: userState?.name,
+        display_name: userState?.name || data.accountHolderName,
         email: userState?.email,
-        phone: phoneState.phoneValue,
-        account_number: data.accountNumber,
+        phone: String(phoneState.phoneValue),
+        account_number: String(data.accountNumber),
         account_holder: data.accountHolderName,
         ifsc: data.ifscCode,
 
@@ -308,6 +308,7 @@ const VerificationModal: React.FC<Props> = ({
         accountNumber: data.accountNumber,
         ifscCode: data.ifscCode,
         bankName: data.bankName,
+        gstin: data.gstNumber || undefined,
       });
 
       setUserState(updated.data);

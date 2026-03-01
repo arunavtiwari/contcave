@@ -1,4 +1,4 @@
-import { PaymentDetails,PrismaClient } from '@prisma/client';
+import { PaymentDetails, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -44,18 +44,30 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
             where: { userId: data.userId },
         });
 
-        const normalizedGstin = data.gstin ? data.gstin.toUpperCase() : null;
+        interface CommonPaymentData {
+            accountHolderName: string;
+            bankName: string;
+            ifscCode: string;
+            companyName: string | null;
+            ifscCodeIV: string | null;
+            updatedAt: Date;
+            gstin?: string | null;
+            gstinIV?: string | null;
+        }
 
-        const commonData = {
+        const commonData: CommonPaymentData = {
             accountHolderName: data.accountHolderName,
             bankName: data.bankName,
             ifscCode: data.ifscCode,
             companyName: data.companyName ?? null,
-            gstin: normalizedGstin,
-            gstinIV: data.gstinIV ?? null,
             ifscCodeIV: data.ifscCodeIV ?? null,
             updatedAt: new Date(),
         };
+
+        if (data.gstin !== undefined) {
+            commonData.gstin = data.gstin ? data.gstin.toUpperCase() : null;
+            commonData.gstinIV = data.gstinIV ?? null;
+        }
 
         if (existing) {
             return await prisma.paymentDetails.update({
@@ -141,16 +153,19 @@ export async function upsertPaymentDetailsSafe(data: PaymentDetailsData): Promis
                 encryptionVersion?: string | null;
             }
 
-            const updateData: PaymentDetailsUpdate = {
+            const updateData: PaymentDetailsUpdate & { gstin?: string | null; gstinIV?: string | null } = {
                 accountHolderName: data.accountHolderName,
                 bankName: data.bankName,
                 ifscCode: data.ifscCode,
                 companyName: data.companyName ?? null,
-                gstin: normalizedGstin,
-                gstinIV: data.gstinIV ?? null,
                 ifscCodeIV: data.ifscCodeIV ?? null,
                 updatedAt: new Date(),
             };
+
+            if (data.gstin !== undefined) {
+                updateData.gstin = data.gstin ? data.gstin.toUpperCase() : null;
+                updateData.gstinIV = data.gstinIV ?? null;
+            }
 
             if (data.accountNumber) {
                 updateData.accountNumber = data.accountNumber;

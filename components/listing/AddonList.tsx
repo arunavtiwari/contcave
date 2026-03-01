@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Addon } from "@/types/addon";
@@ -26,12 +27,17 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
   const dec = useCallback(() => onQtyChange(Math.max(0, qty - 1)), [qty, onQtyChange]);
   const add = useCallback(() => onQtyChange(1), [onQtyChange]);
 
+  const resolvedImg = imgUrl || addon.imageUrl || "";
+
   return (
     <div className="flex gap-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200">
-      <div className="rounded-lg h-fit w-fit">
-        <div
-          className="h-16 w-16 rounded-lg bg-neutral-100 bg-cover bg-center"
-          style={{ backgroundImage: `url(${imgUrl || addon.imageUrl || ""})`, backgroundBlendMode: "multiply" }}
+      <div className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden">
+        <Image
+          src={resolvedImg}
+          alt={addon.name}
+          fill
+          sizes="64px"
+          className="object-cover"
         />
       </div>
 

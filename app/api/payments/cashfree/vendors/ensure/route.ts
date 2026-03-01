@@ -48,7 +48,9 @@ export async function POST(req: NextRequest) {
                         cashfreeVendorId: true,
                         accountHolderName: true,
                         accountNumber: true,
+                        accountNumberIV: true,
                         ifscCode: true,
+                        ifscCodeIV: true,
                     },
                 },
             },
@@ -70,14 +72,42 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Complete payment details (account holder, account number, IFSC) are required", 400);
         }
 
+        let accountNumber = user.paymentDetails.accountNumber;
+        if (user.paymentDetails.accountNumberIV) {
+            try {
+                const { encryptionService } = await import('@/lib/security/encryption');
+                accountNumber = encryptionService.decrypt({
+                    encrypted: user.paymentDetails.accountNumber,
+                    iv: user.paymentDetails.accountNumberIV
+                });
+            } catch (error) {
+                console.error('Failed to decrypt account number directly for Cashfree:', error);
+                return createErrorResponse("Failed to read secure payment details", 500);
+            }
+        }
+
+        let ifscCode = user.paymentDetails.ifscCode;
+        if (user.paymentDetails.ifscCodeIV) {
+            try {
+                const { encryptionService } = await import('@/lib/security/encryption');
+                ifscCode = encryptionService.decrypt({
+                    encrypted: user.paymentDetails.ifscCode,
+                    iv: user.paymentDetails.ifscCodeIV
+                });
+            } catch (error) {
+                console.error('Failed to decrypt IFSC Code directly for Cashfree:', error);
+                return createErrorResponse("Failed to read secure payment details", 500);
+            }
+        }
+
         const vendorId = await cfEnsureVendor({
             vendor_id: `v_${userId}`,
             display_name: (user.name || "Vendor").trim().slice(0, 100),
             email: user.email || undefined,
             phone: user.phone || undefined,
             account_holder: user.paymentDetails.accountHolderName.trim(),
-            account_number: user.paymentDetails.accountNumber.trim(),
-            ifsc: user.paymentDetails.ifscCode.trim().toUpperCase(),
+            account_number: accountNumber.trim(),
+            ifsc: ifscCode.trim().toUpperCase(),
         });
 
         await prisma.paymentDetails.update({
