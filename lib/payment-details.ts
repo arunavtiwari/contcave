@@ -88,7 +88,7 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
                 userId: data.userId,
                 accountNumber: data.accountNumber,
                 companyName: data.companyName ?? null,
-                gstin: normalizedGstin,
+                gstin: data.gstin ? data.gstin.toUpperCase() : null,
                 gstinIV: data.gstinIV ?? null,
                 accountNumberIV: data.accountNumberIV ?? null,
                 ifscCodeIV: data.ifscCodeIV ?? null,
@@ -144,7 +144,7 @@ export async function upsertPaymentDetailsSafe(data: PaymentDetailsData): Promis
                 bankName: string;
                 ifscCode: string;
                 companyName: string | null;
-                gstin: string | null;
+                gstin?: string | null;
                 updatedAt: Date;
                 accountNumber?: string;
                 accountNumberIV?: string | null;
