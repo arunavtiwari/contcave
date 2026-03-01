@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import React, { ChangeEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
-export type TermsRef = { generateAndUploadPdf: (folderOverride?: string) => Promise<{ url: string; pdfUrl: string }> };
+export type TermsRef = { generateAndUploadPdf: (listingId: string) => Promise<{ url: string; pdfUrl: string }> };
 
 export interface SignatureMeta {
     url: string;
@@ -40,63 +40,27 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
         onChange(event.target.checked);
     };
 
-    const generateAndUploadPdf = async (folderOverride?: string) => {
+    const generateAndUploadPdf = async (listingId: string) => {
         try {
             if (!signature?.url) throw new Error("Signature required");
+            if (!listingId) throw new Error("Listing ID required");
 
-            const { pdf } = await import("@react-pdf/renderer");
-            const AgreementDocument = (await import("@/components/pdfs/AgreementDocument")).default;
-
-            const dateStr = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
-
-            // Create the blob using @react-pdf/renderer
-            const blob = await pdf(
-                <AgreementDocument
-                    signatureUrl={signature.url}
-                    dateStr={dateStr}
-                />
-            ).toBlob();
-
-            const folder = folderOverride || "agreements";
-            const timestamp = Math.floor(Date.now() / 1000);
-            const publicId = `agreement-${timestamp}`;
-            const paramsToSign = { folder, timestamp, public_id: publicId };
-
-            const signRes = await fetch("/api/cloudinary/sign", {
+            const response = await fetch("/api/agreements/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ paramsToSign })
+                body: JSON.stringify({
+                    listingId,
+                    signatureUrl: signature.url,
+                }),
             });
-            const sign = await signRes.json();
-            const signData = sign?.data;
 
-            if (!signRes.ok || !signData?.signature) {
-                console.error("[Terms] Signature failed:", signRes.status, sign);
-                throw new Error(sign?.message || sign?.error || `Signature failed: ${signRes.status}`);
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || "Failed to generate agreement PDF");
             }
 
-            const cloud = (signData.cloud as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME as string);
-            const apiKey = (signData.apiKey as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY as string);
-            if (!cloud || !apiKey) throw new Error("Missing Cloudinary client env");
-
-            const fd = new FormData();
-            const file = new File([blob], `${publicId}.pdf`, { type: "application/pdf" });
-            fd.append("file", file);
-            fd.append("folder", folder);
-            fd.append("timestamp", String(signData.timestamp));
-            fd.append("public_id", publicId);
-            fd.append("api_key", apiKey);
-            fd.append("signature", signData.signature);
-
-            const upRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method: "POST", body: fd });
-            const up = await upRes.json();
-
-            if (!upRes.ok) {
-                const errMsg = up?.error?.message || up?.error || up;
-                console.error("[Terms] Cloudinary upload error:", errMsg);
-                throw new Error(typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg));
-            }
-            const meta = { url: up.secure_url, pdfUrl: up.secure_url };
+            const meta = result.data;
             onAgreementPdf?.(meta);
             return meta;
         } catch (e) {

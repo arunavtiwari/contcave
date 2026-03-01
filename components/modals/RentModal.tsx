@@ -584,7 +584,7 @@ export default function RentModal() {
 
       if (signature && terms && termsRef.current?.generateAndUploadPdf) {
         try {
-          const meta = await termsRef.current.generateAndUploadPdf(`agreements/${listingId}`);
+          const meta = await termsRef.current.generateAndUploadPdf(listingId);
           setAgreementPdf(meta);
 
           finalVerifications.agreementPdf = meta;
