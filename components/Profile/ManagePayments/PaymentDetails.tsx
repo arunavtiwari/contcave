@@ -131,8 +131,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
             value: "",
             type: "text",
             required: true,
-            maxLength: 20,
-            pattern: "[0-9-]+"
+            pattern: "[0-9*]+"
         },
         {
             label: "Re-enter Account Number",
@@ -141,7 +140,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
             type: "text",
             required: true,
             maxLength: 20,
-            pattern: "[0-9-]+"
+            pattern: "[0-9*]+"
         },
         {
             label: "IFSC Code (India)",
@@ -167,7 +166,8 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
             name: "gstin",
             value: "",
             required: false,
-            maxLength: 15
+            maxLength: 15,
+            pattern: "[0-9A-Z*]{15}"
         }
     ], []);
 
@@ -232,7 +232,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
             newErrors.ifscCode = 'Invalid IFSC code format';
         }
 
-        if (formData.gstin && !/^[0-9A-Z]{15}$/i.test(formData.gstin)) {
+        if (formData.gstin && !/^[0-9A-Z*]{15}$/i.test(formData.gstin)) {
             newErrors.gstin = 'Invalid GSTIN format';
         }
 
@@ -269,22 +269,17 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     form.append('userId', (profile as unknown as PaymentProfile).userId!);
                 }
 
-                form.append('accountHolderName', formData.accountHolderName || '');
-                form.append('bankName', formData.bankName || '');
+                // Production Grade: Send all fields. The backend upsertPaymentDetailsSafe
+                // will automatically detect if a value is masked (like ***1234) and 
+                // skip re-encryption to avoid corrupting data.
+                const fieldsToSend = ['accountHolderName', 'bankName', 'accountNumber', 'ifscCode', 'companyName', 'gstin'];
+                fieldsToSend.forEach(key => {
+                    const val = formData[key]?.trim();
+                    if (val !== undefined) {
+                        form.append(key, key === 'gstin' || key === 'ifscCode' ? val.toUpperCase() : val);
+                    }
+                });
 
-
-                const isMasked = /^\*+$/.test(formData.accountNumber.trim()) || /\*{3,}/.test(formData.accountNumber.trim());
-                if (!isMasked) {
-                    form.append('accountNumber', formData.accountNumber || '');
-                }
-
-                form.append('ifscCode', formData.ifscCode || '');
-                if (formData.companyName?.trim()) {
-                    form.append('companyName', formData.companyName.trim());
-                }
-                if (formData.gstin?.trim() && !formData.gstin.includes('*')) {
-                    form.append('gstin', formData.gstin.trim().toUpperCase());
-                }
                 form.append('updatedAt', new Date().toISOString());
 
                 await onSave?.(form, hasExistingData);
@@ -310,7 +305,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
     return (
         <div className="flex flex-col w-full gap-5">
             <form onSubmit={(e) => e.preventDefault()} className="xl:space-y-8 lg:space-y-8 md:space-y-8 space-y-3">
-                
+
                 <div className="flex justify-between items-start">
                     <Heading
                         title="Bank Account Information"
@@ -318,7 +313,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                         variant="h4"
                     />
 
-                    
+
                     <div className="flex h-fit gap-3">
                         {isEditing ? (
                             <>
@@ -351,7 +346,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     </div>
                 </div>
 
-                
+
                 <fieldset className="relative space-y-4 mt-3 p-6 rounded-xl border border-gray-200">
                     <legend className="sr-only">Bank Account Information</legend>
                     {BANK_FIELDS.map((field) => (
@@ -366,14 +361,14 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     ))}
                 </fieldset>
 
-                
+
                 <Heading
                     title="Tax Information"
                     subtitle="Provide your tax information."
                     variant="h4"
                 />
 
-                
+
                 <fieldset className="relative space-y-4 p-6 rounded-xl border border-gray-200">
                     <legend className="sr-only">Tax Information</legend>
                     {TAX_FIELDS.map((field) => (
@@ -388,7 +383,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     ))}
                 </fieldset>
 
-                
+
                 {isEditing && hasChanges && (
                     <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
                         You have unsaved changes

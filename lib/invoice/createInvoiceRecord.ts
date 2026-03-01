@@ -131,17 +131,29 @@ export async function ensureInvoiceWithAttachment(
   }
 
   // Determine GST ownership and invoice details
-  const ownerPayment =
-    hasValidGST(reservation.listing?.user?.paymentDetails)
-      ? {
-        companyName: reservation.listing!.user!.paymentDetails!.companyName!,
-        gstin: reservation.listing!.user!.paymentDetails!.gstin!,
-        ownerName:
-          reservation.listing!.user!.name ||
-          reservation.listing!.user!.email ||
-          "Listing Owner",
+  let ownerPayment = null;
+  const rawPaymentDetails = reservation.listing?.user?.paymentDetails;
+
+  if (rawPaymentDetails) {
+    try {
+      const { decryptPaymentDetailsInternal } = await import("@/lib/payment-details");
+      const decrypted = decryptPaymentDetailsInternal(rawPaymentDetails as any);
+
+      if (decrypted.companyName && decrypted.gstin) {
+        ownerPayment = {
+          companyName: decrypted.companyName,
+          gstin: decrypted.gstin,
+          ownerName:
+            reservation.listing!.user!.name ||
+            reservation.listing!.user!.email ||
+            "Listing Owner",
+        };
       }
-      : null;
+    } catch (error) {
+      console.error("Failed to decrypt owner payment details for invoice:", error);
+      // Fallback to Arkanet GST (ownerPayment remains null)
+    }
+  }
 
   const billing = user.billingDetails?.[0] ?? null;
 

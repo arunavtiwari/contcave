@@ -3,9 +3,9 @@ import { z } from "zod";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { PaymentDetailsData, upsertPaymentDetailsSafe } from "@/lib/payment-details";
 import { paymentDetailsSchema } from "@/lib/schemas/payment";
 import { auditService } from "@/lib/security/audit";
-import { encryptionService } from "@/lib/security/encryption";
 
 export async function PATCH(request: Request) {
   try {
@@ -84,60 +84,21 @@ export async function PATCH(request: Request) {
       updates.verified_via = { push: "bank_verification" };
 
       if (accountNumber && ifscCode && bankVerifiedName) {
-
         try {
-          const validationData = {
+          const result = await upsertPaymentDetailsSafe({
+            userId: currentUser.id,
             accountHolderName: bankVerifiedName.trim(),
             bankName: (bankName && typeof bankName === "string") ? bankName.trim() : "Unknown",
             accountNumber: accountNumber.trim(),
-            ifscCode: ifscCode.trim().toUpperCase(),
-            companyName: (companyName && typeof companyName === "string") ? companyName.trim() : null,
-            gstin: (gstin && typeof gstin === "string") ? gstin.trim().toUpperCase() : null,
-          };
-
-
-          paymentDetailsSchema.parse(validationData);
-
-          const encryptedAccountNumber = encryptionService.encrypt(validationData.accountNumber);
-          const encryptedIfscCode = encryptionService.encrypt(validationData.ifscCode);
-
-          let encryptedGstin = null;
-          let gstinIV = null;
-          if (validationData.gstin) {
-            const gstinResult = encryptionService.encrypt(validationData.gstin);
-            encryptedGstin = gstinResult.encrypted;
-            gstinIV = gstinResult.iv;
-          }
-
-          let encryptedVendorId = null;
-          let vendorIdIV = null;
-          if (vendorId && typeof vendorId === "string") {
-            const vendorResult = encryptionService.encrypt(vendorId.trim());
-            encryptedVendorId = vendorResult.encrypted;
-            vendorIdIV = vendorResult.iv;
-          }
-
-          const paymentData = {
-            userId: currentUser.id,
-            accountHolderName: validationData.accountHolderName,
-            accountNumber: encryptedAccountNumber.encrypted,
-            accountNumberIV: encryptedAccountNumber.iv,
-            ifscCode: encryptedIfscCode.encrypted,
-            ifscCodeIV: encryptedIfscCode.iv,
-            bankName: validationData.bankName,
-            companyName: validationData.companyName,
-            gstin: encryptedGstin,
-            gstinIV: gstinIV,
-            cashfreeVendorId: encryptedVendorId,
-            vendorIdIV: vendorIdIV,
-            encryptionVersion: encryptionService.getKeyVersion(),
-          };
-
-          await prisma.paymentDetails.upsert({
-            where: { userId: currentUser.id },
-            create: paymentData,
-            update: paymentData,
+            ifscCode: ifscCode.trim(),
+            companyName: (companyName && typeof companyName === "string") ? companyName.trim() : undefined,
+            gstin: (gstin && typeof gstin === "string") ? gstin.trim() : undefined,
+            cashfreeVendorId: (vendorId && typeof vendorId === "string") ? vendorId.trim() : undefined,
           });
+
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to save payment details during verification');
+          }
 
           await auditService.logPaymentDetailsAccess(
             currentUser.id,
@@ -150,32 +111,13 @@ export async function PATCH(request: Request) {
               hasIfscCode: !!ifscCode,
               hasGstin: !!gstin,
               hasVendorId: !!vendorId,
-              encryptionVersion: encryptionService.getKeyVersion(),
+              context: 'verification_flow'
             }
           );
 
-          await auditService.logEncryptionOperation(
-            currentUser.id,
-            'ENCRYPT',
-            'accountNumber,ifscCode',
-            true,
-            request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined
-          );
         } catch (error) {
-          if (error instanceof z.ZodError) {
-            const msg = error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
-            return createErrorResponse(`Validation failed: ${msg}`, 400);
-          }
-
-          await auditService.logEncryptionOperation(
-            currentUser.id,
-            'ENCRYPT',
-            'accountNumber,ifscCode',
-            false,
-            request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined
-          );
-
-          throw new Error(`Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          console.error('Payment details processing failed during verification:', error);
+          throw new Error(`Verification processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
     }

@@ -403,16 +403,22 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           });
 
           // Calculate GST ownership and payout based on studio's GST status
-          const studioPaymentDetails = listing?.user?.paymentDetails as {
-            cashfreeVendorId?: string | null;
-            companyName?: string | null;
-            gstin?: string | null;
-          } | null | undefined;
+          const rawStudioPaymentDetails = listing?.user?.paymentDetails;
+          let studioHasGST = false;
+          let plainVendorId: string | undefined = undefined;
 
-          const studioHasGST = studioPaymentDetails ? hasValidGST({
-            companyName: studioPaymentDetails.companyName ?? null,
-            gstin: studioPaymentDetails.gstin ?? null,
-          }) : false;
+          if (rawStudioPaymentDetails) {
+            try {
+              const { decryptPaymentDetailsInternal } = await import("@/lib/payment-details");
+              const decrypted = decryptPaymentDetailsInternal(rawStudioPaymentDetails as any);
+
+              studioHasGST = !!(decrypted.companyName && decrypted.gstin);
+              plainVendorId = decrypted.cashfreeVendorId || undefined;
+            } catch (error) {
+              console.error("[Webhook] Failed to decrypt studio payment details:", error);
+            }
+          }
+
           const payoutDetails = calculatePayoutDetails(freshTxn.amount, studioHasGST);
 
           console.warn("[Webhook] GST Calculation", {
@@ -430,7 +436,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             where: { id: freshTxn.id },
             data: {
               reservationId: reservation.id,
-              vendorId: studioPaymentDetails?.cashfreeVendorId || undefined,
+              vendorId: plainVendorId,
               payoutPercentToOwner: payoutDetails.payoutPercentOfTotal,
               payoutDueAt: startDate,
               gstOwnedBy: payoutDetails.gstOwnedBy,
