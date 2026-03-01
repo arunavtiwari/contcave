@@ -23,6 +23,7 @@ import { Package as ListingPackage } from "@/types/package";
 import BlocksManager from "./BlocksManager";
 import AddonsSelection from "./inputs/AddonsSelection";
 import ImageUpload from "./inputs/ImageUpload";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 import PackagesForm from "./inputs/PackagesForm";
 import SetsEditor from "./inputs/SetsEditor";
 import ManageTimings from "./ManageTimings";
@@ -83,9 +84,22 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     const [addons, setAddons] = useState<Addon[]>(predefinedAddons);
     const [isCalendarConnected, setIsCalendarConnected] = useState(listing.user?.googleCalendarConnected);
 
-    const [initialListing, setListing] = useState<FullListing>(() => ({
-        ...listing,
-    }));
+    const [initialListing, setListing] = useState<FullListing>(() => {
+        const cleanImageSrc = (listing.imageSrc ?? []).filter(
+            (url: string) => typeof url === "string" && !url.startsWith("blob:")
+        );
+        const cleanSets = (listing.sets ?? []).map((s) => ({
+            ...s,
+            images: (s.images ?? []).filter(
+                (url: string) => typeof url === "string" && !url.startsWith("blob:")
+            ),
+        }));
+        return {
+            ...listing,
+            imageSrc: cleanImageSrc,
+            sets: cleanSets,
+        };
+    });
 
     const [setsHaveSamePrice, setSetsHaveSamePrice] = useState<boolean | null>(initialListing.setsHaveSamePrice ?? null);
     const [unifiedSetPrice, setUnifiedSetPrice] = useState<number | null>(initialListing.unifiedSetPrice ?? null);
@@ -94,7 +108,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         window.scrollTo({ top: 0 });
     }, [selectedMenu]);
 
-    const update = () => {
+    const update = async () => {
         const normalizedPackages = (initialListing.packages ?? []).map((pkg: ListingPackage) => ({
             id: pkg.id,
             title: (pkg.title ?? "").trim(),
@@ -136,34 +150,49 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
         const { updatedAt: _ignoredUpdatedAt, ...rest } = listingWithoutMeta as Record<string, unknown>;
 
-        const payload = {
-            ...rest,
-            packages: packagesWithData,
-            hasSets: initialListing.hasSets,
-            setsHaveSamePrice: setsHaveSamePrice ?? initialListing.setsHaveSamePrice ?? false,
-            unifiedSetPrice: setsHaveSamePrice ? Number(unifiedSetPrice) : null,
-            additionalSetPricingType: initialListing.hasSets ? initialListing.additionalSetPricingType : null,
+        try {
+            const finalImageSrc = initialListing.imageSrc && initialListing.imageSrc.length > 0
+                ? await uploadToCloudinary(initialListing.imageSrc, "listing_main")
+                : [];
 
-            sets: initialListing.hasSets ? (initialListing.sets ?? []).map((s, i) => ({
-                id: s.id,
-                name: s.name.trim(),
-                description: s.description?.trim() || null,
-                images: s.images,
-                price: s.price,
-                position: i,
-            })) : [],
-        };
+            const finalSets = initialListing.hasSets ? await Promise.all(
+                (initialListing.sets ?? []).map(async (s, i) => ({
+                    id: s.id,
+                    name: s.name.trim(),
+                    description: s.description?.trim() || null,
+                    images: s.images && s.images.length > 0
+                        ? await uploadToCloudinary(s.images, "listing_sets")
+                        : [],
+                    price: s.price,
+                    position: i,
+                }))
+            ) : [];
 
-        axios
-            .patch(`/api/listings/${initialListing.id}`, payload)
-            .then(() => {
-                toast.info("Listing has been successfully updated", { toastId: "Listing_Updated" });
-            })
-            .catch((error) => {
-                toast.error(error?.response?.data?.error || "Failed to update listing", {
-                    toastId: "Listing_Error_1",
+            const payload = {
+                ...rest,
+                imageSrc: finalImageSrc,
+                packages: packagesWithData,
+                hasSets: initialListing.hasSets,
+                setsHaveSamePrice: setsHaveSamePrice ?? initialListing.setsHaveSamePrice ?? false,
+                unifiedSetPrice: setsHaveSamePrice ? Number(unifiedSetPrice) : null,
+                additionalSetPricingType: initialListing.hasSets ? initialListing.additionalSetPricingType : null,
+                sets: finalSets,
+            };
+
+            await axios
+                .patch(`/api/listings/${initialListing.id}`, payload)
+                .then(() => {
+                    toast.info("Listing has been successfully updated", { toastId: "Listing_Updated" });
+                })
+                .catch((error) => {
+                    toast.error(error?.response?.data?.error || "Failed to update listing", {
+                        toastId: "Listing_Error_1",
+                    });
                 });
-            });
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : "Upload failed";
+            toast.error(msg);
+        }
     };
 
     const handleInputChange = useCallback((field: string, value: unknown) => {
@@ -277,8 +306,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                             <div className="w-full">
                                 <RichTextEditor
-                                value={initialListing.description ?? ""}
-                                onChange={(html) => handleInputChange("description", html)}
+                                    value={initialListing.description ?? ""}
+                                    onChange={(html) => handleInputChange("description", html)}
                                 />
                             </div>
                         </div>
@@ -359,6 +388,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                                 width={128}
                                                 height={128}
                                                 className="h-full w-full object-cover"
+                                                unoptimized
                                             />
                                         )}
 
@@ -376,12 +406,10 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 ))}
 
                                 <ImageUpload
-                                    onChange={(value) => {
-                                        const currentMedia = initialListing.imageSrc ?? [];
-                                        handleInputChange("imageSrc", [...currentMedia, ...value]);
-                                        toast.success("Media uploaded successfully");
-                                    }}
-                                    values={[]}
+                                    uid="property-main-upload"
+                                    onChange={(value) => handleInputChange("imageSrc", value)}
+                                    values={initialListing.imageSrc ?? []}
+                                    deferUpload
                                 />
                             </div>
                         </div>

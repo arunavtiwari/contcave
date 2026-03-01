@@ -85,6 +85,12 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
 
 
 
+    if (Array.isArray(listingData.imageSrc)) {
+      listingData.imageSrc = listingData.imageSrc.filter(
+        (url: unknown) => typeof url === "string" && !url.startsWith("blob:")
+      );
+    }
+
     if (Object.keys(listingData).length > 0) {
       await prisma.listing.update({
         where: { id: listingId },
@@ -242,7 +248,7 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
 
         const setImages = Array.isArray(s.images)
           ? s.images
-            .filter((img: unknown) => typeof img === "string" && (img as string).trim().length > 0)
+            .filter((img: unknown) => typeof img === "string" && (img as string).trim().length > 0 && !(img as string).startsWith("blob:"))
             .slice(0, 20)
           : [];
 

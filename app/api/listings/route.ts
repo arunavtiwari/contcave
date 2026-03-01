@@ -113,6 +113,10 @@ export async function POST(request: Request) {
       return createErrorResponse("All image URLs must be valid strings (max 500 characters)", 400);
     }
 
+    if (imageSrc.some((img: string) => img.startsWith("blob:"))) {
+      return createErrorResponse("Invalid image URLs detected. Please re-upload your images.", 400);
+    }
+
     if (!category || typeof category !== "string") {
       return createErrorResponse("category is required and must be a string", 400);
     }
@@ -238,7 +242,7 @@ export async function POST(request: Request) {
 
         const setImages = Array.isArray(s.images)
           ? s.images
-            .filter((img: unknown) => typeof img === "string" && img.trim().length > 0)
+            .filter((img: unknown) => typeof img === "string" && img.trim().length > 0 && !(img as string).startsWith("blob:"))
             .slice(0, 20)
           : [];
 

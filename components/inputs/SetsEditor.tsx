@@ -37,12 +37,12 @@ export default function SetsEditor({
     onChange,
     pricingType,
     disabled = false,
-    onImageFilesChange,
+    deferUpload = true,
     isPricingUniform = false,
     uniformPrice,
     onUniformPriceChange,
 }: SetsEditorProps & {
-    onImageFilesChange?: (files: File[]) => void;
+    deferUpload?: boolean;
     isPricingUniform?: boolean;
     uniformPrice?: number | null;
     onUniformPriceChange?: (price: number) => void;
@@ -102,11 +102,8 @@ export default function SetsEditor({
         [sets, onChange]
     );
 
-    const handleSetImageFiles = useCallback((files: File[]) => {
-        if (onImageFilesChange) {
-            onImageFilesChange(files);
-        }
-    }, [onImageFilesChange]);
+
+
 
     const priceLabel =
         pricingType === "HOURLY"
@@ -115,7 +112,7 @@ export default function SetsEditor({
 
     return (
         <div className="space-y-4">
-            
+
             {isPricingUniform && (
                 <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200">
                     <Input
@@ -160,7 +157,7 @@ export default function SetsEditor({
                                         <p className="font-medium">
                                             {set.name || `Set ${index + 1}`}
                                         </p>
-                                        
+
                                         <p className="text-sm text-neutral-500">
                                             {INR.format(set.price || 0)}
                                             {pricingType === "HOURLY" ? "/hr" : ""}
@@ -214,7 +211,7 @@ export default function SetsEditor({
                                         />
                                     </div>
 
-                                    
+
                                     {!isPricingUniform && (
 
                                         <div>
@@ -251,6 +248,7 @@ export default function SetsEditor({
                                                         alt={`Set ${index + 1} image ${imgIndex + 1}`}
                                                         fill
                                                         className="object-cover"
+                                                        unoptimized
                                                     />
                                                     <button
                                                         type="button"
@@ -267,13 +265,10 @@ export default function SetsEditor({
                                             <ImageUpload
                                                 uid={`set-upload-${index}`}
                                                 onChange={(newUrls) => {
-
-
                                                     updateSet(index, { images: newUrls });
                                                 }}
                                                 values={set.images}
-                                                deferUpload={true}
-                                                onFilesChange={handleSetImageFiles}
+                                                deferUpload={deferUpload}
                                             />
                                         )}
                                     </div>

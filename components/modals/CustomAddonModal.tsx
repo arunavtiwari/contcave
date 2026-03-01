@@ -10,6 +10,7 @@ import { z } from "zod";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/ui/Input";
 import useAddonModal from "@/hook/useAddonModal";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 import Modal from "./Modal";
 
@@ -27,6 +28,8 @@ function CustomAddonModal({ save }: Props) {
   const addonModel = useAddonModal();
 
   const [image, setImage] = useState<string[]>([]);
+  const [addonFile, setAddonFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const {
     register,
@@ -40,15 +43,26 @@ function CustomAddonModal({ save }: Props) {
     },
   });
 
-  const onSubmit: SubmitHandler<CustomAddonFormValues> = (data) => {
-    if (image.length === 0) {
+  const onSubmit: SubmitHandler<CustomAddonFormValues> = async (data) => {
+    if (image.length === 0 || !addonFile) {
       toast.error("Please upload an image for the add-on");
       return;
     }
-    save({ name: data.name, imageUrl: image[image.length - 1] });
-    addonModel.onClose();
-    reset();
-    setImage([]);
+
+    setIsUploading(true);
+    try {
+      const [uploadedUrl] = await uploadToCloudinary([addonFile], "addons");
+      save({ name: data.name, imageUrl: uploadedUrl });
+      addonModel.onClose();
+      reset();
+      setImage([]);
+      setAddonFile(null);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Upload failed";
+      toast.error(msg);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -58,7 +72,8 @@ function CustomAddonModal({ save }: Props) {
       nestedModal={true}
       isOpen={addonModel.isOpen}
       title="Create Add-On"
-      actionLabel="Create"
+      actionLabel={isUploading ? "Uploading..." : "Create"}
+      disabled={isUploading}
       onClose={addonModel.onClose}
       onSubmit={handleSubmit(onSubmit)}
       body={
@@ -79,20 +94,24 @@ function CustomAddonModal({ save }: Props) {
                   alt="Uploaded Add-on"
                   width={128}
                   height={128}
-                  className="rounded-xl border border-neutral-300"
+                  className="w-32 h-32 rounded-xl border border-neutral-300 object-cover"
+                  unoptimized
                 />
               )}
 
               <ImageUpload
-                onChange={(value) => setImage(value)}
-                values={image}
+                uid="addon-image-upload"
+                onChange={(value) => setImage(value.slice(-1))}
+                values={[]}
+                deferUpload
+                onFilesChange={(files) => {
+                  if (files.length > 0) setAddonFile(files[files.length - 1]);
+                }}
               />
             </div>
           </div>
         </>
-
       }
-
     />
   );
 }

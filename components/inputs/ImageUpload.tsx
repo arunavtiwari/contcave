@@ -5,6 +5,8 @@ import React, { useState } from "react";
 import { IconType } from "react-icons";
 import { TbPhotoPlus } from "react-icons/tb";
 
+import { uploadToCloudinary } from "@/lib/cloudinary";
+
 type Props = {
   onChange: (value: string[]) => void;
   values: string[];
@@ -52,8 +54,7 @@ function ImageUpload({
     for (const file of Array.from(files)) {
       if (file.size > maxSize) {
         alert(
-          `File "${file.name}" is too large. Maximum size is ${
-            maxSize / 1024 / 1024
+          `File "${file.name}" is too large. Maximum size is ${maxSize / 1024 / 1024
           }MB.`
         );
         event.target.value = "";
@@ -83,67 +84,28 @@ function ImageUpload({
 
     setUploading(true);
 
-    const uploadedUrls: string[] = [];
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-
-    if (!cloudName) {
-      alert("Upload service is not configured.");
+    try {
+      const uploadedUrls = await uploadToCloudinary(Array.from(files));
+      if (uploadedUrls.length > 0) {
+        onChange([...values, ...uploadedUrls]);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      alert(`Upload Failed: ${errorMessage}`);
+    } finally {
       setUploading(false);
       event.target.value = "";
-      return;
     }
-
-    for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", "phxjukr6");
-
-      try {
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Upload failed with status ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.secure_url) {
-          uploadedUrls.push(data.secure_url);
-        } else {
-          throw new Error("No secure URL returned");
-        }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
-        alert(`Failed to upload "${file.name}": ${errorMessage}`);
-      }
-    }
-
-    setUploading(false);
-
-    if (uploadedUrls.length > 0) {
-      onChange([...values, ...uploadedUrls]);
-    }
-
-    event.target.value = "";
   };
 
   return (
     <label
       htmlFor={uid}
-      className={`relative cursor-pointer hover:bg-neutral-50 transition border-dashed flex flex-col justify-center items-center text-neutral-600 ${
-        circle ? "rounded-full" : "rounded-xl"
-      } ${
-        circle
+      className={`relative cursor-pointer hover:bg-neutral-50 transition border-dashed flex flex-col justify-center items-center text-neutral-600 ${circle ? "rounded-full" : "rounded-xl"
+        } ${circle
           ? "w-full h-full"
           : className || "w-32 h-32 p-4 border-2 border-neutral-300"
-      }`}
+        }`}
     >
       {uploading ? (
         <div className="flex flex-col items-center gap-2">
@@ -165,6 +127,7 @@ function ImageUpload({
               width={128}
               height={128}
               className="w-full h-full object-cover rounded-full"
+              unoptimized
             />
           )
         ) : (

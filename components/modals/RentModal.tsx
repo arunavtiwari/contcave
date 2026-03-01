@@ -38,6 +38,7 @@ import { listingSchema } from "@/lib/schemas/listing";
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
 import { AdditionalSetPricingType } from "@/types/set";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 type LocationValue = CitySelectValue & {
   display_name?: string;
@@ -77,18 +78,16 @@ export default function RentModal() {
   const [terms, setTerms] = useState(false);
   const [signature, setSignature] = useState<SignatureMeta | null>(null);
   const [, setAgreementPdf] = useState<unknown>(null);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [listingDetails, setListingDetails] = useState<ListingDetails>();
   const [additionalSetPricingType, setAdditionalSetPricingType] = useState<AdditionalSetPricingType | null>(null);
   const [sets, setSets] = useState<SetEditorItem[]>([]);
-  const [setImagesFiles, setSetImagesFiles] = useState<File[]>([]);
   const [setsHaveSamePrice, setSetsHaveSamePrice] = useState<boolean | null>(null);
   const [unifiedSetPrice, setUnifiedSetPrice] = useState<number | null>(null);
 
   const bodyRef = useRef<HTMLDivElement>(null);
-  
+
 
   useEffect(() => {
     if (bodyRef.current) {
@@ -123,7 +122,7 @@ export default function RentModal() {
 
   const {
     register,
-    handleSubmit,
+    getValues,
     setValue,
     watch,
     formState: { errors },
@@ -158,7 +157,7 @@ export default function RentModal() {
     },
   });
   const descriptionValue = watch("description");
-  
+
 
   useEffect(() => {
     register("terms");
@@ -271,10 +270,7 @@ export default function RentModal() {
     }
 
     if (step === STEPS.IMAGES) {
-      const remoteImages = (imageSrc || []).filter(
-        (url: string) => typeof url === "string" && !url.startsWith("blob:")
-      );
-      const totalImages = remoteImages.length + (imageFiles?.length || 0);
+      const totalImages = (imageSrc || []).length;
 
       if (totalImages === 0) {
         setImageError("Please upload at least one image");
@@ -306,10 +302,6 @@ export default function RentModal() {
           return;
         }
 
-        if (sets.length === 0) {
-          setSetsError("Please add at least one set or disable multi-set");
-          return;
-        }
         if (sets.length < 2) {
           setSetsError("Please add at least 2 sets for a multi-set listing");
           return;
@@ -384,12 +376,10 @@ export default function RentModal() {
     setSignature(null);
     setAgreementPdf(null);
     setListingDetails(undefined);
-    setImageFiles([]);
     setShowSuccessModal(false);
     setIsLoading(false);
     setAdditionalSetPricingType(null);
     setSets([]);
-    setSetImagesFiles([]);
     setSetsHaveSamePrice(null);
     setUnifiedSetPrice(null);
 
@@ -408,7 +398,6 @@ export default function RentModal() {
       "imageSrc",
       imageSrc.filter((_: unknown, i: number) => i !== idx)
     );
-    setImageFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleTermsAndConditions = useCallback((accept: boolean) => {
@@ -438,7 +427,7 @@ export default function RentModal() {
       setSetsHaveSamePrice(null);
       setUnifiedSetPrice(null);
       setAdditionalSetPricingType(null);
-      setSetImagesFiles([]);
+
 
       setValue("sets", [], { shouldValidate: true });
       setValue("setsHaveSamePrice", false);
@@ -450,12 +439,6 @@ export default function RentModal() {
       setValue("operationalHours", details.operationalHours, { shouldValidate: true });
     }
   }, [setValue]);
-  const handleImageFilesChange = useCallback((files: File[]) => {
-    setImageFiles((prev) => [...prev, ...files]);
-    setImageError(""); // Clear error when user uploads images
-  }, []);
-  const handleSetImageFilesChange = useCallback((files: File[]) =>
-    setSetImagesFiles((prev) => [...prev, ...files]), []);
   const handleAmenitiesChange = useCallback((v: typeof selectedAmenities) =>
     setSelectedAmenities({
       predefined: Object.fromEntries(
@@ -494,134 +477,67 @@ export default function RentModal() {
       return toast.error("Please select an accurate location using the address search");
     }
 
-    const remoteImages = (data.imageSrc || []).filter(
-      (url: string) => typeof url === "string" && !url.startsWith("blob:")
-    );
-
-    const finalImageUrls: string[] = [];
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-
-    if (imageFiles.length > 0) {
-      if (!cloudName) {
-        return toast.error("Image upload service is not configured");
-      }
-      try {
-        for (const file of imageFiles) {
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("upload_preset", "phxjukr6");
-
-          const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
-            method: "POST",
-            body: formData,
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData?.error?.message || `Image upload failed for ${file.name}`);
-          }
-
-          const uploadData = await response.json();
-          if (uploadData.secure_url) {
-            finalImageUrls.push(uploadData.secure_url);
-          } else {
-            throw new Error("No secure URL returned from image upload service");
-          }
-        }
-      } catch (imgErr) {
-        const msg = imgErr instanceof Error ? imgErr.message : "Image upload failed";
-        setIsLoading(false);
-        return toast.error(msg);
-      }
-    }
-
-    const allImages = [...remoteImages, ...finalImageUrls];
-    if (allImages.length === 0) {
-      setIsLoading(false);
-      return toast.error("Please upload at least one image");
-    }
-
-    const payload = {
-      title: data.title,
-      description: data.description,
-      imageSrc: allImages,
-      category: data.category,
-      locationValue,
-      actualLocation: data.actualLocation || null,
-      price: Number(data.price),
-      amenities: Object.keys(selectedAmenities.predefined).filter(
-        (k) => selectedAmenities.predefined[k]
-      ),
-      otherAmenities: selectedAmenities.custom,
-      addons: selectedAddons,
-      carpetArea: listingDetails?.carpetArea,
-      operationalDays: listingDetails?.operationalDays,
-      operationalHours: listingDetails?.operationalHours,
-      minimumBookingHours: listingDetails?.minimumBookingHours,
-      maximumPax: listingDetails?.maximumPax,
-      instantBooking: listingDetails?.instantBooking ?? false,
-      type: listingDetails?.type ?? [],
-      packages,
-      verifications,
-      agreementSignature: signature,
-      terms,
-      hasSets: listingDetails?.hasSets,
-      setsHaveSamePrice: Boolean(setsHaveSamePrice),
-      unifiedSetPrice: setsHaveSamePrice ? Number(unifiedSetPrice) : null,
-      additionalSetPricingType: listingDetails?.hasSets ? additionalSetPricingType : null,
-
-      sets: listingDetails?.hasSets ? sets.map((s, i) => ({
-        name: s.name.trim(),
-        description: s.description?.trim() || null,
-        images: s.images,
-        price: s.price,
-        position: i,
-      })) : [],
-    };
+    const remoteImages = (data.imageSrc || []);
 
     setIsLoading(true);
+
     try {
+      const finalImageUrls = await uploadToCloudinary(remoteImages, "listing_main");
 
-      const finalSets = [...payload.sets];
-      if (listingDetails?.hasSets && setImagesFiles.length > 0) {
-        if (!cloudName) {
-          throw new Error("Image upload service is not configured");
-        }
-
-
-
-        for (let i = 0; i < finalSets.length; i++) {
-          const set = finalSets[i];
-          const newImages = [];
-
-          for (const img of set.images) {
-            if (img.startsWith('blob:')) {
-
-              const blobRes = await fetch(img);
-              const blob = await blobRes.blob();
-              const file = new File([blob], "image.jpg", { type: blob.type });
-
-              const formData = new FormData();
-              formData.append("file", file);
-              formData.append("upload_preset", "phxjukr6");
-
-              const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
-                method: "POST",
-                body: formData,
-              });
-
-              if (!response.ok) throw new Error("Failed to upload set image");
-              const data = await response.json();
-              newImages.push(data.secure_url);
-            } else {
-              newImages.push(img);
-            }
-          }
-          finalSets[i].images = newImages;
-        }
+      if (finalImageUrls.length === 0) {
+        setIsLoading(false);
+        return toast.error("Please upload at least one image");
       }
 
+      const payload = {
+        title: data.title,
+        description: data.description,
+        imageSrc: finalImageUrls,
+        category: data.category,
+        locationValue,
+        actualLocation: data.actualLocation || null,
+        price: Number(data.price),
+        amenities: Object.keys(selectedAmenities.predefined).filter(
+          (k) => selectedAmenities.predefined[k]
+        ),
+        otherAmenities: selectedAmenities.custom,
+        addons: selectedAddons,
+        carpetArea: listingDetails?.carpetArea,
+        operationalDays: listingDetails?.operationalDays,
+        operationalHours: listingDetails?.operationalHours,
+        minimumBookingHours: listingDetails?.minimumBookingHours,
+        maximumPax: listingDetails?.maximumPax,
+        instantBooking: listingDetails?.instantBooking ?? false,
+        type: listingDetails?.type ?? [],
+        packages,
+        verifications,
+        agreementSignature: signature,
+        terms,
+        hasSets: listingDetails?.hasSets,
+        setsHaveSamePrice: Boolean(setsHaveSamePrice),
+        unifiedSetPrice: setsHaveSamePrice ? Number(unifiedSetPrice) : null,
+        additionalSetPricingType: listingDetails?.hasSets ? additionalSetPricingType : null,
+
+        sets: listingDetails?.hasSets ? sets.map((s, i) => ({
+          name: s.name.trim(),
+          description: s.description?.trim() || null,
+          images: s.images,
+          price: s.price,
+          position: i,
+        })) : [],
+      };
+
+      const finalSets = [...payload.sets];
+      if (listingDetails?.hasSets && finalSets.length > 0) {
+        for (let i = 0; i < finalSets.length; i++) {
+          const set = finalSets[i];
+          if (set.images && set.images.length > 0) {
+            finalSets[i].images = await uploadToCloudinary(set.images, "listing_sets");
+          }
+        }
+      }
       payload.sets = finalSets;
+
       const createRes = await axios.post("/api/listings", payload);
       const listingId = createRes.data?.data?.id || createRes.data?.id;
 
@@ -635,40 +551,22 @@ export default function RentModal() {
         const docsWithFiles = verifications.documents.filter((doc) => doc.file);
         if (docsWithFiles.length > 0) {
           try {
-            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-            if (!cloudName) {
-              throw new Error("Upload service is not configured");
-            }
+            const filesToUpload = docsWithFiles.map(d => d.file as File);
+            const uploadedUrls = await uploadToCloudinary(filesToUpload, `verifications/${listingId}`);
 
-            for (const doc of docsWithFiles) {
-              if (!doc.file) continue;
-
-              const formData = new FormData();
-              formData.append("file", doc.file);
-              formData.append("upload_preset", "phxjukr6");
-              formData.append("resource_type", "raw");
-              formData.append("folder", `verifications/${listingId}`);
-
-              const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
-                method: "POST",
-                body: formData,
-              });
-
-              if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData?.error?.message || `Upload failed for ${doc.original_filename}`);
-              }
-
-              const data = await response.json();
-              if (data.secure_url) {
+            for (let i = 0; i < docsWithFiles.length; i++) {
+              const doc = docsWithFiles[i];
+              if (uploadedUrls[i]) {
+                // Note: uploadToCloudinary currently just returns the secure_url string.
+                // We spoof the other fields since RentModal expects this format.
                 uploadedVerificationDocs.push({
                   original_filename: doc.original_filename,
-                  bytes: doc.bytes,
+                  bytes: doc.bytes || 0,
                   format: 'pdf',
                   resource_type: 'raw',
-                  public_id: data.public_id,
-                  version: data.version,
-                  url: data.secure_url,
+                  public_id: `verifications/${listingId}/${doc.original_filename}`,
+                  version: 1,
+                  url: uploadedUrls[i],
                 });
               }
             }
@@ -859,10 +757,11 @@ export default function RentModal() {
             <div className="w-full">
               <div className={`h-40 ${imageError ? 'border-rose-500' : ''}`}>
                 <ImageUpload
+                  uid="rent-main-upload"
                   onChange={(v) => setCustomValue("imageSrc", v)}
                   values={imageSrc}
                   deferUpload
-                  onFilesChange={handleImageFilesChange}
+
                   className="w-full h-full p-4 border-2 border-neutral-300"
                 />
               </div>
@@ -917,7 +816,7 @@ export default function RentModal() {
             />
           </div>
           <div className="w-full">
-          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">
                 Description
                 <span className="text-rose-500 ml-1">*</span>
@@ -1049,7 +948,7 @@ export default function RentModal() {
                 onChange={setSets}
                 pricingType={additionalSetPricingType}
                 disabled={isLoading}
-                onImageFilesChange={handleSetImageFilesChange}
+
                 isPricingUniform={setsHaveSamePrice}
                 uniformPrice={unifiedSetPrice}
                 onUniformPriceChange={setUnifiedSetPrice}
@@ -1175,38 +1074,7 @@ export default function RentModal() {
         actionLabel={actionLabel}
         onSubmit={() => {
           if (step === STEPS.TERMS) {
-            handleSubmit(onSubmit, (errors) => {
-
-              const deepErrorMessages = (obj: FieldErrors | Record<string, unknown>, path: string = ""): string[] => {
-                let messages: string[] = [];
-                for (const key in obj) {
-                  const val = (obj as Record<string, unknown>)[key];
-                  if (!val) continue;
-
-                  if (typeof val === 'object' && 'message' in val && typeof (val as { message: unknown }).message === "string") {
-                    messages.push(`${path}${key}: ${(val as { message: string }).message}`);
-                  } else if (typeof val === "object" && val !== null) {
-                    messages = [...messages, ...deepErrorMessages(val as FieldErrors, `${path}${key}.`)];
-                  }
-                }
-                return messages;
-              };
-
-              const detailedErrors = deepErrorMessages(errors);
-
-              if (detailedErrors.length > 0) {
-                toast.error(`Validation failed: ${detailedErrors.join(", ")}`);
-                return;
-              }
-
-              if (step === STEPS.TERMS && (!terms || !signature)) {
-                toast.error("Please sign the agreement and accept terms to complete listing.");
-                return;
-              }
-
-              const errorMessages = Object.keys(errors).join(", ");
-              toast.error(`Validation failed for: ${errorMessages}. Please check steps.`);
-            })();
+            onSubmit(getValues());
           } else {
             onNext();
           }

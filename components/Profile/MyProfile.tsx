@@ -22,6 +22,7 @@ import {
 import { toast } from "react-toastify";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
 import Heading from "@/components/ui/Heading";
@@ -134,7 +135,13 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
 
     const handleSave = async () => {
         try {
-            await axios.put("/api/user", userData);
+            let finalProfileImage = userData.profileImage;
+            if (finalProfileImage && finalProfileImage.startsWith("blob:")) {
+                const [uploadedUrl] = await uploadToCloudinary([finalProfileImage], "profiles");
+                finalProfileImage = uploadedUrl;
+            }
+            await axios.put("/api/user", { ...userData, profileImage: finalProfileImage });
+            setUserData(prev => ({ ...prev, profileImage: finalProfileImage }));
             setEditMode(false);
             toast.success("Profile updated successfully!");
         } catch (error) {
@@ -184,6 +191,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                                 }
                                                 values={userData.profileImage ? [userData.profileImage] : []}
                                                 circle={true}
+                                                deferUpload
                                             />
                                         ) : (
                                             <Image
