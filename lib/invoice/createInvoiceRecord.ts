@@ -1,7 +1,6 @@
 import { Invoice } from "@prisma/client";
 import crypto from "crypto";
 
-import { hasValidGST } from "@/lib/constants/gst";
 import { AttachmentInput } from "@/lib/email/mailer";
 import { generateInvoicePDFBlob } from "@/lib/invoice/pdfBlob";
 import prisma from "@/lib/prismadb";
@@ -137,7 +136,7 @@ export async function ensureInvoiceWithAttachment(
   if (rawPaymentDetails) {
     try {
       const { decryptPaymentDetailsInternal } = await import("@/lib/payment-details");
-      const decrypted = decryptPaymentDetailsInternal(rawPaymentDetails as any);
+      const decrypted = decryptPaymentDetailsInternal(rawPaymentDetails as import("@prisma/client").PaymentDetails);
 
       if (decrypted.companyName && decrypted.gstin) {
         ownerPayment = {

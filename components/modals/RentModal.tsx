@@ -12,7 +12,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { FieldErrors, FieldPath, FieldValues, Resolver, SubmitHandler, useForm } from "react-hook-form";
+import { FieldPath, FieldValues, Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { IoMdClose } from "react-icons/io";
 import { toast } from "react-toastify";
 
@@ -34,11 +34,11 @@ import LexicalEditor from "@/components/RichText/RichTextEditor"
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useRentModal from "@/hook/useRentModal";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 import { listingSchema } from "@/lib/schemas/listing";
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
 import { AdditionalSetPricingType } from "@/types/set";
-import { uploadToCloudinary } from "@/lib/cloudinary";
 
 type LocationValue = CitySelectValue & {
   display_name?: string;

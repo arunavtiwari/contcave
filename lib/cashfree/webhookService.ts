@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { checkSetConflicts } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund, cfMapStatus, cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
-import { calculatePayoutDetails, hasValidGST } from "@/lib/constants/gst";
+import { calculatePayoutDetails } from "@/lib/constants/gst";
 import { AttachmentInput, sendTemplateEmail } from "@/lib/email/mailer";
 import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
@@ -410,7 +410,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           if (rawStudioPaymentDetails) {
             try {
               const { decryptPaymentDetailsInternal } = await import("@/lib/payment-details");
-              const decrypted = decryptPaymentDetailsInternal(rawStudioPaymentDetails as any);
+              const decrypted = decryptPaymentDetailsInternal(rawStudioPaymentDetails as import("@prisma/client").PaymentDetails);
 
               studioHasGST = !!(decrypted.companyName && decrypted.gstin);
               plainVendorId = decrypted.cashfreeVendorId || undefined;

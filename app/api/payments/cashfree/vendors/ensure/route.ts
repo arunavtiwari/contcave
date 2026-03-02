@@ -51,6 +51,8 @@ export async function POST(req: NextRequest) {
                         accountNumberIV: true,
                         ifscCode: true,
                         ifscCodeIV: true,
+                        gstin: true,
+                        gstinIV: true,
                     },
                 },
             },
@@ -73,7 +75,7 @@ export async function POST(req: NextRequest) {
         }
 
         const { decryptPaymentDetailsInternal } = await import('@/lib/payment-details');
-        const decryptedDetails = decryptPaymentDetailsInternal(user.paymentDetails as any);
+        const decryptedDetails = decryptPaymentDetailsInternal(user.paymentDetails as import('@prisma/client').PaymentDetails);
 
         const vendorId = await cfEnsureVendor({
             vendor_id: `v_${userId}`,
@@ -83,6 +85,7 @@ export async function POST(req: NextRequest) {
             account_holder: user.paymentDetails.accountHolderName.trim(),
             account_number: decryptedDetails.accountNumber.trim(),
             ifsc: decryptedDetails.ifscCode.trim().toUpperCase(),
+            gstin: decryptedDetails.gstin || undefined,
         });
 
         const { encryptionService } = await import('@/lib/security/encryption');
@@ -96,6 +99,7 @@ export async function POST(req: NextRequest) {
                 encryptionVersion: encryptionService.getKeyVersion(),
             },
         });
+
 
         return createSuccessResponse({ vendorId });
     } catch (error) {

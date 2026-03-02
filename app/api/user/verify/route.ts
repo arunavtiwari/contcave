@@ -1,10 +1,9 @@
-import { z } from "zod";
+
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { upsertPaymentDetailsSafe } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
-import { PaymentDetailsData, upsertPaymentDetailsSafe } from "@/lib/payment-details";
-import { paymentDetailsSchema } from "@/lib/schemas/payment";
 import { auditService } from "@/lib/security/audit";
 
 export async function PATCH(request: Request) {

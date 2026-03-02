@@ -1,9 +1,10 @@
-import crypto from "crypto";
 import { renderToBuffer } from "@react-pdf/renderer";
+import crypto from "crypto";
 import React from "react";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
-import AgreementDocument from "@/components/pdfs/AgreementDocument";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import AgreementDocument from "@/components/pdfs/AgreementDocument";
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
 export async function POST(request: Request) {
     try {
@@ -27,10 +28,10 @@ export async function POST(request: Request) {
         });
 
         const buffer = await renderToBuffer(
-            React.createElement(AgreementDocument as any, {
+            React.createElement(AgreementDocument as React.ElementType, {
                 signatureUrl: signatureUrl,
                 dateStr: dateStr
-            }) as any
+            }) as React.ReactElement<import("@react-pdf/renderer").DocumentProps>
         );
 
         // 2. Prepare Cloudinary Upload
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
 
         // 4. Upload to Cloudinary using fetch
         const formData = new FormData();
-        const pdfBlob = new Blob([buffer as any], { type: "application/pdf" });
+        const pdfBlob = new Blob([buffer as BlobPart], { type: "application/pdf" });
         formData.append("file", pdfBlob, `${publicId}.pdf`);
         formData.append("folder", folder);
         formData.append("timestamp", String(timestamp));

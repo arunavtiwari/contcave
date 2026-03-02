@@ -158,9 +158,18 @@ export async function cfEnsureVendor(payload: {
     account_holder: string;
     account_number: string;
     ifsc: string;
+    gstin?: string;
 }) {
     const url = `${cfSplitBaseURL()}/vendors`;
     const httpsAgent = getFixieProxyAgent();
+
+    const kycDetails: Record<string, string> = {
+        account_type: "BUSINESS",
+        business_type: "B2B",
+    };
+    if (payload.gstin) {
+        kycDetails.gst = payload.gstin.trim().toUpperCase();
+    }
 
     try {
         const res = await axios.post(url, {
@@ -174,6 +183,7 @@ export async function cfEnsureVendor(payload: {
                 account_number: payload.account_number,
                 ifsc: payload.ifsc,
             },
+            kyc_details: kycDetails,
         }, {
             headers: cfHeaders(),
             httpsAgent,
@@ -200,6 +210,96 @@ export async function cfEnsureVendor(payload: {
         throw new Error(errorMessage);
     }
 }
+
+export async function cfUpdateVendor(vendorId: string, payload: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    bank?: {
+        account_holder?: string;
+        account_number?: string;
+        ifsc?: string;
+    };
+    kyc_details?: {
+        account_type?: string;
+        business_type?: string;
+        gst?: string;
+    };
+}) {
+    const url = `${cfSplitBaseURL()}/vendors/${encodeURIComponent(vendorId)}`;
+    const httpsAgent = getFixieProxyAgent();
+
+    // Build body with only provided fields
+    const body: Record<string, unknown> = {};
+    if (payload.name) body.name = payload.name;
+    if (payload.email) body.email = payload.email;
+    if (payload.phone) body.phone = payload.phone;
+    if (payload.bank) {
+        body.bank = payload.bank;
+        body.verify_account = true;
+    }
+    if (payload.kyc_details) body.kyc_details = payload.kyc_details;
+
+    try {
+        const res = await axios.patch(url, body, {
+            headers: cfHeaders(),
+            httpsAgent,
+            timeout: 30000,
+        });
+
+        return res.data;
+    } catch (error: unknown) {
+        let errorMessage = "Failed to update vendor";
+        if (axios.isAxiosError(error)) {
+            const status = error.response?.status;
+            const data = error.response?.data;
+            errorMessage = data?.message || error.message;
+            console.error(`[Cashfree UpdateVendor] Error (${status}):`, JSON.stringify(data));
+        } else if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Upload GSTIN document to Cashfree vendor docs API.
+ * This is required to move vendor from "Action Required" → "Active".
+ */
+export async function cfUploadVendorGSTIN(vendorId: string, gstin: string) {
+    const url = `${cfSplitBaseURL()}/vendor-docs/${encodeURIComponent(vendorId)}`;
+    const httpsAgent = getFixieProxyAgent();
+
+    const formData = new FormData();
+    formData.append("doc_type", "gstin");
+    formData.append("doc_value", gstin.trim().toUpperCase());
+
+    try {
+        const { "Content-Type": _, ...authHeaders } = cfHeaders();
+        const res = await axios.post(url, formData, {
+            headers: {
+                ...authHeaders,
+                "x-api-version": "2025-01-01",
+            },
+            httpsAgent,
+            timeout: 30000,
+        });
+
+        return res.data;
+    } catch (error: unknown) {
+        let errorMessage = "Failed to upload GSTIN document";
+        if (axios.isAxiosError(error)) {
+            const status = error.response?.status;
+            const data = error.response?.data;
+            errorMessage = data?.message || error.message;
+            console.error(`[Cashfree UploadVendorGSTIN] Error (${status}):`, JSON.stringify(data));
+        } else if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        throw new Error(errorMessage);
+    }
+}
+
 
 export async function cfOnDemandTransfer(params: {
     vendor_id: string;

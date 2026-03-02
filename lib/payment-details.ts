@@ -1,4 +1,5 @@
 import { PaymentDetails, PrismaClient } from '@prisma/client';
+
 import { encryptionService } from './security/encryption';
 
 const prisma = new PrismaClient();
@@ -165,7 +166,7 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
             where: { userId: data.userId },
         });
 
-        const commonData: any = {
+        const commonData: Record<string, unknown> = {
             updatedAt: new Date(),
         };
 
@@ -188,7 +189,7 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
         }
 
         if (existing) {
-            const updateData: any = { ...commonData };
+            const updateData: Record<string, unknown> = { ...commonData };
             if (data.accountNumber !== undefined) {
                 updateData.accountNumber = data.accountNumber;
                 updateData.accountNumberIV = data.accountNumberIV ?? null;
@@ -209,12 +210,21 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
 
         return await prisma.paymentDetails.create({
             data: {
-                ...commonData,
                 userId: data.userId,
+                accountHolderName: data.accountHolderName,
+                bankName: data.bankName,
                 accountNumber: data.accountNumber,
                 accountNumberIV: data.accountNumberIV ?? null,
+                ifscCode: data.ifscCode,
+                ifscCodeIV: data.ifscCodeIV ?? null,
+                companyName: data.companyName ?? null,
+                gstin: data.gstin ?? null,
+                gstinIV: data.gstinIV ?? null,
+                cashfreeVendorId: data.cashfreeVendorId ?? null,
+                vendorIdIV: data.vendorIdIV ?? null,
                 encryptionVersion: data.encryptionVersion ?? 'v1',
                 createdAt: new Date(),
+                updatedAt: new Date(),
             },
         });
 

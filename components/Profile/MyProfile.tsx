@@ -22,13 +22,13 @@ import {
 import { toast } from "react-toastify";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
-import { uploadToCloudinary } from "@/lib/cloudinary";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import useRentModal from "@/hook/useRentModal";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 import { SafeUser } from "@/types/user";
 
 interface ProfileClientProps {
@@ -499,7 +499,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                 onLoadingStart={() => {
                     setShowLoadingOverlay(true);
                 }}
-                onSuccess={(newPhone?: string, newEmail?: string) => {
+                onSuccess={(newPhone?: string, _newEmail?: string) => {
                     const payload = {
                         name: userData.name,
                         description: userData.description,

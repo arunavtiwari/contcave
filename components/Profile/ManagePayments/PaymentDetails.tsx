@@ -243,7 +243,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }, [formData, BANK_FIELDS, TAX_FIELDS]);
+    }, [formData, originalData.gstin, BANK_FIELDS, TAX_FIELDS]);
 
     const hasChanges = useMemo(() => {
         return Object.keys(formData).some(key => formData[key] !== originalData[key]);

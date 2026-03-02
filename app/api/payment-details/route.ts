@@ -3,7 +3,9 @@ import { z } from 'zod';
 
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import { createErrorResponse, createSuccessResponse, handleRouteError } from '@/lib/api-utils';
-import { PaymentDetailsData, upsertPaymentDetailsSafe } from '@/lib/payment-details';
+import { cfUpdateVendor, cfUploadVendorGSTIN } from '@/lib/cashfree/cashfree';
+import { upsertPaymentDetailsSafe } from '@/lib/payment-details';
+import prisma from '@/lib/prismadb';
 import { paymentDetailsSchema, paymentDetailsUpdateSchema } from '@/lib/schemas/payment';
 import { encryptionService } from '@/lib/security/encryption';
 
@@ -58,6 +60,85 @@ export async function POST(request: NextRequest) {
 
         if (!result.success) {
             return createErrorResponse(result.error || 'Failed to save payment details', 500);
+        }
+
+        // Sync changes to Cashfree vendor (best-effort, don't fail the save)
+        try {
+            const paymentRecord = await prisma.paymentDetails.findUnique({
+                where: { userId: currentUser.id },
+                select: {
+                    cashfreeVendorId: true,
+                    vendorIdIV: true,
+                    accountNumber: true,
+                    accountNumberIV: true,
+                    ifscCode: true,
+                    ifscCodeIV: true,
+                    gstin: true,
+                    gstinIV: true,
+                    accountHolderName: true,
+                },
+            });
+
+            if (paymentRecord?.cashfreeVendorId && paymentRecord?.vendorIdIV) {
+                const decryptedVendorId = encryptionService.decrypt({
+                    encrypted: paymentRecord.cashfreeVendorId,
+                    iv: paymentRecord.vendorIdIV,
+                });
+
+                // Build update payload with only the fields that were submitted
+                const updatePayload: Parameters<typeof cfUpdateVendor>[1] = {};
+
+                // Sync bank details if any bank field was submitted
+                // Cashfree requires ALL three fields together, so fill missing ones from DB
+                if (validated.accountNumber || validated.ifscCode || validated.accountHolderName) {
+                    // Decrypt existing values as fallbacks
+                    const existingAccNum = paymentRecord.accountNumber && paymentRecord.accountNumberIV
+                        ? encryptionService.decrypt({ encrypted: paymentRecord.accountNumber, iv: paymentRecord.accountNumberIV })
+                        : undefined;
+                    const existingIfsc = paymentRecord.ifscCode && paymentRecord.ifscCodeIV
+                        ? encryptionService.decrypt({ encrypted: paymentRecord.ifscCode, iv: paymentRecord.ifscCodeIV })
+                        : undefined;
+                    const existingHolder = paymentRecord.accountHolderName || undefined;
+
+                    const accountHolder = validated.accountHolderName || existingHolder;
+                    const accountNumber = validated.accountNumber || existingAccNum;
+                    const ifsc = (validated.ifscCode || existingIfsc)?.toUpperCase();
+
+                    // Only send bank if we have all three required fields
+                    if (accountHolder && accountNumber && ifsc) {
+                        updatePayload.bank = {
+                            account_holder: accountHolder,
+                            account_number: accountNumber,
+                            ifsc,
+                        };
+                    }
+                }
+
+                // Sync KYC/GST details inline via cfUpdateVendor
+                if (validated.gstin !== undefined) {
+                    updatePayload.kyc_details = {
+                        account_type: "BUSINESS",
+                        business_type: "B2B",
+                        ...(validated.gstin ? { gst: validated.gstin.toUpperCase() } : {}),
+                    };
+                }
+
+                if (Object.keys(updatePayload).length > 0) {
+                    await cfUpdateVendor(decryptedVendorId, updatePayload);
+                }
+
+                // Upload GSTIN as a vendor doc to move vendor out of "Action Required"
+                if (validated.gstin) {
+                    try {
+                        await cfUploadVendorGSTIN(decryptedVendorId, validated.gstin.toUpperCase());
+                    } catch (docErr) {
+                        console.error('[PaymentDetails] GSTIN doc upload failed (non-blocking):', docErr);
+                    }
+                }
+            }
+        } catch (syncError) {
+            // Log but don't fail — user data is already saved
+            console.error('[PaymentDetails] Cashfree vendor sync failed (non-blocking):', syncError);
         }
 
         return createSuccessResponse(
