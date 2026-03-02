@@ -65,11 +65,6 @@ export interface DecryptedPaymentDetails extends Omit<PaymentDetails, 'accountNu
     cashfreeVendorId: string | null;
 }
 
-/**
- * INTERNAL USE ONLY: Returns fully decrypted (unmasked) payment details.
- * Use this only for server-side integrations (e.g., Cashfree, Invoicing).
- * NEVER return this directly to the client.
- */
 export function decryptPaymentDetailsInternal(paymentDetails: PaymentDetails): DecryptedPaymentDetails {
     let accountNumber = paymentDetails.accountNumber;
     if (paymentDetails.accountNumberIV) {
@@ -79,8 +74,8 @@ export function decryptPaymentDetailsInternal(paymentDetails: PaymentDetails): D
                 iv: paymentDetails.accountNumberIV
             });
         } catch (error) {
-            console.warn('[Decryption] Failed to decrypt account number, falling back to raw:', error);
-            // Fallback to raw value for legacy/corrupted data to prevent system crash
+            console.error('[Decryption] Failed to decrypt account number. Data corrupted:', error);
+            throw new Error('Critical: Failed to decrypt account number');
         }
     }
 
@@ -105,8 +100,8 @@ export function decryptPaymentDetailsInternal(paymentDetails: PaymentDetails): D
                 iv: paymentDetails.ifscCodeIV
             });
         } catch (error) {
-            console.warn('[Decryption] Failed to decrypt IFSC Code, falling back to raw:', error);
-            // Fallback to raw value for legacy/corrupted data
+            console.error('[Decryption] Failed to decrypt IFSC Code. Data corrupted:', error);
+            throw new Error('Critical: Failed to decrypt IFSC Code');
         }
     }
 
@@ -132,10 +127,6 @@ export function decryptPaymentDetailsInternal(paymentDetails: PaymentDetails): D
     };
 }
 
-/**
- * Enterprise-grade decryption and sanitization of payment details.
- * Ensures sensitive data is never leaked to the client.
- */
 export function decryptAndSanitizePaymentDetails(paymentDetails: PaymentDetails): SanitizedPaymentDetails {
     const decrypted = decryptPaymentDetailsInternal(paymentDetails);
 
@@ -212,7 +203,6 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
             });
         }
 
-        // For creation, all primary bank fields are required
         if (!data.accountNumber || !data.ifscCode || !data.bankName || !data.accountHolderName) {
             throw new Error('Complete bank details (account number, IFSC, bank name, holder name) are required to create payment details');
         }
@@ -249,9 +239,6 @@ export async function deletePaymentDetails(userId: string): Promise<void> {
     }
 }
 
-/**
- * PRODUCTION GRADE: Fetches and automatically decrypts/sanitizes payment details.
- */
 export async function getPaymentDetailsSafe(userId: string): Promise<PaymentDetailsResponse> {
     try {
         const paymentDetails = await getPaymentDetailsByUserId(userId);
@@ -267,10 +254,6 @@ export async function getPaymentDetailsSafe(userId: string): Promise<PaymentDeta
     }
 }
 
-/**
- * PRODUCTION GRADE: Upserts and returns decrypted/sanitized payment details.
- * Performs encryption internally.
- */
 export async function upsertPaymentDetailsSafe(input: UpsertPaymentDetailsInput): Promise<PaymentDetailsResponse> {
     try {
         const { accountNumber, ifscCode, gstin, cashfreeVendorId, ...rest } = input;

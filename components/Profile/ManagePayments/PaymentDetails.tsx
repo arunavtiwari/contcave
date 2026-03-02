@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import React, { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "react-toastify";
 
@@ -52,11 +51,10 @@ const FieldInput = React.memo<{
                 className="text-base w-full xl:w-[300px] font-bold text-slate-950 mb-2 xl:mb-0"
             >
                 {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                {field.required && <span className="text-rose-500 ml-1">*</span>}
             </label>
             <div className="flex flex-col w-full xl:w-[calc(100%-300px)]">
-                <div className={`flex items-center w-full h-10 bg-white border px-2 rounded-full transition-colors ${error ? 'border-red-400' : 'border-slate-400 focus-within:border-blue-500'
-                    }`}>
+                <div className="relative group">
                     <input
                         type={('type' in field) ? field.type : 'text'}
                         id={field.name}
@@ -67,25 +65,28 @@ const FieldInput = React.memo<{
                         required={field.required}
                         maxLength={field.maxLength}
                         pattern={('pattern' in field) ? field.pattern : undefined}
-                        className="flex-1 h-10 border-0 bg-transparent focus:ring-0 focus:outline-none px-2 disabled:opacity-60"
+                        className={`
+                            w-full
+                            h-[44px]
+                            px-4
+                            font-light 
+                            bg-white 
+                            border-2
+                            rounded-xl
+                            focus:outline-none
+                            focus:border-black
+                            transition
+                            disabled:opacity-70
+                            disabled:cursor-not-allowed
+                            ${error ? "border-rose-500 focus:border-rose-500" : "border-neutral-200 hover:border-neutral-300"}
+                        `}
                         aria-describedby={error ? `${field.name}-error` : undefined}
                     />
-                    {isEditing && (
-                        <div className="w-4 h-4 shrink-0">
-                            <Image
-                                src="/assets/edit.svg"
-                                width={16}
-                                height={16}
-                                alt="Edit field"
-                                className="w-full h-full object-contain"
-                            />
-                        </div>
-                    )}
                 </div>
                 {error && (
                     <span
                         id={`${field.name}-error`}
-                        className="text-red-500 text-sm mt-1 ml-2"
+                        className="text-rose-500 text-sm mt-1 ml-2"
                         role="alert"
                     >
                         {error}
@@ -131,7 +132,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
             value: "",
             type: "text",
             required: true,
-            pattern: "[0-9*]+"
+            pattern: "[0-9]+"
         },
         {
             label: "Re-enter Account Number",
@@ -140,7 +141,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
             type: "text",
             required: true,
             maxLength: 20,
-            pattern: "[0-9*]+"
+            pattern: "[0-9]+"
         },
         {
             label: "IFSC Code (India)",
@@ -167,7 +168,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
             value: "",
             required: false,
             maxLength: 15,
-            pattern: "[0-9A-Z*]{15}"
+            pattern: "[0-9A-Z]{15}"
         }
     ], []);
 
@@ -232,8 +233,12 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
             newErrors.ifscCode = 'Invalid IFSC code format';
         }
 
-        if (formData.gstin && !/^[0-9A-Z*]{15}$/i.test(formData.gstin)) {
-            newErrors.gstin = 'Invalid GSTIN format';
+        if (formData.gstin && !/^[0-9A-Z]{15}$/i.test(formData.gstin)) {
+            if (formData.gstin !== originalData.gstin) {
+                if (!/^[0-9A-Z]{15}$/i.test(formData.gstin)) {
+                    newErrors.gstin = 'Invalid GSTIN format';
+                }
+            }
         }
 
         setErrors(newErrors);
@@ -269,13 +274,10 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     form.append('userId', (profile as unknown as PaymentProfile).userId!);
                 }
 
-                // Production Grade: Send all fields. The backend upsertPaymentDetailsSafe
-                // will automatically detect if a value is masked (like ***1234) and 
-                // skip re-encryption to avoid corrupting data.
                 const fieldsToSend = ['accountHolderName', 'bankName', 'accountNumber', 'ifscCode', 'companyName', 'gstin'];
                 fieldsToSend.forEach(key => {
                     const val = formData[key]?.trim();
-                    if (val !== undefined) {
+                    if (val !== undefined && val !== '' && !val.includes('*')) {
                         form.append(key, key === 'gstin' || key === 'ifscCode' ? val.toUpperCase() : val);
                     }
                 });
@@ -329,7 +331,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                                     type="button"
                                     onClick={handleSave}
                                     disabled={isPending || !hasChanges}
-                                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center transition-colors"
+                                    className="bg-black hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center transition-colors"
                                 >
                                     {isPending ? 'Saving...' : 'Save'}
                                 </button>
@@ -385,7 +387,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
 
                 {isEditing && hasChanges && (
-                    <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
+                    <div className="text-sm text-gray-800 bg-gray-100 p-3 rounded-lg border border-gray-200">
                         You have unsaved changes
                     </div>
                 )}

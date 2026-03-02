@@ -21,13 +21,11 @@ export const paymentDetailsSchema = z.object({
         .nullable(),
     gstin: z.string()
         .max(15, 'GSTIN is too long')
-        .regex(/^[0-9A-Z*]{15}$/i, 'Invalid GSTIN format')
+        .regex(/^[0-9A-Z]{15}$/i, 'Invalid GSTIN format')
         .optional()
         .nullable()
 });
 
-export const paymentDetailsUpdateSchema = paymentDetailsSchema.extend({
-    accountNumber: paymentDetailsSchema.shape.accountNumber.optional(),
-});
+export const paymentDetailsUpdateSchema = paymentDetailsSchema.partial();
 
 export type PaymentDetailsInput = z.infer<typeof paymentDetailsSchema>;
