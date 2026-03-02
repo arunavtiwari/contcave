@@ -140,7 +140,11 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                 const [uploadedUrl] = await uploadToCloudinary([finalProfileImage], "profiles");
                 finalProfileImage = uploadedUrl;
             }
-            await axios.put("/api/user", { ...userData, profileImage: finalProfileImage });
+            const { name, description, location, languages, title, phone } = userData;
+            await axios.put("/api/user", {
+                name, description, location, languages, title, phone,
+                profileImage: finalProfileImage || null,
+            });
             setUserData(prev => ({ ...prev, profileImage: finalProfileImage }));
             setEditMode(false);
             toast.success("Profile updated successfully!");
@@ -233,7 +237,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                 <button
                                     onClick={() => editMode ? handleSave() : setEditMode(true)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors ${editMode
-                                        ? 'bg-green-600 text-white hover:bg-green-700'
+                                        ? 'bg-black text-white hover:bg-gray-800'
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
                                 >
@@ -496,14 +500,18 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                     setShowLoadingOverlay(true);
                 }}
                 onSuccess={(newPhone?: string, newEmail?: string) => {
-                    const updatedData = {
-                        ...userData,
-                        is_owner: true,
+                    const payload = {
+                        name: userData.name,
+                        description: userData.description,
+                        location: userData.location,
+                        languages: userData.languages,
+                        title: userData.title,
+                        profileImage: userData.profileImage,
                         phone: newPhone || userData.phone,
-                        email: newEmail || userData.email,
+                        is_owner: true,
                     };
 
-                    axios.put("/api/user", updatedData)
+                    axios.put("/api/user", payload)
                         .then((res) => {
                             const updatedUser = res.data;
                             setUserData(updatedUser);
