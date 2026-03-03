@@ -18,7 +18,9 @@ const asciiClean = (
 ): string | undefined => {
   const source = Array.isArray(value) ? value.join(" ") : value;
   return source
-    ?.replace(/[^\x20-\x7E]+/g, " ")
+    ?.replace(/<[^>]*>?/gm, " ") // Strip HTML tags
+    .replace(/&#?[a-z0-9]+;/ig, " ") // Strip HTML entities
+    .replace(/[^\x20-\x7E]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 };

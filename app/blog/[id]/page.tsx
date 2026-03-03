@@ -10,7 +10,12 @@ const FALLBACK_DESCRIPTION =
 type RouteParams = { id: string };
 
 const asciiClean = (value: string | undefined | null): string | undefined =>
-  value?.replace(/[^\x20-\x7E]+/g, " ").replace(/\s+/g, " ").trim();
+  value
+    ?.replace(/<[^>]*>?/gm, " ") // Strip HTML tags
+    .replace(/&#?[a-z0-9]+;/ig, " ") // Strip HTML entities
+    .replace(/[^\x20-\x7E]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
 export async function generateStaticParams() {
   return getSortedPostsData().map((post) => ({ id: post.id }));
