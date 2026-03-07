@@ -116,7 +116,7 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Add-ons</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {addons.length > 0 &&
           addons.map(addon => {
             const qty = quantities[addon.name] ?? 0;

@@ -86,7 +86,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                 <div className='flex justify-start'>
                     <div>
                         <h2 className="text-lg font-semibold mb-5">Selected Addons</h2>
-                        <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6`}>
+                        <div className={`grid ${rentModal ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6`}>
                             {selectedAddons.map((addon) => (
                                 <div
                                     key={addon.name}
@@ -128,7 +128,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                         {!rentModal && (
                             <h2 className="text-lg font-semibold mb-5">Available Addons</h2>
                         )}
-                        <div className={`grid ${rentModal ? 'grid-cols-2 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6`}>
+                        <div className={`grid ${rentModal ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6`}>
                             {availableAddons.map((addon) => (
                                 <div
                                     key={addon.name}

@@ -58,7 +58,7 @@ export default function PackageSetModal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                
+
                 <div className="flex items-center justify-between p-4 border-b">
                     <h3 className="text-lg font-semibold">
                         Select Sets for {packageItem.title}
@@ -71,7 +71,7 @@ export default function PackageSetModal({
                     </button>
                 </div>
 
-                
+
                 <div className="p-6 overflow-y-auto">
                     <div className="mb-4">
                         <p className="text-neutral-600">
@@ -94,7 +94,7 @@ export default function PackageSetModal({
                     />
                 </div>
 
-                
+
                 <div className="p-4 border-t bg-neutral-50 flex justify-end gap-3">
                     <Button
                         label="Cancel"
@@ -102,7 +102,7 @@ export default function PackageSetModal({
                         outline
                     />
                     <Button
-                        label="Confirm Selection"
+                        label="Confirm"
                         onClick={handleSubmit}
                         disabled={!isValid}
                     />
