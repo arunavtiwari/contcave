@@ -506,6 +506,23 @@ function ListingInfo({
         </div>
       )}
 
+      {fullListing.customTerms && (
+        <>
+          <div className="flex flex-col gap-4">
+            <p className="text-xl font-semibold">Terms & Conditions by Host</p>
+            <div className="text-base font-normal">
+              <div
+                className="prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-strong:text-black prose-headings:text-black"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(fullListing.customTerms),
+                }}
+              />
+            </div>
+          </div>
+          <hr />
+        </>
+      )}
+
       <div className="flex flex-col gap-4">
         <p className="text-xl font-semibold">Cancellation Policy</p>
         <p className="flex flex-wrap">

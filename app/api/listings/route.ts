@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       title, description, imageSrc, category, locationValue, actualLocation,
       price, amenities, otherAmenities, addons, carpetArea, operationalDays,
       operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
-      verifications, terms, packages,
+      verifications, terms, customTerms, packages,
       hasSets, setsHaveSamePrice, unifiedSetPrice, additionalSetPricingType, sets,
     } = body;
 
@@ -211,6 +211,7 @@ export async function POST(request: Request) {
         setsHaveSamePrice: Boolean(setsHaveSamePrice),
         unifiedSetPrice: setsHaveSamePrice ? Math.round(Number(unifiedSetPrice)) : null,
         additionalSetPricingType: sanitizedPricingType,
+        customTerms: typeof customTerms === "string" ? customTerms.trim() : null,
 
       },
     });

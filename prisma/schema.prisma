@@ -125,6 +125,7 @@ model Listing {
   type                     String[]
   verifications            Json?
   terms                    Boolean?
+  customTerms              String?
   Addons                   Addons[]
   reviews                  Review[]
   DayStatus                DayStatus[]

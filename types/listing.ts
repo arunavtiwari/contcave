@@ -41,6 +41,7 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
     setsHaveSamePrice?: boolean;
     unifiedSetPrice?: number | null;
     additionalSetPricingType?: AdditionalSetPricingType | null;
+    customTerms?: string | null;
 
     sets?: ListingSet[];
     blocks?: ListingBlock[];

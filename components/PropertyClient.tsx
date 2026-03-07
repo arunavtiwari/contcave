@@ -312,6 +312,19 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             </div>
                         </div>
 
+                        <div className="flex sm:items-start gap-1 sm:gap-10 flex-col sm:flex-row">
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
+                                Terms & Conditions by Host
+                            </label>
+
+                            <div className="w-full">
+                                <RichTextEditor
+                                    value={initialListing.customTerms ?? ""}
+                                    onChange={(html) => handleInputChange("customTerms", html)}
+                                />
+                            </div>
+                        </div>
+
 
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Category</label>

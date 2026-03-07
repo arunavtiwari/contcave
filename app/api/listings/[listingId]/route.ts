@@ -72,6 +72,10 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       }
     }
 
+    if (listingData.customTerms !== undefined) {
+      listingData.customTerms = typeof listingData.customTerms === "string" ? listingData.customTerms.trim() : null;
+    }
+
     const validPricingTypes = ["FIXED", "HOURLY"];
     if (listingData.additionalSetPricingType !== undefined) {
       if (!validPricingTypes.includes(listingData.additionalSetPricingType)) {

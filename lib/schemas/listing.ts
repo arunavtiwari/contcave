@@ -81,6 +81,7 @@ export const listingSchema = z.object({
 
     instantBooking: z.boolean().default(false),
     terms: z.boolean().refine(val => val === true, "You must accept the terms"),
+    customTerms: z.string().optional().nullable(),
     operationalHours: operationalHoursSchema,
     operationalDays: operationalDaysSchema,
 

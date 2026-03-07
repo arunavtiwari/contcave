@@ -56,6 +56,7 @@ enum STEPS {
   AMENITIES,
   ADDONS,
   OTHERDETAILS,
+  CUSTOMTERMS,
   SETS,
   PACKAGES,
   VERIFICATION,
@@ -154,6 +155,7 @@ export default function RentModal() {
       minimumBookingHours: "",
       maximumPax: "",
       terms: false,
+      customTerms: "",
     },
   });
   const descriptionValue = watch("description");
@@ -233,7 +235,7 @@ export default function RentModal() {
 
   const onBack = () => {
     if (step === STEPS.PACKAGES && !listingDetails?.hasSets) {
-      setStep(STEPS.OTHERDETAILS);
+      setStep(STEPS.CUSTOMTERMS);
       return;
     }
     setStep((v) => v - 1);
@@ -358,7 +360,7 @@ export default function RentModal() {
 
 
 
-    if (step === STEPS.OTHERDETAILS) {
+    if (step === STEPS.CUSTOMTERMS) {
       if (!listingDetails?.hasSets) {
         setStep(STEPS.PACKAGES);
         return;
@@ -513,6 +515,7 @@ export default function RentModal() {
         verifications,
         agreementSignature: signature,
         terms,
+        customTerms: data.customTerms || null,
         hasSets: listingDetails?.hasSets,
         setsHaveSamePrice: Boolean(setsHaveSamePrice),
         unifiedSetPrice: setsHaveSamePrice ? Number(unifiedSetPrice) : null,
@@ -1022,6 +1025,33 @@ export default function RentModal() {
             onChange={handleDetailsChange}
             data={listingDetails}
           />
+        </div>
+      );
+      break;
+
+    case STEPS.CUSTOMTERMS:
+      bodyContent = (
+        <div className="flex flex-col gap-4">
+          <Heading title="Custom Terms and Conditions" subtitle="Add your own rules and policies for the space" variant="h3" />
+          <div className="w-full">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">
+                Terms and Conditions
+              </label>
+
+              <LexicalEditor
+                value={watch("customTerms") || ""}
+                onChange={(html) =>
+                  setValue("customTerms", html, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+                placeholder="Enter custom terms and conditions for booking this space..."
+                disabled={isLoading}
+              />
+            </div>
+          </div>
         </div>
       );
       break;

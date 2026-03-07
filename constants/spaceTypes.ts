@@ -1,11 +1,11 @@
 export const spaceTypes = [
   "Fashion Shoot",
   "Product & E-commerce Shoot",
-  "Portrait / Photoshoot",
+  "Portraits & Photoshoot",
   "Reels & Social Media Content",
   "Podcast Recording",
   "Video Production",
-  "Film / Music Video Shoot",
+  "Film & Music Video Shoot",
   "Brand Campaign Shoot",
   "Pre-Wedding Shoot",
   "Interviews & YouTube Videos",
