@@ -5,10 +5,12 @@ import React from "react";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import AgreementDocument from "@/components/pdfs/AgreementDocument";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import prisma from "@/lib/prismadb";
 
 export async function POST(request: Request) {
     try {
         const currentUser = await getCurrentUser();
+
         if (!currentUser?.id) {
             return createErrorResponse("Unauthorized", 401);
         }
@@ -20,38 +22,63 @@ export async function POST(request: Request) {
             return createErrorResponse("Missing listingId or signatureUrl", 400);
         }
 
-        // 1. Generate PDF Buffer using @react-pdf/renderer (Server-side)
-        const dateStr = new Date().toLocaleDateString('en-IN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+        // Resolve slug → actual Mongo ObjectId
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
+
+        let actualListingId = listingId;
+
+        if (!isObjectId) {
+            const listing = await prisma.listing.findUnique({
+                where: { slug: listingId },
+                select: { id: true },
+            });
+
+            if (!listing) {
+                return createErrorResponse("Listing not found", 404);
+            }
+
+            actualListingId = listing.id;
+        }
+
+        // 1. Generate PDF Buffer
+        const dateStr = new Date().toLocaleDateString("en-IN", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
         });
 
         const buffer = await renderToBuffer(
             React.createElement(AgreementDocument as React.ElementType, {
-                signatureUrl: signatureUrl,
-                dateStr: dateStr
+                signatureUrl,
+                dateStr,
             }) as React.ReactElement<import("@react-pdf/renderer").DocumentProps>
         );
 
         // 2. Prepare Cloudinary Upload
-        const folder = `agreements/${listingId}`;
+        const folder = `agreements/${actualListingId}`;
         const timestamp = Math.floor(Date.now() / 1000);
         const publicId = `agreement-${timestamp}`;
 
         const apiSecret = process.env.CLOUDINARY_API_SECRET;
-        const apiKey = process.env.CLOUDINARY_API_KEY || process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
-        const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+        const apiKey =
+            process.env.CLOUDINARY_API_KEY ||
+            process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
+        const cloudName =
+            process.env.CLOUDINARY_CLOUD_NAME ||
+            process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
         if (!apiSecret || !apiKey || !cloudName) {
-            return createErrorResponse("Server configuration error: Cloudinary credentials missing", 500);
+            return createErrorResponse(
+                "Server configuration error: Cloudinary credentials missing",
+                500
+            );
         }
 
         // 3. Generate Cloudinary Signature
         const paramsToSign = {
             folder,
             timestamp,
-            public_id: publicId
+            public_id: publicId,
         };
 
         const toSign = Object.entries(paramsToSign)
@@ -64,9 +91,13 @@ export async function POST(request: Request) {
             .update(`${toSign}${apiSecret}`)
             .digest("hex");
 
-        // 4. Upload to Cloudinary using fetch
+        // 4. Upload to Cloudinary
         const formData = new FormData();
-        const pdfBlob = new Blob([buffer as BlobPart], { type: "application/pdf" });
+
+        const pdfBlob = new Blob([buffer as BlobPart], {
+            type: "application/pdf",
+        });
+
         formData.append("file", pdfBlob, `${publicId}.pdf`);
         formData.append("folder", folder);
         formData.append("timestamp", String(timestamp));
@@ -91,9 +122,8 @@ export async function POST(request: Request) {
         return createSuccessResponse({
             url: uploadData.secure_url,
             pdfUrl: uploadData.secure_url,
-            public_id: uploadData.public_id
+            public_id: uploadData.public_id,
         });
-
     } catch (error) {
         return handleRouteError(error, "POST /api/agreements/generate");
     }

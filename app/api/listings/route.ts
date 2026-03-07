@@ -1,8 +1,10 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { generateUniqueSlug } from "@/lib/slug";
 
 const JITTER_METERS = 250;
+
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -84,6 +86,8 @@ export async function POST(request: Request) {
     if (trimmedTitle.length > 200) {
       return createErrorResponse("title is too long (max 200 characters)", 400);
     }
+
+    const slug = await generateUniqueSlug(trimmedTitle);
 
     if (!description || typeof description !== "string") {
       return createErrorResponse("description is required and must be a string", 400);
@@ -183,8 +187,19 @@ export async function POST(request: Request) {
 
     }
 
+    const generateSlug = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    let baseSlug = generateSlug(trimmedTitle);
+    if (!baseSlug) baseSlug = "listing";
+    let newSlug = baseSlug;
+    let counter = 1;
+    while (await prisma.listing.findFirst({ where: { slug: newSlug } })) {
+      newSlug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
     const listing = await prisma.listing.create({
       data: {
+        slug: newSlug,
         title: trimmedTitle,
         description: trimmedDescription,
         imageSrc: imageSrc.map((img: string) => img.trim()),

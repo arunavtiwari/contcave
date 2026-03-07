@@ -16,8 +16,8 @@ type RouteParams = { listingId?: string };
 const asciiClean = (value: string | string[] | undefined | null): string | undefined => {
   const source = Array.isArray(value) ? value.join(" ") : value;
   return source
-    ?.replace(/<[^>]*>?/gm, " ") // Strip HTML tags
-    .replace(/&#?[a-z0-9]+;/ig, " ") // Strip HTML entities
+    ?.replace(/<[^>]*>?/gm, " ") 
+    .replace(/&#?[a-z0-9]+;/ig, " ")
     .replace(/[^\x20-\x7E]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();

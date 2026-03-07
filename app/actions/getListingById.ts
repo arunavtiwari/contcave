@@ -32,21 +32,32 @@ export default async function getListingById(params: IParams): Promise<FullListi
       return null;
     }
 
-    const listing = await prisma.listing.findUnique({
-      where: {
-        id: listingId,
-      },
-      include: {
-        user: true,
-        packages: true,
-        sets: {
-          orderBy: {
-            position: "asc",
+    // Detect Mongo ObjectId
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
+
+    const listing = isObjectId
+      ? await prisma.listing.findUnique({
+        where: { id: listingId },
+        include: {
+          user: true,
+          packages: true,
+          sets: {
+            orderBy: { position: "asc" },
           },
+          blocks: true,
         },
-        blocks: true,
-      },
-    });
+      })
+      : await prisma.listing.findUnique({
+        where: { slug: listingId },
+        include: {
+          user: true,
+          packages: true,
+          sets: {
+            orderBy: { position: "asc" },
+          },
+          blocks: true,
+        },
+      });
 
     if (!listing) {
       return null;
@@ -59,28 +70,49 @@ export default async function getListingById(params: IParams): Promise<FullListi
       createdAt: l.createdAt.toISOString(),
       amenities: (l.amenities as string[]) || [],
       addons: castJson<Addon[]>(l.addons, []),
-      packages: l.packages?.map((pkg) => ({
-        ...pkg,
-        createdAt: pkg.createdAt.toISOString(),
-      })) || [],
-      operationalDays: castJson<{ start?: string; end?: string } | undefined>(l.operationalDays, undefined),
-      operationalHours: castJson<{ start?: string; end?: string } | undefined>(l.operationalHours, undefined),
-      actualLocation: castJson<ActualLocation | null>(l.actualLocation, null),
-      sets: l.sets?.map((set) => ({
-        ...set,
-        createdAt: set.createdAt.toISOString(),
-        updatedAt: set.updatedAt.toISOString(),
-      })) || [],
-      blocks: l.blocks?.map((block) => ({
-        ...block,
-        date: block.date.toISOString(),
-        createdAt: block.createdAt.toISOString(),
-      })) || [],
+
+      packages:
+        l.packages?.map((pkg) => ({
+          ...pkg,
+          createdAt: pkg.createdAt.toISOString(),
+        })) || [],
+
+      operationalDays: castJson<
+        { start?: string; end?: string } | undefined
+      >(l.operationalDays, undefined),
+
+      operationalHours: castJson<
+        { start?: string; end?: string } | undefined
+      >(l.operationalHours, undefined),
+
+      actualLocation: castJson<ActualLocation | null>(
+        l.actualLocation,
+        null
+      ),
+
+      sets:
+        l.sets?.map((set) => ({
+          ...set,
+          createdAt: set.createdAt.toISOString(),
+          updatedAt: set.updatedAt.toISOString(),
+        })) || [],
+
+      blocks:
+        l.blocks?.map((block) => ({
+          ...block,
+          date: block.date.toISOString(),
+          createdAt: block.createdAt.toISOString(),
+        })) || [],
+
       carpetArea: l.carpetArea ? Number(l.carpetArea) : undefined,
       maximumPax: l.maximumPax ? Number(l.maximumPax) : undefined,
-      minimumBookingHours: l.minimumBookingHours ? Number(l.minimumBookingHours) : undefined,
+      minimumBookingHours: l.minimumBookingHours
+        ? Number(l.minimumBookingHours)
+        : undefined,
+
       avgReviewRating: l.avgReviewRating ?? undefined,
       instantBooking: l.instantBooking ?? undefined,
+
       user: {
         ...l.user,
         createdAt: l.user.createdAt.toISOString(),
@@ -95,7 +127,10 @@ export default async function getListingById(params: IParams): Promise<FullListi
       },
     };
   } catch (error: unknown) {
-    console.error("[getListingById] Error:", error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      "[getListingById] Error:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     return null;
   }
 }

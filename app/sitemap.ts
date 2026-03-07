@@ -31,8 +31,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
 
     for (const listing of listings) {
+      const slugOrId = listing.slug ?? listing.id;
+
       routes.push({
-        url: `${base}/listings/${listing.id}`,
+        url: `${base}/listings/${slugOrId}`,
         lastModified: listing.createdAt ?? new Date(),
         changeFrequency: "weekly" as const,
         priority: 0.9,

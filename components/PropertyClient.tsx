@@ -291,11 +291,26 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="text"
                                 id="listingName"
-                                className="border rounded-full pl-3 py-2 shadow-xs w-full"
+                                className="border rounded-lg pl-3 py-2 shadow-xs w-full"
                                 placeholder="Enter the listing name"
                                 value={initialListing.title ?? ""}
                                 onChange={(e) => handleInputChange("title", e.target.value)}
                             />
+                        </div>
+
+                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
+                            <label className="text-sm font-medium text-gray-700 sm:w-1/3">Custom URL</label>
+                            <div className="w-full flex items-center">
+                                <span className="text-gray-500 mr-2">contcave.com/listings/</span>
+                                <input
+                                    type="text"
+                                    id="listingSlug"
+                                    className="border rounded-lg pl-3 py-2 shadow-xs w-full"
+                                    placeholder="Enter custom URL slug"
+                                    value={initialListing.slug ?? ""}
+                                    onChange={(e) => handleInputChange("slug", e.target.value)}
+                                />
+                            </div>
                         </div>
 
 
@@ -329,7 +344,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Category</label>
                             <select
-                                className="border rounded-full pl-3 py-2 shadow-xs w-full"
+                                className="border rounded-lg pl-3 py-2 shadow-xs w-full"
                                 value={initialListing.category ?? CATEGORY_OPTIONS[0]?.label}
                                 onChange={(e) => handleInputChange("category", e.target.value)}
                             >
@@ -352,7 +367,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 <input
                                     type="number"
                                     id="listingPrice"
-                                    className="border rounded-full py-2 shadow-xs w-full pl-10 focus:border-black"
+                                    className="border rounded-lg py-2 shadow-xs w-full pl-10 focus:border-black"
                                     placeholder="Price"
                                     value={Number.isFinite(initialListing.price) ? initialListing.price : ""}
                                     onChange={(e) => handleInputChange("price", Number(e.target.value))}
@@ -364,7 +379,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Location</label>
                             <select
-                                className="border rounded-full pl-3 py-2 shadow-xs w-full"
+                                className="border rounded-lg pl-3 py-2 shadow-xs w-full"
                                 value={initialListing.locationValue ?? ""}
                                 onChange={(e) => handleInputChange("locationValue", e.target.value)}
                             >
@@ -408,11 +423,11 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         <button
                                             type="button"
                                             onClick={() => removeMedia(index)}
-                                            className="absolute top-2 right-2 rounded-full"
+                                            className="absolute top-2 right-2 rounded-lg"
                                         >
                                             <MdClose
                                                 size={20}
-                                                className="text-white bg-black rounded-full hover:bg-white hover:text-black border-2 border-black transition"
+                                                className="text-white bg-black rounded-lg hover:bg-white hover:text-black border-2 border-black transition"
                                             />
                                         </button>
                                     </div>
@@ -477,7 +492,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="number"
                                 id="carpetArea"
-                                className="border rounded-full  pl-3 py-2 shadow-xs w-full"
+                                className="border rounded-lg  pl-3 py-2 shadow-xs w-full"
                                 placeholder="Enter the carpet area"
                                 value={initialListing.carpetArea ?? ""}
                                 onChange={(e) => handleInputChange("carpetArea", e.target.value)}
@@ -489,7 +504,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Days</label>
                             <div className="flex space-x-2 w-full">
                                 <select
-                                    className="border rounded-full w-25 py-1 text-center"
+                                    className="border rounded-lg w-25 py-1 text-center"
                                     value={initialListing.operationalDays?.start ?? "Mon"}
                                     onChange={(e) => handleInputChange("operationalDays.start", e.target.value)}
                                 >
@@ -501,7 +516,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 </select>
                                 <span>-</span>
                                 <select
-                                    className="border rounded-full w-25 py-1 text-center"
+                                    className="border rounded-lg w-25 py-1 text-center"
                                     value={initialListing.operationalDays?.end ?? "Sun"}
                                     onChange={(e) => handleInputChange("operationalDays.end", e.target.value)}
                                 >
@@ -519,7 +534,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Hours</label>
                             <div className="flex space-x-2 w-full">
                                 <select
-                                    className="border rounded-full w-36 py-1 text-center"
+                                    className="border rounded-lg w-36 py-1 text-center"
                                     value={startTime}
                                     onChange={(e) => onStartChange(e.target.value)}
                                 >
@@ -534,7 +549,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 <span>-</span>
 
                                 <select
-                                    className="border rounded-full w-36 py-1 text-center"
+                                    className="border rounded-lg w-36 py-1 text-center"
                                     value={endTime}
                                     onChange={(e) => onEndChange(e.target.value)}
                                 >
@@ -556,7 +571,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="text"
                                 id="minBookingHours"
-                                className="border rounded-full  pl-3 py-2 shadow-xs w-full"
+                                className="border rounded-lg  pl-3 py-2 shadow-xs w-full"
                                 placeholder="Enter the minimum booking hours"
                                 value={initialListing.minimumBookingHours ?? ""}
                                 onChange={(e) => handleInputChange("minimumBookingHours", e.target.value)}
@@ -569,7 +584,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="text"
                                 id="maxPax"
-                                className="border rounded-full  pl-3 py-2 shadow-xs w-full"
+                                className="border rounded-lg  pl-3 py-2 shadow-xs w-full"
                                 placeholder="Enter the maximum PAX"
                                 value={initialListing.maximumPax ?? ""}
                                 onChange={(e) => handleInputChange("maximumPax", e.target.value)}
@@ -614,13 +629,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         <div className="flex gap-4 w-full">
                                             <button
                                                 onClick={() => handleInputChange("additionalSetPricingType", "FIXED")}
-                                                className={`flex-1 py-2 px-4 rounded-full border transition ${initialListing.additionalSetPricingType === "FIXED" ? "bg-black text-white border-black" : "bg-white text-black border-neutral-300 hover:border-black"}`}
+                                                className={`flex-1 py-2 px-4 rounded-lg border transition ${initialListing.additionalSetPricingType === "FIXED" ? "bg-black text-white border-black" : "bg-white text-black border-neutral-300 hover:border-black"}`}
                                             >
                                                 Fixed Add-on
                                             </button>
                                             <button
                                                 onClick={() => handleInputChange("additionalSetPricingType", "HOURLY")}
-                                                className={`flex-1 py-2 px-4 rounded-full border transition ${initialListing.additionalSetPricingType === "HOURLY" ? "bg-black text-white border-black" : "bg-white text-black border-neutral-300 hover:border-black"}`}
+                                                className={`flex-1 py-2 px-4 rounded-lg border transition ${initialListing.additionalSetPricingType === "HOURLY" ? "bg-black text-white border-black" : "bg-white text-black border-neutral-300 hover:border-black"}`}
                                             >
                                                 Hourly Add-on
                                             </button>
@@ -684,7 +699,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="col-span-3 pt-5 flex justify-end">
                             <button
                                 type="button"
-                                className="inline-flex py-2 px-6 border border-transparent shadow-xs text-sm font-medium rounded-full hover:opacity-85 text-white bg-black"
+                                className="inline-flex py-2 px-6 border border-transparent shadow-xs text-sm font-medium rounded-lg hover:opacity-85 text-white bg-black"
                                 onClick={update}
                             >
                                 Save
@@ -701,7 +716,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                             {!isCalendarConnected && (
                                 <button
-                                    className="bg-black text-white px-15 h-fit py-2 rounded-full hover:opacity-90 flex gap-4 justify-center items-center"
+                                    className="bg-black text-white px-15 h-fit py-2 rounded-lg hover:opacity-90 flex gap-4 justify-center items-center"
                                     onClick={() => signIn("google-calendar")}
                                 >
                                     <Image
@@ -709,7 +724,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         alt="Google Calendar"
                                         width={30}
                                         height={30}
-                                        className="bg-white rounded-full"
+                                        className="bg-white rounded-lg"
                                     />
                                     Sync Google Calendar
                                 </button>

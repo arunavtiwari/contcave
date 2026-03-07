@@ -64,7 +64,7 @@ const ListingCard: React.FC<Props> = ({
       <div className="flex flex-col gap-2 w-full">
         <div className="aspect-square w-full relative overflow-hidden rounded-xl">
           <Link
-            href={onEdit ? `/properties/${data.id}` : `/listings/${data.id}`}
+            href={onEdit ? `/properties/${data.id}` : `/listings/${data.slug}`}
             className="block h-full w-full"
           >
             <div className="relative h-full w-full">
@@ -81,7 +81,7 @@ const ListingCard: React.FC<Props> = ({
             <HeartButton listingId={data.id} currentUser={currentUser} />
           </div>
         </div>
-        <Link href={onEdit ? `/properties/${data.id}` : `/listings/${data.id}`}>
+        <Link href={onEdit ? `/properties/${data.id}` : `/listings/${data.slug}`}>
           <div className="flex justify-between items-center">
             <div className="font-semibold text-lg">
               {data.title}

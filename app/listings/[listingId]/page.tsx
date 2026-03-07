@@ -58,7 +58,8 @@ export async function generateMetadata({
       ? listing.imageSrc
       : [OG_IMAGE];
   const image = absoluteUrl(imageCandidates[0] ?? OG_IMAGE);
-  const url = `${SITE_URL}/listings/${listingId}`;
+  const slugOrId = listing.slug ?? listing.id;
+  const url = `${SITE_URL}/listings/${slugOrId}`;
   const title = listing.title;
 
   return {
@@ -74,7 +75,7 @@ export async function generateMetadata({
       "ContCave",
       ...DEFAULT_KEYWORDS.slice(0, 10),
     ],
-    alternates: { canonical: `/listings/${listingId}` },
+    alternates: { canonical: `/listings/${slugOrId}` },
     openGraph: {
       type: "website",
       title,
@@ -250,7 +251,7 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
       ? `₹${listing.price.toString()}+`
       : undefined;
 
-  const url = absoluteUrl(`/listings/${listing.id}`);
+  const url = absoluteUrl(`/listings/${listing.slug ?? listing.id}`);
 
 
   const reviewCount = await prisma.review.count({

@@ -76,6 +76,26 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       listingData.customTerms = typeof listingData.customTerms === "string" ? listingData.customTerms.trim() : null;
     }
 
+    if (listingData.slug !== undefined) {
+      if (typeof listingData.slug !== "string") {
+        return createErrorResponse("slug must be a string", 400);
+      }
+      const newSlug = listingData.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      if (newSlug.length < 3) {
+        return createErrorResponse("custom URL must be at least 3 characters", 400);
+      }
+      if (newSlug.length > 100) {
+        return createErrorResponse("custom URL must be at most 100 characters", 400);
+      }
+      const existing = await prisma.listing.findFirst({
+        where: { slug: newSlug, id: { not: listingId } }
+      });
+      if (existing) {
+        return createErrorResponse("This custom URL is already taken", 400);
+      }
+      listingData.slug = newSlug;
+    }
+
     const validPricingTypes = ["FIXED", "HOURLY"];
     if (listingData.additionalSetPricingType !== undefined) {
       if (!validPricingTypes.includes(listingData.additionalSetPricingType)) {
@@ -86,8 +106,6 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
     if (listingData.unifiedSetPrice !== undefined) {
       listingData.unifiedSetPrice = listingData.unifiedSetPrice !== null ? Math.round(Number(listingData.unifiedSetPrice)) : null;
     }
-
-
 
     if (Array.isArray(listingData.imageSrc)) {
       listingData.imageSrc = listingData.imageSrc.filter(
