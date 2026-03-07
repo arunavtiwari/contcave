@@ -6,6 +6,7 @@ const indianCities = [
   { name: "Chennai", state: "Tamil Nadu", latlng: [13.0827, 80.2707] },
   { name: "Kolkata", state: "West Bengal", latlng: [22.5726, 88.3639] },
   { name: "Pune", state: "Maharashtra", latlng: [18.5204, 73.8567] },
+  { name: "Faridabad", state: "Haryana", latlng: [28.4089, 77.3178] },
 
   { name: "Noida", state: "Uttar Pradesh", latlng: [28.5355, 77.3910] },
   { name: "Gurugram", state: "Haryana", latlng: [28.4595, 77.0266] },
