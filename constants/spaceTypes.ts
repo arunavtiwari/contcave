@@ -1,15 +1,17 @@
 export const spaceTypes = [
-  "Fashion shoot",
-  "Product shoot",
-  "Podcast",
-  "Recording Studio",
-  "Film Shoot",
-  "Outdoor Event",
-  "Content shoot",
-  "Pre-Wedding",
-  "Meetings",
-  "Workshops",
-  "Photo Shoot",
+  "Fashion Shoot",
+  "Product & E-commerce Shoot",
+  "Portrait / Photoshoot",
+  "Reels & Social Media Content",
+  "Podcast Recording",
+  "Video Production",
+  "Film / Music Video Shoot",
+  "Brand Campaign Shoot",
+  "Pre-Wedding Shoot",
+  "Interviews & YouTube Videos",
+  "Workshops & Classes",
+  "Meetings & Creative Sessions",
+  "Events & Pop-Ups",
 ] as const;
 
 export type SpaceType = (typeof spaceTypes)[number];
