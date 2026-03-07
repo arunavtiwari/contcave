@@ -6,6 +6,9 @@ import { safeListing } from "@/types/listing";
 import { SafeUser } from "@/types/user";
 
 import ListingCard from "./ListingCard";
+import AutoComplete, { AutoCompleteValue } from "../inputs/AutoComplete";
+import MapPin from "lucide-react/dist/esm/icons/map-pin";
+import LocateFixed from "lucide-react/dist/esm/icons/locate-fixed";
 
 type Props = {
   listings: safeListing[];
@@ -47,6 +50,8 @@ const getListingLatLng = (listing: safeListing): [number, number] | null => {
 function ListingFeed({ listings, currentUser, autoSortByLocation = false }: Props) {
   const [sortedListings, setSortedListings] = useState(listings);
   const [sortedByLocation, setSortedByLocation] = useState(false);
+  const [showSortOptions, setShowSortOptions] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const hasAttemptedSortingRef = useRef(false);
   const listingsRef = useRef(listings);
 
@@ -79,33 +84,67 @@ function ListingFeed({ listings, currentUser, autoSortByLocation = false }: Prop
     }
   }, []);
 
-  useEffect(() => {
-    if (!autoSortByLocation || typeof window === "undefined" || hasAttemptedSortingRef.current) {
-      return;
-    }
+  const handleDetectLocation = () => {
     if (!("geolocation" in navigator)) {
-      hasAttemptedSortingRef.current = true;
+      alert("Geolocation is not supported by your browser");
       return;
     }
-
+    setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        hasAttemptedSortingRef.current = true;
+        setIsLocating(false);
         const { latitude, longitude } = position.coords;
         prioritizeListings(latitude, longitude);
       },
       () => {
-        hasAttemptedSortingRef.current = true;
+        setIsLocating(false);
+        alert("Unable to retrieve your location");
       },
       { enableHighAccuracy: false, timeout: GEO_TIMEOUT }
     );
-  }, [autoSortByLocation, prioritizeListings]);
+  };
+
+  const handleManualLocation = (val: AutoCompleteValue) => {
+    prioritizeListings(val.latlng[0], val.latlng[1]);
+  };
 
   return (
     <div className="space-y-6">
-      {sortedByLocation && (
-        <p className="text-sm text-neutral-600 font-semibold">Showing spaces near you</p>
-      )}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xl font-semibold">
+            {sortedByLocation ? "Spaces near selected location" : "Showing all spaces"}
+          </p>
+          <button
+            onClick={() => setShowSortOptions(!showSortOptions)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-neutral-300 rounded-[10px] hover:border-black transition"
+          >
+            <MapPin size={16} />
+            Sort by distance
+          </button>
+        </div>
+
+        {showSortOptions && (
+          <div className="p-4 border border-neutral-200 rounded-xl bg-neutral-50 flex flex-col md:flex-row items-center gap-4">
+            <button
+              onClick={handleDetectLocation}
+              disabled={isLocating}
+              className="flex items-center justify-center gap-2 px-6 py-2.5 w-full md:w-auto bg-black text-white rounded-[10px] text-sm font-semibold hover:bg-neutral-800 transition disabled:opacity-70 whitespace-nowrap"
+            >
+              <LocateFixed size={18} />
+              {isLocating ? "Locating..." : "Detect my location"}
+            </button>
+            <div className="text-sm font-medium text-neutral-500 uppercase whitespace-nowrap">or</div>
+            <div className="flex-1 w-full min-w-0">
+              <AutoComplete
+                onChange={handleManualLocation}
+                placeholder="Search for a location to sort by..."
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="pb-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 overflow-x-hidden">
         {sortedListings.map((item) => (
           <ListingCard key={item.id} data={item} currentUser={currentUser} />
