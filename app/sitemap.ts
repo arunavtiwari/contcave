@@ -26,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         status: "VERIFIED",
         active: true
       },
-      select: { id: true, createdAt: true },
+      select: { id: true, createdAt: true, slug: true },
       take: 5000,
     });
 
