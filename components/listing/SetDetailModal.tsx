@@ -1,8 +1,14 @@
 "use client";
 
+import "swiper/css";
+import "swiper/css/navigation";
+
 import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useRef, useState } from "react";
 import { IoCheckmark, IoChevronBack, IoChevronForward, IoClose } from "react-icons/io5";
+import type { Swiper as SwiperClass } from "swiper";
+import { Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 import Button from "@/components/ui/Button";
 import { ListingSet } from "@/types/set";
@@ -29,18 +35,7 @@ export default function SetDetailModal({
     isEligible,
 }: SetDetailModalProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-    const handleNextImage = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!set) return;
-        setCurrentImageIndex((prev) => (prev + 1) % set.images.length);
-    }, [set]);
-
-    const handlePrevImage = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!set) return;
-        setCurrentImageIndex((prev) => (prev - 1 + set.images.length) % set.images.length);
-    }, [set]);
+    const swiperRef = useRef<SwiperClass>(null);
 
     if (!isOpen || !set) return null;
 
@@ -58,33 +53,50 @@ export default function SetDetailModal({
                 </button>
 
 
-                <div className="w-full md:w-3/5 bg-neutral-100 relative min-h-[300px] md:min-h-full group">
+                <div className="w-full md:w-3/5 bg-neutral-100 relative min-h-75 md:min-h-full group">
                     {set.images.length > 0 ? (
                         <>
-                            <Image
-                                src={set.images[currentImageIndex]}
-                                alt={set.name}
-                                fill
-                                className="object-cover"
-                                priority
-                            />
+                            <Swiper
+                                modules={[Navigation]}
+                                loop={set.images.length > 1}
+                                speed={400}
+                                navigation={{
+                                    nextEl: ".set-modal-next",
+                                    prevEl: ".set-modal-prev",
+                                }}
+                                onSlideChange={(swiper) => setCurrentImageIndex(swiper.realIndex)}
+                                onSwiper={(swiper: SwiperClass) => { swiperRef.current = swiper; }}
+                                className="h-full w-full"
+                            >
+                                {set.images.map((img, idx) => (
+                                    <SwiperSlide key={idx}>
+                                        <div className="relative w-full h-full">
+                                            <Image
+                                                src={img}
+                                                alt={`${set.name} image ${idx + 1}`}
+                                                fill
+                                                className="object-cover"
+                                                priority={idx === 0}
+                                            />
+                                        </div>
+                                    </SwiperSlide>
+                                ))}
+                            </Swiper>
 
                             {set.images.length > 1 && (
                                 <>
                                     <button
-                                        onClick={handlePrevImage}
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white text-black rounded-full shadow-lg transition opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 duration-300"
+                                        className="set-modal-prev absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/80 hover:bg-white text-black rounded-full shadow-lg transition md:opacity-0 md:group-hover:opacity-100 md:-translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
                                     >
                                         <IoChevronBack size={20} />
                                     </button>
                                     <button
-                                        onClick={handleNextImage}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white text-black rounded-full shadow-lg transition opacity-0 group-hover:opacity-100 translate-x-[10px] group-hover:translate-x-0 duration-300"
+                                        className="set-modal-next absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/80 hover:bg-white text-black rounded-full shadow-lg transition md:opacity-0 md:group-hover:opacity-100 md:translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
                                     >
                                         <IoChevronForward size={20} />
                                     </button>
 
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm z-10">
                                         {set.images.map((_, idx) => (
                                             <div
                                                 key={idx}
@@ -141,9 +153,6 @@ export default function SetDetailModal({
                             disabled={!isAvailable || !isEligible}
                             outline={isSelected}
                             icon={isSelected ? IoCheckmark : undefined}
-
-
-
                         />
                     </div>
                 </div>

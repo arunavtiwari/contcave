@@ -6,6 +6,7 @@ import "swiper/css/navigation";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
+import type { Swiper as SwiperClass } from "swiper";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
@@ -53,8 +54,7 @@ export default function SetSelector({
     const [modalSet, setModalSet] = useState<ListingSet | null>(null);
     const [isBeginning, setIsBeginning] = useState(true);
     const [isEnd, setIsEnd] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const swiperRef = useRef<any>(null);
+    const swiperRef = useRef<SwiperClass>(null);
 
     const getSetPrice = (set: ListingSet) => {
         if (set.id === includedSetId) {
@@ -87,8 +87,7 @@ export default function SetSelector({
         onSetToggle(setId);
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleSwiperUpdate = (swiper: any) => {
+    const handleSwiperUpdate = (swiper: SwiperClass) => {
         setIsBeginning(swiper.isBeginning);
         setIsEnd(swiper.isEnd);
     };
@@ -139,20 +138,21 @@ export default function SetSelector({
                     modules={[Navigation]}
                     slidesPerView="auto"
                     spaceBetween={16}
-                    slidesPerGroup={2}
+                    slidesPerGroup={1}
+                    breakpoints={{
+                        768: { slidesPerGroup: 2 },
+                    }}
                     slidesOffsetBefore={4}
                     slidesOffsetAfter={4}
                     speed={400}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    onSwiper={(swiper: any) => {
+                    onSwiper={(swiper: SwiperClass) => {
                         swiperRef.current = swiper;
                         handleSwiperUpdate(swiper);
                     }}
                     onSlideChange={handleSwiperUpdate}
                     onReachBeginning={() => setIsBeginning(true)}
                     onReachEnd={() => setIsEnd(true)}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    onFromEdge={(swiper: any) => {
+                    onFromEdge={(swiper: SwiperClass) => {
                         setIsBeginning(swiper.isBeginning);
                         setIsEnd(swiper.isEnd);
                     }}
