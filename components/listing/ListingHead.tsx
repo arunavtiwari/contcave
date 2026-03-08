@@ -1,13 +1,14 @@
 "use client";
 
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+import "swiper/css";
+import "swiper/css/navigation";
 
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
-import Slider, { Settings } from "react-slick";
+import { Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 import HeartButton from "@/components/HeartButton";
 import Modal from "@/components/modals/Modal";
@@ -27,7 +28,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
   const { getByValue } = useCities();
   const location = getByValue(locationValue);
   const [showModal, setShowModal] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
   const [loaded, setLoaded] = useState<boolean[]>(new Array(imageSrc.length).fill(false));
 
@@ -43,36 +44,6 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
       updated[index] = true;
       return updated;
     });
-  };
-
-  const NextArrow: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-    <div
-      className="absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-sm border border-[rgba(255,255,255,0.5)] hover:bg-[rgba(0,0,0,0.8)] transition"
-      onClick={onClick}
-    >
-      <HiOutlineChevronRight className="text-white" size={24} />
-    </div>
-  );
-
-  const PrevArrow: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-    <div
-      className="absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-sm border border-[rgba(255,255,255,0.5)] hover:bg-[rgba(0,0,0,0.8)] transition"
-      onClick={onClick}
-    >
-      <HiOutlineChevronLeft className="text-white" size={24} />
-    </div>
-  );
-
-  const slickSettings: Settings = {
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    initialSlide: selectedImageIndex || 0,
-    arrows: true,
-    nextArrow: <NextArrow />,
-    prevArrow: <PrevArrow />,
-    adaptiveHeight: false,
   };
 
   const handleImageClick = (index: number) => {
@@ -111,7 +82,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
         return (
           <div
             key={index}
-            className={`relative ${isFeatured ? "col-span-2" : ""} h-[300px] cursor-pointer group`}
+            className={`relative ${isFeatured ? "col-span-2" : ""} h-75 cursor-pointer group`}
             onClick={() => handleModalImageClick(index)}
           >
             {!loaded[index] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-lg"></div>}
@@ -129,20 +100,42 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
   );
 
   const sliderContent = (
-    <Slider {...slickSettings}>
-      {imageSrc.map((url, index) => (
-        <div key={index} className="w-full h-[60vh] overflow-hidden rounded-xl relative">
-          <Image src={url} alt={`image-${index}`} fill className="object-cover w-full" />
-        </div>
-      ))}
-    </Slider>
+    <div className="relative group">
+      <Swiper
+        modules={[Navigation]}
+        loop={true}
+        speed={500}
+        navigation={{
+          nextEl: '.swiper-button-next-custom',
+          prevEl: '.swiper-button-prev-custom',
+        }}
+        initialSlide={selectedImageIndex || 0}
+        className="w-full h-[60vh] rounded-xl"
+      >
+        {imageSrc.map((url, index) => (
+          <SwiperSlide key={index}>
+            <div className="w-full h-full relative cursor-pointer" onClick={() => handleImageClick(index)}>
+              <Image src={url} alt={`image-${index}`} fill className="object-cover w-full" />
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+
+      {/* Custom Navigation */}
+      <div className="swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-sm border border-[rgba(255,255,255,0.5)] hover:bg-[rgba(0,0,0,0.8)] transition opacity-0 group-hover:opacity-100">
+        <HiOutlineChevronLeft className="text-white" size={24} />
+      </div>
+      <div className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-sm border border-[rgba(255,255,255,0.5)] hover:bg-[rgba(0,0,0,0.8)] transition opacity-0 group-hover:opacity-100">
+        <HiOutlineChevronRight className="text-white" size={24} />
+      </div>
+    </div>
   );
 
   return (
     <>
       <div className="flex gap-2">
         <Heading title={title} subtitle={`${location?.label}, India`} />
-        <div className="pt-[6px]">
+        <div className="pt-1.5">
           <HeartButton listingId={id} currentUser={currentUser} />
         </div>
       </div>
@@ -154,7 +147,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
       ) : (
         <>
           <div className="hidden lg:grid lg:grid-cols-2 gap-2 mt-4">
-            <div className="relative h-[455px] cursor-pointer" onClick={() => handleImageClick(0)}>
+            <div className="relative h-113.75 cursor-pointer" onClick={() => handleImageClick(0)}>
               {!loaded[0] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-l-lg"></div>}
               {imageSrc[0] && (
                 <Image
@@ -167,7 +160,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
               )}
             </div>
 
-            <div className="grid grid-rows-2 grid-cols-2 gap-2 h-[455px]">
+            <div className="grid grid-rows-2 grid-cols-2 gap-2 h-113.75">
               {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
               {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-r-lg")}
               {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
@@ -219,12 +212,21 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
             <IoMdClose size={24} />
           </button>
 
-          <div className="w-full h-full max-w-7xl max-h-screen flex items-center justify-center">
+          <div className="w-full h-full max-w-7xl max-h-screen flex items-center justify-center group relative">
             <div className="w-full h-full">
-              <Slider {...slickSettings} className="h-full">
+              <Swiper
+                modules={[Navigation]}
+                loop={true}
+                initialSlide={selectedImageIndex}
+                className="h-full"
+                navigation={{
+                  nextEl: '.swiper-lb-next',
+                  prevEl: '.swiper-lb-prev',
+                }}
+              >
                 {imageSrc.map((url, index) => (
-                  <div key={index} className="outline-none relative">
-                    <div className="h-screen w-full flex items-center justify-center">
+                  <SwiperSlide key={index}>
+                    <div className="h-screen w-full flex items-center justify-center select-none cursor-grab active:cursor-grabbing">
                       <div className="relative h-[90vh] w-full">
                         <Image
                           src={url}
@@ -232,12 +234,21 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
                           fill
                           className="object-contain"
                           priority={index === selectedImageIndex}
+                          draggable={false}
                         />
                       </div>
                     </div>
-                  </div>
+                  </SwiperSlide>
                 ))}
-              </Slider>
+              </Swiper>
+            </div>
+
+            {/* Lighbox Custom Navigation */}
+            <div className="swiper-lb-prev absolute top-1/2 left-4 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] backdrop-blur-xl p-3 rounded-full transition opacity-0 group-hover:opacity-100">
+              <HiOutlineChevronLeft className="text-white" size={32} />
+            </div>
+            <div className="swiper-lb-next absolute top-1/2 right-4 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] backdrop-blur-xl p-3 rounded-full transition opacity-0 group-hover:opacity-100">
+              <HiOutlineChevronRight className="text-white" size={32} />
             </div>
           </div>
         </div>

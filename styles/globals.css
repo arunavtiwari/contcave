@@ -156,7 +156,8 @@
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-	width: 6px;
+	width: 6px !important;
+	height: 8px !important;
 }
 
 ::-webkit-scrollbar-track {
@@ -336,9 +337,6 @@ button:not(:disabled) {
 }
 
 
-.slick-list {
-	border-radius: 1rem;
-}
 
 /* Calendar */
 .fc-button {
