@@ -2,20 +2,9 @@
 import React from "react";
 
 import Heading from "@/components/ui/Heading";
+import { Transaction } from "@/types/transaction";
 
-interface Transaction {
-    id: string;
-    businessName?: string;
-    merchant?: string;
-    date: string | Date;
-    guestName?: string;
-    customerName?: string;
-    amount: number;
-    currency?: string;
-    status: TransactionStatus;
-}
 
-type TransactionStatus = 'Pending' | 'Successful' | 'Success' | 'Failed' | 'Failure';
 
 interface TransactionHistoryProps {
 
@@ -32,7 +21,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     error = null,
     onRetry
 }) => {
-    const getStatusColor = (status: TransactionStatus): string => {
+    const getStatusColor = (status: string): string => {
         switch (status.toLowerCase()) {
             case 'pending':
                 return 'text-amber-600';

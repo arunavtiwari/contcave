@@ -1,19 +1,18 @@
 "use client";
 
+import LocateFixed from "lucide-react/dist/esm/icons/locate-fixed";
+import MapPin from "lucide-react/dist/esm/icons/map-pin";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { safeListing } from "@/types/listing";
 import { SafeUser } from "@/types/user";
 
-import ListingCard from "./ListingCard";
 import AutoComplete, { AutoCompleteValue } from "../inputs/AutoComplete";
-import MapPin from "lucide-react/dist/esm/icons/map-pin";
-import LocateFixed from "lucide-react/dist/esm/icons/locate-fixed";
+import ListingCard from "./ListingCard";
 
 type Props = {
   listings: safeListing[];
   currentUser?: SafeUser | null;
-  autoSortByLocation?: boolean;
 };
 
 const GEO_TIMEOUT = 8000;
@@ -47,12 +46,12 @@ const getListingLatLng = (listing: safeListing): [number, number] | null => {
   return [lat, lng];
 };
 
-function ListingFeed({ listings, currentUser, autoSortByLocation = false }: Props) {
+function ListingFeed({ listings, currentUser }: Props) {
   const [sortedListings, setSortedListings] = useState(listings);
   const [sortedByLocation, setSortedByLocation] = useState(false);
   const [showSortOptions, setShowSortOptions] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const hasAttemptedSortingRef = useRef(false);
+
   const listingsRef = useRef(listings);
 
   useEffect(() => {

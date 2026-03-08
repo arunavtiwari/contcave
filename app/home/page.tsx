@@ -124,7 +124,6 @@ export default async function Home(props: HomeProps) {
           <ListingFeed
             listings={listing}
             currentUser={currentUser}
-            autoSortByLocation={!searchParams.locationValue}
           />
         </Container>
       </ClientOnly>

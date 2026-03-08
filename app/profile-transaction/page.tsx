@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import getTransactions from "@/app/actions/getTransactions";
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
@@ -27,10 +28,12 @@ const ProfileTransaction = async () => {
       </ClientOnly>
     );
   }
+  const transactions = await getTransactions(currentUser.id);
+
   return (
     <Container>
       <ClientOnly>
-        <ProfileTransactionClient />
+        <ProfileTransactionClient currentUser={currentUser} transactions={transactions} />
       </ClientOnly>
     </Container>
   );

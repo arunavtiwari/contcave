@@ -5,22 +5,11 @@ import PaymentDetails from "@/components/Profile/ManagePayments/PaymentDetails";
 import TransactionHistory from "@/components/Profile/ManagePayments/TransactionHistory";
 import Heading from "@/components/ui/Heading";
 import { PaymentProfile } from "@/types/payment";
+import { Transaction } from "@/types/transaction";
 import { SafeUser } from "@/types/user";
 
 
-interface Transaction {
-    id: string;
-    businessName?: string;
-    merchant?: string;
-    date: string | Date;
-    guestName?: string;
-    customerName?: string;
-    amount: number;
-    currency?: string;
-    status: TransactionStatus;
-}
 
-type TransactionStatus = 'Pending' | 'Successful' | 'Success' | 'Failed' | 'Failure';
 
 interface Props {
     profile: SafeUser | null;
@@ -210,20 +199,20 @@ const ManagePayments: React.FC<Props> = ({
                 subtitle="View your payment details and past transactions."
             />
 
-            
+
             <nav
                 className="relative inline-flex bg-gray-100 rounded-full p-1 w-fit self-center border border-gray-200"
                 role="tablist"
                 aria-label="Payment management tabs"
             >
-                
+
                 <div
                     className="absolute top-1 bottom-1 bg-white rounded-full shadow-xs transition-all duration-300 ease-in-out"
                     style={tabIndicatorStyles}
                     aria-hidden="true"
                 />
 
-                
+
                 {TABS.map((tab) => (
                     <button
                         key={tab}
@@ -242,7 +231,7 @@ const ManagePayments: React.FC<Props> = ({
                 ))}
             </nav>
 
-            
+
             <main
                 role="tabpanel"
                 id={`${selectedTab.toLowerCase().replace(' ', '-')}-panel`}

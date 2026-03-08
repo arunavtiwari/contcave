@@ -11,9 +11,10 @@ interface SidebarProps {
     setSelectedMenu: (menu: string) => void;
     listingId?: string;
     menuType?: "main" | "profile";
+    isOwner?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedMenu, listingId, menuType = "main" }) => {
+const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedMenu, listingId, menuType = "main", isOwner }) => {
 
 
     const sidebarMenuItems = React.useMemo(() => [
@@ -40,17 +41,20 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedM
         },
     ], []);
 
-    const itemsToDisplay = React.useMemo(() =>
-        menuType === "profile" ? sidebarMenuItems.slice(5) : sidebarMenuItems.slice(0, 5),
-        [sidebarMenuItems, menuType]
-    );
+    const itemsToDisplay = React.useMemo(() => {
+        let items = menuType === "profile" ? sidebarMenuItems.slice(5) : sidebarMenuItems.slice(0, 5);
+        if (isOwner === false) {
+            items = items.filter(item => item.name !== "Manage Payments");
+        }
+        return items;
+    }, [sidebarMenuItems, menuType, isOwner]);
 
     const handleMenuClick = React.useCallback((item: typeof sidebarMenuItems[0]) => {
         setSelectedMenu(item.name);
     }, [setSelectedMenu]);
 
     return (
-        <div className="flex fixed flex-col sm:sticky top-[90px] sm:top-[85px] pr-4 pl-0 py-1.5 sm:py-10 min-w-[250px] bg-black/30 sm:bg-white h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
+        <div className="flex fixed flex-col sm:sticky top-22.5 sm:top-21.25 pr-4 pl-0 py-1.5 sm:py-10 min-w-62.5 bg-black/30 sm:bg-white h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
             <nav>
                 <ul className="flex sm:flex-col sm:gap-2 gap-2">
                     {itemsToDisplay.map((item, index) => (

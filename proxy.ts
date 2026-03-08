@@ -319,7 +319,7 @@ export const config = {
                 { type: 'header', key: 'purpose', value: 'prefetch' }
             ]
         },
-        '/Profile/:path*',
+        '/profile/:path*',
         '/bookings/:path*',
         '/chat/:path*',
         '/favorites/:path*',

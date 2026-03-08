@@ -127,7 +127,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
                     <MenuItem onClick={handleRent} label="List your space" icon={FiPlusCircle} />
                   </>
                 )}
-                <MenuItem onClick={closeMenu} href="/Profile" label="My Profile" icon={FiUser} />
+                <MenuItem onClick={closeMenu} href="/profile" label="My Profile" icon={FiUser} />
                 <hr className="my-2" />
                 <MenuItem onClick={handleLogout} label="Logout" icon={FiLogOut} />
               </>

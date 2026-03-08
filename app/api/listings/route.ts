@@ -1,7 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { generateUniqueSlug } from "@/lib/slug";
+
 
 const JITTER_METERS = 250;
 
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
       return createErrorResponse("title is too long (max 200 characters)", 400);
     }
 
-    const slug = await generateUniqueSlug(trimmedTitle);
+
 
     if (!description || typeof description !== "string") {
       return createErrorResponse("description is required and must be a string", 400);

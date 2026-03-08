@@ -40,7 +40,7 @@ async function refreshCalendarAccessToken(token: Record<string, unknown>) {
 }
 
 const PROTECTED_ROUTES = [
-    '/Profile',
+    '/profile',
     '/bookings',
     '/chat',
     '/favorites',
