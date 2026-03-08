@@ -138,6 +138,15 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             return;
         }
 
+        const invalidAddon = (initialListing.addons ?? []).find(
+            (addon) => !addon.price || addon.price <= 0 || !addon.qty || addon.qty <= 0
+        );
+
+        if (invalidAddon) {
+            toast.error(`Please provide a valid price and quantity for ${invalidAddon.name}`, { toastId: "Invalid_Addon_Update" });
+            return;
+        }
+
         if (initialListing.hasSets) {
             if (!initialListing.sets || initialListing.sets.length < 2) {
                 toast.error("Please add at least 2 sets for a multi-set listing");

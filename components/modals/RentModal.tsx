@@ -297,6 +297,18 @@ export default function RentModal() {
       }
     }
 
+    if (step === STEPS.ADDONS) {
+      if (selectedAddons.length > 0) {
+        const invalidAddon = selectedAddons.find(
+          (a) => !a.price || a.price <= 0 || !a.qty || a.qty <= 0
+        );
+        if (invalidAddon) {
+          toast.error(`Please provide a valid price and quantity for ${invalidAddon.name}`);
+          return;
+        }
+      }
+    }
+
     if (step === STEPS.SETS) {
       if (listingDetails?.hasSets) {
         if (!additionalSetPricingType) {
