@@ -23,11 +23,13 @@ const toPrice = (v: number | string | undefined) => {
 const sig = (arr: Addon[]) => arr.map(a => `${a.name}|${toPrice(a.price)}|${a.qty ?? 0}`).sort().join(",");
 
 const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }) => {
-  const inc = useCallback(() => onQtyChange(qty + 1), [qty, onQtyChange]);
+  const maxQty = addon.qty || Infinity;
+  const inc = useCallback(() => onQtyChange(Math.min(qty + 1, maxQty)), [qty, onQtyChange, maxQty]);
   const dec = useCallback(() => onQtyChange(Math.max(0, qty - 1)), [qty, onQtyChange]);
   const add = useCallback(() => onQtyChange(1), [onQtyChange]);
 
   const resolvedImg = imgUrl || addon.imageUrl || "";
+  const atMax = qty >= maxQty;
 
   return (
     <div className="flex gap-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200">
@@ -42,11 +44,21 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
       </div>
 
       <div className="text-sm overflow-hidden flex flex-col gap-2 w-full">
-        <div>
-          <p className="truncate w-full" title={addon.name}>
-            <strong>{addon.name}</strong>
+        <div className="flex flex-col gap-0.5 w-full">
+          <p className="truncate text-base font-semibold text-neutral-800" title={addon.name}>
+            {addon.name}
           </p>
-          <p>₹ {toPrice(addon.price)}</p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-neutral-600 text-sm">₹ {toPrice(addon.price)}</p>
+            {Number.isFinite(maxQty) && (
+              <>
+                <span className="h-1 w-1 bg-neutral-400 rounded-full shrink-0"></span>
+                <p className="text-neutral-500 text-sm">
+                  {maxQty === 1 ? "Only 1 available" : `${maxQty} available`}
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         {qty === 0 ? (
@@ -66,7 +78,8 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
             </span>
             <button
               onClick={inc}
-              className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-20 rounded-r-xl text-lg font-medium transition border border-[#D6D3D1]"
+              disabled={atMax}
+              className={`h-8 w-20 rounded-r-xl text-lg font-medium transition border border-[#D6D3D1] ${atMax ? "bg-neutral-200 text-neutral-400 cursor-not-allowed" : "text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6]"}`}
             >
               +
             </button>

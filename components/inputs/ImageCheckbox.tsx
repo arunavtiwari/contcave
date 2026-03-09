@@ -17,17 +17,22 @@ type Props = {
 
 const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked, addon, onChange, onClickChange }: Props) => {
   const [isChecked, setIsChecked] = useState(checked);
-  const [price, setPrice] = useState<number | ''>('');
-  const [qty, setQty] = useState<number | ''>('');
+  const [price, setPrice] = useState<number | ''>(addon?.price && addon.price > 0 ? addon.price : '');
+  const [qty, setQty] = useState<number | ''>(addon?.qty && addon.qty > 0 ? addon.qty : '');
 
   useEffect(() => {
     setIsChecked(checked);
   }, [checked]);
 
+  useEffect(() => {
+    if (addon?.price && addon.price > 0) setPrice(addon.price);
+    if (addon?.qty && addon.qty > 0) setQty(addon.qty);
+  }, [addon?.price, addon?.qty]);
+
   const handleCheckboxChange = () => {
     const newCheckedState = !isChecked;
     setIsChecked(newCheckedState);
-    onChange({ checked: newCheckedState, price: price !== '' ? price : undefined });
+    onChange({ checked: newCheckedState, price: price !== '' ? price : undefined, qty: qty !== '' ? qty : undefined });
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,16 +40,13 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
     setPrice(newPrice);
 
     if (isChecked) {
-      setIsChecked(isChecked);
       onChange({ checked: true, price: newPrice !== '' ? newPrice : undefined, qty: qty !== '' ? qty : undefined });
-
     }
   };
   const handleQtyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQty = e.target.value === '' ? '' : parseInt(e.target.value, 10);
     setQty(newQty);
     if (isChecked) {
-      setIsChecked(isChecked);
       onChange({ checked: true, price: price !== '' ? price : undefined, qty: newQty !== '' ? newQty : undefined });
     }
   };
@@ -84,10 +86,10 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
               alt={label || "image"}
               width={97}
               height={97}
-              className="rounded-md mt-2 object-cover w-[97px] h-[97px]"
+              className="rounded-md mt-2 object-cover w-24.25 h-24.25"
             />
           ) : (
-            <div className="rounded-md mt-2 w-[97px] h-[97px] bg-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-1">
+            <div className="rounded-md mt-2 w-24.25 h-24.25 bg-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-1">
               No Image
             </div>
           )
@@ -104,9 +106,9 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
                 <span className="absolute left-2 text-gray-500 border-r pr-2">₹</span>
                 <input
                   type="number"
-                  value={addon?.price ? addon.price : price}
+                  value={price}
                   onChange={handlePriceChange}
-                  className="w-[150px] text-center border rounded-xl py-1 pl-10"
+                  className="w-37.5 text-center border rounded-xl py-1 pl-10"
                   placeholder="Price"
                   disabled={!isChecked}
                 />
@@ -120,9 +122,9 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
               <label className="text-sm font-semibold shrink-0">Quantity</label>
               <input
                 type="number"
-                value={addon?.qty ? addon.qty : qty}
+                value={qty}
                 onChange={handleQtyChange}
-                className="w-[150px] text-center border rounded-xl py-1 px-3"
+                className="w-37.5 text-center border rounded-xl py-1 px-3"
                 placeholder="Quantity"
                 disabled={!isChecked}
               />

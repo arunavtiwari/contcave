@@ -113,6 +113,27 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       );
     }
 
+    if (Array.isArray(listingData.addons)) {
+      for (let i = 0; i < listingData.addons.length; i++) {
+        const addon = listingData.addons[i] as { name?: unknown; price?: unknown; qty?: unknown };
+        if (!addon.name || typeof addon.name !== "string" || addon.name.trim().length === 0) {
+          return createErrorResponse(`Addon ${i + 1}: name is required`, 400);
+        }
+        const price = Number(addon.price);
+        if (!Number.isFinite(price) || price <= 0) {
+          return createErrorResponse(`Addon "${addon.name}": price must be greater than 0`, 400);
+        }
+        const qty = addon.qty !== undefined && addon.qty !== null && addon.qty !== "" ? Number(addon.qty) : undefined;
+        if (qty !== undefined && (!Number.isFinite(qty) || qty <= 0)) {
+          return createErrorResponse(`Addon "${addon.name}": quantity must be greater than 0`, 400);
+        }
+        // Save the cleaned values back
+        addon.price = price;
+        if (qty !== undefined) addon.qty = qty;
+        else delete addon.qty;
+      }
+    }
+
     if (Object.keys(listingData).length > 0) {
       await prisma.listing.update({
         where: { id: listingId },

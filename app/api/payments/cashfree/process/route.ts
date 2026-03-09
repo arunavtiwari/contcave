@@ -71,7 +71,6 @@ export async function POST(req: NextRequest) {
             include: {
                 sets: true,
                 packages: true,
-                Addons: true,
             }
         });
 
@@ -157,26 +156,45 @@ export async function POST(req: NextRequest) {
         const cleanedAddons = sanitizeAddons(data.selectedAddons);
         let addonsSum = 0;
 
-        // Fetch DB addons to validate prices
-        const dbAddons = listing.Addons || [];
+        // Host's addons stored as JSON on the listing (contains price + available qty)
+        const listingAddons = Array.isArray(listing.addons)
+            ? (listing.addons as Array<{ name?: string; price?: number; qty?: number }>)
+            : [];
 
         for (const item of cleanedAddons) {
             let unitPrice = item.price;
+            let maxAvailable = Infinity;
 
-            // If ID exists and matches DB, enforce DB price
-            if (item.id) {
-                const found = dbAddons.find(a => a.id === item.id);
-                if (found) {
-                    unitPrice = found.price;
+            // Match against the listing's JSON addons (source of truth for host-set price & qty)
+            const listingAddon = listingAddons.find(
+                (a) => a.name && item.name && a.name.toLowerCase() === item.name.toLowerCase()
+            );
+            if (listingAddon) {
+                unitPrice = Math.max(0, Number(listingAddon.price) || 0);
+                if (listingAddon.qty !== undefined && listingAddon.qty !== null) {
+                    maxAvailable = Math.max(0, Number(listingAddon.qty));
                 }
+            }
+
+            // Enforce qty cap — booker cannot request more than available
+            const requestedQty = Math.max(0, item.qty || 1);
+            if (maxAvailable === 0) {
+                return createErrorResponse(`Addon "${item.name || "Unknown"}" is currently unavailable`, 400);
+            }
+            if (Number.isFinite(maxAvailable) && requestedQty > maxAvailable) {
+                return createErrorResponse(
+                    `Addon "${item.name || "Unknown"}" only has ${maxAvailable} available, but ${requestedQty} were requested`,
+                    400
+                );
             }
 
             // Basic sanity check
             unitPrice = Math.max(0, unitPrice);
-            addonsSum += unitPrice * (item.qty || 1);
+            addonsSum += unitPrice * requestedQty;
 
-            // Update the item price in our cleaned list to reflect what we are charging
+            // Update the item price/qty in our cleaned list to reflect what we are charging
             item.price = unitPrice;
+            item.qty = requestedQty;
         }
 
         const platformFee = 0; // Configurable later

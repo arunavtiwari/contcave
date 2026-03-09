@@ -196,6 +196,26 @@ export async function POST(request: Request) {
       newSlug = `${baseSlug}-${counter}`;
       counter++;
     }
+    if (Array.isArray(addons) && addons.length > 0) {
+      for (let i = 0; i < addons.length; i++) {
+        const addon = addons[i] as { name?: unknown; price?: unknown; qty?: unknown };
+        if (!addon.name || typeof addon.name !== "string" || addon.name.trim().length === 0) {
+          return createErrorResponse(`Addon ${i + 1}: name is required`, 400);
+        }
+        const addonPrice = Number(addon.price);
+        if (!Number.isFinite(addonPrice) || addonPrice <= 0) {
+          return createErrorResponse(`Addon "${addon.name}": price must be greater than 0`, 400);
+        }
+        const qty = addon.qty !== undefined && addon.qty !== null && addon.qty !== "" ? Number(addon.qty) : undefined;
+        if (qty !== undefined && (!Number.isFinite(qty) || qty <= 0)) {
+          return createErrorResponse(`Addon "${addon.name}": quantity must be greater than 0`, 400);
+        }
+        // Clean values
+        addon.price = addonPrice;
+        if (qty !== undefined) addon.qty = qty;
+        else delete addon.qty;
+      }
+    }
 
     const listing = await prisma.listing.create({
       data: {

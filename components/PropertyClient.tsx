@@ -762,7 +762,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     </div>
 
 
-                    <div className={selectedMenu === "Settings" ? "flex flex-col gap-5 sm:gap-8 min-h-[600px]" : "hidden"}>
+                    <div className={selectedMenu === "Settings" ? "flex flex-col gap-5 sm:gap-8 min-h-150" : "hidden"}>
                         <Heading title="Property Settings" subtitle="Manage your property settings and danger zone actions" />
 
                         <div className="flex flex-col gap-4 p-6 border-2 border-red-200 rounded-xl bg-red-50">

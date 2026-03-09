@@ -127,7 +127,7 @@ model Listing {
   verifications            Json?
   terms                    Boolean?
   customTerms              String?
-  Addons                   Addons[]
+
   reviews                  Review[]
   DayStatus                DayStatus[]
   avgReviewRating          Float?
@@ -230,17 +230,7 @@ model CustomAmenities {
   @@index([userId])
 }
 
-model Addons {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  image     String?
-  price     Int
-  createdAt DateTime @default(now())
-  Listing   Listing? @relation(fields: [listingId], references: [id])
-  listingId String?  @db.ObjectId
 
-  @@index([listingId])
-}
 
 model Review {
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
