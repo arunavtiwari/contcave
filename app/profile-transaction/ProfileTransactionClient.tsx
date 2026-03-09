@@ -26,7 +26,7 @@ const ProfileTransactionClient: React.FC<ProfileTransactionClientProps> = ({ cur
         <div className="flex xl:flex-nowrap lg:flex-nowrap md:flex-wrap flex-wrap gap-2">
           <h2 className="xl:text-center lg:text-center md:text-center text-left text-2xl font-bold p-4 cursor-pointer shadow-solid-6 rounded-t-xl">Transaction History</h2>
           {currentUser?.is_owner && (
-            <Link href="/Profile?tab=manage-payments" className="xl:text-center lg:text-center md:text-center text-left xl:text-2xl lg:text-2xl md:text-2xl text-lg text-slate-700 font-medium xl:px-8 lg:px-8 md:px-0 px-0 p-4 cursor-pointer">Payment Details</Link>
+            <Link href="/profile?tab=manage-payments" className="xl:text-center lg:text-center md:text-center text-left xl:text-2xl lg:text-2xl md:text-2xl text-lg text-slate-700 font-medium xl:px-8 lg:px-8 md:px-0 px-0 p-4 cursor-pointer">Payment Details</Link>
           )}
         </div>
         <div className="shadow-solid-6 p-6 rounded-b-xl rounded-tr-xl">

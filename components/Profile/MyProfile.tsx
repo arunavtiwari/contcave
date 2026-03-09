@@ -478,7 +478,7 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
                                         List Your Space
                                     </button>
                                     <Link
-                                        href="/Profile?tab=manage-payments"
+                                        href="/profile?tab=manage-payments"
                                         className="w-full bg-gray-100 text-gray-900 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
                                     >
                                         <FaCreditCard className="w-4 h-4" />
