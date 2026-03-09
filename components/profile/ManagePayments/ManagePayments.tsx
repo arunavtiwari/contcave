@@ -1,8 +1,8 @@
 "use client";
 import React, { useCallback, useMemo, useState } from "react";
 
-import PaymentDetails from "@/components/Profile/ManagePayments/PaymentDetails";
-import TransactionHistory from "@/components/Profile/ManagePayments/TransactionHistory";
+import PaymentDetails from "@/components/profile/ManagePayments/PaymentDetails";
+import TransactionHistory from "@/components/profile/ManagePayments/TransactionHistory";
 import Heading from "@/components/ui/Heading";
 import { PaymentProfile } from "@/types/payment";
 import { Transaction } from "@/types/transaction";

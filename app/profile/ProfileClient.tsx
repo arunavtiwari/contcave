@@ -3,10 +3,10 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import ManagePayments from "@/components/Profile/ManagePayments/ManagePayments";
-import MyProfile from "@/components/Profile/MyProfile";
-import Settings from "@/components/Profile/ProfileSettings";
-import ShareAndRefer from "@/components/Profile/ShareAndRefer";
+import ManagePayments from "@/components/profile/ManagePayments/ManagePayments";
+import MyProfile from "@/components/profile/MyProfile";
+import Settings from "@/components/profile/ProfileSettings";
+import ShareAndRefer from "@/components/profile/ShareAndRefer";
 import Sidebar from "@/components/Sidebar";
 import { PaymentProfile } from "@/types/payment";
 import { Transaction } from "@/types/transaction";

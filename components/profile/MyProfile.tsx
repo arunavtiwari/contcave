@@ -35,7 +35,7 @@ interface ProfileClientProps {
     profile: SafeUser | null;
 }
 
-const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
+const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
     const [currentUser, setCurrentUser] = useState<SafeUser | null>(null);
     const [isVerified, setIsVerified] = useState(false);
@@ -563,5 +563,5 @@ const ProfileClient: React.FC<ProfileClientProps> = ({ profile }) => {
 
 };
 
-export default ProfileClient;
+export default MyProfile;
 
