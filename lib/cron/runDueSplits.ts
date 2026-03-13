@@ -1,6 +1,7 @@
-import { createOrderSplit } from "@/lib/cashfree/easySplit";
+import { createOrderSplit } from "@/lib/cashfree/cashfree";
 import prisma from "@/lib/prismadb";
 import { WhatsappService } from "@/lib/whatsapp/service";
+import { formatInTimeZone } from "date-fns-tz";
 
 const OWNER_PAYOUT_PERCENT = Number(process.env.OWNER_PAYOUT_PERCENT || 80);
 
@@ -83,7 +84,7 @@ export async function runDueSplits(limit = 200) {
                         hostName: t.listing?.user?.name || "Host",
                         amount: payoutAmount,
                         listingTitle: t.listing?.title || "Studio",
-                        date: new Date().toISOString().split("T")[0],
+                        date: formatInTimeZone(new Date(), "Asia/Kolkata", "dd MMM yyyy"),
                     });
                 } catch (e: unknown) {
                     console.error("Failed to send payout WhatsApp", {

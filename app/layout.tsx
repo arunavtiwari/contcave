@@ -237,7 +237,7 @@ export default async function RootLayout({
           <RentModal />
           <CookieConsent />
         </ClientOnly>
-        <div className="min-h-screen pt-[84px]">{children}</div>
+        <div className="min-h-screen pt-21">{children}</div>
         <ScrollToTop />
         <Footer />
         <Analytics />

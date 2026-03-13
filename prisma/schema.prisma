@@ -307,6 +307,8 @@ model Transaction {
   emailSentCustomer    Boolean   @default(false)
   emailSentOwner       Boolean   @default(false)
   emailSentFailed      Boolean   @default(false)
+  whatsappSentCustomer Boolean   @default(false)
+  whatsappSentHost     Boolean   @default(false)
   vendorId             String?
   payoutPercentToOwner Float?    @default(88)
   payoutDueAt          DateTime?

@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { format } from "date-fns";
 import { checkSetConflicts } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund, cfMapStatus, cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
@@ -628,24 +629,57 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             console.error("[Webhook] Customer email dispatch error", { txnId: afterTxnId, error: (e instanceof Error ? e.message : String(e)) });
           }
 
-          let customerPhone: string | null | undefined;
+          // Idempotent WhatsApp send — claim the flag before sending
           try {
-            const txnUser = await prisma.user.findUnique({ where: { id: txn.userId! }, select: { phone: true } });
-            customerPhone = txnUser?.phone;
-            if (customerPhone) {
-              await WhatsappService.sendBookingConfirmedCustomer(customerPhone, {
-                customerName: afterCustomer.toName || "",
-                listingTitle: afterCustomer.studioName || "",
-                startDate: afterCustomer.startDate || "",
-                startTime: afterCustomer.startTime || "",
-                locationLink: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(afterCustomer.studioLocation || "")}`
-              });
+            const claimed = await prisma.transaction.updateMany({
+              where: { id: afterTxnId!, whatsappSentCustomer: false },
+              data: { whatsappSentCustomer: true },
+            });
+            if (claimed.count === 1) {
+              const txnUser = await prisma.user.findUnique({ where: { id: txn.userId! }, select: { phone: true } });
+              const customerPhone = txnUser?.phone;
+              if (customerPhone) {
+                const locationLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(afterCustomer.studioLocation || "")}`;
+
+                // Check if the listing was fetched earlier to determine instant-booking
+                const txnData = await prisma.transaction.findUnique({
+                  where: { id: afterTxnId! },
+                  select: { listing: { select: { instantBooking: true } } },
+                });
+                const isInstant = Boolean(txnData?.listing?.instantBooking);
+
+                const dateParts = afterCustomer.startDate?.split("-") || [];
+                const formattedDate = dateParts.length === 3 ? format(new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2])), "dd MMM yyyy") : (afterCustomer.startDate || "");
+                const formattedTime = afterCustomer.endTime ? `${afterCustomer.startTime} to ${afterCustomer.endTime}` : (afterCustomer.startTime || "");
+
+                if (isInstant) {
+                  await WhatsappService.sendBookingConfirmedCustomer(customerPhone, {
+                    customerName: afterCustomer.toName || "",
+                    listingTitle: afterCustomer.studioName || "",
+                    startDate: formattedDate,
+                    startTime: formattedTime,
+                    locationLink,
+                  });
+                } else {
+                  // Non-instant booking: acknowledge receipt, don't confirm yet
+                  await WhatsappService.sendBookingReceivedCustomer(customerPhone, {
+                    customerName: afterCustomer.toName || "",
+                    listingTitle: afterCustomer.studioName || "",
+                    startDate: formattedDate,
+                    startTime: formattedTime,
+                  });
+                }
+              }
             }
           } catch (e: unknown) {
+            // Roll back the claim on failure so it can be retried
+            await prisma.transaction.updateMany({
+              where: { id: afterTxnId!, whatsappSentCustomer: true },
+              data: { whatsappSentCustomer: false },
+            }).catch(() => { });
             console.error("[Webhook] Customer WhatsApp dispatch error", {
               txnId: afterTxnId,
               error: e instanceof Error ? e.message : String(e),
-              phone: customerPhone
             });
           }
         }
@@ -660,25 +694,39 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             console.error("[Webhook] Owner email dispatch error", { txnId: afterTxnId, error: (e instanceof Error ? e.message : String(e)) });
           }
 
-          let hostPhone: string | null | undefined;
+          // Idempotent WhatsApp send to host
           try {
-            const txnListing = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { listing: { select: { user: { select: { phone: true } } } } } });
-            hostPhone = txnListing?.listing?.user?.phone;
+            const claimed = await prisma.transaction.updateMany({
+              where: { id: afterTxnId!, whatsappSentHost: false },
+              data: { whatsappSentHost: true },
+            });
+            if (claimed.count === 1) {
+              const txnListing = await prisma.transaction.findUnique({ where: { id: afterTxnId! }, select: { listing: { select: { user: { select: { phone: true } } } } } });
+              const hostPhone = txnListing?.listing?.user?.phone;
+              if (hostPhone) {
+                const ownerExt = afterOwner as ExtendedOwnerEmailPayload;
+                const dateParts = ownerExt.formattedStartDate?.split("-") || [];
+                const formattedDate = dateParts.length === 3 ? format(new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2])), "dd MMM yyyy") : (ownerExt.formattedStartDate || "");
+                const formattedTime = ownerExt.formattedEndTime ? `${ownerExt.formattedStartTime} to ${ownerExt.formattedEndTime}` : (ownerExt.formattedStartTime || "");
 
-            if (hostPhone) {
-              await WhatsappService.sendBookingReceivedHost(hostPhone, {
-                hostName: afterOwner.toName || "",
-                customerName: afterOwner.customerName || "",
-                listingTitle: afterOwner.studioName || "",
-                startDate: (afterOwner as OwnerEmailPayload & { formattedStartDate?: string }).formattedStartDate || "",
-                startTime: (afterOwner as OwnerEmailPayload & { formattedStartTime?: string }).formattedStartTime || ""
-              });
+                await WhatsappService.sendBookingReceivedHost(hostPhone, {
+                  hostName: afterOwner.toName || "",
+                  customerName: afterOwner.customerName || "",
+                  listingTitle: afterOwner.studioName || "",
+                  startDate: formattedDate,
+                  startTime: formattedTime,
+                });
+              }
             }
           } catch (e: unknown) {
+            // Roll back the claim on failure
+            await prisma.transaction.updateMany({
+              where: { id: afterTxnId!, whatsappSentHost: true },
+              data: { whatsappSentHost: false },
+            }).catch(() => { });
             console.error("[Webhook] Host WhatsApp dispatch error", {
               txnId: afterTxnId,
               error: e instanceof Error ? e.message : String(e),
-              hostPhone
             });
           }
         }

@@ -7,6 +7,7 @@ import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
 import { IoMdCloseCircle } from "react-icons/io";
 
 import Button from "@/components/ui/Button";
+import { openWhatsAppSupport } from "@/lib/whatsapp/whatsappSupport";
 import { Addon } from "@/types/addon";
 import { safeListing } from "@/types/listing";
 import { SafeReservation } from "@/types/reservation";
@@ -99,12 +100,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
     const handleSupportWhatsApp = () => {
         const studio = reservation?.listing?.title || "the studio";
         const rid = reservation?.id || "";
-        const msg = encodeURIComponent(`Hi ContCave team, my booking was rejected for ${studio}. Reservation ID: ${rid}. Please help with refund.`);
-        const num = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(/[^0-9]/g, "");
-        const url = num ? `https://wa.me/${num}?text=${msg}` : `https://wa.me/?text=${msg}`;
-        if (typeof window !== "undefined") {
-            window.open(url, "_blank", "noopener,noreferrer");
-        }
+        const msg = `Hi ContCave team, my booking was rejected for ${studio}. Reservation ID: ${rid}. Please help with refund.`;
+        openWhatsAppSupport(msg);
     };
 
     return (

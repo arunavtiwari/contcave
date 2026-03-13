@@ -1,14 +1,16 @@
-import { addDays, endOfDay,startOfDay } from "date-fns";
+import { addDays } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 import prisma from "@/lib/prismadb";
 import { WhatsappService } from "@/lib/whatsapp/service";
 
 export async function sendBookingReminders() {
-    const tomorrow = addDays(new Date(), 1);
-    const start = startOfDay(tomorrow);
-    const end = endOfDay(tomorrow);
+    // Determine 'tomorrow' dynamically in IST
+    const tomorrowStr = formatInTimeZone(addDays(new Date(), 1), "Asia/Kolkata", "yyyy-MM-dd");
+    const start = new Date(`${tomorrowStr}T00:00:00.000Z`);
+    const end = new Date(`${tomorrowStr}T23:59:59.999Z`);
 
-    console.warn('[Cron] Running booking reminders', { rangeStart: start.toISOString(), rangeEnd: end.toISOString() });
+    console.warn('[Cron] Running booking reminders (IST-aligned)', { tomorrowStr, rangeStart: start.toISOString(), rangeEnd: end.toISOString() });
 
     const reservations = await prisma.reservation.findMany({
         where: {
@@ -46,7 +48,7 @@ export async function sendBookingReminders() {
                 await WhatsappService.sendBookingReminderCustomer(res.user.phone, {
                     customerName: res.user.name || "Customer",
                     listingTitle: res.listing.title,
-                    startTime: res.startTime,
+                    startTime: res.endTime ? `${res.startTime} to ${res.endTime}` : res.startTime,
                 });
                 results.push({ id: res.id, status: "sent", phone: res.user.phone });
             } catch (error: unknown) {
