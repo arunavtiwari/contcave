@@ -32,6 +32,7 @@ interface AmenityProp {
 type Props = {
   amenities?: string[];
   definedAmenities?: AmenityProp[];
+  customAmenities?: string[];
 };
 
 const getIconByName = (name: string) => {
@@ -164,7 +165,7 @@ const getIconByName = (name: string) => {
   return amenity ? amenity.icon : null;
 };
 
-function Offers({ amenities, definedAmenities }: Props) {
+function Offers({ amenities, definedAmenities, customAmenities }: Props) {
   const displayAmenities = useMemo(() => {
     if (!definedAmenities || !amenities) return [];
 
@@ -175,6 +176,15 @@ function Offers({ amenities, definedAmenities }: Props) {
         icon: getIconByName(item.name) as IconType | null,
       }));
   }, [amenities, definedAmenities]);
+
+  const displayCustomAmenities = useMemo(() => {
+    if (!Array.isArray(customAmenities)) return [];
+
+    return customAmenities
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .filter((item, index, arr) => arr.findIndex((value) => value.toLowerCase() === item.toLowerCase()) === index);
+  }, [customAmenities]);
 
   return (
     <>
@@ -192,6 +202,15 @@ function Offers({ amenities, definedAmenities }: Props) {
                 <item.icon size={22} className="text-neutral-700" />
               )}
               <p className="text-neutral-800 text-sm">{item.name}</p>
+            </div>
+          ))}
+          {displayCustomAmenities.map((item) => (
+            <div
+              key={item}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <FaPlus size={22} className="text-neutral-700" />
+              <p className="text-neutral-800 text-sm">{item}</p>
             </div>
           ))}
         </div>

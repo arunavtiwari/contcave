@@ -1,4 +1,6 @@
 import { z } from "zod";
+
+import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 export const imageSchema = z.string().url("Invalid image URL").max(500, "URL too long");
 
 export const locationSchema = z.object({
@@ -14,7 +16,31 @@ export const locationSchema = z.object({
 
 export const operationalHoursSchema = z.object({
     start: z.string().regex(/^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/, "Invalid start time (e.g. 9:00 AM)"),
-    end: z.string().regex(/^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/, "Invalid end time (e.g. 9:00 PM)"),
+    end: z.string().regex(/^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/, "Invalid end time (e.g. 12:00 AM)"),
+}).superRefine((value, ctx) => {
+    const startIdx = TIME_SLOTS.indexOf(value.start);
+    const endIdx = TIME_SLOTS.indexOf(value.end);
+    if (startIdx === -1) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["start"],
+            message: `Start time must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`,
+        });
+    }
+    if (endIdx === -1) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["end"],
+            message: `End time must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`,
+        });
+    }
+    if (startIdx !== -1 && endIdx !== -1 && endIdx < startIdx) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["end"],
+            message: "End time cannot be earlier than start time",
+        });
+    }
 }).optional().nullable();
 
 export const operationalDaysSchema = z.object({
@@ -28,7 +54,7 @@ export const listingSetSchema = z.object({
     tempId: z.string().optional(),
     name: z.string().min(1, "Name is required").max(200, "Name too long"),
     description: z.string().max(2000, "Description too long").optional().nullable(),
-    images: z.array(imageSchema).max(20, "Maximum 20 images per set"),
+    images: z.array(imageSchema).max(30, "Maximum 30 images per set"),
     price: z.number().min(0, "Price must be positive").max(10000000, "Price exceeds limit"),
     position: z.number().int().optional(),
 });
@@ -61,7 +87,7 @@ export const listingSchema = z.object({
     category: z.string().min(1, "Category is required").max(100),
     locationValue: z.string().min(1, "Country is required"),
     actualLocation: locationSchema,
-    imageSrc: z.array(imageSchema).min(1, "At least one image is required").max(20),
+    imageSrc: z.array(imageSchema).min(1, "At least one image is required").max(30),
 
 
     title: z.string().min(5, "Title must be at least 5 characters").max(200),

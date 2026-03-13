@@ -261,7 +261,7 @@ export default function SetsEditor({
                                                 </div>
                                             ))}
                                         </div>
-                                        {set.images.length < 10 && (
+                                        {set.images.length < 30 && (
                                             <ImageUpload
                                                 uid={`set-upload-${index}`}
                                                 onChange={(newUrls) => {
