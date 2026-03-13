@@ -1,13 +1,15 @@
 "use client";
 
-import Container from "@/components/Container";
-import Heading from "@/components/Heading";
-import ListingCard from "@/components/listing/ListingCard";
-import { SafeUser, safeListing } from "@/types";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
+
+import Container from "@/components/Container";
+import ListingCard from "@/components/listing/ListingCard";
+import Heading from "@/components/ui/Heading";
+import { safeListing } from "@/types/listing";
+import { SafeUser } from "@/types/user";
 
 type Props = {
   listings: safeListing[];
@@ -17,11 +19,9 @@ type Props = {
 function PropertiesClient({ listings, currentUser }: Props) {
   const router = useRouter();
   const [deletingId, setDeletingId] = useState("");
-  const [editingId, setEditingId] = useState("");
 
   const onEdit = useCallback(
     (id: string) => {
-      setEditingId(id);
 
       axios
         .patch(`/api/listings/${id}`)
@@ -37,7 +37,6 @@ function PropertiesClient({ listings, currentUser }: Props) {
           });
         })
         .finally(() => {
-          setEditingId("");
         });
     },
     [router]
@@ -76,8 +75,8 @@ function PropertiesClient({ listings, currentUser }: Props) {
     <div className="mt-5">
       <Container>
         <Heading title="My Properties" subtitle="Efficiently Manage, Update, and Showcase Your Listings with Ease." />
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
-          {listings.map((listing: any) => (
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {listings.map((listing) => (
             <ListingCard
               key={listing.id}
               data={listing}

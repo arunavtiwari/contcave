@@ -1,38 +1,33 @@
 "use client";
 
-import useSearchModal from "@/hook/useSearchModal";
 import { formatISO } from "date-fns";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import qs from "query-string";
-import { useCallback, useMemo, useState } from "react";
-import TimeRangePicker from '@wojtekmaj/react-timerange-picker';
-import '@wojtekmaj/react-timerange-picker/dist/TimeRangePicker.css';
+import { Suspense, useCallback, useMemo, useState } from "react";
 
+import Calendar from "@/components/inputs/Calendar";
+import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
+import Heading from "@/components/ui/Heading";
+import useSearchModal from "@/hook/useSearchModal";
 
-import Heading from "../Heading";
-import Calendar from "../inputs/Calendar";
-import CitySelect, { CitySelectValue } from "../inputs/CitySelect";
 import Modal from "./Modal";
 
 enum STEPS {
   LOCATION = 0,
   DATE = 1,
-  TIME = 2,
 }
 
 type Props = {};
 
-function SearchModal({ }: Props) {
+function SearchModalContent({ }: Props) {
   const router = useRouter();
   const params = useSearchParams();
   const searchModel = useSearchModal();
-  type ValuePiece = Date | string | null;
-  type Value = ValuePiece | [ValuePiece, ValuePiece];
   const [location, setLocation] = useState<CitySelectValue>();
   const [step, setStep] = useState(STEPS.LOCATION);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<Value>(['10:00', '11:00']);
+  const [hasSets, setHasSets] = useState(false);
 
 
   const Map = useMemo(
@@ -47,12 +42,8 @@ function SearchModal({ }: Props) {
     setStep((value) => value - 1);
   };
 
-  const onNext = () => {
-    setStep((value) => value + 1);
-  };
-
   const onSubmit = useCallback(async () => {
-    if (step !== STEPS.TIME) {
+    if (step !== STEPS.DATE) {
       setStep((v) => v + 1);
       return;
     }
@@ -63,11 +54,11 @@ function SearchModal({ }: Props) {
       currentQuery = qs.parse(params.toString());
     }
 
-    const updatedQuery: any = {
+    const updatedQuery: Record<string, string | string[] | null | undefined> = {
       ...currentQuery,
       locationValue: location?.value,
       selectedDate: selectedDate ? formatISO(selectedDate) : undefined,
-      selectedTime
+      hasSets: hasSets ? "true" : undefined,
     };
 
     const url = qs.stringifyUrl(
@@ -82,10 +73,10 @@ function SearchModal({ }: Props) {
     searchModel.onClose();
 
     router.push(url);
-  }, [step, searchModel, location, router, selectedDate, selectedTime, params]);
+  }, [step, searchModel, location, router, selectedDate, params, hasSets]);
 
   const actionLabel = useMemo(() => {
-    if (step === STEPS.TIME) {
+    if (step === STEPS.DATE) {
       return "Search";
     }
 
@@ -110,6 +101,18 @@ function SearchModal({ }: Props) {
         value={location}
         onChange={(value) => setLocation(value as CitySelectValue)}
       />
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-col">
+          <div className="font-medium">Multi-set listings</div>
+          <div className="font-light text-neutral-500">Only show studios with multiple sets</div>
+        </div>
+        <input
+          type="checkbox"
+          checked={hasSets}
+          onChange={(e) => setHasSets(e.target.checked)}
+          className="w-5 h-5 cursor-pointer"
+        />
+      </div>
       <hr />
       <Map center={location?.latlng} />
     </div>
@@ -130,21 +133,6 @@ function SearchModal({ }: Props) {
     );
   }
 
-  if (step === STEPS.TIME) {
-    bodyContent = (
-      <div className="flex flex-col gap-8">
-        <Heading
-          title="Select Time Slot"
-          subtitle="Choose the time range for your booking"
-        />
-        <TimeRangePicker
-          value={selectedTime}
-          onChange={(value) => setSelectedTime(value as Value)}
-        />
-      </div>
-    );
-  }
-
   return (
     <Modal
       isOpen={searchModel.isOpen}
@@ -156,6 +144,14 @@ function SearchModal({ }: Props) {
       actionLabel={actionLabel}
       body={bodyContent}
     />
+  );
+}
+
+function SearchModal({ }: Props) {
+  return (
+    <Suspense fallback={null}>
+      <SearchModalContent />
+    </Suspense>
   );
 }
 

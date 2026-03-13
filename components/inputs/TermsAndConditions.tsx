@@ -1,12 +1,28 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import Image from 'next/image';
+import React, { ChangeEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
-type TermsRef = { generateAndUploadPdf: (folderOverride?: string) => Promise<any> };
+export type TermsRef = { generateAndUploadPdf: (listingId: string) => Promise<{ url: string; pdfUrl: string }> };
 
-const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignature, onAgreementPdf }: any, ref) => {
+export interface SignatureMeta {
+    url: string;
+    thumbnail?: string;
+}
+
+interface TermsProps {
+    onChange: (checked: boolean) => void;
+    onSignature: (meta: SignatureMeta) => void;
+    onAgreementPdf: (meta: { url: string; pdfUrl: string }) => void;
+    value?: SignatureMeta | null;
+}
+
+const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, onSignature, onAgreementPdf, value }, ref) => {
     const [agree, setAgree] = useState(false);
-    const [signature, setSignature] = useState<any>(null);
+    const [signature, setSignature] = useState<SignatureMeta | null>(value || null);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (value) setSignature(value);
+    }, [value]);
 
     const handleSignatureFile = async (file: File) => {
         const reader = new FileReader();
@@ -19,131 +35,32 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
         onSignature?.(meta);
     };
 
-    const handleAgreeChange = (event: any) => {
+    const handleAgreeChange = (event: ChangeEvent<HTMLInputElement>) => {
         setAgree(event.target.checked);
         onChange(event.target.checked);
     };
 
-    const generateAndUploadPdf = async (folderOverride?: string) => {
+    const generateAndUploadPdf = async (listingId: string) => {
         try {
-            const node = containerRef.current;
-            if (!node) return;
-            const prevOverflow = node.style.overflow;
-            const prevMaxHeight = node.style.maxHeight;
-            const prevHeight = node.style.height;
-            const prevPaddingBottom = node.style.paddingBottom;
-            node.style.overflow = "visible";
-            node.style.maxHeight = "none";
-            node.style.height = "auto";
-            node.style.paddingBottom = "48px";
-            (node as any).scrollTop = 0;
+            if (!signature?.url) throw new Error("Signature required");
+            if (!listingId) throw new Error("Listing ID required");
 
-            const html2canvas = (await import("html2canvas")).default;
-            const { jsPDF } = await import("jspdf");
-            console.log("[Terms] Generating canvas...");
-            const canvas = await html2canvas(node as HTMLElement, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                width: (node as HTMLElement).scrollWidth,
-                height: (node as HTMLElement).scrollHeight,
-            });
-            node.style.overflow = prevOverflow;
-            node.style.maxHeight = prevMaxHeight;
-            node.style.height = prevHeight;
-            node.style.paddingBottom = prevPaddingBottom;
-            const pdf = new jsPDF("p", "mm", "a4");
-            pdf.setProperties({
-                title: "ContCave Host Agreement",
-                subject: "Host Agreement – Arkanet Ventures LLP",
-                author: "Arkanet Ventures LLP",
-                creator: "Arkanet Ventures LLP",
-            });
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const imgProps = { width: canvas.width, height: canvas.height };
-            const marginMm = 12;
-            const printableWidth = pageWidth - marginMm * 2;
-            const printableHeight = pageHeight - marginMm * 2;
-            const scale = printableWidth / imgProps.width;
-            const sliceHeightPx = Math.floor(printableHeight / scale);
-
-            let remainingPx = imgProps.height;
-            let sourceY = 0;
-            while (remainingPx > 0) {
-                const currentSlicePx = Math.min(sliceHeightPx, remainingPx);
-                const sliceCanvas = document.createElement('canvas');
-                sliceCanvas.width = imgProps.width;
-                sliceCanvas.height = currentSlicePx;
-                const sctx = sliceCanvas.getContext('2d');
-                if (sctx) {
-                    sctx.fillStyle = '#ffffff';
-                    sctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-                    sctx.drawImage(
-                        canvas,
-                        0,
-                        sourceY,
-                        imgProps.width,
-                        currentSlicePx,
-                        0,
-                        0,
-                        imgProps.width,
-                        currentSlicePx
-                    );
-                }
-                const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.92);
-                const sliceHeightMm = currentSlicePx * scale;
-                if (sourceY > 0) pdf.addPage();
-                pdf.addImage(sliceData, 'JPEG', marginMm, marginMm, printableWidth, sliceHeightMm);
-                sourceY += currentSlicePx;
-                remainingPx -= currentSlicePx;
-            }
-            const blob: Blob = pdf.output("blob");
-            const dataUrl = await new Promise<string>((resolve) => {
-                const fr = new FileReader();
-                fr.onload = () => resolve(String(fr.result || ""));
-                fr.readAsDataURL(blob);
-            });
-            console.log("[Terms] PDF blob size:", blob.size, "data URL length:", dataUrl?.length);
-
-            const folder = folderOverride || "agreements";
-            const timestamp = Math.floor(Date.now() / 1000);
-            const publicId = `agreement-${timestamp}`;
-            const paramsToSign: any = { folder, timestamp, public_id: publicId };
-            console.log("[Terms] Signing params (raw upload, no preset):", paramsToSign);
-            const signRes = await fetch("/api/cloudinary/sign", {
+            const response = await fetch("/api/agreements/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ paramsToSign })
+                body: JSON.stringify({
+                    listingId,
+                    signatureUrl: signature.url,
+                }),
             });
-            const sign = await signRes.json();
-            console.log("[Terms] Sign response status:", signRes.status, sign);
-            if (!signRes.ok || !sign?.signature) throw new Error("Signature failed");
 
-            const cloud = (sign.cloud as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME as string);
-            const apiKey = (sign.apiKey as string) || (process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY as string);
-            if (!cloud || !apiKey) throw new Error("Missing Cloudinary client env");
+            const result = await response.json();
 
-            const fd = new FormData();
-            const file = new File([blob], `${publicId}.pdf`, { type: "application/pdf" });
-            fd.append("file", file);
-            fd.append("folder", folder);
-            fd.append("timestamp", String(sign.timestamp));
-            fd.append("public_id", publicId);
-            fd.append("api_key", apiKey);
-            fd.append("signature", sign.signature);
-
-            console.log("[Terms] Uploading to Cloudinary cloud:", cloud, "folder:", folder, "as image/upload (pdf)");
-            const upRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method: "POST", body: fd });
-            const up = await upRes.json();
-            console.log("[Terms] Upload status:", upRes.status, up);
-            if (!upRes.ok) {
-                const errMsg = up?.error?.message || up?.error || up;
-                console.error("[Terms] Cloudinary upload error:", errMsg);
-                throw new Error(typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg));
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || "Failed to generate agreement PDF");
             }
-            const meta = { url: up.secure_url, pdfUrl: up.secure_url };
+
+            const meta = result.data;
             onAgreementPdf?.(meta);
             return meta;
         } catch (e) {
@@ -156,14 +73,14 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
 
     return (
         <div className=" flex justify-center items-center">
-            <div className="bg-white w-full max-w-xl mx-auto rounded-lg overflow-auto" style={{ maxHeight: '90vh' }}>
+            <div className="bg-white w-full max-w-xl mx-auto rounded-lg">
                 <div className="px-4">
-                    <div ref={containerRef} className="my-4 text-sm overflow-auto scrollbar-thin" style={{ maxHeight: '65vh' }}>
-                    <p>
+                    <div ref={containerRef} className="my-4 text-sm" style={{ color: '#000000', backgroundColor: '#ffffff' }}>
+                        <p>
                             This Agreement (“Agreement”) is entered into between <strong>Arkanet Ventures LLP</strong> (hereinafter referred to as "Company") and the individual or entity (“Host”) who wishes to list their property (“Property”) on the Company’s platform, ContCave (“Platform”).
                             By listing the Property, Host agrees to comply with the terms and conditions outlined below.
                         </p><br /><br />
-                        {/* This agreement (&apos;Agreement&apos;) is entered into between CONTCAVE (&apos;Company&apos;), a company registered under the laws of India, and the individual or entity (&apos;Host&apos;) who wishes to list their property (&apos;Property&apos;) on the Company's platform (&apos;Platform&apos;). By listing the Property on the Platform, Host agrees to comply with the terms and conditions outlined in this Agreement.<br /><br /> */}
+
                         <strong>1. Listing Property</strong><br />
                         1.1 Host agrees to provide accurate and up-to-date information about the Property, including property type, location, amenities, availability, pricing, and any rules or restrictions associated with the Property.<br />
                         1.2 Host acknowledges that any photos, descriptions, or other content provided for the Property listing must accurately represent the Property and may be subject to review by the Company.<br />
@@ -192,15 +109,26 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
                         <div className="mb-3">
                             <div className="font-semibold text-sm mb-1">Host Signature</div>
                             {!signature ? (
-                                <input
-                                    type="file"
-                                    accept="image/png,image/jpeg,image/webp"
-                                    onChange={(e) => {
-                                        const f = e.target.files?.[0];
-                                        if (f) handleSignatureFile(f);
+                                <label
+                                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border rounded-md shadow-sm text-sm font-medium transition"
+                                    style={{
+                                        color: '#374151',
+                                        borderColor: '#d1d5db',
+                                        backgroundColor: '#ffffff'
                                     }}
-                                    className="text-sm"
-                                />
+                                >
+                                    <span>Upload Signature Image</span>
+                                    <input
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/webp"
+                                        onChange={(e) => {
+                                            const f = e.target.files?.[0];
+                                            if (f) handleSignatureFile(f);
+                                        }}
+                                        className="hidden"
+                                        style={{ display: "none" }}
+                                    />
+                                </label>
                             ) : (
                                 <div className="flex items-center gap-3">
                                     <Image
@@ -209,8 +137,8 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
                                         width={120}
                                         height={60}
                                         unoptimized
-                                        style={{ objectFit: 'contain' }}
-                                        className="rounded border bg-white"
+                                        style={{ objectFit: 'contain', backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
+                                        className="rounded border"
                                     />
                                 </div>
                             )}
@@ -224,7 +152,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, any>(({ onChange, onSignatu
                             type="checkbox"
                             checked={agree}
                             onChange={handleAgreeChange}
-                            className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
+                            className="h-4 w-4 accent-black bg-gray-100 border-gray-300 rounded-full focus:outline-none focus:ring-transparent cursor-pointer checked:bg-black checked:border-black transition duration-150 ease-in-out"
                         />
                         <label htmlFor="agreeCheckbox" className="ml-2 block text-sm leading-5 text-gray-900">
                             I AGREE TO ALL TERMS AND CONDITIONS

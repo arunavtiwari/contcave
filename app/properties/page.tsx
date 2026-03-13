@@ -1,13 +1,14 @@
+import type { Metadata } from "next";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getListings from "@/app/actions/getListings";
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
-import getCurrentUser from "../actions/getCurrentUser";
-import getListings from "../actions/getListings";
+
 import PropertiesClient from "./PropertiesClient";
-import type { Metadata } from "next";
-import { BRAND_NAME } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: `My Properties | ${BRAND_NAME}`,
+  title: "My Properties",
   description: "Manage the listings you host on ContCave, update details, and keep availability in sync.",
   robots: {
     index: false,
@@ -16,9 +17,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Props = {};
-
-const PropertiesPage = async (props: Props) => {
+const PropertiesPage = async () => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {

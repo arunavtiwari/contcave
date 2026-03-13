@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-type Addon = { id?: string; name: string; price: number | string; imageUrl?: string; qty?: number };
+import { Addon } from "@/types/addon";
 type AddonListItem = { name: string; imageUrl?: string };
 
 type AddonItemProps = {
@@ -23,48 +23,70 @@ const toPrice = (v: number | string | undefined) => {
 const sig = (arr: Addon[]) => arr.map(a => `${a.name}|${toPrice(a.price)}|${a.qty ?? 0}`).sort().join(",");
 
 const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }) => {
-  const inc = useCallback(() => onQtyChange(qty + 1), [qty, onQtyChange]);
+  const maxQty = addon.qty || Infinity;
+  const inc = useCallback(() => onQtyChange(Math.min(qty + 1, maxQty)), [qty, onQtyChange, maxQty]);
   const dec = useCallback(() => onQtyChange(Math.max(0, qty - 1)), [qty, onQtyChange]);
   const add = useCallback(() => onQtyChange(1), [onQtyChange]);
 
+  const resolvedImg = imgUrl || addon.imageUrl || "";
+  const atMax = qty >= maxQty;
+
   return (
-    <motion.div
-      initial={{ x: -200, opacity: 0 }}
-      transition={{ duration: 1 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      className="flex space-x-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200"
-    >
-      <div className="rounded-lg h-fit w-fit">
-        <div
-          className="h-16 w-16 rounded-lg bg-neutral-100 bg-cover bg-center"
-          style={{ backgroundImage: `url(${imgUrl || addon.imageUrl || ""})`, backgroundBlendMode: "multiply" }}
+    <div className="flex gap-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200">
+      <div className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden">
+        <Image
+          src={resolvedImg}
+          alt={addon.name}
+          fill
+          sizes="64px"
+          className="object-cover"
         />
       </div>
 
-      <div className="text-sm overflow-hidden">
-        <p className="truncate w-full" title={addon.name}>
-          <strong>{addon.name}</strong>
-        </p>
-        <p>₹ {toPrice(addon.price)}</p>
+      <div className="text-sm overflow-hidden flex flex-col gap-2 w-full">
+        <div className="flex flex-col gap-0.5 w-full">
+          <p className="truncate text-base font-semibold text-neutral-800" title={addon.name}>
+            {addon.name}
+          </p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-neutral-600 text-sm">₹ {toPrice(addon.price)}</p>
+            {Number.isFinite(maxQty) && (
+              <>
+                <span className="h-1 w-1 bg-neutral-400 rounded-full shrink-0"></span>
+                <p className="text-neutral-500 text-sm">
+                  {maxQty === 1 ? "Only 1 available" : `${maxQty} available`}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
 
         {qty === 0 ? (
-          <button onClick={add} className="bg-black text-white px-4 py-1.5 mt-1 rounded-full">
+          <button onClick={add} className="bg-black text-white h-8 rounded-full">
             ADD
           </button>
         ) : (
-          <div className="flex items-center mt-1">
-            <button onClick={dec} className="text-white bg-rose-500 h-8 w-8 rounded-l-xl text-xl">
-              -
+          <div className="flex items-center w-full">
+            <button
+              onClick={dec}
+              className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-20 rounded-l-xl text-lg font-medium transition border border-[#D6D3D1]"
+            >
+              −
             </button>
-            <span className="px-5 bg-neutral-300 py-1.5 w-13">{qty}</span>
-            <button onClick={inc} className="text-white bg-green-500 h-8 w-8 rounded-r-xl text-xl leading-none">
+            <span className="bg-white text-[#2F2F2F] border-y flex items-center justify-center border-[#D6D3D1] h-8 w-full text-center">
+              {qty}
+            </span>
+            <button
+              onClick={inc}
+              disabled={atMax}
+              className={`h-8 w-20 rounded-r-xl text-lg font-medium transition border border-[#D6D3D1] ${atMax ? "bg-neutral-200 text-neutral-400 cursor-not-allowed" : "text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6]"}`}
+            >
               +
             </button>
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -107,7 +129,7 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Add-ons</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {addons.length > 0 &&
           addons.map(addon => {
             const qty = quantities[addon.name] ?? 0;

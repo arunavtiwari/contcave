@@ -1,7 +1,8 @@
-import React from "react";
-import { Feature } from "@/types/feature";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import React from "react";
+
+import { Feature } from "@/types/feature";
 
 const SingleFeature = ({ feature }: { feature: Feature }) => {
   const { icon, title, description, button_text } = feature;
@@ -29,15 +30,15 @@ const SingleFeature = ({ feature }: { feature: Feature }) => {
         transition={{ duration: 0.5 }}
         viewport={{ once: true }}
       >
-        {/* Overlay for Hover Effect */}
+        
         <div className="absolute inset-0 bg-black/50 transition-all duration-1000 group-hover:backdrop-blur-sm"></div>
 
-        {/* Title & Static Content */}
+        
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-8 transition-transform duration-1000 transform group-hover:-translate-y-full">
           <h3 className="text-xl font-semibold">{title}</h3>
         </div>
 
-        {/* Hover Content (Description and Button) */}
+        
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-8 transition-transform duration-1000 transform translate-y-full group-hover:translate-y-0">
           <p className="mb-6">{description}</p>
           <Link href="/home" passHref>

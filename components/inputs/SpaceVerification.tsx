@@ -1,155 +1,195 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { FiUpload } from "react-icons/fi";
-import { CiFileOn } from "react-icons/ci";
+import React, { useCallback, useEffect, useState } from 'react';
+import { BsFileEarmarkPdf } from "react-icons/bs";
+import { FiX } from "react-icons/fi";
+import { toast } from "react-toastify";
 
+import ImageUpload from './ImageUpload';
 
-const SpaceVerification = ({ onVerification }: any) => {
+export interface VerificationDocument {
+    file?: File;
+    original_filename: string;
+    bytes: number;
+    format: string;
+    resource_type: string;
+    previewUrl?: string;
+    public_id?: string;
+    version?: number;
+    thumbnail?: string;
+    url?: string;
+}
 
+export interface VerificationPayload {
+    documents: VerificationDocument[];
+    code?: string;
+}
 
-    const [documents, setDocuments] = useState<any[]>([]);
-    const [videos, setVideos] = useState<any[]>([]);
-    const [verificationCode, setVerificationCode] = useState('');
-    // Local file capture; actual upload will happen after listing creation
-    const handleLocalDocs = (evt: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(evt.target.files || []).filter((f) => f.type === 'application/pdf');
-        if (files.length === 0) return;
-        const mapped = files.map((f) => ({
+interface Props {
+    onVerification: (data: VerificationPayload) => void;
+    initialDocuments?: VerificationDocument[];
+}
+
+const MAX_DOCUMENTS = 10;
+
+const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments = [] }) => {
+    const [documents, setDocuments] = useState<VerificationDocument[]>(initialDocuments);
+
+    const notifyParent = useCallback((docs: VerificationDocument[]) => {
+        onVerification({
+            documents: docs,
+            code: ''
+        });
+    }, [onVerification]);
+
+    const isInitialized = React.useRef(false);
+    useEffect(() => {
+        if (!isInitialized.current && initialDocuments.length > 0) {
+            setDocuments(initialDocuments);
+            isInitialized.current = true;
+        }
+    }, [initialDocuments]);
+
+    const uploadedDocsRef = React.useRef<HTMLDivElement>(null);
+
+    const handleFilesChange = useCallback((files: File[]) => {
+        if (documents.length + files.length > MAX_DOCUMENTS) {
+            toast.error(`Maximum ${MAX_DOCUMENTS} documents allowed`);
+            return;
+        }
+
+        const mapped: VerificationDocument[] = files.map((f) => ({
             file: f,
             original_filename: f.name,
             bytes: f.size,
             format: 'pdf',
-            resource_type: 'image',
+            resource_type: 'raw',
             previewUrl: URL.createObjectURL(f),
         }));
+
         const nextDocs = [...documents, ...mapped];
         setDocuments(nextDocs);
-        setVerificationPayload(nextDocs, videos, verificationCode);
-    };
+        notifyParent(nextDocs);
+        toast.success(`${files.length} document(s) added.`);
 
-    const handleUploadVideoSuccess = (result: any) => {
-        const info = result?.info || {};
-        const newItems = Array.isArray(info.secure_url)
-            ? info.secure_url
-            : [{
-                resource_type: info.resource_type,
-                original_filename: info.original_filename,
-                public_id: info.public_id,
-                bytes: info.bytes,
-                version: info.version,
-                thumbnail: info.thumbnail_url,
-                url: info.secure_url,
-                format: info.format
-            }];
-        const nextVideos = [...videos, ...newItems];
-        setVideos(nextVideos);
-        setVerificationPayload(documents, nextVideos, verificationCode)
 
-    };
+        setTimeout(() => {
+            uploadedDocsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+    }, [documents, notifyParent]);
 
-    const generateVerificationCode = () => {
-        let result = '';
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        const charactersLength = characters.length;
-        for (let i = 0; i < 6; i++) {
-            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    const removeDocument = useCallback((index: number) => {
+        const doc = documents[index];
+        if (doc.previewUrl) {
+            URL.revokeObjectURL(doc.previewUrl);
         }
-        setVerificationCode(result);
-        setVerificationPayload(documents, videos, result)
-    }
+        const updatedDocs = documents.filter((_, i) => i !== index);
+        setDocuments(updatedDocs);
+        notifyParent(updatedDocs);
+        toast.info("Document removed");
+    }, [documents, notifyParent]);
 
-    const setVerificationPayload = ((documents: any[] = [], videos: any[] = [], code: string = "") => {
-        const verifications = {
-            documents: documents,
-            videos: videos,
-            code: code
-        }
-        onVerification(verifications)
-    })
     useEffect(() => {
-        // Keep parent in sync whenever docs/videos/code change
-        setVerificationPayload(documents, videos, verificationCode);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [documents, videos, verificationCode]);
+        return () => {
+            documents.forEach((doc) => {
+                if (doc.previewUrl) {
+                    URL.revokeObjectURL(doc.previewUrl);
+                }
+            });
+        };
+    }, [documents]);
+
     return (
-        <div className=" bg-opacity-50 overflow-y-auto h-full w-full" id="my-">
-            <div className="bg-white mx-auto relative rounded-md">
-                <div >
-
-                    <div className="px-7">
-                        <div className="flex justify-between">
-                            <div className="px-4 w-1/2">
-                                <label className="flex justify-center w-full h-15 px-4 py-3  mt-5 rounded-lg border text-white  border-rose-500 bg-rose-500 font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none cursor-pointer">
-                                    <FiUpload className="h-5 w-5 text-white  mr-2 " aria-hidden="true" />
-                                    <span>Upload Document/s (PDF)</span>
-                                    <input type="file" accept="application/pdf" multiple className="hidden" onChange={handleLocalDocs} />
-                                </label>
-                                <div className="flex flex-wrap">
-                                    {documents.map((doc: any, index: number) => (
-                                        <div key={index} className="mt-2 w-1/3 mx-auto h-15 truncate">
-                                            <CiFileOn className="rounded border h-15" size={62} />
-                                            <strong className="text-xs truncate">{doc.original_filename}.pdf</strong>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="border-l pb-6 pl-6 pt-6 w-1/2">
-                                <p className="text-xs text-black-500">Acceptable Documents for Verification are</p>
-                                <ul className="text-xs list-disc list-inside text-black-600">
-                                    <li>Property Deed</li>
-                                    <li>Rental Agreement</li>
-                                    <li>Utility Bills (Electricity/Water/Gas Bill)</li>
-                                    <li>No Objection Certificate (NOC)</li>
-                                </ul>
-                                <p className="text-xs mt-4">
-                                    You can upload multiple or any one of the mentioned documents
-                                </p>
-                            </div>
+        <div className="flex flex-col gap-6">
+            <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <div className="flex flex-col gap-4">
+                        <div>
+                            <h4 className="font-semibold text-gray-900 mb-2">Required Documents</h4>
+                            <p className="text-sm text-gray-500 leading-relaxed">
+                                To verify your ownership or authority to rent this space, please upload
+                                <span className="font-medium text-gray-700"> at least one </span>
+                                of the following documents.
+                            </p>
                         </div>
 
-                        <div className="flex my-2 mb-0">
-                            <div style={{ width: "50%", paddingTop: "10px" }}>
-                                <hr></hr>
-                            </div>
-                            <div className="px-2">OR</div>
-                            <div style={{ width: "50%", paddingTop: "10px" }}>
-                                <hr></hr>
-                            </div>
+                        <div className="bg-neutral-50 rounded-lg p-4 border border-neutral-100">
+                            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Accepted Documents</h5>
+                            <ul className="space-y-2.5">
+                                {[
+                                    "Property Deed",
+                                    "Rental Agreement",
+                                    "Utility Bills (Electricity/Water/Gas)",
+                                    "No Objection Certificate (NOC)"
+                                ].map((item, i) => (
+                                    <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                        <div className="flex">
-                            <div className="items-center w-1/2 px-6 mt-10">
-                                <div className="flex ">
-                                    <button
-                                        onClick={generateVerificationCode}
-                                        className="flex items-center px-4 py-2 bg-green-800 rounded-lg border text-white font-medium text-sm leading-5 shadow-sm hover:text-white hover:opacity-50 focus:outline-none">
 
-                                        Generate code
-                                    </button>
-                                    <input type="text" className="border focus:outline-none focus:shadow-outline leading-tight ml-2 px-2 py-2 rounded text-black-600 w-1/2 text-center" placeholder='XXXXXX'
-                                        disabled={true} value={verificationCode}
-                                    />
-                                </div><br />
-                                {/* Video upload disabled */}
-                            </div>
-
-                            <div className="border-l mt-4 pl-6 w-1/2">
-                                <p className="text-sm text-black-500">Steps to follow while filming property video are</p>
-                                <ol className="text-xs list-decimal list-inside text-black-600 mt-6">
-                                    <li><strong>Generate Code:</strong> Hosts should press the "Generate Code" button on the platform to create a unique verification code associated with their property listing.</li>
-                                    <li className='mt-4'><strong>Write Down Code:</strong> Hosts must write down the generated code on a slip of paper, ensuring it's clearly visible and legible.</li>
-                                    <li className='mt-4'><strong>Include in Property Video:</strong> While filming the property video, hosts should prominently display the slip with the written code to ensure its visibility throughout the video recording.</li>
-                                    <li className='mt-4'><strong>Upload Video:</strong> Once the property video is recorded, hosts should upload it to the platform, ensuring that the slip with the verification code remains visible in the video footage. This helps verify the authenticity of the property listing.</li>
-                                </ol>
-                            </div>
+                        <div className="text-xs text-gray-400 mt-auto">
+                            * Max file size: 10MB. Supported format: PDF.
                         </div>
                     </div>
 
-
-
+                    
+                    <div className="flex flex-col gap-4 h-full">
+                        <div className="flex-1 min-h-[200px]">
+                            <ImageUpload
+                                onChange={() => { }}
+                                values={[]}
+                                deferUpload
+                                onFilesChange={handleFilesChange}
+                                allowedTypes={['application/pdf']}
+                                label="Click to upload PDF"
+                                icon={BsFileEarmarkPdf}
+                                className="w-full h-full min-h-[200px] p-4 border-2 border-neutral-300"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            
+            {documents.length > 0 && (
+                <div className="flex flex-col gap-3" ref={uploadedDocsRef}>
+                    <h4 className="text-sm font-medium text-gray-900">Uploaded Documents ({documents.length})</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {documents.map((doc, index) => (
+                            <div
+                                key={index}
+                                className="group relative flex items-center p-3 bg-white border border-neutral-200 rounded-xl hover:border-black/30 transition-colors shadow-sm"
+                            >
+                                <div className="p-2.5 bg-rose-50 text-rose-500 rounded-lg mr-3 group-hover:bg-rose-100 transition-colors">
+                                    <BsFileEarmarkPdf size={20} />
+                                </div>
+                                <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                        {doc.original_filename}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {(doc.bytes / 1024 / 1024).toFixed(2)} MB
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => removeDocument(index)}
+                                    className="ml-2 p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                    aria-label="Remove document"
+                                    type="button"
+                                >
+                                    <FiX size={18} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
 export default SpaceVerification;
+

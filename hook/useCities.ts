@@ -6,6 +6,7 @@ const indianCities = [
   { name: "Chennai", state: "Tamil Nadu", latlng: [13.0827, 80.2707] },
   { name: "Kolkata", state: "West Bengal", latlng: [22.5726, 88.3639] },
   { name: "Pune", state: "Maharashtra", latlng: [18.5204, 73.8567] },
+  { name: "Faridabad", state: "Haryana", latlng: [28.4089, 77.3178] },
 
   { name: "Noida", state: "Uttar Pradesh", latlng: [28.5355, 77.3910] },
   { name: "Gurugram", state: "Haryana", latlng: [28.4595, 77.0266] },
@@ -52,7 +53,15 @@ const indianCities = [
   { name: "Srinagar", state: "Jammu and Kashmir", latlng: [34.0837, 74.7973] }
 ];
 
-const formattedIndianCities = indianCities.map((city) => ({
+export type City = {
+  value: string;
+  label: string;
+  state: string;
+  latlng: number[];
+  name: string;
+};
+
+const formattedIndianCities: City[] = indianCities.map((city) => ({
   value: city.name,
   label: city.name,
   state: city.state,

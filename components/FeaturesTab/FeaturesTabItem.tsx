@@ -1,10 +1,9 @@
-import React from "react";
-import { FeatureTab } from "@/types/featureTab";
 import Image from "next/image";
-import SectionHeader from "../Common/SectionHeader";
+import React from "react";
 
+import { FeatureTab } from "@/types/featureTab";
 const FeaturesTabItem = ({ featureTab }: { featureTab: FeatureTab }) => {
-  const { title, desc1, desc2, image, imageDark } = featureTab;
+  const { title, desc1, desc2, image } = featureTab;
 
   return (
     <>
@@ -18,7 +17,7 @@ const FeaturesTabItem = ({ featureTab }: { featureTab: FeatureTab }) => {
           <p className="w-11/12">{desc2}</p>
         </div>
 
-        <div className="relative mx-auto aspect-[562/366] max-w-[550px] md:block md:w-1/2">
+        <div className="relative mx-auto aspect-562/366 max-w-[550px] md:block md:w-1/2">
           <Image
             src={image}
             alt={title}

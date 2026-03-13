@@ -1,4 +1,4 @@
-import { sendTemplateEmail } from "./mailer";
+import { AttachmentInput, sendTemplateEmail } from "./mailer";
 
 export async function sendReservationCustomerEmail(input: {
     toEmail: string;
@@ -10,7 +10,11 @@ export async function sendReservationCustomerEmail(input: {
     totalPrice: number;
     addons: string;
     studioLocation: string;
+    additionalInfo?: string;
+    setNames?: string;
+    packageTitle?: string | null;
     templateId?: string;
+    attachments?: AttachmentInput[];
 }) {
     await sendTemplateEmail({
         toEmail: input.toEmail,
@@ -25,6 +29,10 @@ export async function sendReservationCustomerEmail(input: {
             total_price: Math.round(input.totalPrice),
             addons: input.addons,
             studio_location: input.studioLocation,
+            additional_info: input.additionalInfo || "",
+            set_names: input.setNames || "",
+            package_title: input.packageTitle || "",
         },
+        attachments: input.attachments,
     });
 }

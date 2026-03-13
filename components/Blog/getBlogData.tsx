@@ -1,5 +1,6 @@
-// components/Blog/getBlogData.ts
+
 import axios from "axios";
+
 import { BlogPost } from "@/types/blog";
 
 const getBlogData = async (): Promise<BlogPost[]> => {
@@ -9,12 +10,11 @@ const getBlogData = async (): Promise<BlogPost[]> => {
                 "Content-Type": "application/json",
             },
             params: {
-                draft: false, // You can pass query parameters this way
+                draft: false,
             },
         });
 
         const data = response.data;
-        console.log("Fetched blog data:", data);
 
 
         return data.docs as BlogPost[];

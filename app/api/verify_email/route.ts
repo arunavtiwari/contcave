@@ -1,27 +1,80 @@
-import { NextResponse } from "next/server";
+import axios from "axios";
+import { NextRequest } from "next/server";
 
-export async function POST(req: Request) {
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { getFixieProxyAgent } from "@/lib/fixie-proxy";
+import { emailVerificationSchema } from "@/lib/schemas/verification";
+
+export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
+    if (!req.headers.get("content-type")?.includes("application/json")) {
+      return createErrorResponse("Content-Type must be application/json", 415);
+    }
 
-    const resp = await fetch("https://control.msg91.com/api/v5/email/validate", {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-        authkey: process.env.MSG91_AUTH_KEY as string,
-      },
-      body: JSON.stringify({ email }),
-    });
+    const body = await req.json().catch(() => ({}));
 
-    const data = await resp.json();
 
-    return NextResponse.json(data, { status: 200 });
-  } catch (err: any) {
-    console.error("Email verification error:", err);
-    return NextResponse.json(
-      { error: "Email verification failed" },
-      { status: 500 }
-    );
+    const validation = emailVerificationSchema.safeParse(body);
+    if (!validation.success) {
+      return createErrorResponse(validation.error.issues[0].message, 400);
+    }
+
+    const { email } = validation.data;
+    const trimmedEmail = email.trim().toLowerCase();
+
+    const authKey = process.env.MSG91_AUTH_KEY;
+    if (!authKey || typeof authKey !== "string") {
+      return createErrorResponse("Server configuration error", 500);
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    const httpsAgent = getFixieProxyAgent();
+
+    try {
+      const resp = await axios.post(
+        "https://control.msg91.com/api/v5/email/validate",
+        { email: trimmedEmail },
+        {
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+            authkey: authKey,
+          },
+          httpsAgent,
+          signal: controller.signal,
+          timeout: 30000,
+        }
+      );
+
+      clearTimeout(timeoutId);
+      return createSuccessResponse(resp.data);
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+
+      if (axios.isAxiosError(fetchError)) {
+        const status = fetchError.response?.status || 500;
+        const errorData = fetchError.response?.data || fetchError.message;
+
+        console.error(`[MSG91 Email Verify] Upstream Error (${status}):`, JSON.stringify(errorData));
+
+        if (status === 401 || status === 403) {
+          return createErrorResponse(`Email verification service auth failed. check MSG91_AUTH_KEY or IP Whitelist. Upstream: ${JSON.stringify(errorData)}`, 500);
+        }
+
+        return createErrorResponse(
+          typeof errorData === "object" ? JSON.stringify(errorData) : String(errorData),
+          status
+        );
+      }
+
+      if (fetchError instanceof Error && fetchError.name === "AbortError") {
+        return createErrorResponse("Request timeout", 408);
+      }
+      throw new Error(`Network error: ${fetchError instanceof Error ? fetchError.message : "Unknown error"}`);
+    }
+  } catch (err) {
+    return handleRouteError(err, "POST /api/verify_email");
   }
 }

@@ -1,53 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { upsertPaymentDetails, PaymentDetailsData } from '@/lib/payment-details';
 
-const createSchema = z.object({
+import getCurrentUser from '@/app/actions/getCurrentUser';
+import { createErrorResponse, createSuccessResponse, handleRouteError } from '@/lib/api-utils';
+import { cfUpdateVendor, cfUploadVendorGSTIN } from '@/lib/cashfree/cashfree';
+import { upsertPaymentDetailsSafe } from '@/lib/payment-details';
+import prisma from '@/lib/prismadb';
+import { paymentDetailsSchema, paymentDetailsUpdateSchema } from '@/lib/schemas/payment';
+import { encryptionService } from '@/lib/security/encryption';
+
+const createSchema = paymentDetailsSchema.extend({
     userId: z.string().min(1, 'User ID is required'),
-    accountHolderName: z.string()
-        .min(2, 'Account holder name must be at least 2 characters')
-        .max(100, 'Too long')
-        .regex(/^[a-zA-Z\s.'-]+$/, 'Invalid characters'),
-    bankName: z.string().min(1, 'Bank name is required').max(100),
-    accountNumber: z.string()
-        .min(9, 'Too short')
-        .max(20, 'Too long')
-        .regex(/^\d+$/, 'Must contain only digits'),
-    ifscCode: z.string()
-        .length(11, 'Must be exactly 11 characters')
-        .regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Invalid IFSC format'),
-    taxIdentificationNumber: z.string().min(1).max(50),
-    taxResidencyInformation: z.string().min(1).max(200)
 });
 
-const updateSchema = createSchema.extend({
-    accountNumber: createSchema.shape.accountNumber.optional()
-});
-
-
-// Utility
-const createResponse = (success: boolean, data: any, status = 200) =>
-    NextResponse.json(
-        success
-            ? { success, data: data.data || data, message: data.message || 'Success', timestamp: new Date().toISOString() }
-            : { success, error: data, timestamp: new Date().toISOString() },
-        { status }
-    );
-
-const sanitize = (data: any) => ({
-    ...data,
-    accountNumber: data.accountNumber ? '***' + data.accountNumber.slice(-4) : undefined,
-    taxIdentificationNumber: data.taxIdentificationNumber ? '***' + data.taxIdentificationNumber.slice(-4) : undefined,
+const updateSchema = paymentDetailsUpdateSchema.extend({
+    userId: z.string().min(1, 'User ID is required'),
 });
 
 export async function POST(request: NextRequest) {
-    const contentType = request.headers.get('content-type') || '';
-
-    if (!contentType.includes('multipart/form-data')) {
-        return createResponse(false, 'Expected multipart/form-data', 415);
-    }
-
     try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser?.id) {
+            return createErrorResponse("Unauthorized", 401);
+        }
+
+        const contentType = request.headers.get('content-type') || '';
+
+        if (!contentType.includes('multipart/form-data')) {
+            return createErrorResponse('Expected multipart/form-data', 415);
+        }
+
         const form = await request.formData();
 
         const rawData: Record<string, string> = {};
@@ -55,37 +37,122 @@ export async function POST(request: NextRequest) {
             if (typeof val === 'string') rawData[key] = val.trim();
         });
 
+        if (rawData.userId && rawData.userId !== currentUser.id) {
+            return createErrorResponse("You can only update your own payment details", 403);
+        }
+
+        rawData.userId = currentUser.id;
+
         const isUpdate = !rawData.accountNumber?.trim().match(/^\d+$/);
         const schema = isUpdate ? updateSchema : createSchema;
 
         const validated = schema.parse(rawData);
-        const { accountNumber, ...rest } = validated;
 
-        const paymentDetailsData = {
-            ...rest,
-            ...(accountNumber ? { accountNumber } : {})
-        } as PaymentDetailsData;
-
-        const result = await upsertPaymentDetails(paymentDetailsData);
-
-
-        return createResponse(true, {
-            message: 'Saved successfully',
-            data: sanitize(result)
+        const result = await upsertPaymentDetailsSafe({
+            userId: currentUser.id,
+            accountHolderName: validated.accountHolderName,
+            bankName: validated.bankName,
+            accountNumber: validated.accountNumber,
+            ifscCode: validated.ifscCode,
+            companyName: validated.companyName || undefined,
+            gstin: validated.gstin || undefined,
         });
+
+        if (!result.success) {
+            return createErrorResponse(result.error || 'Failed to save payment details', 500);
+        }
+
+        // Sync changes to Cashfree vendor (best-effort, don't fail the save)
+        try {
+            const paymentRecord = await prisma.paymentDetails.findUnique({
+                where: { userId: currentUser.id },
+                select: {
+                    cashfreeVendorId: true,
+                    vendorIdIV: true,
+                    accountNumber: true,
+                    accountNumberIV: true,
+                    ifscCode: true,
+                    ifscCodeIV: true,
+                    gstin: true,
+                    gstinIV: true,
+                    accountHolderName: true,
+                },
+            });
+
+            if (paymentRecord?.cashfreeVendorId && paymentRecord?.vendorIdIV) {
+                const decryptedVendorId = encryptionService.decrypt({
+                    encrypted: paymentRecord.cashfreeVendorId,
+                    iv: paymentRecord.vendorIdIV,
+                });
+
+                // Build update payload with only the fields that were submitted
+                const updatePayload: Parameters<typeof cfUpdateVendor>[1] = {};
+
+                // Sync bank details if any bank field was submitted
+                // Cashfree requires ALL three fields together, so fill missing ones from DB
+                if (validated.accountNumber || validated.ifscCode || validated.accountHolderName) {
+                    // Decrypt existing values as fallbacks
+                    const existingAccNum = paymentRecord.accountNumber && paymentRecord.accountNumberIV
+                        ? encryptionService.decrypt({ encrypted: paymentRecord.accountNumber, iv: paymentRecord.accountNumberIV })
+                        : undefined;
+                    const existingIfsc = paymentRecord.ifscCode && paymentRecord.ifscCodeIV
+                        ? encryptionService.decrypt({ encrypted: paymentRecord.ifscCode, iv: paymentRecord.ifscCodeIV })
+                        : undefined;
+                    const existingHolder = paymentRecord.accountHolderName || undefined;
+
+                    const accountHolder = validated.accountHolderName || existingHolder;
+                    const accountNumber = validated.accountNumber || existingAccNum;
+                    const ifsc = (validated.ifscCode || existingIfsc)?.toUpperCase();
+
+                    // Only send bank if we have all three required fields
+                    if (accountHolder && accountNumber && ifsc) {
+                        updatePayload.bank = {
+                            account_holder: accountHolder,
+                            account_number: accountNumber,
+                            ifsc,
+                        };
+                    }
+                }
+
+                // Sync KYC/GST details inline via cfUpdateVendor
+                if (validated.gstin !== undefined) {
+                    updatePayload.kyc_details = {
+                        account_type: "BUSINESS",
+                        business_type: "B2B",
+                        ...(validated.gstin ? { gst: validated.gstin.toUpperCase() } : {}),
+                    };
+                }
+
+                if (Object.keys(updatePayload).length > 0) {
+                    await cfUpdateVendor(decryptedVendorId, updatePayload);
+                }
+
+                // Upload GSTIN as a vendor doc to move vendor out of "Action Required"
+                if (validated.gstin) {
+                    try {
+                        await cfUploadVendorGSTIN(decryptedVendorId, validated.gstin.toUpperCase());
+                    } catch (docErr) {
+                        console.error('[PaymentDetails] GSTIN doc upload failed (non-blocking):', docErr);
+                    }
+                }
+            }
+        } catch (syncError) {
+            // Log but don't fail — user data is already saved
+            console.error('[PaymentDetails] Cashfree vendor sync failed (non-blocking):', syncError);
+        }
+
+        return createSuccessResponse(
+            result.data,
+            200,
+            'Payment details saved successfully'
+        );
+
     } catch (error) {
         if (error instanceof z.ZodError) {
             const msg = error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
-            return createResponse(false, `Validation failed: ${msg}`, 400);
+            return createErrorResponse(`Validation failed: ${msg}`, 400);
         }
 
-        return createResponse(false, 'Unexpected error', 500);
+        return handleRouteError(error, "POST /api/payment-details");
     }
 }
-
-export const config = {
-    api: {
-        bodyParser: false,
-        sizeLimit: '1mb',
-    },
-};

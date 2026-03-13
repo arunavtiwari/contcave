@@ -1,9 +1,10 @@
 "use client";
 
-import useFavorite from "@/hook/useFavorite";
-import { SafeUser } from "@/types";
 import React from "react";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+
+import useFavorite from "@/hook/useFavorite";
+import { SafeUser } from "@/types/user";
 
 type Props = {
   listingId: string;
@@ -18,7 +19,11 @@ function HeartButton({ listingId, currentUser }: Props) {
 
   return (
     <div
-      onClick={toggleFavorite}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        toggleFavorite(e);
+      }}
       className=" relative hover:opacity-80 transition cursor-pointer"
     >
       <AiOutlineHeart

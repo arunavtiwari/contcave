@@ -1,27 +1,26 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Trash2, Plus } from "lucide-react";
-import Input from "./Input";
+import Plus from "lucide-react/dist/esm/icons/plus";
+import Trash2 from "lucide-react/dist/esm/icons/trash-2";
+import { useCallback, useEffect, useState } from "react";
 
-export interface Package {
-  id?: string;
-  title: string;
-  originalPrice: number;
-  offeredPrice: number;
-  features: string[];
-  durationHours: number;
-}
+import Checkbox from "@/components/ui/Checkbox";
+import Input from "@/components/ui/Input";
+import { Package } from "@/types/package";
+import { ListingSet } from "@/types/set";
+
+
 
 interface PackagesFormProps {
   value: Package[];
   onChange: (packages: Package[]) => void;
+  availableSets?: ListingSet[];
 }
 
-export default function PackagesForm({ value, onChange }: PackagesFormProps) {
+export default function PackagesForm({ value, onChange, availableSets = [] }: PackagesFormProps) {
   const [packages, setPackages] = useState<Package[]>(value || []);
 
-  // Sync external changes
+
   useEffect(() => {
     setPackages(value || []);
   }, [value]);
@@ -37,11 +36,23 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
   const addPackage = () => {
     updatePackages([
       ...packages,
-      { id: undefined, title: "", originalPrice: 0, offeredPrice: 0, features: [], durationHours: 1 },
+      {
+        id: undefined,
+        title: "",
+        originalPrice: 0,
+        offeredPrice: 0,
+        features: [],
+        durationHours: 1,
+        requiredSetCount: null,
+
+        fixedAddOn: null,
+        eligibleSetIds: [],
+        isActive: true
+      },
     ]);
   };
 
-  const updatePackage = (index: number, key: keyof Package, val: any) => {
+  const updatePackage = (index: number, key: keyof Package, val: string | number | string[] | boolean | null) => {
     const updated = packages.map((pkg, i) => (i === index ? { ...pkg, [key]: val } : pkg));
     updatePackages(updated);
   };
@@ -56,9 +67,9 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
       {packages.map((pkg, idx) => (
         <div
           key={idx}
-          className="border border-black rounded-xl p-6 relative flex flex-col gap-4 bg-white shadow-sm"
+          className="border border-black rounded-xl p-6 relative flex flex-col gap-4 bg-white shadow-xs"
         >
-          {/* Bin / Remove button */}
+
           <button
             type="button"
             onClick={() => removePackage(idx)}
@@ -68,60 +79,75 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
             <Trash2 size={16} />
           </button>
 
-          {/* Package Title */}
-          <Input
-            id={`title-${idx}`}
-            label="Package Title"
-            value={pkg.title}
-            onChange={(e) => updatePackage(idx, "title", e.target.value)}
-            required
-            errors={{}}
-          />
 
-          {/* Duration */}
-          <Input
-            id={`duration-${idx}`}
-            label="Duration (Hours)"
-            type="number"
-            value={pkg.durationHours}
-            onChange={(e) => updatePackage(idx, "durationHours", Number(e.target.value))}
-            required
-            errors={{}}
-          />
-          <p className="text-xs text-neutral-500">Minimum duration is 1 hour</p>
+          <div className="w-full">
 
-          {/* Price inputs */}
+            <Input
+              id={`title-${idx}`}
+              label="Package Title"
+              placeholder="e.g. Full Day Shoot"
+              value={pkg.title}
+              onChange={(e) => updatePackage(idx, "title", e.target.value)}
+              required
+              errors={{}}
+            />
+          </div>
+
+
+          <div className="w-full">
+
+            <Input
+              id={`duration-${idx}`}
+              label="Duration (Hours)"
+              type="number"
+              placeholder="8"
+              value={pkg.durationHours}
+              onChange={(e) => updatePackage(idx, "durationHours", Number(e.target.value))}
+              required
+              errors={{}}
+              onWheel={(e) => (e.target as HTMLInputElement).blur()}
+            />
+            <p className="text-xs text-neutral-500 mt-1">Minimum duration is 1 hour</p>
+          </div>
+
+
           <div className="flex gap-4 flex-wrap">
             <div className="flex-1">
+
               <Input
                 id={`original-${idx}`}
                 label="Original Price"
                 type="number"
                 formatPrice
+                placeholder="10000"
                 value={pkg.originalPrice}
                 onChange={(e) => updatePackage(idx, "originalPrice", Number(e.target.value))}
                 required
                 errors={{}}
+                onWheel={(e) => (e.target as HTMLInputElement).blur()}
               />
-              <p className="text-xs text-neutral-500">Price before discount</p>
+              <p className="text-xs text-neutral-500 mt-1">Price before discount</p>
             </div>
 
             <div className="flex-1">
+
               <Input
                 id={`offered-${idx}`}
                 label="Offered Price"
                 type="number"
                 formatPrice
+                placeholder="8000"
                 value={pkg.offeredPrice}
                 onChange={(e) => updatePackage(idx, "offeredPrice", Number(e.target.value))}
                 required
                 errors={{}}
+                onWheel={(e) => (e.target as HTMLInputElement).blur()}
               />
-              <p className="text-xs text-neutral-500">Discounted price</p>
+              <p className="text-xs text-neutral-500 mt-1">Discounted price</p>
             </div>
           </div>
 
-          {/* Features tag-style input */}
+
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Features</label>
             <div className="flex flex-wrap gap-2">
@@ -165,10 +191,58 @@ export default function PackagesForm({ value, onChange }: PackagesFormProps) {
             </div>
             <p className="text-xs text-neutral-500">Press Enter to add a feature</p>
           </div>
+
+
+          {availableSets.length > 0 && (
+            <div className="border-t pt-4 mt-2">
+              <div className="flex items-center gap-2 mb-4">
+                <Checkbox
+                  id={`has-sets-${idx}`}
+                  label="Include Set Configuration"
+                  checked={pkg.requiredSetCount !== null && pkg.requiredSetCount !== undefined}
+                  onCheckedChange={(checked) => {
+                    const updated = packages.map((p, i) =>
+                      i === idx
+                        ? {
+                          ...p,
+                          requiredSetCount: checked ? 1 : null,
+                          fixedAddOn: checked ? 0 : null,
+                          eligibleSetIds: [],
+                        }
+                        : p
+                    );
+                    updatePackages(updated);
+                  }}
+                />
+              </div>
+
+              {pkg.requiredSetCount !== null && pkg.requiredSetCount !== undefined && (
+                <div className="flex flex-col gap-4 pl-6 border-l-2 border-neutral-100">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex flex-col gap-1">
+
+                      <Input
+                        id={`req-sets-${idx}`}
+                        label="Number of Sets Included"
+                        type="number"
+                        placeholder="1"
+                        value={pkg.requiredSetCount || 1}
+                        onChange={(e) => updatePackage(idx, "requiredSetCount", Math.max(1, parseInt(e.target.value) || 1))}
+                        required
+                        errors={{}}
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                      />
+                      <p className="text-xs text-neutral-500">How many sets are included in this package price</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ))}
 
-      {/* Add Package button */}
+
       <button
         type="button"
         onClick={addPackage}

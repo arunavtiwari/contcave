@@ -26,7 +26,7 @@ export default function PaymentAnimation({ status }: { status: PaymentStatus }) 
           transition={{ duration: 0.8, ease: "easeInOut" }}
           style={{ transformStyle: "preserve-3d" }}
         >
-          {/* Front face logo */}
+          
           <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black border shadow-lg backface-hidden overflow-hidden">
             <Image
               src="/images/logo/logo_small.png"
@@ -37,7 +37,7 @@ export default function PaymentAnimation({ status }: { status: PaymentStatus }) 
             />
           </div>
 
-          {/* Back face: tick or error cross depending on status */}
+          
           <div
             className={`absolute flex h-full w-full items-center justify-center rounded-full text-5xl text-white [backface-visibility:hidden] [transform:rotateY(180deg)] ${status === "success" ? "bg-green-500" : "bg-yellow-500"
               }`}

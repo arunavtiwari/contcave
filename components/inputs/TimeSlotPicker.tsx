@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 type TimeLabel = string;
 type TimeSlot = TimeLabel | null;
@@ -21,14 +21,7 @@ interface TimeSlotPickerProps {
     minBookingMinutes?: number;
 }
 
-const TIME_SLOTS: TimeLabel[] = [
-    "6:00 AM", "6:30 AM", "7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM",
-    "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-    "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
-    "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM",
-    "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM", "8:00 PM", "8:30 PM",
-    "9:00 PM", "9:30 PM", "10:00 PM",
-];
+import { TIME_SLOTS } from "@/constants/timeSlots";
 
 const ampmToMinutes = (label: string): number => {
     const m = label.match(/^(\d{1,2}):([0-5]\d)\s*(AM|PM)$/i);
@@ -185,11 +178,11 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
     return (
         <div className="p-4 pb-0" role="group" aria-label="Time slot picker">
-            {/* Toggle buttons */}
+
             <div className="flex justify-between bg-gray-200 p-1.5 rounded-xl">
                 <button
                     type="button"
-                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-white shadow-md" : "bg-transparent"
+                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-white shadow-sm" : "bg-transparent"
                         }`}
                     onClick={() => setActiveSegment("start")}
                     disabled={noDatePicked}
@@ -201,7 +194,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                 </button>
                 <button
                     type="button"
-                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "end" ? "bg-white shadow-md" : "bg-transparent"
+                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "end" ? "bg-white shadow-sm" : "bg-transparent"
                         }`}
                     onClick={() => setActiveSegment("end")}
                     disabled={noDatePicked}
@@ -219,7 +212,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                 </div>
             ) : (
                 <>
-                    {/* Simple minimum time rule text */}
+
                     <p className="px-1 pb-2 mt-2 text-xs text-neutral-500">
                         Minimum booking: {minBookingMinutes} minutes
                     </p>

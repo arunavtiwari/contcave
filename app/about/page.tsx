@@ -1,12 +1,14 @@
+import Building2 from "lucide-react/dist/esm/icons/building-2";
+import Heart from "lucide-react/dist/esm/icons/heart";
+import Users from "lucide-react/dist/esm/icons/users";
+import type { Metadata } from "next";
+import React from "react";
+
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
-import React from "react";
-import getCurrentUser from "../actions/getCurrentUser";
-import Image from "next/image";
-import { Building2, Heart, Users } from "lucide-react";
-import Hero from "./hero";
-import type { Metadata } from "next";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+
+import Hero from "./hero";
 
 export const dynamic = "force-dynamic";
 
@@ -14,49 +16,63 @@ const DESCRIPTION =
   "Learn how ContCave empowers creatives with a curated network of production-ready studios, industry partners, and hands-on support." as const;
 
 export const metadata: Metadata = {
-  title: `About ${BRAND_NAME}`,
+  title: "About Us",
   description: DESCRIPTION,
+  keywords: [
+    "ContCave about",
+    "studio marketplace",
+    "creative platform India",
+    "Arkanet Ventures",
+  ],
   alternates: { canonical: "/about" },
   openGraph: {
-    title: `About ${BRAND_NAME}`,
+    title: "About Us",
     description: DESCRIPTION,
     url: `${SITE_URL}/about`,
-    images: [OG_IMAGE],
+    siteName: BRAND_NAME,
+    type: "website",
+    images: [
+      {
+        url: `${SITE_URL}${OG_IMAGE}`,
+        width: 1200,
+        height: 630,
+        alt: `About ${BRAND_NAME}`,
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
-    title: `About ${BRAND_NAME}`,
+    title: "About Us",
     description: DESCRIPTION,
-    images: [OG_IMAGE],
+    site: "@ContCave",
+    creator: "@ContCave",
+    images: [`${SITE_URL}${OG_IMAGE}`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
   },
 };
 
 const About = async () => {
-  const currentUser = await getCurrentUser();
 
   return (
     <ClientOnly>
-      {/* Hero Section */}
-      {/* <div className="relative h-[40vh] w-full">
-        <Image
-          src="/assets/footer-banner.jpg"
-          fill
-          alt="Banner Image"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-white text-center max-w-3xl leading-tight">
-            Sustaining & Growing <span className="underline">Creative Ecosytem</span>
-          </h1>
-        </div>
-      </div> */}
 
-<Hero />
-      
+
+
+      <Hero />
+
 
       <Container>
         <div className="py-20 space-y-24">
-          {/* Founders Note */}
+
           <section className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-black mb-6">
               Our Story
@@ -74,13 +90,13 @@ const About = async () => {
             </p>
           </section>
 
-          {/* Core Values */}
+
           <section>
             <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-14">
               What We Stand For
             </h2>
             <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition">
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-xs hover:shadow-lg transition">
                 <Building2 className="mx-auto mb-4 w-10 h-10 text-black" />
                 <h3 className="text-xl font-semibold mb-3 text-black">
                   Space Utilisation
@@ -91,7 +107,7 @@ const About = async () => {
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition">
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-xs hover:shadow-lg transition">
                 <Heart className="mx-auto mb-4 w-10 h-10 text-black" />
                 <h3 className="text-xl font-semibold mb-3 text-black">
                   Sustaining Human Creativity
@@ -102,7 +118,7 @@ const About = async () => {
                 </p>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition">
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-xs hover:shadow-lg transition">
                 <Users className="mx-auto mb-4 w-10 h-10 text-black" />
                 <h3 className="text-xl font-semibold mb-3 text-black">
                   Community First
@@ -115,7 +131,7 @@ const About = async () => {
             </div>
           </section>
 
-          {/* Vision Timeline */}
+
           <section>
             <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-14">
               Our Vision
@@ -154,7 +170,7 @@ const About = async () => {
             </div>
           </section>
 
-          {/* Call to Action */}
+
           <section className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-black mb-6">
               Join the First Wave

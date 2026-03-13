@@ -1,30 +1,35 @@
-import { NextResponse } from "next/server";
 import Ably from "ably";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
-export const dynamic = "force-dynamic"
-export async function POST(request: Request) {
-  // Get the current user
-  const currentUser = await getCurrentUser();
+import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 
-  if (!currentUser) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const dynamic = "force-dynamic";
 
-  // Create a new Ably client instance with your API key
-  const client = new Ably.Realtime({
-    key: "mqScEw.KR_mtA:hXN4SyJS62x5aW_oF3ZUL5QpkxzgpYltXFl1jmtJfMc",
-  });
-
+export async function POST() {
   try {
-    // Generate a token request for the current user
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser?.id) {
+      return createErrorResponse("Unauthorized", 401);
+    }
+
+    const ablyApiKey = process.env.ABLY_API_KEY;
+    if (!ablyApiKey || typeof ablyApiKey !== "string") {
+      return createErrorResponse("Server configuration error", 500);
+    }
+
+    const client = new Ably.Realtime({
+      key: ablyApiKey,
+    });
+
     const tokenRequest = await client.auth.createTokenRequest({
       clientId: currentUser.id,
     });
 
-    // Return the token request as a JSON response
-    return NextResponse.json(tokenRequest);
+    await client.close();
+
+    return createSuccessResponse(tokenRequest);
   } catch (error) {
-    console.error("Error generating Ably token:", error);
-    return NextResponse.json({ error: "Error generating token" }, { status: 500 });
+    return handleRouteError(error, "POST /api/ablychat");
   }
 }

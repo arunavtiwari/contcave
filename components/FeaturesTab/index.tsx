@@ -1,18 +1,19 @@
 "use client";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState } from "react";
-import FeaturesTabItem from "./FeaturesTabItem";
-import featuresTabData from "./featuresTabData";
 
-import { motion } from "framer-motion";
-import SectionHeader from "../Common/SectionHeader";
+import SectionHeader from "@/components/Common/SectionHeader";
+
+import featuresTabData from "./featuresTabData";
+import FeaturesTabItem from "./FeaturesTabItem";
 
 const FeaturesTab = () => {
   const [currentTab, setCurrentTab] = useState("tabOne");
 
   return (
     <>
-      {/* <!-- ===== Features Tab Start ===== --> */}
+      
       <section className="relative pb-20 pt-18.5 lg:pb-22.5">
 
 
@@ -38,7 +39,7 @@ const FeaturesTab = () => {
             />
           </div>
 
-          {/* <!-- Tab Menues Start --> */}
+          
           <motion.div
             variants={{
               hidden: {
@@ -112,9 +113,9 @@ const FeaturesTab = () => {
               </div>
             </div>
           </motion.div>
-          {/* <!-- Tab Menues End --> */}
+          
 
-          {/* <!-- Tab Content Start --> */}
+          
           <motion.div
             variants={{
               hidden: {
@@ -142,10 +143,10 @@ const FeaturesTab = () => {
               </div>
             ))}
           </motion.div>
-          {/* <!-- Tab Content End --> */}
+          
         </div>
       </section>
-      {/* <!-- ===== Features Tab End ===== --> */}
+      
     </>
   );
 };

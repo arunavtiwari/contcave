@@ -1,16 +1,24 @@
 "use client";
-import useCities from "@/hook/useCities";
-import { SafeReservation, SafeUser, safeListing } from "@/types";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import React, { useCallback, useMemo, useState, useEffect } from "react";
-import Button from "../Button";
+import React, { useCallback, useMemo, useState } from "react";
+import { FaWhatsapp } from "react-icons/fa";
 import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
-import { IconButton } from "@chakra-ui/button";
 import { IoMdCloseCircle } from "react-icons/io";
 
-type Props = {
+import Button from "@/components/ui/Button";
+import { Addon } from "@/types/addon";
+import { safeListing } from "@/types/listing";
+import { SafeReservation } from "@/types/reservation";
+import { SafeUser } from "@/types/user";
+
+interface PricingSnapshot {
+    packageTitle?: string;
+    includedSetName?: string;
+    additionalSets?: Array<{ id: string; name: string }>;
+}
+
+interface BookingCardProps {
     data: safeListing;
     reservation?: SafeReservation;
     onAction?: (id: string) => void;
@@ -23,52 +31,43 @@ type Props = {
     actionLabel?: string;
     actionId?: string;
     currentUser?: SafeUser | null;
-};
+}
 
-function BookingCard({
+const BookingCard: React.FC<BookingCardProps> = ({
     data,
     reservation,
     onAction,
-    onChat,
+    onDelete,
     onApprove,
     onReject,
-    onDelete,
+    onChat,
     disabled,
-    actionId = "",
-}: Props) {
-    const router = useRouter();
-    const { getByValue } = useCities();
-    const [booking, setBooking] = useState<any>();
-    const location = getByValue(data.locationValue);
+    actionId,
+}) => {
     const [showReceipt, setShowReceipt] = useState(false);
 
-    useEffect(() => {
-        const fetchReservation = async () => {
-            const reservation_data = await fetch(`/api/reservations/${reservation?.id}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-            });
-            setBooking(await reservation_data.json());
-        };
+    const addons = useMemo(() =>
+        Array.isArray(reservation?.selectedAddons)
+            ? (reservation.selectedAddons as unknown as Addon[])
+            : [],
+        [reservation?.selectedAddons]
+    );
 
-        fetchReservation();
-    }, [reservation?.id]);
+    const snapshot = useMemo(() =>
+        reservation?.pricingSnapshot
+            ? (reservation.pricingSnapshot as unknown as PricingSnapshot)
+            : undefined,
+        [reservation?.pricingSnapshot]
+    );
 
     const handleCancel = useCallback(
         (e: React.MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
-            if (disabled) return;
+            if (disabled || !actionId) return;
             onAction?.(actionId);
         },
         [onAction, actionId, disabled]
     );
-
-    const price = useMemo(() => {
-        if (reservation) {
-            return reservation.totalPrice;
-        }
-        return data.price;
-    }, [reservation, data.price]);
 
     const bookingStatus = reservation?.isApproved;
 
@@ -97,6 +96,17 @@ function BookingCard({
 
     const toggleReceiptModal = () => setShowReceipt(!showReceipt);
 
+    const handleSupportWhatsApp = () => {
+        const studio = reservation?.listing?.title || "the studio";
+        const rid = reservation?.id || "";
+        const msg = encodeURIComponent(`Hi ContCave team, my booking was rejected for ${studio}. Reservation ID: ${rid}. Please help with refund.`);
+        const num = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(/[^0-9]/g, "");
+        const url = num ? `https://wa.me/${num}?text=${msg}` : `https://wa.me/?text=${msg}`;
+        if (typeof window !== "undefined") {
+            window.open(url, "_blank", "noopener,noreferrer");
+        }
+    };
+
     return (
         <>
             <motion.div
@@ -111,14 +121,14 @@ function BookingCard({
             >
                 <div className="flex flex-col gap-2 w-full">
                     <div className="aspect-square w-full relative overflow-hidden rounded-xl">
-                        {/* Property Image */}
+
                         <Image
                             fill
                             className="object-cover h-full w-full"
                             src={data.imageSrc?.[0] ?? ""}
                             alt="listing"
                         />
-                        {/* Status Banner */}
+
                         <div
                             className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-white text-sm`}
                             style={{ backgroundColor: getBannerColor() }}
@@ -127,20 +137,18 @@ function BookingCard({
                         </div>
                     </div>
 
-                    {/* Property Title */}
+
                     <div className="font-semibold text-lg">{data.title}</div>
                     {!reservation?.isApproved && onApprove && (
                         <div className="flex items-stretch">
                             <div className="w-1/4">
-                                <div className="lex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4]" onClick={toggleReceiptModal}>
-                                    <IconButton
-                                        icon={<FaCircleInfo />}
-                                        aria-label="Info"
-                                        size="xl"
-                                        className="p-0 w-full h-full"
-                                        color="white"
-                                    />
-                                </div>
+                                <button
+                                    className="flex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4] text-white hover:opacity-80 transition w-full"
+                                    onClick={toggleReceiptModal}
+                                    aria-label="Info"
+                                >
+                                    <FaCircleInfo size={24} />
+                                </button>
                             </div>
                             <div className="w-3/4">
                                 <Button
@@ -164,15 +172,13 @@ function BookingCard({
                         <div className="flex flex-col gap-2">
                             <div className="flex items-stretch">
                                 <div className="w-1/4">
-                                    <div className="flex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4]" onClick={toggleReceiptModal}>
-                                        <IconButton
-                                            icon={<FaCircleInfo />}
-                                            aria-label="Info"
-                                            size="xl"
-                                            className="p-0 w-full h-full"
-                                            color="white"
-                                        />
-                                    </div>
+                                    <button
+                                        className="flex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4] text-white hover:opacity-80 transition w-full"
+                                        onClick={toggleReceiptModal}
+                                        aria-label="Info"
+                                    >
+                                        <FaCircleInfo size={24} />
+                                    </button>
                                 </div>
 
                                 <div className="w-3/4">
@@ -188,7 +194,7 @@ function BookingCard({
                                 </div>
                             </div>
 
-                            {reservation && (reservation?.isApproved === 0 || reservation?.isApproved === 1) && (
+                            {reservation && onAction && (reservation?.isApproved === 0 || reservation?.isApproved === 1) && (
                                 <Button
                                     label="Cancel Reservation"
                                     onClick={handleCancel}
@@ -223,6 +229,47 @@ function BookingCard({
                             <h2 className="text-xl font-semibold text-center w-full">Booking Details</h2>
                         </div>
 
+                        {(reservation?.isApproved === 2 || reservation?.isApproved === 3) && (
+                            <div className="mb-4 space-y-3">
+                                {reservation?.isApproved === 2 && (
+                                    <p>
+                                        Unfortunately, your booking request for {reservation?.listing?.title} on
+                                        {" "}
+                                        {reservation?.startDate
+                                            ? new Date(reservation.startDate).toLocaleDateString()
+                                            : "—"}
+                                        {reservation?.startTime ? `, ${reservation.startTime}` : ""}
+                                        {" "}was rejected by the host.
+                                    </p>
+                                )}
+                                {reservation?.isApproved === 2 && reservation?.rejectReason && (
+                                    <div>
+                                        <div>Reason Provided:</div>
+                                        <div>“{reservation.rejectReason}”</div>
+                                    </div>
+                                )}
+                                {!onApprove && (
+                                    <div className="space-y-3">
+                                        {reservation?.isApproved === 2 && (
+                                            <p>
+                                                Don’t worry! Your payment will be refunded as per our policy. We’ll help you with your refund right away. Tap the button below to connect with our team on WhatsApp.
+                                            </p>
+                                        )}
+                                        {reservation?.isApproved === 3 && (
+                                            <p>
+                                                Need help with your refund? Tap below to connect with our support team on WhatsApp.
+                                            </p>
+                                        )}
+                                        <Button
+                                            label="CONTACT SUPPORT ON WHATSAPP"
+                                            onClick={(e) => { e.preventDefault(); handleSupportWhatsApp(); }}
+                                            icon={FaWhatsapp}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <div className="space-y-2">
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Property:</span>
@@ -232,14 +279,16 @@ function BookingCard({
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Date of Booking:</span>
                                 <span className="text-gray-900">
-                                    {new Date(booking?.startDate).toLocaleDateString()}
+                                    {reservation?.startDate
+                                        ? new Date(reservation.startDate).toLocaleDateString()
+                                        : "—"}
                                 </span>
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Time:</span>
                                 <span className="text-gray-900">
-                                    {new Date(booking?.startTime).toLocaleTimeString()} – {new Date(booking?.endTime).toLocaleTimeString()}
+                                    {reservation?.startTime ?? ""} – {reservation?.endTime ?? ""}
                                 </span>
                             </div>
 
@@ -247,35 +296,85 @@ function BookingCard({
                                 <span className="text-gray-700 font-medium">Duration:</span>
                                 <span className="text-gray-900">
                                     {(() => {
-                                        const startTime = new Date(booking?.startTime);
-                                        const endTime = new Date(booking?.endTime);
-                                        const durationInMs = endTime.getTime() - startTime.getTime();
-                                        const durationInHours = durationInMs / (1000 * 60 * 60);
-                                        return `${durationInHours} hours`;
+                                        const parse12h = (s: string | undefined): number | null => {
+                                            if (!s) return null;
+                                            const m = s.match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+                                            if (!m) return null;
+                                            let h = parseInt(m[1], 10);
+                                            const min = parseInt(m[2], 10);
+                                            const ampm = m[3].toUpperCase();
+                                            if (ampm === "PM" && h !== 12) h += 12;
+                                            if (ampm === "AM" && h === 12) h = 0;
+                                            return h * 60 + min;
+                                        };
+                                        const startStr = reservation?.startTime as string | undefined;
+                                        const endStr = reservation?.endTime as string | undefined;
+                                        const startMin = parse12h(startStr);
+                                        const endMin = parse12h(endStr);
+                                        if (startMin == null || endMin == null) return "-";
+                                        let diff = endMin - startMin;
+                                        if (diff < 0) diff += 24 * 60;
+                                        const hours = Math.floor(diff / 60);
+                                        const minutes = diff % 60;
+                                        return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
                                     })()}
                                 </span>
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Add-ons:</span>
-                                <span className="text-gray-900">
-                                    {booking?.selectedAddons.map((item) => item.name).join(", ") || "None"}
-                                </span>
+                                {<span className="text-gray-900">
+                                    {addons
+                                        .map((item: Addon) => item.name)
+                                        .join(", ") || "None"}
+                                </span>}
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Add-ons Charge:</span>
                                 <span className="text-gray-900 font-semibold">
-                                    ₹ {booking?.selectedAddons.reduce((acc, value) => acc + (value.qty * value.price), 0)}
+                                    ₹ {addons.reduce(
+                                        (acc: number, value: Addon) => acc + value.qty * value.price,
+                                        0
+                                    )}
                                 </span>
                             </div>
 
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Property Charge:</span>
                                 <span className="text-gray-900 font-semibold">
-                                    ₹ {booking?.totalPrice - booking?.selectedAddons.reduce((acc, value) => acc + (value.qty * value.price), 0)}
+                                    ₹ {(reservation?.totalPrice ?? 0) -
+                                        addons.reduce(
+                                            (acc: number, value: Addon) => acc + value.qty * value.price,
+                                            0
+                                        )}
                                 </span>
                             </div>
+
+                            {snapshot?.packageTitle && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-700 font-medium">Package:</span>
+                                    <span className="text-gray-900">{snapshot.packageTitle}</span>
+                                </div>
+                            )}
+
+                            {(snapshot?.includedSetName || (snapshot?.additionalSets && snapshot.additionalSets.length > 0)) && (
+                                <div className="flex flex-col gap-1 pt-1">
+                                    <span className="text-gray-700 font-medium">Booked Sets:</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {snapshot.includedSetName && (
+                                            <span className="px-2 py-0.5 bg-neutral-100 text-neutral-700 text-xs rounded-md border border-neutral-200">
+                                                {snapshot.includedSetName}
+                                            </span>
+                                        )}
+                                        {snapshot.additionalSets?.map((s) => (
+                                            <span key={s.id} className="px-2 py-0.5 bg-neutral-100 text-neutral-700 text-xs rounded-md border border-neutral-200">
+                                                {s.name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex justify-between mt-4 border-t pt-4">

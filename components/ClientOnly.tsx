@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   children: React.ReactNode;
@@ -18,15 +17,7 @@ function ClientOnly({ children }: Props) {
     return null;
   }
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-    >
-      {children}
-    </motion.div>
-  );
+  return <>{children}</>;
 }
 
 export default ClientOnly;

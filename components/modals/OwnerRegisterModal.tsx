@@ -1,19 +1,27 @@
 "use client";
 
-import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
+import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import { useState } from "react";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
-import Button from "../Button";
-import Heading from "../Heading";
-import Input from "../inputs/Input";
-import Modal from "./Modal";
-import { FcGoogle } from "react-icons/fc";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
+import { toast } from "react-toastify";
+
+import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
+import Input from "@/components/ui/Input";
+import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
+import { type OwnerRegisterSchema, ownerRegisterSchema } from "@/lib/schemas/auth";
+
+import Modal from "./Modal";
 
 function OwnerRegisterModal() {
     const ownerRegisterModal = useOwnerRegisterModal();
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -21,7 +29,8 @@ function OwnerRegisterModal() {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<FieldValues>({
+    } = useForm<OwnerRegisterSchema>({
+        resolver: zodResolver(ownerRegisterSchema),
         defaultValues: {
             name: "",
             email: "",
@@ -30,17 +39,35 @@ function OwnerRegisterModal() {
         },
     });
 
-    const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+    const onSubmit: SubmitHandler<OwnerRegisterSchema> = async (data) => {
         setIsLoading(true);
 
         try {
             await axios.post("/api/register", { ...data, is_owner: true });
-            toast.success("Owner registered successfully!", {
-                toastId: "Owner_Registered"
+
+            const callback = await signIn("credentials", {
+                email: data.email,
+                password: data.password,
+                redirect: false,
             });
-            ownerRegisterModal.onClose();
-        } catch (error) {
-            toast.error("Something went wrong during registration.", {
+
+            if (callback?.error) {
+                toast.error(getAuthErrorMessage(callback.error), {
+                    toastId: "Owner_Login_Error"
+                });
+            } else if (callback?.ok) {
+                toast.success("Owner registered and logged in successfully!", {
+                    toastId: "Owner_Registered"
+                });
+                router.refresh();
+                ownerRegisterModal.onClose();
+            }
+        } catch (err: unknown) {
+            let errorMsg = "Something went wrong during registration.";
+            if (axios.isAxiosError(err)) {
+                errorMsg = err.response?.data?.error || err.response?.data || errorMsg;
+            }
+            toast.error(errorMsg, {
                 toastId: "Owner_Error_1"
             });
         } finally {
@@ -60,91 +87,63 @@ function OwnerRegisterModal() {
                 <div className="flex flex-col gap-6">
                     <Heading title="Welcome to ContCave" subtitle="Create an Owner Account!" center />
 
-                    {/* Email Validation */}
+
                     <Input
                         id="email"
                         label="Email Address"
+                        placeholder="Enter your email"
                         disabled={isLoading}
-                        register={register("email", {
-                            required: "Email is required",
-                            pattern: {
-                                value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-                                message: "Please enter a valid email",
-                            },
-                        })}
+                        register={register("email")}
                         errors={errors}
                     />
 
-                    {/* Name Validation */}
+
                     <Input
                         id="name"
                         label="Full Name"
+                        placeholder="Enter your full name"
                         disabled={isLoading}
-                        register={register("name", {
-                            required: "Full name is required",
-                            minLength: {
-                                value: 2,
-                                message: "Name must be at least 2 characters long",
-                            },
-                            maxLength: {
-                                value: 50,
-                                message: "Name must be less than 50 characters",
-                            },
-                        })}
+                        register={register("name")}
                         errors={errors}
                     />
 
-                    {/* Phone Validation */}
+
                     <Input
                         id="phone"
                         label="Phone Number"
+                        placeholder="Enter your phone number"
                         type="tel"
                         disabled={isLoading}
-                        register={register("phone", {
-                            required: "Phone number is required",
-                            pattern: {
-                                value: /^[0-9]{10}$/,
-                                message: "Phone number must be exactly 10 digits",
-                            },
-                        })}
+                        register={register("phone")}
                         errors={errors}
                     />
 
-                    {/* Password Validation */}
+
                     <Input
                         id="password"
                         label="Password"
+                        placeholder="Create a password"
                         disabled={isLoading}
-                        register={register("password", {
-                            required: "Password is required",
-                            minLength: {
-                                value: 8,
-                                message: "Password must be at least 8 characters long",
-                            },
-                            // pattern: {
-                            //   value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/,
-                            //   message: "Password must contain letters and numbers",
-                            // },
-                        })}
+                        register={register("password")}
                         type={showPassword ? "text" : "password"}
                         errors={errors}
+                        customRightContent={
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="text-neutral-500 hover:text-black focus:outline-none transition-colors"
+                            >
+                                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                            </button>
+                        }
                     />
-
-                    {/* Toggle Password Visibility */}
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="text-sm text-neutral-600 focus:outline-none mt-2"
-                    >
-                        {showPassword ? "Hide" : "Show"} Password
-                    </button>
                 </div>
             }
             footer={
                 <div className="flex flex-col gap-4 mt-3">
                     <Button
+                        outline
                         rounded
-                        classNames="w-full py-2.5 bg-white border border-neutral-300 hover:bg-neutral-100 rounded-full flex items-center justify-center"
                         label="Continue with Google"
                         icon={FcGoogle}
                         onClick={() => signIn("google-calendar")}
@@ -160,6 +159,7 @@ function OwnerRegisterModal() {
                     </div>
                 </div>
             }
+            customHeight="h-auto"
         />
     );
 }

@@ -1,7 +1,9 @@
-import React from "react";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
+
+import React from "react";
 import { Calendar as ReactDateRangeCalendar } from "react-date-range";
+
 import type { DayKey, OperationalDays } from "@/types/scheduling";
 
 type Props = {
@@ -19,7 +21,7 @@ function jsWeekdayToMon0Index(jsWeekday: number) {
 }
 
 function isDaysList(obj: OperationalDays): obj is { days: DayKey[] } {
-  return "days" in obj && Array.isArray((obj as any).days);
+  return "days" in obj && Array.isArray((obj as { days: unknown }).days);
 }
 function isRange(obj: OperationalDays): obj is { start: DayKey; end: DayKey } {
   return "start" in obj && "end" in obj;

@@ -1,42 +1,71 @@
 "use client";
 
-import useCities from "@/hook/useCities";
-import { SafeUser } from "@/types";
-import dynamic from "next/dynamic";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { IconType } from "react-icons";
-import Avatar from "../Avatar";
-import ListingCategory from "./ListingCategory";
-import Offers from "../Offers";
-import AddonsList from "./AddonList";
-import Image from "next/image";
+import { Amenities } from "@prisma/client";
 import axios from "axios";
+import DOMPurify from "isomorphic-dompurify";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { IconType } from "react-icons";
+import { FaStar } from "react-icons/fa";
+
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
+import Offers from "@/components/Offers";
+import Avatar from "@/components/ui/Avatar";
+import Textarea from "@/components/ui/Textarea";
+import useCities from "@/hook/useCities";
+import { Addon } from "@/types/addon";
+import { FullListing } from "@/types/listing";
+import { Package } from "@/types/package";
+import { SafeUser } from "@/types/user";
 
-import { FaStar } from "react-icons/fa";
+import AddonsList from "./AddonList";
+import ListingCategory from "./ListingCategory";
 import PackageList from "./PackageList";
-import { Package } from "../inputs/PackagesForm";
-import Link from "@/node_modules/next/link";
+import SetSelector from "./SetSelector";
 
 const Map = dynamic(() => import("../Map"), { ssr: false });
+
+interface Review {
+  id: string;
+  comment: string;
+  createdAt: string;
+  user: {
+    name: string;
+    image: string;
+  };
+}
 
 type Props = {
   user: SafeUser;
   description: string;
   category:
-    | {
-        icon: IconType;
-        label: string;
-        description: string;
-      }
-    | undefined;
+  | {
+    icon: IconType;
+    label: string;
+    description: string;
+  }
+  | undefined;
   locationValue: string;
-  fullListing: any;
-  definedAmenities?: Array<any>;
-  onAddonChange: (addons: any) => void;
+  fullListing: FullListing;
+  definedAmenities?: Amenities[];
+  onAddonChange: (addons: Addon[]) => void;
   services: string[];
   onPackageSelect?: (pkg: Package | null) => void;
+
+
+  selectedSetIds?: string[];
+  onSetToggle?: (setId: string) => void;
+  onSelectAllSets?: () => void;
+  availableSetIds?: string[];
+  isEntireStudioBooked?: boolean;
+  setPricingType?: "FIXED" | "HOURLY" | null;
+  setHours?: number;
+  includedSetId?: string | null;
+  selectedPackage?: Package | null;
+  isSetSelectionDisabled?: boolean;
 };
 
 function ListingInfo({
@@ -48,15 +77,45 @@ function ListingInfo({
   definedAmenities,
   onAddonChange,
   onPackageSelect,
+
+  selectedSetIds = [],
+  onSetToggle,
+  onSelectAllSets,
+  availableSetIds = [],
+  isEntireStudioBooked = false,
+  setPricingType = null,
+  setHours = 1,
+  includedSetId = null,
+  selectedPackage = null,
+  isSetSelectionDisabled = false,
 }: Props) {
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
 
-  const relayAddons = useCallback((addons: any) => onAddonChange(addons), [onAddonChange]);
+  const getValidCenter = useCallback((): number[] | undefined => {
+    if (fullListing.actualLocation &&
+      typeof fullListing.actualLocation.lat === 'number' &&
+      typeof fullListing.actualLocation.lng === 'number' &&
+      Number.isFinite(fullListing.actualLocation.lat) &&
+      Number.isFinite(fullListing.actualLocation.lng)) {
+      return [fullListing.actualLocation.lat, fullListing.actualLocation.lng];
+    }
+    if (Array.isArray(coordinates) &&
+      coordinates.length >= 2 &&
+      typeof coordinates[0] === 'number' &&
+      typeof coordinates[1] === 'number' &&
+      Number.isFinite(coordinates[0]) &&
+      Number.isFinite(coordinates[1])) {
+      return [coordinates[0], coordinates[1]];
+    }
+    return undefined;
+  }, [fullListing.actualLocation, coordinates]);
 
-  const [addonList, setAddonList] = useState<any[]>([]);
-  const [amenityDefs, setAmenityDefs] = useState<any[]>(definedAmenities ?? []);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const relayAddons = useCallback((addons: Addon[]) => onAddonChange(addons), [onAddonChange]);
+
+  const [addonList, setAddonList] = useState<Addon[]>([]);
+  const [amenityDefs, setAmenityDefs] = useState<Amenities[]>(definedAmenities ?? []);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
   const [review, setReview] = useState({ rating: 5, comment: "" });
@@ -64,9 +123,16 @@ function ListingInfo({
 
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
-  const limit = 250;
-  const shouldTruncate = description.length > limit;
-  const displayedText = isExpanded || !shouldTruncate ? description : description.slice(0, limit) + "...";
+
+  const shouldTruncate = useMemo(() => {
+    if (typeof window === "undefined") return false;
+
+    const temp = document.createElement("div");
+    temp.innerHTML = description || "";
+    const text = temp.textContent || temp.innerText || "";
+
+    return text.length > 250;
+  }, [description]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +141,11 @@ function ListingInfo({
       try {
         const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
         setReviews(res.data || []);
-      } catch {}
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ListingInfo] Error fetching reviews:', error);
+        }
+      }
     };
     const checkBooking = async () => {
       try {
@@ -109,7 +179,7 @@ function ListingInfo({
     };
   }, [definedAmenities]);
 
-  const normalizeSelectedAmenityKeys = useCallback((raw: any): string[] => {
+  const normalizeSelectedAmenityKeys = useCallback((raw: unknown): string[] => {
     try {
       if (typeof raw === "string") {
         const trimmed = raw.trim();
@@ -119,7 +189,7 @@ function ListingInfo({
       }
     } catch { }
     const out: string[] = [];
-    const pushKey = (k: any) => {
+    const pushKey = (k: unknown) => {
       if (k == null) return;
       const s = String(k).trim();
       if (!s) return;
@@ -128,7 +198,10 @@ function ListingInfo({
     if (Array.isArray(raw)) {
       raw.forEach((item) => {
         if (typeof item === "string") pushKey(item);
-        else if (item && typeof item === "object") pushKey(item.key ?? item.slug ?? item.name ?? item.id);
+        else if (item && typeof item === "object") {
+          const obj = item as Record<string, unknown>;
+          pushKey(obj.key ?? obj.slug ?? obj.name ?? obj.id);
+        }
       });
     } else if (raw && typeof raw === "object") {
       Object.entries(raw).forEach(([k, v]) => {
@@ -144,6 +217,14 @@ function ListingInfo({
   );
 
 
+  const transformedAmenityDefs = useMemo(() => {
+    return amenityDefs.map((amenity) => ({
+      id: amenity.id,
+      name: amenity.name,
+      icon: typeof amenity.icon === "string" ? amenity.icon : amenity.icon == null ? null : String(amenity.icon),
+      createdAt: amenity.createdAt,
+    }));
+  }, [amenityDefs]);
 
   const opDaysStart = fullListing?.operationalDays?.start ?? "";
   const opDaysEnd = fullListing?.operationalDays?.end ?? "";
@@ -166,7 +247,7 @@ function ListingInfo({
       setReviews(res.data);
       setReview({ rating: 5, comment: "" });
     } catch {
-      // ignore
+
     }
   };
 
@@ -175,7 +256,7 @@ function ListingInfo({
       <div className="flex gap-2 justify-between">
         <div className="text-xl font-semibold flex flex-row items-center gap-2">
           <div>Hosted by {user?.name}</div>
-          <Avatar src={user?.image} userName={user?.name} />
+          <Avatar src={user?.image} />
         </div>
         {fullListing.avgReviewRating && fullListing.avgReviewRating !== 0 && (
           <div className="font-semibold text-lg flex items-center gap-1.5 leading-[18px]">
@@ -186,19 +267,58 @@ function ListingInfo({
 
       <hr />
 
+
+      {fullListing.hasSets && fullListing.sets && fullListing.sets.length > 0 && (
+        <>
+          <SetSelector
+            sets={fullListing.sets}
+            selectedSetIds={selectedSetIds}
+            onSetToggle={onSetToggle || (() => { })}
+            onSelectAll={onSelectAllSets}
+            includedSetId={includedSetId}
+            pricingType={setPricingType}
+            hours={setHours}
+            disabled={isSetSelectionDisabled}
+            selectedPackage={selectedPackage}
+            availableSetIds={availableSetIds}
+            isEntireStudioBooked={isEntireStudioBooked}
+          />
+          <hr />
+        </>
+      )}
+
       {category && (
         <ListingCategory
           icon={category.icon}
           label={category.label}
-          address={fullListing.actualLocation?.display_name ?? ""}
           description={category.description}
         />
       )}
 
       <div className="text-base font-normal">
-        <p>{displayedText}</p>
+        <div
+          className={`prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1
+          prose-strong:text-black prose-headings:text-black
+          transition-all duration-300 ${!isExpanded ? "max-h-[160px] overflow-hidden relative" : ""
+            }`}
+        >
+          <div
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(description || ""),
+            }}
+          />
+
+          {!isExpanded && shouldTruncate && (
+            <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-gradient-to-t from-white to-transparent" />
+          )}
+        </div>
+
         {shouldTruncate && (
-          <button onClick={toggleExpand} className="underline font-medium text-sm mt-1">
+          <button
+            onClick={toggleExpand}
+            className="underline font-medium text-sm mt-1 cursor-pointer"
+            type="button"
+          >
             {isExpanded ? "See less" : "See more"}
           </button>
         )}
@@ -206,16 +326,9 @@ function ListingInfo({
 
       <hr />
 
-      <div className="flex flex-col gap-2">
-        <p className="text-xl font-semibold">Address</p>
-        <p className="font-normal">{fullListing.actualLocation?.display_name ?? ""}</p>
-      </div>
-
-      <hr />
-
-      {selectedAmenityKeys.length > 0 && amenityDefs.length > 0 && (
+      {selectedAmenityKeys.length > 0 && transformedAmenityDefs.length > 0 && (
         <>
-          <Offers amenities={selectedAmenityKeys} definedAmenities={amenityDefs} />
+          <Offers amenities={selectedAmenityKeys} definedAmenities={transformedAmenityDefs} />
           <hr />
         </>
       )}
@@ -234,6 +347,7 @@ function ListingInfo({
             onSelect={(pkg) => {
               onPackageSelect?.(pkg ?? null);
             }}
+            selectedPackageId={selectedPackage?.id}
           />
           <hr />
         </>
@@ -241,7 +355,7 @@ function ListingInfo({
 
       <div className="flex flex-col gap-4">
         <p className="text-xl font-semibold">Where you’ll be</p>
-        <Map center={fullListing.actualLocation ? fullListing.actualLocation.latlng ?? coordinates : coordinates} locationValue={locationValue} />
+        <Map center={getValidCenter()} locationValue={locationValue} />
       </div>
 
       <hr />
@@ -324,10 +438,10 @@ function ListingInfo({
           {reviews.length > 0 && (
             <>
               <div className="flex flex-col relative gap-4 pb-4">
-                {reviews.map((rv: any) => (
-                  <div className="flex items-center p-5 shadow-md rounded-2xl border" key={rv.id}>
+                {reviews.map((rv) => (
+                  <div className="flex items-center p-5 shadow-sm rounded-2xl border" key={rv.id}>
                     <div className="h-fit">
-                      <Avatar src={rv.user?.image} userName={rv.user?.name} size={45} />
+                      <Avatar src={rv.user?.image} size={45} />
                     </div>
                     <div className="pl-4 flex flex-col w-full">
                       <div className="flex justify-between items-center">
@@ -354,13 +468,15 @@ function ListingInfo({
                 <div className="relative">
                   <div className="text-sm font-bold mb-2">Write your message</div>
                   <div className="flex w-full bg-white border border-slate-400 items-end px-2 py-2 rounded-md">
-                    <textarea
+                    <Textarea
+                      id="review-comment"
                       value={review.comment}
                       onChange={(e) => setReview({ ...review, comment: e.target.value })}
-                      className="w-[calc(100%-16px)] h-[120px] resize-none text-left border-0 text-sm bg-transparent focus:ring-0"
+                      className="min-h-[120px] border-0 focus:ring-0 p-0"
+                      placeholder="Write your message"
                     />
                     <div className="w-4 h-4">
-                      <Image src="/assets/edit.svg" height={18} width={18} className="w-full h-full object-contain" alt="" />
+                      <Image src="/assets/edit.svg" height={18} width={18} className="w-full h-full object-contain" alt="Edit review" />
                     </div>
                   </div>
                 </div>
@@ -380,7 +496,7 @@ function ListingInfo({
                     ))}
                   </div>
                 </div>
-                <button type="button" onClick={handleReviewSubmit} className="rounded-full bg-black w-full py-2.5 text-white hover:opacity-90">
+                <button type="button" onClick={handleReviewSubmit} className="rounded-full bg-black w-full py-2.5 text-white hover:opacity-90 cursor-pointer">
                   Submit
                 </button>
               </div>
@@ -388,6 +504,23 @@ function ListingInfo({
             </>
           )}
         </div>
+      )}
+
+      {fullListing.customTerms && (
+        <>
+          <div className="flex flex-col gap-4">
+            <p className="text-xl font-semibold">Terms & Conditions by Host</p>
+            <div className="text-base font-normal">
+              <div
+                className="prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-strong:text-black prose-headings:text-black"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(fullListing.customTerms),
+                }}
+              />
+            </div>
+          </div>
+          <hr />
+        </>
       )}
 
       <div className="flex flex-col gap-4">

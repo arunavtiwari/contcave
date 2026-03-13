@@ -1,30 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import { IoCheckmark } from "react-icons/io5";
 
-interface Package {
-  id: string;
-  title: string;
-  originalPrice: number;
-  offeredPrice: number;
-  features: string[];
-  durationHours: number;
-}
+import { Package } from "@/types/package";
 
 interface Props {
   packages: Package[];
   onSelect?: (pkg: Package | null) => void;
+  selectedPackageId?: string | null;
 }
 
-export default function PackageList({ packages, onSelect }: Props) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+const INR = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0,
+});
+
+export default function PackageList({ packages, onSelect, selectedPackageId }: Props) {
 
   const handleSelect = (pkg: Package) => {
-    if (selectedId === pkg.id) {
-      setSelectedId(null);
+    if (selectedPackageId === pkg.id) {
       onSelect?.(null);
     } else {
-      setSelectedId(pkg.id);
       onSelect?.(pkg);
     }
   };
@@ -32,46 +29,89 @@ export default function PackageList({ packages, onSelect }: Props) {
   if (!packages || packages.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <p className="text-2xl font-semibold text-gray-900">Available Packages</p>
+    <div className="flex flex-col gap-4">
+      <p className="text-xl font-semibold">Available Packages</p>
 
       <div
-        className={`grid gap-6 ${
-          packages.length > 1 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
-        }`}
+        className="grid gap-4"
       >
         {packages.map((pkg) => (
           <div
             key={pkg.id}
             onClick={() => handleSelect(pkg)}
-            className={`border rounded-xl p-6 cursor-pointer transition-all transform ${
-              selectedId === pkg.id
-                ? "border-black shadow-lg bg-gray-100 scale-105"
-                : "border-gray-300 hover:shadow-md hover:bg-gray-50 hover:scale-105"
-            }`}
+            className={`
+              relative border rounded-xl p-4 transition cursor-pointer
+              ${selectedPackageId === pkg.id
+                ? "border-black bg-neutral-50 ring-1 ring-black"
+                : "border-neutral-200 hover:border-neutral-300"
+              }
+            `}
           >
-            {/* Header */}
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-lg text-black">{pkg.title}</h3>
-              <div className="text-right">
-                <p className="text-sm line-through text-gray-500">₹{pkg.originalPrice}</p>
-                <p className="text-lg font-bold text-black">₹{pkg.offeredPrice}</p>
+            <div className="flex items-center gap-4 sm:gap-6">
+
+              <div
+                className={`
+                  w-6 h-6 rounded-full border-2 flex items-center justify-center transition shrink-0
+                  ${selectedPackageId === pkg.id
+                    ? "border-black bg-black text-white"
+                    : "border-neutral-300"
+                  }
+                `}
+              >
+                {selectedPackageId === pkg.id && <IoCheckmark size={16} />}
+              </div>
+
+
+              <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <h4 className="font-medium text-lg">{pkg.title}</h4>
+
+
+                  {pkg.description && (
+                    <p className="text-sm text-neutral-500 mt-1 line-clamp-2">
+                      {pkg.description}
+                    </p>
+                  )}
+
+                  {pkg.features?.length > 0 && (
+                    <ul className="mt-2 flex flex-col gap-1 text-neutral-600 list-disc list-inside text-sm">
+                      {pkg.features.slice(0, 3).map((f, i) => (
+                        <li key={i}>{f}</li>
+                      ))}
+                      {pkg.features.length > 3 && <li>+ {pkg.features.length - 3} more</li>}
+                    </ul>
+                  )}
+
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                    <span className="font-medium text-neutral-700">
+                      Duration: {pkg.durationHours} hr{pkg.durationHours > 1 ? "s" : ""}
+                    </span>
+                    <span className="font-black text-xl leading-none text-black">•</span>
+                    <span className="text-neutral-600">
+                      {pkg.requiredSetCount || 0} sets included
+                    </span>
+
+                    {(pkg.fixedAddOn || 0) > 0 && (
+                      <span className="text-green-600 font-medium">
+                        + {INR.format(pkg.fixedAddOn || 0)} flat fee
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+
+                <div className="flex items-center gap-2 sm:justify-end">
+                  {(pkg.originalPrice || 0) > (pkg.offeredPrice || 0) && (
+                    <span className="text-sm text-neutral-500 line-through">
+                      {INR.format(pkg.originalPrice || 0)}
+                    </span>
+                  )}
+                  <span className="font-semibold text-black text-lg">
+                    {INR.format(pkg.offeredPrice || 0)}
+                  </span>
+                </div>
               </div>
             </div>
-
-            {/* Features */}
-            {pkg.features?.length > 0 && (
-              <ul className="mt-3 flex flex-col gap-1 text-gray-700 list-disc list-inside">
-                {pkg.features.map((f, i) => (
-                  <li key={i} className="text-sm">{f}</li>
-                ))}
-              </ul>
-            )}
-
-            {/* Duration */}
-            <p className="mt-4 text-sm font-medium text-gray-600">
-              Duration: {pkg.durationHours} hr{pkg.durationHours > 1 ? "s" : ""}
-            </p>
           </div>
         ))}
       </div>

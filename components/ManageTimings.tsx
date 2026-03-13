@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
-import ReactSwitch from "react-switch";
-import * as React from "react";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { FaBolt } from "react-icons/fa";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs, { Dayjs } from "dayjs";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
+
+import Switch from "@/components/ui/Switch";
 
 const dayNameToIndex: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
 
@@ -136,18 +135,11 @@ export default function CalendarComponent({
             <div className="flex flex-col gap-8 w-1/2">
                 <div className="flex items-center justify-between w-full gap-5">
                     <span className="text-lg font-semibold">Listing Status Today</span>
-                    <ReactSwitch
+                    <Switch
                         checked={isListingActive}
                         onChange={setIsListingActive}
                         onColor="#34D399"
-                        offColor="#D1D5DB"
-                        uncheckedIcon={false}
-                        offHandleColor="#000"
-                        activeBoxShadow="0 0 2px 3px #000"
-                        checkedIcon={false}
-                        height={30}
-                        handleDiameter={20}
-                        checkedHandleIcon={<FaBolt color="#FFD700" className="w-full h-full py-[2px]" />}
+                        variant="bolt"
                     />
                 </div>
 

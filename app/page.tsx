@@ -1,14 +1,13 @@
-import Blog from "@/components/Blog";
-import Contact from "@/components/Contact";
+import type { Metadata } from "next";
+
 import CTA from "@/components/CTA";
-import Cover from "@/components/Cover";
 import FAQ from "@/components/FAQ";
 import Feature from "@/components/Features";
 import FeaturesTab from "@/components/FeaturesTab";
 import FunFact from "@/components/FunFact";
 import Hero from "@/components/Hero";
-import type { Metadata } from "next";
 import {
+  absoluteUrl,
   BRAND_NAME,
   BRAND_TITLE,
   DEFAULT_KEYWORDS,
@@ -26,16 +25,30 @@ const homeJsonLd = {
   name: BRAND_TITLE,
   description: HOME_DESCRIPTION,
   isPartOf: { "@id": `${SITE_URL}/#website` },
-  inLanguage: "en",
+  publisher: { "@id": `${SITE_URL}/#localbusiness` },
+  inLanguage: "en-IN",
   primaryImageOfPage: {
     "@type": "ImageObject",
     url: `${SITE_URL}${OG_IMAGE}`,
+    width: 1200,
+    height: 630,
   },
-  about: BRAND_NAME,
+  about: { "@id": `${SITE_URL}/#localbusiness` },
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SITE_URL,
+      },
+    ],
+  },
 } as const;
 
 export const metadata: Metadata = {
-  title: BRAND_TITLE,
+  title: { absolute: BRAND_TITLE },
   description: HOME_DESCRIPTION,
   keywords: [...DEFAULT_KEYWORDS],
   alternates: {
@@ -45,7 +58,17 @@ export const metadata: Metadata = {
     title: BRAND_TITLE,
     description: HOME_DESCRIPTION,
     type: "website",
-    images: [OG_IMAGE],
+    url: SITE_URL,
+    siteName: BRAND_NAME,
+    images: [
+      {
+        url: absoluteUrl(OG_IMAGE),
+        width: 1200,
+        height: 630,
+        alt: BRAND_NAME,
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
@@ -53,7 +76,18 @@ export const metadata: Metadata = {
     description: HOME_DESCRIPTION,
     site: "@ContCave",
     creator: "@ContCave",
-    images: [OG_IMAGE],
+    images: [absoluteUrl(OG_IMAGE)],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 
@@ -62,7 +96,7 @@ export default function Home() {
     <main>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd).replace(/</g, '\\u003c') }}
       />
       <Hero />
       <Feature />
@@ -70,10 +104,6 @@ export default function Home() {
       <FunFact />
       <FAQ />
       <CTA />
-      {/* Optional components */}
-      {/* <Cover /> */}
-      {/* <Contact /> */}
-      {/* <Blog /> */}
     </main>
   );
 }

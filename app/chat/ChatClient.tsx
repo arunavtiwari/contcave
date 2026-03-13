@@ -1,14 +1,17 @@
 "use client";
 
-import Image from "next/image";
-import { FC, useState, useEffect } from "react";
 import Ably from "ably";
-import Heading from "@/components/Heading";
+import Image from "next/image";
+import { FC, useEffect, useState } from "react";
+
 import Loader from "@/components/Loader";
+import Heading from "@/components/ui/Heading";
+import { SafeUser } from "@/types/user";
+
 export const dynamic = "force-dynamic";
 
 interface ChatClientProps {
-  profile: any;
+  profile: SafeUser | null;
 }
 
 interface Message {
@@ -18,23 +21,40 @@ interface Message {
   timestamp: string;
 }
 
+interface Booking {
+  listing?: {
+    title: string;
+    imageSrc?: string[];
+  };
+  startDate: string;
+  startTime: string;
+  endTime: string;
+  totalPrice: number;
+  selectedAddons: {
+    name: string;
+    qty: number;
+    price: number;
+  }[];
+}
+
 const ChatClient: FC<ChatClientProps> = ({ profile }) => {
-  const reservationId = window.location.pathname.substring(
+  const reservationId = typeof window !== 'undefined' ? window.location.pathname.substring(
     window.location.pathname.lastIndexOf("/") + 1
-  );
-  const [booking, setBooking] = useState<any>(null);
+  ) : "";
+  const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const [channel, setChannel] = useState<Ably.RealtimeChannel | null>(null);
-  const email1 = profile.email;
-  const name = profile.name;
+  const email1 = profile?.email;
+  const name = profile?.name;
 
   useEffect(() => {
     let chatChannel: Ably.RealtimeChannel;
     let ably: Ably.Realtime;
 
     const initializeChat = async () => {
+      if (!reservationId) return;
       try {
         const reservationRes = await fetch(`/api/reservations/${reservationId}`, {
           method: "GET",
@@ -51,7 +71,7 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
 
         ably = new Ably.Realtime({
           key: process.env.NEXT_PUBLIC_ABLY_CHAT_API!,
-          clientId: email1,
+          clientId: email1 || undefined,
         });
 
         chatChannel = ably.channels.get(`${reservationId}`);
@@ -81,7 +101,9 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
       }
     };
 
-    initializeChat();
+    if (email1) {
+      initializeChat();
+    }
 
     return () => {
       if (chatChannel) {
@@ -101,8 +123,8 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
     if (newMessage.trim() && channel) {
       const messageData = {
         text: newMessage,
-        email: email1,
-        name: name,
+        email: email1 || "",
+        name: name || "",
         timestamp: new Date().toISOString(),
       };
 
@@ -114,10 +136,10 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
   return (
     <div className="flex flex-col gap-5">
       <Heading title={`Chat with ${booking?.listing?.title}`} />
-      <div className="flex flex-grow overflow-hidden w-full items-stretch h-[calc(100vh-180px)]">
-        {/* Chat Section */}
-        <div className="flex flex-col flex-grow bg-gray-50 overflow-hidden rounded-l-xl border w-3/4">
-          <div className="flex-grow overflow-y-auto p-4">
+      <div className="flex grow overflow-hidden w-full items-stretch h-[calc(100vh-180px)]">
+        
+        <div className="flex flex-col grow bg-gray-50 overflow-hidden rounded-l-xl border w-3/4">
+          <div className="grow overflow-y-auto p-4">
             <div className="flex flex-col space-y-4">
               {messages.map((msg, index) => (
                 <div
@@ -142,13 +164,13 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
             </div>
           </div>
 
-          {/* Chat Input */}
+          
           <div className="flex-none p-4 border-t bg-white">
             <div className="flex items-stretch">
               <input
                 type="text"
                 placeholder="Type a message..."
-                className="flex-grow p-2 border rounded-l-full"
+                className="grow p-2 border rounded-l-full"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => {
@@ -164,11 +186,11 @@ const ChatClient: FC<ChatClientProps> = ({ profile }) => {
           </div>
         </div>
 
-        {/* Booking Details Section */}
+        
         {booking && (
           <div className="border bg-white border-l-0 rounded-r-xl p-5 w-1/4">
             <Image
-              src={booking?.listing?.imageSrc?.[0]}
+              src={booking?.listing?.imageSrc?.[0] || ""}
               alt="Property Image"
               width={200}
               height={200}

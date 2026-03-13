@@ -1,14 +1,16 @@
-import ClientOnly from "@/components/ClientOnly";
-import getCurrentUser from "../actions/getCurrentUser";
-import EmptyState from "@/components/EmptyState";
-import ProfileTransactionClient from "./ProfileTransactionClient";
-import Container from "@/components/Container";
 import type { Metadata } from "next";
-import { BRAND_NAME } from "@/lib/seo";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getTransactions from "@/app/actions/getTransactions";
+import ClientOnly from "@/components/ClientOnly";
+import Container from "@/components/Container";
+import EmptyState from "@/components/EmptyState";
+
+import ProfileTransactionClient from "./ProfileTransactionClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `Transactions | ${BRAND_NAME}`,
+  title: "Transactions",
   robots: {
     index: false,
     follow: false,
@@ -16,9 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Props = {};
-
-const ProfileTransaction = async (props: Props) => {
+const ProfileTransaction = async () => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -28,10 +28,12 @@ const ProfileTransaction = async (props: Props) => {
       </ClientOnly>
     );
   }
+  const transactions = await getTransactions(currentUser.id);
+
   return (
     <Container>
       <ClientOnly>
-        <ProfileTransactionClient profile={currentUser} />
+        <ProfileTransactionClient currentUser={currentUser} transactions={transactions} />
       </ClientOnly>
     </Container>
   );

@@ -1,13 +1,14 @@
-import getCurrentUser from "@/app/actions/getCurrentUser";
-import ClientOnly from "@/components/ClientOnly";
-import EmptyState from "@/components/EmptyState";
-import ChatClient from "../ChatClient";
-import Container from "@/components/Container";
 import type { Metadata } from "next";
-import { BRAND_NAME } from "@/lib/seo";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import ChatClient from "@/app/chat/ChatClient";
+import ClientOnly from "@/components/ClientOnly";
+import Container from "@/components/Container";
+import EmptyState from "@/components/EmptyState";
+
 
 export const metadata: Metadata = {
-  title: `Reservation Chat | ${BRAND_NAME}`,
+  title: "Reservation Chat",
   description: "Coordinate with guests and hosts in a secure ContCave chat room for this reservation.",
   robots: {
     index: false,
@@ -16,9 +17,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Props = {};
-
-const Profile = async (props: Props) => {
+const Profile = async () => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {

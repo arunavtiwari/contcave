@@ -1,29 +1,25 @@
 "use client";
 
-import useCountries from "@/hook/useCities";
-import useSearchModal from "@/hook/useSearchModal";
-// import { differenceInDays } from "date-fns";
 import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { memo, Suspense, useCallback, useMemo } from "react";
 import { BiSearch } from "react-icons/bi";
 
-type Props = {};
+import useCountries from "@/hook/useCities";
+import useSearchModal from "@/hook/useSearchModal";
 
-function Search({ }: Props) {
+const SearchContent = memo(function SearchContent() {
   const searchModel = useSearchModal();
   const params = useSearchParams();
   const { getByValue } = useCountries();
 
   const locationValue = params?.get("locationValue");
   const startDate = params?.get("selectedDate");
-  // const timeSlot = params?.get("timeSlot");
 
   const locationLabel = useMemo(() => {
     if (locationValue) {
       return getByValue(locationValue as string)?.label;
     }
-
-    return "City"; // 
+    return "City";
   }, [getByValue, locationValue]);
 
   const dateLabel = useMemo(() => {
@@ -31,42 +27,60 @@ function Search({ }: Props) {
       const start = new Date(startDate as string);
       const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
       const formattedDate = start.toLocaleString('en-US', options);
-
-      // Adjust the fontSize as needed
-      const styledDate = <span style={{ fontSize: '14px' }}>{formattedDate}</span>;
-      return styledDate;
+      return <span style={{ fontSize: '14px' }}>{formattedDate}</span>;
     }
-
     return "Date";
   }, [startDate]);
 
-  // const timeSlotLabel = useMemo(() => {
-  //   if (timeSlot) {
-  //     return `${timeSlot}`;
-  //   }
-
-  //   return "Time";
-  // }, []);
+  const handleClick = useCallback(() => {
+    searchModel.onOpen();
+  }, [searchModel]);
 
   return (
-    <div
-      onClick={searchModel.onOpen}
-      className="border-[2px] md:w-auto p-2 rounded-full shadow-sm hover:shadow-md transition cursor-pointer"
+    <button
+      type="button"
+      onClick={handleClick}
+      className="border-2 w-full md:w-auto p-2 rounded-full shadow-xs hover:shadow-sm transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
     >
       <div className="flex flex-row items-center justify-between">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>
-        <div className="hidden sm:block text-sm font-semibold px-6 border-s-[1px] flex-1 text-center">
+        <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
           {dateLabel}
         </div>
         <div className="text-sm text-gray-600 flex flex-row items-center gap-3">
-          {/* <div className="hidden sm:block text-center">{timeSlotLabel}</div> */}
           <div className="p-2 bg-black rounded-full text-white">
             <BiSearch size={16} />
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
-}
+});
+
+SearchContent.displayName = "SearchContent";
+
+const Search = memo(function Search() {
+  return (
+    <Suspense fallback={
+      <div className="border-2 md:w-auto p-2 rounded-full shadow-xs">
+        <div className="flex flex-row items-center justify-between">
+          <div className="text-sm font-semibold px-6">City</div>
+          <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
+            Date
+          </div>
+          <div className="text-sm text-gray-600 flex flex-row items-center gap-3">
+            <div className="p-2 bg-black rounded-full text-white">
+              <BiSearch size={16} />
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
+  );
+});
+
+Search.displayName = "Search";
 
 export default Search;

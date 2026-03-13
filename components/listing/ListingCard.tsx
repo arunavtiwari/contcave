@@ -1,15 +1,17 @@
 "use client";
 
-import useCities from "@/hook/useCities";
-import { SafeReservation, SafeUser, safeListing } from "@/types";
-import { format } from "date-fns";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import React, { useCallback, useMemo } from "react";
-import Button from "../Button";
-import HeartButton from "../HeartButton";
+import Link from "next/link";
+import React, { useMemo } from "react";
 import { FaStar } from "react-icons/fa6";
+
+import HeartButton from "@/components/HeartButton";
+import Button from "@/components/ui/Button";
+import useCities from "@/hook/useCities";
+import { safeListing } from "@/types/listing";
+import { SafeReservation } from "@/types/reservation";
+import { SafeUser } from "@/types/user";
 
 type Props = {
   data: safeListing;
@@ -26,35 +28,19 @@ type Props = {
   currentUser?: SafeUser | null;
 };
 
-function ListingCard({
+const ListingCard: React.FC<Props> = ({
   data,
   reservation,
-  onAction,
   onEdit,
-  onDelete,
   onApprove,
   onChat,
-  disabled,
-  actionLabel,
-  actionId = "",
-  onApproveBookings,
-  currentUser,
-}: Props) {
-  const router = useRouter();
-  const { getByValue } = useCities();
+  currentUser
+}) => {
 
+  const { getByValue } = useCities();
   const location = getByValue(data.locationValue);
 
-  const handleCancel = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
 
-      if (disabled) return;
-
-      onAction?.(actionId);
-    },
-    [onAction, actionId, disabled]
-  );
 
   const price = useMemo(() => {
     if (reservation) {
@@ -73,22 +59,29 @@ function ListingCard({
         delay: 0.5,
         ease: [0, 0.71, 0.2, 1.01],
       }}
-      onClick={() => onEdit ? router.push(`/properties/${data.id}`) : router.push(`/listings/${data.id}`)}
-      className="col-span-1 cursor-pointer group p-5 shadow-md rounded-2xl border border-neutral-200"
+      className="col-span-1 cursor-pointer group p-5 shadow-sm rounded-2xl border border-neutral-200"
     >
       <div className="flex flex-col gap-2 w-full">
         <div className="aspect-square w-full relative overflow-hidden rounded-xl">
-          <Image
-            fill
-            className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-700"
-            src={data.imageSrc[0] || "/assets/listing-image-default.png"}
-            alt="listing"
-          />
+          <Link
+            href={onEdit ? `/properties/${data.id}` : `/listings/${data.slug}`}
+            className="block h-full w-full"
+          >
+            <div className="relative h-full w-full">
+              <Image
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-700"
+                src={data.imageSrc[0] || "/assets/listing-image-default.png"}
+                alt="listing"
+              />
+            </div>
+          </Link>
           <div className="absolute top-3 right-3">
             <HeartButton listingId={data.id} currentUser={currentUser} />
           </div>
         </div>
-        <div>
+        <Link href={onEdit ? `/properties/${data.id}` : `/listings/${data.slug}`}>
           <div className="flex justify-between items-center">
             <div className="font-semibold text-lg">
               {data.title}
@@ -103,9 +96,10 @@ function ListingCard({
           <div className="font-light text-neutral-500">
             {data.category} | {location?.label}
           </div>
-        </div>
+        </Link>
         <div className="flex flex-row items-center">
           <div className="flex gap-1 font-semibold">
+            {data.hasSets && <span className="font-light text-neutral-500 mr-1">Starting from</span>}
             ₹{price} {!reservation && <div className="font-light">/ Hour</div>}
           </div>
         </div>
@@ -113,12 +107,12 @@ function ListingCard({
         {(onEdit || (!reservation?.isApproved && onApprove) || (reservation?.isApproved !== 0 && onChat)) && (
           <div className="flex mt-2">
             {onEdit && (
-              <Button
-                rounded
-                label="Manage"
-                onClick={() => router.push(`/properties/${data.id}`)}
-                classNames="button"
-              />
+              <Link
+                href={`/properties/${data.id}`}
+                className="button rounded-full px-4 py-2 bg-black text-white font-semibold hover:bg-neutral-800 transition"
+              >
+                Manage
+              </Link>
             )}
 
             {!reservation?.isApproved && onApprove && (

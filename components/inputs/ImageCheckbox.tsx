@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import React, { useEffect, useState } from 'react';
+
+import { Addon } from "@/types/addon";
 
 type Props = {
   imageUrl: string;
@@ -7,43 +9,45 @@ type Props = {
   checked?: boolean;
   hideCheckbox?: boolean;
   hideInputFields?: boolean;
-  addon?: any;
-  onChange: (value: { checked: boolean; price?: any; qty?: any }) => void;
+  addon?: Addon;
+  onChange: (value: { checked: boolean; price?: number; qty?: number }) => void;
   onClickChange?: () => void;
 
 };
 
 const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked, addon, onChange, onClickChange }: Props) => {
   const [isChecked, setIsChecked] = useState(checked);
-  const [price, setPrice] = useState<number | ''>('');
-  const [qty, setQty] = useState<number | ''>('');
+  const [price, setPrice] = useState<number | ''>(addon?.price && addon.price > 0 ? addon.price : '');
+  const [qty, setQty] = useState<number | ''>(addon?.qty && addon.qty > 0 ? addon.qty : '');
 
   useEffect(() => {
     setIsChecked(checked);
   }, [checked]);
 
+  useEffect(() => {
+    if (addon?.price && addon.price > 0) setPrice(addon.price);
+    if (addon?.qty && addon.qty > 0) setQty(addon.qty);
+  }, [addon?.price, addon?.qty]);
+
   const handleCheckboxChange = () => {
     const newCheckedState = !isChecked;
     setIsChecked(newCheckedState);
-    onChange({ checked: newCheckedState, price: price !== '' ? price : undefined });
+    onChange({ checked: newCheckedState, price: price !== '' ? price : undefined, qty: qty !== '' ? qty : undefined });
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPrice = e.target.value === '' ? '' : parseInt(e.target.value, 10);
     setPrice(newPrice);
-    // Call onChange only if the checkbox is checked
-    if (isChecked) {
-      setIsChecked(isChecked);
-      onChange({ checked: true, price: newPrice !== '' ? newPrice : undefined, qty: qty });
 
+    if (isChecked) {
+      onChange({ checked: true, price: newPrice !== '' ? newPrice : undefined, qty: qty !== '' ? qty : undefined });
     }
   };
   const handleQtyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQty = e.target.value === '' ? '' : parseInt(e.target.value, 10);
     setQty(newQty);
     if (isChecked) {
-      setIsChecked(isChecked);
-      onChange({ checked: true, price: price, qty: newQty !== '' ? newQty : undefined });
+      onChange({ checked: true, price: price !== '' ? price : undefined, qty: newQty !== '' ? newQty : undefined });
     }
   };
   return (
@@ -54,42 +58,57 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
           type="checkbox"
           checked={isChecked}
           onChange={handleCheckboxChange}
-          className="w-6 h-6 text-black bg-gray-100 border-black border-2 rounded-full focus:ring-transparent"
+          className="w-6 h-6 accent-black bg-gray-100 border-black border-2 rounded-full focus:ring-transparent checked:bg-black checked:border-black"
         />)}
         {hideCheckbox && (
-          <Image
-            src={imageUrl}
-            alt={label || "image"}
-            width={80}
-            height={80}
-            className="rounded-md w-20 mt-6 mb-2"
-            onClick={onClickChange}
-          />
+          (imageUrl && imageUrl.trim() !== '') ? (
+            <Image
+              src={imageUrl}
+              alt={label || "image"}
+              width={80}
+              height={80}
+              className="rounded-md w-20 h-20 mt-6 mb-2 object-cover"
+              onClick={onClickChange}
+            />
+          ) : (
+            <div
+              className="rounded-md w-20 h-20 mt-6 mb-2 bg-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-1"
+              onClick={onClickChange}
+            >
+              No Image
+            </div>
+          )
         )}
         {!hideCheckbox && (
-          <Image
-            src={imageUrl}
-            alt={label || "image"}
-            width={addon.width ? Number(addon.width) : 97}
-            height={addon.width ? Number(addon.width) : 97}
-            className="rounded-md mt-2"
-          />
+          (imageUrl && imageUrl.trim() !== '') ? (
+            <Image
+              src={imageUrl}
+              alt={label || "image"}
+              width={97}
+              height={97}
+              className="rounded-md mt-2 object-cover w-24.25 h-24.25"
+            />
+          ) : (
+            <div className="rounded-md mt-2 w-24.25 h-24.25 bg-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-1">
+              No Image
+            </div>
+          )
         )}
 
 
         <div className="w-full flex flex-col items-center gap-3">
           <span className="addon-name truncate mt-2">{label}</span>
-          {/* Price */}
+
           {!hideInputFields && (
-            <div className='flex items-center gap-4 w-full justify-between'>
-              <label className="text-sm">Price</label>
+            <div className='flex items-center gap-2 w-full justify-between'>
+              <label className="text-sm font-semibold shrink-0">Price</label>
               <div className="relative flex items-center">
                 <span className="absolute left-2 text-gray-500 border-r pr-2">₹</span>
                 <input
                   type="number"
-                  value={addon.price ? addon.price : price}
+                  value={price}
                   onChange={handlePriceChange}
-                  className="w-[150px] text-center border rounded-xl py-1 pl-10"
+                  className="w-37.5 text-center border rounded-xl py-1 pl-10"
                   placeholder="Price"
                   disabled={!isChecked}
                 />
@@ -97,15 +116,15 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
             </div>
           )}
 
-          {/* Quantity */}
+
           {!hideInputFields && (
-            <div className='flex items-center gap-4 w-full justify-between'>
-              <label className="text-sm">Quantity</label>
+            <div className='flex items-center gap-2 w-full justify-between'>
+              <label className="text-sm font-semibold shrink-0">Quantity</label>
               <input
                 type="number"
-                value={addon.qty ? addon.qty : qty}
+                value={qty}
                 onChange={handleQtyChange}
-                className="w-[150px] text-center border rounded-xl py-1 pl-7"
+                className="w-37.5 text-center border rounded-xl py-1 px-3"
                 placeholder="Quantity"
                 disabled={!isChecked}
               />

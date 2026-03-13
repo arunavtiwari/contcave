@@ -11,8 +11,8 @@ function baseUrl() {
 }
 
 function headers(idempotencyKey?: string) {
-    const id = process.env.CASHFREE_API_ID || "";
-    const secret = process.env.CASHFREE_API_SECRET || "";
+    const id = process.env.CASHFREE_API_ID || process.env.CASHFREE_APP_ID || "";
+    const secret = process.env.CASHFREE_API_SECRET || process.env.CASHFREE_SECRET_KEY || "";
     if (!id || !secret) throw new Error("Cashfree API credentials missing");
     const h: Record<string, string> = {
         "Content-Type": "application/json",

@@ -1,5 +1,6 @@
-import Image from "next/image";
 import type { Metadata } from "next";
+import Image from "next/image";
+
 import { getPostData, getSortedPostsData } from "@/lib/posts";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
@@ -9,7 +10,12 @@ const FALLBACK_DESCRIPTION =
 type RouteParams = { id: string };
 
 const asciiClean = (value: string | undefined | null): string | undefined =>
-  value?.replace(/[^\x20-\x7E]+/g, " ").replace(/\s+/g, " ").trim();
+  value
+    ?.replace(/<[^>]*>?/gm, " ") // Strip HTML tags
+    .replace(/&#?[a-z0-9]+;/ig, " ") // Strip HTML entities
+    .replace(/[^\x20-\x7E]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
 export async function generateStaticParams() {
   return getSortedPostsData().map((post) => ({ id: post.id }));
@@ -32,7 +38,7 @@ export async function generateMetadata({
     const published = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
     const updated = post.updatedAt ? new Date(post.updatedAt).toISOString() : published;
     const canonical = `/blog/${id}`;
-    const title = `${post.title} | ${BRAND_NAME} Blog`;
+    const title = post.title;
 
     return {
       title,
@@ -43,20 +49,42 @@ export async function generateMetadata({
         title,
         description,
         url: `${SITE_URL}${canonical}`,
-        images: [image],
+        siteName: BRAND_NAME,
+        images: [
+          {
+            url: image,
+            width: 1200,
+            height: 630,
+            alt: post.title,
+          },
+        ],
         publishedTime: published,
         modifiedTime: updated,
+        locale: "en_IN",
+        authors: post.authors?.map((name) => `${SITE_URL}/#author-${name}`) || [BRAND_NAME],
       },
       twitter: {
         card: "summary_large_image",
         title,
         description,
+        site: "@ContCave",
+        creator: "@ContCave",
         images: [image],
       },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      },
     };
-  } catch (error) {
+  } catch (_error) {
     return {
-      title: `Blog | ${BRAND_NAME}`,
+      title: "Blog",
       description: FALLBACK_DESCRIPTION,
     };
   }
@@ -73,31 +101,26 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
+    "@id": `${SITE_URL}/blog/${id}#article`,
     headline: post.title,
     description,
     image: [absoluteUrl(post.meta?.image?.url ?? OG_IMAGE)],
     author: (post.authors ?? []).map((name) => ({ "@type": "Person", name })),
-    publisher: {
-      "@type": "Organization",
-      name: BRAND_NAME,
-      logo: {
-        "@type": "ImageObject",
-        url: absoluteUrl(OG_IMAGE),
-      },
-    },
+    publisher: { "@id": `${SITE_URL}/#localbusiness` },
     datePublished: post.publishedAt,
     dateModified: post.updatedAt ?? post.publishedAt,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": absoluteUrl(`/blog/${id}`),
     },
+    isPartOf: { "@id": `${SITE_URL}/#website` },
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 !select-text">
+    <div className="max-w-3xl mx-auto px-4 py-8 select-text!">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, '\\u003c') }}
       />
 
       <h1 className="text-4xl font-extrabold mb-4">{post.title}</h1>

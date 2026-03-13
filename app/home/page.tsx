@@ -1,12 +1,13 @@
+import type { Metadata } from "next";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getListings, { IListingsParams } from "@/app/actions/getListings";
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
-import ListingCard from "@/components/listing/ListingCard";
+import ListingFeed from "@/components/listing/ListingFeed";
 import Categories from "@/components/navbar/Categories";
-import getCurrentUser from "../actions/getCurrentUser";
-import getListings, { IListingsParams } from "../actions/getListings";
-import type { Metadata } from "next";
-import { BRAND_NAME, OG_IMAGE, SITE_URL, absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ const LISTINGS_DESCRIPTION =
   "Browse verified photography, video, and event studios across India. Filter by city, amenities, or dates to find the perfect space." as const;
 
 export const metadata: Metadata = {
-  title: `Explore Studios for Rent | ${BRAND_NAME}`,
+  title: "Explore Studios for Rent",
   description: LISTINGS_DESCRIPTION,
   keywords: [
     "studio rental",
@@ -23,19 +24,43 @@ export const metadata: Metadata = {
     "creative studio",
     "ContCave listings",
     "studio spaces India",
+    "book studio online",
+    "hourly studio rental",
   ],
   alternates: { canonical: "/home" },
   openGraph: {
-    title: `Explore Studios for Rent | ${BRAND_NAME}`,
+    title: "Explore Studios for Rent",
     description: LISTINGS_DESCRIPTION,
     url: `${SITE_URL}/home`,
-    images: [OG_IMAGE],
+    siteName: BRAND_NAME,
+    type: "website",
+    images: [
+      {
+        url: absoluteUrl(OG_IMAGE),
+        width: 1200,
+        height: 630,
+        alt: "ContCave Studio Listings",
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
-    title: `Explore Studios for Rent | ${BRAND_NAME}`,
+    title: "Explore Studios for Rent",
     description: LISTINGS_DESCRIPTION,
-    images: [OG_IMAGE],
+    site: "@ContCave",
+    creator: "@ContCave",
+    images: [absoluteUrl(OG_IMAGE)],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -53,8 +78,10 @@ export default async function Home(props: HomeProps) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
+    "@id": `${SITE_URL}/home#itemlist`,
     name: "Studios available on ContCave",
     url: `${SITE_URL}/home`,
+    publisher: { "@id": `${SITE_URL}/#localbusiness` },
     itemListElement: listing.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,
@@ -89,16 +116,15 @@ export default async function Home(props: HomeProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <ClientOnly>
         <Container>
           <Categories />
-          <div className="pb-24 pt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 overflow-x-hidden">
-            {listing.map((item) => (
-              <ListingCard key={item.id} data={item} currentUser={currentUser} />
-            ))}
-          </div>
+          <ListingFeed
+            listings={listing}
+            currentUser={currentUser}
+          />
         </Container>
       </ClientOnly>
     </>

@@ -1,0 +1,61 @@
+# ContCave - Studio Booking Platform for Creators
+
+## About
+ContCave is India's trusted marketplace for photography, film, and event-ready studios. We help creators discover, compare, and book verified production spaces across major Indian cities.
+
+## Core Services
+- Studio rental booking (hourly basis)
+- Photography and video shoot spaces
+- Podcast studio rentals
+- Event space bookings
+- Cyclorama and green screen studios
+- Recording studios
+- Café and restaurant spaces for shoots
+
+## Key Features
+- Verified studio listings across India
+- Real-time availability and booking
+- Secure payment processing
+- Calendar integration
+- Review and rating system
+- Location-based search
+- Category filtering (Indoor, Outdoor, Podcast, etc.)
+
+## Target Cities
+Mumbai, Delhi, Bengaluru, Hyderabad, Chennai, Kolkata, Pune, Noida, Gurugram, Ahmedabad, Jaipur, Lucknow, Chandigarh, Indore, Goa, and more.
+
+## Business Model
+- Platform connects space owners with creators
+- Hourly rental bookings
+- Commission-based revenue model
+- Payment processing via Cashfree
+
+## Technology Stack
+- Next.js 16 (React framework)
+- TypeScript
+- Prisma (Database ORM)
+- NextAuth (Authentication)
+- Vercel (Hosting)
+
+## Contact
+- Email: info@contcave.com
+- Website: https://contcave.com
+- Social: @ContCave on Twitter, Instagram, LinkedIn
+
+## Content Guidelines
+- All listings are verified before publication
+- Studios must meet quality standards
+- Transparent pricing and availability
+- User reviews and ratings
+
+## API Endpoints
+- /api/listings - Browse available studios
+- /api/auth - Authentication
+- /api/bookings - Booking management
+- /api/payments - Payment processing
+
+## Legal
+- Privacy Policy: /privacy-policy
+- Terms & Conditions: /terms-and-conditions
+- Cancellation Policy: /cancellation
+

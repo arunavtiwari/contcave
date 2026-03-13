@@ -2,8 +2,9 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState } from "react";
-import FAQItem from "./FAQItem";
+
 import faqData from "./faqData";
+import FAQItem from "./FAQItem";
 
 const FAQ = () => {
   const [activeFaq, setActiveFaq] = useState(1);
@@ -12,9 +13,25 @@ const FAQ = () => {
     activeFaq === id ? setActiveFaq(0) : setActiveFaq(id);
   };
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqData.map((faq) => ({
+      "@type": "Question",
+      name: faq.quest,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.ans,
+      },
+    })),
+  };
+
   return (
     <>
-      {/* <!-- ===== FAQ Start ==== --> */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, '\\u003c') }}
+      />
       <section className="overflow-hidden pb-20 lg:pb-25 xl:pb-30">
         <div className="relative mx-auto max-w-c-1235 px-4 md:px-8 xl:px-0">
           <div className="absolute -bottom-16 -z-1 h-full w-full">
@@ -109,7 +126,6 @@ const FAQ = () => {
           </div>
         </div>
       </section>
-      {/* <!-- ===== FAQ End ===== --> */}
     </>
   );
 };

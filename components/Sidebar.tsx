@@ -1,26 +1,27 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { FaCalendar, FaClock, FaArrowUpRightDots } from "react-icons/fa6";
-import { FaHome, FaCogs } from "react-icons/fa";
+import Link from "next/link";
 import React from "react";
+import { FaCogs, FaHome } from "react-icons/fa";
+import { FaArrowUpRightDots, FaCalendar, FaClock } from "react-icons/fa6";
 
 interface SidebarProps {
     selectedMenu: string;
     setSelectedMenu: (menu: string) => void;
     listingId?: string;
     menuType?: "main" | "profile";
+    isOwner?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedMenu, listingId, menuType = "main" }) => {
-    const router = useRouter();
+const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedMenu, listingId, menuType = "main", isOwner }) => {
+
 
     const sidebarMenuItems = React.useMemo(() => [
         { name: "Edit Property", icon: <FaHome size={22} className="hover:text-white sm:hover:text-black transition" /> },
         { name: "Sync Calendar", icon: <FaCalendar size={22} className="hover:text-white sm:hover:text-black transition" /> },
         { name: "Manage Timings", icon: <FaClock size={22} className="hover:text-white sm:hover:text-black transition" /> },
+        { name: "Manage Blocks", icon: <FaCalendar size={22} className="hover:text-white sm:hover:text-black transition" /> },
         { name: "Settings", icon: <FaCogs size={22} className="hover:text-white sm:hover:text-black transition" /> },
         {
             name: "Profile",
@@ -40,17 +41,20 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedM
         },
     ], []);
 
-    const itemsToDisplay = React.useMemo(() =>
-        menuType === "profile" ? sidebarMenuItems.slice(4) : sidebarMenuItems.slice(0, 4),
-        [sidebarMenuItems, menuType]
-    );
+    const itemsToDisplay = React.useMemo(() => {
+        let items = menuType === "profile" ? sidebarMenuItems.slice(5) : sidebarMenuItems.slice(0, 5);
+        if (isOwner === false) {
+            items = items.filter(item => item.name !== "Manage Payments");
+        }
+        return items;
+    }, [sidebarMenuItems, menuType, isOwner]);
 
     const handleMenuClick = React.useCallback((item: typeof sidebarMenuItems[0]) => {
         setSelectedMenu(item.name);
     }, [setSelectedMenu]);
 
     return (
-        <div className="flex fixed flex-col sm:sticky top-[90px] sm:top-[85px] pr-4 pl-0 py-1.5 sm:py-10 min-w-[250px] bg-black/30 sm:bg-white h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
+        <div className="flex fixed flex-col sm:sticky top-22.5 sm:top-21.25 pr-4 pl-0 py-1.5 sm:py-10 min-w-62.5 bg-black/30 sm:bg-white h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
             <nav>
                 <ul className="flex sm:flex-col sm:gap-2 gap-2">
                     {itemsToDisplay.map((item, index) => (

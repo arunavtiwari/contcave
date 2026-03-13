@@ -1,15 +1,16 @@
+import type { Metadata } from "next";
+import React from "react";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getFavoriteListings from "@/app/actions/getFavoriteListings";
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
-import React from "react";
-import getCurrentUser from "../actions/getCurrentUser";
-import getFavoriteListings from "../actions/getFavoriteListings";
+
 import FavoritesClient from "./FavoritesClient";
-import type { Metadata } from "next";
-import { BRAND_NAME } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `Saved Spaces | ${BRAND_NAME}`,
+  title: "Saved Spaces",
   description: "Quickly access the studios and listings you've marked as favourites on ContCave.",
   robots: {
     index: false,
@@ -18,9 +19,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Props = {};
-
-const FavoritePage = async (props: Props) => {
+const FavoritePage = async () => {
   const currentUser = await getCurrentUser();
   const listings = await getFavoriteListings();
 

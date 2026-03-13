@@ -1,4 +1,9 @@
+"use server";
+
+import 'server-only';
+
 import prisma from "@/lib/prismadb";
+
 import getCurrentUser from "./getCurrentUser";
 
 export default async function getFavoriteListings() {
@@ -17,13 +22,13 @@ export default async function getFavoriteListings() {
       },
     });
 
-    const safeFavorite = favorites.map((favorite) => ({
+    const safeFavorites = favorites.map((favorite) => ({
       ...favorite,
       createdAt: favorite.createdAt.toString(),
     }));
 
-    return safeFavorite;
-  } catch (error: any) {
-    throw new Error(error.message);
+    return safeFavorites;
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "An unknown error occurred");
   }
 }

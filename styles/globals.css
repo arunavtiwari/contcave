@@ -1,10 +1,163 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+
+@theme {
+	/* Fonts */
+	--font-inter: Inter, sans-serif;
+
+	/* Colors */
+	--color-current: currentColor;
+	--color-transparent: transparent;
+	--color-stroke: #EEEEEE;
+	--color-strokedark: #2D2F40;
+	--color-hoverdark: #252A42;
+	--color-titlebg: #ADFFF8;
+	--color-titlebg2: #FFEAC2;
+	--color-titlebgdark: #46495A;
+	--color-btndark: #292E45;
+	--color-white: #FFFFFF;
+	--color-blackho: #2C3149;
+	--color-blacksection: #1C2136;
+	--color-primary: #006BFF;
+	--color-primaryho: #0063EC;
+	--color-meta: #20C5A8;
+	--color-alabaster: #FBFBFB;
+	--color-zumthor: #EDF5FF;
+	--color-socialicon: #D1D8E0;
+	--color-red: #E74C3C;
+
+	/* Font Sizes */
+	--text-metatitle: 12px;
+	--text-metatitle--line-height: 20px;
+	--text-sectiontitle: 14px;
+	--text-sectiontitle--line-height: 22px;
+	--text-regular: 16px;
+	--text-regular--line-height: 26px;
+	--text-metatitle3: 18px;
+	--text-metatitle3--line-height: 26px;
+	--text-metatitle2: 20px;
+	--text-metatitle2--line-height: 32px;
+	--text-para2: 22px;
+	--text-para2--line-height: 35px;
+	--text-itemtitle: 26px;
+	--text-itemtitle--line-height: 32px;
+	--text-itemtitle2: 24px;
+	--text-itemtitle2--line-height: 32px;
+	--text-hero: 44px;
+	--text-hero--line-height: 58px;
+	--text-sectiontitle3: 44px;
+	--text-sectiontitle3--line-height: 55px;
+	--text-sectiontitle2: 40px;
+	--text-sectiontitle2--line-height: 52px;
+	--text-sectiontitle4: 34px;
+	--text-sectiontitle4--line-height: 48px;
+
+	/* Spacing */
+	--spacing-4_5: 1.125rem;
+	--spacing-5_5: 1.375rem;
+	--spacing-6_5: 1.625rem;
+	--spacing-7_5: 1.875rem;
+	--spacing-8_5: 2.125rem;
+	--spacing-10_5: 2.625rem;
+	--spacing-11_5: 2.875rem;
+	--spacing-12_5: 3.125rem;
+	--spacing-13: 3.25rem;
+	--spacing-13_5: 3.375rem;
+	--spacing-14_5: 3.625rem;
+	--spacing-15: 3.75rem;
+	--spacing-15_5: 3.875rem;
+	--spacing-16: 4rem;
+	--spacing-17: 4.25rem;
+	--spacing-17_5: 4.375rem;
+	--spacing-18: 4.5rem;
+	--spacing-18_5: 4.625rem;
+	--spacing-19: 4.75rem;
+	--spacing-21: 5.25rem;
+	--spacing-21_5: 5.375rem;
+	--spacing-22: 5.5rem;
+	--spacing-22_5: 5.625rem;
+	--spacing-25: 6.25rem;
+	--spacing-27: 6.75rem;
+	--spacing-27_5: 6.875rem;
+	--spacing-29: 7.25rem;
+	--spacing-29_5: 7.375rem;
+	--spacing-30: 7.5rem;
+	--spacing-32_5: 8.125rem;
+	--spacing-35: 8.75rem;
+	--spacing-37_5: 9.375rem;
+	--spacing-40: 10rem;
+	--spacing-42_5: 10.625rem;
+	--spacing-45: 11.25rem;
+	--spacing-46: 11.5rem;
+	--spacing-47_5: 11.875rem;
+	--spacing-50: 12.5rem;
+	--spacing-55: 13.75rem;
+	--spacing-60: 15rem;
+	--spacing-65: 16.25rem;
+	--spacing-67: 16.75rem;
+	--spacing-67_5: 16.875rem;
+	--spacing-90: 22.5rem;
+
+	/* Max Width */
+	--max-width-c-1390: 86.875rem;
+	--max-width-c-1315: 82.188rem;
+	--max-width-c-1280: 80rem;
+	--max-width-c-1235: 77.188rem;
+	--max-width-c-1154: 72.125rem;
+	--max-width-c-1016: 63.5rem;
+
+	/* Z-Index */
+	--z-index-99999: 99999;
+	--z-index-999: 999;
+	--z-index-1: 1;
+
+	/* Opacity */
+	--opacity-65: .65;
+
+	/* Box Shadow */
+	--shadow-solid-l: 0px 10px 120px 0px rgba(45, 74, 170, 0.1);
+	--shadow-solid-2: 0px 2px 10px rgba(122, 135, 167, 0.05);
+	--shadow-solid-3: 0px 6px 90px rgba(8, 14, 40, 0.04);
+	--shadow-solid-4: 0px 6px 90px rgba(8, 14, 40, 0.1);
+	--shadow-solid-5: 0px 8px 24px rgba(45, 74, 170, 0.08);
+	--shadow-solid-6: 0px 0px 24px rgba(10, 16, 35, 0.08);
+	--shadow-solid-7: 0px 30px 50px rgba(45, 74, 170, 0.1);
+	--shadow-solid-8: 0px 12px 120px rgba(45, 74, 170, 0.06);
+	--shadow-solid-9: 0px 12px 30px rgba(45, 74, 170, 0.06);
+	--shadow-solid-10: 0px 8px 30px rgba(45, 74, 170, 0.06);
+	--shadow-solid-11: 0px 6px 20px rgba(45, 74, 170, 0.05);
+	--shadow-solid-12: 0px 2px 10px rgba(0, 0, 0, 0.05);
+	--shadow-solid-13: 0px 2px 19px rgba(0, 0, 0, 0.05);
+
+	/* Animations */
+	--animate-line1: line 3s linear infinite;
+	--animate-line2: line 6s linear infinite;
+	--animate-line3: line 9s linear infinite;
+
+	@keyframes line {
+
+		0%,
+		100% {
+			transform: translateY(100%);
+		}
+
+		50% {
+			transform: translateY(0);
+		}
+	}
+}
+
+@layer base {
+	* {
+		border-color: rgb(229, 231, 235);
+	}
+}
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-	width: 6px;
+	width: 6px !important;
+	height: 8px !important;
 }
 
 ::-webkit-scrollbar-track {
@@ -161,59 +314,29 @@ body,
 	border-radius: 5px;
 }
 
-input:focus,
-textarea:focus,
-select:focus {
-	box-shadow: none !important;
-	border-color: #000000 !important;
-}
-
-/* Notifications */
-.Toastify__toast-container {
-	top: 10px !important;
-	left: 50% !important;
-	transform: translateX(-50%) !important;
-	position: fixed !important;
-	width: max-content;
-	height: fit-content !important;
-	overflow: hidden;
-}
-
-.Toastify__toast {
-	border-radius: 999px;
-	min-height: fit-content !important;
-	padding-left: 20px;
-	padding-right: 20px;
-	margin-top: 10px;
-	overflow: hidden;
-}
-
-.Toastify__close-button {
-	display: none !important;
+button:not(:disabled) {
+	cursor: pointer;
 }
 
 .hide-scrollbar {
-	scrollbar-width: thin; 
-	scrollbar-color: rgba(0,0,0,0.2) transparent; 
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar {
-	height: 4px; 
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar-track {
-	background: transparent;
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar-thumb {
-	background-color: rgba(0,0,0,0.3);
-	border-radius: 10px;
-  }
-  
-
-.slick-list {
-	border-radius: 1rem;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
+
+.hide-scrollbar::-webkit-scrollbar {
+	height: 4px;
+}
+
+.hide-scrollbar::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.hide-scrollbar::-webkit-scrollbar-thumb {
+	background-color: rgba(0, 0, 0, 0.3);
+	border-radius: 10px;
+}
+
+
 
 /* Calendar */
 .fc-button {
@@ -252,7 +375,25 @@ select:focus {
 	cursor: pointer !important;
 	background-color: #000000 !important;
 	color: #ffffff !important;
-	flex-direction: column-reverse;
+	display: block;
+	overflow: hidden;
+}
+
+.fc-daygrid-event .fc-event-title,
+.fc-daygrid-event .fc-event-time,
+.fc-timegrid-event .fc-event-title,
+.fc-timegrid-event .fc-event-time,
+.fc-event-main {
+	display: block;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.fc-daygrid-event,
+.fc-timegrid-event {
+	padding: 2px 8px;
 }
 
 .fc-button:focus {
@@ -280,4 +421,38 @@ select:focus {
 
 .rdrDay {
 	color: transparent !important;
+}
+
+/* Remove ALL blue outlines and shadows from inputs and selects */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+button:focus,
+button:focus-visible {
+	outline: none !important;
+	box-shadow: none !important;
+	-webkit-box-shadow: none !important;
+	-moz-box-shadow: none !important;
+}
+
+/* Remove blue outline from react-select */
+.css-1pahdxg-control:focus,
+.css-1pahdxg-control:focus-within,
+[class*="-control"]:focus,
+[class*="-control"]:focus-within {
+	outline: none !important;
+	box-shadow: none !important;
+	-webkit-box-shadow: none !important;
+	-moz-box-shadow: none !important;
+	border-color: black !important;
+}
+
+/* Ensure no blue outline on any focused element */
+*:focus,
+*:focus-visible {
+	outline: none !important;
+	box-shadow: none !important;
 }

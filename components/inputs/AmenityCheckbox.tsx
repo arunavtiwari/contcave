@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import Checkbox from './Checkbox';
 import { Amenities } from '@prisma/client';
+import React, { useEffect, useState } from 'react';
+
+import Checkbox from '../ui/Checkbox';
 
 export interface AmenitiesData {
   predefined: { [key: number | string]: boolean };
@@ -33,10 +34,7 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
 
   useEffect(() => {
     if (customAmenities.join() !== amenitiesList.join()) {
-      const timer = setTimeout(() => {
-        setAmenitiesList(customAmenities);
-      }, 0);
-      return () => clearTimeout(timer);
+      setAmenitiesList(customAmenities);
     }
   }, [customAmenities, amenitiesList]);
 
@@ -44,12 +42,12 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
     updatedPredefined: { [key: number | string]: boolean },
     updatedCustom: string[]
   ) => {
-    setTimeout(() => {
+    Promise.resolve().then(() => {
       onChange({
         predefined: updatedPredefined,
         custom: updatedCustom,
       });
-    }, 0);
+    });
   };
 
   const handleCheckboxChange = (id: number | string) => {
@@ -82,23 +80,29 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
           <Checkbox
             key={id}
             label={name}
-            isChecked={!!checkedItems[id]}
+            checked={!!checkedItems[id]}
             onChange={() => handleCheckboxChange(id)}
           />
         ))}
       </div>
 
-      <div className="flex gap-2 mt-8">
-        <input
-          type="text"
-          value={otherAmenity}
-          onChange={(e) => setOtherAmenity(e.target.value)}
-          placeholder="Other amenity"
-          className="border-b-2 border-gray-300 rounded-2xl px-4 py-2 w-full"
-        />
-        <button onClick={handleAddAmenity} className="bg-black hover:opacity-90 text-white px-8 py-2 rounded-2xl">
-          ADD
-        </button>
+      <div className="mt-8">
+        <label htmlFor="custom-amenity" className="block text-sm font-medium text-gray-700 mb-1">
+          Custom Amenity
+        </label>
+        <div className="flex gap-2">
+          <input
+            id="custom-amenity"
+            type="text"
+            value={otherAmenity}
+            onChange={(e) => setOtherAmenity(e.target.value)}
+            placeholder="Enter custom amenity"
+            className="border-b-2 border-gray-300 rounded-2xl px-4 py-2 w-full"
+          />
+          <button onClick={handleAddAmenity} className="bg-black hover:opacity-90 text-white px-8 py-2 rounded-2xl">
+            ADD
+          </button>
+        </div>
       </div>
 
       {amenitiesList.length > 0 && (

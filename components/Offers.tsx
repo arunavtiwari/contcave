@@ -1,28 +1,41 @@
 "use client";
 
-import getAmenities from "@/app/actions/getAmenities";
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { AiOutlineCar, AiOutlineWifi } from "react-icons/ai";
+import { useMemo } from "react";
+import { IconType } from "react-icons";
+import { AiOutlineCar } from "react-icons/ai";
 import { BiCctv } from "react-icons/bi";
 import { BsFire } from "react-icons/bs";
+import { BsFillCameraVideoFill } from "react-icons/bs";
 import { FaChair, FaFireExtinguisher, FaLightbulb, FaPlus, FaSun, FaWifi } from "react-icons/fa";
 import { GiButterflyFlower } from "react-icons/gi";
 import { GrWorkshop } from "react-icons/gr";
 import { MdOutlineBathtub, MdOutlineCoffeeMaker, MdTableRestaurant } from "react-icons/md";
+import { MdTableRows } from "react-icons/md";
+import { PiProjectorScreenFill } from "react-icons/pi";
 import { RiSafeLine } from "react-icons/ri";
 import { TbAirConditioning } from "react-icons/tb";
-import { PiProjectorScreenFill } from "react-icons/pi";
-import { BsFillCameraVideoFill } from "react-icons/bs";
-import { MdTableRows } from "react-icons/md";
+
+interface Amenity {
+  id: string | number;
+  name: string;
+  icon: IconType;
+  createdAt?: string;
+}
+
+interface AmenityProp {
+  id: string;
+  name: string;
+  icon?: string | null;
+  createdAt: Date;
+}
 
 type Props = {
-  amenities?: Array<any>;
-  definedAmenities?: Array<any>;
+  amenities?: string[];
+  definedAmenities?: AmenityProp[];
 };
 
-const getIconByName = (name) => {
-  const amenities: any[] = [
+const getIconByName = (name: string) => {
+  const amenities: Amenity[] = [
     {
       "id": "65b2ac4116d8d0003b5c6e12",
       "name": "Lighting Equipment",
@@ -152,11 +165,17 @@ const getIconByName = (name) => {
 };
 
 function Offers({ amenities, definedAmenities }: Props) {
+  const displayAmenities = useMemo(() => {
+    if (!definedAmenities || !amenities) return [];
 
-  definedAmenities = definedAmenities?.filter((item) => amenities?.includes(item.id))
-  definedAmenities?.forEach((item) => {
-    item.icon = getIconByName(item.name)
-  })
+    return definedAmenities
+      .filter((item) => amenities.includes(item.id))
+      .map((item) => ({
+        ...item,
+        icon: getIconByName(item.name) as IconType | null,
+      }));
+  }, [amenities, definedAmenities]);
+
   return (
     <>
 
@@ -164,24 +183,16 @@ function Offers({ amenities, definedAmenities }: Props) {
       <div>
         <p className="text-xl font-semibold mb-4">What this space offers</p>
         <div className="grid grid-cols-2 gap-4">
-          {definedAmenities?.map((item, index) =>
-          (
-            <motion.div
+          {displayAmenities.map((item) => (
+            <div
               key={item.id}
-              initial={{
-                x: -200,
-                opacity: 0,
-              }}
-              transition={{ duration: 1 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="flex cursor-pointer gap-3 items-center"
+              className="flex items-center gap-3 cursor-pointer"
             >
               {item.icon && (
-                <item.icon size={25} className="" />
+                <item.icon size={22} className="text-neutral-700" />
               )}
-              <p className="">{item.name}</p>
-            </motion.div>
+              <p className="text-neutral-800 text-sm">{item.name}</p>
+            </div>
           ))}
         </div>
       </div>

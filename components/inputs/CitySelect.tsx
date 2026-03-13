@@ -1,13 +1,15 @@
 "use client";
 
-import useIndianCities from "@/hook/useCities";
 import Select from "react-select";
 import Flag from "react-world-flags";
+
+import useIndianCities from "@/hook/useCities";
 
 export type CitySelectValue = {
   value: string;
   label: string;
   state: string;
+  region?: string;
   latlng: number[];
 
 };
@@ -28,7 +30,7 @@ function CitySelect({ value, onChange }: Props) {
         options={getAll()}
         value={value}
         onChange={(value) => onChange(value as CitySelectValue)}
-        formatOptionLabel={(option: any) => (
+        formatOptionLabel={(option: CitySelectValue) => (
           <div className="flex flex-row items-center gap-3 cursor-pointer">
             <Flag code={option.value} className="w-5" />
             <div>
@@ -41,6 +43,16 @@ function CitySelect({ value, onChange }: Props) {
           control: () => "py-0.5 border-2",
           input: () => "text-lg cursor-pointer",
           option: () => "text-lg cursor-pointer",
+        }}
+        styles={{
+          input: (base) => ({
+            ...base,
+            color: 'transparent',
+          }),
+          control: (base, state) => ({
+            ...base,
+            borderColor: state.isFocused ? 'black' : base.borderColor,
+          }),
         }}
         theme={(theme) => ({
           ...theme,

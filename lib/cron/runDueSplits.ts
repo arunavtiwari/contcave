@@ -1,13 +1,9 @@
-// lib/cron/runDueSplits.ts
-import prisma from "@/lib/prismadb";
 import { createOrderSplit } from "@/lib/cashfree/easySplit";
+import prisma from "@/lib/prismadb";
+import { WhatsappService } from "@/lib/whatsapp/service";
 
 const OWNER_PAYOUT_PERCENT = Number(process.env.OWNER_PAYOUT_PERCENT || 80);
 
-/**
- * Triggers Cashfree Easy Split for transactions due now.
- * Uses provider idempotency key per transaction.
- */
 export async function runDueSplits(limit = 200) {
     const now = new Date();
 
@@ -17,7 +13,8 @@ export async function runDueSplits(limit = 200) {
             reservationId: { not: null },
             vendorId: { not: null },
             cfOrderId: { not: null },
-            payoutDueAt: { lte: now }, // set to reservation start date in your webhook
+            payoutDueAt: { lte: now },
+            payoutDoneAt: null,
         },
         orderBy: { payoutDueAt: "asc" },
         take: limit,
@@ -26,6 +23,20 @@ export async function runDueSplits(limit = 200) {
             cfOrderId: true,
             vendorId: true,
             payoutPercentToOwner: true,
+            amount: true,
+            gstOwnedBy: true,
+            baseAmountBeforeGst: true,
+            listing: {
+                select: {
+                    title: true,
+                    user: {
+                        select: {
+                            name: true,
+                            phone: true,
+                        }
+                    }
+                }
+            }
         },
     });
 
@@ -36,9 +47,19 @@ export async function runDueSplits(limit = 200) {
         const vendorId = String(t.vendorId || "");
         if (!orderId || !vendorId) continue;
 
-        const pct = Number.isFinite(t.payoutPercentToOwner as any)
+        const pct = Number.isFinite(t.payoutPercentToOwner)
             ? Math.max(0, Math.min(100, Number(t.payoutPercentToOwner)))
             : OWNER_PAYOUT_PERCENT;
+
+        // Log GST details for transparency
+        console.warn("[Payout] Processing split", {
+            transactionId: t.id,
+            totalAmount: t.amount,
+            gstOwnedBy: t.gstOwnedBy,
+            baseAmount: t.baseAmountBeforeGst,
+            payoutPercent: pct,
+            calculatedPayout: (Number(t.amount) * (pct / 100)).toFixed(2),
+        });
 
         try {
             await createOrderSplit({
@@ -46,9 +67,41 @@ export async function runDueSplits(limit = 200) {
                 split: [{ vendor_id: vendorId, percentage: pct }],
                 idempotencyKey: `easy-split:${t.id}`,
             });
+
+            await prisma.transaction.update({
+                where: { id: t.id },
+                data: { payoutDoneAt: new Date() },
+            });
+
             results.push({ id: t.id, ok: true });
-        } catch (e: any) {
-            results.push({ id: t.id, ok: false, error: e?.message || "split failed" });
+
+            const hostPhone = t.listing?.user?.phone;
+            if (hostPhone) {
+                const payoutAmount = (Number(t.amount) * (pct / 100)).toFixed(2);
+                try {
+                    await WhatsappService.sendPaymentTransferredHost(hostPhone, {
+                        hostName: t.listing?.user?.name || "Host",
+                        amount: payoutAmount,
+                        listingTitle: t.listing?.title || "Studio",
+                        date: new Date().toISOString().split("T")[0],
+                    });
+                } catch (e: unknown) {
+                    console.error("Failed to send payout WhatsApp", {
+                        transactionId: t.id,
+                        hostPhone,
+                        error: e instanceof Error ? e.message : String(e),
+                    });
+                }
+            }
+        } catch (e: unknown) {
+            const errorMessage = e instanceof Error ? e.message : "split failed";
+            results.push({ id: t.id, ok: false, error: errorMessage });
+            console.error("Failed to process payout split", {
+                transactionId: t.id,
+                orderId,
+                vendorId,
+                error: errorMessage,
+            });
         }
     }
 

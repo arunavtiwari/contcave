@@ -1,8 +1,10 @@
-import { SafeUser } from "@/types";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
+
+import { SafeUser } from "@/types/user";
+
 import useLoginModel from "./useLoginModal";
 
 type Props = {
@@ -39,16 +41,16 @@ function useFavorite({ listingId, currentUser }: Props) {
 
         await request();
         router.refresh();
-        toast.success("Success", {
-            toastId: "Favorites"
-          });
-      } catch (error: any) {
+        toast.success(hasFavorite ? "Removed from favourites" : "Added to favourites", {
+          toastId: "Favorites"
+        });
+      } catch (_error: unknown) {
         toast.error("Something Went Wrong", {
-            toastId: "Favorites_Error_1"
-          });
+          toastId: "Favorites_Error_1"
+        });
       }
     },
-    [currentUser, hasFavorite, listingId, loginModel]
+    [currentUser, hasFavorite, listingId, loginModel, router]
   );
 
   return {

@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import getBlogData from "./getBlogData";
+import React, { useEffect, useState } from "react";
+
 import { BlogPost } from "@/types/blog";
+
+import getBlogData from "./getBlogData";
 
 const RelatedPost = () => {
   const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);

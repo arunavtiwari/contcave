@@ -1,14 +1,12 @@
+"use client";
+
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import React from "react";
+import Link from "next/link";
+import { memo } from "react";
 
-type Props = {};
-
-function Logo({ }: Props) {
-  const router = useRouter();
-
+const Logo = memo(function Logo() {
   return (
-    <div onClick={() => router.push("/")}>
+    <Link href="/">
       <div className="logo-container">
         <Image
           alt="logo-large"
@@ -16,6 +14,8 @@ function Logo({ }: Props) {
           width={200}
           src="/assets/logo.png"
           className="hidden sm:block cursor-pointer"
+          priority
+          style={{ width: 'auto', height: 'auto' }}
         />
         <Image
           alt="logo-small"
@@ -23,10 +23,14 @@ function Logo({ }: Props) {
           width={50}
           src="/assets/logo_small.png"
           className="block sm:hidden cursor-pointer"
+          priority
+          style={{ width: 'auto', height: 'auto' }}
         />
       </div>
-    </div>
+    </Link>
   );
-}
+});
+
+Logo.displayName = "Logo";
 
 export default Logo;

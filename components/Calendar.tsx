@@ -1,12 +1,14 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
-import FullCalendar from '@fullcalendar/react';
+import type { EventClickArg, EventContentArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
-import Modal from './modals/Modal';
+import FullCalendar from '@fullcalendar/react';
+import timeGridPlugin from '@fullcalendar/timegrid';
 import axios from "axios";
+import { useSession } from 'next-auth/react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import Modal from './modals/Modal';
 
 interface Event {
     id: string;
@@ -17,13 +19,29 @@ interface Event {
     desc?: string;
 }
 
+interface CalendarEventResponse {
+    id: string;
+    summary?: string;
+    start?: {
+        dateTime?: string;
+        date?: string;
+    };
+    end?: {
+        dateTime?: string;
+        date?: string;
+    };
+    description?: string;
+}
+
 interface CalendarProps {
     operationalStart: string;
     operationalEnd: string;
     listingId: string;
+    googleCalendarConnected?: boolean;
+    onError?: () => void;
 }
 
-export default function Calendar({ operationalStart, operationalEnd, listingId }: CalendarProps) {
+export default function Calendar({ operationalStart, operationalEnd, listingId, googleCalendarConnected, onError }: CalendarProps) {
     const { data: session } = useSession();
     const [events, setEvents] = useState<Event[]>([]);
     const [isCalendarLoaded, setIsCalendarLoaded] = useState(false);
@@ -39,6 +57,21 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
     });
 
     const [calendarView, setCalendarView] = useState('dayGridMonth');
+
+    const renderEventContent = (eventInfo: EventContentArg) => {
+        return (
+            <div className="px-2 py-1 leading-tight">
+                {eventInfo.timeText && (
+                    <div className="text-xs opacity-80 overflow-hidden text-ellipsis whitespace-nowrap">
+                        {eventInfo.timeText}
+                    </div>
+                )}
+                <div className="text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap">
+                    {eventInfo.event.title}
+                </div>
+            </div>
+        );
+    };
 
     useEffect(() => {
         setIsCalendarLoaded(true);
@@ -96,34 +129,38 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
     }, [operationalStart, operationalEnd]);
 
     const fetchEvents = useCallback(async () => {
+        if (!googleCalendarConnected) return;
         try {
             const res = await axios.get("/api/calendar/events", {
                 params: { listingId },
             });
-            const data = res.data;
+            const data = res.data.data;
 
             if (data) {
-                const formattedEvents = data.map((event: any) => ({
+                const formattedEvents: Event[] = (data as CalendarEventResponse[]).map((event) => ({
                     id: event.id,
                     title: event.summary || 'Busy',
-                    start: event.start?.dateTime || event.start?.date,
-                    end: event.end?.dateTime || event.end?.date,
+                    start: event.start?.dateTime || event.start?.date || '',
+                    end: event.end?.dateTime || event.end?.date || '',
                     allDay: !event.start?.dateTime,
                     desc: event.description || '',
                 }));
 
-                const filteredEvents = formattedEvents.filter((event: any) => {
+                const filteredEvents = formattedEvents.filter((event) => {
                     const eventDate = new Date(event.start);
                     return businessDays.includes(eventDate.getDay());
                 });
 
                 setEvents(filteredEvents);
-                console.log('Fetched events:', filteredEvents);
             }
         } catch (error) {
             console.error('Error fetching events:', error);
+            if (axios.isAxiosError(error) && error.response?.status === 400) {
+                if (onError) onError();
+            }
+            // toast.error('Failed to load calendar events'); 
         }
-    }, [listingId, businessDays]);
+    }, [listingId, businessDays, googleCalendarConnected, onError]);
 
     useEffect(() => {
         if (session) {
@@ -131,13 +168,13 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
         }
     }, [session, fetchEvents]);
 
-    const handleEventClick = (clickInfo: any) => {
+    const handleEventClick = (clickInfo: EventClickArg) => {
         setModalData({
             id: clickInfo.event.id,
             title: clickInfo.event.title,
             start: clickInfo.event.startStr,
             end: clickInfo.event.endStr,
-            desc: clickInfo.event.extendedProps.desc || '',
+            desc: (clickInfo.event.extendedProps as { desc?: string }).desc || '',
         });
         setModalOpen(true);
     };
@@ -164,8 +201,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
                 weekends={true}
                 eventClick={handleEventClick}
                 height="auto"
-                eventColor="black"
-                eventTextColor="white"
+                eventContent={renderEventContent}
                 handleWindowResize={true}
                 displayEventEnd={true}
                 eventTimeFormat={{
@@ -190,7 +226,6 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
                 onSubmit={() => setModalOpen(false)}
                 title="Event Details"
                 actionLabel="Close"
-                autoWidth
                 selfActionButton={true}
                 body={
                     <div className="flex flex-col gap-2 min-w-[350px]">
@@ -206,7 +241,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId }
                                         })
                                         : 'N/A'}
                                 </p>
-                                <span className="shadow-md font-black rounded-full">&bull;</span>
+                                <span className="shadow-sm font-black rounded-full">&bull;</span>
                                 <p>
                                     {modalData.start
                                         ? new Date(modalData.start).toLocaleTimeString([], {

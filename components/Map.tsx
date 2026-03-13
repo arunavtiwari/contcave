@@ -1,21 +1,17 @@
 "use client";
 
-import L from "leaflet";
-import React from "react";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
+
+import L from "leaflet";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import Flag from "react-world-flags";
 
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
+type IconDefaultWithUrl = L.Icon.Default & { _getIconUrl?: string };
+delete (L.Icon.Default.prototype as unknown as IconDefaultWithUrl)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon.src,
-  iconRetinaUrl: markerIcon2x.src,
-  shadowUrl: markerShadow.src,
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
 type Props = {
@@ -24,21 +20,31 @@ type Props = {
 };
 
 function Map({ center, locationValue }: Props) {
+  const isValidCenter = Array.isArray(center) && 
+    center.length >= 2 &&
+    typeof center[0] === 'number' &&
+    typeof center[1] === 'number' &&
+    Number.isFinite(center[0]) &&
+    Number.isFinite(center[1]);
+
+  const mapCenter: L.LatLngExpression = isValidCenter 
+    ? [center[0], center[1]] 
+    : [20.5937, 78.9629];
+
   return (
     <MapContainer
-      center={(center as L.LatLngExpression) || [20.5937, 78.9629]}
-      zoom={center ? 10 : 4}
+      center={mapCenter}
+      zoom={isValidCenter ? 10 : 4}
       scrollWheelZoom={false}
       className="h-[35vh] rounded-lg"
-
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
 
-      {center && (
-        <Marker position={center as L.LatLngExpression}>
+      {isValidCenter && (
+        <Marker position={mapCenter}>
           {locationValue && (
             <Popup>
               <div className="flex justify-center items-center animate-bounce">
@@ -49,7 +55,6 @@ function Map({ center, locationValue }: Props) {
         </Marker>
       )}
     </MapContainer>
-
   );
 }
 

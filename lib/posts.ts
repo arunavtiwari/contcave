@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
+
 import { BlogPost } from "@/types/blog";
 
 const postsDirectory = path.join(process.cwd(), "content/posts");
 
-// Get all posts sorted by date
+
 export function getSortedPostsData(): BlogPost[] {
   const fileNames = fs.readdirSync(postsDirectory);
 
@@ -20,7 +21,7 @@ export function getSortedPostsData(): BlogPost[] {
   );
 }
 
-// Get single post by ID (slug)
+
 export function getPostData(id: string): BlogPost {
   const fullPath = path.join(postsDirectory, `${id}.json`);
   const fileContents = fs.readFileSync(fullPath, "utf8");

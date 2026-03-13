@@ -1,11 +1,13 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+
 import getReservation from "@/app/actions/getReservation";
 import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/PaymentSuccessAnimation";
-import type { Metadata } from "next";
-import { BRAND_NAME } from "@/lib/seo";
+
 
 export const metadata: Metadata = {
-    title: `Payment Status | ${BRAND_NAME}`,
+    title: "Payment Status",
     description: "Review the outcome of your recent ContCave payment and see next steps.",
     robots: {
         index: false,
@@ -20,8 +22,8 @@ type Props = { searchParams: Promise<Search> };
 const pickFirst = (v: string | string[] | undefined) =>
     typeof v === "string" ? v : v?.[0] ?? "";
 
-// isApprove: 0 = Pending, 1 = Approved
-const getApproveCode = (r: any) => {
+
+const getApproveCode = (r: { isApproved?: number | null; isApprove?: number | null }) => {
     const v = r?.isApproved ?? r?.isApprove;
     if (v === 0 || v === 1) return v;
     const n = Number(v);
@@ -47,11 +49,22 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
     const reservation =
         transaction?.reservation ?? (await getReservation({ tid }));
 
+    const txStatus = String(transaction?.status ?? "").toUpperCase();
+    const listingId =
+        reservation?.listing?.id ||
+        reservation?.listingId ||
+        transaction?.listing?.id ||
+        transaction?.listingId ||
+        "";
+    if (txStatus === "CANCELLED") {
+        redirect(listingId ? `/listings/${listingId}` : "/bookings");
+    }
+
     if (!reservation) {
         return (
             <main className="max-w-xl mx-auto p-6 flex items-center justify-center">
                 <div className="flex flex-col items-center space-y-6">
-                    {/* Spinner */}
+
                     <div className="w-14 h-14 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
 
                     <h2 className="text-2xl font-bold text-center">Verifying your payment...</h2>
@@ -100,9 +113,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
             ? "Don’t worry, you can try again with the same or a different payment method."
             : undefined;
 
-    const listingHref = reservation.listing?.id
-        ? `/listings/${reservation.listing.id}`
-        : "/";
+    const listingHref = listingId ? `/listings/${listingId}` : "/";
     const primaryCtaHref = isFailed ? listingHref : "/bookings";
     const primaryCtaLabel = isFailed ? "BACK TO STUDIO" : "GO TO MY BOOKINGS";
 
@@ -134,7 +145,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
 
     return (
         <main className="max-w-3xl mx-auto p-6 flex items-center min-h-[calc(100vh-85px)]">
-            <div className="mx-auto rounded-xl border bg-white/90 backdrop-blur p-6 shadow-sm">
+            <div className="mx-auto rounded-xl border bg-white/90 backdrop-blur p-6 shadow-xs">
                 <h2 className="text-3xl font-bold text-center">{heading}</h2>
                 {(isConfirmed || isFailed) && (
                     <div className="flex justify-center my-6">

@@ -1,15 +1,16 @@
-import Link from "next/link";
-import { getSortedPostsData, groupPostsByCategory } from "@/lib/posts";
-import { BlogPost } from "@/types/blog";
-import Image from "next/image";
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+
+import { getSortedPostsData, groupPostsByCategory } from "@/lib/posts";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { BlogPost } from "@/types/blog";
 
 const DESCRIPTION =
   "Read ContCave's latest articles on studio booking, production workflows, and creative industry insights across India." as const;
 
 export const metadata: Metadata = {
-  title: `Blog | ${BRAND_NAME} Insights, Tips, and Updates`,
+  title: "Blog — Insights, Tips, and Updates",
   description: DESCRIPTION,
   keywords: [
     "ContCave blog",
@@ -17,25 +18,45 @@ export const metadata: Metadata = {
     "photography studio guide",
     "production workflow",
     "shoot locations India",
+    "content creation tips",
+    "studio rental guide",
   ],
   alternates: {
     canonical: "/blog",
   },
   openGraph: {
-    title: `ContCave Blog | Insights & Tips`,
+    title: "Blog — Insights & Tips",
     description: DESCRIPTION,
     url: `${SITE_URL}/blog`,
     siteName: BRAND_NAME,
     type: "website",
-    images: [OG_IMAGE],
+    images: [
+      {
+        url: `${SITE_URL}${OG_IMAGE}`,
+        width: 1200,
+        height: 630,
+        alt: "ContCave Blog",
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
-    title: `ContCave Blog | Insights & Tips`,
+    title: "Blog — Insights & Tips",
     description: DESCRIPTION,
     site: "@ContCave",
     creator: "@ContCave",
-    images: [OG_IMAGE],
+    images: [`${SITE_URL}${OG_IMAGE}`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

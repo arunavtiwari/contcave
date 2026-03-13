@@ -1,7 +1,7 @@
 "use client"
+import Link from "next/link";
 import React from "react";
 import CookieConsent from "react-cookie-consent";
-import Link from "next/link";
 
 const CookieConsentBanner = () => {
     return (
@@ -18,10 +18,8 @@ const CookieConsentBanner = () => {
             declineButtonStyle={{ backgroundColor: "#f44336", color: "#FFF", fontSize: "14px", borderRadius: "40px" }}
             expires={365}
             onAccept={() => {
-                console.log("Cookies accepted");
             }}
             onDecline={() => {
-                console.log("Cookies declined");
             }}
         >
             This website uses cookies to enhance your experience. By using our website, you consent to the use of cookies.

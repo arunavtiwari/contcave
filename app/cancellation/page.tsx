@@ -1,38 +1,57 @@
-import Container from "@/components/Container";
-import React from "react";
-import Image from "next/image";
 import type { Metadata } from "next";
+import Image from "next/image";
+import React from "react";
+
+import Container from "@/components/Container";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `Cancellation Policy | ${BRAND_NAME}`,
+  title: "Cancellation Policy",
   description:
     "Understand ContCave's cancellation windows, refund rules, and how to manage changes to your booking with confidence.",
   alternates: { canonical: "/cancellation" },
   openGraph: {
-    title: `Cancellation Policy | ${BRAND_NAME}`,
+    title: "Cancellation Policy",
     description:
       "Review the cancellation timeframes and refund process for bookings made through ContCave.",
     url: `${SITE_URL}/cancellation`,
-    images: [OG_IMAGE],
+    siteName: BRAND_NAME,
+    type: "article",
+    images: [
+      {
+        url: `${SITE_URL}${OG_IMAGE}`,
+        width: 1200,
+        height: 630,
+        alt: "Cancellation Policy",
+      },
+    ],
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
-    title: `Cancellation Policy | ${BRAND_NAME}`,
+    title: "Cancellation Policy",
     description:
       "Understand the timelines and process for cancelling or rescheduling ContCave bookings.",
-    images: [OG_IMAGE],
+    site: "@ContCave",
+    images: [`${SITE_URL}${OG_IMAGE}`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
   },
 };
 
-type Props = {};
-
-const CancellationPolicy = (props: Props) => {
+const CancellationPolicy = () => {
   return (
     <div className="flex flex-col">
-      {/* Banner Section */}
+
       <div className="relative w-full h-[400px] md:h-[500px]">
         <Image
           src="/assets/footer-banner.jpg"
@@ -48,10 +67,10 @@ const CancellationPolicy = (props: Props) => {
         </div>
       </div>
 
-      {/* Content Section */}
+
       <Container>
         <div className="pt-16 pb-32 max-w-4xl mx-auto space-y-10">
-          {/* Intro */}
+
           <div className="bg-white p-8 rounded-2xl shadow-lg space-y-6">
             <h2 className="text-3xl font-bold text-gray-900">
               Our Cancellation Policy
@@ -64,7 +83,7 @@ const CancellationPolicy = (props: Props) => {
             </p>
           </div>
 
-          {/* Timeframes */}
+
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Cancellation Timeframes
@@ -76,7 +95,7 @@ const CancellationPolicy = (props: Props) => {
               </li>
               <li>
                 <b>Partial Refund:</b> Cancellations made between <b>24 and 48
-                hours</b> before the scheduled booking will receive a{" "}
+                  hours</b> before the scheduled booking will receive a{" "}
                 <b>50%</b> refund.
               </li>
               <li>
@@ -86,7 +105,7 @@ const CancellationPolicy = (props: Props) => {
             </ul>
           </div>
 
-          {/* Special Considerations */}
+
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Special Considerations
@@ -98,7 +117,7 @@ const CancellationPolicy = (props: Props) => {
             </p>
           </div>
 
-          {/* How to Cancel */}
+
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               How to Cancel a Booking
@@ -115,7 +134,7 @@ const CancellationPolicy = (props: Props) => {
             </ol>
           </div>
 
-          {/* Refund Process */}
+
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Refund Process
@@ -128,7 +147,7 @@ const CancellationPolicy = (props: Props) => {
             </p>
           </div>
 
-          {/* Support */}
+
           <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">Need Help?</h3>
             <p className="text-gray-700 text-lg">

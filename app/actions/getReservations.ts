@@ -1,3 +1,5 @@
+"use server";
+
 import prisma from "@/lib/prismadb";
 
 interface IParams {
@@ -10,10 +12,30 @@ export default async function getReservations(params: IParams) {
   try {
     const { listingId, userId, authorId } = params;
 
-    const query: any = {};
+    const query: {
+      markedForDeletion: boolean;
+      listingId?: string;
+      userId?: string;
+      listing?: { userId: string };
+    } = {
+      markedForDeletion: false,
+    };
 
     if (listingId) {
-      query.listingId = listingId;
+      const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
+
+      if (isObjectId) {
+        query.listingId = listingId;
+      } else {
+        const listing = await prisma.listing.findUnique({
+          where: { slug: listingId },
+          select: { id: true },
+        });
+
+        if (!listing) return [];
+
+        query.listingId = listing.id;
+      }
     }
 
     if (userId) {
@@ -28,7 +50,7 @@ export default async function getReservations(params: IParams) {
       where: query,
       include: {
         listing: true,
-        Review:false
+        Review: false,
       },
       orderBy: {
         createdAt: "desc",
@@ -41,6 +63,7 @@ export default async function getReservations(params: IParams) {
       startDate: reservation.startDate,
       startTime: reservation.startTime,
       endTime: reservation.endTime,
+      markedForDeletionAt: reservation.markedForDeletionAt?.toISOString() || null,
       listing: {
         ...reservation.listing,
         createdAt: reservation.listing.createdAt.toISOString(),
@@ -48,7 +71,7 @@ export default async function getReservations(params: IParams) {
     }));
 
     return safeReservations;
-  } catch (error: any) {
-    throw new Error(error.message);
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "An unknown error occurred");
   }
 }

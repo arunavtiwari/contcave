@@ -1,46 +1,79 @@
 "use client";
 
-import { useState } from "react";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import Input from "../inputs/Input";
-import Modal from "./Modal";
-import useAddonModal from "@/hook/useAddonModal";
-import ImageUpload from "../inputs/ImageUpload";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+import { useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import { z } from "zod";
+
+import ImageUpload from "@/components/inputs/ImageUpload";
+import Input from "@/components/ui/Input";
+import useAddonModal from "@/hook/useAddonModal";
+import { uploadToCloudinary } from "@/lib/cloudinary";
+
+import Modal from "./Modal";
+
+const customAddonSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
+
+type CustomAddonFormValues = z.infer<typeof customAddonSchema>;
 
 type Props = {
-  save: (value: { imageUrl?: string, name: string }) => void;
+  save: (value: { imageUrl: string; name: string }) => void;
 };
 
 function CustomAddonModal({ save }: Props) {
   const addonModel = useAddonModal();
-  const [isLoading, setIsLoading] = useState(false);
-  const [image, setImage] = useState<any>([]);
+
+  const [image, setImage] = useState<string[]>([]);
+  const [addonFile, setAddonFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FieldValues>({
+    reset,
+  } = useForm<CustomAddonFormValues>({
+    resolver: zodResolver(customAddonSchema),
     defaultValues: {
-
-      name: ""
+      name: "",
     },
   });
 
-  const onSubmit: SubmitHandler<FieldValues> = (data) => {
-    addonModel.onClose();
-    save({ name: data.name, imageUrl: image[image.length - 1] });
-    setImage([]);
+  const onSubmit: SubmitHandler<CustomAddonFormValues> = async (data) => {
+    if (image.length === 0 || !addonFile) {
+      toast.error("Please upload an image for the add-on");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const [uploadedUrl] = await uploadToCloudinary([addonFile], "addons");
+      save({ name: data.name, imageUrl: uploadedUrl });
+      addonModel.onClose();
+      reset();
+      setImage([]);
+      setAddonFile(null);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Upload failed";
+      toast.error(msg);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <Modal
-      disabled={isLoading}
+      customWidth="w-full max-w-md"
+      customHeight="h-auto max-h-[600px]"
+      nestedModal={true}
       isOpen={addonModel.isOpen}
       title="Create Add-On"
-      actionLabel="Create"
-      autoWidth={true}
+      actionLabel={isUploading ? "Uploading..." : "Create"}
+      disabled={isUploading}
       onClose={addonModel.onClose}
       onSubmit={handleSubmit(onSubmit)}
       body={
@@ -49,10 +82,8 @@ function CustomAddonModal({ save }: Props) {
             <Input
               id="name"
               label="Name of Add-on"
-              disabled={isLoading}
-              register={register("name", {
-                required: "Name of Add-on required",
-              })}
+              placeholder="e.g. Smoke Machine"
+              register={register("name")}
               errors={errors}
               required
             />
@@ -63,20 +94,24 @@ function CustomAddonModal({ save }: Props) {
                   alt="Uploaded Add-on"
                   width={128}
                   height={128}
-                  className="rounded-xl border border-neutral-300"
+                  className="w-32 h-32 rounded-xl border border-neutral-300 object-cover"
+                  unoptimized
                 />
               )}
 
               <ImageUpload
-                onChange={(value) => setImage(value)}
-                values={image}
+                uid="addon-image-upload"
+                onChange={(value) => setImage(value.slice(-1))}
+                values={[]}
+                deferUpload
+                onFilesChange={(files) => {
+                  if (files.length > 0) setAddonFile(files[files.length - 1]);
+                }}
               />
             </div>
           </div>
         </>
-
       }
-
     />
   );
 }

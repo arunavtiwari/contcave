@@ -1,8 +1,8 @@
 "use client";
-import React from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
+import React from "react";
 
 const FunFact = () => {
   return (
@@ -25,7 +25,7 @@ const FunFact = () => {
             className="absolute bottom-0 right-0 -z-1"
           />
 
-          {/* Dotted Images */}
+          
           <Image
             fill
             src="/images/shape/shape-dotted-light-02.svg"
@@ -39,7 +39,7 @@ const FunFact = () => {
             className="absolute left-0 top-0 -z-1 hidden"
           />
 
-          {/* Motion Text */}
+          
           <motion.div
             variants={{
               hidden: {

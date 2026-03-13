@@ -1,14 +1,17 @@
-import prisma from "@/lib/prismadb";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { getServerSession } from "next-auth/next";
+"use server";
 
-export const dynamic = "force-dynamic";
+import { auth } from "@/auth";
+import prisma from "@/lib/prismadb";
+
+
 
 export async function getSession() {
-  return await getServerSession(authOptions);
+  return await auth();
 }
 
-export const updateUser = async (userData) => {
+import { User } from "@prisma/client";
+
+export const updateUser = async (userData: Partial<User>) => {
   try {
     const session = await getSession();
 
@@ -32,7 +35,7 @@ export const updateUser = async (userData) => {
       updatedAt: updatedUser.updatedAt.toISOString(),
       emailVerified: updatedUser.emailVerified?.toISOString() || null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to update user:", error);
     throw new Error("Failed to update user");
   }

@@ -1,22 +1,29 @@
 "use client";
 
-import useLoginModal from "@/hook/useLoginModal";
-import useRegisterModal from "@/hook/useRegisterModal";
-import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
+import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useCallback, useState } from "react";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
-import { signIn } from "next-auth/react";
-import Button from "../Button";
-import Heading from "../Heading";
-import Input from "../inputs/Input";
+
+import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
+import Input from "@/components/ui/Input";
+import useLoginModal from "@/hook/useLoginModal";
+import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
+import useRegisterModal from "@/hook/useRegisterModal";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
+import { RegisterSchema, registerSchema } from "@/lib/schemas/auth";
+
 import Modal from "./Modal";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function RegisterModal() {
   const registerModal = useRegisterModal();
+  const router = useRouter();
   const loginModal = useLoginModal();
   const ownerRegisterModal = useOwnerRegisterModal();
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +33,8 @@ function RegisterModal() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FieldValues>({
+  } = useForm<RegisterSchema>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -34,7 +42,7 @@ function RegisterModal() {
     },
   });
 
-  const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+  const onSubmit: SubmitHandler<RegisterSchema> = async (data) => {
     setIsLoading(true);
 
     try {
@@ -45,20 +53,31 @@ function RegisterModal() {
         redirect: false,
       });
 
-      if (callback?.ok) {
+      if (callback?.error) {
+        toast.error(getAuthErrorMessage(callback.error), {
+          toastId: "Login_Error_1"
+        });
+      } else if (callback?.ok) {
         toast.success("Successfully registered and logged in!", {
           toastId: "Registered"
         });
+        router.refresh();
         registerModal.onClose();
-      } else if (callback?.error) {
-        toast.error("Login failed", {
-          toastId: "Login_Error_1"
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.error) {
+        toast.error(err.response.data.error, {
+          toastId: "Registration_Error_Specific"
+        });
+      } else if (axios.isAxiosError(err) && typeof err.response?.data === "string") {
+        toast.error(err.response.data, {
+          toastId: "Registration_Error_String"
+        });
+      } else {
+        toast.error("Something went wrong during registration.", {
+          toastId: "Registration_Error_1"
         });
       }
-    } catch (err) {
-      toast.error("Something went wrong during registration.", {
-        toastId: "Registration_Error_1"
-      });
     } finally {
       setIsLoading(false);
     }
@@ -90,72 +109,49 @@ function RegisterModal() {
           <Input
             id="email"
             label="Email"
+            placeholder="Enter your email"
             disabled={isLoading}
-            register={register("email", {
-              required: "Email is required",
-              pattern: {
-                value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-                message: "Enter a valid email address",
-              },
-            })}
+            register={register("email")}
             errors={errors}
           />
 
-          {/* Name Validation */}
+
           <Input
             id="name"
             label="User Name"
+            placeholder="Enter your name"
             disabled={isLoading}
-            register={register("name", {
-              required: "Username is required",
-              minLength: {
-                value: 3,
-                message: "Username must be at least 3 characters",
-              },
-              maxLength: {
-                value: 20,
-                message: "Username cannot exceed 20 characters",
-              },
-            })}
+            register={register("name")}
             errors={errors}
           />
 
-          {/* Password Validation */}
-          <div className="relative">
-            <Input
-              id="password"
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              disabled={isLoading}
-              register={register("password", {
-                required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters",
-                },
-                // pattern: {
-                //   value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/,
-                //   message: "Password must contain letters and numbers",
-                // },
-              })}
-              errors={errors}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-4 flex items-center text-black focus:outline-none"
-            >
-              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
-            </button>
-          </div>
+
+          <Input
+            id="password"
+            label="Password"
+            placeholder="Create a password"
+            type={showPassword ? "text" : "password"}
+            disabled={isLoading}
+            register={register("password")}
+            errors={errors}
+            customRightContent={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-neutral-500 hover:text-black focus:outline-none transition-colors"
+              >
+                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+              </button>
+            }
+          />
         </div>
       }
       footer={
         <div className="flex flex-col gap-4 mt-6">
           <hr className="border-neutral-300" />
           <Button
+            outline
             rounded
-            classNames="w-full py-2.5 bg-white border border-neutral-300 hover:bg-neutral-100 rounded-full flex items-center justify-center"
             label="Continue with Google"
             icon={FcGoogle}
             onClick={() => signIn("google")}
@@ -184,6 +180,7 @@ function RegisterModal() {
           </div>
         </div>
       }
+      customHeight="h-auto"
     />
   );
 }

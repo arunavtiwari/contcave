@@ -1,16 +1,16 @@
+import type { Metadata } from "next";
+import React from "react";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getReservation from "@/app/actions/getReservations";
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
-import React from "react";
-import getCurrentUser from "../actions/getCurrentUser";
-import getReservation from "../actions/getReservations";
+
 import BookingClient from "./BookingClient";
-import Container from "@/components/Container";
-import type { Metadata } from "next";
-import { BRAND_NAME } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `My Bookings | ${BRAND_NAME}`,
+  title: "My Bookings",
   description: "View and manage reservations you have made on ContCave.",
   robots: {
     index: false,
@@ -19,9 +19,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Props = {};
-
-const BookingPage = async (props: Props) => {
+const BookingPage = async () => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {

@@ -1,3 +1,5 @@
+"use server";
+
 import prisma from "@/lib/prismadb";
 
 export interface IListingsParams {
@@ -7,6 +9,7 @@ export interface IListingsParams {
   locationValue?: string;
   category?: string;
   type?: string;
+  hasSets?: string;
 }
 
 export default async function getListings(params: IListingsParams) {
@@ -18,14 +21,37 @@ export default async function getListings(params: IListingsParams) {
       endDate,
       category,
       type,
+      hasSets,
     } = params;
 
-    let query: any = {};
+    const query: {
+      userId?: string;
+      active?: boolean;
+      category?: string;
+      locationValue?: string;
+      type?: { has: string };
+      hasSets?: boolean;
+      NOT?: {
+        reservations: {
+          some: {
+            AND: [
+              { markedForDeletion: boolean },
+              {
+                OR: [
+                  { endDate: { gte: string }; startDate: { lte: string } },
+                  { startDate: { lte: string }; endDate: { gte: string } }
+                ]
+              }
+            ]
+          }
+        }
+      };
+    } = {};
 
     if (userId) {
       query.userId = userId;
     } else {
-      // Only show active listings on public listings page
+
       query.active = true;
     }
 
@@ -39,6 +65,9 @@ export default async function getListings(params: IListingsParams) {
     if (type) {
       query.type = { has: type };
     }
+    if (hasSets === "true") {
+      query.hasSets = true;
+    }
 
 
 
@@ -46,14 +75,21 @@ export default async function getListings(params: IListingsParams) {
       query.NOT = {
         reservations: {
           some: {
-            OR: [
+            AND: [
               {
-                endDate: { gte: startDate },
-                startDate: { lte: startDate },
+                markedForDeletion: false,
               },
               {
-                startDate: { lte: endDate },
-                endDate: { gte: endDate },
+                OR: [
+                  {
+                    endDate: { gte: startDate },
+                    startDate: { lte: startDate },
+                  },
+                  {
+                    startDate: { lte: endDate },
+                    endDate: { gte: endDate },
+                  },
+                ],
               },
             ],
           },
@@ -74,7 +110,7 @@ export default async function getListings(params: IListingsParams) {
     }));
 
     return safeListings;
-  } catch (error: any) {
-    throw new Error(error.message);
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "An unknown error occurred");
   }
 }

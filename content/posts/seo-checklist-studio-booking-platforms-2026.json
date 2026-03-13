@@ -1,0 +1,324 @@
+{
+    "id": "seo-checklist-studio-booking-platforms-2026",
+    "title": "The Ultimate SEO Checklist for Studio Booking Platforms in 2026",
+    "categories": [
+        {
+            "id": "growth-and-strategy",
+            "title": "Growth & Strategy",
+            "breadcrumbs": [
+                {
+                    "doc": "home",
+                    "label": "Home",
+                    "id": "bc-home"
+                },
+                {
+                    "doc": "blogs",
+                    "label": "Blogs",
+                    "id": "bc-blogs"
+                },
+                {
+                    "doc": "category",
+                    "label": "Growth & Strategy",
+                    "id": "bc-gs"
+                }
+            ],
+            "createdAt": "2026-03-09T12:00:00Z",
+            "updatedAt": "2026-03-09T12:00:00Z"
+        }
+    ],
+    "publishedAt": "2026-03-09T12:00:00Z",
+    "authors": [
+        "ContCave Editorial"
+    ],
+    "hero": {
+        "type": "image",
+        "richText": [
+            {
+                "children": [
+                    {
+                        "text": "SEO is the growth engine behind every studio marketplace. Here is the complete 2026 playbook."
+                    }
+                ]
+            }
+        ],
+        "links": []
+    },
+    "layout": [
+        {
+            "id": "h-intro",
+            "blockType": "heading",
+            "content": "Why SEO matters more than ever for studio booking platforms"
+        },
+        {
+            "id": "p-intro-1",
+            "blockType": "paragraph",
+            "content": "If you run a studio booking platform, your biggest growth lever is not paid ads. It is organic search. When a photographer in Mumbai types 'studio for rent near me' or a D2C brand in Delhi searches 'product photography studio,' you want your listing to appear on page one. In 2026, with Google's AI Overviews reshaping search results, nailing SEO fundamentals is the difference between thriving and being invisible."
+        },
+        {
+            "id": "p-intro-2",
+            "blockType": "paragraph",
+            "content": "At ContCave, we recently did a deep SEO audit of our own codebase. What we found was eye-opening: even with solid foundations, there were hidden issues silently draining our ranking potential. This post distills everything we learned into a practical checklist that any studio marketplace can follow."
+        },
+        {
+            "id": "h-metadata",
+            "blockType": "heading",
+            "content": "1. Metadata: your first impression in search results"
+        },
+        {
+            "id": "p-metadata-1",
+            "blockType": "paragraph",
+            "content": "Every page on your platform needs a unique title tag and meta description. This sounds basic, but most studio marketplaces get it wrong by using generic titles like 'Home' or leaving descriptions blank. Google truncates titles at roughly 60 characters and descriptions at 155 characters, so every word must earn its place."
+        },
+        {
+            "id": "list-metadata",
+            "blockType": "list",
+            "items": [
+                "Use a title template that includes your brand: 'Page Title | BrandName'",
+                "Write compelling meta descriptions that include location keywords and a call to action",
+                "Set canonical URLs on every page to prevent duplicate content issues",
+                "Add OpenGraph and Twitter card tags so your links look professional when shared on social media",
+                "Use separate, descriptive keywords per page — do not copy the same keyword list everywhere"
+            ]
+        },
+        {
+            "id": "p-metadata-2",
+            "blockType": "paragraph",
+            "content": "Pro tip: centralise your brand constants (site URL, brand name, OG image) in a single file. This prevents inconsistencies and makes updates trivial. At ContCave, we maintain a dedicated seo.ts module that every page imports from."
+        },
+        {
+            "id": "h-structured",
+            "blockType": "heading",
+            "content": "2. Structured data: speak Google's language"
+        },
+        {
+            "id": "p-structured-1",
+            "blockType": "paragraph",
+            "content": "Structured data (JSON-LD) is the secret weapon most studio platforms ignore. It tells search engines exactly what your content is: a studio listing, an article, a business, a venue. When implemented correctly, it can unlock rich results like review stars, pricing, availability, and FAQ dropdowns directly in search results."
+        },
+        {
+            "id": "list-structured",
+            "blockType": "list",
+            "items": [
+                "Homepage: use Organization and WebSite schemas",
+                "Listings index: use ItemList with LocalBusiness items",
+                "Individual listing pages: use EventVenue or LocalBusiness with Offer, GeoCoordinates, and OpeningHoursSpecification",
+                "Blog posts: use Article schema with author, publisher, datePublished, and dateModified",
+                "FAQ section: use FAQPage schema to grab featured snippets"
+            ]
+        },
+        {
+            "id": "quote-structured",
+            "blockType": "quote",
+            "content": "Structured data does not directly improve rankings, but it dramatically increases click-through rates. A listing with pricing and star ratings in search results gets 30 percent more clicks than a plain blue link."
+        },
+        {
+            "id": "h-crawl",
+            "blockType": "heading",
+            "content": "3. Crawlability: make sure Google can actually find your pages"
+        },
+        {
+            "id": "p-crawl-1",
+            "blockType": "paragraph",
+            "content": "This is where many Next.js applications stumble. Client-side navigation is great for user experience, but if your internal links use JavaScript onClick handlers instead of anchor tags with href attributes, search engine crawlers cannot follow them. Your pages become invisible islands."
+        },
+        {
+            "id": "list-crawl",
+            "blockType": "list",
+            "items": [
+                "Every internal link must be a real <a href> tag, not a button with onClick and router.push",
+                "Remove or fix all placeholder href='#' links — they waste crawl budget and confuse bots",
+                "Use a robots.txt that allows public pages and blocks private dashboards, API routes, and user profiles",
+                "Generate a dynamic sitemap that includes all published listings and blog posts with accurate lastModified dates",
+                "Submit your sitemap to Google Search Console and monitor for crawl errors weekly"
+            ]
+        },
+        {
+            "id": "p-crawl-2",
+            "blockType": "paragraph",
+            "content": "We discovered our own footer had four navigation links using router.push instead of href. That meant Google could not discover our About, Privacy Policy, Terms, or Blog pages through the footer, which appears on every single page. A five-minute fix with massive impact."
+        },
+        {
+            "id": "h-semantic",
+            "blockType": "heading",
+            "content": "4. Semantic HTML: structure matters"
+        },
+        {
+            "id": "p-semantic-1",
+            "blockType": "paragraph",
+            "content": "Search engines rely heavily on heading hierarchy to understand content structure. Every page should have exactly one H1 tag that describes the primary topic. Subheadings should follow a logical H2 to H3 to H4 hierarchy. Common mistakes include using multiple H1 tags for visual styling or skipping heading levels."
+        },
+        {
+            "id": "list-semantic",
+            "blockType": "list",
+            "items": [
+                "One H1 per page — combine split headings into a single tag",
+                "Use semantic HTML5 elements: <main>, <article>, <section>, <nav>, <footer>",
+                "Write descriptive, keyword-rich alt text for all images",
+                "Use <a> tags for navigation, not <button> or <div>",
+                "Avoid generic alt text like 'Banner Image' — describe what the image actually shows"
+            ]
+        },
+        {
+            "id": "h-perf",
+            "blockType": "heading",
+            "content": "5. Performance: speed is a ranking signal"
+        },
+        {
+            "id": "p-perf-1",
+            "blockType": "paragraph",
+            "content": "Google has been using Core Web Vitals as a ranking factor since 2021. For studio booking platforms with image-heavy listings, performance is critical. Slow pages lead to higher bounce rates, lower crawl rates, and worse rankings."
+        },
+        {
+            "id": "list-perf",
+            "blockType": "list",
+            "items": [
+                "Use Next.js Image component with proper width, height, and lazy loading",
+                "Serve images in WebP or AVIF format via a CDN like Cloudinary",
+                "Remove force-dynamic from static content pages (About, Privacy, Terms) to enable build-time rendering",
+                "Add loading.tsx files in key route segments for instant skeleton screens",
+                "Implement a web app manifest for better Lighthouse scores and PWA support",
+                "Use next/font for self-hosted fonts to eliminate render-blocking font requests"
+            ]
+        },
+        {
+            "id": "h-content",
+            "blockType": "heading",
+            "content": "6. Content strategy: your blog is your SEO engine"
+        },
+        {
+            "id": "p-content-1",
+            "blockType": "paragraph",
+            "content": "Studio booking platforms typically have thin content: listings with a title, a few photos, and a price. That is not enough to rank for long-tail keywords. A blog bridges this gap by creating pages that target informational queries — the kind of searches people make before they are ready to book."
+        },
+        {
+            "id": "list-content",
+            "blockType": "list",
+            "items": [
+                "Target long-tail keywords: 'best photography studios in Delhi,' 'how to set up a product shoot on a budget'",
+                "Publish consistently — even two posts per month compounds over time",
+                "Display recent blog posts on your homepage for fresh content signals and internal linking",
+                "Render blog tags as clickable links to create keyword-rich tag pages",
+                "Add BreadcrumbList structured data to blog posts for enhanced search results",
+                "Use internal links within blog posts to connect to relevant listings and category pages"
+            ]
+        },
+        {
+            "id": "p-content-2",
+            "blockType": "paragraph",
+            "content": "At ContCave, we noticed our blog section was commented out on the homepage. That meant zero fresh content signals for Google on our most authoritative page. Uncommenting it was a five-second fix that unlocked real SEO value."
+        },
+        {
+            "id": "h-local",
+            "blockType": "heading",
+            "content": "7. Local SEO: own your city"
+        },
+        {
+            "id": "p-local-1",
+            "blockType": "paragraph",
+            "content": "Studio booking is inherently local. Creators search for studios in specific cities and neighbourhoods. If your platform operates in multiple cities, you need dedicated city landing pages that target location-specific keywords."
+        },
+        {
+            "id": "list-local",
+            "blockType": "list",
+            "items": [
+                "Create city-specific pages: /studios/delhi, /studios/mumbai, /studios/kolkata",
+                "Include city name in title, H1, meta description, and body content",
+                "Add LocalBusiness schema with full postal address and geo-coordinates",
+                "Claim and optimise your Google Business Profile",
+                "Encourage reviews on Google — they directly impact local pack rankings"
+            ]
+        },
+        {
+            "id": "h-social",
+            "blockType": "heading",
+            "content": "8. Social and OG images: make links shareable"
+        },
+        {
+            "id": "p-social-1",
+            "blockType": "paragraph",
+            "content": "When someone shares your listing on WhatsApp, LinkedIn, or Twitter, the preview image and text determine whether the recipient clicks. Using your logo as the OG image is a missed opportunity. Create a dedicated 1200 by 630 pixel social card with your brand name, tagline, and a relevant visual."
+        },
+        {
+            "id": "h-monitor",
+            "blockType": "heading",
+            "content": "9. Monitor and iterate"
+        },
+        {
+            "id": "p-monitor-1",
+            "blockType": "paragraph",
+            "content": "SEO is not a one-time project. Set up monitoring and iterate continuously:"
+        },
+        {
+            "id": "list-monitor",
+            "blockType": "list",
+            "items": [
+                "Connect Google Search Console and review performance, coverage, and Core Web Vitals weekly",
+                "Use Google Analytics 4 to track organic traffic by page and identify top performers",
+                "Run Lighthouse audits monthly and track scores over time",
+                "Monitor keyword rankings for your target terms using a tool like Ahrefs or SEMrush",
+                "Audit new pages before launch to ensure metadata, structured data, and canonicals are correct"
+            ]
+        },
+        {
+            "id": "h-conclude",
+            "blockType": "heading",
+            "content": "The bottom line"
+        },
+        {
+            "id": "p-conclude",
+            "blockType": "paragraph",
+            "content": "SEO for studio booking platforms is not about tricks or hacks. It is about getting the fundamentals right: clean metadata, structured data, crawlable links, fast pages, and consistent content. The platforms that nail these basics in 2026 will dominate organic search while their competitors burn money on ads."
+        },
+        {
+            "id": "quote-conclude",
+            "blockType": "quote",
+            "content": "Every page you leave unoptimised is a page your competitor will outrank you on. Start with the quick wins, build a content cadence, and let compounding organic growth do the heavy lifting."
+        },
+        {
+            "id": "p-cta",
+            "blockType": "paragraph",
+            "content": "ContCave is building India's most creator-friendly studio marketplace. If you are a studio owner looking to list your space, or a creator looking for the perfect shoot location, explore ContCave today."
+        }
+    ],
+    "slug": "seo-checklist-studio-booking-platforms-2026",
+    "meta": {
+        "title": "The Ultimate SEO Checklist for Studio Booking Platforms in 2026",
+        "description": "A practical, developer-friendly SEO checklist for studio booking marketplaces covering metadata, structured data, crawlability, Core Web Vitals, and content strategy.",
+        "image": {
+            "id": "meta-seo-2026-001",
+            "alt": "SEO checklist for studio booking platforms",
+            "filename": "seo-checklist-studio-2026.png",
+            "mimeType": "image/png",
+            "filesize": 300000,
+            "width": 1200,
+            "height": 628,
+            "focalX": 0.5,
+            "focalY": 0.5,
+            "createdAt": "2026-03-09T12:00:00Z",
+            "updatedAt": "2026-03-09T12:00:00Z",
+            "url": "/images/blogs/seo-checklist-studio-2026.png"
+        }
+    },
+    "_status": "published",
+    "createdAt": "2026-03-09T12:00:00Z",
+    "updatedAt": "2026-03-09T12:00:00Z",
+    "enablePremiumContent": false,
+    "populatedAuthors": [
+        {
+            "id": "author-cc-edit",
+            "name": "ContCave Editorial"
+        }
+    ],
+    "premiumContent": [],
+    "tags": [
+        "SEO",
+        "studio booking",
+        "Next.js SEO",
+        "structured data",
+        "Core Web Vitals",
+        "content strategy",
+        "local SEO India",
+        "creator economy",
+        "studio marketplace"
+    ]
+}

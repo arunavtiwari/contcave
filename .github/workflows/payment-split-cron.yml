@@ -1,0 +1,40 @@
+name: Payment Split Cron Job
+
+on:
+  schedule:
+    # Run daily at 00:00 IST (UTC+05:30) => 18:30 UTC
+    - cron: "30 18 * * *"
+  workflow_dispatch:
+
+jobs:
+  trigger-payment-split:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Payment Split
+        run: |
+          echo "Triggering payment split cron job..."
+
+          RESPONSE=$(curl -sS -w "\n%{http_code}" \
+            --retry 3 --retry-delay 5 --max-time 30 --fail \
+            -X GET "https://contcave.vercel.app/api/cron/easy-split" \
+            -H "x-github-secret: ${{ secrets.CRON_SECRET }}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          RESPONSE_BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $RESPONSE_BODY"
+
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ Payment split cron job executed successfully"
+          else
+            echo "❌ Payment split cron job failed with status: $HTTP_CODE"
+            echo "Response: $RESPONSE_BODY"
+            exit 1
+          fi
+
+      - name: Log Results
+        if: always()
+        run: |
+          echo "Payment split cron job completed at $(date -u) UTC"

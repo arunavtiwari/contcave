@@ -1,13 +1,83 @@
-import prisma from "@/lib/prismadb";
+import { Prisma } from "@prisma/client";
+
+import { checkSetConflicts } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
-import { cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
+import { cfCreateRefund, cfMapStatus, cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
+import { calculatePayoutDetails } from "@/lib/constants/gst";
+import { AttachmentInput, sendTemplateEmail } from "@/lib/email/mailer";
 import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
-import { sendTemplateEmail } from "@/lib/email/mailer";
-import { createInvoice } from "@/lib/invoice/pdfBlob";
+import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
+import prisma from "@/lib/prismadb";
+import { WhatsappService } from "@/lib/whatsapp/service";
+
+type LocationData = {
+  display_name?: string;
+  additionalInfo?: string;
+  [key: string]: unknown;
+};
+
+type CashfreeWebhookPayload = {
+  data?: {
+    order?: {
+      order_id?: string;
+    };
+    payment?: {
+      payment_status?: string;
+      cf_payment_id?: string | number;
+    };
+  };
+  [key: string]: unknown;
+};
+
+type AddonItem = {
+  name?: unknown;
+  qty?: unknown;
+  [key: string]: unknown;
+};
+
+type TransactionMetadata = {
+  startDate?: unknown;
+  startTime?: unknown;
+  endTime?: unknown;
+  selectedAddons?: unknown;
+  setIds?: unknown;
+  setPackageId?: unknown;
+  pricingSnapshot?: unknown;
+  [key: string]: unknown;
+};
+
+type ListingSetData = {
+  id: string;
+  name: string;
+  price: number;
+  position: number;
+};
+
+type PricingSnapshotData = {
+  includedSetName?: string | null;
+  packageTitle?: string | null;
+  additionalSets?: Array<{ id: string; name: string; price: number }>;
+  [key: string]: unknown;
+};
+
+type ListingWithSetsAndUser = {
+  id: string;
+  title?: string;
+  instantBooking?: boolean;
+  actualLocation?: unknown;
+  sets?: ListingSetData[];
+  user?: {
+    id: string;
+    email?: string | null;
+    name?: string | null;
+    phone?: string | null;
+    googleCalendarConnected?: boolean;
+    paymentDetails?: { cashfreeVendorId?: string | null } | null;
+  } | null;
+};
 
 const MAX_SKEW_SEC = Number(process.env.WEBHOOK_MAX_SKEW_SEC || 600);
-const OWNER_PAYOUT_PERCENT = Number(process.env.OWNER_PAYOUT_PERCENT || 80);
 
 type HandleInput = {
   raw: string;
@@ -23,48 +93,34 @@ function parseWebhookTimestamp(ts: string): number | null {
   const d = Date.parse(ts);
   return Number.isFinite(d) ? d : null;
 }
-
-function fresh(tsHeader: string) {
+function fresh(tsHeader: string): boolean {
   const t = parseWebhookTimestamp(tsHeader);
   if (!t) return false;
   const skew = Math.abs(Date.now() - t) / 1000;
   return skew <= MAX_SKEW_SEC;
 }
 
-function mapStatus(s?: string) {
-  const v = String(s || "").toUpperCase();
-  if (v === "PAID" || v === "SUCCESS" || v === "CAPTURED") return "SUCCESS";
-  if (v === "FAILED") return "FAILED";
-  if (v === "CANCELLED") return "CANCELLED";
-  if (v === "EXPIRED") return "EXPIRED";
-  return "PENDING";
-}
-
-function pickOrderId(p: any) {
+function pickOrderId(p: CashfreeWebhookPayload) {
   return String(p?.data?.order?.order_id ?? "");
 }
-
-function pickPayStatus(p: any) {
+function pickPayStatus(p: CashfreeWebhookPayload) {
   return String(p?.data?.payment?.payment_status ?? "");
 }
-
-function pickPaymentId(p: any) {
+function pickPaymentId(p: CashfreeWebhookPayload) {
   const r = p?.data?.payment?.cf_payment_id;
   return r != null ? String(r) : undefined;
 }
-
 function localMidnightFromYmd(ymd?: string): Date {
-  return typeof ymd === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ymd)
-    ? new Date(`${ymd}T00:00:00`)
-    : new Date();
+  return typeof ymd === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ymd) ? new Date(`${ymd}T00:00:00`) : new Date();
 }
-
-function formatAddons(a: any): string {
-  const arr = Array.isArray(a) ? a : a && typeof a === "object" ? Object.values(a) : [];
+function formatAddons(a: unknown): string {
+  const arr = Array.isArray(a) ? a : a && typeof a === "object" ? Object.values(a as Record<string, unknown>) : [];
   const parts = arr
-    .map((x: any) => {
-      const name = String(x?.name || "").trim();
-      const qty = Number(x?.qty || 0);
+    .map((x: unknown) => {
+      if (!x || typeof x !== 'object') return null;
+      const item = x as AddonItem;
+      const name = String(item?.name || "").trim();
+      const qty = Number(item?.qty || 0);
       return name && qty > 0 ? `${name} × ${qty}` : null;
     })
     .filter(Boolean) as string[];
@@ -80,8 +136,7 @@ async function createCalendarEventForOwner(p: OwnerCalendarPayload) {
       startIso: p.startIso,
       endIso: p.endIso,
     });
-  } catch (e) {
-    console.error("Failed to create calendar event:", e);
+  } catch {
   }
 }
 
@@ -90,19 +145,27 @@ function combineUtcIso(ymd: string, hm: string): string {
   return new Date(`${ymd}T${time}:00Z`).toISOString();
 }
 
+type CustomerEmailPayload = Parameters<typeof sendReservationCustomerEmail>[0];
+type OwnerEmailPayload = Parameters<typeof sendReservationOwnerEmail>[0];
+
+type ExtendedCustomerEmailPayload = CustomerEmailPayload & {
+  setNames?: string;
+  packageTitle?: string | null;
+};
+
+type ExtendedOwnerEmailPayload = OwnerEmailPayload & {
+  setNames?: string;
+  packageTitle?: string | null;
+  bookingId?: string;
+  addons?: string;
+  formattedStartDate?: string;
+  formattedStartTime?: string;
+  formattedEndTime?: string;
+};
+
 async function claimAndSendCustomerEmail(
   txnId: string,
-  payload: {
-    toEmail: string;
-    toName: string;
-    studioName: string;
-    startDate: string;
-    startTime: string;
-    endTime: string;
-    totalPrice: number;
-    addons: string;
-    studioLocation: string;
-  }
+  payload: CustomerEmailPayload,
 ) {
   const claimed = await prisma.transaction.updateMany({
     where: { id: txnId, emailSentCustomer: false },
@@ -111,53 +174,47 @@ async function claimAndSendCustomerEmail(
   if (claimed.count === 1) {
     try {
       await sendReservationCustomerEmail(payload);
+
+      if (payload.toEmail) {
+
+
+      }
     } catch (e) {
       await prisma.transaction.update({ where: { id: txnId }, data: { emailSentCustomer: false } });
       throw e;
     }
   }
 }
-
 async function claimAndSendOwnerEmail(
   txnId: string,
-  payload: {
-    toEmail: string;
-    toName: string;
-    studioName: string;
-    startDate: string;
-    startTime: string;
-    endTime: string;
-    totalPrice: number;
-    customerName: string;
-    templateId?: string;
-    bookingId?: string;
-    addons?: string;
-    formattedStartDate?: string;
-    formattedStartTime?: string;
-    formattedEndTime?: string;
-  }
+  payload: OwnerEmailPayload,
 ) {
-  if (!payload?.toEmail) return;
-  const tpl = payload.templateId || process.env.MS_TPL_RESERVATION_OWNER;
-  if (!tpl) return;
-
+  if (!payload?.toEmail) {
+    console.warn("Owner email skipped: missing recipient", { txnId });
+    return;
+  }
+  const tpl = (payload as { templateId?: unknown }).templateId;
+  const templateId = typeof tpl === 'string' ? tpl : process.env.MS_TPL_RESERVATION_OWNER;
+  if (!templateId) {
+    console.warn("Owner email skipped: missing templateId", { txnId });
+    return;
+  }
   const claimed = await prisma.transaction.updateMany({
     where: { id: txnId, emailSentOwner: false },
     data: { emailSentOwner: true },
   });
   if (claimed.count === 1) {
     try {
-      await sendReservationOwnerEmail(payload as any);
+      await sendReservationOwnerEmail(payload);
     } catch (e) {
       await prisma.transaction.update({ where: { id: txnId }, data: { emailSentOwner: false } });
       throw e;
     }
   }
 }
-
 async function claimAndSendFailedEmail(
   txnId: string,
-  payload: { toEmail: string; toName: string; templateId: string; data: Record<string, any> }
+  payload: { toEmail: string; toName: string; templateId: string; data: Record<string, string | number | boolean | null> }
 ) {
   const claimed = await prisma.transaction.updateMany({
     where: { id: txnId, emailSentFailed: false },
@@ -181,15 +238,11 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
       const okSig =
         headers.timestamp &&
         headers.signature &&
-        cfVerifyWebhookSignature({
-          rawBody: raw,
-          timestamp: headers.timestamp,
-          signatureBase64: headers.signature,
-        });
+        cfVerifyWebhookSignature({ rawBody: raw, timestamp: headers.timestamp, signatureBase64: headers.signature });
       if (!okSig || !fresh(headers.timestamp)) return { statusCode: 401 };
     }
 
-    let body: any;
+    let body: CashfreeWebhookPayload;
     try {
       body = JSON.parse(raw);
     } catch {
@@ -199,8 +252,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
     const orderId = pickOrderId(body);
     if (!orderId) return { statusCode: 200 };
 
-    const status = mapStatus(pickPayStatus(body));
     const cfPaymentId = pickPaymentId(body);
+    const status = cfMapStatus(pickPayStatus(body));
+    console.warn("[Webhook] Cashfree payment status", { orderId, status, cfPaymentId });
 
     const txn = await prisma.transaction.findFirst({
       where: { cfOrderId: orderId },
@@ -216,44 +270,118 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
         cfPaymentId: true,
       },
     });
-
     if (!txn) return { statusCode: 200 };
 
     if (txn.status !== status || txn.cfPaymentId !== cfPaymentId) {
       await prisma.transaction.update({
         where: { id: txn.id },
-        data: { status, cfPaymentId, cfWebhookPayload: body, cfSignature: headers.signature || undefined },
+        data: { status, cfPaymentId, cfWebhookPayload: body as never, cfSignature: headers.signature || undefined },
       });
     }
 
-    let afterCustomer: Parameters<typeof claimAndSendCustomerEmail>[1] | undefined;
-    let afterOwner: Parameters<typeof claimAndSendOwnerEmail>[1] | undefined;
+    let afterCustomer: CustomerEmailPayload | undefined;
+    let afterOwner: OwnerEmailPayload | undefined;
     let afterTxnId: string | undefined;
     let afterCalendar: OwnerCalendarPayload | undefined;
+    let afterReservationId: string | undefined;
+    let afterInvoiceAttachment: AttachmentInput | undefined;
 
     if (status === "SUCCESS" && txn.userId && txn.listingId) {
-      // DB transaction for reservation + transaction update
       await prisma.$transaction(async (db) => {
         const freshTxn = await db.transaction.findUnique({
           where: { id: txn.id },
-          select: { id: true, reservationId: true, userId: true, listingId: true, amount: true, metadata: true },
+          select: { id: true, reservationId: true, userId: true, listingId: true, amount: true, metadata: true, cfOrderId: true, cfTxnRef: true },
         });
         if (!freshTxn) return;
 
         if (!freshTxn.reservationId) {
-          const [listing, user] = await Promise.all([
+          const [listingResult, user] = await Promise.all([
             db.listing.findUnique({
               where: { id: freshTxn.listingId! },
-              include: { user: { include: { paymentDetails: true } } },
+              include: {
+                user: {
+                  include: {
+                    paymentDetails: true
+                  }
+                },
+                sets: { orderBy: { position: "asc" as const } },
+              },
             }),
-            db.user.findUnique({ where: { id: freshTxn.userId! }, select: { email: true, name: true } }),
+            db.user.findUnique({ where: { id: freshTxn.userId! }, select: { email: true, name: true, phone: true } }),
           ]);
+          const listing = listingResult as ListingWithSetsAndUser | null;
 
-          const md: any = freshTxn.metadata || {};
+          const md = (freshTxn.metadata || {}) as TransactionMetadata;
           const startDateYmd = String(md.startDate || "");
           const startDate = localMidnightFromYmd(startDateYmd);
           const startTime = String(md.startTime ?? "");
           const endTime = String(md.endTime ?? "");
+
+          const setIds = Array.isArray(md.setIds) ? md.setIds.filter((id): id is string => typeof id === "string") : [];
+          const setPackageId = typeof md.setPackageId === "string" ? md.setPackageId : null;
+          const pricingSnapshot = md.pricingSnapshot || null;
+
+          let includedSetId: string | null = null;
+          if (setIds.length > 0 && listing?.sets) {
+            const selectedSets = listing.sets
+              .filter((s: ListingSetData) => setIds.includes(s.id))
+              .sort((a: ListingSetData, b: ListingSetData) => {
+                if (a.price !== b.price) return a.price - b.price;
+                return a.position - b.position;
+              });
+            includedSetId = selectedSets[0]?.id || null;
+          }
+
+          const conflict = await checkSetConflicts({
+            listingId: freshTxn.listingId!,
+            date: startDate,
+            startTime,
+            endTime,
+            setIds,
+            tx: db,
+          });
+
+          if (conflict.hasConflict) {
+            console.error("[Webhook] Double Booking Detected!", { txnId: freshTxn.id, conflict });
+
+            // Auto-Refund Logic
+            let refundStatus = "PENDING";
+            let refundError = null;
+
+            if (freshTxn.cfOrderId) {
+              try {
+                const refundId = `ref_${freshTxn.cfTxnRef}`;
+                await cfCreateRefund({
+                  order_id: freshTxn.cfOrderId,
+                  refund_amount: freshTxn.amount,
+                  refund_id: refundId,
+                  refund_note: "System Auto-Refund: Double Booking"
+                });
+                refundStatus = "INITIATED";
+                console.warn("[Webhook] Auto-Refund Initiated", { refundId });
+              } catch (err) {
+                console.error("[Webhook] Auto-Refund Failed", err);
+                refundStatus = "FAILED";
+                refundError = err instanceof Error ? err.message : "Unknown error";
+              }
+            }
+
+            await db.transaction.update({
+              where: { id: freshTxn.id },
+              data: {
+                status: "FAILED",
+                metadata: {
+                  ...(typeof freshTxn.metadata === 'object' && freshTxn.metadata ? freshTxn.metadata : {}),
+                  failureReason: "DOUBLE_BOOKING_CONFLICT",
+                  conflictDetails: conflict as unknown as Prisma.InputJsonObject,
+                  refundNeeded: refundStatus === "FAILED",
+                  autoRefundStatus: refundStatus,
+                  autoRefundError: refundError
+                },
+              },
+            });
+            return;
+          }
 
           const reservation = await db.reservation.create({
             data: {
@@ -263,29 +391,75 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               startTime,
               endTime,
               totalPrice: freshTxn.amount,
-              selectedAddons: md.selectedAddons ?? null,
-              isApproved: (listing?.instantBooking ? 1 : 0) as any,
+              selectedAddons: (md.selectedAddons ?? null) as Prisma.InputJsonValue,
+              isApproved: (listing?.instantBooking ? 1 : 0),
               Transaction: { connect: { id: freshTxn.id } },
+              setIds,
+              includedSetId,
+              setPackageId,
+              pricingSnapshot: pricingSnapshot as Prisma.InputJsonValue,
+              totalPriceInt: Math.round(freshTxn.amount),
             },
-            select: { id: true },
+          });
+
+          // Calculate GST ownership and payout based on studio's GST status
+          const rawStudioPaymentDetails = listing?.user?.paymentDetails;
+          let studioHasGST = false;
+          let plainVendorId: string | undefined = undefined;
+
+          if (rawStudioPaymentDetails) {
+            try {
+              const { decryptPaymentDetailsInternal } = await import("@/lib/payment-details");
+              const decrypted = decryptPaymentDetailsInternal(rawStudioPaymentDetails as import("@prisma/client").PaymentDetails);
+
+              studioHasGST = !!(decrypted.companyName && decrypted.gstin);
+              plainVendorId = decrypted.cashfreeVendorId || undefined;
+            } catch (error) {
+              console.error("[Webhook] Failed to decrypt studio payment details:", error);
+            }
+          }
+
+          const payoutDetails = calculatePayoutDetails(freshTxn.amount, studioHasGST);
+
+          console.warn("[Webhook] GST Calculation", {
+            txnId: freshTxn.id,
+            totalAmount: freshTxn.amount,
+            studioHasGST,
+            gstOwnedBy: payoutDetails.gstOwnedBy,
+            baseAmount: payoutDetails.baseAmount,
+            payoutToStudio: payoutDetails.payoutToStudio,
+            payoutPercent: payoutDetails.payoutPercentOfTotal,
+            arkanetRetains: payoutDetails.arkanetRetains,
           });
 
           await db.transaction.update({
             where: { id: freshTxn.id },
             data: {
               reservationId: reservation.id,
-              vendorId: listing?.user?.paymentDetails?.cashfreeVendorId || undefined,
-              payoutPercentToOwner: OWNER_PAYOUT_PERCENT,
+              vendorId: plainVendorId,
+              payoutPercentToOwner: payoutDetails.payoutPercentOfTotal,
               payoutDueAt: startDate,
+              gstOwnedBy: payoutDetails.gstOwnedBy,
+              baseAmountBeforeGst: payoutDetails.baseAmount,
             },
           });
 
-          // Prepare email & calendar payloads
+          afterReservationId = reservation.id;
+
           const studioName = listing?.title || "";
-          const studioLocation = listing?.locationValue || "";
+          const actualLocation = listing?.actualLocation as LocationData;
+          const studioLocation = actualLocation?.display_name || "";
+          const additionalInfo = actualLocation?.additionalInfo || "";
           const addonsStr = formatAddons(md.selectedAddons);
           const totalPrice = Math.round(Number(freshTxn.amount || 0));
           afterTxnId = freshTxn.id;
+
+          const ps = pricingSnapshot as PricingSnapshotData | null;
+          const setNames = [
+            ps?.includedSetName,
+            ...(ps?.additionalSets?.map((s) => s.name) || [])
+          ].filter(Boolean).join(", ");
+          const packageTitle = ps?.packageTitle || null;
 
           if (user?.email) {
             afterCustomer = {
@@ -298,9 +472,12 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               totalPrice,
               addons: addonsStr,
               studioLocation,
-            };
+              additionalInfo,
+              setNames,
+              packageTitle,
+            } as ExtendedCustomerEmailPayload;
+            console.warn('[Webhook] Customer email prepared', { txnId: freshTxn.id, toEmail: user.email });
           }
-
           if (listing?.user?.email) {
             afterOwner = {
               toEmail: listing.user.email,
@@ -312,70 +489,209 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               totalPrice,
               customerName: user?.name || "",
               templateId: process.env.MS_TPL_RESERVATION_OWNER || "",
-              bookingId: reservation.id,
-              addons: addonsStr,
-              formattedStartDate: startDateYmd,
-              formattedStartTime: startTime,
-              formattedEndTime: endTime,
-            };
+              setNames,
+              packageTitle,
+            } as ExtendedOwnerEmailPayload;
+            afterOwner.bookingId = reservation.id;
+            afterOwner.addons = addonsStr;
+            afterOwner.formattedStartDate = startDateYmd;
+            afterOwner.formattedStartTime = startTime;
+            afterOwner.formattedEndTime = endTime;
             if (listing?.user?.googleCalendarConnected) {
+              const calendarTitle = setNames
+                ? `${studioName} (${setNames}) - ${user?.name || "Customer"}`
+                : `${studioName} booking by ${user?.name || "Customer"}`;
               afterCalendar = {
                 ownerUserId: listing.user.id,
-                title: `${studioName} booking by ${user?.name || "Customer"}`,
+                title: calendarTitle,
                 startIso: combineUtcIso(startDateYmd, startTime),
                 endIso: combineUtcIso(startDateYmd, endTime),
               };
+            }
+            console.warn('[Webhook] Owner email prepared', { txnId: freshTxn.id, toEmail: listing.user.email });
+          }
+        } else {
+          const resv = await db.reservation.findUnique({
+            where: { id: freshTxn.reservationId },
+            include: {
+              listing: { include: { user: { include: { paymentDetails: true } } } },
+              user: { select: { email: true, name: true, phone: true } },
+            },
+          });
+          if (resv) {
+            afterReservationId = resv.id;
+            const studioName = resv.listing?.title || "";
+            const actualLocation = resv.listing?.actualLocation as LocationData;
+            const studioLocation = actualLocation?.display_name || "";
+            const additionalInfo = actualLocation?.additionalInfo || "";
+            const addonsStr = formatAddons(resv.selectedAddons);
+            const totalPrice = Math.round(Number(resv.totalPrice || 0));
+            const startDateYmd = resv.startDate?.toISOString().slice(0, 10) || "";
+            afterTxnId = freshTxn.id;
+
+            const ps = resv.pricingSnapshot as PricingSnapshotData | null;
+            const setNames = [
+              ps?.includedSetName,
+              ...(ps?.additionalSets?.map((s) => s.name) || [])
+            ].filter(Boolean).join(", ");
+            const packageTitle = ps?.packageTitle || null;
+
+            if (resv.user?.email) {
+              afterCustomer = {
+                toEmail: resv.user.email,
+                toName: resv.user.name || "",
+                studioName,
+                startDate: startDateYmd,
+                startTime: resv.startTime || "",
+                endTime: resv.endTime || "",
+                totalPrice,
+                addons: addonsStr,
+                studioLocation,
+                additionalInfo,
+                setNames,
+                packageTitle,
+              } as ExtendedCustomerEmailPayload;
+              console.warn('[Webhook] Customer email prepared (existing reservation)', { txnId: freshTxn.id, toEmail: resv.user.email });
+            }
+            if (resv.listing?.user?.email) {
+              afterOwner = {
+                toEmail: resv.listing.user.email,
+                toName: resv.listing.user.name || "",
+                studioName,
+                startDate: startDateYmd,
+                startTime: resv.startTime || "",
+                endTime: resv.endTime || "",
+                totalPrice,
+                customerName: resv.user?.name || "",
+                templateId: process.env.MS_TPL_RESERVATION_OWNER || "",
+                setNames,
+                packageTitle,
+              } as ExtendedOwnerEmailPayload;
+              afterOwner.bookingId = resv.id;
+              afterOwner.addons = addonsStr;
+              afterOwner.formattedStartDate = startDateYmd;
+              afterOwner.formattedStartTime = resv.startTime || "";
+              afterOwner.formattedEndTime = resv.endTime || "";
+              if (resv.listing?.user?.googleCalendarConnected) {
+                const calendarTitle = setNames
+                  ? `${studioName} (${setNames}) - ${resv.user?.name || "Customer"}`
+                  : `${studioName} booking by ${resv.user?.name || "Customer"}`;
+                afterCalendar = {
+                  ownerUserId: resv.listing.user.id,
+                  title: calendarTitle,
+                  startIso: combineUtcIso(startDateYmd, resv.startTime || "00:00"),
+                  endIso: combineUtcIso(startDateYmd, resv.endTime || "00:00"),
+                };
+              }
+              console.warn('[Webhook] Owner email prepared (existing reservation)', { txnId: freshTxn.id, toEmail: resv.listing.user.email });
             }
           }
         }
       });
 
-      // After DB commit: generate invoice safely
-      if (afterTxnId) {
+      if (afterTxnId && afterReservationId && txn.userId) {
         try {
-          const txnRecord = await prisma.transaction.findUnique({ where: { id: afterTxnId } });
-          if (txnRecord?.reservationId && txnRecord.userId) {
-            await createInvoice({
-              userId: txnRecord.userId,
-              reservationId: txnRecord.reservationId,
-              transactionId: txnRecord.id,
-              amount: txnRecord.amount,
-            });
-          }
+          const invoiceResult = await ensureInvoiceWithAttachment({
+            userId: txn.userId,
+            reservationId: afterReservationId,
+            transactionId: afterTxnId,
+          });
+          afterInvoiceAttachment = invoiceResult.attachment;
         } catch (e) {
-          console.error("Invoice generation failed", e);
+          console.error("[Webhook] Invoice generation failed", { txnId: afterTxnId, error: (e instanceof Error ? e.message : String(e)) });
         }
+      }
 
-        // Send customer email
+      if (afterInvoiceAttachment) {
+        if (afterCustomer) {
+          afterCustomer.attachments = [
+            ...(afterCustomer.attachments || []),
+            afterInvoiceAttachment,
+          ];
+        }
+        if (afterOwner) {
+          afterOwner.attachments = [
+            ...(afterOwner.attachments || []),
+            afterInvoiceAttachment,
+          ];
+        }
+      }
+
+      if (afterTxnId) {
         if (afterCustomer) {
           try {
+            const before = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentCustomer: true } });
             await claimAndSendCustomerEmail(afterTxnId, afterCustomer);
+            const after = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentCustomer: true } });
+            console.warn('[Webhook] Customer email claim result', { txnId: afterTxnId, before: before?.emailSentCustomer, after: after?.emailSentCustomer });
           } catch (e) {
-            console.error("Customer email failed", e);
+            console.error("[Webhook] Customer email dispatch error", { txnId: afterTxnId, error: (e instanceof Error ? e.message : String(e)) });
+          }
+
+          let customerPhone: string | null | undefined;
+          try {
+            const txnUser = await prisma.user.findUnique({ where: { id: txn.userId! }, select: { phone: true } });
+            customerPhone = txnUser?.phone;
+            if (customerPhone) {
+              await WhatsappService.sendBookingConfirmedCustomer(customerPhone, {
+                customerName: afterCustomer.toName || "",
+                listingTitle: afterCustomer.studioName || "",
+                startDate: afterCustomer.startDate || "",
+                startTime: afterCustomer.startTime || "",
+                locationLink: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(afterCustomer.studioLocation || "")}`
+              });
+            }
+          } catch (e: unknown) {
+            console.error("[Webhook] Customer WhatsApp dispatch error", {
+              txnId: afterTxnId,
+              error: e instanceof Error ? e.message : String(e),
+              phone: customerPhone
+            });
           }
         }
 
-        // Send owner email
         if (afterOwner) {
           try {
+            const before = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentOwner: true } });
             await claimAndSendOwnerEmail(afterTxnId, afterOwner);
+            const after = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { emailSentOwner: true } });
+            console.warn('[Webhook] Owner email claim result', { txnId: afterTxnId, before: before?.emailSentOwner, after: after?.emailSentOwner });
           } catch (e) {
-            console.error("Owner email failed", e);
+            console.error("[Webhook] Owner email dispatch error", { txnId: afterTxnId, error: (e instanceof Error ? e.message : String(e)) });
+          }
+
+          let hostPhone: string | null | undefined;
+          try {
+            const txnListing = await prisma.transaction.findUnique({ where: { id: afterTxnId }, select: { listing: { select: { user: { select: { phone: true } } } } } });
+            hostPhone = txnListing?.listing?.user?.phone;
+
+            if (hostPhone) {
+              await WhatsappService.sendBookingReceivedHost(hostPhone, {
+                hostName: afterOwner.toName || "",
+                customerName: afterOwner.customerName || "",
+                listingTitle: afterOwner.studioName || "",
+                startDate: (afterOwner as OwnerEmailPayload & { formattedStartDate?: string }).formattedStartDate || "",
+                startTime: (afterOwner as OwnerEmailPayload & { formattedStartTime?: string }).formattedStartTime || ""
+              });
+            }
+          } catch (e: unknown) {
+            console.error("[Webhook] Host WhatsApp dispatch error", {
+              txnId: afterTxnId,
+              error: e instanceof Error ? e.message : String(e),
+              hostPhone
+            });
           }
         }
 
-        // Create calendar event
         if (afterCalendar) {
           try {
             await createCalendarEventForOwner(afterCalendar);
-          } catch (e) {
-            console.error("Calendar event creation failed", e);
+          } catch {
           }
         }
       }
     }
 
-    // Handle failed transactions
     if (status === "FAILED" && txn.userId) {
       const u = await prisma.user.findUnique({ where: { id: txn.userId }, select: { email: true, name: true } });
       if (u?.email) {
@@ -387,14 +703,12 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             data: { customer_name: u.name || "", order_id: orderId },
           });
         } catch {
-          console.error("Failed transaction email failed");
         }
       }
     }
 
     return { statusCode: 200 };
-  } catch (e) {
-    console.error("Unhandled webhook error:", e);
+  } catch {
     return { statusCode: 200 };
   }
 }

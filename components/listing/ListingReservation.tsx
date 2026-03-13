@@ -1,6 +1,7 @@
 "use client";
 
-import React, {
+import { Cashfree, load } from "@cashfreepayments/cashfree-js";
+import {
   useCallback,
   useEffect,
   useId,
@@ -8,22 +9,35 @@ import React, {
   useRef,
   useState,
 } from "react";
-import Calendar from "../inputs/Calendar";
-import TimeSlotPicker from "../inputs/TimeSlotPicker";
-import { load, Cashfree } from "@cashfreepayments/cashfree-js";
+import { FaBolt } from "react-icons/fa";
+
+import Calendar from "@/components/inputs/Calendar";
+import TimeSlotPicker from "@/components/inputs/TimeSlotPicker";
+import BookingSummaryModal from "@/components/modals/BookingSummaryModal";
+import PhoneModal from "@/components/modals/PhoneModal";
+import useLoginModal from "@/hook/useLoginModal";
+import { normalizePhone } from "@/lib/phone";
+import { Package } from "@/types/package";
 import {
+  DayKey,
+  OperationalDays,
   ReservationOperationalTimings,
   TimeHM,
   TimeLabel,
-  DayKey,
-  OperationalDays,
 } from "@/types/scheduling";
-import useLoginModal from "@/hook/useLoginModal";
-import PhoneModal from "@/components/modals/PhoneModal";
-import BookingSummaryModal from "../modals/BookingSummaryModal";
-import { normalizePhone } from "@/lib/phone";
-import { Package } from "../inputs/PackagesForm";
-import { SafeUser } from "@/types";
+import {
+  AdditionalSetPricingType,
+  ListingSet,
+  SetPricingResult,
+} from "@/types/set";
+import { SafeUser } from "@/types/user";
+
+interface SafeReservation {
+  startDate: Date | string;
+  startTime: string;
+  endTime: string;
+  setIds?: string[];
+}
 
 const INR = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -39,6 +53,8 @@ type GSTDetails = {
   billingAddress: string;
 };
 
+type LocalTimes = { start: TimeLabel | null; end: TimeLabel | null };
+
 type Props = {
   user: SafeUser;
   listingId: string;
@@ -46,9 +62,9 @@ type Props = {
   totalPrice?: number;
   platformFee?: number;
   time: number;
-  setSelectDate: (value: Date | null) => void;
+  setSelectDateAction: (value: Date | null) => void;
   selectedDate: Date | null;
-  setSelectTimeSlots: (value: [TimeLabel | null, TimeLabel | null]) => void;
+  setSelectTimeSlotsAction: (value: [TimeLabel | null, TimeLabel | null]) => void;
   selectedTime: [TimeLabel | null, TimeLabel | null];
   disabled?: boolean;
   disabledDates: Date[];
@@ -60,11 +76,23 @@ type Props = {
   currentUserPhone?: string | null;
   isAuthenticated: boolean;
   minBookingHours?: number;
-  isOwner?: boolean;
-  selectedPackage?: Package | null;
-};
+  reservations?: SafeReservation[];
 
-type LocalTimes = { start: TimeLabel | null; end: TimeLabel | null };
+  selectedPackage?: Package | null;
+
+
+  hasSets?: boolean;
+  sets?: ListingSet[];
+
+  additionalSetPricingType?: AdditionalSetPricingType | null;
+
+
+  selectedSetIds?: string[];
+  pricingResult?: SetPricingResult | null;
+
+  selectedPackageId?: string | null;
+  setSelectionError?: string | null;
+};
 
 let cashfreePromise: Promise<Cashfree | null> | null = null;
 function getCashfree() {
@@ -80,6 +108,7 @@ function getCashfree() {
 }
 
 const clampRound = (n: number) => Math.max(0, Math.round(n || 0));
+const GST_RATE = 0.18;
 const isValidDate = (d: unknown): d is Date =>
   d instanceof Date && !Number.isNaN(d.getTime());
 
@@ -89,7 +118,7 @@ function hoursToMinutes(h?: number, fallbackMinutes = 90) {
   return Math.max(0, Math.round(n * 60));
 }
 
-/* Helpers to parse/format 12-hour labels like "2:30 PM" */
+
 const parseLabel = (label: string) => {
   const m = label.match(/^\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*$/i);
   if (!m) return { hours: 0, minutes: 0 };
@@ -116,9 +145,9 @@ export default function ListingReservation({
   totalPrice,
   platformFee = 0,
   time,
-  setSelectDate,
+  setSelectDateAction,
   selectedDate,
-  setSelectTimeSlots,
+  setSelectTimeSlotsAction,
   selectedTime,
   disabled = false,
   disabledDates,
@@ -130,8 +159,21 @@ export default function ListingReservation({
   currentUserPhone = null,
   isAuthenticated,
   minBookingHours,
-  isOwner = false,
+
+
   selectedPackage = null,
+
+  hasSets = false,
+
+
+  additionalSetPricingType = null,
+
+  selectedSetIds = [],
+  pricingResult = null,
+
+  selectedPackageId = null,
+  setSelectionError = null,
+
 }: Props) {
   const loginModel = useLoginModal();
 
@@ -162,7 +204,7 @@ export default function ListingReservation({
   const inflight = useRef<AbortController | null>(null);
   const sectionId = useId();
 
-  /* If a package is selected and user chooses a start time, auto-calc end time */
+
   const selectedStartLabel = selectedTime?.[0];
   useEffect(() => {
     if (selectedPackage && selectedStartLabel && selectedDate) {
@@ -198,18 +240,21 @@ export default function ListingReservation({
   const ltStart = localTimes.start;
   const ltEnd = localTimes.end;
   useEffect(() => {
-    setSelectTimeSlots([ltStart, ltEnd]);
-  }, [ltStart, ltEnd, setSelectTimeSlots]);
+    setSelectTimeSlotsAction([ltStart, ltEnd]);
+  }, [ltStart, ltEnd, setSelectTimeSlotsAction]);
 
   const safeHours = useMemo(
     () => (Number.isFinite(time) && time > 0 ? time : 0),
     [time]
   );
 
+
+
   const bookingFee = useMemo(() => {
     if (selectedPackage) return Number(selectedPackage.offeredPrice || 0);
+    if (hasSets && pricingResult) return pricingResult.subtotal;
     return price * safeHours;
-  }, [selectedPackage, price, safeHours]);
+  }, [selectedPackage, hasSets, pricingResult, price, safeHours]);
 
   const addonsSum = useMemo(
     () =>
@@ -226,19 +271,36 @@ export default function ListingReservation({
     [bookingFee, addonsSum, platformFee]
   );
 
-  const finalTotal = useMemo(
-    () => clampRound(typeof totalPrice === "number" ? totalPrice : computedTotal),
-    [totalPrice, computedTotal]
+  const gstAmount = useMemo(
+    () => clampRound(computedTotal * GST_RATE),
+    [computedTotal]
   );
+
+  const finalTotal = useMemo(() => {
+    if (typeof totalPrice === "number") {
+      return clampRound(totalPrice);
+    }
+    return clampRound(computedTotal + gstAmount);
+  }, [totalPrice, computedTotal, gstAmount]);
 
   const hasValidTime = useMemo(
     () => Boolean(localTimes.start && localTimes.end),
     [localTimes.start, localTimes.end]
   );
 
+  const setValidation = useMemo(() => {
+    if (!hasSets) return { valid: true };
+    return { valid: !setSelectionError, error: setSelectionError };
+  }, [hasSets, setSelectionError]);
+
   const ready = useMemo(
-    () => !disabled && hasPickedDate && hasValidTime && !isPaying,
-    [disabled, hasPickedDate, hasValidTime, isPaying]
+    () =>
+      !disabled &&
+      hasPickedDate &&
+      hasValidTime &&
+      !isPaying &&
+      setValidation.valid,
+    [disabled, hasPickedDate, hasValidTime, isPaying, setValidation.valid]
   );
 
   const minBookingMinutes = useMemo(
@@ -303,8 +365,9 @@ export default function ListingReservation({
       }
       setCustomerPhone(normalized);
       setShowPhoneModal(false);
-    } catch (e: any) {
-      setPhoneError(e?.message || "Unable to save phone. Try again.");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unable to save phone. Try again.";
+      setPhoneError(msg);
     } finally {
       setPhoneSaving(false);
     }
@@ -315,7 +378,24 @@ export default function ListingReservation({
       if (!listingId || !selectedDate || !localTimes.start || !localTimes.end)
         return;
       const startDateStr = formatLocalYmd(selectedDate);
-      const payload: any = {
+
+      interface PaymentPayload {
+        listingId: string;
+        startDate: string;
+        startTime: string;
+        endTime: string;
+        totalPrice: number;
+        selectedAddons: Addon[];
+        instantBooking: boolean;
+        gstDetails?: GSTDetails;
+        selectedPackage?: {
+          title: string;
+          offeredPrice: number;
+          durationHours: number;
+        };
+      }
+
+      const payload: PaymentPayload = {
         listingId,
         startDate: startDateStr,
         startTime: localTimes.start,
@@ -323,7 +403,7 @@ export default function ListingReservation({
         totalPrice: finalTotal,
         selectedAddons,
         instantBooking: !!instantBooking,
-        gstDetails: gst, 
+        gstDetails: gst,
       };
 
       if (selectedPackage) {
@@ -334,6 +414,12 @@ export default function ListingReservation({
         };
       }
 
+      if (hasSets && pricingResult) {
+        (payload as PaymentPayload & { setIds?: string[]; setPackageId?: string | null; pricingSnapshot?: unknown }).setIds = selectedSetIds;
+        (payload as PaymentPayload & { setIds?: string[]; setPackageId?: string | null; pricingSnapshot?: unknown }).setPackageId = selectedPackageId;
+        (payload as PaymentPayload & { setIds?: string[]; setPackageId?: string | null; pricingSnapshot?: unknown }).pricingSnapshot = pricingResult.breakdown;
+      }
+
       const res = await fetch("/api/payments/cashfree/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -341,15 +427,21 @@ export default function ListingReservation({
         signal: controller.signal,
       });
       const j = (await res.json().catch(() => ({}))) as {
-        paymentSessionId?: string;
+        success?: boolean;
+        data?: { paymentSessionId?: string };
         message?: string;
+        error?: string;
       };
-      if (!res.ok || !j?.paymentSessionId)
-        throw new Error(j?.message || "Failed to create reservation");
+
+      const sessionId = j?.data?.paymentSessionId;
+
+      if (!res.ok || !sessionId)
+        throw new Error(j?.error || j?.message || "Failed to create reservation");
+
       const cf = await getCashfree();
       if (!cf) throw new Error("Unable to initialize payment gateway");
       await cf.checkout({
-        paymentSessionId: j.paymentSessionId,
+        paymentSessionId: sessionId,
         redirectTarget: "_self",
       });
     },
@@ -362,10 +454,14 @@ export default function ListingReservation({
       selectedAddons,
       instantBooking,
       selectedPackage,
+      hasSets,
+      pricingResult,
+      selectedSetIds,
+      selectedPackageId,
     ]
   );
 
-  // handleReserve now shows the BookingSummaryModal first
+
   const handleReserve = useCallback(() => {
     if (!ready) return;
     if (!isAuthenticated) {
@@ -394,12 +490,32 @@ export default function ListingReservation({
 
   return (
     <section className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
-      <div className="flex items-center gap-1 p-4">
-        <p className="flex gap-1 text-2xl font-semibold" id={`${sectionId}-title`}>
-          {selectedPackage ? INR.format(Number(selectedPackage.offeredPrice || 0)) : INR.format(price)}{" "}
-          <span className="text-neutral-600 font-normal">{selectedPackage ? " (package)" : "/ hour"}</span>
+      <div className="flex items-center justify-between p-4">
+
+        <p
+          className="flex gap-1 text-2xl font-semibold"
+          id={`${sectionId}-title`}
+        >
+          {selectedPackage
+            ? INR.format(Number(selectedPackage.offeredPrice || 0))
+            : INR.format(price)}{" "}
+          <span className="text-neutral-600 font-normal">
+            {selectedPackage ? " (package)" : "/ hour"}
+          </span>
         </p>
+
+
+        <span
+          className={`flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full ${instantBooking
+            ? "bg-green-100 text-green-700"
+            : "bg-yellow-100 text-yellow-700"
+            }`}
+        >
+          {instantBooking && <FaBolt className="text-yellow-500 w-3 h-3" />}
+          {instantBooking ? "Instant Book" : "Request to Book"}
+        </span>
       </div>
+
       <hr />
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
         <h2 className="text-lg" id={`${sectionId}-date-label`}>
@@ -412,17 +528,28 @@ export default function ListingReservation({
         allowedDays={allowedDays}
         onChange={(value) => {
           if (isValidDate(value)) {
-            setSelectDate(value);
+            setSelectDateAction(value);
             setHasPickedDate(true);
             setErr(null);
           } else {
-            setSelectDate(null);
+            setSelectDateAction(null);
             setHasPickedDate(false);
           }
         }}
         aria-labelledby={`${sectionId}-date-label`}
       />
       <hr />
+      <hr />
+      {hasSets && (
+        <>
+          <div className="p-4">
+            {!setValidation.valid && selectedSetIds.length > 0 && (
+              <p className="mt-2 text-sm text-red-500">{setValidation.error}</p>
+            )}
+          </div>
+          <hr />
+        </>
+      )}
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
         <h2 className="text-lg" id={`${sectionId}-time-label`}>
           Pick your Time Slot
@@ -440,28 +567,42 @@ export default function ListingReservation({
         minBookingMinutes={minBookingMinutes}
       />
       <hr />
-      {true && (
-        <div className="p-4">
-          <button
-            type="button"
-            disabled={!ready}
-            className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
-            onClick={handleReserve}
-          >
-            {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
-          </button>
-          {!!err && (
-            <p className="mt-2 text-sm text-red-600" role="alert">
-              {err}
-            </p>
-          )}
-        </div>
-      )}
+
+      <div className="p-4">
+        <button
+          type="button"
+          disabled={!ready}
+          className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
+          onClick={handleReserve}
+        >
+          {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
+        </button>
+        {!!err && (
+          <p className="mt-2 text-sm text-red-600" role="alert">
+            {err}
+          </p>
+        )}
+      </div>
+
       <hr />
       <div className="p-4 flex flex-col text-neutral-600 gap-1" aria-live="polite">
         <div className="flex justify-between">
           {selectedPackage ? (
             <p>Package: {selectedPackage.title}</p>
+          ) : hasSets && pricingResult ? (
+            <div className="flex-1">
+              <p>Base booking ({pricingResult.breakdown.includedSetName})</p>
+              {pricingResult.breakdown.additionalSets.map((s) => (
+                <p key={s.id} className="text-sm text-neutral-500">
+                  + {s.name} ({additionalSetPricingType === "HOURLY" ? `${INR.format(s.price)}/hr` : INR.format(s.price)})
+                </p>
+              ))}
+              {pricingResult.breakdown.packageTitle && (
+                <p className="text-sm text-neutral-500">
+                  + Package: {pricingResult.breakdown.packageTitle}
+                </p>
+              )}
+            </div>
           ) : (
             <p>
               Base booking fee {INR.format(price)} × {safeHours} hr
@@ -477,6 +618,10 @@ export default function ListingReservation({
         <div className="flex justify-between pb-3">
           <p>Platform fee</p>
           <p>{INR.format(clampRound(platformFee || 0))}</p>
+        </div>
+        <div className="flex justify-between pb-3 text-black">
+          <p className="font-medium">GST (18%)</p>
+          <p className="font-medium">{INR.format(gstAmount)}</p>
         </div>
         <hr />
         <div className="flex justify-between pt-4 text-black">
@@ -498,17 +643,19 @@ export default function ListingReservation({
 
       <BookingSummaryModal
         isOpen={showSummaryModal}
-        onClose={() => setShowSummaryModal(false)}
-        onConfirm={handleConfirmModal}
+        onCloseAction={() => setShowSummaryModal(false)}
+        onConfirmAction={handleConfirmModal}
         finalTotal={finalTotal}
         bookingFee={bookingFee}
         addonsSum={addonsSum}
         platformFee={platformFee || 0}
+        gstAmount={gstAmount}
+        subTotal={computedTotal}
         gstDetails={gstDetails}
-        setGstDetails={setGstDetails} 
+        setGstDetailsAction={setGstDetails}
         currentUserId={user.id}
-        reservationId={""}     
-        transactionId={""}      />
+        reservationId={""}
+        transactionId={""} />
     </section>
   );
 }

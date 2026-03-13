@@ -1,3 +1,5 @@
+"use server";
+
 import prisma from "@/lib/prismadb";
 
 interface IParams {
@@ -17,6 +19,7 @@ export default async function getReservation(params: IParams) {
         Transaction: {
           some: { cfOrderId: tid },
         },
+        markedForDeletion: false,
       },
       include: {
         listing: true,
@@ -34,6 +37,7 @@ export default async function getReservation(params: IParams) {
       startDate: reservation.startDate.toISOString(),
       startTime: reservation.startTime,
       endTime: reservation.endTime,
+      markedForDeletionAt: reservation.markedForDeletionAt?.toISOString() || null,
       listing: reservation.listing
         ? {
           ...reservation.listing,
@@ -41,7 +45,7 @@ export default async function getReservation(params: IParams) {
         }
         : null,
     };
-  } catch (error: any) {
-    throw new Error(error?.message || "Failed to fetch reservation");
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : "Failed to fetch reservation");
   }
 }

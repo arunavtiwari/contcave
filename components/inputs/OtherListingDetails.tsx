@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { FaBolt } from "react-icons/fa";
-import Select from "react-select";
-import ReactSwitch from "react-switch";
+import React, { useCallback, useMemo } from "react";
+import Select, { GroupBase, StylesConfig } from "react-select";
+
+import Switch from "@/components/ui/Switch";
+import { spaceTypes } from "@/constants/spaceTypes";
 
 export type ListingDetails = {
     carpetArea: string;
@@ -11,28 +12,21 @@ export type ListingDetails = {
     maximumPax: string;
     instantBooking: boolean;
     type: string[];
-    bookingApprovalCount?: boolean;
+    hasSets: boolean;
 };
 
 type Props = {
-    onDetailsChange: (details: ListingDetails) => void;
+    onChange: (details: ListingDetails) => void;
+    data?: ListingDetails;
 };
 
-const types = [
-    "Fashion shoot",
-    "Product shoot",
-    "Podcast",
-    "Recording Studio",
-    "Film Shoot",
-    "Outdoor Event",
-    "Content shoot",
-    "Pre-Wedding",
-    "Meetings",
-    "Workshops",
-    "Photo Shoot",
-];
+// Define OptionType for react-select
+interface OptionType {
+    value: string;
+    label: string;
+}
 
-const dayOptions = [
+const dayOptions: OptionType[] = [
     { value: "Mon", label: "Monday" },
     { value: "Tue", label: "Tuesday" },
     { value: "Wed", label: "Wednesday" },
@@ -42,34 +36,83 @@ const dayOptions = [
     { value: "Sun", label: "Sunday" },
 ];
 
-const buildTimeOptions = (stepMinutes = 30) => {
-    const out: { value: string; label: string }[] = [];
-    for (let h = 0; h < 24; h++) {
-        for (let m = 0; m < 60; m += stepMinutes) {
-            const am = h < 12;
-            const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-            const mm = String(m).padStart(2, "0");
-            const label = `${h12}:${mm} ${am ? "AM" : "PM"}`;
-            out.push({ value: label, label });
-        }
-    }
-    return out;
+import { TIME_SLOTS } from "@/constants/timeSlots";
+
+const staticTimeOptions: OptionType[] = TIME_SLOTS.map((t) => ({
+    value: t,
+    label: t,
+}));
+
+const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
+    control: (provided, state) => ({
+        ...provided,
+        backgroundColor: "white",
+        borderWidth: "1px",
+        borderColor: state.isFocused ? "black" : "#e5e5e5",
+        borderRadius: "0.5rem",
+        padding: "0 4px",
+        boxShadow: state.isFocused ? "0 0 0 1px black" : "none",
+        minHeight: "42px",
+        height: "42px",
+        fontSize: "0.875rem",
+        transition: "all 0.2s ease",
+        "&:hover": {
+            borderColor: state.isFocused ? "black" : "#a3a3a3",
+        },
+    }),
+    input: (provided) => ({
+        ...provided,
+        fontSize: "0.875rem",
+        margin: 0,
+        padding: 0,
+        color: "#171717",
+    }),
+    valueContainer: (provided) => ({
+        ...provided,
+        padding: "0 8px",
+    }),
+    singleValue: (provided) => ({
+        ...provided,
+        margin: 0,
+        fontSize: "0.875rem",
+        fontWeight: 500,
+        color: "#171717",
+    }),
+    placeholder: (provided) => ({
+        ...provided,
+        fontSize: "0.875rem",
+        color: "#737373",
+    }),
+    option: (provided, state) => ({
+        ...provided,
+        cursor: "pointer",
+        fontSize: "0.875rem",
+        padding: "10px 12px",
+        backgroundColor: state.isSelected ? "black" : state.isFocused ? "#f5f5f5" : "white",
+        color: state.isSelected ? "white" : "#171717",
+        ":active": {
+            backgroundColor: state.isSelected ? "black" : "#e5e5e5",
+        },
+    }),
+    menu: (provided) => ({
+        ...provided,
+        borderRadius: "0.5rem",
+        overflow: "hidden",
+        marginTop: "4px",
+        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+        border: "1px solid #e5e5e5",
+        zIndex: 999999,
+        width: "100%", // Explicitly wide but constrained
+        minWidth: "max-content", // Allow it to NOT shrink below content
+    }),
+    menuPortal: (base) => ({ ...base, zIndex: 9999999 }),
 };
 
-const selectTheme = (theme: any) => ({
-    ...theme,
-    borderRadius: 10,
-    colors: { ...theme.colors, primary: "black", primary25: "#F3F4F6", primary50: "#E5E7EB" },
-});
+const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
+    const timeOptions = useMemo(() => staticTimeOptions, []);
 
-const selectClasses = {
-    input: () => "text-lg cursor-pointer",
-    option: () => "text-lg cursor-pointer",
-};
-
-const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
-    const timeOptions = useMemo(() => buildTimeOptions(30), []);
-    const [details, setDetails] = useState<ListingDetails>({
+    // Default values if data is undefined
+    const details = useMemo(() => data || {
         carpetArea: "",
         operationalDays: { start: "Mon", end: "Sun" },
         operationalHours: { start: "9:00 AM", end: "9:00 PM" },
@@ -77,206 +120,244 @@ const OtherListingDetails: React.FC<Props> = ({ onDetailsChange }) => {
         maximumPax: "",
         instantBooking: false,
         type: [],
-        bookingApprovalCount: false,
-    });
+        hasSets: false,
+    }, [data]);
 
-    useEffect(() => {
-        onDetailsChange(details);
-    }, [details, onDetailsChange]);
-
-    const handleInputChange = useCallback((field: keyof ListingDetails, value: any) => {
-        setDetails((prev) => ({ ...prev, [field]: value }));
-    }, []);
+    const handleInputChange = useCallback((field: keyof ListingDetails, value: string | boolean | string[] | { start?: string; end?: string }) => {
+        onChange({ ...details, [field]: value });
+    }, [details, onChange]);
 
     const handleTypeSelect = (t: string) => {
-        setDetails((prev) => {
-            const exists = prev.type.includes(t);
-            return { ...prev, type: exists ? prev.type.filter((x) => x !== t) : [...prev.type, t] };
-        });
+        const exists = details.type.includes(t);
+        const newType = exists ? details.type.filter((x) => x !== t) : [...details.type, t];
+        onChange({ ...details, type: newType });
     };
 
-    return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <label className="text-sm font-medium w-[40vw]">
-                    <strong>PROPERTY SPECIFICATIONS</strong>
-                    <br />
-                    Carpet Area
-                </label>
-                <input
-                    type="text"
-                    placeholder="290 sqft"
-                    className="border py-2 rounded-full w-1/3 text-center"
-                    value={details.carpetArea}
-                    onChange={(e) => handleInputChange("carpetArea", e.target.value)}
-                />
-            </div>
-
-            <hr />
-
-            <div className="space-y-4">
-                <div className="flex items-center">
-                    <label className="font-medium text-sm w-[40vw]">
-                        <strong>TIMINGS</strong>
-                        <br />
-                        Operational Days
-                    </label>
-                    <div className="flex items-center space-x-2 justify-end w-full">
-                        <Select
-                            options={dayOptions}
-                            value={dayOptions.find((d) => d.value === details.operationalDays.start)}
-                            onChange={(sel) =>
-                                handleInputChange("operationalDays", {
-                                    ...details.operationalDays,
-                                    start: sel?.value || "",
-                                })
-                            }
-                            placeholder="Start Day"
-                            classNames={selectClasses}
-                            theme={selectTheme}
-                        />
-                        <span>-</span>
-                        <Select
-                            options={dayOptions}
-                            value={dayOptions.find((d) => d.value === details.operationalDays.end)}
-                            onChange={(sel) =>
-                                handleInputChange("operationalDays", {
-                                    ...details.operationalDays,
-                                    end: sel?.value || "",
-                                })
-                            }
-                            placeholder="End Day"
-                            classNames={selectClasses}
-                            theme={selectTheme}
-                        />
-                    </div>
-                </div>
-
-                <div className="flex items-center">
-                    <label className="font-medium text-sm w-[40vw]">Opening Hours</label>
-                    <div className="flex items-center space-x-2 justify-end w-full">
-                        <Select
-                            options={timeOptions}
-                            value={timeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
-                            onChange={(sel) =>
-                                handleInputChange("operationalHours", {
-                                    ...details.operationalHours,
-                                    start: sel?.value || "",
-                                })
-                            }
-                            placeholder="Start Time"
-                            classNames={selectClasses}
-                            theme={selectTheme}
-                        />
-                        <span>-</span>
-                        <Select
-                            options={timeOptions}
-                            value={timeOptions.find((t) => t.value === (details.operationalHours.end || "")) || null}
-                            onChange={(sel) =>
-                                handleInputChange("operationalHours", {
-                                    ...details.operationalHours,
-                                    end: sel?.value || "",
-                                })
-                            }
-                            placeholder="End Time"
-                            classNames={selectClasses}
-                            theme={selectTheme}
-                        />
-                    </div>
-                </div>
-
-                <div className="flex items-center">
-                    <label className="font-medium text-sm w-[40vw]">Minimum Booking Hours</label>
+    return (<div className="flex flex-col gap-8">
+        {/* Carpet Area */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <label className="text-sm font-medium text-gray-700">
+                Carpet Area <span className="text-rose-500">*</span>
+                <span className="block text-xs text-gray-500 font-normal mt-0.5">Total floor area of the space</span>
+            </label>
+            <div className="md:col-span-2">
+                <div className="relative">
                     <input
                         type="text"
-                        placeholder="2 hrs"
-                        className="border rounded-full w-1/3 py-2 pr-3 text-center"
-                        value={details.minimumBookingHours}
-                        onChange={(e) => handleInputChange("minimumBookingHours", e.target.value)}
+                        placeholder="e.g. 2500"
+                        className="w-full px-4 py-2.5 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
+                        value={details.carpetArea}
+                        onChange={(e) => handleInputChange("carpetArea", e.target.value)}
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
                     />
-                </div>
-            </div>
-
-            <hr />
-
-            <div className="flex justify-between items-center">
-                <label className="text-sm font-medium w-[40vw]">
-                    <strong>ACCOMMODATION</strong>
-                    <br />
-                    Maximum Pax
-                </label>
-                <input
-                    type="text"
-                    placeholder="6"
-                    className="border rounded-full w-1/3 py-2 pr-3 text-center"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    autoComplete="off"
-                    value={details.maximumPax ?? ""}
-                    onChange={(e) => {
-                        const onlyDigits = e.target.value.replace(/\D/g, "");
-                        handleInputChange("maximumPax", onlyDigits);
-                    }}
-                />
-            </div>
-
-            <hr />
-
-            <div className="flex justify-between items-center">
-                <label className="text-sm font-medium mb-1 w-[40vw]">
-                    <strong>BOOKING</strong>
-                    <br />
-                    Instant Book
-                </label>
-                <ReactSwitch
-                    checked={details.instantBooking}
-                    onChange={(checked) => handleInputChange("instantBooking", checked ? true : false)}
-                    offColor="#d1d5db"
-                    onColor="#000"
-                    uncheckedIcon={false}
-                    offHandleColor="#000"
-                    activeBoxShadow="0 0 2px 3px #000"
-                    checkedIcon={false}
-                    height={30}
-                    handleDiameter={20}
-                    checkedHandleIcon={<FaBolt color="#FFD700" className="w-full h-full py-[2px]" />}
-                />
-            </div>
-
-            <div className="flex justify-between items-center">
-                <label className="text-sm font-medium mb-1 w-[40vw]">Require host approval before confirming?</label>
-                <ReactSwitch
-                    checked={!!details.bookingApprovalCount}
-                    onChange={(checked) => handleInputChange("bookingApprovalCount", checked)}
-                    offColor="#d1d5db"
-                    onColor="#000"
-                    uncheckedIcon={false}
-                    offHandleColor="#000"
-                    checkedIcon={false}
-                    height={24}
-                    handleDiameter={18}
-                />
-            </div>
-
-            <hr />
-
-            <div className="justify-between items-center">
-                <label className="text-sm font-medium mb-1 w-[40vw]">
-                    <strong>TYPE</strong>
-                </label>
-                <div className="flex flex-wrap gap-2 w-100 mt-2">
-                    {types.map((t) => (
-                        <button
-                            key={t}
-                            onClick={() => handleTypeSelect(t)}
-                            className={`${details.type.includes(t) ? "bg-black text-white" : "bg-gray-200 text-gray-800"} text-sm py-1 px-3 rounded-full`}
-                        >
-                            {t}
-                        </button>
-                    ))}
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium pointer-events-none">
+                        sq ft
+                    </span>
                 </div>
             </div>
         </div>
+
+        <hr className="border-neutral-200" />
+
+        {/* Operational Days */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+            <label className="text-sm font-medium text-gray-700 pt-2">
+                Operational Days <span className="text-rose-500">*</span>
+                <span className="block text-xs text-gray-500 font-normal mt-0.5">Days when the space is open</span>
+            </label>
+            <Select
+                options={dayOptions}
+                value={dayOptions.find((d) => d.value === details.operationalDays.start)}
+                onChange={(sel) =>
+                    handleInputChange("operationalDays", {
+                        ...details.operationalDays,
+                        start: sel?.value || "",
+                    })
+                }
+                placeholder="Start Day"
+                styles={customStyles}
+                isSearchable={false}
+                menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                menuPosition="fixed"
+                menuPlacement="auto"
+                maxMenuHeight={250}
+                menuShouldScrollIntoView={false}
+            />
+            <Select
+                options={dayOptions}
+                value={dayOptions.find((d) => d.value === details.operationalDays.end)}
+                onChange={(sel) =>
+                    handleInputChange("operationalDays", {
+                        ...details.operationalDays,
+                        end: sel?.value || "",
+                    })
+                }
+                placeholder="End Day"
+                styles={customStyles}
+                isSearchable={false}
+                menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                menuPosition="fixed"
+                menuPlacement="auto"
+                maxMenuHeight={250}
+                menuShouldScrollIntoView={false}
+            />
+        </div>
+
+        {/* Operational Hours */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+            <label className="text-sm font-medium text-gray-700 pt-2">
+                Opening Hours <span className="text-rose-500">*</span>
+                <span className="block text-xs text-gray-500 font-normal mt-0.5">Daily operating hours</span>
+            </label>
+            <div className="md:col-span-2 grid grid-cols-2 gap-3">
+                <Select
+                    options={timeOptions}
+                    value={timeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
+                    onChange={(sel) =>
+                        handleInputChange("operationalHours", {
+                            ...details.operationalHours,
+                            start: sel?.value || "",
+                        })
+                    }
+                    placeholder="Start Time"
+                    styles={customStyles}
+                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                    isSearchable={false}
+                    menuPosition="fixed"
+                    menuPlacement="auto"
+                    maxMenuHeight={250}
+                    menuShouldScrollIntoView={false}
+                />
+                <Select
+                    options={timeOptions}
+                    value={timeOptions.find((t) => t.value === (details.operationalHours.end || "")) || null}
+                    onChange={(sel) =>
+                        handleInputChange("operationalHours", {
+                            ...details.operationalHours,
+                            end: sel?.value || "",
+                        })
+                    }
+                    placeholder="End Time"
+                    styles={customStyles}
+                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                    isSearchable={false}
+                    menuPosition="fixed"
+                    menuPlacement="auto"
+                    maxMenuHeight={250}
+                    menuShouldScrollIntoView={false}
+                />
+            </div>
+        </div>
+
+        <hr className="border-neutral-200" />
+
+        {/* Minimum Booking & Max Pax */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-gray-700">
+                    Min. Booking Hours <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder="e.g. 2"
+                        className="w-full px-4 py-2.5 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={details.minimumBookingHours}
+                        onChange={(e) => {
+                            const onlyDigits = e.target.value.replace(/\D/g, "");
+                            handleInputChange("minimumBookingHours", onlyDigits);
+                        }}
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium pointer-events-none">
+                        hrs
+                    </span>
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-gray-700">
+                    Maximum Capacity <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder="e.g. 10"
+                        className="w-full px-4 py-2.5 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={details.maximumPax ?? ""}
+                        onChange={(e) => {
+                            const onlyDigits = e.target.value.replace(/\D/g, "");
+                            handleInputChange("maximumPax", onlyDigits);
+                        }}
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium pointer-events-none">
+                        pax
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <hr className="border-neutral-200" />
+
+        {/* Space Type */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+            <label className="text-sm font-medium text-gray-700 pt-2">
+                Space Type <span className="text-rose-500">*</span>
+                <span className="block text-xs text-gray-500 font-normal mt-0.5">Select all that apply</span>
+            </label>
+            <div className="md:col-span-2 flex flex-wrap gap-2">
+                {spaceTypes.map((t) => (
+                    <button
+                        key={t}
+                        type="button"
+                        onClick={() => handleTypeSelect(t)}
+                        className={`
+                                text-sm py-2 px-4 rounded-full border transition
+                                ${details.type.includes(t)
+                                ? "bg-black text-white border-black"
+                                : "bg-white text-gray-700 border-neutral-200 hover:border-black"
+                            }
+                            `}
+                    >
+                        {t}
+                    </button>
+                ))}
+            </div>
+        </div>
+
+        <hr className="border-neutral-200" />
+
+        {/* Toggles */}
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <div>
+                    <div className="font-medium">Instant Booking</div>
+                    <div className="text-sm text-gray-500">Allow guests to book without waiting for approval</div>
+                </div>
+                <Switch
+                    checked={details.instantBooking}
+                    onChange={(checked) => handleInputChange("instantBooking", !!checked)}
+                    variant="bolt"
+                />
+            </div>
+
+            <div className="flex justify-between items-center">
+                <div>
+                    <div className="font-medium">Multiple Sets</div>
+                    <div className="text-sm text-gray-500">Does this space have multiple sub-units?</div>
+                </div>
+                <Switch
+                    checked={details.hasSets}
+                    onChange={(checked) => handleInputChange("hasSets", !!checked)}
+                />
+            </div>
+        </div>
+    </div >
     );
 };
 

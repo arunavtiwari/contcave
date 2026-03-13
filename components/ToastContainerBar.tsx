@@ -1,17 +1,14 @@
 "use client";
 
-import React from "react";
-import { ToastContainer } from "react-toastify";
-
 import "react-toastify/dist/ReactToastify.css";
 
-type Props = {};
+import { ToastContainer } from "react-toastify";
 
-function ToastContainerBar({}: Props) {
+function ToastContainerBar() {
   return (
     <>
       <ToastContainer
-        position="bottom-left"
+        position="top-center"
         autoClose={5000}
         hideProgressBar={false}
         newestOnTop={false}
@@ -19,6 +16,7 @@ function ToastContainerBar({}: Props) {
         pauseOnFocusLoss
         pauseOnHover
         theme="colored"
+        closeButton={false}
       />
     </>
   );

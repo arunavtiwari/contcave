@@ -1,7 +1,12 @@
 "use client";
 
-import { useId, useState } from "react";
 import Link from "next/link";
+import { useId, useState } from "react";
+
+import Checkbox from "@/components/ui/Checkbox";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
+import { billingSchema } from "@/lib/schemas/billing";
 
 type GSTDetails = {
   companyName: string;
@@ -11,32 +16,36 @@ type GSTDetails = {
 
 type BookingSummaryModalProps = {
   isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
+  onCloseAction: () => void;
+  onConfirmAction: () => void;
   finalTotal: number;
   bookingFee: number;
   addonsSum: number;
   platformFee: number;
+  gstAmount: number;
+  subTotal: number;
   gstDetails: GSTDetails;
-  setGstDetails: (v: GSTDetails) => void;
+  setGstDetailsAction: (v: GSTDetails) => void;
   currentUserId: string;
-  reservationId: string;    
-  transactionId: string; 
+  reservationId: string;
+  transactionId: string;
 };
 
 export default function BookingSummaryModal({
   isOpen,
-  onClose,
-  onConfirm,
+  onCloseAction,
+  onConfirmAction,
   finalTotal,
   bookingFee,
   addonsSum,
   platformFee,
+  gstAmount,
+  subTotal,
   gstDetails,
-  setGstDetails,
+  setGstDetailsAction,
   currentUserId,
-  reservationId,      
-  transactionId,      
+  reservationId,
+  transactionId,
 }: BookingSummaryModalProps) {
   const sectionId = useId();
   const [needGST, setNeedGST] = useState(false);
@@ -50,20 +59,16 @@ export default function BookingSummaryModal({
     setSaving(true);
 
     if (needGST) {
-      // basic GSTIN validation: 15 alphanumeric characters
-      if (!gstDetails.gstin.match(/^[0-9A-Z]{15}$/i)) {
-        setGstError("Please enter a valid 15-character GSTIN.");
-        setSaving(false);
-        return;
-      }
-      if (!gstDetails.companyName || !gstDetails.billingAddress) {
-        setGstError("Please fill all GST fields.");
+      const check = billingSchema.pick({ companyName: true, gstin: true, billingAddress: true }).safeParse(gstDetails);
+
+      if (!check.success) {
+        setGstError(check.error.issues[0].message);
         setSaving(false);
         return;
       }
 
       try {
-        // Save GST info first
+
         const billingRes = await fetch("/api/billing", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -78,9 +83,9 @@ export default function BookingSummaryModal({
         const billingData = await billingRes.json();
         if (!billingRes.ok) throw new Error(billingData.message || "Failed to save GST info");
 
-        setGstDetails({ ...gstDetails });
+        setGstDetailsAction({ ...gstDetails });
 
-        // Then create invoice
+
         const invoiceRes = await fetch("/api/invoice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -88,34 +93,38 @@ export default function BookingSummaryModal({
             userId: currentUserId,
             reservationId,
             transactionId,
-            amount: finalTotal,
+            amount: subTotal,
           }),
         });
         const invoiceData = await invoiceRes.json();
         if (!invoiceRes.ok) throw new Error(invoiceData.message || "Invoice creation failed");
 
-        console.log("Invoice URL:", invoiceData.invoiceUrl);
-        onConfirm();
-      } catch (err: any) {
+        console.warn("Invoice URL:", invoiceData.invoiceUrl);
+        onConfirmAction();
+      } catch (err: unknown) {
         console.error(err);
-        setGstError(err.message || "Something went wrong");
+        if (err instanceof Error) {
+          setGstError(err.message);
+        } else {
+          setGstError("Something went wrong");
+        }
       } finally {
         setSaving(false);
       }
     } else {
-      // GST not needed, just confirm
-      onConfirm();
+
+      onConfirmAction();
       setSaving(false);
     }
   };
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby={`${sectionId}-booking-summary-title`}
-      onClick={() => onClose()}
+      onClick={() => onCloseAction()}
     >
       <div
         className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6"
@@ -128,7 +137,7 @@ export default function BookingSummaryModal({
           Booking Summary
         </h3>
 
-        {/* Summary */}
+
         <div className="mb-4 space-y-2 text-gray-700">
           <div className="flex justify-between">
             <p>Booking Fee</p>
@@ -142,6 +151,10 @@ export default function BookingSummaryModal({
             <p>Platform Fee</p>
             <p>₹{platformFee}</p>
           </div>
+          <div className="flex justify-between">
+            <p>GST (18%)</p>
+            <p>₹{gstAmount}</p>
+          </div>
           <hr />
           <div className="flex justify-between font-semibold">
             <p>Total</p>
@@ -149,53 +162,53 @@ export default function BookingSummaryModal({
           </div>
         </div>
 
-        {/* GST Toggle */}
+
+
         <div className="mb-4">
-          <label className="flex items-center text-sm gap-2">
-            <input
-              type="checkbox"
-              checked={needGST}
-              onChange={(e) => setNeedGST(e.target.checked)}
-              className="mt-1 w-4 h-4 appearance-none border border-gray-400 rounded-md checked:bg-black checked:border-black checked:shadow-inner transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20"
-            />
-            <span>Need GST Invoice?</span>
-          </label>
+          <Checkbox
+            label="Need GST Invoice?"
+            checked={needGST}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNeedGST(e.target.checked)}
+          />
         </div>
 
-        {/* GST Fields */}
+
         {needGST && (
           <div className="space-y-3 mb-4 text-gray-700">
+
             <div>
-              <label className="block text-sm mb-1">Company Name</label>
-              <input
-                type="text"
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
+              <Input
+                id="companyName"
+                label="Company Name"
+                placeholder="e.g. Acme Corp Pvt Ltd"
                 value={gstDetails.companyName}
                 onChange={(e) =>
-                  setGstDetails({ ...gstDetails, companyName: e.target.value })
+                  setGstDetailsAction({ ...gstDetails, companyName: e.target.value })
                 }
               />
             </div>
+
             <div>
-              <label className="block text-sm mb-1">GSTIN</label>
-              <input
-                type="text"
+              <Input
+                id="gstin"
+                label="GSTIN"
                 maxLength={15}
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
                 value={gstDetails.gstin}
                 onChange={(e) =>
-                  setGstDetails({ ...gstDetails, gstin: e.target.value.toUpperCase() })
+                  setGstDetailsAction({ ...gstDetails, gstin: e.target.value.toUpperCase() })
                 }
                 placeholder="XXABCDE1234F2Z5"
               />
             </div>
+
             <div>
-              <label className="block text-sm mb-1">Billing Address</label>
-              <textarea
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
+              <Textarea
+                id="billingAddress"
+                label="Billing Address"
+                placeholder="123, Business Park, Sector 5, Kolkata, 700091"
                 value={gstDetails.billingAddress}
                 onChange={(e) =>
-                  setGstDetails({ ...gstDetails, billingAddress: e.target.value })
+                  setGstDetailsAction({ ...gstDetails, billingAddress: e.target.value })
                 }
               />
             </div>
@@ -204,21 +217,19 @@ export default function BookingSummaryModal({
 
         {gstError && <p className="text-sm text-red-600 mb-2">{gstError}</p>}
 
-        {/* Terms & Conditions */}
+
         <div className="mt-4 mb-5">
-          <label className="flex items-start gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
+          <div className="flex items-center gap-1 text-sm text-gray-700">
+            <Checkbox
+              label="I agree to the"
               checked={agree}
-              onChange={(e) => setAgree(e.target.checked)}
-              className="mt-1 w-4 h-4 appearance-none border border-gray-400 rounded-md checked:bg-black checked:border-black checked:shadow-inner transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAgree(e.target.checked)}
             />
-            <span>
-              I agree to the{" "}
+            <span className="font-medium">
               <Link
                 href="/terms-and-conditions"
                 target="_blank"
-                className="text-blue-600 underline hover:text-blue-800"
+                className="text-blue-600 underline hover:text-blue-800 leading-none"
               >
                 Terms & Conditions
               </Link>{" "}
@@ -226,32 +237,31 @@ export default function BookingSummaryModal({
               <Link
                 href="/privacy-policy"
                 target="_blank"
-                className="text-blue-600 underline hover:text-blue-800"
+                className="text-blue-600 underline hover:text-blue-800 leading-none"
               >
                 Privacy Policy
               </Link>
               .
             </span>
-          </label>
+          </div>
         </div>
 
-        {/* Actions */}
+
         <div className="mt-5 flex gap-2 justify-end">
           <button
             type="button"
             className="px-4 py-2 rounded-lg border border-neutral-300 hover:bg-neutral-50"
-            onClick={onClose}
+            onClick={onCloseAction}
             disabled={saving}
           >
             Cancel
           </button>
           <button
             type="button"
-            className={`px-4 py-2 rounded-lg text-white ${
-              agree
-                ? "bg-black hover:opacity-90"
-                : "bg-gray-400 cursor-not-allowed"
-            }`}
+            className={`px-4 py-2 rounded-lg text-white ${agree
+              ? "bg-black hover:opacity-90"
+              : "bg-gray-400 cursor-not-allowed"
+              }`}
             onClick={handleConfirm}
             disabled={!agree || saving}
           >

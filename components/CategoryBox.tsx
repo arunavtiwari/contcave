@@ -1,8 +1,9 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import qs from "query-string";
-import React, { useCallback } from "react";
+import { memo, Suspense,useMemo } from "react";
 import { IconType } from "react-icons";
 
 type Props = {
@@ -11,48 +12,58 @@ type Props = {
   selected?: boolean;
 };
 
-function CategoryBox({ icon: Icon, label, selected }: Props) {
-  const router = useRouter();
+const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label, selected }: Props) {
   const params = useSearchParams();
 
-  const handleClick = useCallback(() => {
-    let currentQuery = {};
+  const currentQuery = params ? qs.parse(params.toString()) : {};
 
-    if (params) {
-      currentQuery = qs.parse(params.toString());
-    }
+  const updatedQuery: Record<string, string | string[] | null | undefined> = {
+    ...currentQuery,
+    category: label,
+  };
 
-    const updatedQuery: any = {
-      ...currentQuery,
-      category: label,
-    };
+  if (params?.get("category") === label) {
+    delete updatedQuery.category;
+  }
 
-    if (params?.get("category") === label) {
-      delete updatedQuery.category;
-    }
+  const url = qs.stringifyUrl(
+    {
+      url: "/home",
+      query: updatedQuery,
+    },
+    { skipNull: true }
+  );
 
-    const url = qs.stringifyUrl(
-      {
-        url: "/home",
-        query: updatedQuery,
-      },
-      { skipNull: true }
-    );
-
-    router.push(url);
-  }, [label, params, router]);
+  const className = useMemo(
+    () =>
+      `flex flex-col items-center justify-center gap-2 p-3 border-b-2 hover:text-neutral-800 transition cursor-pointer ${selected ? "border-b-neutral-800 text-neutral-800" : "border-transparent text-neutral-500"
+      }`,
+    [selected]
+  );
 
   return (
-    <div
-      onClick={handleClick}
-      className={`flex flex-col items-center justify-center gap-2 p-3 border-b-2 hover:text-neutral-800 transition cursor-pointer ${selected ? "border-b-neutral-800" : "border-transparent"
-        } ${selected ? "text-neutral-800" : "text-neutral-500"}`}
-    >
+    <Link href={url} className={className}>
       <Icon size={26} />
       <div className="font-medium text-xs w-fit whitespace-nowrap">{label}</div>
-    </div>
-
+    </Link>
   );
-}
+});
+
+CategoryBoxContent.displayName = "CategoryBoxContent";
+
+const CategoryBox = memo(function CategoryBox(props: Props) {
+  return (
+    <Suspense fallback={
+      <div className={`flex flex-col items-center justify-center gap-2 p-3 border-b-2 border-transparent text-neutral-500`}>
+        <props.icon size={26} />
+        <div className="font-medium text-xs w-fit whitespace-nowrap">{props.label}</div>
+      </div>
+    }>
+      <CategoryBoxContent {...props} />
+    </Suspense>
+  );
+});
+
+CategoryBox.displayName = "CategoryBox";
 
 export default CategoryBox;
