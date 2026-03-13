@@ -9,6 +9,7 @@ import Container from "@/components/Container";
 import BookingCard from "@/components/listing/BookingCard";
 import Modal from "@/components/modals/Modal";
 import Heading from "@/components/ui/Heading";
+import { openWhatsAppSupport } from "@/lib/whatsapp/whatsappSupport";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
 export const dynamic = "force-dynamic";
@@ -49,12 +50,8 @@ function BookingClient({ reservations, currentUser }: Props) {
     const r = reservations.find((x) => x.id === refundReservationId);
     const studio = r?.listing?.title || "the studio";
     const rid = r?.id || refundReservationId;
-    const msg = encodeURIComponent(
-      `Hi ContCave team, I cancelled my booking for ${studio}. Reservation ID: ${rid}. Please help with refund.`
-    );
-    const num = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(/[^0-9]/g, "");
-    const url = num ? `https://wa.me/${num}?text=${msg}` : `https://wa.me/?text=${msg}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    const msg = `Hi ContCave team, I cancelled my booking for ${studio}. Reservation ID: ${rid}. Please help with refund.`;
+    openWhatsAppSupport(msg);
     setRefundOpen(false);
   }, [reservations, refundReservationId]);
 
@@ -128,7 +125,7 @@ function BookingClient({ reservations, currentUser }: Props) {
         </div>
       </Container>
 
-      
+
       {isModalOpen && (
         <Modal
           isOpen={isModalOpen}
@@ -146,7 +143,7 @@ function BookingClient({ reservations, currentUser }: Props) {
         />
       )}
 
-      
+
       {isRefundOpen && (
         <Modal
           isOpen={isRefundOpen}
