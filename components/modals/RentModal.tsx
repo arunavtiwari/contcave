@@ -33,6 +33,7 @@ import { categories } from "@/components/navbar/Categories";
 import LexicalEditor from "@/components/RichText/RichTextEditor"
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
+import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useRentModal from "@/hook/useRentModal";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { listingSchema } from "@/lib/schemas/listing";
@@ -63,6 +64,74 @@ enum STEPS {
   TERMS,
 }
 
+const getActiveSteps = (hasSets: boolean) =>
+  hasSets
+    ? [
+      STEPS.CATEGORY,
+      STEPS.LOCATION,
+      STEPS.IMAGES,
+      STEPS.DESCRIPTION,
+      STEPS.AMENITIES,
+      STEPS.ADDONS,
+      STEPS.OTHERDETAILS,
+      STEPS.SETS,
+      STEPS.CUSTOMTERMS,
+      STEPS.PACKAGES,
+      STEPS.VERIFICATION,
+      STEPS.TERMS,
+    ]
+    : [
+      STEPS.CATEGORY,
+      STEPS.LOCATION,
+      STEPS.IMAGES,
+      STEPS.DESCRIPTION,
+      STEPS.AMENITIES,
+      STEPS.ADDONS,
+      STEPS.OTHERDETAILS,
+      STEPS.CUSTOMTERMS,
+      STEPS.PACKAGES,
+      STEPS.VERIFICATION,
+      STEPS.TERMS,
+    ];
+
+type RentModalFormValues = FieldValues & {
+  category: string;
+  locationValue: string;
+  actualLocation: LocationValue | null;
+  imageSrc: string[];
+  title: string;
+  description: string;
+  price: number;
+  amenities: string[];
+  otherAmenities: string[];
+  addons: Addon[];
+  carpetArea: string;
+  operationalDays: { start?: string; end?: string };
+  operationalHours: { start?: string; end?: string };
+  minimumBookingHours: string;
+  maximumPax: string;
+  instantBooking: boolean;
+  type: string[];
+  hasSets: boolean;
+  setsHaveSamePrice: boolean | null;
+  unifiedSetPrice: number | null;
+  sets: SetEditorItem[];
+  additionalSetPricingType: AdditionalSetPricingType | null;
+  packages: Package[];
+  verifications: VerificationPayload | null;
+  terms: boolean;
+  agreementSignature: SignatureMeta | null;
+  customTerms: string;
+};
+
+type StepDefinition = {
+  id: STEPS;
+  modalTitle: string;
+  actionLabel: string;
+  validate?: () => Promise<boolean>;
+  render: () => React.ReactNode;
+};
+
 export default function RentModal() {
   const rentModel = useRentModal();
 
@@ -70,22 +139,8 @@ export default function RentModal() {
   const [isLoading, setIsLoading] = useState(false);
   const [amenities, setAmenities] = useState<Amenities[]>([]);
   const [addons, setAddons] = useState<Addon[]>([]);
-  const [selectedAmenities, setSelectedAmenities] = useState({
-    predefined: {} as Record<string, boolean>,
-    custom: [] as string[],
-  });
-  const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
-  const [verifications, setVerifications] = useState<VerificationPayload>();
-  const [terms, setTerms] = useState(false);
-  const [signature, setSignature] = useState<SignatureMeta | null>(null);
   const [, setAgreementPdf] = useState<unknown>(null);
-  const [packages, setPackages] = useState<Package[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [listingDetails, setListingDetails] = useState<ListingDetails>();
-  const [additionalSetPricingType, setAdditionalSetPricingType] = useState<AdditionalSetPricingType | null>(null);
-  const [sets, setSets] = useState<SetEditorItem[]>([]);
-  const [setsHaveSamePrice, setSetsHaveSamePrice] = useState<boolean | null>(null);
-  const [unifiedSetPrice, setUnifiedSetPrice] = useState<number | null>(null);
 
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -95,27 +150,6 @@ export default function RentModal() {
       bodyRef.current.scrollTop = 0;
     }
   }, [step]);
-
-
-  useEffect(() => {
-    if (setsHaveSamePrice && sets.length > 0) {
-
-      const newPrice = unifiedSetPrice !== null ? unifiedSetPrice : (sets[0].price || 0);
-      if (unifiedSetPrice !== newPrice) {
-        setUnifiedSetPrice(newPrice);
-      }
-
-
-      const updatedSets = sets.map(s => ({ ...s, price: newPrice }));
-
-      const hasChanges = updatedSets.some((s, i) => s.price !== sets[i].price);
-      if (hasChanges) {
-        setSets(updatedSets);
-      }
-    }
-  }, [setsHaveSamePrice, unifiedSetPrice, sets]);
-
-
 
 
   const termsRef = useRef<TermsRef>(null);
@@ -129,8 +163,8 @@ export default function RentModal() {
     formState: { errors },
     reset,
     trigger,
-  } = useForm<FieldValues>({
-    resolver: zodResolver(listingSchema) as unknown as Resolver<FieldValues>,
+  } = useForm<RentModalFormValues>({
+    resolver: zodResolver(listingSchema) as unknown as Resolver<RentModalFormValues>,
     mode: "onTouched",
     defaultValues: {
       category: "",
@@ -142,23 +176,56 @@ export default function RentModal() {
       price: 0,
       amenities: [],
       otherAmenities: [],
+      addons: [],
       type: [],
       instantBooking: false,
       hasSets: false,
       setsHaveSamePrice: false,
       unifiedSetPrice: null,
       sets: [],
+      additionalSetPricingType: null,
       packages: [],
       carpetArea: "",
       operationalDays: { start: "Mon", end: "Sun" },
       operationalHours: { start: "9:00 AM", end: "9:00 PM" },
       minimumBookingHours: "",
       maximumPax: "",
+      verifications: null,
       terms: false,
+      agreementSignature: null,
       customTerms: "",
     },
   });
   const descriptionValue = watch("description");
+  const selectedAmenityIds = watch("amenities") as string[] | undefined;
+  const selectedCustomAmenities = watch("otherAmenities") as string[] | undefined;
+  const selectedAddons = watch("addons") as Addon[] | undefined;
+  const carpetArea = watch("carpetArea");
+  const operationalDays = watch("operationalDays");
+  const operationalHours = watch("operationalHours");
+  const minimumBookingHours = watch("minimumBookingHours");
+  const maximumPax = watch("maximumPax");
+  const instantBooking = watch("instantBooking");
+  const type = watch("type");
+  const hasSets = watch("hasSets");
+  const sets = watch("sets") as SetEditorItem[] | undefined;
+  const setsHaveSamePrice = watch("setsHaveSamePrice");
+  const unifiedSetPrice = watch("unifiedSetPrice");
+  const additionalSetPricingType = watch("additionalSetPricingType");
+  const packages = watch("packages") as Package[] | undefined;
+  const verifications = watch("verifications");
+  const terms = watch("terms");
+  const signature = watch("agreementSignature");
+  const listingDetails = useMemo<ListingDetails>(() => ({
+    carpetArea: carpetArea || "",
+    operationalDays: operationalDays || { start: "Mon", end: "Sun" },
+    operationalHours: operationalHours || { start: "9:00 AM", end: "9:00 PM" },
+    minimumBookingHours: minimumBookingHours || "",
+    maximumPax: maximumPax || "",
+    instantBooking: Boolean(instantBooking),
+    type: Array.isArray(type) ? type : [],
+    hasSets: Boolean(hasSets),
+  }), [carpetArea, operationalDays, operationalHours, minimumBookingHours, maximumPax, instantBooking, type, hasSets]);
 
 
   useEffect(() => {
@@ -167,31 +234,52 @@ export default function RentModal() {
     register("locationValue");
     register("actualLocation");
     register("imageSrc");
+    register("amenities");
+    register("otherAmenities");
+    register("addons");
+    register("operationalDays");
+    register("operationalHours");
+    register("minimumBookingHours");
+    register("maximumPax");
+    register("carpetArea");
+    register("type");
+    register("hasSets");
+    register("sets");
+    register("setsHaveSamePrice");
+    register("unifiedSetPrice");
+    register("additionalSetPricingType");
+    register("packages");
+    register("verifications");
+    register("agreementSignature");
   }, [register]);
 
-  // Sync sets state with form state for validation
   useEffect(() => {
-    if (listingDetails?.hasSets) {
-      setValue("hasSets", true);
-      setValue("sets", sets.map(s => ({
-        ...s,
-        price: s.price ?? 0 // Ensure price is a number for schema validation
-      })), { shouldValidate: true });
-      setValue("setsHaveSamePrice", setsHaveSamePrice);
-      setValue("unifiedSetPrice", unifiedSetPrice);
-      setValue("additionalSetPricingType", additionalSetPricingType);
+    const currentSets = Array.isArray(sets) ? sets : [];
+    if (setsHaveSamePrice && currentSets.length > 0) {
+      const nextPrice = unifiedSetPrice !== null && unifiedSetPrice !== undefined
+        ? unifiedSetPrice
+        : (currentSets[0].price || 0);
+
+      if (unifiedSetPrice !== nextPrice) {
+        setValue("unifiedSetPrice", nextPrice, { shouldDirty: true, shouldValidate: true });
+      }
+
+      const updatedSets = currentSets.map((set) => ({ ...set, price: nextPrice }));
+      const hasChanges = updatedSets.some((set, index) => set.price !== currentSets[index].price);
+      if (hasChanges) {
+        setValue("sets", updatedSets, { shouldDirty: true, shouldValidate: true });
+      }
     } else {
-      setValue("hasSets", false);
-      setValue("sets", []);
+      const normalizedSets = currentSets.map((set) => ({
+        ...set,
+        price: set.price ?? 0,
+      }));
+      const hasPriceChanges = normalizedSets.some((set, index) => set.price !== currentSets[index].price);
+      if (hasPriceChanges) {
+        setValue("sets", normalizedSets, { shouldDirty: true, shouldValidate: true });
+      }
     }
-  }, [
-    listingDetails?.hasSets,
-    sets,
-    setsHaveSamePrice,
-    unifiedSetPrice,
-    additionalSetPricingType,
-    setValue
-  ]);
+  }, [sets, setsHaveSamePrice, unifiedSetPrice, setValue]);
 
   const category = watch("category");
   const actualLocation = watch("actualLocation");
@@ -227,175 +315,725 @@ export default function RentModal() {
   }, [actualLocation, setValue]);
 
   const setCustomValue = useCallback(
-    (id: string, value: unknown) => {
-      setValue(id as FieldPath<FieldValues>, value, { shouldValidate: true, shouldDirty: true });
+    (id: FieldPath<RentModalFormValues>, value: unknown) => {
+      setValue(id, value as never, { shouldValidate: true, shouldDirty: true });
     },
     [setValue]
   );
 
-  const onBack = () => {
-    if (step === STEPS.PACKAGES && !listingDetails?.hasSets) {
-      setStep(STEPS.CUSTOMTERMS);
-      return;
+  const activeSteps = useMemo(() => getActiveSteps(Boolean(hasSets)), [hasSets]);
+
+  const currentStepIndex = activeSteps.indexOf(step);
+
+  const goToNextStep = useCallback(() => {
+    const nextStep = activeSteps[currentStepIndex + 1];
+    if (nextStep !== undefined) {
+      setStep(nextStep);
     }
-    setStep((v) => v - 1);
+  }, [activeSteps, currentStepIndex]);
+
+  const goToPreviousStep = useCallback(() => {
+    const previousStep = activeSteps[currentStepIndex - 1];
+    if (previousStep !== undefined) {
+      setStep(previousStep);
+    }
+  }, [activeSteps, currentStepIndex]);
+
+  const onBack = () => {
+    goToPreviousStep();
   };
 
-  const onNext = async () => {
-    // Clear previous errors
+  const resetStepErrors = useCallback(() => {
     setCategoryError("");
     setCityError("");
     setAddressError("");
     setImageError("");
     setSetsError("");
     setVerificationError("");
+  }, []);
 
-    if (step === STEPS.CATEGORY) {
-      const valid = await trigger("category");
-      if (!valid) {
-        setCategoryError("Please select a category");
-        return;
-      }
+  const validateCategoryStep = useCallback(async () => {
+    const valid = await trigger("category");
+    if (!valid) {
+      setCategoryError("Please select a category");
+      return false;
+    }
+    return true;
+  }, [trigger]);
+
+  const validateLocationStep = useCallback(async () => {
+    if (!actualLocation || !actualLocation.value) {
+      setCityError("Please select a city");
+      return false;
+    }
+    if (!actualLocation.display_name) {
+      setAddressError("Please enter a complete address");
+      return false;
+    }
+    return trigger("actualLocation");
+  }, [actualLocation, trigger]);
+
+  const validateImagesStep = useCallback(async () => {
+    const totalImages = (imageSrc || []).length;
+
+    if (totalImages === 0) {
+      setImageError("Please upload at least one image");
+      return false;
+    }
+    if (totalImages > 30) {
+      setImageError("Maximum 30 images allowed");
+      return false;
     }
 
-    if (step === STEPS.LOCATION) {
-      if (!actualLocation || !actualLocation.value) {
-        setCityError("Please select a city");
-        return;
-      }
-      if (!actualLocation.display_name) {
-        setAddressError("Please enter a complete address");
-        return;
-      }
-      const valid = await trigger("actualLocation");
-      if (!valid) return;
+    return trigger("imageSrc");
+  }, [imageSrc, trigger]);
+
+  const validateDescriptionStep = useCallback(async () => {
+    const isValid = await trigger(["title", "description", "price"]);
+    if (!isValid) return false;
+    const currentPrice = Number(watch("price"));
+    if (currentPrice <= 0) {
+      toast.error("Price must be greater than 0");
+      return false;
     }
+    return true;
+  }, [trigger, watch]);
 
-    if (step === STEPS.IMAGES) {
-      const totalImages = (imageSrc || []).length;
-
-      if (totalImages === 0) {
-        setImageError("Please upload at least one image");
-        return;
-      }
-      if (totalImages > 20) {
-        setImageError("Maximum 20 images allowed");
-        return;
-      }
-
-      const valid = await trigger("imageSrc");
-      if (!valid) return;
-    }
-
-    if (step === STEPS.DESCRIPTION) {
-      const isValid = await trigger(["title", "description", "price"]);
-      if (!isValid) return;
-      const currentPrice = Number(watch("price"));
-      if (currentPrice <= 0) {
-        toast.error("Price must be greater than 0");
-        return;
+  const validateAddonsStep = useCallback(async () => {
+    if ((selectedAddons?.length ?? 0) > 0) {
+      const invalidAddon = selectedAddons?.find(
+        (a) => !a.price || a.price <= 0 || !a.qty || a.qty <= 0
+      );
+      if (invalidAddon) {
+        toast.error(`Please provide a valid price and quantity for ${invalidAddon.name}`);
+        return false;
       }
     }
+    return true;
+  }, [selectedAddons]);
 
-    if (step === STEPS.ADDONS) {
-      if (selectedAddons.length > 0) {
-        const invalidAddon = selectedAddons.find(
-          (a) => !a.price || a.price <= 0 || !a.qty || a.qty <= 0
-        );
-        if (invalidAddon) {
-          toast.error(`Please provide a valid price and quantity for ${invalidAddon.name}`);
-          return;
+  const validateOtherDetailsStep = useCallback(async () => {
+    if (!listingDetails.carpetArea || listingDetails.carpetArea.trim() === "") {
+      toast.error("Please enter carpet area");
+      return false;
+    }
+    if (!listingDetails.minimumBookingHours || listingDetails.minimumBookingHours.trim() === "") {
+      toast.error("Please enter minimum booking hours");
+      return false;
+    }
+    if (!listingDetails.maximumPax || listingDetails.maximumPax.trim() === "") {
+      toast.error("Please enter maximum pax");
+      return false;
+    }
+    if (!listingDetails.type || listingDetails.type.length === 0) {
+      toast.error("Please select at least one space type");
+      return false;
+    }
+    const start = listingDetails.operationalHours?.start?.trim() || "";
+    const end = listingDetails.operationalHours?.end?.trim() || "";
+    if (!start || !end) {
+      toast.error("Please select opening hours");
+      return false;
+    }
+    const startIdx = TIME_SLOTS.indexOf(start);
+    const endIdx = TIME_SLOTS.indexOf(end);
+    if (startIdx === -1 || endIdx === -1) {
+      toast.error(`Opening hours must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`);
+      return false;
+    }
+    if (endIdx < startIdx) {
+      toast.error("End time cannot be earlier than start time");
+      return false;
+    }
+    return true;
+  }, [listingDetails]);
+
+  const validateSetsStep = useCallback(async () => {
+    if (hasSets) {
+      if (!additionalSetPricingType) {
+        setSetsError("Please select a pricing type for additional sets");
+        return false;
+      }
+
+      if ((sets?.length ?? 0) < 2) {
+        setSetsError("Please add at least 2 sets for a multi-set listing");
+        return false;
+      }
+
+      for (let i = 0; i < (sets?.length ?? 0); i++) {
+        if (!sets?.[i].name || sets[i].name.trim().length === 0) {
+          setSetsError(`Please enter a name for Set ${i + 1}`);
+          return false;
+        }
+        if ((sets?.[i].price ?? 0) <= 0) {
+          setSetsError(`Please enter a valid price for Set ${i + 1}`);
+          return false;
         }
       }
-    }
 
-    if (step === STEPS.SETS) {
-      if (listingDetails?.hasSets) {
-        if (!additionalSetPricingType) {
-          setSetsError("Please select a pricing type for additional sets");
-          return;
-        }
-
-        if (sets.length < 2) {
-          setSetsError("Please add at least 2 sets for a multi-set listing");
-          return;
-        }
-
-        for (let i = 0; i < sets.length; i++) {
-          if (!sets[i].name || sets[i].name.trim().length === 0) {
-            setSetsError(`Please enter a name for Set ${i + 1}`);
-            return;
-          }
-          if ((sets[i].price ?? 0) <= 0) {
-            setSetsError(`Please enter a valid price for Set ${i + 1}`);
-            return;
-          }
-        }
-
-        if (setsHaveSamePrice && (unifiedSetPrice ?? 0) <= 0) {
-          setSetsError("Please enter a valid unified price for all sets");
-          return;
-        }
+      if (setsHaveSamePrice && (unifiedSetPrice ?? 0) <= 0) {
+        setSetsError("Please enter a valid unified price for all sets");
+        return false;
       }
     }
+    return true;
+  }, [additionalSetPricingType, hasSets, sets, setsHaveSamePrice, unifiedSetPrice]);
 
-    if (step === STEPS.OTHERDETAILS) {
-      if (!listingDetails) {
-        toast.error("Please fill in all required fields");
-        return;
-      }
-      if (!listingDetails.carpetArea || listingDetails.carpetArea.trim() === "") {
-        toast.error("Please enter carpet area");
-        return;
-      }
-      if (!listingDetails.minimumBookingHours || listingDetails.minimumBookingHours.trim() === "") {
-        toast.error("Please enter minimum booking hours");
-        return;
-      }
-      if (!listingDetails.maximumPax || listingDetails.maximumPax.trim() === "") {
-        toast.error("Please enter maximum pax");
-        return;
-      }
-      if (!listingDetails.type || listingDetails.type.length === 0) {
-        toast.error("Please select at least one space type");
+  const validateVerificationStep = useCallback(async () => {
+    const hasDocs = verifications?.documents && verifications.documents.length > 0;
+    if (!hasDocs) {
+      setVerificationError("Please upload verification documents");
+      return false;
+    }
+    return true;
+  }, [verifications]);
+
+  const removeImage = useCallback((idx: number) => {
+    setCustomValue(
+      "imageSrc",
+      imageSrc.filter((_: unknown, i: number) => i !== idx)
+    );
+  }, [imageSrc, setCustomValue]);
+
+  const handleTermsAndConditions = useCallback((accept: boolean) => {
+    setValue("terms", accept, { shouldDirty: true, shouldValidate: true });
+  }, [setValue]);
+
+  const handleSignature = useCallback((sig: SignatureMeta) => {
+    setValue("agreementSignature", sig, { shouldDirty: true });
+  }, [setValue]);
+
+  const handleVerificationChange = useCallback((v: VerificationPayload) => {
+    setValue("verifications", v, { shouldDirty: true, shouldValidate: true });
+    setVerificationError("");
+  }, [setValue]);
+
+  const handleDetailsChange = useCallback((details: ListingDetails) => {
+    setValue("carpetArea", details.carpetArea, { shouldDirty: true, shouldValidate: true });
+    setValue("minimumBookingHours", details.minimumBookingHours, { shouldDirty: true, shouldValidate: true });
+    setValue("maximumPax", details.maximumPax, { shouldDirty: true, shouldValidate: true });
+    setValue("instantBooking", details.instantBooking, { shouldDirty: true });
+    setValue("type", details.type, { shouldDirty: true, shouldValidate: true });
+    setValue("hasSets", details.hasSets, { shouldDirty: true });
+    setValue("operationalDays", details.operationalDays, { shouldDirty: true, shouldValidate: true });
+
+    if (!details.hasSets) {
+      setValue("sets", [], { shouldDirty: true, shouldValidate: true });
+      setValue("setsHaveSamePrice", false, { shouldDirty: true });
+      setValue("unifiedSetPrice", null, { shouldDirty: true });
+      setValue("additionalSetPricingType", null, { shouldDirty: true });
+    }
+
+    if (details.operationalHours?.start && details.operationalHours?.end) {
+      setValue("operationalHours", details.operationalHours, { shouldDirty: true, shouldValidate: true });
+    }
+  }, [setValue]);
+
+  const handleAmenitiesChange = useCallback((v: { predefined: { [key: string]: boolean }; custom: string[] }) => {
+    const nextAmenities = Object.keys(v.predefined || {}).filter((k) => Boolean(v.predefined[k]));
+    const nextCustomAmenities = Array.isArray(v.custom) ? v.custom : [];
+
+    setValue("amenities", nextAmenities, { shouldDirty: true, shouldValidate: true });
+    setValue("otherAmenities", nextCustomAmenities, { shouldDirty: true, shouldValidate: true });
+  }, [setValue]);
+
+  const handleAddonChange = useCallback((v: Addon[]) => {
+    setValue("addons", v, { shouldDirty: true });
+  }, [setValue]);
+
+  const stepDefinitions = useMemo<Record<STEPS, StepDefinition>>(
+    () => ({
+      [STEPS.CATEGORY]: {
+        id: STEPS.CATEGORY,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateCategoryStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Choose your space type" subtitle="Pick a category" variant="h3" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-2">
+              {categories.map((item) => (
+                <CategoryInput
+                  key={item.label}
+                  onClick={(c) => {
+                    setCustomValue("category", c);
+                    setCategoryError("");
+                  }}
+                  selected={category === item.label}
+                  label={item.label}
+                  icon={item.icon}
+                />
+              ))}
+            </div>
+            {categoryError && <p className="text-rose-500 text-sm">{categoryError}</p>}
+          </div>
+        ),
+      },
+      [STEPS.LOCATION]: {
+        id: STEPS.LOCATION,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateLocationStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Where is your space?" subtitle="Help creators find you" variant="h3" />
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                City <span className="text-rose-500 ml-1">*</span>
+              </label>
+              <CitySelect
+                value={actualLocation as CitySelectValue | undefined}
+                onChange={(v) => {
+                  setCustomValue("actualLocation", {
+                    ...actualLocation,
+                    ...v,
+                  });
+                  setCityError("");
+                }}
+              />
+              {cityError && <p className="text-rose-500 text-sm mt-1">{cityError}</p>}
+            </div>
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Address <span className="text-rose-500 ml-1">*</span>
+              </label>
+              <AutoComplete
+                value={actualLocation?.display_name || ""}
+                onChange={(sel: AutoCompleteValue) => {
+                  setCustomValue("actualLocation", {
+                    ...actualLocation,
+                    display_name: sel.display_name,
+                    latlng: sel.latlng,
+                  });
+                  setAddressError("");
+                }}
+              />
+              {addressError && <p className="text-rose-500 text-sm mt-1">{addressError}</p>}
+            </div>
+            <div className="w-full">
+              <Input
+                id="additionalInfo"
+                label="Additional Info"
+                type="text"
+                disabled={isLoading}
+                placeholder="Apartment, suite, unit, building, floor, etc."
+                value={actualLocation?.additionalInfo || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setCustomValue("actualLocation", {
+                    ...actualLocation,
+                    additionalInfo: value,
+                  });
+                }}
+              />
+            </div>
+            <Map center={actualLocation?.latlng as number[] | undefined} />
+          </div>
+        ),
+      },
+      [STEPS.IMAGES]: {
+        id: STEPS.IMAGES,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateImagesStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Add photos" subtitle="Show what your space looks like (Max 30 images)" variant="h3" />
+            {imageSrc.length < 30 && (
+              <div className="w-full">
+                <div className={`h-40 ${imageError ? "border-rose-500" : ""}`}>
+                  <ImageUpload
+                    uid="rent-main-upload"
+                    onChange={(v) => setCustomValue("imageSrc", v)}
+                    values={imageSrc}
+                    deferUpload
+                    className="w-full h-full p-4 border-2 border-neutral-300"
+                  />
+                </div>
+              </div>
+            )}
+            {imageError && <p className="text-rose-500 text-sm mt-1">{imageError}</p>}
+            {imageSrc.length > 0 && (
+              <div className="flex flex-wrap gap-4 justify-center sm:justify-start mt-2">
+                {imageSrc.map((item: string, index: number) => (
+                  <div key={index} className="relative group">
+                    <Image
+                      src={item}
+                      alt={`Image ${index}`}
+                      width={128}
+                      height={128}
+                      className="h-32 w-32 rounded-xl object-cover border border-neutral-200 shadow-xs"
+                      unoptimized
+                    />
+                    <button
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
+                      aria-label="Remove image"
+                    >
+                      <IoMdClose size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ),
+      },
+      [STEPS.DESCRIPTION]: {
+        id: STEPS.DESCRIPTION,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateDescriptionStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Describe your space" subtitle="Add title, description & price" variant="h3" />
+            <div className="w-full">
+              <Input
+                id="title"
+                label="Title"
+                placeholder="e.g. Modern Photo Studio"
+                disabled={isLoading}
+                register={register("title")}
+                errors={errors}
+                required
+              />
+            </div>
+            <div className="w-full">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium">
+                  Description
+                  <span className="text-rose-500 ml-1">*</span>
+                </label>
+                <LexicalEditor
+                  value={descriptionValue}
+                  onChange={(html) =>
+                    setValue("description", html, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                  placeholder="Tell creators what makes your space special..."
+                  disabled={isLoading}
+                />
+                {errors.description && (
+                  <span className="text-sm text-rose-500">{errors.description.message as string}</span>
+                )}
+              </div>
+            </div>
+            <div className="w-full">
+              <Input
+                id="price"
+                label="Price"
+                type="number"
+                formatPrice
+                placeholder="999"
+                disabled={isLoading}
+                register={register("price", { valueAsNumber: true })}
+                errors={errors}
+                required
+              />
+            </div>
+          </div>
+        ),
+      },
+      [STEPS.AMENITIES]: {
+        id: STEPS.AMENITIES,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Amenities" subtitle="Select all available amenities" variant="h3" />
+            <AmenitiesCheckbox
+              amenities={amenities}
+              checked={Array.isArray(selectedAmenityIds) ? selectedAmenityIds : []}
+              customAmenities={Array.isArray(selectedCustomAmenities) ? selectedCustomAmenities : []}
+              onChange={handleAmenitiesChange}
+            />
+          </div>
+        ),
+      },
+      [STEPS.ADDONS]: {
+        id: STEPS.ADDONS,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateAddonsStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Add-ons" subtitle="Additional chargeable facilities" variant="h3" />
+            <div className="flex flex-col items-center w-full gap-4">
+              <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons ?? []} onSelectedAddonsChange={handleAddonChange} rentModal />
+              <CustomAddonModal save={(v: unknown) => setAddons([...addons, v as Addon])} />
+            </div>
+          </div>
+        ),
+      },
+      [STEPS.OTHERDETAILS]: {
+        id: STEPS.OTHERDETAILS,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateOtherDetailsStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Other Details" variant="h3" />
+            <OtherListingDetails onChange={handleDetailsChange} data={listingDetails} />
+          </div>
+        ),
+      },
+      [STEPS.SETS]: {
+        id: STEPS.SETS,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateSetsStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Multiple Sets" subtitle="Configure your bookable sets" variant="h3" />
+            <div>
+              <label className="block text-sm font-medium mb-2">Additional Set Pricing Type *</label>
+              <div className="flex gap-4">
+                <label
+                  className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "FIXED"
+                    ? "border-black bg-neutral-50 ring-1 ring-black"
+                    : "border-neutral-200 hover:border-neutral-300"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name="pricingType"
+                    value="FIXED"
+                    checked={additionalSetPricingType === "FIXED"}
+                    onChange={() => setValue("additionalSetPricingType", "FIXED", { shouldDirty: true, shouldValidate: true })}
+                    className="hidden"
+                  />
+                  <div className="font-medium">Fixed Add-on</div>
+                  <div className="text-sm text-neutral-500 mt-1">Each additional set adds a flat fee</div>
+                </label>
+                <label
+                  className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "HOURLY"
+                    ? "border-black bg-neutral-50 ring-1 ring-black"
+                    : "border-neutral-200 hover:border-neutral-300"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name="pricingType"
+                    value="HOURLY"
+                    checked={additionalSetPricingType === "HOURLY"}
+                    onChange={() => setValue("additionalSetPricingType", "HOURLY", { shouldDirty: true, shouldValidate: true })}
+                    className="hidden"
+                  />
+                  <div className="font-medium">Hourly Add-on</div>
+                  <div className="text-sm text-neutral-500 mt-1">Each additional set adds per-hour charges</div>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Will all sets have the same price?</label>
+              <div className="flex gap-4">
+                <label
+                  className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
+                    ? "border-black bg-neutral-50 ring-1 ring-black"
+                    : "border-neutral-200 hover:border-neutral-300"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name="priceConsistency"
+                    checked={setsHaveSamePrice === true}
+                    onChange={() => setValue("setsHaveSamePrice", true, { shouldDirty: true, shouldValidate: true })}
+                    className="hidden"
+                  />
+                  <div className="font-medium text-center">Yes, same price</div>
+                </label>
+                <label
+                  className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === false
+                    ? "border-black bg-neutral-50 ring-1 ring-black"
+                    : "border-neutral-200 hover:border-neutral-300"
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name="priceConsistency"
+                    checked={setsHaveSamePrice === false}
+                    onChange={() => setValue("setsHaveSamePrice", false, { shouldDirty: true, shouldValidate: true })}
+                    className="hidden"
+                  />
+                  <div className="font-medium text-center">No, different prices</div>
+                </label>
+              </div>
+            </div>
+            {setsHaveSamePrice !== null && (
+              <div>
+                <label className="block text-sm font-medium mb-2">Your Sets</label>
+                <SetsEditor
+                  sets={sets ?? []}
+                  onChange={(updatedSets) => setValue("sets", updatedSets, { shouldDirty: true, shouldValidate: true })}
+                  pricingType={additionalSetPricingType}
+                  disabled={isLoading}
+                  isPricingUniform={Boolean(setsHaveSamePrice)}
+                  uniformPrice={unifiedSetPrice}
+                  onUniformPriceChange={(price) => setValue("unifiedSetPrice", price, { shouldDirty: true, shouldValidate: true })}
+                />
+              </div>
+            )}
+            {setsError && <p className="text-rose-500 text-sm -mt-2">{setsError}</p>}
+          </div>
+        ),
+      },
+      [STEPS.CUSTOMTERMS]: {
+        id: STEPS.CUSTOMTERMS,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Custom Terms and Conditions" subtitle="Add your own rules and policies for the space" variant="h3" />
+            <div className="w-full">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium">Terms and Conditions</label>
+                <LexicalEditor
+                  value={watch("customTerms") || ""}
+                  onChange={(html) =>
+                    setValue("customTerms", html, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                  placeholder="Enter custom terms and conditions for booking this space..."
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      [STEPS.PACKAGES]: {
+        id: STEPS.PACKAGES,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Custom Packages" subtitle="Bundle your offerings" variant="h3" />
+            <PackagesForm
+              value={packages ?? []}
+              onChange={(updatedPackages) => setValue("packages", updatedPackages, { shouldDirty: true, shouldValidate: true })}
+              availableSets={hasSets ? (sets ?? []).map((s, i) => ({
+                id: s.id || `temp-${i}`,
+                name: s.name,
+                description: s.description,
+                images: s.images,
+                price: s.price || 0,
+                position: i,
+                listingId: "",
+                createdAt: "",
+                updatedAt: ""
+              })) : []}
+            />
+          </div>
+        ),
+      },
+      [STEPS.VERIFICATION]: {
+        id: STEPS.VERIFICATION,
+        modalTitle: "Space Verification",
+        actionLabel: "Next",
+        validate: validateVerificationStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Space Verification" subtitle="Upload verification documents" variant="h3" />
+            <SpaceVerification
+              onVerification={handleVerificationChange}
+              initialDocuments={verifications?.documents || []}
+            />
+            {verificationError && <p className="text-rose-500 text-sm -mt-2">{verificationError}</p>}
+          </div>
+        ),
+      },
+      [STEPS.TERMS]: {
+        id: STEPS.TERMS,
+        modalTitle: "Host Agreement",
+        actionLabel: "Complete Listing",
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <TermsAndConditionsModal
+              ref={termsRef}
+              onChange={handleTermsAndConditions}
+              onSignature={handleSignature}
+              onAgreementPdf={setAgreementPdf}
+              value={signature}
+              checked={Boolean(terms)}
+            />
+          </div>
+        ),
+      },
+    }),
+    [
+      Map,
+      actualLocation,
+      additionalSetPricingType,
+      addressError,
+      addons,
+      amenities,
+      category,
+      categoryError,
+      cityError,
+      descriptionValue,
+      errors,
+      handleAddonChange,
+      handleAmenitiesChange,
+      handleDetailsChange,
+      handleSignature,
+      handleTermsAndConditions,
+      handleVerificationChange,
+      hasSets,
+      imageError,
+      imageSrc,
+      isLoading,
+      listingDetails,
+      packages,
+      register,
+      removeImage,
+      selectedAddons,
+      selectedAmenityIds,
+      selectedCustomAmenities,
+      sets,
+      setsError,
+      setsHaveSamePrice,
+      setCustomValue,
+      setValue,
+      signature,
+      terms,
+      unifiedSetPrice,
+      validateCategoryStep,
+      validateLocationStep,
+      validateImagesStep,
+      validateDescriptionStep,
+      validateAddonsStep,
+      validateOtherDetailsStep,
+      validateSetsStep,
+      validateVerificationStep,
+      verificationError,
+      verifications,
+      watch,
+    ]
+  );
+
+  const currentStepDefinition = stepDefinitions[step];
+
+  const onNext = async () => {
+    resetStepErrors();
+
+    if (currentStepDefinition.validate) {
+      const isValid = await currentStepDefinition.validate();
+      if (!isValid) {
         return;
       }
     }
 
-    if (step === STEPS.VERIFICATION) {
-      const hasDocs = verifications?.documents && verifications.documents.length > 0;
-      if (!hasDocs) {
-        setVerificationError("Please upload verification documents");
-        return;
-      }
-    }
-
-
-
-    if (step === STEPS.CUSTOMTERMS) {
-      if (!listingDetails?.hasSets) {
-        setStep(STEPS.PACKAGES);
-        return;
-      }
-    }
-
-    setStep((v) => v + 1);
+    goToNextStep();
   };
 
   const resetFormStates = useCallback(() => {
-    setSelectedAmenities({ predefined: {}, custom: [] });
-    setSelectedAddons([]);
-    setVerifications(undefined);
-    setTerms(false);
-    setSignature(null);
     setAgreementPdf(null);
-    setListingDetails(undefined);
     setShowSuccessModal(false);
     setIsLoading(false);
-    setAdditionalSetPricingType(null);
-    setSets([]);
-    setSetsHaveSamePrice(null);
-    setUnifiedSetPrice(null);
 
     reset();
     setStep(STEPS.CATEGORY);
@@ -407,62 +1045,7 @@ export default function RentModal() {
     }
   }, [rentModel.isOpen, resetFormStates]);
 
-  const removeImage = (idx: number) => {
-    setCustomValue(
-      "imageSrc",
-      imageSrc.filter((_: unknown, i: number) => i !== idx)
-    );
-  };
-
-  const handleTermsAndConditions = useCallback((accept: boolean) => {
-    setTerms(accept);
-    setValue("terms", accept, { shouldValidate: true });
-  }, [setValue]);
-
-  const handleSignature = useCallback((sig: SignatureMeta) => setSignature(sig), []);
-  const handleVerificationChange = useCallback((v: VerificationPayload) => {
-    setVerifications(v);
-    setVerificationError(""); // Clear error when user uploads verification docs
-  }, []);
-
-  const handleDetailsChange = useCallback((details: ListingDetails) => {
-    setListingDetails(details);
-
-    setValue("carpetArea", details.carpetArea, { shouldValidate: true });
-    setValue("minimumBookingHours", details.minimumBookingHours, { shouldValidate: true });
-    setValue("maximumPax", details.maximumPax, { shouldValidate: true });
-    setValue("instantBooking", details.instantBooking);
-    setValue("type", details.type);
-    setValue("hasSets", details.hasSets);
-    setValue("operationalDays", details.operationalDays);
-
-    if (!details.hasSets) {
-      setSets([]);
-      setSetsHaveSamePrice(null);
-      setUnifiedSetPrice(null);
-      setAdditionalSetPricingType(null);
-
-
-      setValue("sets", [], { shouldValidate: true });
-      setValue("setsHaveSamePrice", false);
-      setValue("unifiedSetPrice", null);
-      setValue("additionalSetPricingType", null);
-    }
-
-    if (details.operationalHours?.start && details.operationalHours?.end) {
-      setValue("operationalHours", details.operationalHours, { shouldValidate: true });
-    }
-  }, [setValue]);
-  const handleAmenitiesChange = useCallback((v: typeof selectedAmenities) =>
-    setSelectedAmenities({
-      predefined: Object.fromEntries(
-        Object.entries(v.predefined || {}).map(([k, val]) => [String(k), Boolean(val)])
-      ),
-      custom: Array.isArray(v.custom) ? v.custom : [],
-    }), []);
-  const handleAddonChange = useCallback((v: Addon[]) => setSelectedAddons(v), []);
-
-  const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+  const onSubmit: SubmitHandler<RentModalFormValues> = async (data) => {
     if (step !== STEPS.TERMS) {
 
 
@@ -473,7 +1056,7 @@ export default function RentModal() {
       return;
     }
 
-    if (!terms || !signature) {
+    if (!data.terms || !data.agreementSignature) {
       return toast.error("Please accept the terms and conditions and provide your signature");
     }
 
@@ -511,29 +1094,27 @@ export default function RentModal() {
         locationValue,
         actualLocation: data.actualLocation || null,
         price: Number(data.price),
-        amenities: Object.keys(selectedAmenities.predefined).filter(
-          (k) => selectedAmenities.predefined[k]
-        ),
-        otherAmenities: selectedAmenities.custom,
-        addons: selectedAddons,
-        carpetArea: listingDetails?.carpetArea,
-        operationalDays: listingDetails?.operationalDays,
-        operationalHours: listingDetails?.operationalHours,
-        minimumBookingHours: listingDetails?.minimumBookingHours,
-        maximumPax: listingDetails?.maximumPax,
-        instantBooking: listingDetails?.instantBooking ?? false,
-        type: listingDetails?.type ?? [],
-        packages,
-        verifications,
-        agreementSignature: signature,
-        terms,
+        amenities: Array.isArray(data.amenities) ? data.amenities : [],
+        otherAmenities: Array.isArray(data.otherAmenities) ? data.otherAmenities : [],
+        addons: Array.isArray(data.addons) ? data.addons : [],
+        carpetArea: data.carpetArea,
+        operationalDays: data.operationalDays,
+        operationalHours: data.operationalHours,
+        minimumBookingHours: data.minimumBookingHours,
+        maximumPax: data.maximumPax,
+        instantBooking: data.instantBooking ?? false,
+        type: data.type ?? [],
+        packages: Array.isArray(data.packages) ? data.packages : [],
+        verifications: data.verifications,
+        agreementSignature: data.agreementSignature,
+        terms: data.terms,
         customTerms: data.customTerms || null,
-        hasSets: listingDetails?.hasSets,
-        setsHaveSamePrice: Boolean(setsHaveSamePrice),
-        unifiedSetPrice: setsHaveSamePrice ? Number(unifiedSetPrice) : null,
-        additionalSetPricingType: listingDetails?.hasSets ? additionalSetPricingType : null,
+        hasSets: data.hasSets,
+        setsHaveSamePrice: Boolean(data.setsHaveSamePrice),
+        unifiedSetPrice: data.setsHaveSamePrice ? Number(data.unifiedSetPrice) : null,
+        additionalSetPricingType: data.hasSets ? data.additionalSetPricingType : null,
 
-        sets: listingDetails?.hasSets ? sets.map((s, i) => ({
+        sets: data.hasSets ? (data.sets ?? []).map((s, i) => ({
           name: s.name.trim(),
           description: s.description?.trim() || null,
           images: s.images,
@@ -543,7 +1124,7 @@ export default function RentModal() {
       };
 
       const finalSets = [...payload.sets];
-      if (listingDetails?.hasSets && finalSets.length > 0) {
+      if (data.hasSets && finalSets.length > 0) {
         for (let i = 0; i < finalSets.length; i++) {
           const set = finalSets[i];
           if (set.images && set.images.length > 0) {
@@ -562,8 +1143,8 @@ export default function RentModal() {
 
       const uploadedVerificationDocs: VerificationDocument[] = [];
 
-      if (verifications?.documents && verifications.documents.length > 0) {
-        const docsWithFiles = verifications.documents.filter((doc) => doc.file);
+      if (data.verifications?.documents && data.verifications.documents.length > 0) {
+        const docsWithFiles = data.verifications.documents.filter((doc) => doc.file);
         if (docsWithFiles.length > 0) {
           try {
             const filesToUpload = docsWithFiles.map(d => d.file as File);
@@ -593,11 +1174,11 @@ export default function RentModal() {
       }
 
       const finalVerifications: Record<string, unknown> = {
-        ...(verifications || {}),
-        documents: uploadedVerificationDocs.length > 0 ? uploadedVerificationDocs : verifications?.documents || [],
+        ...(data.verifications || {}),
+        documents: uploadedVerificationDocs.length > 0 ? uploadedVerificationDocs : data.verifications?.documents || [],
       };
 
-      if (signature && terms && termsRef.current?.generateAndUploadPdf) {
+      if (data.agreementSignature && data.terms && termsRef.current?.generateAndUploadPdf) {
         try {
           const meta = await termsRef.current.generateAndUploadPdf(listingId);
           setAgreementPdf(meta);
@@ -609,7 +1190,7 @@ export default function RentModal() {
         }
       }
 
-      if (uploadedVerificationDocs.length > 0 || (signature && terms)) {
+      if (uploadedVerificationDocs.length > 0 || (data.agreementSignature && data.terms)) {
         try {
           await axios.patch(`/api/listings/${listingId}`, {
             verifications: finalVerifications,
@@ -653,452 +1234,17 @@ export default function RentModal() {
 
 
 
-  const actionLabel = useMemo(() => {
-    if (step === STEPS.TERMS) return "Complete Listing";
-    return "Next";
-  }, [step]);
+  const actionLabel = currentStepDefinition.actionLabel;
 
-  const secondActionLabel = step === STEPS.CATEGORY ? undefined : "Back";
+  const secondActionLabel = currentStepIndex <= 0 ? undefined : "Back";
 
 
-  const progress = ((step + 1) / (Object.keys(STEPS).length / 2)) * 100;
+  const progress = activeSteps.length > 0
+    ? ((currentStepIndex + 1) / activeSteps.length) * 100
+    : 0;
 
 
-  let bodyContent: React.ReactNode;
-
-  switch (step) {
-    case STEPS.CATEGORY:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Choose your space type" subtitle="Pick a category" variant="h3" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-2">
-            {categories.map((item) => (
-              <CategoryInput
-                key={item.label}
-                onClick={(c) => {
-                  setCustomValue("category", c);
-                  setCategoryError(""); // Clear error when user selects category
-                }}
-                selected={category === item.label}
-                label={item.label}
-                icon={item.icon}
-              />
-            ))}
-          </div>
-          {categoryError && (
-            <p className="text-rose-500 text-sm">
-              {categoryError}
-            </p>
-          )}
-        </div>
-      );
-      break;
-
-    case STEPS.LOCATION:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Where is your space?" subtitle="Help creators find you" variant="h3" />
-          <div className="w-full">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              City <span className="text-rose-500 ml-1">*</span>
-            </label>
-            <CitySelect
-              value={actualLocation as CitySelectValue | undefined}
-              onChange={(v) => {
-                // Merge city data with existing address data
-                setCustomValue("actualLocation", {
-                  ...actualLocation,
-                  ...v,
-                });
-                setCityError(""); // Clear error when user selects a city
-              }}
-            />
-            {cityError && (
-              <p className="text-rose-500 text-sm mt-1">
-                {cityError}
-              </p>
-            )}
-          </div>
-          <div className="w-full">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Address <span className="text-rose-500 ml-1">*</span>
-            </label>
-            <AutoComplete
-              value={actualLocation?.display_name || ""}
-              onChange={(sel: AutoCompleteValue) => {
-                // Merge address data with existing city data
-                setCustomValue("actualLocation", {
-                  ...actualLocation,
-                  display_name: sel.display_name,
-                  latlng: sel.latlng,
-                });
-                setAddressError(""); // Clear error when user enters address
-              }}
-            />
-            {addressError && (
-              <p className="text-rose-500 text-sm mt-1">
-                {addressError}
-              </p>
-            )}
-          </div>
-          <div className="w-full">
-            <Input
-              id="additionalInfo"
-              label="Additional Info"
-              type="text"
-              disabled={isLoading}
-              placeholder="Apartment, suite, unit, building, floor, etc."
-              value={actualLocation?.additionalInfo || ""}
-              onChange={(e) => {
-                const value = e.target.value;
-                setCustomValue("actualLocation", {
-                  ...actualLocation,
-                  additionalInfo: value,
-                });
-              }}
-            />
-          </div>
-          <Map center={actualLocation?.latlng as number[] | undefined} />
-        </div>
-      );
-      break;
-
-    case STEPS.IMAGES:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Add photos" subtitle="Show what your space looks like (Max 20 images)" variant="h3" />
-
-          {imageSrc.length < 20 && (
-            <div className="w-full">
-              <div className={`h-40 ${imageError ? 'border-rose-500' : ''}`}>
-                <ImageUpload
-                  uid="rent-main-upload"
-                  onChange={(v) => setCustomValue("imageSrc", v)}
-                  values={imageSrc}
-                  deferUpload
-
-                  className="w-full h-full p-4 border-2 border-neutral-300"
-                />
-              </div>
-              {imageError && (
-                <p className="text-rose-500 text-sm mt-1">
-                  {imageError}
-                </p>
-              )}
-            </div>
-          )}
-
-          {imageSrc.length > 0 && (
-            <div className="flex flex-wrap gap-4 justify-center sm:justify-start mt-2">
-              {imageSrc.map((item: string, index: number) => (
-                <div key={index} className="relative group">
-                  <Image
-                    src={item}
-                    alt={`Image ${index}`}
-                    width={128}
-                    height={128}
-                    className="h-32 w-32 rounded-xl object-cover border border-neutral-200 shadow-xs"
-                    unoptimized
-                  />
-                  <button
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
-                    aria-label="Remove image"
-                  >
-                    <IoMdClose size={18} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      );
-      break;
-
-    case STEPS.DESCRIPTION:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Describe your space" subtitle="Add title, description & price" variant="h3" />
-          <div className="w-full">
-            <Input
-              id="title"
-              label="Title"
-              placeholder="e.g. Modern Photo Studio"
-              disabled={isLoading}
-              register={register("title")}
-              errors={errors}
-              required
-            />
-          </div>
-          <div className="w-full">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">
-                Description
-                <span className="text-rose-500 ml-1">*</span>
-              </label>
-
-              <LexicalEditor
-                value={descriptionValue}
-                onChange={(html) =>
-                  setValue("description", html, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-                placeholder="Tell creators what makes your space special..."
-                disabled={isLoading}
-              />
-
-              {errors.description && (
-                <span className="text-sm text-rose-500">
-                  {errors.description.message as string}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="w-full">
-            <Input
-              id="price"
-              label="Price"
-              type="number"
-              formatPrice
-              placeholder="999"
-              disabled={isLoading}
-              register={register("price", { valueAsNumber: true })}
-              errors={errors}
-              required
-            />
-          </div>
-        </div>
-      );
-      break;
-
-    case STEPS.SETS:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Multiple Sets" subtitle="Configure your bookable sets" variant="h3" />
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Additional Set Pricing Type *</label>
-            <div className="flex gap-4">
-              <label
-                className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "FIXED"
-                  ? "border-black bg-neutral-50 ring-1 ring-black"
-                  : "border-neutral-200 hover:border-neutral-300"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  name="pricingType"
-                  value="FIXED"
-                  checked={additionalSetPricingType === "FIXED"}
-                  onChange={() => setAdditionalSetPricingType("FIXED")}
-                  className="hidden"
-                />
-                <div className="font-medium">Fixed Add-on</div>
-                <div className="text-sm text-neutral-500 mt-1">Each additional set adds a flat fee</div>
-              </label>
-              <label
-                className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "HOURLY"
-                  ? "border-black bg-neutral-50 ring-1 ring-black"
-                  : "border-neutral-200 hover:border-neutral-300"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  name="pricingType"
-                  value="HOURLY"
-                  checked={additionalSetPricingType === "HOURLY"}
-                  onChange={() => setAdditionalSetPricingType("HOURLY")}
-                  className="hidden"
-                />
-                <div className="font-medium">Hourly Add-on</div>
-                <div className="text-sm text-neutral-500 mt-1">Each additional set adds per-hour charges</div>
-              </label>
-            </div>
-          </div>
-
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Will all sets have the same price?</label>
-            <div className="flex gap-4">
-              <label
-                className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
-                  ? "border-black bg-neutral-50 ring-1 ring-black"
-                  : "border-neutral-200 hover:border-neutral-300"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  name="priceConsistency"
-                  checked={setsHaveSamePrice === true}
-                  onChange={() => setSetsHaveSamePrice(true)}
-                  className="hidden"
-                />
-                <div className="font-medium text-center">Yes, same price</div>
-              </label>
-              <label
-                className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === false
-                  ? "border-black bg-neutral-50 ring-1 ring-black"
-                  : "border-neutral-200 hover:border-neutral-300"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  name="priceConsistency"
-                  checked={setsHaveSamePrice === false}
-                  onChange={() => setSetsHaveSamePrice(false)}
-                  className="hidden"
-                />
-                <div className="font-medium text-center">No, different prices</div>
-              </label>
-            </div>
-          </div>
-
-          {setsHaveSamePrice !== null && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Your Sets</label>
-              <SetsEditor
-                sets={sets}
-                onChange={setSets}
-                pricingType={additionalSetPricingType}
-                disabled={isLoading}
-
-                isPricingUniform={setsHaveSamePrice}
-                uniformPrice={unifiedSetPrice}
-                onUniformPriceChange={setUnifiedSetPrice}
-              />
-            </div>
-          )}
-
-          {setsError && (
-            <p className="text-rose-500 text-sm -mt-2">
-              {setsError}
-            </p>
-          )}
-        </div>
-      );
-      break;
-
-    case STEPS.AMENITIES:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Amenities" subtitle="Select all available amenities" variant="h3" />
-          <AmenitiesCheckbox
-            amenities={amenities}
-            checked={Object.keys(selectedAmenities.predefined).filter((k) => selectedAmenities.predefined[k])}
-            customAmenities={selectedAmenities.custom}
-            onChange={handleAmenitiesChange}
-          />
-        </div>
-      );
-      break;
-
-    case STEPS.ADDONS:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Add-ons" subtitle="Additional chargeable facilities" variant="h3" />
-          <div className="flex flex-col items-center w-full gap-4">
-            <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons} onSelectedAddonsChange={handleAddonChange} rentModal />
-            <CustomAddonModal save={(v: unknown) => setAddons([...addons, v as Addon])} />
-          </div>
-        </div>
-      );
-      break;
-
-    case STEPS.PACKAGES:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Custom Packages" subtitle="Bundle your offerings" variant="h3" />
-          <PackagesForm
-            value={packages}
-            onChange={setPackages}
-            availableSets={listingDetails?.hasSets ? sets.map((s, i) => ({
-              id: s.id || `temp-${i}`,
-              name: s.name,
-              description: s.description,
-              images: s.images,
-              price: s.price || 0,
-              position: i,
-              listingId: "",
-              createdAt: "",
-              updatedAt: ""
-            })) : []}
-          />
-        </div>
-      );
-      break;
-
-    case STEPS.OTHERDETAILS:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Other Details" variant="h3" />
-          <OtherListingDetails
-            onChange={handleDetailsChange}
-            data={listingDetails}
-          />
-        </div>
-      );
-      break;
-
-    case STEPS.CUSTOMTERMS:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Custom Terms and Conditions" subtitle="Add your own rules and policies for the space" variant="h3" />
-          <div className="w-full">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">
-                Terms and Conditions
-              </label>
-
-              <LexicalEditor
-                value={watch("customTerms") || ""}
-                onChange={(html) =>
-                  setValue("customTerms", html, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-                placeholder="Enter custom terms and conditions for booking this space..."
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-        </div>
-      );
-      break;
-
-    case STEPS.VERIFICATION:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <Heading title="Space Verification" subtitle="Upload verification documents" variant="h3" />
-          <SpaceVerification
-            onVerification={handleVerificationChange}
-            initialDocuments={verifications?.documents || []}
-          />
-          {verificationError && (
-            <p className="text-rose-500 text-sm -mt-2">
-              {verificationError}
-            </p>
-          )}
-        </div>
-      );
-      break;
-
-    case STEPS.TERMS:
-      bodyContent = (
-        <div className="flex flex-col gap-4">
-          <TermsAndConditionsModal
-            ref={termsRef}
-            onChange={handleTermsAndConditions}
-            onSignature={handleSignature}
-            onAgreementPdf={setAgreementPdf}
-            value={signature}
-          />
-        </div>
-      );
-      break;
-  }
+  const bodyContent = currentStepDefinition.render();
 
   return (
     <>
@@ -1106,13 +1252,7 @@ export default function RentModal() {
         disabled={isLoading}
         isOpen={rentModel.isOpen}
         disableOverlayClose={true}
-        title={
-          step === STEPS.VERIFICATION
-            ? "Space Verification"
-            : step === STEPS.TERMS
-              ? "Host Agreement"
-              : "List Your Space"
-        }
+        title={currentStepDefinition.modalTitle}
         actionLabel={actionLabel}
         onSubmit={() => {
           if (step === STEPS.TERMS) {
@@ -1122,7 +1262,7 @@ export default function RentModal() {
           }
         }}
         secondaryActionLabel={secondActionLabel}
-        secondaryAction={step === STEPS.CATEGORY ? undefined : onBack}
+        secondaryAction={currentStepIndex <= 0 ? undefined : onBack}
         onClose={rentModel.onClose}
         selfActionButton={false}
 
@@ -1130,7 +1270,7 @@ export default function RentModal() {
         body={
           <>
             <div className="flex items-center justify-between text-xs text-neutral-500 mb-3 px-2">
-              <span>Step {step + 1} of {Object.keys(STEPS).length / 2}</span>
+              <span>Step {currentStepIndex + 1} of {activeSteps.length}</span>
               <div className="flex-1 mx-2 bg-neutral-200 rounded-full h-2">
                 <div
                   className="bg-black h-2 rounded-full transition-all"

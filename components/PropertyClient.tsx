@@ -76,6 +76,15 @@ import { TIME_SLOTS } from "@/constants/timeSlots";
 
 import RichTextEditor from "./RichText/RichTextEditor";
 
+const propertyFieldClassName =
+    "w-full rounded-xl border-2 border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-900 transition outline-none focus:border-black hover:border-neutral-300";
+
+const propertyCompactSelectClassName =
+    "rounded-xl border-2 border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-900 transition outline-none focus:border-black hover:border-neutral-300";
+
+const propertyFieldSeparatorClassName =
+    "flex items-center justify-center self-stretch px-1 text-sm font-medium leading-none text-neutral-500";
+
 const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Props) => {
     const [selectedMenu, setSelectedMenu] = useState("Edit Property");
     const { getAll } = useIndianCities();
@@ -144,6 +153,11 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
         if (invalidAddon) {
             toast.error(`Please provide a valid price and quantity for ${invalidAddon.name}`, { toastId: "Invalid_Addon_Update" });
+            return;
+        }
+
+        if ((initialListing.imageSrc?.length ?? 0) > 30) {
+            toast.error("Maximum 30 images allowed", { toastId: "Max_Images_Update" });
             return;
         }
 
@@ -300,7 +314,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="text"
                                 id="listingName"
-                                className="border rounded-lg pl-3 py-2 shadow-xs w-full"
+                                className={propertyFieldClassName}
                                 placeholder="Enter the listing name"
                                 value={initialListing.title ?? ""}
                                 onChange={(e) => handleInputChange("title", e.target.value)}
@@ -314,7 +328,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 <input
                                     type="text"
                                     id="listingSlug"
-                                    className="border rounded-lg pl-3 py-2 shadow-xs w-full"
+                                    className={propertyFieldClassName}
                                     placeholder="Enter custom URL slug"
                                     value={initialListing.slug ?? ""}
                                     onChange={(e) => handleInputChange("slug", e.target.value)}
@@ -353,7 +367,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Category</label>
                             <select
-                                className="border rounded-lg pl-3 py-2 shadow-xs w-full"
+                                className={propertyFieldClassName}
                                 value={initialListing.category ?? CATEGORY_OPTIONS[0]?.label}
                                 onChange={(e) => handleInputChange("category", e.target.value)}
                             >
@@ -376,7 +390,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 <input
                                     type="number"
                                     id="listingPrice"
-                                    className="border rounded-lg py-2 shadow-xs w-full pl-10 focus:border-black"
+                                    className={`${propertyFieldClassName} pl-10`}
                                     placeholder="Price"
                                     value={Number.isFinite(initialListing.price) ? initialListing.price : ""}
                                     onChange={(e) => handleInputChange("price", Number(e.target.value))}
@@ -388,7 +402,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Location</label>
                             <select
-                                className="border rounded-lg pl-3 py-2 shadow-xs w-full"
+                                className={propertyFieldClassName}
                                 value={initialListing.locationValue ?? ""}
                                 onChange={(e) => handleInputChange("locationValue", e.target.value)}
                             >
@@ -442,12 +456,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     </div>
                                 ))}
 
-                                <ImageUpload
-                                    uid="property-main-upload"
-                                    onChange={(value) => handleInputChange("imageSrc", value)}
-                                    values={initialListing.imageSrc ?? []}
-                                    deferUpload
-                                />
+                                {(initialListing.imageSrc?.length ?? 0) < 30 && (
+                                    <ImageUpload
+                                        uid="property-main-upload"
+                                        onChange={(value) => handleInputChange("imageSrc", value)}
+                                        values={initialListing.imageSrc ?? []}
+                                        deferUpload
+                                    />
+                                )}
                             </div>
                         </div>
 
@@ -501,7 +517,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="number"
                                 id="carpetArea"
-                                className="border rounded-lg  pl-3 py-2 shadow-xs w-full"
+                                className={propertyFieldClassName}
                                 placeholder="Enter the carpet area"
                                 value={initialListing.carpetArea ?? ""}
                                 onChange={(e) => handleInputChange("carpetArea", e.target.value)}
@@ -513,7 +529,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Days</label>
                             <div className="flex space-x-2 w-full">
                                 <select
-                                    className="border rounded-lg w-25 py-1 text-center"
+                                    className={`${propertyCompactSelectClassName} w-25 text-center`}
                                     value={initialListing.operationalDays?.start ?? "Mon"}
                                     onChange={(e) => handleInputChange("operationalDays.start", e.target.value)}
                                 >
@@ -523,9 +539,9 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         </option>
                                     ))}
                                 </select>
-                                <span>-</span>
+                                <span className={propertyFieldSeparatorClassName} aria-hidden="true">-</span>
                                 <select
-                                    className="border rounded-lg w-25 py-1 text-center"
+                                    className={`${propertyCompactSelectClassName} w-25 text-center`}
                                     value={initialListing.operationalDays?.end ?? "Sun"}
                                     onChange={(e) => handleInputChange("operationalDays.end", e.target.value)}
                                 >
@@ -543,7 +559,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Hours</label>
                             <div className="flex space-x-2 w-full">
                                 <select
-                                    className="border rounded-lg w-36 py-1 text-center"
+                                    className={`${propertyCompactSelectClassName} w-36 text-center`}
                                     value={startTime}
                                     onChange={(e) => onStartChange(e.target.value)}
                                 >
@@ -555,10 +571,10 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     ))}
                                 </select>
 
-                                <span>-</span>
+                                <span className={propertyFieldSeparatorClassName} aria-hidden="true">-</span>
 
                                 <select
-                                    className="border rounded-lg w-36 py-1 text-center"
+                                    className={`${propertyCompactSelectClassName} w-36 text-center`}
                                     value={endTime}
                                     onChange={(e) => onEndChange(e.target.value)}
                                 >
@@ -580,7 +596,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="text"
                                 id="minBookingHours"
-                                className="border rounded-lg  pl-3 py-2 shadow-xs w-full"
+                                className={propertyFieldClassName}
                                 placeholder="Enter the minimum booking hours"
                                 value={initialListing.minimumBookingHours ?? ""}
                                 onChange={(e) => handleInputChange("minimumBookingHours", e.target.value)}
@@ -593,7 +609,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <input
                                 type="text"
                                 id="maxPax"
-                                className="border rounded-lg  pl-3 py-2 shadow-xs w-full"
+                                className={propertyFieldClassName}
                                 placeholder="Enter the maximum PAX"
                                 value={initialListing.maximumPax ?? ""}
                                 onChange={(e) => handleInputChange("maximumPax", e.target.value)}

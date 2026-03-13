@@ -1,5 +1,5 @@
 import { Amenities } from '@prisma/client';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import Checkbox from '../ui/Checkbox';
 
@@ -21,47 +21,36 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
   customAmenities = [],
   onChange,
 }) => {
-  const [checkedItems, setCheckedItems] = useState<{ [key: number | string]: boolean }>(() => {
-    const initialState: { [key: number | string]: boolean } = {};
-    checked.forEach((id) => {
-      initialState[id] = true;
-    });
-    return initialState;
-  });
-
   const [otherAmenity, setOtherAmenity] = useState('');
-  const [amenitiesList, setAmenitiesList] = useState<string[]>(customAmenities);
-
-  useEffect(() => {
-    if (customAmenities.join() !== amenitiesList.join()) {
-      setAmenitiesList(customAmenities);
-    }
-  }, [customAmenities, amenitiesList]);
+  const checkedItems = checked.reduce<{ [key: number | string]: boolean }>((acc, id) => {
+    acc[id] = true;
+    return acc;
+  }, {});
+  const amenitiesList = Array.isArray(customAmenities) ? customAmenities : [];
 
   const triggerOnChange = (
     updatedPredefined: { [key: number | string]: boolean },
     updatedCustom: string[]
   ) => {
-    Promise.resolve().then(() => {
-      onChange({
-        predefined: updatedPredefined,
-        custom: updatedCustom,
-      });
+    onChange({
+      predefined: updatedPredefined,
+      custom: updatedCustom,
     });
   };
 
   const handleCheckboxChange = (id: number | string) => {
-    setCheckedItems((prevState) => {
-      const updatedState = { ...prevState, [id]: !prevState[id] };
-      triggerOnChange(updatedState, amenitiesList);
-      return updatedState;
-    });
+    const updatedState = { ...checkedItems, [id]: !checkedItems[id] };
+    triggerOnChange(updatedState, amenitiesList);
   };
 
   const handleAddAmenity = () => {
-    if (otherAmenity && !amenitiesList.includes(otherAmenity)) {
-      const newAmenitiesList = [...amenitiesList, otherAmenity];
-      setAmenitiesList(newAmenitiesList);
+    const normalizedAmenity = otherAmenity.trim();
+    const amenityExists = amenitiesList.some(
+      (item) => item.toLowerCase() === normalizedAmenity.toLowerCase()
+    );
+
+    if (normalizedAmenity && !amenityExists) {
+      const newAmenitiesList = [...amenitiesList, normalizedAmenity];
       triggerOnChange(checkedItems, newAmenitiesList);
       setOtherAmenity('');
     }
@@ -69,7 +58,6 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
 
   const handleRemoveAmenity = (amenity: string) => {
     const newAmenitiesList = amenitiesList.filter((item) => item !== amenity);
-    setAmenitiesList(newAmenitiesList);
     triggerOnChange(checkedItems, newAmenitiesList);
   };
 
@@ -96,10 +84,16 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
             type="text"
             value={otherAmenity}
             onChange={(e) => setOtherAmenity(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddAmenity();
+              }
+            }}
             placeholder="Enter custom amenity"
             className="border-b-2 border-gray-300 rounded-2xl px-4 py-2 w-full"
           />
-          <button onClick={handleAddAmenity} className="bg-black hover:opacity-90 text-white px-8 py-2 rounded-2xl">
+          <button type="button" onClick={handleAddAmenity} className="bg-black hover:opacity-90 text-white px-8 py-2 rounded-2xl">
             ADD
           </button>
         </div>
@@ -113,7 +107,7 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
               className="flex items-center gap-2 bg-black text-white text-xs px-4 py-1 rounded-full"
             >
               {amenity}
-              <button onClick={() => handleRemoveAmenity(amenity)} className="text-lg">
+              <button type="button" onClick={() => handleRemoveAmenity(amenity)} className="text-lg">
                 &times;
               </button>
             </span>

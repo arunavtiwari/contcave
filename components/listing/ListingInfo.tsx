@@ -326,9 +326,13 @@ function ListingInfo({
 
       <hr />
 
-      {selectedAmenityKeys.length > 0 && transformedAmenityDefs.length > 0 && (
+      {(selectedAmenityKeys.length > 0 || (fullListing.otherAmenities?.length ?? 0) > 0) && (
         <>
-          <Offers amenities={selectedAmenityKeys} definedAmenities={transformedAmenityDefs} />
+          <Offers
+            amenities={selectedAmenityKeys}
+            definedAmenities={transformedAmenityDefs}
+            customAmenities={fullListing.otherAmenities ?? []}
+          />
           <hr />
         </>
       )}

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 const LIBRARIES: Libraries = ['places'];
 
 type LatLngTuple = [number, number];
+type E2ETestWindow = Window & { __CONTCAVE_E2E__?: boolean };
 
 export interface AutoCompleteValue {
   display_name: string;
@@ -29,6 +30,10 @@ export default function AutoComplete({
 }: AutoCompleteProps) {
   const inputId = useId();
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API || '';
+  const isE2ETestMode =
+    process.env.NEXT_PUBLIC_E2E_TEST_MODE === "true" ||
+    (typeof window !== "undefined" &&
+      Boolean((window as E2ETestWindow).__CONTCAVE_E2E__));
 
   const [query, setQuery] = useState(value ?? '');
   const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null);
@@ -75,6 +80,40 @@ export default function AutoComplete({
     setQuery(display);
     onChange(next);
   }, [onChange]);
+
+  if (isE2ETestMode) {
+    return (
+      <div className={`relative ${className}`}>
+        <label htmlFor={inputId} className="sr-only">
+          Location search
+        </label>
+        <input
+          id={inputId}
+          type="text"
+          inputMode="search"
+          autoComplete="off"
+          spellCheck={false}
+          placeholder={placeholder}
+          value={query}
+          disabled={disabled}
+          data-testid="address-autocomplete"
+          className="w-full py-2.5 px-3 font-light bg-white border-2 border-gray-300 focus:border-black transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              const trimmed = query.trim();
+              if (!trimmed) return;
+              onChange({
+                display_name: trimmed,
+                latlng: [19.076, 72.8777],
+              });
+            }
+          }}
+        />
+      </div>
+    );
+  }
 
   if (!apiKey) {
     return (

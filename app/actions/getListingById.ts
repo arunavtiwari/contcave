@@ -69,6 +69,7 @@ export default async function getListingById(params: IParams): Promise<FullListi
       ...l,
       createdAt: l.createdAt.toISOString(),
       amenities: (l.amenities as string[]) || [],
+      otherAmenities: (l.otherAmenities as string[]) || [],
       addons: castJson<Addon[]>(l.addons, []),
 
       packages:

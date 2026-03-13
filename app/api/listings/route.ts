@@ -1,6 +1,8 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { sanitizeStringList } from "@/lib/strings/sanitizeStringList";
 
 
 const JITTER_METERS = 250;
@@ -109,8 +111,8 @@ export async function POST(request: Request) {
       return createErrorResponse("At least one image is required", 400);
     }
 
-    if (imageSrc.length > 20) {
-      return createErrorResponse("Maximum 20 images allowed", 400);
+    if (imageSrc.length > 30) {
+      return createErrorResponse("Maximum 30 images allowed", 400);
     }
 
     if (!imageSrc.every((img: unknown) => typeof img === "string" && img.trim().length > 0 && img.length <= 500)) {
@@ -163,17 +165,39 @@ export async function POST(request: Request) {
       latlng: privacySafeLatLng,
     };
 
-    const sanitizedAmenities = Array.isArray(amenities)
-      ? amenities.filter((a: unknown) => typeof a === "string" && a.trim().length > 0).slice(0, 50)
-      : [];
+    const sanitizedAmenities = sanitizeStringList(amenities, { maxItems: 50 });
 
-    const sanitizedOtherAmenities = Array.isArray(otherAmenities)
-      ? otherAmenities.filter((a: unknown) => typeof a === "string" && a.trim().length > 0).slice(0, 50)
-      : [];
+    const sanitizedOtherAmenities = sanitizeStringList(otherAmenities, { maxItems: 50 });
 
     const sanitizedType = Array.isArray(type)
       ? type.filter((t: unknown) => typeof t === "string" && t.trim().length > 0 && t.trim().length <= 100).slice(0, 20)
       : [];
+
+    if (operationalHours !== undefined && operationalHours !== null) {
+      if (typeof operationalHours !== "object") {
+        return createErrorResponse("operationalHours must be an object", 400);
+      }
+      const start = (operationalHours as { start?: unknown }).start;
+      const end = (operationalHours as { end?: unknown }).end;
+      if (typeof start !== "string" || typeof end !== "string") {
+        return createErrorResponse("operationalHours.start and operationalHours.end are required", 400);
+      }
+      const startTrimmed = start.trim();
+      const endTrimmed = end.trim();
+      const startIdx = TIME_SLOTS.indexOf(startTrimmed);
+      const endIdx = TIME_SLOTS.indexOf(endTrimmed);
+      if (startIdx === -1 || endIdx === -1) {
+        return createErrorResponse(
+          `operationalHours must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`,
+          400
+        );
+      }
+      if (endIdx < startIdx) {
+        return createErrorResponse("operationalHours.end cannot be earlier than operationalHours.start", 400);
+      }
+      operationalHours.start = startTrimmed;
+      operationalHours.end = endTrimmed;
+    }
 
     const validPricingTypes = ["FIXED", "HOURLY"];
     const sanitizedPricingType = hasSets && validPricingTypes.includes(additionalSetPricingType)
@@ -279,7 +303,7 @@ export async function POST(request: Request) {
         const setImages = Array.isArray(s.images)
           ? s.images
             .filter((img: unknown) => typeof img === "string" && img.trim().length > 0 && !(img as string).startsWith("blob:"))
-            .slice(0, 20)
+            .slice(0, 30)
           : [];
 
         return {

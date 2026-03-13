@@ -13,16 +13,21 @@ interface TermsProps {
     onSignature: (meta: SignatureMeta) => void;
     onAgreementPdf: (meta: { url: string; pdfUrl: string }) => void;
     value?: SignatureMeta | null;
+    checked?: boolean;
 }
 
-const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, onSignature, onAgreementPdf, value }, ref) => {
-    const [agree, setAgree] = useState(false);
+const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, onSignature, onAgreementPdf, value, checked = false }, ref) => {
+    const [agree, setAgree] = useState(checked);
     const [signature, setSignature] = useState<SignatureMeta | null>(value || null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (value) setSignature(value);
     }, [value]);
+
+    useEffect(() => {
+        setAgree(checked);
+    }, [checked]);
 
     const handleSignatureFile = async (file: File) => {
         const reader = new FileReader();
