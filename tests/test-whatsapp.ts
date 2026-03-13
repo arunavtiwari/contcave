@@ -8,7 +8,7 @@
  *    Example: npx ts-node test-whatsapp.ts 919876543210
  */
 
-import { WhatsappService } from "../lib/whatsapp/service";
+import { WhatsappService } from "../lib/whatsapp/service.ts";
 import * as dotenv from "dotenv";
 
 // Load environment variables
