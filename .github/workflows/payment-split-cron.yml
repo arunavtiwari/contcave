@@ -15,7 +15,7 @@ jobs:
         run: |
           echo "Triggering payment split cron job..."
 
-          ENDPOINT="https://contacave.com/api/cron/easy-split"
+          ENDPOINT="https://contcave.com/api/cron/easy-split"
 
           echo "Endpoint: $ENDPOINT"
 
