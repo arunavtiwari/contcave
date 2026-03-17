@@ -76,10 +76,15 @@ function Footer() {
           </div>
 
           <div className="flex flex-col space-y-2">
-            <p className="text-xl font-bold text-black">Cities</p>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Delhi</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Mumbai</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Kolkata</a>
+            <p className="text-xl font-bold text-black">Across India</p>
+            <div className="grid grid-cols-1 gap-2">
+              <Link href="/home?locationValue=Delhi" className="text-btndark/80 hover:text-black transition-all">Delhi NCR</Link>
+              <Link href="/home?locationValue=Mumbai" className="text-btndark/80 hover:text-black transition-all">Mumbai</Link>
+              <Link href="/home?locationValue=Bangalore" className="text-btndark/80 hover:text-black transition-all">Bangalore</Link>
+              <Link href="/home?locationValue=Kolkata" className="text-btndark/80 hover:text-black transition-all">Kolkata</Link>
+              <Link href="/home?locationValue=Hyderabad" className="text-btndark/80 hover:text-black transition-all">Hyderabad</Link>
+              <Link href="/home" className="text-btndark/80 hover:text-black transition-all font-semibold italic">View All Cities</Link>
+            </div>
           </div>
         </div>
       </div>
