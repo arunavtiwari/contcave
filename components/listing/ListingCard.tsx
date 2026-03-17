@@ -40,13 +40,32 @@ const ListingCard: React.FC<Props> = ({
   const { getByValue } = useCities();
   const location = getByValue(data.locationValue);
 
+  const images = (data.imageSrc?.length > 0
+    ? data.imageSrc.slice(0, 5)
+    : ["/assets/listing-image-default.png"]);
 
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const handleMouseEnter = () => {
+    if (images.length <= 1) return;
+    intervalRef.current = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 1100);
+  };
+
+  const handleMouseLeave = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setCurrentIndex(0);
+  };
 
   const price = useMemo(() => {
     if (reservation) {
       return reservation.totalPrice;
     }
-
     return data.price;
   }, [reservation, data.price]);
 
@@ -62,25 +81,54 @@ const ListingCard: React.FC<Props> = ({
       className="col-span-1 cursor-pointer group p-5 shadow-sm rounded-2xl border border-neutral-200"
     >
       <div className="flex flex-col gap-2 w-full">
-        <div className="aspect-square w-full relative overflow-hidden rounded-xl">
+        {/* Image area with hover slideshow */}
+        <div
+          className="aspect-square w-full relative overflow-hidden rounded-xl"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           <Link
             href={onEdit ? `/properties/${data.id}` : `/listings/${data.slug}`}
             className="block h-full w-full"
           >
             <div className="relative h-full w-full">
-              <Image
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-700"
-                src={data.imageSrc[0] || "/assets/listing-image-default.png"}
-                alt="listing"
-              />
+              {images.map((src, idx) => (
+                <Image
+                  key={idx}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover h-full w-full transition-opacity duration-500"
+                  style={{ opacity: idx === currentIndex ? 1 : 0 }}
+                  src={src}
+                  alt={`listing image ${idx + 1}`}
+                  priority={idx === 0}
+                />
+              ))}
             </div>
           </Link>
+
+          {/* Dot indicators — only visible on hover */}
+          {images.length > 1 && (
+            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {images.map((_, idx) => (
+                <span
+                  key={idx}
+                  className="transition-all duration-300 rounded-full bg-white"
+                  style={{
+                    width: idx === currentIndex ? 16 : 6,
+                    height: 6,
+                    opacity: idx === currentIndex ? 1 : 0.6,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
           <div className="absolute top-3 right-3">
             <HeartButton listingId={data.id} currentUser={currentUser} />
           </div>
         </div>
+
         <Link href={onEdit ? `/properties/${data.id}` : `/listings/${data.slug}`}>
           <div className="flex justify-between items-center">
             <div className="font-semibold text-lg">
@@ -91,12 +139,12 @@ const ListingCard: React.FC<Props> = ({
                 <FaStar size={18} color="gold" /> {data.avgReviewRating?.toFixed(1)}
               </div>
             )}
-
           </div>
           <div className="font-light text-neutral-500">
             {data.category} | {location?.label}
           </div>
         </Link>
+
         <div className="flex flex-row items-center">
           <div className="flex gap-1 font-semibold">
             {data.hasSets && <span className="font-light text-neutral-500 mr-1">Starting from</span>}
