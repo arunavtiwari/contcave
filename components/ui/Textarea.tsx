@@ -30,26 +30,24 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                     </label>
                 )}
 
-                <textarea
-                    id={id}
-                    className={`
-            w-full
-            p-3
-            font-light 
-            bg-white 
-            border-2
-            rounded-xl
-            focus:outline-none
-            focus:ring-2
-            focus:ring-black
-            focus:border-transparent
-            transition
-            disabled:opacity-70
-            disabled:cursor-not-allowed
-            min-h-[100px]
-            ${hasError ? "border-rose-500 focus:ring-rose-500" : "border-neutral-200"}
-            ${className}
-          `}
+                 <textarea
+                     id={id}
+                     className={`
+             w-full
+             p-3
+             font-light 
+             bg-white 
+             border-2
+             rounded-xl
+             focus:outline-none
+             focus:border-black
+             transition
+             disabled:opacity-70
+             disabled:cursor-not-allowed
+             min-h-25
+             ${hasError ? "border-rose-500 focus:border-rose-500" : "border-neutral-200 hover:border-neutral-300"}
+             ${className}
+           `}
                     ref={ref}
                     {...props}
                 />

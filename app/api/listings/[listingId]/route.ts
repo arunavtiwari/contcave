@@ -1,6 +1,8 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { sanitizeStringList } from "@/lib/strings/sanitizeStringList";
 
 export const runtime = "nodejs";
 
@@ -111,6 +113,48 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       listingData.imageSrc = listingData.imageSrc.filter(
         (url: unknown) => typeof url === "string" && !url.startsWith("blob:")
       );
+      if (listingData.imageSrc.length > 30) {
+        return createErrorResponse("Maximum 30 images allowed", 400);
+      }
+    }
+
+    if (listingData.operationalHours !== undefined && listingData.operationalHours !== null) {
+      if (typeof listingData.operationalHours !== "object") {
+        return createErrorResponse("operationalHours must be an object", 400);
+      }
+      const start = (listingData.operationalHours as { start?: unknown }).start;
+      const end = (listingData.operationalHours as { end?: unknown }).end;
+      if (typeof start !== "string" || typeof end !== "string") {
+        return createErrorResponse("operationalHours.start and operationalHours.end are required", 400);
+      }
+
+      const startTrimmed = start.trim();
+      const endTrimmed = end.trim();
+      const startIdx = TIME_SLOTS.indexOf(startTrimmed);
+      const endIdx = TIME_SLOTS.indexOf(endTrimmed);
+      if (startIdx === -1 || endIdx === -1) {
+        return createErrorResponse(
+          `operationalHours must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`,
+          400
+        );
+      }
+      if (endIdx < startIdx) {
+        return createErrorResponse("operationalHours.end cannot be earlier than operationalHours.start", 400);
+      }
+
+      listingData.operationalHours = {
+        ...(listingData.operationalHours as Record<string, unknown>),
+        start: startTrimmed,
+        end: endTrimmed,
+      };
+    }
+
+    if (Array.isArray(listingData.amenities)) {
+      listingData.amenities = sanitizeStringList(listingData.amenities, { maxItems: 50 });
+    }
+
+    if (Array.isArray(listingData.otherAmenities)) {
+      listingData.otherAmenities = sanitizeStringList(listingData.otherAmenities, { maxItems: 50 });
     }
 
     if (Array.isArray(listingData.addons)) {
@@ -292,7 +336,7 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
         const setImages = Array.isArray(s.images)
           ? s.images
             .filter((img: unknown) => typeof img === "string" && (img as string).trim().length > 0 && !(img as string).startsWith("blob:"))
-            .slice(0, 20)
+            .slice(0, 30)
           : [];
 
         const setData = {

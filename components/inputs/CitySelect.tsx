@@ -25,6 +25,7 @@ function CitySelect({ value, onChange }: Props) {
   return (
     <div>
       <Select
+        inputId="city-select"
         placeholder="Anywhere"
         isClearable
         options={getAll()}

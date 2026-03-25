@@ -122,6 +122,12 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
         type: [],
         hasSets: false,
     }, [data]);
+    const startTime = details.operationalHours.start || "";
+    const startIdx = useMemo(() => timeOptions.findIndex((t) => t.value === startTime), [timeOptions, startTime]);
+    const endTimeOptions = useMemo(() => {
+        if (startIdx === -1) return timeOptions;
+        return timeOptions.slice(startIdx);
+    }, [startIdx, timeOptions]);
 
     const handleInputChange = useCallback((field: keyof ListingDetails, value: string | boolean | string[] | { start?: string; end?: string }) => {
         onChange({ ...details, [field]: value });
@@ -213,12 +219,22 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 <Select
                     options={timeOptions}
                     value={timeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
-                    onChange={(sel) =>
+                    onChange={(sel) => {
+                        const nextStart = sel?.value || "";
+                        const nextStartIdx = timeOptions.findIndex((t) => t.value === nextStart);
+                        const currentEnd = details.operationalHours.end || "";
+                        const currentEndIdx = timeOptions.findIndex((t) => t.value === currentEnd);
+                        const nextEnd =
+                            nextStartIdx !== -1 && (currentEndIdx === -1 || currentEndIdx < nextStartIdx)
+                                ? timeOptions[nextStartIdx].value
+                                : currentEnd;
+
                         handleInputChange("operationalHours", {
                             ...details.operationalHours,
-                            start: sel?.value || "",
-                        })
-                    }
+                            start: nextStart,
+                            end: nextEnd,
+                        });
+                    }}
                     placeholder="Start Time"
                     styles={customStyles}
                     menuPortalTarget={typeof document !== "undefined" ? document.body : null}
@@ -229,8 +245,8 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                     menuShouldScrollIntoView={false}
                 />
                 <Select
-                    options={timeOptions}
-                    value={timeOptions.find((t) => t.value === (details.operationalHours.end || "")) || null}
+                    options={endTimeOptions}
+                    value={endTimeOptions.find((t) => t.value === (details.operationalHours.end || "")) || null}
                     onChange={(sel) =>
                         handleInputChange("operationalHours", {
                             ...details.operationalHours,
