@@ -10,40 +10,40 @@ export default async function getAddons() {
   try {
     const addons: Addon[] = [
       {
-        "name": "Continuous Lights",
+        "name": "Continuous LED Light",
         "price": 0,
         "qty": 0,
-        "imageUrl": "https://m.media-amazon.com/images/I/71jaWAawpJL.jpg",
+        "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8pTbwJTrpJNf3KUcESm46obA40CUCpIuk7w&s",
       },
       {
         "name": "Softboxes (Various Sizes)",
         "price": 0,
         "qty": 0,
-        "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8FxrNhuaNSlElRKFRNPFhz8iT0aCQyrdHaQ&s",
+        "imageUrl": "https://m.media-amazon.com/images/I/61LJtcA46FL._AC_UF1000,1000_QL80_.jpg",
       },
       {
-        "name": "Light tripod stands",
+        "name": "Video Light",
         "price": 0,
         "qty": 0,
-        "imageUrl": "https://boxtudio.in/cdn/shop/files/61zSaDY0HkL._SL1500.jpg?v=1714824446&width=1426",
+        "imageUrl": "https://m.media-amazon.com/images/I/71lP-jgy6sS.jpg",
       },
       {
-        "name": "Umbrellas",
+        "name": "Scrim/Skimmer",
         "price": 0,
         "qty": 0,
-        "imageUrl": "https://m.media-amazon.com/images/I/41omWB1LNHL._SY300_SX300_QL70_FMwebp_.jpg",
+        "imageUrl": "https://m.media-amazon.com/images/I/81BWcQPjf3L._AC_UF1000,1000_QL80_.jpg",
       },
       {
-        "name": "Barn doors",
+        "name": "RGB Stick",
         "price": 0,
         "qty": 0,
-        "imageUrl": "https://www.elinchrom.com/wp-content/uploads/EL26041-Elinchrom-Barndoor-21cm-8.3inch-Kit-wELC-Open-A-1000x667.jpg",
+        "imageUrl": "https://m.media-amazon.com/images/I/51G22DNXzGL._AC_UF350,350_QL80_.jpg",
       },
       {
-        "name": "Color gets",
+        "name": "Barn Door & Snoot",
         "price": 0,
         "qty": 0,
-        "imageUrl": "https://m.media-amazon.com/images/I/41SVdgOnJrL._SX300_SY300_QL70_FMwebp_.jpg",
+        "imageUrl": "https://m.media-amazon.com/images/I/41y0lXbWhfL._AC_SR290,290_.jpg",
       },
       {
         "name": "Honeycomb grid",
@@ -85,7 +85,7 @@ export default async function getAddons() {
         "name": "Reflectors (5 in 1)",
         "price": 0,
         "qty": 0,
-        "imageUrl": "https://m.media-amazon.com/images/I/314FPi9E0xL._SX300_SY300_QL70_FMwebp_.jpg",
+        "imageUrl": "https://m.media-amazon.com/images/I/41znc7vqQ+L._AC_UF1000,1000_QL80_.jpg",
       },
     ]
     if (!addons || !addons.length) {

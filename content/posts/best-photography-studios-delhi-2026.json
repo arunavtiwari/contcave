@@ -55,7 +55,7 @@
       "id": "list-usage",
       "blockType": "list",
       "items": [
-        "Shoot 20–30 reels in a single day",
+        "Shoot 5-10 reels in a single day",
         "Build full product catalogues",
         "Record podcasts or courses in batches",
         "Create ad creatives for performance marketing"
@@ -334,8 +334,8 @@
     "image": {
       "id": "meta-delhi-studios",
       "alt": "Best photography studios in Delhi NCR",
-      "filename": "delhi-studio-hero.png",
-      "mimeType": "image/png",
+      "filename": "delhi-studio-hero.jpeg",
+      "mimeType": "image/jpeg",
       "filesize": 250000,
       "width": 1200,
       "height": 628,
@@ -343,7 +343,7 @@
       "focalY": 0.5,
       "createdAt": "2026-03-27T00:00:00Z",
       "updatedAt": "2026-03-27T00:00:00Z",
-      "url": "/images/blogs/delhi-studio-hero.png"
+      "url": "/images/blogs/delhi-studio-hero.jpeg"
     }
   },
   "_status": "published",
