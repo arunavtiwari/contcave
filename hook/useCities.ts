@@ -14,6 +14,7 @@ const indianCities = [
   { name: "Jaipur", state: "Rajasthan", latlng: [26.9124, 75.7873] },
   { name: "Lucknow", state: "Uttar Pradesh", latlng: [26.8467, 80.9462] },
   { name: "Chandigarh", state: "Chandigarh", latlng: [30.7333, 76.7794] },
+  { name: "Mohali", state: "Punjab", latlng: [30.7046, 76.7179] },
   { name: "Indore", state: "Madhya Pradesh", latlng: [22.7196, 75.8577] },
   { name: "Goa", state: "Goa", latlng: [15.2993, 74.1240] },
   { name: "Nagpur", state: "Maharashtra", latlng: [21.1458, 79.0882] },
