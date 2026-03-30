@@ -1,5 +1,4 @@
 import "../styles/globals.css";
-
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
@@ -24,6 +23,8 @@ import {
   OG_IMAGE,
   SITE_URL,
 } from "@/lib/seo";
+import Script from "next/script";
+import MetaPixelTracker from "@/components/MetaPixelTracker";
 
 import getCurrentUser from "./actions/getCurrentUser";
 
@@ -95,6 +96,7 @@ export const viewport: Viewport = {
   themeColor: "#111827",
 };
 
+const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -225,9 +227,49 @@ export default async function RootLayout({
             __html: JSON.stringify([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]).replace(/</g, '\\u003c'),
           }}
         />
+        {process.env.NODE_ENV === "production" && META_PIXEL_ID && (
+        <>
+          <Script
+            id="meta-pixel"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;
+              n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];
+              t=b.createElement(e);t.async=!0;
+              t.src='https://connect.facebook.net/en_US/fbevents.js';
+              s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s);
+              }(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '${META_PIXEL_ID}');
+            `,
+            }}
+          />
+
+          <Script
+            id="meta-pixel-noscript"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+              <noscript>
+                <img height="1" width="1" style="display:none"
+                src="https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1"/>
+              </noscript>
+            `,
+            }}
+          />
+        </>
+      )}
+        
       </head>
       <body className={font.className}>
         <Navbar currentUser={currentUser} />
+        {process.env.NODE_ENV === "production" && <MetaPixelTracker />}
         <ClientOnly>
           <ToastContainerBar />
           <SearchModal />
