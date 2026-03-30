@@ -96,7 +96,6 @@ export const viewport: Viewport = {
   themeColor: "#111827",
 };
 
-const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -227,7 +226,7 @@ export default async function RootLayout({
             __html: JSON.stringify([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]).replace(/</g, '\\u003c'),
           }}
         />
-        {process.env.NODE_ENV === "production" && META_PIXEL_ID && (
+        {process.env.NODE_ENV === "production" && process.env.META_PIXEL_ID && (
         <>
           <Script
             id="meta-pixel"
@@ -246,7 +245,7 @@ export default async function RootLayout({
               s.parentNode.insertBefore(t,s);
               }(window, document,'script',
               'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '${META_PIXEL_ID}');
+              fbq('init', '${process.env.META_PIXEL_ID}');
             `,
             }}
           />
@@ -258,7 +257,7 @@ export default async function RootLayout({
               __html: `
               <noscript>
                 <img height="1" width="1" style="display:none"
-                src="https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1"/>
+                src="https://www.facebook.com/tr?id=${process.env.META_PIXEL_ID}&ev=PageView&noscript=1"/>
               </noscript>
             `,
             }}
