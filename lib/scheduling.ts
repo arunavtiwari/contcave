@@ -73,6 +73,10 @@ export const labelToMinutes = (s?: string | null): number => {
     return m24 ? Number(m24[1]) * 60 + Number(m24[2]) : NaN;
 };
 
+/** Treat midnight (0 min) as end-of-day (1440 min) when used as a range end boundary. */
+export const asEndOfDayMinutes = (minutes: number): number =>
+    minutes === 0 ? 1440 : minutes;
+
 export const getRoundedNowIST_HHMM = (): TimeHM => {
     const parts = toISTDateParts(new Date());
     const roundUp = (15 - (parts.mm % 15)) % 15;

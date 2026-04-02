@@ -7,6 +7,7 @@ import {
   calculateSetPricing,
 } from "@/lib/pricing";
 import {
+  asEndOfDayMinutes,
   dateFromLabel,
   getRoundedNowIST_HHMM,
   hhmmToMinutes,
@@ -190,11 +191,14 @@ function ListingClient({
       const dayTiming = operationalTimings?.byDay?.[dow];
       const isOpen = dayTiming?.open && dayTiming?.close && dayTiming?.enabled !== false;
       if (isOpen) {
-        const [ch, cm] = String(dayTiming.close).split(":").map((n: string) => parseInt(n, 10));
-        if (Number.isFinite(ch) && Number.isFinite(cm)) {
-          const closeDate = new Date(todayKey.getFullYear(), todayKey.getMonth(), todayKey.getDate(), ch, cm || 0, 0, 0);
+        const closeMin = labelToMinutes(String(dayTiming.close));
+        if (Number.isFinite(closeMin) && closeMin > 0) {
+          const ch = Math.floor(closeMin / 60);
+          const cm = closeMin % 60;
+          const closeDate = new Date(todayKey.getFullYear(), todayKey.getMonth(), todayKey.getDate(), ch, cm, 0, 0);
           if (now >= closeDate) addDate(todayKey);
         }
+        // closeMin === 0 means midnight (end of day); today is never "past close"
       }
       if (dayTiming?.enabled === false) addDate(todayKey);
     } catch { }
@@ -209,13 +213,16 @@ function ListingClient({
 
 
     const addInterval = (s: TimeHM, e: TimeHM, setIds?: string[]) => {
-      if (!s || !e || hhmmToMinutes(s) >= hhmmToMinutes(e)) return;
+      if (!s || !e) return;
+      // Treat "00:00" (midnight) end as end-of-day
+      const effectiveE = (hhmmToMinutes(e) === 0 ? LATEST_FAKE_CUTOFF : e) as TimeHM;
+      if (hhmmToMinutes(s) >= hhmmToMinutes(effectiveE)) return;
       if (!setIds || setIds.length === 0) {
-        listingWideBusy.push({ s, e });
+        listingWideBusy.push({ s, e: effectiveE });
       } else {
         setIds.forEach((id) => {
           if (!setBusyIntervals[id]) setBusyIntervals[id] = [];
-          setBusyIntervals[id].push({ s, e });
+          setBusyIntervals[id].push({ s, e: effectiveE });
         });
       }
     };
@@ -257,16 +264,17 @@ function ListingClient({
 
     const dow = istToDateOnly(day).getDay();
     const dayTiming = operationalTimings?.byDay?.[dow];
-    const openHM = dayTiming?.open ? (String(dayTiming.open) as TimeHM) : null;
-    const closeHM = dayTiming?.close ? (String(dayTiming.close) as TimeHM) : null;
+    const openHM = dayTiming?.open ? toHHMM(String(dayTiming.open)) : null;
+    const closeHM = dayTiming?.close ? toHHMM(String(dayTiming.close)) : null;
+    const effectiveCloseMin = closeHM ? asEndOfDayMinutes(hhmmToMinutes(closeHM)) : 0;
 
     if (dayTiming?.enabled === false) {
       listingWideBusy.push({ s: EARLIEST_SLOT_HHMM, e: LATEST_FAKE_CUTOFF });
-    } else if (openHM && closeHM && hhmmToMinutes(openHM) < hhmmToMinutes(closeHM)) {
+    } else if (openHM && closeHM && hhmmToMinutes(openHM) < effectiveCloseMin) {
       if (hhmmToMinutes(EARLIEST_SLOT_HHMM) < hhmmToMinutes(openHM)) {
         listingWideBusy.push({ s: EARLIEST_SLOT_HHMM, e: openHM });
       }
-      if (hhmmToMinutes(closeHM) < hhmmToMinutes(LATEST_FAKE_CUTOFF)) {
+      if (effectiveCloseMin < hhmmToMinutes(LATEST_FAKE_CUTOFF)) {
         listingWideBusy.push({ s: closeHM, e: LATEST_FAKE_CUTOFF });
       }
     }
@@ -369,7 +377,7 @@ function ListingClient({
     };
 
     const opsStartMin = toMinFromOps(rawStart) ?? labelMinutes[0];
-    const opsEndMin = toMinFromOps(rawEnd) ?? labelMinutes[labelMinutes.length - 1];
+    const opsEndMin = asEndOfDayMinutes(toMinFromOps(rawEnd) ?? labelMinutes[labelMinutes.length - 1]);
 
     let startIdx = 0;
     while (startIdx < labelMinutes.length && labelMinutes[startIdx] < opsStartMin) startIdx++;
@@ -393,7 +401,7 @@ function ListingClient({
       const rDay = istToDateOnly(new Date(r.startDate as unknown as Date)).toDateString();
       if (rDay !== dayStr) return;
       const s = labelToMinutes(r.startTime);
-      const e = labelToMinutes(r.endTime);
+      const e = asEndOfDayMinutes(labelToMinutes(r.endTime));
       if (Number.isFinite(s) && Number.isFinite(e) && s < e) {
         if (!r.setIds || r.setIds.length === 0) {
           listingWideBusy.push({ s, e });
@@ -411,7 +419,7 @@ function ListingClient({
       const bDay = istToDateOnly(new Date(b.date)).toDateString();
       if (bDay !== dayStr) return;
       const s = labelToMinutes(b.startTime);
-      const e = labelToMinutes(b.endTime);
+      const e = asEndOfDayMinutes(labelToMinutes(b.endTime));
       if (Number.isFinite(s) && Number.isFinite(e) && s < e) {
         if (!b.setIds || b.setIds.length === 0) {
           listingWideBusy.push({ s, e });
@@ -487,8 +495,12 @@ function ListingClient({
       return;
     }
     const start = dateFromLabel(selectedDate, startLabel);
-    const end = dateFromLabel(selectedDate, endLabel);
-    const diffHours = Math.max(0, (end.getTime() - start.getTime()) / 36e5);
+    let end = dateFromLabel(selectedDate, endLabel);
+    // "12:00 AM" as end time means next midnight, not start-of-day
+    if (end.getTime() <= start.getTime()) {
+      end = new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1, end.getHours(), end.getMinutes());
+    }
+    const diffHours = (end.getTime() - start.getTime()) / 36e5;
     setTimeDifferenceInHours(diffHours);
   }, [selectedDate, selectedTimeSlot]);
 
@@ -505,7 +517,7 @@ function ListingClient({
     }
 
     const startMin = labelToMinutes(selectedTimeSlot[0]);
-    const endMin = labelToMinutes(selectedTimeSlot[1]);
+    const endMin = asEndOfDayMinutes(labelToMinutes(selectedTimeSlot[1]));
     const dayStr = istToDateOnly(selectedDate).toDateString();
 
     return listing.sets.filter(set => {
@@ -514,7 +526,7 @@ function ListingClient({
         const rDay = istToDateOnly(new Date(r.startDate as unknown as Date)).toDateString();
         if (rDay !== dayStr) return false;
         const rs = labelToMinutes(r.startTime);
-        const re = labelToMinutes(r.endTime);
+        const re = asEndOfDayMinutes(labelToMinutes(r.endTime));
         const isSetBooked = !r.setIds || r.setIds.length === 0 || r.setIds.includes(set.id);
         return isSetBooked && (startMin < re && rs < endMin);
       });
@@ -526,7 +538,7 @@ function ListingClient({
         const bDay = istToDateOnly(new Date(b.date)).toDateString();
         if (bDay !== dayStr) return false;
         const bs = labelToMinutes(b.startTime);
-        const be = labelToMinutes(b.endTime);
+        const be = asEndOfDayMinutes(labelToMinutes(b.endTime));
 
         const isSetBlocked = !b.setIds || b.setIds.length === 0 || b.setIds.includes(set.id);
         return isSetBlocked && (startMin < be && bs < endMin);
