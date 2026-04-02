@@ -1,5 +1,10 @@
+import "swiper/css";
+import "swiper/css/free-mode";
+
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { FreeMode } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 import { Addon } from "@/types/addon";
 type AddonListItem = { name: string; imageUrl?: string };
@@ -126,24 +131,57 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
     setQuantities(prev => ({ ...prev, [addon.name]: Math.max(0, nextQty) }));
   }, []);
 
+  const renderAddonItem = useCallback((addon: Addon) => {
+    const qty = quantities[addon.name] ?? 0;
+    const imgUrl = findImg(addon.name);
+    return (
+      <AddonItem
+        addon={addon}
+        imgUrl={imgUrl}
+        qty={qty}
+        onQtyChange={(q) => handleQtyChange(addon, q)}
+      />
+    );
+  }, [quantities, findImg, handleQtyChange]);
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Add-ons</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      {/* Mobile: Swiper carousel — swipe only, no arrows, free-mode momentum */}
+      <div className="sm:hidden">
+        <Swiper
+          modules={[FreeMode]}
+          slidesPerView="auto"
+          spaceBetween={12}
+          freeMode={{
+            enabled: true,
+            momentum: true,
+            momentumRatio: 0.8,
+            momentumBounceRatio: 0.6,
+          }}
+          cssMode={true}
+          className="overflow-visible!"
+        >
+          {addons.length > 0 &&
+            addons.map(addon => (
+              <SwiperSlide key={addon.id || addon.name} style={{ width: "85%" }}>
+                <div className="py-1">
+                  {renderAddonItem(addon)}
+                </div>
+              </SwiperSlide>
+            ))}
+        </Swiper>
+      </div>
+
+      {/* Desktop: Original grid layout */}
+      <div className="hidden sm:grid sm:grid-cols-2 gap-4">
         {addons.length > 0 &&
-          addons.map(addon => {
-            const qty = quantities[addon.name] ?? 0;
-            const imgUrl = findImg(addon.name);
-            return (
-              <AddonItem
-                key={addon.id || addon.name}
-                addon={addon}
-                imgUrl={imgUrl}
-                qty={qty}
-                onQtyChange={(q) => handleQtyChange(addon, q)}
-              />
-            );
-          })}
+          addons.map(addon => (
+            <div key={addon.id || addon.name}>
+              {renderAddonItem(addon)}
+            </div>
+          ))}
       </div>
     </div>
   );

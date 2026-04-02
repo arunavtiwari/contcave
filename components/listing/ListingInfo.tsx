@@ -352,6 +352,7 @@ function ListingInfo({
               onPackageSelect?.(pkg ?? null);
             }}
             selectedPackageId={selectedPackage?.id}
+            isMultiSets={fullListing.hasSets}
           />
           <hr />
         </>

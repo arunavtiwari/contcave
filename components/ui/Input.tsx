@@ -55,11 +55,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         type={type}
                         className={`
               w-full
-              h-[44px]
+              h-11
               px-4
               font-light 
               bg-white 
-              border-2
+              border
               rounded-xl
               focus:outline-none
               focus:border-black
