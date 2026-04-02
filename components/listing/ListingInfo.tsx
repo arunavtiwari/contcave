@@ -93,6 +93,20 @@ function ListingInfo({
   const coordinates = getByValue(locationValue)?.latlng;
 
   const getValidCenter = useCallback((): number[] | undefined => {
+    // Prefer privacy-safe jittered latlng if available
+    if (
+      fullListing.actualLocation &&
+      Array.isArray(fullListing.actualLocation.latlng) &&
+      fullListing.actualLocation.latlng.length >= 2 &&
+      typeof fullListing.actualLocation.latlng[0] === 'number' &&
+      typeof fullListing.actualLocation.latlng[1] === 'number' &&
+      Number.isFinite(fullListing.actualLocation.latlng[0]) &&
+      Number.isFinite(fullListing.actualLocation.latlng[1])
+    ) {
+      return [fullListing.actualLocation.latlng[0], fullListing.actualLocation.latlng[1]];
+    }
+
+    // Fallback to exact lat/lng (for legacy listings before jittering was introduced)
     if (fullListing.actualLocation &&
       typeof fullListing.actualLocation.lat === 'number' &&
       typeof fullListing.actualLocation.lng === 'number' &&
@@ -100,6 +114,8 @@ function ListingInfo({
       Number.isFinite(fullListing.actualLocation.lng)) {
       return [fullListing.actualLocation.lat, fullListing.actualLocation.lng];
     }
+
+    // Fallback to coordinates based on locationValue string
     if (Array.isArray(coordinates) &&
       coordinates.length >= 2 &&
       typeof coordinates[0] === 'number' &&
