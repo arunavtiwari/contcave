@@ -203,7 +203,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
                   onChange={(e) => setRejectReasonOption(e.target.value)}
                   disabled={!!deletingId}
                 >
-                  <option value="">Select a reason</option>
+                  <option value="" disabled hidden>Select a reason</option>
                   <option value="Studio unavailable for the selected date/time">Studio unavailable for the selected date/time</option>
                   <option value="Technical / maintenance issue">Technical / maintenance issue</option>
                   <option value="Booking details incomplete or unclear">Booking details incomplete or unclear</option>
