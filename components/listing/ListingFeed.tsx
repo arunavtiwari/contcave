@@ -38,12 +38,25 @@ type LocationData = {
 const getListingLatLng = (listing: safeListing): [number, number] | null => {
   const actualLocation = listing.actualLocation as LocationData | null | undefined;
   if (!actualLocation || typeof actualLocation !== "object") return null;
+
+  // Prefer privacy-safe jittered latlng if available
   const latlng = actualLocation.latlng;
-  if (!Array.isArray(latlng) || latlng.length < 2) return null;
-  const lat = Number(latlng[0]);
-  const lng = Number(latlng[1]);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  return [lat, lng];
+  if (Array.isArray(latlng) && latlng.length >= 2) {
+    const jLat = Number(latlng[0]);
+    const jLng = Number(latlng[1]);
+    if (Number.isFinite(jLat) && Number.isFinite(jLng)) {
+      return [jLat, jLng];
+    }
+  }
+
+  // Fallback to exact lat/lng for legacy listings
+  const exactLat = Number(actualLocation.lat);
+  const exactLng = Number(actualLocation.lng);
+  if (Number.isFinite(exactLat) && Number.isFinite(exactLng)) {
+    return [exactLat, exactLng];
+  }
+
+  return null;
 };
 
 function ListingFeed({ listings, currentUser }: Props) {
