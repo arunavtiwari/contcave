@@ -327,7 +327,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 <span className="block text-xs text-gray-500 font-normal mt-0.5">Select all that apply</span>
             </label>
             <div className="md:col-span-2 flex flex-wrap gap-2">
-                {spaceTypes.map((t) => (
+                {Array.from(new Set([...spaceTypes, ...(details.type || [])])).map((t) => (
                     <button
                         key={t}
                         type="button"

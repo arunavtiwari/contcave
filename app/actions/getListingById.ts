@@ -65,11 +65,29 @@ export default async function getListingById(params: IParams): Promise<FullListi
 
     const l = listing as ListingWithRelations;
 
+    const legacyTypeMap: Record<string, string> = {
+      "Fashion shoot": "Fashion Shoot",
+      "Photo Shoot": "Portraits & Photoshoot",
+      "Pre-Wedding": "Pre-Wedding Shoot",
+      "Product Shoot": "Product & E-commerce Shoot",
+      "Video Shoot": "Video Production",
+      "Film Shoot": "Film & Music Video Shoot",
+      "Social Media Content": "Reels & Social Media Content",
+      "Workshop": "Workshops & Classes",
+      "Meeting": "Meetings & Creative Sessions",
+      "Event": "Events & Pop-Ups",
+      "Podcast": "Podcast Recording",
+      "Interview": "Interviews & YouTube Videos",
+    };
+
+    const normalizedTypes = Array.from(new Set(((l.type as string[]) || []).map(t => legacyTypeMap[t] || t)));
+
     return {
       ...l,
       createdAt: l.createdAt.toISOString(),
       amenities: (l.amenities as string[]) || [],
       otherAmenities: (l.otherAmenities as string[]) || [],
+      type: normalizedTypes,
       addons: castJson<Addon[]>(l.addons, []),
 
       packages:
