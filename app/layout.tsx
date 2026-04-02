@@ -228,12 +228,12 @@ export default async function RootLayout({
           }}
         />
         {process.env.NODE_ENV === "production" && process.env.META_PIXEL_ID && (
-        <>
-          <Script
-            id="meta-pixel"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
+          <>
+            <Script
+              id="meta-pixel"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
               !function(f,b,e,v,n,t,s)
               {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
               n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -248,24 +248,24 @@ export default async function RootLayout({
               'https://connect.facebook.net/en_US/fbevents.js');
               fbq('init', '${process.env.META_PIXEL_ID}');
             `,
-            }}
-          />
+              }}
+            />
 
-          <Script
-            id="meta-pixel-noscript"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
+            <Script
+              id="meta-pixel-noscript"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
               <noscript>
                 <img height="1" width="1" style="display:none"
                 src="https://www.facebook.com/tr?id=${process.env.META_PIXEL_ID}&ev=PageView&noscript=1"/>
               </noscript>
             `,
-            }}
-          />
-        </>
-      )}
-        
+              }}
+            />
+          </>
+        )}
+
       </head>
       <body className={font.className}>
         <Navbar currentUser={currentUser} />

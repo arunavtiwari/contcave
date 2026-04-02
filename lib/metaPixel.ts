@@ -2,7 +2,7 @@ export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
 declare global {
   interface Window {
-    fbq: any;
+    fbq: (command: string, ...args: unknown[]) => void;
   }
 }
 
