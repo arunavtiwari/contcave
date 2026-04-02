@@ -41,7 +41,7 @@ function CitySelect({ value, onChange }: Props) {
           </div>
         )}
         classNames={{
-          control: () => "py-0.5 border-2",
+          control: () => "py-0.5 border",
           input: () => "text-lg cursor-pointer",
           option: () => "text-lg cursor-pointer",
         }}

@@ -28,13 +28,13 @@ const UserVerification: React.FC<UserVerificationProps> = ({ onSubmit, disabled 
                 <button className="flex bg-rose-500 shadow-lg text-white py-2 px-4 rounded-lg hover:bg-rose-500 focus:outline-none focus:bg-rose-700 mx-auto">
                   <FiUpload /> &nbsp; <label className="text-sm">Upload Document/s</label>
                 </button>
-                
+
                 <div className="mt-4 flex gap-2">
                   <div className="relative">
-                    
+
                   </div>
                   <div className="relative">
-                    
+
                   </div>
                 </div>
               </div>
@@ -69,7 +69,7 @@ const UserVerification: React.FC<UserVerificationProps> = ({ onSubmit, disabled 
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Verify Phone Number"
-                  className="border-2 border-gray-300 px-2 rounded w-1/3"
+                  className="border border-gray-300 px-2 rounded w-1/3"
                 />
                 <button
                   className="focus:outline-none font-semibold hover:bg-purple-700 rounded text-blue-500 text-xs"
@@ -79,7 +79,7 @@ const UserVerification: React.FC<UserVerificationProps> = ({ onSubmit, disabled 
                 <input
                   type="text"
                   placeholder="Enter OTP"
-                  className="border-2 border-gray-300 px-2 rounded w-1/4"
+                  className="border border-gray-300 px-2 rounded w-1/4"
                 />
                 <button
                   className="text-purple-600  px-4 rounded border border-purple-600 hover:bg-purple-600 hover:text-white focus:outline-none text-sm"
@@ -93,7 +93,7 @@ const UserVerification: React.FC<UserVerificationProps> = ({ onSubmit, disabled 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Verify Email Id"
-                  className="border-2 border-gray-300 px-2 rounded w-1/3"
+                  className="border border-gray-300 px-2 rounded w-1/3"
                 />
                 <button
                   className="focus:outline-none font-semibold hover:bg-purple-700 rounded text-blue-500 text-xs"
@@ -103,7 +103,7 @@ const UserVerification: React.FC<UserVerificationProps> = ({ onSubmit, disabled 
                 <input
                   type="text"
                   placeholder="Enter OTP"
-                  className="border-2 border-gray-300 px-2 rounded w-1/4"
+                  className="border border-gray-300 px-2 rounded w-1/4"
                 />
 
                 <button

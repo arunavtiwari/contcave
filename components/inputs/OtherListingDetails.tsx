@@ -151,7 +151,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                     <input
                         type="text"
                         placeholder="e.g. 2500"
-                        className="w-full px-4 py-2.5 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
+                        className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
                         value={details.carpetArea}
                         onChange={(e) => handleInputChange("carpetArea", e.target.value)}
                         onWheel={(e) => (e.target as HTMLInputElement).blur()}
@@ -277,7 +277,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                     <input
                         type="text"
                         placeholder="e.g. 2"
-                        className="w-full px-4 py-2.5 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
+                        className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
                         inputMode="numeric"
                         pattern="[0-9]*"
                         value={details.minimumBookingHours}
@@ -301,7 +301,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                     <input
                         type="text"
                         placeholder="e.g. 10"
-                        className="w-full px-4 py-2.5 border-2 border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
+                        className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
                         inputMode="numeric"
                         pattern="[0-9]*"
                         value={details.maximumPax ?? ""}

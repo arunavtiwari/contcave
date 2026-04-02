@@ -647,7 +647,7 @@ export default function RentModal() {
                     onChange={(v) => setCustomValue("imageSrc", v)}
                     values={imageSrc}
                     deferUpload
-                    className="w-full h-full p-4 border-2 border-neutral-300"
+                    className="w-full h-full p-4 border border-neutral-300"
                   />
                 </div>
               </div>
