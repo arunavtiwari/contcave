@@ -1,7 +1,7 @@
-import { Document, Page, StyleSheet,Text, View } from "@react-pdf/renderer";
+import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { renderToBuffer } from "@react-pdf/renderer";
 
-import { ARKANET_VENTURES_GST } from "@/lib/constants/gst";
+import { ARKANET_VENTURES_GST, GST_RATE } from "@/lib/constants/gst";
 
 type OwnerPaymentDetails = {
   ownerName?: string | null;
@@ -245,7 +245,7 @@ const InvoiceDocument = ({
           </View>
 
           < View style={styles.tableRow} >
-            <Text style={styles.tableColDescription}> GST(18 %) </Text>
+            <Text style={styles.tableColDescription}> GST({(GST_RATE * 100).toFixed(0)} %) </Text>
             < Text style={styles.tableColAmount} > {gstAmount.toFixed(2)} </Text>
           </View>
 

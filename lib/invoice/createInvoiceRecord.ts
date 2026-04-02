@@ -3,6 +3,7 @@ import crypto from "crypto";
 
 import { AttachmentInput } from "@/lib/email/mailer";
 import { generateInvoicePDFBlob } from "@/lib/invoice/pdfBlob";
+import { GST_RATE } from "@/lib/constants/gst";
 import prisma from "@/lib/prismadb";
 
 type CreateInvoiceParams = {
@@ -162,8 +163,7 @@ export async function ensureInvoiceWithAttachment(
     throw new Error("Unable to determine invoice amount");
   }
 
-  const gstRate = 0.18;
-  const baseAmount = totalAmountSource / (1 + gstRate);
+  const baseAmount = totalAmountSource / (1 + GST_RATE);
   const amount = Number(baseAmount.toFixed(2));
   const gstAmount = Number((totalAmountSource - amount).toFixed(2));
   const totalAmount = Number((amount + gstAmount).toFixed(2));
