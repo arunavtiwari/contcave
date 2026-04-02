@@ -30,14 +30,14 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                     </label>
                 )}
 
-                 <textarea
-                     id={id}
-                     className={`
+                <textarea
+                    id={id}
+                    className={`
              w-full
              p-3
              font-light 
              bg-white 
-             border-2
+             border
              rounded-xl
              focus:outline-none
              focus:border-black

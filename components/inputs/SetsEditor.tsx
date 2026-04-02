@@ -284,7 +284,7 @@ export default function SetsEditor({
                 type="button"
                 onClick={addSet}
                 disabled={disabled || sets.length >= 50}
-                className="flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-neutral-300 rounded-xl text-neutral-600 hover:border-neutral-400 hover:text-neutral-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-neutral-300 rounded-xl text-neutral-600 hover:border-neutral-400 hover:text-neutral-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <IoAdd size={20} />
                 Add Set

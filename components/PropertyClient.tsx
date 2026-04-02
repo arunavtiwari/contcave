@@ -76,10 +76,10 @@ import { TIME_SLOTS } from "@/constants/timeSlots";
 import RichTextEditor from "./RichText/RichTextEditor";
 
 const propertyFieldClassName =
-    "w-full rounded-xl border-2 border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-900 transition outline-none focus:border-black hover:border-neutral-300";
+    "w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-900 transition outline-none focus:border-black hover:border-neutral-300";
 
 const propertyCompactSelectClassName =
-    "rounded-xl border-2 border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-900 transition outline-none focus:border-black hover:border-neutral-300";
+    "rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-900 transition outline-none focus:border-black hover:border-neutral-300";
 
 const propertyFieldSeparatorClassName =
     "flex items-center justify-center self-stretch px-1 text-sm font-medium leading-none text-neutral-500";
