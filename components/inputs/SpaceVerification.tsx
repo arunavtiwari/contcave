@@ -146,7 +146,7 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
                                 allowedTypes={['application/pdf']}
                                 label="Click to upload PDF"
                                 icon={BsFileEarmarkPdf}
-                                className="w-full h-full min-h-[200px] p-4 border border-neutral-300"
+                                className="w-full h-full min-h-50 p-4 border border-neutral-300"
                             />
                         </div>
                     </div>
