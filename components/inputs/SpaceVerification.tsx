@@ -137,7 +137,7 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
 
 
                     <div className="flex flex-col gap-4 h-full">
-                        <div className="flex-1 min-h-[200px]">
+                        <div className="flex-1 min-h-50">
                             <ImageUpload
                                 onChange={() => { }}
                                 values={[]}

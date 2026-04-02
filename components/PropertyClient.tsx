@@ -370,9 +370,10 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Category</label>
                             <select
                                 className={propertyFieldClassName}
-                                value={initialListing.category ?? CATEGORY_OPTIONS[0]?.label}
+                                value={initialListing.category ?? ""}
                                 onChange={(e) => handleInputChange("category", e.target.value)}
                             >
+                                <option value="" disabled hidden>Select Category</option>
                                 {CATEGORY_OPTIONS.map((item) => (
                                     <option key={item.label} value={item.label}>
                                         {item.label}
@@ -441,6 +442,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 value={initialListing.locationValue ?? ""}
                                 onChange={(e) => handleInputChange("locationValue", e.target.value)}
                             >
+                                <option value="" disabled hidden>Select City</option>
                                 {indianCities.map((item: City, index: number) => (
                                     <option key={index} value={item.name}>
                                         {item.name}
@@ -573,7 +575,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     value={startTime}
                                     onChange={(e) => onStartChange(e.target.value)}
                                 >
-                                    <option value="">Start</option>
+                                    <option value="" disabled hidden>Start</option>
                                     {TIME_SLOTS.map((t) => (
                                         <option key={`start-${t}`} value={t}>
                                             {t}
@@ -588,7 +590,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     value={endTime}
                                     onChange={(e) => onEndChange(e.target.value)}
                                 >
-                                    <option value="">End</option>
+                                    <option value="" disabled hidden>End</option>
                                     {endOptions.map((t) => (
                                         <option key={`end-${t}`} value={t}>
                                             {t}
