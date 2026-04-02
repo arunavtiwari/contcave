@@ -1,10 +1,10 @@
+import "swiper/css";
+import "swiper/css/free-mode";
+
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FreeMode } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-
-import "swiper/css";
-import "swiper/css/free-mode";
 
 import { Addon } from "@/types/addon";
 type AddonListItem = { name: string; imageUrl?: string };

@@ -1,9 +1,9 @@
 import { Invoice } from "@prisma/client";
 import crypto from "crypto";
 
+import { GST_RATE } from "@/lib/constants/gst";
 import { AttachmentInput } from "@/lib/email/mailer";
 import { generateInvoicePDFBlob } from "@/lib/invoice/pdfBlob";
-import { GST_RATE } from "@/lib/constants/gst";
 import prisma from "@/lib/prismadb";
 
 type CreateInvoiceParams = {
