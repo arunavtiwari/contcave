@@ -5,7 +5,7 @@ import axios from "axios";
 import Image from "next/image";
 import { SessionProvider, signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MdClose, MdOutlineCurrencyRupee } from "react-icons/md";
+import { MdOutlineCurrencyRupee } from "react-icons/md";
 import { toast } from "react-toastify";
 
 import Calendar from "@/components/Calendar";
@@ -15,6 +15,7 @@ import Sidebar from "@/components/Sidebar";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Switch from "@/components/ui/Switch";
+import { spaceTypes } from "@/constants/spaceTypes";
 import useIndianCities, { City } from "@/hook/useCities";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { Addon } from "@/types/addon";
@@ -23,6 +24,7 @@ import { Package as ListingPackage } from "@/types/package";
 
 import BlocksManager from "./BlocksManager";
 import AddonsSelection from "./inputs/AddonsSelection";
+import ImageReorderGrid from "./inputs/ImageReorderGrid";
 import ImageUpload from "./inputs/ImageUpload";
 import PackagesForm from "./inputs/PackagesForm";
 import SetsEditor from "./inputs/SetsEditor";
@@ -107,6 +109,9 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             ...listing,
             imageSrc: cleanImageSrc,
             sets: cleanSets,
+            type: Array.isArray(listing.type) ? listing.type : [],
+            amenities: Array.isArray(listing.amenities) ? listing.amenities : [],
+            otherAmenities: Array.isArray(listing.otherAmenities) ? listing.otherAmenities : [],
         };
     });
 
@@ -380,6 +385,39 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         </div>
 
 
+                        <div className="flex sm:items-start gap-1 sm:gap-10 flex-col sm:flex-row">
+                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3 pt-2">
+                                Listed Services
+                                <p className="text-xs font-normal text-neutral-500 mt-1">Select all services available in this space</p>
+                            </label>
+                            <div className="w-full flex flex-wrap gap-2">
+                                {Array.from(new Set([...spaceTypes, ...(initialListing.type || [])])).map((t) => (
+                                    <button
+                                        key={t}
+                                        type="button"
+                                        onClick={() => {
+                                            const currentType = initialListing.type || [];
+                                            const exists = currentType.includes(t);
+                                            const newType = exists
+                                                ? currentType.filter((x) => x !== t)
+                                                : [...currentType, t];
+                                            handleInputChange("type", newType);
+                                        }}
+                                        className={`
+                                            text-sm py-2 px-4 rounded-full border transition
+                                            ${(initialListing.type || []).includes(t)
+                                                ? "bg-black text-white border-black"
+                                                : "bg-white text-gray-700 border-neutral-200 hover:border-black"
+                                            }
+                                        `}
+                                    >
+                                        {t}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Price</label>
                             <div className="w-full relative">
@@ -420,50 +458,25 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 Images / Videos
                             </label>
 
-                            <div className="flex gap-6 w-full flex-wrap justify-center sm:justify-normal mt-2 sm:mt-0">
-                                {(initialListing.imageSrc ?? []).map((item: string, index: number) => (
-                                    <div
-                                        key={index}
-                                        className="relative h-32 w-32 rounded-xl overflow-hidden border"
-                                    >
-                                        {isVideo(item) ? (
-                                            <video
-                                                src={item}
-                                                className="h-full w-full object-cover"
-                                                controls
-                                            />
-                                        ) : (
-                                            <Image
-                                                src={item}
-                                                alt={`Media ${index}`}
-                                                width={128}
-                                                height={128}
-                                                className="h-full w-full object-cover"
-                                                unoptimized
-                                            />
-                                        )}
+                            <div className="w-full mt-2 sm:mt-0">
+                                <ImageReorderGrid
+                                    images={initialListing.imageSrc ?? []}
+                                    onReorder={(newOrder) => handleInputChange("imageSrc", newOrder)}
+                                    onRemove={removeMedia}
+                                />
 
-                                        <button
-                                            type="button"
-                                            onClick={() => removeMedia(index)}
-                                            className="absolute top-2 right-2 rounded-lg"
-                                        >
-                                            <MdClose
-                                                size={20}
-                                                className="text-white bg-black rounded-lg hover:bg-white hover:text-black border-2 border-black transition"
+                                <div className="mt-4">
+                                    {(initialListing.imageSrc?.length ?? 0) < 30 && (
+                                        <div className="h-32 w-32 inline-block">
+                                            <ImageUpload
+                                                uid="property-main-upload"
+                                                onChange={(value) => handleInputChange("imageSrc", value)}
+                                                values={initialListing.imageSrc ?? []}
+                                                deferUpload
                                             />
-                                        </button>
-                                    </div>
-                                ))}
-
-                                {(initialListing.imageSrc?.length ?? 0) < 30 && (
-                                    <ImageUpload
-                                        uid="property-main-upload"
-                                        onChange={(value) => handleInputChange("imageSrc", value)}
-                                        values={initialListing.imageSrc ?? []}
-                                        deferUpload
-                                    />
-                                )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -810,8 +823,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             sets={initialListing.sets ?? []}
                         />
                     </div>
-                </div>
-            </div>
+                </div >
+            </div >
         </SessionProvider >
     );
 };
