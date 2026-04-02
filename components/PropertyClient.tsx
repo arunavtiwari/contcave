@@ -46,9 +46,6 @@ interface NormalizedPackage {
     durationHours: number;
 }
 
-const isVideo = (url: string) => {
-    return /\.(mp4|webm|mov)$/i.test(url);
-};
 
 const dayOptions = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 

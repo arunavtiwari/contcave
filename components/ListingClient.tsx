@@ -624,7 +624,7 @@ function ListingClient({
   return (
     <div className="pt-10">
       <Container>
-        <div className="max-w-[1120px] mx-auto pb-24">
+        <div className="max-w-280 mx-auto pb-24">
           <div className="flex flex-col gap-2">
             <ListingHead
               title={listing.title}

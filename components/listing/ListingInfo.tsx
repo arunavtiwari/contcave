@@ -275,7 +275,7 @@ function ListingInfo({
           <Avatar src={user?.image} />
         </div>
         {fullListing.avgReviewRating && fullListing.avgReviewRating !== 0 && (
-          <div className="font-semibold text-lg flex items-center gap-1.5 leading-[18px]">
+          <div className="font-semibold text-lg flex items-center gap-1.5 leading-4.5">
             <FaStar size={20} color="gold" /> {fullListing.avgReviewRating?.toFixed(1)}
           </div>
         )}
@@ -315,7 +315,7 @@ function ListingInfo({
         <div
           className={`prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1
           prose-strong:text-black prose-headings:text-black
-          transition-all duration-300 ${!isExpanded ? "max-h-[160px] overflow-hidden relative" : ""
+          transition-all duration-300 ${!isExpanded ? "max-h-40 overflow-hidden relative" : ""
             }`}
         >
           <div
@@ -325,7 +325,7 @@ function ListingInfo({
           />
 
           {!isExpanded && shouldTruncate && (
-            <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-gradient-to-t from-white to-transparent" />
+            <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-linear-to-t from-white to-transparent" />
           )}
         </div>
 
@@ -493,7 +493,7 @@ function ListingInfo({
                       id="review-comment"
                       value={review.comment}
                       onChange={(e) => setReview({ ...review, comment: e.target.value })}
-                      className="min-h-[120px] border-0 focus:ring-0 p-0"
+                      className="min-h-30 border-0 focus:ring-0 p-0"
                       placeholder="Write your message"
                     />
                     <div className="w-4 h-4">
