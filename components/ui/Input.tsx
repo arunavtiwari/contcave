@@ -59,7 +59,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               px-4
               font-light 
               bg-white 
-              border-2
+              border
               rounded-xl
               focus:outline-none
               focus:border-black
