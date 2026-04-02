@@ -585,7 +585,11 @@ function ListingClient({
     setSelectedTimeSlot([null, null]);
 
     if (pkg) {
-      setIsPackageSetModalOpen(true);
+      if (listing.hasSets && pkg.requiredSetCount && pkg.requiredSetCount > 0) {
+        setIsPackageSetModalOpen(true);
+      } else {
+        setIsPackageSetModalOpen(false);
+      }
     } else {
       setIsPackageSetModalOpen(false);
       setIsEntireStudioBooked(false);
@@ -595,7 +599,7 @@ function ListingClient({
         setSelectedSetIds([]);
       }
     }
-  }, [listing.sets]);
+  }, [listing.sets, listing.hasSets]);
 
   const handlePackageSetConfirm = useCallback((setIds: string[]) => {
     setSelectedSetIds(setIds);
