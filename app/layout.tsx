@@ -1,12 +1,15 @@
 import "../styles/globals.css";
+
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
+import Script from "next/script";
 
 import ClientOnly from "@/components/ClientOnly";
 import CookieConsent from "@/components/CookieConsentBanner";
 import Footer from "@/components/Footer";
+import MetaPixelTracker from "@/components/MetaPixelTracker";
 import LoginModal from "@/components/modals/LoginModal";
 import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
@@ -23,8 +26,6 @@ import {
   OG_IMAGE,
   SITE_URL,
 } from "@/lib/seo";
-import Script from "next/script";
-import MetaPixelTracker from "@/components/MetaPixelTracker";
 
 import getCurrentUser from "./actions/getCurrentUser";
 
