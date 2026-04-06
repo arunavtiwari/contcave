@@ -329,24 +329,26 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
   };
 
   return (
-    <ClientOnly>
-      <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd).replace(/</g, '\\u003c') }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
-        />
-        <ListingClient
-          listing={listing}
-          currentUser={currentUser}
-          reservations={reservations}
+    <main>
+      <ClientOnly>
+        <>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd).replace(/</g, '\\u003c') }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
+          />
+          <ListingClient
+            listing={listing}
+            currentUser={currentUser}
+            reservations={reservations}
 
-        />
-      </>
-    </ClientOnly>
+          />
+        </>
+      </ClientOnly>
+    </main>
   );
 };
 

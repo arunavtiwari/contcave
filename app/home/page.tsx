@@ -104,29 +104,27 @@ export default async function Home(props: HomeProps) {
     })),
   };
 
-  if (listing.length === 0) {
-    return (
-      <ClientOnly>
-        <EmptyState showReset />
-      </ClientOnly>
-    );
-  }
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+    <main>
+      {listing.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
+      )}
       <ClientOnly>
         <Container>
           <Categories />
-          <ListingFeed
-            listings={listing}
-            currentUser={currentUser}
-          />
+          {listing.length === 0 ? (
+            <EmptyState showReset />
+          ) : (
+            <ListingFeed
+              listings={listing}
+              currentUser={currentUser}
+            />
+          )}
         </Container>
       </ClientOnly>
-    </>
+    </main>
   );
 }

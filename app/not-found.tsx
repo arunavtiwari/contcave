@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 export const dynamic = 'force-static';
 export const dynamicParams = false;
+
+export const metadata: Metadata = {
+  title: "Page Not Found",
+  description: "The page you're looking for may have moved or no longer exists.",
+  robots: { index: false, follow: true },
+};
 
 export default function NotFound() {
   return (
