@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import React from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getReservation from "@/app/actions/getReservations";
-import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 
 import BookingClient from "./BookingClient";
@@ -23,11 +21,7 @@ const BookingPage = async () => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    return (
-      <ClientOnly>
-        <EmptyState title="Unauthorized" subtitle="Please login" />
-      </ClientOnly>
-    );
+    return <EmptyState title="Unauthorized" subtitle="Please login" />;
   }
 
   const reservations = await getReservation({
@@ -36,22 +30,14 @@ const BookingPage = async () => {
 
   if (reservations.length === 0) {
     return (
-      <ClientOnly>
-        <EmptyState
-          title="No bookings found"
-          subtitle="Looks like you haven&apos;t booked for any space."
-        />
-      </ClientOnly>
+      <EmptyState
+        title="No bookings found"
+        subtitle="Looks like you haven&apos;t booked for any space."
+      />
     );
   }
 
-  return (
-
-    <ClientOnly>
-      <BookingClient reservations={reservations} currentUser={currentUser} />
-    </ClientOnly>
-
-  );
+  return <BookingClient reservations={reservations} currentUser={currentUser} />;
 };
 
 export default BookingPage;

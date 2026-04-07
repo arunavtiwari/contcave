@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings, { IListingsParams } from "@/app/actions/getListings";
-import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
+import Footer from "@/components/Footer";
 import ListingFeed from "@/components/listing/ListingFeed";
 import Categories from "@/components/navbar/Categories";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
@@ -105,14 +105,14 @@ export default async function Home(props: HomeProps) {
   };
 
   return (
-    <main>
-      {listing.length > 0 && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-        />
-      )}
-      <ClientOnly>
+    <>
+      <main>
+        {listing.length > 0 && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+          />
+        )}
         <Container>
           <Categories />
           {listing.length === 0 ? (
@@ -124,7 +124,8 @@ export default async function Home(props: HomeProps) {
             />
           )}
         </Container>
-      </ClientOnly>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

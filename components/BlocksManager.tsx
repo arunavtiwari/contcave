@@ -29,6 +29,11 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
     const [blocks, setBlocks] = useState<ListingBlock[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
 
     const [newBlock, setNewBlock] = useState({
@@ -90,6 +95,8 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
         value: s.id,
         label: s.name,
     }));
+
+    if (!mounted) return null;
 
     return (
         <div className="space-y-8">

@@ -8,7 +8,6 @@ import Script from "next/script";
 
 import ClientOnly from "@/components/ClientOnly";
 import CookieConsent from "@/components/CookieConsentBanner";
-import Footer from "@/components/Footer";
 import MetaPixelTracker from "@/components/MetaPixelTracker";
 import LoginModal from "@/components/modals/LoginModal";
 import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
@@ -278,7 +277,6 @@ export default async function RootLayout({
         </ClientOnly>
         <div className="min-h-screen pt-21">{children}</div>
         <ScrollToTop />
-        <Footer />
         <Analytics />
         <SpeedInsights />
       </body>

@@ -129,7 +129,7 @@ function ListingFeed({ listings, currentUser }: Props) {
           </p>
           <button
             onClick={() => setShowSortOptions(!showSortOptions)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-neutral-300 rounded-[10px] hover:border-black transition"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-neutral-200 rounded-xl hover:border-neutral-300 transition"
           >
             <MapPin size={16} />
             Sort by distance

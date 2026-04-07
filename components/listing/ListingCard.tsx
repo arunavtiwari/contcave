@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useMemo } from "react";
@@ -45,13 +44,15 @@ const ListingCard: React.FC<Props> = ({
     : ["/assets/listing-image-default.png"]);
 
   const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [hasHovered, setHasHovered] = React.useState(false);
   const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleMouseEnter = () => {
+    setHasHovered(true);
     if (images.length <= 1) return;
     intervalRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 1100);
+    }, 2000);
   };
 
   const handleMouseLeave = () => {
@@ -70,20 +71,11 @@ const ListingCard: React.FC<Props> = ({
   }, [reservation, data.price]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.5 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{
-        duration: 0.8,
-        delay: 0.5,
-        ease: [0, 0.71, 0.2, 1.01],
-      }}
-      className="col-span-1 cursor-pointer group p-5 shadow-sm rounded-2xl border border-neutral-200"
-    >
+    <div className="col-span-1 cursor-pointer group p-5 shadow-sm rounded-2xl border border-neutral-200">
       <div className="flex flex-col gap-2 w-full">
         {/* Image area with hover slideshow */}
         <div
-          className="aspect-square w-full relative overflow-hidden rounded-xl"
+          className="aspect-square w-full relative overflow-hidden rounded-xl group/image"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
@@ -92,28 +84,31 @@ const ListingCard: React.FC<Props> = ({
             className="block h-full w-full"
           >
             <div className="relative h-full w-full">
-              {images.map((src, idx) => (
-                <Image
-                  key={idx}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover h-full w-full transition-opacity duration-500"
-                  style={{ opacity: idx === currentIndex ? 1 : 0 }}
-                  src={src}
-                  alt={`listing image ${idx + 1}`}
-                  priority={idx === 0}
-                />
-              ))}
+              {images.map((src, idx) => {
+                if (idx !== 0 && !hasHovered) return null;
+                return (
+                  <Image
+                    key={idx}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover h-full w-full transition-opacity duration-500"
+                    style={{ opacity: idx === currentIndex ? 1 : 0 }}
+                    src={src}
+                    alt={`listing image ${idx + 1}`}
+                    priority={idx === 0}
+                  />
+                )
+              })}
             </div>
           </Link>
 
           {/* Dot indicators — only visible on hover */}
           {images.length > 1 && (
-            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 pointer-events-none opacity-0 group-hover/image:opacity-100 transition-opacity duration-300">
               {images.map((_, idx) => (
                 <span
                   key={idx}
-                  className="transition-all duration-300 rounded-full bg-white"
+                  className="transition-all duration-300 rounded-full bg-white shadow-sm"
                   style={{
                     width: idx === currentIndex ? 16 : 6,
                     height: 6,
@@ -131,11 +126,11 @@ const ListingCard: React.FC<Props> = ({
 
         <Link href={onEdit ? `/properties/${data.id}` : `/listings/${data.slug}`}>
           <div className="flex justify-between items-center">
-            <div className="font-semibold text-lg">
+            <div className="font-semibold text-base">
               {data.title}
             </div>
             {data.avgReviewRating && data.avgReviewRating != 0 && (
-              <div className="font-semibold text-md flex items-center gap-1.5">
+              <div className="font-semibold text-sm flex items-center gap-1.5">
                 <FaStar size={18} color="gold" /> {data.avgReviewRating?.toFixed(1)}
               </div>
             )}
@@ -196,7 +191,7 @@ const ListingCard: React.FC<Props> = ({
         )}
 
       </div>
-    </motion.div>
+    </div>
   );
 }
 
