@@ -20,7 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
-import React, { useMemo, useState } from "react";
+import React, { useId, useMemo, useState } from "react";
 import { IoMdClose } from "react-icons/io";
 
 const isVideo = (url: string) => {
@@ -146,6 +146,8 @@ export default function ImageReorderGrid({ images, onReorder, onRemove }: ImageR
         })
     );
 
+    const dndId = useId();
+
     const handleDragStart = (event: DragStartEvent) => {
         setActiveId(event.active.id as string);
     };
@@ -168,6 +170,7 @@ export default function ImageReorderGrid({ images, onReorder, onRemove }: ImageR
 
     return (
         <DndContext
+            id={dndId}
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}

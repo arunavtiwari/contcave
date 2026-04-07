@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings from "@/app/actions/getListings";
-import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 
 import PropertiesClient from "./PropertiesClient";
@@ -21,30 +20,21 @@ const PropertiesPage = async () => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    return (
-      <ClientOnly>
-        <EmptyState title="Unauthorized" subtitle="Please login" />
-      </ClientOnly>
-    );
+    return <EmptyState title="Unauthorized" subtitle="Please login" />;
   }
 
   const listings = await getListings({ userId: currentUser.id });
 
   if (listings.length === 0) {
     return (
-      <ClientOnly>
-        <EmptyState
-          title="No Properties found"
-          subtitle="Looks like you don&apos;t have any Listing"
-        />
-      </ClientOnly>
+      <EmptyState
+        title="No Properties found"
+        subtitle="Looks like you don&apos;t have any Listing"
+      />
     );
   }
-  return (
-    <ClientOnly>
-      <PropertiesClient listings={listings} currentUser={currentUser} />
-    </ClientOnly>
-  );
+
+  return <PropertiesClient listings={listings} currentUser={currentUser} />;
 };
 
 export default PropertiesPage;

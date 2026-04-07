@@ -4,6 +4,7 @@ import CTA from "@/components/CTA";
 import FAQ from "@/components/FAQ";
 import Feature from "@/components/Features";
 import FeaturesTab from "@/components/FeaturesTab";
+import Footer from "@/components/Footer";
 import FunFact from "@/components/FunFact";
 import Hero from "@/components/Hero";
 import {
@@ -93,18 +94,21 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <main>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd).replace(/</g, '\\u003c') }}
-      />
-      <Hero />
-      <Feature />
-      <FeaturesTab />
-      <FunFact />
-      <FAQ />
-      <CTA />
-    </main>
+    <>
+      <main>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd).replace(/</g, '\\u003c') }}
+        />
+        <Hero />
+        <Feature />
+        <FeaturesTab />
+        <FunFact />
+        <FAQ />
+        <CTA />
+      </main>
+      <Footer />
+    </>
   );
 }
 

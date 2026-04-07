@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListingById from "@/app/actions/getListingById";
 import getReservation from "@/app/actions/getReservations";
-import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 import ListingClient from "@/components/ListingClient";
 import prisma from "@/lib/prismadb";
@@ -119,11 +118,7 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
   const currentUser = await getCurrentUser();
 
   if (!listing) {
-    return (
-      <ClientOnly>
-        <EmptyState />
-      </ClientOnly>
-    );
+    return <EmptyState />;
   }
 
   const imageCandidates =
@@ -330,24 +325,21 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
 
   return (
     <main>
-      <ClientOnly>
-        <>
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd).replace(/</g, '\\u003c') }}
-          />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
-          />
-          <ListingClient
-            listing={listing}
-            currentUser={currentUser}
-            reservations={reservations}
-
-          />
-        </>
-      </ClientOnly>
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd).replace(/</g, '\\u003c') }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
+        />
+        <ListingClient
+          listing={listing}
+          currentUser={currentUser}
+          reservations={reservations}
+        />
+      </>
     </main>
   );
 };
