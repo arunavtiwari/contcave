@@ -130,8 +130,8 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                                 onChange={(e) => setNewBlock({ ...newBlock, startTime: e.target.value })}
                                 className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10"
                             >
-                                {TIME_SLOTS.map((t) => (
-                                    <option key={t} value={t}>{t}</option>
+                                {TIME_SLOTS.map((t, idx) => (
+                                    <option key={`start-${t}-${idx}`} value={t}>{t}</option>
                                 ))}
                             </select>
                         </div>
@@ -145,8 +145,8 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                                 onChange={(e) => setNewBlock({ ...newBlock, endTime: e.target.value })}
                                 className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10"
                             >
-                                {TIME_SLOTS.map((t) => (
-                                    <option key={t} value={t}>{t}</option>
+                                {TIME_SLOTS.map((t, idx) => (
+                                    <option key={`end-${t}-${idx}`} value={t}>{t}</option>
                                 ))}
                             </select>
                         </div>
