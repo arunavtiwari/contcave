@@ -4,7 +4,7 @@ import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/co
 export const imageSchema = z.string().url("Invalid image URL").max(500, "URL too long");
 
 export const locationSchema = z.object({
-    latlng: z.tuple([z.number(), z.number()]).nullable().optional(),
+    latlng: z.tuple([z.number(), z.number()]),
     label: z.string().optional(),
     region: z.string().optional(),
     value: z.string().optional(),
@@ -19,7 +19,8 @@ export const operationalHoursSchema = z.object({
     end: z.string().regex(/^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/, "Invalid end time (e.g. 12:00 AM)"),
 }).superRefine((value, ctx) => {
     const startIdx = TIME_SLOTS.indexOf(value.start);
-    const endIdx = TIME_SLOTS.indexOf(value.end);
+    const endIdx = TIME_SLOTS.lastIndexOf(value.end);
+
     if (startIdx === -1) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
