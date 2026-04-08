@@ -51,7 +51,7 @@ const TermsAndConditions = () => {
         <main>
             <div className="relative h-64 w-full">
                 <Image
-                    src="/assets/footer-banner.jpg"
+                    src="/assets/banner.jpg"
                     alt="ContCave Terms and Conditions"
                     fill
                     className="object-cover"

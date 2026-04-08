@@ -56,7 +56,7 @@ export default function PrivacyPolicyPage() {
 
       <div className="relative h-64 w-full">
         <Image
-          src="/assets/footer-banner.jpg"
+          src="/assets/banner.jpg"
           alt="ContCave Privacy Policy"
           fill
           className="object-cover"
