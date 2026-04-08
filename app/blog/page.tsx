@@ -67,7 +67,7 @@ export default function BlogPage() {
   return (
     <main className="max-w mx-auto px-4 py-8">
       <div className="banner mb-8 relative h-64 w-full">
-        <Image src="/assets/footer-banner.jpg" fill alt="ContCave Blog — Studio Booking Insights and Tips" className="object-cover" />
+        <Image src="/assets/banner.jpg" fill alt="ContCave Blog — Studio Booking Insights and Tips" className="object-cover" />
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
           <h1 className="text-white text-4xl font-bold">Blogs</h1>
         </div>

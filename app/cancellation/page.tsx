@@ -54,7 +54,7 @@ const CancellationPolicy = () => {
 
       <div className="relative w-full h-100 md:h-125">
         <Image
-          src="/assets/footer-banner.jpg"
+          src="/assets/banner.jpg"
           alt="ContCave Cancellation Policy"
           fill
           className="object-cover"
