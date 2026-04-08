@@ -109,8 +109,6 @@ const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
 };
 
 const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
-    const timeOptions = useMemo(() => staticTimeOptions, []);
-
     // Default values if data is undefined
     const details = useMemo(() => data || {
         carpetArea: "",
@@ -122,12 +120,38 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
         type: [],
         hasSets: false,
     }, [data]);
+
     const startTime = details.operationalHours.start || "";
-    const startIdx = useMemo(() => timeOptions.findIndex((t) => t.value === startTime), [timeOptions, startTime]);
+    const startIdx = useMemo(() => staticTimeOptions.findIndex((t) => t.value === startTime), [startTime]);
+
+    const startTimeOptions = useMemo(() => staticTimeOptions.slice(0, -1), []);
+
     const endTimeOptions = useMemo(() => {
-        if (startIdx === -1) return timeOptions;
-        return timeOptions.slice(startIdx);
-    }, [startIdx, timeOptions]);
+        if (startIdx === -1) return staticTimeOptions.slice(1);
+        return staticTimeOptions.slice(startIdx + 1);
+    }, [startIdx]);
+
+    const isOpenAllDay = useMemo(() => {
+        return (
+            details.operationalHours.start === "12:00 AM" &&
+            details.operationalHours.end === "12:00 AM"
+        );
+    }, [details]);
+
+    const handleOpenAllDayToggle = useCallback((checked: boolean) => {
+        if (checked) {
+            onChange({
+                ...details,
+                operationalHours: { start: "12:00 AM", end: "12:00 AM" },
+            });
+        } else {
+            // Reset to default hours
+            onChange({
+                ...details,
+                operationalHours: { start: "9:00 AM", end: "9:00 PM" },
+            });
+        }
+    }, [details, onChange]);
 
     const handleInputChange = useCallback((field: keyof ListingDetails, value: string | boolean | string[] | { start?: string; end?: string }) => {
         onChange({ ...details, [field]: value });
@@ -215,18 +239,28 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 Opening Hours <span className="text-rose-500">*</span>
                 <span className="block text-xs text-gray-500 font-normal mt-0.5">Daily operating hours</span>
             </label>
-            <div className="md:col-span-2 grid grid-cols-2 gap-3">
+            <div className="md:col-span-2 flex items-center justify-between mb-2">
+                <div className="flex flex-col">
+                    <span className="text-sm font-medium">Open all day</span>
+                    <span className="text-xs text-gray-500">Enable if your space is open 24 hours on operational days</span>
+                </div>
+                <Switch
+                    checked={isOpenAllDay}
+                    onChange={handleOpenAllDayToggle}
+                />
+            </div>
+            <div className="md:col-start-2">
                 <Select
-                    options={timeOptions}
-                    value={timeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
+                    options={startTimeOptions}
+                    value={startTimeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
                     onChange={(sel) => {
                         const nextStart = sel?.value || "";
-                        const nextStartIdx = timeOptions.findIndex((t) => t.value === nextStart);
+                        const nextStartIdx = staticTimeOptions.findIndex((t) => t.value === nextStart);
                         const currentEnd = details.operationalHours.end || "";
-                        const currentEndIdx = timeOptions.findIndex((t) => t.value === currentEnd);
+                        const currentEndIdx = staticTimeOptions.findLastIndex((t) => t.value === currentEnd);
                         const nextEnd =
-                            nextStartIdx !== -1 && (currentEndIdx === -1 || currentEndIdx < nextStartIdx)
-                                ? timeOptions[nextStartIdx].value
+                            nextStartIdx !== -1 && (currentEndIdx === -1 || currentEndIdx <= nextStartIdx)
+                                ? staticTimeOptions[nextStartIdx + 1]?.value || currentEnd
                                 : currentEnd;
 
                         handleInputChange("operationalHours", {
@@ -235,8 +269,10 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                             end: nextEnd,
                         });
                     }}
+
                     placeholder="Start Time"
                     styles={customStyles}
+                    isDisabled={isOpenAllDay}
                     menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                     isSearchable={false}
                     menuPosition="fixed"
@@ -244,9 +280,15 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                     maxMenuHeight={250}
                     menuShouldScrollIntoView={false}
                 />
+            </div>
+            <div>
                 <Select
                     options={endTimeOptions}
-                    value={endTimeOptions.find((t) => t.value === (details.operationalHours.end || "")) || null}
+                    value={endTimeOptions.find((t, idx) => {
+                        // If it's open all day, we want the last 12:00 AM
+                        if (isOpenAllDay && t.value === "12:00 AM") return true;
+                        return t.value === (details.operationalHours.end || "");
+                    }) || null}
                     onChange={(sel) =>
                         handleInputChange("operationalHours", {
                             ...details.operationalHours,
@@ -255,6 +297,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                     }
                     placeholder="End Time"
                     styles={customStyles}
+                    isDisabled={isOpenAllDay}
                     menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                     isSearchable={false}
                     menuPosition="fixed"

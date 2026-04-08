@@ -185,7 +185,7 @@ export async function POST(request: Request) {
       const startTrimmed = start.trim();
       const endTrimmed = end.trim();
       const startIdx = TIME_SLOTS.indexOf(startTrimmed);
-      const endIdx = TIME_SLOTS.indexOf(endTrimmed);
+      const endIdx = TIME_SLOTS.lastIndexOf(endTrimmed);
       if (startIdx === -1 || endIdx === -1) {
         return createErrorResponse(
           `operationalHours must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`,

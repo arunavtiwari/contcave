@@ -75,21 +75,23 @@ function resolveOperationalRange(ops?: ReservationOperationalTimings) {
     const rawEnd = ops?.operationalHours?.end?.trim();
 
     const labelMinutes = TIME_SLOTS.map(ampmToMinutes);
-    const toMin = (s?: string): number | null => {
+    const toMin = (s?: string, useLast?: boolean): number | null => {
         if (!s) return null;
-        const idx = TIME_SLOTS.indexOf(to12hLabel(s));
-        if (idx >= 0) return labelMinutes[idx];
+        const searchLabel = to12hLabel(s);
+        const idx = useLast ? TIME_SLOTS.lastIndexOf(searchLabel) : TIME_SLOTS.indexOf(searchLabel);
+        if (idx >= 0) return useLast ? asEndOfDayMinutes(labelMinutes[idx]) : labelMinutes[idx];
         const m = toMinutes(s);
-        return Number.isNaN(m) ? null : m;
+        return Number.isNaN(m) ? null : (useLast ? asEndOfDayMinutes(m) : m);
     };
 
     const startMin = toMin(rawStart) ?? labelMinutes[0];
-    const endMin = toMin(rawEnd) ?? labelMinutes[labelMinutes.length - 1];
+    const endMin = toMin(rawEnd, true) ?? asEndOfDayMinutes(labelMinutes[labelMinutes.length - 1]);
 
     let startIdx = 0;
     while (startIdx < labelMinutes.length && labelMinutes[startIdx] < startMin) startIdx++;
     let endIdx = labelMinutes.length - 1;
-    while (endIdx >= 0 && labelMinutes[endIdx] > endMin) endIdx--;
+    // For endIdx boundary, we need to compare against the 'end-of-day' version of labelMinutes
+    while (endIdx >= 0 && asEndOfDayMinutes(labelMinutes[endIdx]) > endMin) endIdx--;
 
     if (endIdx < startIdx) {
         startIdx = 0;

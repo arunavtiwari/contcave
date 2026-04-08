@@ -131,7 +131,8 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       const startTrimmed = start.trim();
       const endTrimmed = end.trim();
       const startIdx = TIME_SLOTS.indexOf(startTrimmed);
-      const endIdx = TIME_SLOTS.indexOf(endTrimmed);
+      const endIdx = TIME_SLOTS.lastIndexOf(endTrimmed);
+
       if (startIdx === -1 || endIdx === -1) {
         return createErrorResponse(
           `operationalHours must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`,
