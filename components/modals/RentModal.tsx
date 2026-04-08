@@ -168,6 +168,7 @@ export default function RentModal() {
   } = useForm<RentModalFormValues>({
     resolver: zodResolver(listingSchema) as unknown as Resolver<RentModalFormValues>,
     mode: "onTouched",
+    shouldUnregister: false,
     defaultValues: {
       category: "",
       locationValue: "",
@@ -230,30 +231,7 @@ export default function RentModal() {
   }), [carpetArea, operationalDays, operationalHours, minimumBookingHours, maximumPax, instantBooking, type, hasSets]);
 
 
-  useEffect(() => {
-    register("terms");
-    register("category");
-    register("locationValue");
-    register("actualLocation");
-    register("imageSrc");
-    register("amenities");
-    register("otherAmenities");
-    register("addons");
-    register("operationalDays");
-    register("operationalHours");
-    register("minimumBookingHours");
-    register("maximumPax");
-    register("carpetArea");
-    register("type");
-    register("hasSets");
-    register("sets");
-    register("setsHaveSamePrice");
-    register("unifiedSetPrice");
-    register("additionalSetPricingType");
-    register("packages");
-    register("verifications");
-    register("agreementSignature");
-  }, [register]);
+  // Removed manual register useEffect. setValue automatically registers fields natively!
 
   useEffect(() => {
     const currentSets = Array.isArray(sets) ? sets : [];
@@ -418,6 +396,10 @@ export default function RentModal() {
     return true;
   }, [selectedAddons]);
 
+  const validateAmenitiesStep = useCallback(async () => {
+    return trigger(["amenities", "otherAmenities"]);
+  }, [trigger]);
+
   const validateOtherDetailsStep = useCallback(async () => {
     if (!listingDetails.carpetArea || listingDetails.carpetArea.trim() === "") {
       toast.error("Please enter carpet area");
@@ -452,8 +434,19 @@ export default function RentModal() {
       toast.error("End time cannot be earlier than start time");
       return false;
     }
-    return true;
-  }, [listingDetails]);
+
+    const isValid = await trigger([
+      "carpetArea",
+      "minimumBookingHours",
+      "maximumPax",
+      "type",
+      "instantBooking",
+      "hasSets",
+      "operationalDays",
+      "operationalHours"
+    ]);
+    return isValid;
+  }, [listingDetails, trigger]);
 
   const validateSetsStep = useCallback(async () => {
     if (hasSets) {
@@ -483,8 +476,8 @@ export default function RentModal() {
         return false;
       }
     }
-    return true;
-  }, [additionalSetPricingType, hasSets, sets, setsHaveSamePrice, unifiedSetPrice]);
+    return trigger(["sets", "hasSets", "setsHaveSamePrice", "unifiedSetPrice", "additionalSetPricingType"]);
+  }, [additionalSetPricingType, hasSets, sets, setsHaveSamePrice, unifiedSetPrice, trigger]);
 
   const validateVerificationStep = useCallback(async () => {
     const hasDocs = verifications?.documents && verifications.documents.length > 0;
@@ -492,8 +485,8 @@ export default function RentModal() {
       setVerificationError("Please upload verification documents");
       return false;
     }
-    return true;
-  }, [verifications]);
+    return trigger(["verifications"]);
+  }, [verifications, trigger]);
 
   const removeImage = useCallback((idx: number) => {
     setCustomValue(
@@ -755,6 +748,7 @@ export default function RentModal() {
         id: STEPS.AMENITIES,
         modalTitle: "List Your Space",
         actionLabel: "Next",
+        validate: validateAmenitiesStep,
         render: () => (
           <div className="flex flex-col gap-4">
             <Heading title="Amenities" subtitle="Select all available amenities" variant="h3" />
@@ -1292,8 +1286,9 @@ export default function RentModal() {
         onSubmit={() => {
           if (step === STEPS.TERMS) {
             handleSubmit(onSubmit, (errors) => {
-              console.error("Form validation errors:", errors);
-              toast.error("Please ensure all requirements in previous steps are correctly filled.");
+              const errorKeys = Object.entries(errors).map(([k, v]) => `${k}: ${v?.message}`);
+              console.error("Form validation errors:", errorKeys);
+              toast.error(`Validation failed on: ${errorKeys.join(', ')}. Please go back and fix these fields.`);
             })();
           } else {
             onNext();
@@ -1346,6 +1341,7 @@ export default function RentModal() {
         onClose={() => { setShowSuccessModal(false); }}
         onSubmit={() => { setShowSuccessModal(false); }}
         title="Listing Submitted 🎉"
+        customHeight="h-auto"
         actionLabel="Close"
         body={
           <div className="flex flex-col gap-3 text-gray-700 text-center">

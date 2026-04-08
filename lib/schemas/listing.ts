@@ -120,8 +120,9 @@ export const listingSchema = z.object({
     additionalSetPricingType: z.enum(["FIXED", "HOURLY"]).nullable().optional(),
     packages: z.array(packageSchema).optional(),
 
-
     addons: z.unknown().optional(),
+    verifications: z.unknown().optional().nullable(),
+    agreementSignature: z.unknown().optional().nullable(),
 }).refine((data) => {
     if (data.hasSets) {
         if (!data.sets || data.sets.length < 2) {
