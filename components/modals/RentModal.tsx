@@ -1286,9 +1286,11 @@ export default function RentModal() {
         onSubmit={() => {
           if (step === STEPS.TERMS) {
             handleSubmit(onSubmit, (errors) => {
-              const errorKeys = Object.entries(errors).map(([k, v]) => `${k}: ${v?.message}`);
-              console.error("Form validation errors:", errorKeys);
-              toast.error(`Validation failed on: ${errorKeys.join(', ')}. Please go back and fix these fields.`);
+              if (errors.terms || !signature?.url) {
+                toast.error("Please accept the terms and conditions and provide your signature");
+              } else {
+                toast.error("Please ensure all requirements in previous steps are correctly filled.");
+              }
             })();
           } else {
             onNext();
