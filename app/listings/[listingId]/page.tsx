@@ -4,7 +4,9 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListingById from "@/app/actions/getListingById";
 import getReservation from "@/app/actions/getReservations";
 import EmptyState from "@/components/EmptyState";
+import { Suspense } from "react";
 import ListingClient from "@/components/ListingClient";
+import ListingSkeleton from "@/components/listing/ListingSkeleton";
 import prisma from "@/lib/prismadb";
 import { absoluteUrl, BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
@@ -111,7 +113,7 @@ export async function generateMetadata({
   };
 }
 
-const ListingPage = async (props: { params: Promise<RouteParams> }) => {
+const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
   const params = await props.params;
   const listing = await getListingById(params);
   const reservations = await getReservation(params);
@@ -324,24 +326,30 @@ const ListingPage = async (props: { params: Promise<RouteParams> }) => {
   };
 
   return (
-    <main>
-      <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd).replace(/</g, '\\u003c') }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
-        />
-        <ListingClient
-          listing={listing}
-          currentUser={currentUser}
-          reservations={reservations}
-        />
-      </>
-    </main>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd).replace(/</g, '\\u003c') }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
+      />
+      <ListingClient
+        listing={listing}
+        currentUser={currentUser}
+        reservations={reservations}
+      />
+    </>
   );
 };
 
-export default ListingPage;
+export default function ListingPage(props: { params: Promise<RouteParams> }) {
+  return (
+    <main>
+      <Suspense fallback={<ListingSkeleton />}>
+        <ListingPageData params={props.params} />
+      </Suspense>
+    </main>
+  );
+}

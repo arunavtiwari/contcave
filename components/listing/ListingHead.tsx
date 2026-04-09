@@ -144,7 +144,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
         </div>
       ) : (
         <>
-          <div className="hidden lg:grid lg:grid-cols-2 gap-2 mt-4">
+          <div className="hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
             <div className="relative h-113.75 cursor-pointer" onClick={() => handleImageClick(0)}>
               {imageSrc[0] && (
                 <Image
@@ -157,9 +157,9 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
               )}
             </div>
 
-            <div className="grid grid-rows-2 grid-cols-2 gap-2 h-113.75">
+            <div className="grid grid-rows-2 grid-cols-2 gap-1 h-113.75">
               {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
-              {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-r-lg")}
+              {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-tr-lg")}
               {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
               {imageSrc[4] && (
                 <div className="relative w-full h-full">
@@ -168,7 +168,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
                     alt="image-4"
                     fill
                     onLoadingComplete={() => handleImageLoad(4)}
-                    className={`object-cover rounded-r-lg hover:brightness-90 ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+                    className={`object-cover rounded-br-lg hover:brightness-90 ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
                     onClick={() => handleImageClick(4)}
                   />
                   <button
