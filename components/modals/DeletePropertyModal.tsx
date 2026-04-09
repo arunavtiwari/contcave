@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect,useState } from "react";
 import { IoWarningOutline } from "react-icons/io5";
 
 import Modal from "./Modal";

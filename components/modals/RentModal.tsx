@@ -158,7 +158,6 @@ export default function RentModal() {
 
   const {
     register,
-    getValues,
     setValue,
     watch,
     handleSubmit,
@@ -1022,6 +1021,7 @@ export default function RentModal() {
       validateVerificationStep,
       validatePackagesStep,
       validateCustomTermsStep,
+      validateAmenitiesStep,
       verificationError,
       verifications,
       watch,

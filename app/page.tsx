@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import CTA from "@/components/CTA";
 import FAQ from "@/components/FAQ";
-
 import Feature from "@/components/Features";
 import FeaturesTab from "@/components/FeaturesTab";
 import Footer from "@/components/Footer";

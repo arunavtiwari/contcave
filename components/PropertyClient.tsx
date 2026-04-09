@@ -131,8 +131,9 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             toast.info("Property deleted successfully", { toastId: "Listing_Deleted" });
             router.push("/properties");
             router.refresh();
-        } catch (error: any) {
-            toast.error(error?.response?.data?.error || "Failed to delete property", { toastId: "Property_Delete_Error_1" });
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { error?: string } } };
+            toast.error(err?.response?.data?.error || "Failed to delete property", { toastId: "Property_Delete_Error_1" });
         } finally {
             setIsDeleting(false);
             setIsDeleteModalOpen(false);
