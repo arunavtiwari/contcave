@@ -2,15 +2,9 @@ import bcrypt from "bcryptjs";
 import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { normalizePhone } from "@/lib/phone";
 import prisma from "@/lib/prismadb";
-import { ownerRegisterSchema,registerSchema } from "@/lib/schemas/auth";
-
-function normalizePhone(phone?: string | null): string | null {
-  if (!phone) return null;
-  const digits = phone.replace(/\D/g, "");
-  const stripped = digits.startsWith("91") && digits.length === 12 ? digits.slice(2) : digits;
-  return stripped.length === 10 ? stripped : null;
-}
+import { ownerRegisterSchema, registerSchema } from "@/lib/schemas/auth";
 
 export async function POST(request: NextRequest) {
   try {

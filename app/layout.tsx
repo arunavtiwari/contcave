@@ -20,6 +20,7 @@ import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import NextAuthProvider from "@/components/providers/NextAuthProvider";
 import ScrollToTop from "@/components/ScrollToTop";
 import ToastContainerBar from "@/components/ToastContainerBar";
+import { safeJsonLd } from "@/lib/safeJsonLd";
 import {
   BRAND_DESCRIPTION,
   BRAND_NAME,
@@ -214,7 +215,7 @@ export default async function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]).replace(/</g, '\\u003c'),
+            __html: safeJsonLd([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]),
           }}
         />
         {process.env.NODE_ENV === "production" && process.env.META_PIXEL_ID && (

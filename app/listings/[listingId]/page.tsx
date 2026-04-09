@@ -8,6 +8,7 @@ import EmptyState from "@/components/EmptyState";
 import ListingSkeleton from "@/components/listing/ListingSkeleton";
 import ListingClient from "@/components/ListingClient";
 import prisma from "@/lib/prismadb";
+import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -329,11 +330,11 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd).replace(/</g, '\\u003c') }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(eventVenueJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <ListingClient
         listing={listing}

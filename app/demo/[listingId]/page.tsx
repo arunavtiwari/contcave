@@ -7,6 +7,7 @@ import getReservation from "@/app/actions/getReservations";
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 import ListingClient from "@/components/ListingClient";
+import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ type RouteParams = { listingId?: string };
 const asciiClean = (value: string | string[] | undefined | null): string | undefined => {
   const source = Array.isArray(value) ? value.join(" ") : value;
   return source
-    ?.replace(/<[^>]*>?/gm, " ") 
+    ?.replace(/<[^>]*>?/gm, " ")
     .replace(/&#?[a-z0-9]+;/ig, " ")
     .replace(/[^\x20-\x7E]+/g, " ")
     .replace(/\s+/g, " ")
@@ -124,7 +125,7 @@ const DemoListingPage = async ({ params }: { params: Promise<RouteParams> }) => 
       <>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventVenueJsonLd).replace(/</g, '\\u003c') }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(eventVenueJsonLd) }}
         />
         <div className="relative">
           <div className="absolute top-3 right-3 left-3 sm:left-auto sm:top-4 sm:right-4 

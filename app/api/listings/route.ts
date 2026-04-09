@@ -2,6 +2,7 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { generateUniqueSlug } from "@/lib/slug";
 import { sanitizeStringList } from "@/lib/strings/sanitizeStringList";
 
 
@@ -211,15 +212,7 @@ export async function POST(request: Request) {
 
     }
 
-    const generateSlug = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-    let baseSlug = generateSlug(trimmedTitle);
-    if (!baseSlug) baseSlug = "listing";
-    let newSlug = baseSlug;
-    let counter = 1;
-    while (await prisma.listing.findFirst({ where: { slug: newSlug } })) {
-      newSlug = `${baseSlug}-${counter}`;
-      counter++;
-    }
+    const newSlug = await generateUniqueSlug(trimmedTitle);
     if (Array.isArray(addons) && addons.length > 0) {
       for (let i = 0; i < addons.length; i++) {
         const addon = addons[i] as { name?: unknown; price?: unknown; qty?: unknown };

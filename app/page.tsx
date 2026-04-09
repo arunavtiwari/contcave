@@ -8,6 +8,7 @@ import FeaturesTab from "@/components/FeaturesTab";
 import Footer from "@/components/Footer";
 import FunFact from "@/components/FunFact";
 import Hero from "@/components/Hero";
+import { safeJsonLd } from "@/lib/safeJsonLd";
 import {
   absoluteUrl,
   BRAND_NAME,
@@ -101,7 +102,7 @@ export default async function Home() {
       <main>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd).replace(/</g, '\\u003c') }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(homeJsonLd) }}
         />
         <Hero />
         <Feature />

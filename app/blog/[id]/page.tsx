@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 
 import { getPostData, getSortedPostsData } from "@/lib/posts";
+import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 const FALLBACK_DESCRIPTION =
@@ -120,7 +121,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
     <article className="max-w-3xl mx-auto px-4 py-8 select-text!">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, '\\u003c') }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(articleJsonLd) }}
       />
 
       <h1 className="text-4xl font-extrabold mb-4">{post.title}</h1>
