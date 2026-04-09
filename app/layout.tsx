@@ -14,7 +14,8 @@ import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
 import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
-import Navbar from "@/components/navbar/Navbar";
+import { Suspense } from "react";
+import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import ScrollToTop from "@/components/ScrollToTop";
 import ToastContainerBar from "@/components/ToastContainerBar";
 import {
@@ -26,7 +27,6 @@ import {
   SITE_URL,
 } from "@/lib/seo";
 
-import getCurrentUser from "./actions/getCurrentUser";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -205,14 +205,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let currentUser = null;
-  try {
-    currentUser = await getCurrentUser();
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[RootLayout] Error getting current user:', error);
-    }
-  }
 
   return (
     <html lang="en">
@@ -264,8 +256,10 @@ export default async function RootLayout({
 
       </head>
       <body className={font.className}>
-        <Navbar currentUser={currentUser} />
-        {process.env.NODE_ENV === "production" && <MetaPixelTracker />}
+        <NavbarWrapper />
+        <Suspense fallback={null}>
+          {process.env.NODE_ENV === "production" && <MetaPixelTracker />}
+        </Suspense>
         <ClientOnly>
           <ToastContainerBar />
           <SearchModal />
