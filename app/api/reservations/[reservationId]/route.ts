@@ -158,8 +158,8 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       data: updateData,
     });
 
-    // Fire-and-forget WhatsApp notification on host approval or customer cancellation
-    if (updateData.isApproved === 1 || updateData.isApproved === 3) {
+    // Fire-and-forget WhatsApp notification on host approval, rejection, or customer cancellation
+    if (updateData.isApproved === 1 || updateData.isApproved === 0 || updateData.isApproved === 3) {
       (async () => {
         try {
           const resv = await prisma.reservation.findUnique({
@@ -193,7 +193,19 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
             }
           }
 
-          // Case 2: Customer cancels their own booking -> Notify host
+          // Case 2: Host rejects the booking -> Notify customer
+          if (updateData.isApproved === 0) {
+            const customerPhone = resv.user?.phone;
+            if (customerPhone) {
+              await WhatsappService.sendBookingRejectedCustomer(customerPhone, {
+                customerName: resv.user?.name || "Customer",
+                listingTitle: resv.listing?.title || "Studio",
+                rejectReason: (updateData.rejectReason as string) ?? "Not specified",
+              }).catch(() => { });
+            }
+          }
+
+          // Case 3: Customer cancels their own booking -> Notify host
           if (updateData.isApproved === 3 && resv.userId === currentUser.id) {
             const hostPhone = resv.listing?.user?.phone;
             if (hostPhone) {
@@ -202,7 +214,6 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
                 customerName: resv.user?.name || "Customer",
                 listingTitle: resv.listing?.title || "Studio",
                 startDate: startDateStr,
-                // Time is not passed in the template anymore
               }).catch(() => { });
             }
           }
