@@ -1,6 +1,6 @@
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 
-import Heading from "../ui/Heading";
+
 
 export default function ListingHeadSkeleton() {
     return (

@@ -284,7 +284,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             <div>
                 <Select
                     options={endTimeOptions}
-                    value={endTimeOptions.find((t, idx) => {
+                    value={endTimeOptions.find((t) => {
                         // If it's open all day, we want the last 12:00 AM
                         if (isOpenAllDay && t.value === "12:00 AM") return true;
                         return t.value === (details.operationalHours.end || "");

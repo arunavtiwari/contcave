@@ -1,5 +1,5 @@
-import axios, { AxiosError } from "axios";
 import type { AxiosInstance } from "axios";
+import axios, { AxiosError } from "axios";
 
 /* ------------------------------------------------------------------ */
 /*  Constants & Config                                                 */

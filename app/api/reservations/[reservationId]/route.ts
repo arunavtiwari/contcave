@@ -1,7 +1,8 @@
+import { formatInTimeZone } from "date-fns-tz";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { formatInTimeZone } from "date-fns-tz";
 import { WhatsappService } from "@/lib/whatsapp/service";
 
 interface IParams {
@@ -180,8 +181,12 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
           if (updateData.isApproved === 1) {
             const customerPhone = resv.user?.phone;
             if (customerPhone) {
+              interface ActualLocation {
+                display_name?: string;
+              }
+              const location = resv.listing?.actualLocation as unknown as ActualLocation;
               const locationLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                (resv.listing?.actualLocation as any)?.display_name || ""
+                location?.display_name || ""
               )}`;
               await WhatsappService.sendBookingConfirmedCustomer(customerPhone, {
                 customerName: resv.user?.name || "Customer",
