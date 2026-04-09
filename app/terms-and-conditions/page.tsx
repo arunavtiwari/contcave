@@ -48,11 +48,11 @@ export const metadata: Metadata = {
 
 const TermsAndConditions = () => {
     return (
-        <>
+        <main>
             <div className="relative h-64 w-full">
                 <Image
-                    src="/assets/footer-banner.jpg"
-                    alt="Banner Image"
+                    src="/assets/banner.jpg"
+                    alt="ContCave Terms and Conditions"
                     fill
                     className="object-cover"
                     priority
@@ -151,7 +151,7 @@ const TermsAndConditions = () => {
                     </div>
                 </div>
             </Container>
-        </>
+        </main>
     );
 };
 

@@ -3,12 +3,10 @@ import getAddons from '@/app/actions/getAddons';
 import getAmenities from '@/app/actions/getAmenities';
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import getListingById from '@/app/actions/getListingById';
-import ClientOnly from '@/components/ClientOnly';
 import EmptyState from '@/components/EmptyState';
 import PropertyClient from '@/components/PropertyClient';
 export const dynamic = "force-dynamic"
 import type { Metadata } from 'next';
-import React from 'react';
 
 export const metadata: Metadata = {
   title: "Manage Property",
@@ -33,24 +31,14 @@ const EditPropertyComponent = async (props: { params: Promise<IParams> }) => {
   const addonsData = await getAddons();
 
   if (!listing) {
-    return (
-      <ClientOnly>
-        <EmptyState />
-      </ClientOnly>
-    );
+    return <EmptyState />;
   }
   if (!currentUser) {
-    return (
-      <ClientOnly>
-        <EmptyState title="Unauthorized" subtitle="Please login" />
-      </ClientOnly>
-    );
+    return <EmptyState title="Unauthorized" subtitle="Please login" />;
   }
   return (
     <Container>
-      <ClientOnly>
-        <PropertyClient listing={listing} predefinedAmenities={amenitiesData} predefinedAddons={addonsData}></PropertyClient>
-      </ClientOnly>
+      <PropertyClient listing={listing} predefinedAmenities={amenitiesData} predefinedAddons={addonsData}></PropertyClient>
     </Container>
   );
 };

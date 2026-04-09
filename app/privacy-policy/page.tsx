@@ -4,7 +4,7 @@ import Image from "next/image";
 import Container from "@/components/Container";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+
 
 const DESCRIPTION =
   "Learn how ContCave collects, uses, and protects personal data in line with Indian IT Act and SPDI Rules." as const;
@@ -52,12 +52,12 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <>
+    <main>
 
       <div className="relative h-64 w-full">
         <Image
-          src="/assets/footer-banner.jpg"
-          alt="Banner Image"
+          src="/assets/banner.jpg"
+          alt="ContCave Privacy Policy"
           fill
           className="object-cover"
           priority
@@ -188,6 +188,6 @@ export default function PrivacyPolicyPage() {
           </div>
         </div>
       </Container>
-    </>
+    </main>
   );
 }

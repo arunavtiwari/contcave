@@ -104,7 +104,7 @@ function ImageUpload({
       className={`relative cursor-pointer hover:bg-neutral-50 transition border-dashed flex flex-col justify-center items-center text-neutral-600 ${circle ? "rounded-full" : "rounded-xl"
         } ${circle
           ? "w-full h-full"
-          : className || "w-32 h-32 p-4 border-2 border-neutral-300"
+          : className || "w-32 h-32 p-4 border border-neutral-300"
         }`}
     >
       {uploading ? (

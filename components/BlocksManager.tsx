@@ -29,6 +29,11 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
     const [blocks, setBlocks] = useState<ListingBlock[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
 
     const [newBlock, setNewBlock] = useState({
@@ -91,6 +96,8 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
         label: s.name,
     }));
 
+    if (!mounted) return null;
+
     return (
         <div className="space-y-8">
             <div className="bg-neutral-50 p-6 rounded-2xl border border-neutral-200">
@@ -123,8 +130,8 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                                 onChange={(e) => setNewBlock({ ...newBlock, startTime: e.target.value })}
                                 className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10"
                             >
-                                {TIME_SLOTS.map((t) => (
-                                    <option key={t} value={t}>{t}</option>
+                                {TIME_SLOTS.map((t, idx) => (
+                                    <option key={`start-${t}-${idx}`} value={t}>{t}</option>
                                 ))}
                             </select>
                         </div>
@@ -138,8 +145,8 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                                 onChange={(e) => setNewBlock({ ...newBlock, endTime: e.target.value })}
                                 className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10"
                             >
-                                {TIME_SLOTS.map((t) => (
-                                    <option key={t} value={t}>{t}</option>
+                                {TIME_SLOTS.map((t, idx) => (
+                                    <option key={`end-${t}-${idx}`} value={t}>{t}</option>
                                 ))}
                             </select>
                         </div>

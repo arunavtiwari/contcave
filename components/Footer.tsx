@@ -59,27 +59,32 @@ function Footer() {
 
           <div className="flex flex-col space-y-2">
             <p className="text-xl font-bold text-black">Support</p>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Help Center</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Guidelines</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">FAQ</a>
+            <Link href="/about" className="text-btndark/80 hover:text-black transition-all">Help Center</Link>
+            <Link href="/cancellation" className="text-btndark/80 hover:text-black transition-all">Cancellation Policy</Link>
+            <a href="mailto:info@contcave.com" className="text-btndark/80 hover:text-black transition-all">Contact Us</a>
           </div>
 
           <div className="flex flex-col space-y-2">
             <p className="text-xl font-bold text-black">Activities</p>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Photo Shoot</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Filming Content</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Pre-Wedding Shoot</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Outdoor Event</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Podcasts</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Party</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Meetings</a>
+            <Link href="/home?category=Photography" className="text-btndark/80 hover:text-black transition-all">Photo Shoot</Link>
+            <Link href="/home?category=Filming" className="text-btndark/80 hover:text-black transition-all">Filming Content</Link>
+            <Link href="/home?category=Pre-Wedding" className="text-btndark/80 hover:text-black transition-all">Pre-Wedding Shoot</Link>
+            <Link href="/home?category=Outdoor" className="text-btndark/80 hover:text-black transition-all">Outdoor Event</Link>
+            <Link href="/home?category=Podcast" className="text-btndark/80 hover:text-black transition-all">Podcasts</Link>
+            <Link href="/home?category=Party" className="text-btndark/80 hover:text-black transition-all">Party</Link>
+            <Link href="/home?category=Meeting" className="text-btndark/80 hover:text-black transition-all">Meetings</Link>
           </div>
 
           <div className="flex flex-col space-y-2">
-            <p className="text-xl font-bold text-black">Cities</p>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Delhi</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Mumbai</a>
-            <a href="#" className="text-btndark/80 hover:text-black transition-all">Kolkata</a>
+            <p className="text-xl font-bold text-black">Across India</p>
+            <div className="grid grid-cols-1 gap-2">
+              <Link href="/home?locationValue=Delhi" className="text-btndark/80 hover:text-black transition-all">Delhi NCR</Link>
+              <Link href="/home?locationValue=Mumbai" className="text-btndark/80 hover:text-black transition-all">Mumbai</Link>
+              <Link href="/home?locationValue=Bangalore" className="text-btndark/80 hover:text-black transition-all">Bangalore</Link>
+              <Link href="/home?locationValue=Kolkata" className="text-btndark/80 hover:text-black transition-all">Kolkata</Link>
+              <Link href="/home?locationValue=Hyderabad" className="text-btndark/80 hover:text-black transition-all">Hyderabad</Link>
+              <Link href="/home" className="text-btndark/80 hover:text-black transition-all font-semibold italic">View All Cities</Link>
+            </div>
           </div>
         </div>
       </div>

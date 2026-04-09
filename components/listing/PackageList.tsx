@@ -8,6 +8,7 @@ interface Props {
   packages: Package[];
   onSelect?: (pkg: Package | null) => void;
   selectedPackageId?: string | null;
+  isMultiSets?: boolean;
 }
 
 const INR = new Intl.NumberFormat("en-IN", {
@@ -16,7 +17,7 @@ const INR = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
 });
 
-export default function PackageList({ packages, onSelect, selectedPackageId }: Props) {
+export default function PackageList({ packages, onSelect, selectedPackageId, isMultiSets = false }: Props) {
 
   const handleSelect = (pkg: Package) => {
     if (selectedPackageId === pkg.id) {
@@ -75,10 +76,9 @@ export default function PackageList({ packages, onSelect, selectedPackageId }: P
 
                   {pkg.features?.length > 0 && (
                     <ul className="mt-2 flex flex-col gap-1 text-neutral-600 list-disc list-inside text-sm">
-                      {pkg.features.slice(0, 3).map((f, i) => (
+                      {pkg.features.map((f, i) => (
                         <li key={i}>{f}</li>
                       ))}
-                      {pkg.features.length > 3 && <li>+ {pkg.features.length - 3} more</li>}
                     </ul>
                   )}
 
@@ -86,15 +86,23 @@ export default function PackageList({ packages, onSelect, selectedPackageId }: P
                     <span className="font-medium text-neutral-700">
                       Duration: {pkg.durationHours} hr{pkg.durationHours > 1 ? "s" : ""}
                     </span>
-                    <span className="font-black text-xl leading-none text-black">•</span>
-                    <span className="text-neutral-600">
-                      {pkg.requiredSetCount || 0} sets included
-                    </span>
+
+                    {(isMultiSets && pkg.requiredSetCount && pkg.requiredSetCount > 0) ? (
+                      <>
+                        <span className="font-black text-xl leading-none text-neutral-300">•</span>
+                        <span className="text-neutral-600">
+                          {pkg.requiredSetCount} sets included
+                        </span>
+                      </>
+                    ) : null}
 
                     {(pkg.fixedAddOn || 0) > 0 && (
-                      <span className="text-green-600 font-medium">
-                        + {INR.format(pkg.fixedAddOn || 0)} flat fee
-                      </span>
+                      <>
+                        <span className="font-black text-xl leading-none text-neutral-300">•</span>
+                        <span className="text-green-600 font-medium">
+                          + {INR.format(pkg.fixedAddOn || 0)} flat fee
+                        </span>
+                      </>
                     )}
                   </div>
                 </div>

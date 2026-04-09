@@ -22,6 +22,7 @@ interface TimeSlotPickerProps {
 }
 
 import { TIME_SLOTS } from "@/constants/timeSlots";
+import { asEndOfDayMinutes } from "@/lib/scheduling";
 
 const ampmToMinutes = (label: string): number => {
     const m = label.match(/^(\d{1,2}):([0-5]\d)\s*(AM|PM)$/i);
@@ -74,21 +75,23 @@ function resolveOperationalRange(ops?: ReservationOperationalTimings) {
     const rawEnd = ops?.operationalHours?.end?.trim();
 
     const labelMinutes = TIME_SLOTS.map(ampmToMinutes);
-    const toMin = (s?: string): number | null => {
+    const toMin = (s?: string, useLast?: boolean): number | null => {
         if (!s) return null;
-        const idx = TIME_SLOTS.indexOf(to12hLabel(s));
-        if (idx >= 0) return labelMinutes[idx];
+        const searchLabel = to12hLabel(s);
+        const idx = useLast ? TIME_SLOTS.lastIndexOf(searchLabel) : TIME_SLOTS.indexOf(searchLabel);
+        if (idx >= 0) return useLast ? asEndOfDayMinutes(labelMinutes[idx]) : labelMinutes[idx];
         const m = toMinutes(s);
-        return Number.isNaN(m) ? null : m;
+        return Number.isNaN(m) ? null : (useLast ? asEndOfDayMinutes(m) : m);
     };
 
     const startMin = toMin(rawStart) ?? labelMinutes[0];
-    const endMin = toMin(rawEnd) ?? labelMinutes[labelMinutes.length - 1];
+    const endMin = toMin(rawEnd, true) ?? asEndOfDayMinutes(labelMinutes[labelMinutes.length - 1]);
 
     let startIdx = 0;
     while (startIdx < labelMinutes.length && labelMinutes[startIdx] < startMin) startIdx++;
     let endIdx = labelMinutes.length - 1;
-    while (endIdx >= 0 && labelMinutes[endIdx] > endMin) endIdx--;
+    // For endIdx boundary, we need to compare against the 'end-of-day' version of labelMinutes
+    while (endIdx >= 0 && asEndOfDayMinutes(labelMinutes[endIdx]) > endMin) endIdx--;
 
     if (endIdx < startIdx) {
         startIdx = 0;
@@ -114,7 +117,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
         const out: Array<{ s: number; e: number }> = [];
         for (let i = 0; i < n; i++) {
             const s = toMinutes(disabledStartTimes[i]);
-            const e = toMinutes(disabledEndTimes[i]);
+            const e = asEndOfDayMinutes(toMinutes(disabledEndTimes[i]));
             if (!Number.isNaN(s) && !Number.isNaN(e) && s < e) out.push({ s, e });
         }
         return out;
@@ -144,7 +147,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     const violatesEndRequirement = useCallback(
         (label: TimeLabel): boolean => {
             if (activeSegment !== "end" || !normStart) return false;
-            const endM = toMinutes(label);
+            const endM = asEndOfDayMinutes(toMinutes(label));
             const startM = toMinutes(normStart);
             if (Number.isNaN(endM) || Number.isNaN(startM)) return false;
             return endM < startM + Math.max(0, minBookingMinutes);
@@ -159,7 +162,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
             if (activeSegment === "start") {
                 if (normEnd) {
                     const startM = toMinutes(normalized);
-                    const endM = toMinutes(normEnd);
+                    const endM = asEndOfDayMinutes(toMinutes(normEnd));
                     if (!Number.isNaN(startM) && !Number.isNaN(endM) && endM < startM + minBookingMinutes) {
                         onTimeSelect(null, "end");
                     }

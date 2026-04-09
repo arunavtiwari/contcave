@@ -93,6 +93,20 @@ function ListingInfo({
   const coordinates = getByValue(locationValue)?.latlng;
 
   const getValidCenter = useCallback((): number[] | undefined => {
+    // Prefer privacy-safe jittered latlng if available
+    if (
+      fullListing.actualLocation &&
+      Array.isArray(fullListing.actualLocation.latlng) &&
+      fullListing.actualLocation.latlng.length >= 2 &&
+      typeof fullListing.actualLocation.latlng[0] === 'number' &&
+      typeof fullListing.actualLocation.latlng[1] === 'number' &&
+      Number.isFinite(fullListing.actualLocation.latlng[0]) &&
+      Number.isFinite(fullListing.actualLocation.latlng[1])
+    ) {
+      return [fullListing.actualLocation.latlng[0], fullListing.actualLocation.latlng[1]];
+    }
+
+    // Fallback to exact lat/lng (for legacy listings before jittering was introduced)
     if (fullListing.actualLocation &&
       typeof fullListing.actualLocation.lat === 'number' &&
       typeof fullListing.actualLocation.lng === 'number' &&
@@ -100,6 +114,8 @@ function ListingInfo({
       Number.isFinite(fullListing.actualLocation.lng)) {
       return [fullListing.actualLocation.lat, fullListing.actualLocation.lng];
     }
+
+    // Fallback to coordinates based on locationValue string
     if (Array.isArray(coordinates) &&
       coordinates.length >= 2 &&
       typeof coordinates[0] === 'number' &&
@@ -124,14 +140,13 @@ function ListingInfo({
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
 
-  const shouldTruncate = useMemo(() => {
-    if (typeof window === "undefined") return false;
+  const [shouldTruncate, setShouldTruncate] = useState(false);
 
+  useEffect(() => {
     const temp = document.createElement("div");
     temp.innerHTML = description || "";
     const text = temp.textContent || temp.innerText || "";
-
-    return text.length > 250;
+    setShouldTruncate(text.length > 250);
   }, [description]);
 
   useEffect(() => {
@@ -259,7 +274,7 @@ function ListingInfo({
           <Avatar src={user?.image} />
         </div>
         {fullListing.avgReviewRating && fullListing.avgReviewRating !== 0 && (
-          <div className="font-semibold text-lg flex items-center gap-1.5 leading-[18px]">
+          <div className="font-semibold text-lg flex items-center gap-1.5 leading-4.5">
             <FaStar size={20} color="gold" /> {fullListing.avgReviewRating?.toFixed(1)}
           </div>
         )}
@@ -299,7 +314,7 @@ function ListingInfo({
         <div
           className={`prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1
           prose-strong:text-black prose-headings:text-black
-          transition-all duration-300 ${!isExpanded ? "max-h-[160px] overflow-hidden relative" : ""
+          transition-all duration-300 ${!isExpanded ? "max-h-40 overflow-hidden relative" : ""
             }`}
         >
           <div
@@ -309,7 +324,7 @@ function ListingInfo({
           />
 
           {!isExpanded && shouldTruncate && (
-            <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-gradient-to-t from-white to-transparent" />
+            <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-linear-to-t from-white to-transparent" />
           )}
         </div>
 
@@ -352,6 +367,7 @@ function ListingInfo({
               onPackageSelect?.(pkg ?? null);
             }}
             selectedPackageId={selectedPackage?.id}
+            isMultiSets={fullListing.hasSets}
           />
           <hr />
         </>
@@ -476,7 +492,7 @@ function ListingInfo({
                       id="review-comment"
                       value={review.comment}
                       onChange={(e) => setReview({ ...review, comment: e.target.value })}
-                      className="min-h-[120px] border-0 focus:ring-0 p-0"
+                      className="min-h-30 border-0 focus:ring-0 p-0"
                       placeholder="Write your message"
                     />
                     <div className="w-4 h-4">
@@ -530,7 +546,7 @@ function ListingInfo({
       <div className="flex flex-col gap-4">
         <p className="text-xl font-semibold">Cancellation Policy</p>
         <p className="flex flex-wrap">
-          Full refund for cancellations made at least 48 hours before the scheduled booking, partial refund for cancellations made
+          Full refund for cancellations made at least 72 hours before the scheduled booking, partial refund for cancellations made
           between 24 and 48 hours before the scheduled booking, and no refund for cancellations made within 24 hours of the scheduled booking.
         </p>
 

@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { cfSplitBaseURL } from "@/lib/cashfree/cashfree";
+import { getFixieProxyAgent } from "@/lib/fixie-proxy";
 
 
 export async function POST(req: NextRequest) {
@@ -71,6 +72,7 @@ export async function POST(req: NextRequest) {
     }
 
     const url = `${cfSplitBaseURL()}/vendors`;
+    const httpsAgent = getFixieProxyAgent();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -83,10 +85,11 @@ export async function POST(req: NextRequest) {
           status: 'ACTIVE',
           email: body.email,
           phone: body.phone,
-          bank:{
-          account_holder: String(account_holder.trim()),
-          account_number: String(cleanedAccountNumber),
-          ifsc: upperIfsc},
+          bank: {
+            account_holder: String(account_holder.trim()),
+            account_number: String(cleanedAccountNumber),
+            ifsc: upperIfsc
+          },
           verify_account: true,
           dashboard_access: false,
           kyc_details: body.kyc_details
@@ -98,6 +101,7 @@ export async function POST(req: NextRequest) {
             "x-client-secret": secret,
             "x-api-version": "2023-08-01",
           },
+          httpsAgent,
           signal: controller.signal,
           timeout: 30000,
         }

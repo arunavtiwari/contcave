@@ -217,8 +217,9 @@ export async function proxy(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
     try {
-        // Rate limit first
-        const rl = checkRateLimit(ip)
+        // Rate limit first (skip in development to avoid blocking during hot-reload)
+        const isDev = process.env.NODE_ENV !== 'production'
+        const rl = isDev ? { allowed: true, remaining: RATE_LIMIT.maxRequests, resetTime: Date.now() + RATE_LIMIT.windowMs } : checkRateLimit(ip)
         if (!rl.allowed) {
             logSecurityEvent('rate_limit', { path: pathname, method, ip, userAgent })
 

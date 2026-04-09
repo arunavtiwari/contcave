@@ -137,6 +137,7 @@ export default function RentModal() {
 
   const [step, setStep] = useState(STEPS.CATEGORY);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [amenities, setAmenities] = useState<Amenities[]>([]);
   const [addons, setAddons] = useState<Addon[]>([]);
   const [, setAgreementPdf] = useState<unknown>(null);
@@ -160,12 +161,14 @@ export default function RentModal() {
     getValues,
     setValue,
     watch,
+    handleSubmit,
     formState: { errors },
     reset,
     trigger,
   } = useForm<RentModalFormValues>({
     resolver: zodResolver(listingSchema) as unknown as Resolver<RentModalFormValues>,
     mode: "onTouched",
+    shouldUnregister: false,
     defaultValues: {
       category: "",
       locationValue: "",
@@ -228,30 +231,7 @@ export default function RentModal() {
   }), [carpetArea, operationalDays, operationalHours, minimumBookingHours, maximumPax, instantBooking, type, hasSets]);
 
 
-  useEffect(() => {
-    register("terms");
-    register("category");
-    register("locationValue");
-    register("actualLocation");
-    register("imageSrc");
-    register("amenities");
-    register("otherAmenities");
-    register("addons");
-    register("operationalDays");
-    register("operationalHours");
-    register("minimumBookingHours");
-    register("maximumPax");
-    register("carpetArea");
-    register("type");
-    register("hasSets");
-    register("sets");
-    register("setsHaveSamePrice");
-    register("unifiedSetPrice");
-    register("additionalSetPricingType");
-    register("packages");
-    register("verifications");
-    register("agreementSignature");
-  }, [register]);
+  // Removed manual register useEffect. setValue automatically registers fields natively!
 
   useEffect(() => {
     const currentSets = Array.isArray(sets) ? sets : [];
@@ -370,6 +350,10 @@ export default function RentModal() {
       setAddressError("Please enter a complete address");
       return false;
     }
+    if (!actualLocation.latlng || !Array.isArray(actualLocation.latlng) || actualLocation.latlng.length !== 2) {
+      setAddressError("Please select a valid location using autocomplete to fetch map coordinates");
+      return false;
+    }
     return trigger("actualLocation");
   }, [actualLocation, trigger]);
 
@@ -412,6 +396,10 @@ export default function RentModal() {
     return true;
   }, [selectedAddons]);
 
+  const validateAmenitiesStep = useCallback(async () => {
+    return trigger(["amenities", "otherAmenities"]);
+  }, [trigger]);
+
   const validateOtherDetailsStep = useCallback(async () => {
     if (!listingDetails.carpetArea || listingDetails.carpetArea.trim() === "") {
       toast.error("Please enter carpet area");
@@ -436,7 +424,8 @@ export default function RentModal() {
       return false;
     }
     const startIdx = TIME_SLOTS.indexOf(start);
-    const endIdx = TIME_SLOTS.indexOf(end);
+    const endIdx = TIME_SLOTS.lastIndexOf(end);
+
     if (startIdx === -1 || endIdx === -1) {
       toast.error(`Opening hours must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`);
       return false;
@@ -445,8 +434,19 @@ export default function RentModal() {
       toast.error("End time cannot be earlier than start time");
       return false;
     }
-    return true;
-  }, [listingDetails]);
+
+    const isValid = await trigger([
+      "carpetArea",
+      "minimumBookingHours",
+      "maximumPax",
+      "type",
+      "instantBooking",
+      "hasSets",
+      "operationalDays",
+      "operationalHours"
+    ]);
+    return isValid;
+  }, [listingDetails, trigger]);
 
   const validateSetsStep = useCallback(async () => {
     if (hasSets) {
@@ -476,8 +476,8 @@ export default function RentModal() {
         return false;
       }
     }
-    return true;
-  }, [additionalSetPricingType, hasSets, sets, setsHaveSamePrice, unifiedSetPrice]);
+    return trigger(["sets", "hasSets", "setsHaveSamePrice", "unifiedSetPrice", "additionalSetPricingType"]);
+  }, [additionalSetPricingType, hasSets, sets, setsHaveSamePrice, unifiedSetPrice, trigger]);
 
   const validateVerificationStep = useCallback(async () => {
     const hasDocs = verifications?.documents && verifications.documents.length > 0;
@@ -485,8 +485,8 @@ export default function RentModal() {
       setVerificationError("Please upload verification documents");
       return false;
     }
-    return true;
-  }, [verifications]);
+    return trigger(["verifications"]);
+  }, [verifications, trigger]);
 
   const removeImage = useCallback((idx: number) => {
     setCustomValue(
@@ -540,6 +540,14 @@ export default function RentModal() {
   const handleAddonChange = useCallback((v: Addon[]) => {
     setValue("addons", v, { shouldDirty: true });
   }, [setValue]);
+
+  const validatePackagesStep = useCallback(async () => {
+    return trigger("packages");
+  }, [trigger]);
+
+  const validateCustomTermsStep = useCallback(async () => {
+    return trigger("customTerms");
+  }, [trigger]);
 
   const stepDefinitions = useMemo<Record<STEPS, StepDefinition>>(
     () => ({
@@ -647,7 +655,7 @@ export default function RentModal() {
                     onChange={(v) => setCustomValue("imageSrc", v)}
                     values={imageSrc}
                     deferUpload
-                    className="w-full h-full p-4 border-2 border-neutral-300"
+                    className="w-full h-full p-4 border border-neutral-300"
                   />
                 </div>
               </div>
@@ -740,6 +748,7 @@ export default function RentModal() {
         id: STEPS.AMENITIES,
         modalTitle: "List Your Space",
         actionLabel: "Next",
+        validate: validateAmenitiesStep,
         render: () => (
           <div className="flex flex-col gap-4">
             <Heading title="Amenities" subtitle="Select all available amenities" variant="h3" />
@@ -883,6 +892,7 @@ export default function RentModal() {
         id: STEPS.CUSTOMTERMS,
         modalTitle: "List Your Space",
         actionLabel: "Next",
+        validate: validateCustomTermsStep,
         render: () => (
           <div className="flex flex-col gap-4">
             <Heading title="Custom Terms and Conditions" subtitle="Add your own rules and policies for the space" variant="h3" />
@@ -909,6 +919,7 @@ export default function RentModal() {
         id: STEPS.PACKAGES,
         modalTitle: "List Your Space",
         actionLabel: "Next",
+        validate: validatePackagesStep,
         render: () => (
           <div className="flex flex-col gap-4">
             <Heading title="Custom Packages" subtitle="Bundle your offerings" variant="h3" />
@@ -1009,6 +1020,8 @@ export default function RentModal() {
       validateOtherDetailsStep,
       validateSetsStep,
       validateVerificationStep,
+      validatePackagesStep,
+      validateCustomTermsStep,
       verificationError,
       verifications,
       watch,
@@ -1034,16 +1047,25 @@ export default function RentModal() {
     setAgreementPdf(null);
     setShowSuccessModal(false);
     setIsLoading(false);
+    setIsSubmitting(false);
 
     reset();
     setStep(STEPS.CATEGORY);
   }, [reset]);
 
   useEffect(() => {
-    if (!rentModel.isOpen) {
+    if (!rentModel.isOpen && !isSubmitting && !showSuccessModal) {
       resetFormStates();
     }
-  }, [rentModel.isOpen, resetFormStates]);
+  }, [rentModel.isOpen, isSubmitting, showSuccessModal, resetFormStates]);
+
+  // Lock body scroll while the spinner overlay is visible
+  useEffect(() => {
+    if (isSubmitting) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [isSubmitting]);
 
   const onSubmit: SubmitHandler<RentModalFormValues> = async (data) => {
     if (step !== STEPS.TERMS) {
@@ -1077,12 +1099,20 @@ export default function RentModal() {
     const remoteImages = (data.imageSrc || []);
 
     setIsLoading(true);
+    setIsSubmitting(true);
+
+    // Capture the PDF generator BEFORE closing the modal — termsRef.current
+    // becomes null once TermsAndConditionsModal unmounts (~300ms after close).
+    const generatePdf = termsRef.current?.generateAndUploadPdf ?? null;
+
+    rentModel.onClose();
 
     try {
       const finalImageUrls = await uploadToCloudinary(remoteImages, "listing_main");
 
       if (finalImageUrls.length === 0) {
         setIsLoading(false);
+        setIsSubmitting(false);
         return toast.error("Please upload at least one image");
       }
 
@@ -1178,9 +1208,9 @@ export default function RentModal() {
         documents: uploadedVerificationDocs.length > 0 ? uploadedVerificationDocs : data.verifications?.documents || [],
       };
 
-      if (data.agreementSignature && data.terms && termsRef.current?.generateAndUploadPdf) {
+      if (data.agreementSignature && data.terms && generatePdf) {
         try {
-          const meta = await termsRef.current.generateAndUploadPdf(listingId);
+          const meta = await generatePdf(listingId);
           setAgreementPdf(meta);
 
           finalVerifications.agreementPdf = meta;
@@ -1202,8 +1232,6 @@ export default function RentModal() {
       }
 
       setShowSuccessModal(true);
-      rentModel.onClose();
-      resetFormStates();
       toast.success("Listing created successfully!");
     } catch (error) {
       let errorMessage = "Something went wrong while creating the listing.";
@@ -1229,6 +1257,7 @@ export default function RentModal() {
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -1256,7 +1285,13 @@ export default function RentModal() {
         actionLabel={actionLabel}
         onSubmit={() => {
           if (step === STEPS.TERMS) {
-            onSubmit(getValues());
+            handleSubmit(onSubmit, (errors) => {
+              if (errors.terms || !signature?.url) {
+                toast.error("Please accept the terms and conditions and provide your signature");
+              } else {
+                toast.error("Please ensure all requirements in previous steps are correctly filled.");
+              }
+            })();
           } else {
             onNext();
           }
@@ -1287,11 +1322,28 @@ export default function RentModal() {
         customHeight="h-[90vh]"
       />
 
+      {/* Creating Listing Spinner Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 px-10 py-12 flex flex-col items-center gap-6 max-w-sm w-full mx-4 animate-in fade-in zoom-in duration-300">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-4 border-neutral-200" />
+              <div className="absolute inset-0 rounded-full border-4 border-t-black animate-spin" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-gray-900">Creating your listing</h3>
+              <p className="text-sm text-gray-500 mt-2">Uploading images and setting up your space...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Modal
         isOpen={showSuccessModal}
         onClose={() => { setShowSuccessModal(false); }}
         onSubmit={() => { setShowSuccessModal(false); }}
         title="Listing Submitted 🎉"
+        customHeight="h-auto"
         actionLabel="Close"
         body={
           <div className="flex flex-col gap-3 text-gray-700 text-center">

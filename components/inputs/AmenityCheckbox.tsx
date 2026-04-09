@@ -2,6 +2,7 @@ import { Amenities } from '@prisma/client';
 import React, { useState } from 'react';
 
 import Checkbox from '../ui/Checkbox';
+import Input from '../ui/Input';
 
 export interface AmenitiesData {
   predefined: { [key: number | string]: boolean };
@@ -78,22 +79,26 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
         <label htmlFor="custom-amenity" className="block text-sm font-medium text-gray-700 mb-1">
           Custom Amenity
         </label>
-        <div className="flex gap-2">
-          <input
-            id="custom-amenity"
-            type="text"
-            value={otherAmenity}
-            onChange={(e) => setOtherAmenity(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddAmenity();
-              }
-            }}
-            placeholder="Enter custom amenity"
-            className="border-b-2 border-gray-300 rounded-2xl px-4 py-2 w-full"
-          />
-          <button type="button" onClick={handleAddAmenity} className="bg-black hover:opacity-90 text-white px-8 py-2 rounded-2xl">
+        <div className="flex gap-2 items-start">
+          <div className="grow">
+            <Input
+              id="custom-amenity"
+              placeholder="Enter custom amenity"
+              value={otherAmenity}
+              onChange={(e) => setOtherAmenity(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddAmenity();
+                }
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleAddAmenity}
+            className="bg-black hover:opacity-90 text-white px-8 h-11 rounded-xl flex items-center justify-center font-medium transition"
+          >
             ADD
           </button>
         </div>

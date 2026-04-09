@@ -131,7 +131,8 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       const startTrimmed = start.trim();
       const endTrimmed = end.trim();
       const startIdx = TIME_SLOTS.indexOf(startTrimmed);
-      const endIdx = TIME_SLOTS.indexOf(endTrimmed);
+      const endIdx = TIME_SLOTS.lastIndexOf(endTrimmed);
+
       if (startIdx === -1 || endIdx === -1) {
         return createErrorResponse(
           `operationalHours must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`,
@@ -371,3 +372,38 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
   }
 }
 
+export async function DELETE(request: Request, props: { params: Promise<IParams> }) {
+  try {
+    const { listingId } = await props.params;
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser?.id) {
+      return createErrorResponse("Authentication required", 401);
+    }
+
+    if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
+      return createErrorResponse("Invalid listing ID", 400);
+    }
+
+    const listing = await prisma.listing.findUnique({
+      where: { id: listingId },
+      select: { userId: true },
+    });
+
+    if (!listing) {
+      return createErrorResponse("Listing not found", 404);
+    }
+
+    if (listing.userId !== currentUser.id) {
+      return createErrorResponse("You don't have permission to delete this listing", 403);
+    }
+
+    await prisma.listing.delete({
+      where: { id: listingId },
+    });
+
+    return createSuccessResponse({ message: "Listing deleted successfully" });
+  } catch (error) {
+    return handleRouteError(error, "DELETE /api/listings/[listingId]");
+  }
+}

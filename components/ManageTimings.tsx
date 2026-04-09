@@ -60,6 +60,11 @@ export default function CalendarComponent({
     const [endTime, setEndTime] = useState<string>(formatTime(defaultEndTime, "PM"));
     const [loading, setLoading] = useState(false);
     const lastFetchedDate = useRef<string>("");
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -112,6 +117,10 @@ export default function CalendarComponent({
         }
     };
 
+    if (!mounted) {
+        return null;
+    }
+
     return (
         <div className="flex items-center p-6 gap-30 bg-white justify-center">
             <div className="border border-neutral-300 shadow-lg rounded-lg w-fit">
@@ -148,11 +157,11 @@ export default function CalendarComponent({
                     {loading ? (
                         <div className="flex space-x-4 mt-2">
                             <div className="flex flex-col w-1/2 gap-2">
-                                <div className="w-24 h-[23px] bg-gray-200 rounded-full animate-pulse" />
+                                <div className="w-24 h-5.75 bg-gray-200 rounded-full animate-pulse" />
                                 <div className="w-full h-10 bg-gray-200 rounded-full animate-pulse" />
                             </div>
                             <div className="flex flex-col w-1/2 gap-2">
-                                <div className="w-24 h-[23px] bg-gray-200 rounded-full animate-pulse" />
+                                <div className="w-24 h-5.75 bg-gray-200 rounded-full animate-pulse" />
                                 <div className="w-full h-10 bg-gray-200 rounded-full animate-pulse" />
                             </div>
                         </div>

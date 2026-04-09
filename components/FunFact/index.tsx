@@ -8,38 +8,51 @@ const FunFact = () => {
   return (
     <>
       <section className="px-4 py-20 md:px-8 lg:py-22.5 2xl:px-0">
-        <div className="relative z-1 mx-auto max-w-c-1390 rounded-lg bg-gradient-to-t from-[#F8F9FF] to-[#DEE7FF] py-22.5 xl:py-27.5">
+        <div className="relative z-1 mx-auto max-w-c-1390 rounded-lg bg-linear-to-t from-[#F8F9FF] to-[#DEE7FF] py-22.5 xl:py-27.5">
+
           <Image
             width={235}
             height={284}
             src="/images/shape/camera.png"
-            alt="Camera"
-            className="absolute bottom-0 left-0 transform translate-y-0 lg:left-0 lg:top-0 lg:translate-y-0 w-[150px] md:w-[200px] lg:w-[300px] hidden xl:block"
+            alt=""
+            aria-hidden="true"
+            className="absolute bottom-0 left-0 transform translate-y-0 lg:left-0 lg:top-0 lg:translate-y-0 w-37.5 md:w-50 lg:w-75 hidden xl:block"
+
+            sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 300px"
+
           />
 
           <Image
             width={132}
             height={132}
             src="/images/shape/shape-05.png"
-            alt="Doodle"
+            alt=""
+            aria-hidden="true"
             className="absolute bottom-0 right-0 -z-1"
+            sizes="132px"
+
           />
 
-          
+
           <Image
             fill
             src="/images/shape/shape-dotted-light-02.svg"
-            alt="Dotted"
+            alt=""
+            aria-hidden="true"
             className="absolute left-0 top-0 -z-1"
+            sizes="100vw"
           />
           <Image
             fill
             src="/images/shape/shape-dotted-dark-02.svg"
-            alt="Dotted"
+            alt=""
+            aria-hidden="true"
             className="absolute left-0 top-0 -z-1 hidden"
+            sizes="100vw"
           />
 
-          
+
+
           <motion.div
             variants={{
               hidden: {

@@ -64,7 +64,6 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
 
   const renderImageWithSkeleton = (src: string, index: number, extraClasses = "") => (
     <div className="relative w-full h-full cursor-pointer" onClick={() => handleImageClick(index)}>
-      {!loaded[index] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-lg"></div>}
       <Image
         src={src}
         alt={`image-${index}`}
@@ -85,7 +84,6 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
             className={`relative ${isFeatured ? "col-span-2" : ""} h-75 cursor-pointer group`}
             onClick={() => handleModalImageClick(index)}
           >
-            {!loaded[index] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-lg"></div>}
             <Image
               src={url}
               alt={`image-${index}`}
@@ -146,9 +144,8 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
         </div>
       ) : (
         <>
-          <div className="hidden lg:grid lg:grid-cols-2 gap-2 mt-4">
+          <div className="hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
             <div className="relative h-113.75 cursor-pointer" onClick={() => handleImageClick(0)}>
-              {!loaded[0] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-l-lg"></div>}
               {imageSrc[0] && (
                 <Image
                   src={imageSrc[0]}
@@ -160,19 +157,18 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
               )}
             </div>
 
-            <div className="grid grid-rows-2 grid-cols-2 gap-2 h-113.75">
+            <div className="grid grid-rows-2 grid-cols-2 gap-1 h-113.75">
               {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
-              {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-r-lg")}
+              {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-tr-lg")}
               {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
               {imageSrc[4] && (
                 <div className="relative w-full h-full">
-                  {!loaded[4] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-r-lg"></div>}
                   <Image
                     src={imageSrc[4]}
                     alt="image-4"
                     fill
                     onLoadingComplete={() => handleImageLoad(4)}
-                    className={`object-cover rounded-r-lg hover:brightness-90 ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+                    className={`object-cover rounded-br-lg hover:brightness-90 ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
                     onClick={() => handleImageClick(4)}
                   />
                   <button

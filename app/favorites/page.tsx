@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import React from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getFavoriteListings from "@/app/actions/getFavoriteListings";
-import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 
 import FavoritesClient from "./FavoritesClient";
@@ -24,29 +22,19 @@ const FavoritePage = async () => {
   const listings = await getFavoriteListings();
 
   if (!currentUser) {
-    return (
-      <ClientOnly>
-        <EmptyState title="Unauthorized" subtitle="Please login" />
-      </ClientOnly>
-    );
+    return <EmptyState title="Unauthorized" subtitle="Please login" />;
   }
 
   if (listings.length === 0) {
     return (
-      <ClientOnly>
-        <EmptyState
-          title="No favorites found"
-          subtitle="Looks like you have no favorite listings."
-        />
-      </ClientOnly>
+      <EmptyState
+        title="No favorites found"
+        subtitle="Looks like you have no favorite listings."
+      />
     );
   }
 
-  return (
-    <ClientOnly>
-      <FavoritesClient listings={listings} currentUser={currentUser} />
-    </ClientOnly>
-  );
+  return <FavoritesClient listings={listings} currentUser={currentUser} />;
 };
 
 export default FavoritePage;

@@ -52,14 +52,14 @@ export function calculatePayoutDetails(
     const studioShareOfBase = baseAmount - platformCommissionOnBase; // 88% of base
 
     if (studioHasGST) {
-        // Studio gets 88% of total (base + GST)
-        const payoutToStudio = totalAmount * 0.88;
+        // Studio gets 88% of base + 100% of GST
+        const payoutToStudio = studioShareOfBase + gstAmount;
         return {
             baseAmount: Number(baseAmount.toFixed(2)),
             gstAmount: Number(gstAmount.toFixed(2)),
             gstOwnedBy: "STUDIO",
             payoutToStudio: Number(payoutToStudio.toFixed(2)),
-            payoutPercentOfTotal: 88,
+            payoutPercentOfTotal: Number(((payoutToStudio / totalAmount) * 100).toFixed(2)),
             arkanetRetains: Number((totalAmount - payoutToStudio).toFixed(2)),
         };
     } else {

@@ -114,7 +114,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                     delay: 0.5,
                     ease: [0, 0.71, 0.2, 1.01],
                 }}
-                className="relative col-span-1 border p-5 rounded-xl"
+                className="relative col-span-1 border p-3 rounded-2xl"
             >
                 <div className="flex flex-col gap-2 w-full">
                     <div className="aspect-square w-full relative overflow-hidden rounded-xl">

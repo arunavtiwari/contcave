@@ -5,7 +5,7 @@ import React from "react";
 import Container from "@/components/Container";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+
 
 export const metadata: Metadata = {
   title: "Cancellation Policy",
@@ -50,12 +50,12 @@ export const metadata: Metadata = {
 
 const CancellationPolicy = () => {
   return (
-    <div className="flex flex-col">
+    <main className="flex flex-col">
 
-      <div className="relative w-full h-[400px] md:h-[500px]">
+      <div className="relative w-full h-100 md:h-125">
         <Image
-          src="/assets/footer-banner.jpg"
-          alt="Banner Image"
+          src="/assets/banner.jpg"
+          alt="ContCave Cancellation Policy"
           fill
           className="object-cover"
           priority
@@ -164,7 +164,7 @@ const CancellationPolicy = () => {
           </div>
         </div>
       </Container>
-    </div>
+    </main>
   );
 };
 

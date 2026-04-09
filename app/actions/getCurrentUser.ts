@@ -48,6 +48,14 @@ export default async function getCurrentUser() {
       aadhaar_last4: currentUser.aadhaar_last4,
     };
   } catch (error) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'digest' in error &&
+      (error as { digest?: string }).digest === 'DYNAMIC_SERVER_USAGE'
+    ) {
+      throw error;
+    }
     console.error('[getCurrentUser] Error:', error instanceof Error ? error.message : 'Unknown error');
     return null;
   }

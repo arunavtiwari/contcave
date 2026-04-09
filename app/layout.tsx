@@ -4,17 +4,23 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
+import Script from "next/script";
+import { Suspense } from "react";
 
 import ClientOnly from "@/components/ClientOnly";
 import CookieConsent from "@/components/CookieConsentBanner";
-import Footer from "@/components/Footer";
+import MetaPixelTracker from "@/components/MetaPixelTracker";
 import LoginModal from "@/components/modals/LoginModal";
 import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
 import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
-import Navbar from "@/components/navbar/Navbar";
+import NavbarWrapper from "@/components/navbar/NavbarWrapper";
+import NextAuthProvider from "@/components/providers/NextAuthProvider";
 import ScrollToTop from "@/components/ScrollToTop";
+import GlobalScrollFix from "@/components/GlobalScrollFix";
+
+
 import ToastContainerBar from "@/components/ToastContainerBar";
 import {
   BRAND_DESCRIPTION,
@@ -24,10 +30,6 @@ import {
   OG_IMAGE,
   SITE_URL,
 } from "@/lib/seo";
-
-import getCurrentUser from "./actions/getCurrentUser";
-
-export const dynamic = "force-dynamic";
 
 
 export const metadata: Metadata = {
@@ -207,14 +209,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let currentUser = null;
-  try {
-    currentUser = await getCurrentUser();
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[RootLayout] Error getting current user:', error);
-    }
-  }
 
   return (
     <html lang="en">
@@ -225,23 +219,68 @@ export default async function RootLayout({
             __html: JSON.stringify([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]).replace(/</g, '\\u003c'),
           }}
         />
+        {process.env.NODE_ENV === "production" && process.env.META_PIXEL_ID && (
+          <>
+            <Script
+              id="meta-pixel"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;
+              n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];
+              t=b.createElement(e);t.async=!0;
+              t.src='https://connect.facebook.net/en_US/fbevents.js';
+              s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s);
+              }(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '${process.env.META_PIXEL_ID}');
+            `,
+              }}
+            />
+
+            <Script
+              id="meta-pixel-noscript"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+              <noscript>
+                <img height="1" width="1" style="display:none"
+                src="https://www.facebook.com/tr?id=${process.env.META_PIXEL_ID}&ev=PageView&noscript=1"/>
+              </noscript>
+            `,
+              }}
+            />
+          </>
+        )}
+
       </head>
       <body className={font.className}>
-        <Navbar currentUser={currentUser} />
-        <ClientOnly>
-          <ToastContainerBar />
-          <SearchModal />
-          <RegisterModal />
-          <LoginModal />
-          <OwnerRegisterModal />
-          <RentModal />
-          <CookieConsent />
-        </ClientOnly>
-        <div className="min-h-screen pt-21">{children}</div>
-        <ScrollToTop />
-        <Footer />
-        <Analytics />
-        <SpeedInsights />
+        <NextAuthProvider>
+          <GlobalScrollFix />
+          <NavbarWrapper />
+
+          <Suspense fallback={null}>
+            {process.env.NODE_ENV === "production" && <MetaPixelTracker />}
+          </Suspense>
+          <ClientOnly>
+            <ToastContainerBar />
+            <SearchModal />
+            <RegisterModal />
+            <LoginModal />
+            <OwnerRegisterModal />
+            <RentModal />
+            <CookieConsent />
+          </ClientOnly>
+          <div className="min-h-screen pt-21">{children}</div>
+          <ScrollToTop />
+          <Analytics />
+          <SpeedInsights />
+        </NextAuthProvider>
       </body>
     </html>
   );
