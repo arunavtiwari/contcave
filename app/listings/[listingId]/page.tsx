@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListingById from "@/app/actions/getListingById";
 import getReservation from "@/app/actions/getReservations";
 import EmptyState from "@/components/EmptyState";
-import { Suspense } from "react";
-import ListingClient from "@/components/ListingClient";
 import ListingSkeleton from "@/components/listing/ListingSkeleton";
+import ListingClient from "@/components/ListingClient";
 import prisma from "@/lib/prismadb";
 import { absoluteUrl, BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
