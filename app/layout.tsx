@@ -16,7 +16,11 @@ import RegisterModal from "@/components/modals/RegisterModal";
 import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
+import NextAuthProvider from "@/components/providers/NextAuthProvider";
 import ScrollToTop from "@/components/ScrollToTop";
+import GlobalScrollFix from "@/components/GlobalScrollFix";
+
+
 import ToastContainerBar from "@/components/ToastContainerBar";
 import {
   BRAND_DESCRIPTION,
@@ -256,23 +260,27 @@ export default async function RootLayout({
 
       </head>
       <body className={font.className}>
-        <NavbarWrapper />
-        <Suspense fallback={null}>
-          {process.env.NODE_ENV === "production" && <MetaPixelTracker />}
-        </Suspense>
-        <ClientOnly>
-          <ToastContainerBar />
-          <SearchModal />
-          <RegisterModal />
-          <LoginModal />
-          <OwnerRegisterModal />
-          <RentModal />
-          <CookieConsent />
-        </ClientOnly>
-        <div className="min-h-screen pt-21">{children}</div>
-        <ScrollToTop />
-        <Analytics />
-        <SpeedInsights />
+        <NextAuthProvider>
+          <GlobalScrollFix />
+          <NavbarWrapper />
+
+          <Suspense fallback={null}>
+            {process.env.NODE_ENV === "production" && <MetaPixelTracker />}
+          </Suspense>
+          <ClientOnly>
+            <ToastContainerBar />
+            <SearchModal />
+            <RegisterModal />
+            <LoginModal />
+            <OwnerRegisterModal />
+            <RentModal />
+            <CookieConsent />
+          </ClientOnly>
+          <div className="min-h-screen pt-21">{children}</div>
+          <ScrollToTop />
+          <Analytics />
+          <SpeedInsights />
+        </NextAuthProvider>
       </body>
     </html>
   );

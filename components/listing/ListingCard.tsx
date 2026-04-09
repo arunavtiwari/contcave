@@ -71,7 +71,7 @@ const ListingCard: React.FC<Props> = ({
   }, [reservation, data.price]);
 
   return (
-    <div className="col-span-1 cursor-pointer group p-5 shadow-sm rounded-2xl border border-neutral-200">
+    <div className="col-span-1 cursor-pointer group p-3 rounded-2xl border border-neutral-200">
       <div className="flex flex-col gap-2 w-full">
         {/* Image area with hover slideshow */}
         <div
