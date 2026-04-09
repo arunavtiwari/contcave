@@ -593,8 +593,6 @@ function ListingClient({
 
   const handlePackageSelect = useCallback((pkg: Package | null) => {
     setSelectedPackage(pkg);
-    setSelectedDate(null);
-    setSelectedTimeSlot([null, null]);
 
     if (pkg) {
       if (listing.hasSets && pkg.requiredSetCount && pkg.requiredSetCount > 0) {
