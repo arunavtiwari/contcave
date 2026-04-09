@@ -7,6 +7,7 @@ import EmptyState from "@/components/EmptyState";
 import Footer from "@/components/Footer";
 import ListingFeed from "@/components/listing/ListingFeed";
 import Categories from "@/components/navbar/Categories";
+import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -110,7 +111,7 @@ export default async function Home(props: HomeProps) {
         {listing.length > 0 && (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+            dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
           />
         )}
         <Container>

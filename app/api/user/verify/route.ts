@@ -3,6 +3,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { upsertPaymentDetailsSafe } from "@/lib/payment-details";
+import { normalizePhone } from "@/lib/phone";
 import prisma from "@/lib/prismadb";
 import { auditService } from "@/lib/security/audit";
 
@@ -50,12 +51,9 @@ export async function PATCH(request: Request) {
 
     if (step === "phone") {
       updates.phone_verified = true;
-      if (phone && typeof phone === "string") {
-        const digits = phone.replace(/\D/g, "");
-        const normalized = digits.startsWith("91") && digits.length === 12 ? digits.slice(2) : digits;
-        if (normalized.length === 10) {
-          updates.phone = normalized;
-        }
+      const normalized = normalizePhone(phone);
+      if (normalized) {
+        updates.phone = normalized;
       }
       updates.verified_via = { push: "phone_otp" };
     }
