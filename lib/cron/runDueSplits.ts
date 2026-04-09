@@ -1,4 +1,4 @@
-import { createOrderSplit } from "@/lib/cashfree/cashfree";
+import { createOrderSplit } from "@/lib/cashfree/easySplit";
 import prisma from "@/lib/prismadb";
 import { WhatsappService } from "@/lib/whatsapp/service";
 import { formatInTimeZone } from "date-fns-tz";

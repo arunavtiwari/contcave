@@ -486,4 +486,32 @@ export const WhatsappService = {
             ],
         });
     },
+
+    /**
+     * Notify customer that their booking was rejected by the host.
+     * Template must be created in WhatsApp Business Manager as "booking_rejected_customer".
+     */
+    async sendBookingRejectedCustomer(
+        to: string,
+        params: {
+            customerName: string;
+            listingTitle: string;
+            rejectReason?: string;
+        }
+    ): Promise<WhatsAppSendResult> {
+        return this.sendMessage({
+            to,
+            templateName: "booking_rejected_customer",
+            components: [
+                {
+                    type: "body",
+                    parameters: [
+                        { type: "text", text: params.customerName },
+                        { type: "text", text: params.listingTitle },
+                        { type: "text", text: params.rejectReason || "Not provided" },
+                    ],
+                },
+            ],
+        });
+    },
 };

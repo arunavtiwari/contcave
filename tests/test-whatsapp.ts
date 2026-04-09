@@ -88,7 +88,16 @@ async function runTests() {
         });
         console.log("✅ Success\n");
 
-        console.log("🎉 All 6 templates sent successfully!");
+        // 7. Test booking_rejected_customer
+        console.log("Testing 7/7: 'booking_rejected_customer'...");
+        await WhatsappService.sendBookingRejectedCustomer(targetPhone, {
+            customerName: "Test Customer",
+            listingTitle: "Test Studio Space",
+            rejectReason: "The studio is under maintenance on that day.",
+        });
+        console.log("✅ Success\n");
+
+        console.log("🎉 All 7 templates sent successfully!");
 
     } catch (error) {
         console.error("\n❌ Test Failed!");
@@ -101,7 +110,7 @@ async function runTests() {
         console.log("\nIf you are getting a 'Template not found' or 'parameter mismatch' error:");
         console.log("1. Ensure you have created the template exactly as named in Meta Manager.");
         console.log("2. Ensure the template is approved (Utility category).");
-        console.log("3. Ensure the exact number of variables (e.g. {{1}}, {{2}}) match the properties sent above.");
+        console.log("3. Ensure the exact number of variables (e.g. {{1}}, {{2}}, {{3}}) match the properties sent above.");
         process.exit(1);
     }
 }
