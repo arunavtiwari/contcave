@@ -140,14 +140,13 @@ function ListingInfo({
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
 
-  const shouldTruncate = useMemo(() => {
-    if (typeof window === "undefined") return false;
+  const [shouldTruncate, setShouldTruncate] = useState(false);
 
+  useEffect(() => {
     const temp = document.createElement("div");
     temp.innerHTML = description || "";
     const text = temp.textContent || temp.innerText || "";
-
-    return text.length > 250;
+    setShouldTruncate(text.length > 250);
   }, [description]);
 
   useEffect(() => {

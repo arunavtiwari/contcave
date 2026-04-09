@@ -64,7 +64,6 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
 
   const renderImageWithSkeleton = (src: string, index: number, extraClasses = "") => (
     <div className="relative w-full h-full cursor-pointer" onClick={() => handleImageClick(index)}>
-      {!loaded[index] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-lg"></div>}
       <Image
         src={src}
         alt={`image-${index}`}
@@ -85,7 +84,6 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
             className={`relative ${isFeatured ? "col-span-2" : ""} h-75 cursor-pointer group`}
             onClick={() => handleModalImageClick(index)}
           >
-            {!loaded[index] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-lg"></div>}
             <Image
               src={url}
               alt={`image-${index}`}
@@ -148,7 +146,6 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
         <>
           <div className="hidden lg:grid lg:grid-cols-2 gap-2 mt-4">
             <div className="relative h-113.75 cursor-pointer" onClick={() => handleImageClick(0)}>
-              {!loaded[0] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-l-lg"></div>}
               {imageSrc[0] && (
                 <Image
                   src={imageSrc[0]}
@@ -166,7 +163,6 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
               {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
               {imageSrc[4] && (
                 <div className="relative w-full h-full">
-                  {!loaded[4] && <div className="absolute inset-0 bg-gray-300 animate-pulse rounded-r-lg"></div>}
                   <Image
                     src={imageSrc[4]}
                     alt="image-4"
