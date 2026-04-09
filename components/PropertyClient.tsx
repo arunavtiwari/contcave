@@ -3,6 +3,7 @@
 import { Amenities } from "@prisma/client";
 import axios from "axios";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { SessionProvider, signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MdOutlineCurrencyRupee } from "react-icons/md";
@@ -30,6 +31,7 @@ import PackagesForm from "./inputs/PackagesForm";
 import SetsEditor from "./inputs/SetsEditor";
 import ManageTimings from "./ManageTimings";
 import CustomAddonModal from "./modals/CustomAddonModal";
+import DeletePropertyModal from "./modals/DeletePropertyModal";
 
 type Props = {
     listing: FullListing;
@@ -91,6 +93,9 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     const [amenities] = useState(predefinedAmenities);
     const [addons, setAddons] = useState<Addon[]>(predefinedAddons);
     const [isCalendarConnected, setIsCalendarConnected] = useState(listing.user?.googleCalendarConnected);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const router = useRouter();
 
     const [initialListing, setListing] = useState<FullListing>(() => {
         const cleanImageSrc = (listing.imageSrc ?? []).filter(
@@ -118,6 +123,21 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     useEffect(() => {
         window.scrollTo({ top: 0 });
     }, [selectedMenu]);
+
+    const handleDeleteProperty = useCallback(async () => {
+        setIsDeleting(true);
+        try {
+            await axios.delete(`/api/listings/${initialListing.id}`);
+            toast.info("Property deleted successfully", { toastId: "Listing_Deleted" });
+            router.push("/properties");
+            router.refresh();
+        } catch (error: any) {
+            toast.error(error?.response?.data?.error || "Failed to delete property", { toastId: "Property_Delete_Error_1" });
+        } finally {
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+        }
+    }, [initialListing.id, router]);
 
     const update = async () => {
         const normalizedPackages = (initialListing.packages ?? []).map((pkg: ListingPackage) => ({
@@ -802,7 +822,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <div className="w-fit">
                                 <Button
                                     label="DELETE PROPERTY"
-                                    onClick={() => { }}
+                                    onClick={() => setIsDeleteModalOpen(true)}
                                     outline
                                     rounded
                                     classNames="px-6 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
@@ -824,6 +844,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     </div>
                 </div >
             </div >
+            <DeletePropertyModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDeleteProperty}
+                propertyName={initialListing.title || ""}
+                isLoading={isDeleting}
+            />
         </SessionProvider >
     );
 };

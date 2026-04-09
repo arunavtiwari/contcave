@@ -3,7 +3,7 @@ export const BRAND_NAME = "ContCave" as const;
 export const BRAND_TITLE = `${BRAND_NAME} | Find the Perfect Shoot Space with Ease` as const;
 export const BRAND_DESCRIPTION =
   "ContCave helps creators discover, compare, and book verified studios and production-ready spaces across India." as const;
-export const OG_IMAGE = "/images/logo/logo-dark.png" as const;
+export const OG_IMAGE = "/images/logo/logo-og.png" as const;
 
 export const DEFAULT_KEYWORDS = [
   "studio booking",
