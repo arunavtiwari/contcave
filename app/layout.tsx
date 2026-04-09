@@ -263,7 +263,6 @@ export default async function RootLayout({
         <NextAuthProvider>
           <GlobalScrollFix />
           <NavbarWrapper />
-
           <Suspense fallback={null}>
             {process.env.NODE_ENV === "production" && <MetaPixelTracker />}
           </Suspense>
