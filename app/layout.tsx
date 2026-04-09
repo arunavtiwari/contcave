@@ -5,6 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import Script from "next/script";
+import { Suspense } from "react";
 
 import ClientOnly from "@/components/ClientOnly";
 import CookieConsent from "@/components/CookieConsentBanner";
@@ -14,7 +15,6 @@ import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
 import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
-import { Suspense } from "react";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import ScrollToTop from "@/components/ScrollToTop";
 import ToastContainerBar from "@/components/ToastContainerBar";

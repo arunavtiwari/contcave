@@ -1,4 +1,5 @@
 import Container from "@/components/Container";
+
 import ListingHeadSkeleton from "./ListingHeadSkeleton";
 
 export default function ListingSkeleton() {

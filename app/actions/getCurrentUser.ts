@@ -52,7 +52,7 @@ export default async function getCurrentUser() {
       error &&
       typeof error === 'object' &&
       'digest' in error &&
-      (error as any).digest === 'DYNAMIC_SERVER_USAGE'
+      (error as { digest?: string }).digest === 'DYNAMIC_SERVER_USAGE'
     ) {
       throw error;
     }

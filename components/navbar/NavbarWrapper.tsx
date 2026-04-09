@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import Navbar from "@/components/navbar/Navbar";
 
