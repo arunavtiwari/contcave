@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import CTA from "@/components/CTA";
 import FAQ from "@/components/FAQ";
+
 import Feature from "@/components/Features";
 import FeaturesTab from "@/components/FeaturesTab";
 import Footer from "@/components/Footer";
@@ -92,7 +94,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const currentUser = await getCurrentUser();
+
   return (
     <>
       <main>
@@ -105,7 +109,7 @@ export default function Home() {
         <FeaturesTab />
         <FunFact />
         <FAQ />
-        <CTA />
+        <CTA currentUser={currentUser} />
       </main>
       <Footer />
     </>

@@ -28,6 +28,7 @@
 		"@fullcalendar/list": "^6.1.15",
 		"@fullcalendar/react": "^6.1.15",
 		"@fullcalendar/timegrid": "^6.1.15",
+		"@gsap/react": "^2.1.2",
 		"@headlessui/react": "^2.2.7",
 		"@hookform/resolvers": "^5.2.2",
 		"@lexical/html": "^0.40.0",

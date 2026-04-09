@@ -2,7 +2,7 @@ import React from "react";
 
 const ListingCardSkeleton = () => {
     return (
-        <div className="col-span-1 p-5 shadow-sm rounded-2xl border border-neutral-100/50">
+        <div className="col-span-1 p-3 shadow-sm rounded-2xl border border-neutral-100/50">
             <div className="flex flex-col gap-2 w-full animate-pulse">
                 {/* Image area skeleton */}
                 <div className="aspect-square w-full relative overflow-hidden rounded-xl bg-neutral-100" />
