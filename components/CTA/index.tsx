@@ -97,14 +97,19 @@ const CTA = () => {
           style={{ backgroundColor: "#111111" }}
         />
 
-        {/* Dot grid texture */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: "radial-gradient(rgba(17,17,17,0.05) 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-          }}
-        />
+        {/* Dot grid texture — slowly drifts for a living feel */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            className="absolute"
+            style={{
+              inset: "-56px",
+              backgroundImage: "radial-gradient(rgba(17,17,17,0.05) 1px, transparent 1px)",
+              backgroundSize: "28px 28px",
+            }}
+            animate={{ x: [0, 28, 0], y: [0, 28, 0] }}
+            transition={{ duration: 10, ease: "linear", repeat: Infinity }}
+          />
+        </div>
 
         <div className="relative z-10 flex flex-col gap-10 px-6 py-12 md:px-10 lg:flex-row lg:items-center lg:gap-20 xl:px-20 xl:py-20">
 

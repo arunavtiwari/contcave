@@ -84,13 +84,17 @@ const HowItWorks = () => {
                 {step}
               </span>
 
-              {/* Icon */}
-              <div
+              {/* Icon — spring-bounce on viewport entry */}
+              <motion.div
+                initial={{ scale: 0.4, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 320, damping: 14, delay: i * 0.1 }}
+                viewport={{ once: true }}
                 className="flex h-11 w-11 items-center justify-center rounded-xl"
                 style={{ backgroundColor: "#111111" }}
               >
                 <Icon size={18} color="#FFFFFF" />
-              </div>
+              </motion.div>
 
               {/* Title */}
               <h3
