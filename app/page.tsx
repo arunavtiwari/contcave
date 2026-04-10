@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
 
-import getCurrentUser from "@/app/actions/getCurrentUser";
 import CTA from "@/components/CTA";
 import FAQ from "@/components/FAQ";
-import Feature from "@/components/Features";
-import FeaturesTab from "@/components/FeaturesTab";
-import Footer from "@/components/Footer";
-import FunFact from "@/components/FunFact";
+import StudioShowcase from "@/components/Features";
+import HowItWorks from "@/components/FeaturesTab";
 import Hero from "@/components/Hero";
-import { safeJsonLd } from "@/lib/safeJsonLd";
+import ForBrands from "@/components/Brands/index";
+import SocialProof from "@/components/SocialProof/index";
 import {
   absoluteUrl,
   BRAND_NAME,
@@ -20,6 +18,7 @@ import {
 
 const HOME_DESCRIPTION =
   "Book the ideal shoot space for your next production with ContCave - India's trusted marketplace for photography, film, and event-ready studios." as const;
+
 const homeJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebPage",
@@ -54,23 +53,14 @@ export const metadata: Metadata = {
   title: { absolute: BRAND_TITLE },
   description: HOME_DESCRIPTION,
   keywords: [...DEFAULT_KEYWORDS],
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
   openGraph: {
     title: BRAND_TITLE,
     description: HOME_DESCRIPTION,
     type: "website",
     url: SITE_URL,
     siteName: BRAND_NAME,
-    images: [
-      {
-        url: absoluteUrl(OG_IMAGE),
-        width: 1200,
-        height: 630,
-        alt: BRAND_NAME,
-      },
-    ],
+    images: [{ url: absoluteUrl(OG_IMAGE), width: 1200, height: 630, alt: BRAND_NAME }],
     locale: "en_IN",
   },
   twitter: {
@@ -94,25 +84,34 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function Home() {
-  const currentUser = await getCurrentUser();
-
+export default function Home() {
   return (
-    <>
-      <main>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: safeJsonLd(homeJsonLd) }}
-        />
-        <Hero />
-        <Feature />
-        <FeaturesTab />
-        <FunFact />
-        <FAQ />
-        <CTA currentUser={currentUser} />
-      </main>
-      <Footer />
-    </>
+    <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd).replace(/</g, "\\u003c") }}
+      />
+
+      {/* 1. Hero — full-viewport, city search */}
+      <Hero />
+
+      {/* 2. Studio Showcase — 6-card grid */}
+      <StudioShowcase />
+
+      {/* 3. For Brands & Agencies — two-path layout */}
+      <ForBrands />
+
+      {/* 4. How It Works — 3-step flow */}
+      <HowItWorks />
+
+      {/* 5. Social Proof — video + 2-row reviews */}
+      <SocialProof />
+
+      {/* 6. FAQ */}
+      <FAQ />
+
+      {/* 7. For Studio Owners — CTA */}
+      <CTA />
+    </main>
   );
 }
-

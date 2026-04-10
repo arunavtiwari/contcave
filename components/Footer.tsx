@@ -8,7 +8,7 @@ function Footer() {
   return (
     <>
       <div
-        className="grid grid-cols-1 md:grid-cols-2 gap-10 px-10 lg:px-20 py-15 bg-gray-100 text-gray-600 mt-20"
+        className="grid grid-cols-1 md:grid-cols-2 gap-10 px-6 md:px-10 lg:px-20 py-12 bg-gray-100 text-gray-600"
       >
         <div className="grid place-items-center md:place-items-start gap-8">
           <Logo />
@@ -48,7 +48,7 @@ function Footer() {
 
         </div>
 
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-8 text-base font-medium text-center">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-6 text-sm font-medium text-center md:text-left">
           <div className="flex flex-col space-y-2">
             <p className="text-xl font-bold text-black">Company</p>
             <Link href="/about" className="cursor-pointer text-btndark/80 hover:text-black transition-all">About</Link>

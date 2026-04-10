@@ -1,154 +1,125 @@
 "use client";
 import { motion } from "framer-motion";
-import Image from "next/image";
-import { useState } from "react";
+import { FiCheckCircle, FiEye, FiSearch } from "react-icons/fi";
 
-import SectionHeader from "@/components/Common/SectionHeader";
+/*
+  HowItWorks — replaces the old tabbed FeaturesTab component.
+  3-step horizontal flow (desktop) / vertical stack (mobile).
+  No tabs, no illustrations, no animation delays on content.
+*/
 
-import featuresTabData from "./featuresTabData";
-import FeaturesTabItem from "./FeaturesTabItem";
+const STEPS = [
+  {
+    Icon: FiSearch,
+    step: "01",
+    title: "Search",
+    body: "Filter by city and shoot type. Every listing has real photos, equipment details, and transparent pricing.",
+  },
+  {
+    Icon: FiEye,
+    step: "02",
+    title: "Compare",
+    body: "See studio layouts, gear lists, and availability. No surprises on shoot day.",
+  },
+  {
+    Icon: FiCheckCircle,
+    step: "03",
+    title: "Book",
+    body: "Confirm your slot instantly. Show up and shoot.",
+  },
+];
 
-const FeaturesTab = () => {
-  const [currentTab, setCurrentTab] = useState("tabOne");
-
+const HowItWorks = () => {
   return (
-    <>
-      
-      <section className="relative pb-20 pt-18.5 lg:pb-22.5">
+    <section className="py-12 lg:py-16" style={{ backgroundColor: "#FFFFFF" }}>
+      <div className="mx-auto max-w-[1280px] px-4 md:px-10 xl:px-20">
 
-
-        <div className="relative mx-auto max-w-c-1390 px-4 md:px-8 2xl:px-0">
-          <div className="absolute -top-16 -z-1 mx-auto h-[350px] w-[90%]">
-            <SectionHeader headerInfo={{
-              title: "Together, Let's Redefine Content Creation",
-              subtitle: "",
-              description: ""
-            }}></SectionHeader>
-
-            <Image
-              fill
-              className=""
-              src="/images/shape/shape-dotted-light.svg"
-              alt="Dotted Shape"
-            />
-            <Image
-              fill
-              className="hidden"
-              src="/images/shape/shape-dotted-dark.svg"
-              alt="Dotted Shape"
-            />
-          </div>
-
-          
-          <motion.div
-            variants={{
-              hidden: {
-                opacity: 0,
-                y: -20,
-              },
-
-              visible: {
-                opacity: 1,
-                y: 0,
-              },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 0.5, delay: 0.1 }}
-            viewport={{ once: true }}
-            className="animate_top mb-15 flex flex-wrap justify-center rounded-[10px] border border-stroke bg-white shadow-solid-5 md:flex-nowrap md:items-center lg:gap-7.5 xl:mb-21.5 xl:gap-12.5"
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          className="mb-10"
+        >
+          <p
+            className="mb-3 text-xs font-semibold uppercase tracking-[0.22em]"
+            style={{ color: "rgba(17,17,17,0.45)" }}
           >
-            <div
-              onClick={() => setCurrentTab("tabOne")}
-              className={`relative flex w-full cursor-pointer items-center gap-4 border-b border-stroke px-6 py-2 last:border-0 md:w-auto md:border-0 xl:px-13.5 xl:py-5 ${currentTab === "tabOne"
-                ? "active before:absolute before:bottom-0 before:left-0 before:h-1 before:w-full before:rounded-tl-[4px] before:rounded-tr-[4px] before:bg-black"
-                : ""
-                }`}
-            >
-              <div className="flex h-12.5 w-12.5 items-center justify-center rounded-[50%] border border-stroke ">
-                <p className="text-metatitle3 font-medium text-black ">
-                  01
-                </p>
-              </div>
-              <div className="md:w-3/5 lg:w-auto">
-                <button className="text-sm font-medium text-black xl:text-regular">
-                  Effortless Booking
-                </button>
-              </div>
-            </div>
-            <div
-              onClick={() => setCurrentTab("tabTwo")}
-              className={`relative flex w-full cursor-pointer items-center gap-4 border-b border-stroke px-6 py-2 last:border-0 md:w-auto md:border-0 xl:px-13.5 xl:py-5 ${currentTab === "tabTwo"
-                ? "active before:absolute before:bottom-0 before:left-0 before:h-1 before:w-full before:rounded-tl-[4px] before:rounded-tr-[4px] before:bg-black"
-                : ""
-                }`}
-            >
-              <div className="flex h-12.5 w-12.5 items-center justify-center rounded-[50%] border border-stroke">
-                <p className="text-metatitle3 font-medium text-black">
-                  02
-                </p>
-              </div>
-              <div className="md:w-3/5 lg:w-auto">
-                <button className="text-sm font-medium text-black xl:text-regular">
-                  Tailored for Creators
-                </button>
-              </div>
-            </div>
-            <div
-              onClick={() => setCurrentTab("tabThree")}
-              className={`relative flex w-full cursor-pointer items-center gap-4 border-b border-stroke px-6 py-2 last:border-0 md:w-auto md:border-0 xl:px-13.5 xl:py-5 ${currentTab === "tabThree"
-                ? "active before:absolute before:bottom-0 before:left-0 before:h-1 before:w-full before:rounded-tl-[4px] before:rounded-tr-[4px] before:bg-black"
-                : ""
-                }`}
-            >
-              <div className="flex h-12.5 w-12.5 items-center justify-center rounded-[50%] border border-stroke">
-                <p className="text-metatitle3 font-medium text-black">
-                  03
-                </p>
-              </div>
-              <div className="md:w-3/5 lg:w-auto">
-                <button className="text-sm font-medium text-black xl:text-regular">
-                  Inspired Spaces
-                </button>
-              </div>
-            </div>
-          </motion.div>
-          
-
-          
-          <motion.div
-            variants={{
-              hidden: {
-                opacity: 0,
-                y: -20,
-              },
-
-              visible: {
-                opacity: 1,
-                y: 0,
-              },
+            Simple by design
+          </p>
+          <h2
+            style={{
+              fontFamily: "Georgia, 'Times New Roman', serif",
+              fontSize: "clamp(1.9rem, 3vw, 2.6rem)",
+              fontWeight: 700,
+              color: "#111111",
+              lineHeight: 1.2,
             }}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 0.5, delay: 0.5 }}
-            viewport={{ once: true }}
-            className="animate_top mx-auto max-w-c-1154"
           >
-            {featuresTabData.map((feature, key) => (
-              <div
-                className={feature.id === currentTab ? "block" : "hidden"}
-                key={key}
+            How ContCave works
+          </h2>
+        </motion.div>
+
+        {/* Steps */}
+        <div className="grid grid-cols-1 gap-0 md:grid-cols-3">
+          {STEPS.map(({ Icon, step, title, body }, i) => (
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              viewport={{ once: true }}
+              className={`relative flex flex-col gap-4 px-5 py-8 md:px-10 ${
+                i < STEPS.length - 1
+                  ? "border-b border-black/[0.08] md:border-b-0 md:border-r md:border-black/[0.08]"
+                  : ""
+              }`}
+            >
+              {/* Step number — top right, muted */}
+              <span
+                className="absolute right-8 top-8 text-[11px] font-semibold tracking-[0.18em]"
+                style={{ color: "rgba(17,17,17,0.2)" }}
               >
-                <FeaturesTabItem featureTab={feature} />
+                {step}
+              </span>
+
+              {/* Icon */}
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-xl"
+                style={{ backgroundColor: "#111111" }}
+              >
+                <Icon size={18} color="#FFFFFF" />
               </div>
-            ))}
-          </motion.div>
-          
+
+              {/* Title */}
+              <h3
+                className="text-xl font-semibold"
+                style={{ color: "#111111" }}
+              >
+                {title}
+              </h3>
+
+              {/* Body */}
+              <p
+                className="text-sm leading-relaxed"
+                style={{ color: "#666666" }}
+              >
+                {body}
+              </p>
+            </motion.div>
+          ))}
         </div>
-      </section>
-      
-    </>
+
+        {/* Divider line below steps — desktop only */}
+        <div
+          className="mt-0 hidden md:block"
+          style={{ borderTop: "1px solid rgba(17,17,17,0.08)" }}
+        />
+
+      </div>
+    </section>
   );
 };
 
-export default FeaturesTab;
+export default HowItWorks;
