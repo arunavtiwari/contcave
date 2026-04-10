@@ -85,63 +85,74 @@ const ForBrands = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.1 }}
             viewport={{ once: true }}
-            className="flex flex-col rounded-2xl p-6 lg:p-10"
+            className="group/dark relative flex flex-col overflow-hidden rounded-2xl p-6 lg:p-10"
             style={{
               backgroundColor: "#111111",
               minHeight: "280px",
             }}
           >
-            {/* Icon */}
+            {/* Shimmer sweep — slides across on parent hover via CSS group */}
             <div
-              className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl"
-              style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-            >
-              <FiBriefcase size={18} color="#FFFFFF" />
-            </div>
-            <p
-              className="mb-3 text-xs font-semibold uppercase tracking-[0.2em]"
-              style={{ color: "rgba(255,255,255,0.45)" }}
-            >
-              Concierge service
-            </p>
-            <h3
-              className="mb-4 flex-1"
+              className="pointer-events-none absolute inset-0 z-0 translate-x-[-100%] transition-transform duration-500 ease-in-out group-hover/dark:translate-x-[100%]"
               style={{
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: "clamp(1.4rem, 2.2vw, 1.9rem)",
-                fontWeight: 700,
-                color: "#FAF7F2",
-                lineHeight: 1.25,
+                background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%)",
               }}
-            >
-              Send us your brief
-            </h3>
-            <p
-              className="mb-8 text-sm leading-relaxed"
-              style={{ color: "rgba(255,255,255,0.55)" }}
-            >
-              Running a campaign? Share your brief — shoot type, dates, crew size, budget. We&apos;ll match you with the right studio and handle the coordination.
-            </p>
-            <div className="mt-auto flex flex-wrap gap-3">
-              <a
-                href="mailto:info@contcave.com"
-                className="inline-block rounded-full px-6 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-105"
-                style={{ backgroundColor: "#FFFFFF", color: "#111111" }}
+            />
+
+            {/* Content above shimmer */}
+            <div className="relative z-10 flex flex-1 flex-col">
+              {/* Icon */}
+              <div
+                className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl"
+                style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
               >
-                Share your brief
-              </a>
-              <a
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block rounded-full px-6 py-2.5 text-sm font-medium transition-transform duration-300 hover:scale-105"
+                <FiBriefcase size={18} color="#FFFFFF" />
+              </div>
+              <p
+                className="mb-3 text-xs font-semibold uppercase tracking-[0.2em]"
+                style={{ color: "rgba(255,255,255,0.45)" }}
+              >
+                Concierge service
+              </p>
+              <h3
+                className="mb-4 flex-1"
                 style={{
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  color: "rgba(255,255,255,0.75)",
+                  fontFamily: "Georgia, 'Times New Roman', serif",
+                  fontSize: "clamp(1.4rem, 2.2vw, 1.9rem)",
+                  fontWeight: 700,
+                  color: "#FAF7F2",
+                  lineHeight: 1.25,
                 }}
               >
-                WhatsApp us
-              </a>
+                Send us your brief
+              </h3>
+              <p
+                className="mb-8 text-sm leading-relaxed"
+                style={{ color: "rgba(255,255,255,0.55)" }}
+              >
+                Running a campaign? Share your brief — shoot type, dates, crew size, budget. We&apos;ll match you with the right studio and handle the coordination.
+              </p>
+              <div className="mt-auto flex flex-wrap gap-3">
+                <a
+                  href="mailto:info@contcave.com"
+                  className="inline-block rounded-full px-6 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-105"
+                  style={{ backgroundColor: "#FFFFFF", color: "#111111" }}
+                >
+                  Share your brief
+                </a>
+                <a
+                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block rounded-full px-6 py-2.5 text-sm font-medium transition-transform duration-300 hover:scale-105"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    color: "rgba(255,255,255,0.75)",
+                  }}
+                >
+                  WhatsApp us
+                </a>
+              </div>
             </div>
           </motion.div>
 
