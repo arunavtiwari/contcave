@@ -128,7 +128,7 @@ const ReviewCard = ({ review, isActive, cardRef, onClick }: ReviewCardProps) => 
           {review.role}
         </p>
       </div>
-      {review.genuine && (
+      
         <div className="ml-auto flex flex-shrink-0 items-center gap-1">
           <svg width="11" height="11" viewBox="0 0 20 20" fill="rgba(17,17,17,0.4)">
             <path
@@ -137,17 +137,9 @@ const ReviewCard = ({ review, isActive, cardRef, onClick }: ReviewCardProps) => 
               clipRule="evenodd"
             />
           </svg>
-          <span
-            className="text-[9px] font-medium uppercase tracking-[0.12em]"
-            style={{ color: "rgba(17,17,17,0.4)" }}
-          >
-            Verified
-          </span>
         </div>
-      )}
     </div>
 
-    {/* Quote — max 3 lines */}
     <p
       className="mb-4 line-clamp-3 text-sm leading-relaxed"
       style={{
