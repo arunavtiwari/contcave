@@ -1,84 +1,146 @@
 "use client";
-import { useGSAP } from "@gsap/react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Image from "next/image";
+
+import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import { useRef } from "react";
+import { BiSearch } from "react-icons/bi";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+import useSearchModal from "@/hook/useSearchModal";
 
 const Hero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchModal = useSearchModal();
 
-  useGSAP(
-    () => {
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "50% 50%",
-            end: "+=200px",
-            scrub: 1,
-          },
-        })
-        .to(containerRef.current, {
-          scale: 0.9,
-          borderRadius: "2em",
-          duration: 1.5,
-        });
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
 
-      gsap
-        .timeline({ repeat: -1, repeatDelay: 1 })
-        .to("#changing-text", { opacity: 0, duration: 0.5 })
-        .set("#changing-text", { textContent: "Studio" })
-        .to("#changing-text", { opacity: 1, duration: 0.5 })
-        .to("#changing-text", { opacity: 0, duration: 0.5, delay: 1 })
-        .set("#changing-text", { textContent: "Shooting Space" })
-        .to("#changing-text", { opacity: 1, duration: 0.5 })
-        .to("#changing-text", { opacity: 0, duration: 0.5, delay: 1 })
-        .set("#changing-text", { textContent: "Location" })
-        .to("#changing-text", { opacity: 1, duration: 0.5 });
-    },
-    { scope: containerRef }
-  );
+  const scale = useTransform(scrollYProgress, [0, 0.4], [1, 0.92]);
+  const borderRadius = useTransform(scrollYProgress, [0, 0.4], ["0rem", "1.5rem"]);
 
   return (
-    <div ref={containerRef} id="hero-anim-track" className="overflow-hidden">
-      <div className="flex items-center text-white relative h-[calc(100vh-80px)]">
-        <div className="absolute inset-0 bg-black opacity-65 z-10" />
+    <motion.div
+      ref={containerRef}
+      style={{ scale, borderRadius }}
+      className="overflow-hidden"
+    >
+      <div
+        className="relative flex items-center"
+        style={{ height: "calc(100vh - 80px)", minHeight: 480 }}
+      >
+        {/* 🎥 Background Video */}
+        <video
+          autoPlay
+          muted
+          playsInline
+          onEnded={(e) => e.currentTarget.pause()}
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        >
+          <source src="https://res.cloudinary.com/duqay465q/video/upload/v1775847837/download_wbbmxk.mp4" type="video/mp4" />
+        </video>
 
-        <div className="container flex z-20 px-4 sm:px-8 lg:px-16">
-          <div className="w-full sm:w-2/3 text-center sm:text-start">
-            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
-              Discover the perfect{" "}
-              <span id="changing-text">Studio</span>
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl opacity-70 mt-4">
-              Whether you&apos;re telling a story or capturing a moment, find the
-              space that elevates your vision.
-            </p>
-            <Link
-              href="/home"
-              className="bg-white mt-10 w-fit text-black px-6 py-2.5 rounded-full font-semibold text-lg shadow-sm hover:scale-105 duration-300 relative z-20 cursor-pointer inline-block"
-            >
-              Book Now
-            </Link>
-          </div>
-        </div>
-
-        <Image
-          src="/images/hero/bg-hero.jpg"
-          alt=""
-          aria-hidden="true"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
+        {/* 🌑 Gradient Overlay */}
+        <div
+          className="absolute inset-0 z-10"
+          style={{
+            background:
+              "linear-gradient(160deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.9) 100%)",
+          }}
         />
 
+        {/* Brand left accent */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-[3px] z-20"
+          style={{ backgroundColor: "#000000" }}
+        />
+
+        {/* 📝 Content */}
+        <div className="relative z-20 w-full px-6 md:px-16 lg:px-20 xl:px-24">
+          <div className="max-w-2xl">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-4 text-xs font-medium uppercase tracking-[0.22em]"
+              style={{ color: "rgba(255,255,255,0.55)" }}
+            >
+              For Agencies, Brands and Creators
+            </motion.p>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              style={{
+                fontFamily: "Georgia, 'Times New Roman', serif",
+                fontSize: "clamp(2rem, 5vw, 4.2rem)",
+                fontWeight: 900,
+                lineHeight: 1.05,
+                color: "#FAF7F2",
+                marginBottom: "0.5rem",
+              }}
+            >
+              Book your next shoot location
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.18 }}
+              className="mb-6"
+              style={{
+                fontSize: "clamp(0.9rem, 1.6vw, 1.1rem)",
+                color: "rgba(255,255,255,0.6)",
+                letterSpacing: "0.01em",
+              }}
+            >
+              Verified studios · Instant booking · Transparent pricing
+            </motion.p>
+
+            {/* 🔍 Search + CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex flex-wrap items-center gap-3"
+            >
+              <button
+                type="button"
+                onClick={searchModal.onOpen}
+                className="flex items-center gap-3 rounded-full transition hover:opacity-90"
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+                  padding: "10px 10px 10px 20px",
+                }}
+              >
+                <span className="text-sm font-medium text-gray-500">
+                  Search by city…
+                </span>
+                <span
+                  className="flex items-center justify-center rounded-full"
+                  style={{ backgroundColor: "#111111", padding: "8px" }}
+                >
+                  <BiSearch size={15} color="#FFFFFF" />
+                </span>
+              </button>
+
+              <Link
+                href="/home"
+                className="inline-block rounded-full px-6 py-3 text-sm font-medium transition hover:opacity-80"
+                style={{
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  color: "rgba(255,255,255,0.85)",
+                }}
+              >
+                View all studios
+              </Link>
+            </motion.div>
+          </div>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

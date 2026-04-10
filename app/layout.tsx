@@ -16,6 +16,7 @@ import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
 import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
+import Footer from "@/components/Footer";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import NextAuthProvider from "@/components/providers/NextAuthProvider";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -275,6 +276,7 @@ export default async function RootLayout({
             <CookieConsent />
           </ClientOnly>
           <div className="min-h-screen pt-21">{children}</div>
+          <Footer />
           <ScrollToTop />
           <Analytics />
           <SpeedInsights />

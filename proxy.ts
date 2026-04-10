@@ -122,6 +122,12 @@ function buildCSP(nonce: string): string {
             'https://cdn-icons-png.flaticon.com'
         ],
 
+        'media-src': [
+            "'self'",
+            'blob:',
+            'https://res.cloudinary.com',
+        ],
+
         'connect-src': [
             "'self'",
             'ws:',
