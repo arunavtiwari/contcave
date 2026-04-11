@@ -4,7 +4,6 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings, { IListingsParams } from "@/app/actions/getListings";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
-import Footer from "@/components/Footer";
 import ListingFeed from "@/components/listing/ListingFeed";
 import Categories from "@/components/navbar/Categories";
 import { safeJsonLd } from "@/lib/safeJsonLd";
@@ -126,7 +125,6 @@ export default async function Home(props: HomeProps) {
           )}
         </Container>
       </main>
-      <Footer />
     </>
   );
 }
