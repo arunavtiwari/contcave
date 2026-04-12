@@ -178,6 +178,7 @@ export async function ensureInvoiceWithAttachment(
     gstAmount,
     totalAmount,
     reservationId,
+    bookingId: reservation.bookingId,
   });
 
   const arrayBuffer = await pdfBlob.arrayBuffer();
@@ -221,7 +222,7 @@ export async function ensureInvoiceWithAttachment(
       body: formData,
     }
   );
-  const uploadData = await uploadRes.json();
+  const uploadData = (await uploadRes.json()) as { secure_url?: string; error?: { message?: string } };
   if (!uploadRes.ok || !uploadData?.secure_url)
     throw new Error(uploadData?.error?.message || "Cloudinary upload failed");
 

@@ -1,5 +1,7 @@
 "use client";
 
+declare const window: { open(url: string, target?: string): void };
+
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
@@ -49,7 +51,7 @@ function BookingClient({ reservations, currentUser }: Props) {
   const handleRefundContact = useCallback(() => {
     const r = reservations.find((x) => x.id === refundReservationId);
     const studio = r?.listing?.title || "the studio";
-    const rid = r?.id || refundReservationId;
+    const rid = r?.bookingId || refundReservationId;
     const msg = `Hi ContCave team, I cancelled my booking for ${studio}. Reservation ID: ${rid}. Please help with refund.`;
     openWhatsAppSupport(msg);
     setRefundOpen(false);

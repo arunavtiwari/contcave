@@ -142,6 +142,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                                         {[
                                             { label: "Guest", value: customerName },
+                                            { label: "Booking ID", value: transaction.bookingId ? `#${transaction.bookingId}` : "N/A" },
                                             { label: "Amount", value: formatCurrency(transaction.amount, transaction.currency) },
                                             {
                                                 label: "Status",

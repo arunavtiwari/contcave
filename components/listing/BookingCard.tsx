@@ -99,7 +99,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
     const handleSupportWhatsApp = () => {
         const studio = reservation?.listing?.title || "the studio";
-        const rid = reservation?.id || "";
+        const rid = reservation?.bookingId || "";
         const msg = `Hi ContCave team, my booking was rejected for ${studio}. Reservation ID: ${rid}. Please help with refund.`;
         openWhatsAppSupport(msg);
     };
@@ -268,6 +268,11 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         )}
 
                         <div className="space-y-2">
+                            <div className="flex justify-between">
+                                <span className="text-gray-700 font-medium">Reservation ID:</span>
+                                <span className="text-gray-900 font-bold">#{reservation?.bookingId}</span>
+                            </div>
+
                             <div className="flex justify-between">
                                 <span className="text-gray-700 font-medium">Property:</span>
                                 <span className="text-gray-900">{reservation?.listing?.title}</span>

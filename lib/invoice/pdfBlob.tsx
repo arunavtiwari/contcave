@@ -32,6 +32,7 @@ type InvoiceData = {
   gstAmount: number;
   totalAmount: number;
   reservationId: string;
+  bookingId?: string;
 };
 
 // Professional invoice styles
@@ -147,6 +148,7 @@ const InvoiceDocument = ({
   amount,
   gstAmount,
   totalAmount,
+  bookingId,
 }: InvoiceData) => {
   // Determine who is responsible for GST
   const gstResponsibleParty = ownerPayment || {
@@ -167,6 +169,12 @@ const InvoiceDocument = ({
             <Text style={styles.label}> Invoice Number: </Text>
             < Text style={styles.value} > {invoiceNumber} </Text>
           </View>
+          {bookingId && (
+            <View style={styles.row}>
+              <Text style={styles.label}> Booking ID: </Text>
+              <Text style={styles.value}>{bookingId}</Text>
+            </View>
+          )}
         </View>
 
         < View style={styles.divider} />

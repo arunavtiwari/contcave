@@ -10,6 +10,7 @@ import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
 import prisma from "@/lib/prismadb";
+import { generateBookingId } from "@/lib/utils/generateBookingId";
 import { WhatsappService } from "@/lib/whatsapp/service";
 
 type LocationData = {
@@ -137,7 +138,8 @@ async function createCalendarEventForOwner(p: OwnerCalendarPayload) {
       startIso: p.startIso,
       endIso: p.endIso,
     });
-  } catch {
+  } catch (e) {
+    console.warn("[Webhook] Calendar event creation failed (non-fatal)", { userId: p.ownerUserId, error: e instanceof Error ? e.message : String(e) });
   }
 }
 
@@ -152,6 +154,7 @@ type OwnerEmailPayload = Parameters<typeof sendReservationOwnerEmail>[0];
 type ExtendedCustomerEmailPayload = CustomerEmailPayload & {
   setNames?: string;
   packageTitle?: string | null;
+  bookingId?: string;
 };
 
 type ExtendedOwnerEmailPayload = OwnerEmailPayload & {
@@ -286,6 +289,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
     let afterCalendar: OwnerCalendarPayload | undefined;
     let afterReservationId: string | undefined;
     let afterInvoiceAttachment: AttachmentInput | undefined;
+    let afterCustomerPhone: string | undefined;
+    let afterHostPhone: string | undefined;
+    let afterIsInstantBooking = false;
 
     if (status === "SUCCESS" && txn.userId && txn.listingId) {
       await prisma.$transaction(async (db) => {
@@ -384,23 +390,47 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             return;
           }
 
-          const reservation = await db.reservation.create({
-            data: {
-              userId: freshTxn.userId!,
-              listingId: freshTxn.listingId!,
-              startDate,
-              startTime,
-              endTime,
-              totalPrice: freshTxn.amount,
-              selectedAddons: (md.selectedAddons ?? null) as Prisma.InputJsonValue,
-              isApproved: (listing?.instantBooking ? 1 : 0),
-              Transaction: { connect: { id: freshTxn.id } },
-              setIds,
-              includedSetId,
-              setPackageId,
-              pricingSnapshot: pricingSnapshot as Prisma.InputJsonValue,
-              totalPriceInt: Math.round(freshTxn.amount),
-            },
+          let reservation;
+          let retries = 3;
+
+          while (retries > 0) {
+            try {
+              reservation = await db.reservation.create({
+                data: {
+                  userId: freshTxn.userId!,
+                  bookingId: generateBookingId(),
+                  listingId: freshTxn.listingId!,
+                  startDate,
+                  startTime,
+                  endTime,
+                  totalPrice: freshTxn.amount,
+                  selectedAddons: (md.selectedAddons ?? null) as Prisma.InputJsonValue,
+                  isApproved: (listing?.instantBooking ? 1 : 0),
+                  Transaction: { connect: { id: freshTxn.id } },
+                  setIds,
+                  includedSetId,
+                  setPackageId,
+                  pricingSnapshot: pricingSnapshot as Prisma.InputJsonValue,
+                  totalPriceInt: Math.round(freshTxn.amount),
+                },
+              });
+              break;
+            } catch (error) {
+              if (typeof error === 'object' && error !== null && (error as Record<string, unknown>).code === 'P2002') {
+                retries--;
+                if (retries === 0) throw new Error("CRITICAL: Failed to generate a mathematically unique Booking ID after 3 sequence attempts.");
+                console.warn(`[Webhook] Birthday Paradox Collision Avoided: Regenerating ID (Retries left: ${retries})`);
+              } else {
+                throw error;
+              }
+            }
+          }
+          if (!reservation) return;
+
+          console.warn("[Webhook] Reservation created successfully", {
+            bookingId: reservation.bookingId,
+            txnId: freshTxn.id,
+            totalPrice: reservation.totalPrice
           });
 
           // Calculate GST ownership and payout based on studio's GST status
@@ -437,6 +467,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             where: { id: freshTxn.id },
             data: {
               reservationId: reservation.id,
+              bookingId: reservation.bookingId,
               vendorId: plainVendorId,
               payoutPercentToOwner: payoutDetails.payoutPercentOfTotal,
               payoutDueAt: startDate,
@@ -446,6 +477,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           });
 
           afterReservationId = reservation.id;
+          afterIsInstantBooking = Boolean(listing?.instantBooking);
+          afterCustomerPhone = user?.phone || undefined;
+          afterHostPhone = listing?.user?.phone || undefined;
 
           const studioName = listing?.title || "";
           const actualLocation = listing?.actualLocation as LocationData;
@@ -476,6 +510,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               additionalInfo,
               setNames,
               packageTitle,
+              bookingId: reservation.bookingId,
             } as ExtendedCustomerEmailPayload;
             console.warn('[Webhook] Customer email prepared', { txnId: freshTxn.id, toEmail: user.email });
           }
@@ -493,7 +528,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               setNames,
               packageTitle,
             } as ExtendedOwnerEmailPayload;
-            afterOwner.bookingId = reservation.id;
+            afterOwner.bookingId = reservation.bookingId;
             afterOwner.addons = addonsStr;
             afterOwner.formattedStartDate = startDateYmd;
             afterOwner.formattedStartTime = startTime;
@@ -521,6 +556,9 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           });
           if (resv) {
             afterReservationId = resv.id;
+            afterIsInstantBooking = Boolean(resv.listing?.instantBooking);
+            afterCustomerPhone = resv.user?.phone || undefined;
+            afterHostPhone = resv.listing?.user?.phone || undefined;
             const studioName = resv.listing?.title || "";
             const actualLocation = resv.listing?.actualLocation as LocationData;
             const studioLocation = actualLocation?.display_name || "";
@@ -568,7 +606,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 setNames,
                 packageTitle,
               } as ExtendedOwnerEmailPayload;
-              afterOwner.bookingId = resv.id;
+              afterOwner.bookingId = resv.bookingId;
               afterOwner.addons = addonsStr;
               afterOwner.formattedStartDate = startDateYmd;
               afterOwner.formattedStartTime = resv.startTime || "";
@@ -635,40 +673,29 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               where: { id: afterTxnId!, whatsappSentCustomer: false },
               data: { whatsappSentCustomer: true },
             });
-            if (claimed.count === 1) {
-              const txnUser = await prisma.user.findUnique({ where: { id: txn.userId! }, select: { phone: true } });
-              const customerPhone = txnUser?.phone;
-              if (customerPhone) {
-                const locationLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(afterCustomer.studioLocation || "")}`;
+            if (claimed.count === 1 && afterCustomerPhone) {
+              const locationLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(afterCustomer.studioLocation || "")}`;
 
-                // Check if the listing was fetched earlier to determine instant-booking
-                const txnData = await prisma.transaction.findUnique({
-                  where: { id: afterTxnId! },
-                  select: { listing: { select: { instantBooking: true } } },
+              const dateParts = afterCustomer.startDate?.split("-") || [];
+              const formattedDate = dateParts.length === 3 ? format(new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2])), "dd MMM yyyy") : (afterCustomer.startDate || "");
+              const formattedTime = afterCustomer.endTime ? `${afterCustomer.startTime} to ${afterCustomer.endTime}` : (afterCustomer.startTime || "");
+
+              if (afterIsInstantBooking) {
+                await WhatsappService.sendBookingConfirmedCustomer(afterCustomerPhone, {
+                  customerName: afterCustomer.toName || "",
+                  listingTitle: afterCustomer.studioName || "",
+                  startDate: formattedDate,
+                  startTime: formattedTime,
+                  locationLink,
                 });
-                const isInstant = Boolean(txnData?.listing?.instantBooking);
-
-                const dateParts = afterCustomer.startDate?.split("-") || [];
-                const formattedDate = dateParts.length === 3 ? format(new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2])), "dd MMM yyyy") : (afterCustomer.startDate || "");
-                const formattedTime = afterCustomer.endTime ? `${afterCustomer.startTime} to ${afterCustomer.endTime}` : (afterCustomer.startTime || "");
-
-                if (isInstant) {
-                  await WhatsappService.sendBookingConfirmedCustomer(customerPhone, {
-                    customerName: afterCustomer.toName || "",
-                    listingTitle: afterCustomer.studioName || "",
-                    startDate: formattedDate,
-                    startTime: formattedTime,
-                    locationLink,
-                  });
-                } else {
-                  // Non-instant booking: acknowledge receipt, don't confirm yet
-                  await WhatsappService.sendBookingReceivedCustomer(customerPhone, {
-                    customerName: afterCustomer.toName || "",
-                    listingTitle: afterCustomer.studioName || "",
-                    startDate: formattedDate,
-                    startTime: formattedTime,
-                  });
-                }
+              } else {
+                // Non-instant booking: acknowledge receipt, don't confirm yet
+                await WhatsappService.sendBookingReceivedCustomer(afterCustomerPhone, {
+                  customerName: afterCustomer.toName || "",
+                  listingTitle: afterCustomer.studioName || "",
+                  startDate: formattedDate,
+                  startTime: formattedTime,
+                });
               }
             }
           } catch (e: unknown) {
@@ -700,23 +727,19 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               where: { id: afterTxnId!, whatsappSentHost: false },
               data: { whatsappSentHost: true },
             });
-            if (claimed.count === 1) {
-              const txnListing = await prisma.transaction.findUnique({ where: { id: afterTxnId! }, select: { listing: { select: { user: { select: { phone: true } } } } } });
-              const hostPhone = txnListing?.listing?.user?.phone;
-              if (hostPhone) {
-                const ownerExt = afterOwner as ExtendedOwnerEmailPayload;
-                const dateParts = ownerExt.formattedStartDate?.split("-") || [];
-                const formattedDate = dateParts.length === 3 ? format(new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2])), "dd MMM yyyy") : (ownerExt.formattedStartDate || "");
-                const formattedTime = ownerExt.formattedEndTime ? `${ownerExt.formattedStartTime} to ${ownerExt.formattedEndTime}` : (ownerExt.formattedStartTime || "");
+            if (claimed.count === 1 && afterHostPhone) {
+              const ownerExt = afterOwner as ExtendedOwnerEmailPayload;
+              const dateParts = ownerExt.formattedStartDate?.split("-") || [];
+              const formattedDate = dateParts.length === 3 ? format(new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2])), "dd MMM yyyy") : (ownerExt.formattedStartDate || "");
+              const formattedTime = ownerExt.formattedEndTime ? `${ownerExt.formattedStartTime} to ${ownerExt.formattedEndTime}` : (ownerExt.formattedStartTime || "");
 
-                await WhatsappService.sendBookingReceivedHost(hostPhone, {
-                  hostName: afterOwner.toName || "",
-                  customerName: afterOwner.customerName || "",
-                  listingTitle: afterOwner.studioName || "",
-                  startDate: formattedDate,
-                  startTime: formattedTime,
-                });
-              }
+              await WhatsappService.sendBookingReceivedHost(afterHostPhone, {
+                hostName: afterOwner.toName || "",
+                customerName: afterOwner.customerName || "",
+                listingTitle: afterOwner.studioName || "",
+                startDate: formattedDate,
+                startTime: formattedTime,
+              });
             }
           } catch (e: unknown) {
             // Roll back the claim on failure
@@ -734,7 +757,8 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
         if (afterCalendar) {
           try {
             await createCalendarEventForOwner(afterCalendar);
-          } catch {
+          } catch (e) {
+            console.warn("[Webhook] Calendar event failed (non-fatal)", { error: e instanceof Error ? e.message : String(e) });
           }
         }
       }
@@ -750,13 +774,15 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             templateId: process.env.MS_TPL_RESERVATION_FAILED || "",
             data: { customer_name: u.name || "", order_id: orderId },
           });
-        } catch {
+        } catch (e) {
+          console.warn("[Webhook] Failed payment email dispatch failed (non-fatal)", { txnId: txn.id, error: e instanceof Error ? e.message : String(e) });
         }
       }
     }
 
     return { statusCode: 200 };
-  } catch {
-    return { statusCode: 200 };
+  } catch (e) {
+    console.error("[Webhook] UNHANDLED infrastructure error — returning 500 for retry", { error: e instanceof Error ? e.message : String(e) });
+    return { statusCode: 500 };
   }
 }

@@ -120,7 +120,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
     const ReservationBlock = (
         <>
             <p className="text-base text-center font-bold">
-                Reservation ID: #{reservation.id}
+                Reservation ID: #{reservation.bookingId}
             </p>
             <ul className="mt-3 list-disc pl-4 space-y-1 text-base">
                 <li>

@@ -184,6 +184,7 @@ model Reservation {
   id                  String          @id @default(auto()) @map("_id") @db.ObjectId
   userId              String          @db.ObjectId
   listingId           String          @db.ObjectId
+  bookingId           String          @unique
   startDate           DateTime        @default(now())
   startTime           String
   endTime             String
@@ -290,6 +291,7 @@ model Transaction {
   userId        String            @db.ObjectId
   reservationId String?           @db.ObjectId
   listingId     String?           @db.ObjectId
+  bookingId     String?
   amount        Float
   currency      String            @default("INR")
   status        TransactionStatus @default(PENDING)

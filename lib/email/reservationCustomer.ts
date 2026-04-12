@@ -14,6 +14,7 @@ export async function sendReservationCustomerEmail(input: {
     setNames?: string;
     packageTitle?: string | null;
     templateId?: string;
+    bookingId?: string;
     attachments?: AttachmentInput[];
 }) {
     await sendTemplateEmail({
@@ -23,6 +24,7 @@ export async function sendReservationCustomerEmail(input: {
         data: {
             customer_name: input.toName || "",
             studio_name: input.studioName,
+            bookingId: input.bookingId || "",
             start_date: input.startDate,
             start_time: input.startTime,
             end_time: input.endTime,

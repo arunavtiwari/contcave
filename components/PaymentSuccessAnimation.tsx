@@ -39,7 +39,7 @@ export default function PaymentAnimation({ status }: { status: PaymentStatus }) 
 
           
           <div
-            className={`absolute flex h-full w-full items-center justify-center rounded-full text-5xl text-white [backface-visibility:hidden] [transform:rotateY(180deg)] ${status === "success" ? "bg-green-500" : "bg-yellow-500"
+            className={`absolute flex h-full w-full items-center justify-center rounded-full text-5xl text-white backface-hidden transform-[rotateY(180deg)] ${status === "success" ? "bg-green-500" : "bg-yellow-500"
               }`}
           >
             <Image

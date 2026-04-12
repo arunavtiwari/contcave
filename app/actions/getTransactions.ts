@@ -67,6 +67,9 @@ export default async function getTransactions(userId: string) {
             amount: transaction.amount,
             currency: '₹',
             status: mapTransactionStatus(transaction.status),
+            reservationId: transaction.reservationId || undefined,
+            listingId: transaction.listingId || undefined,
+            bookingId: transaction.bookingId || undefined,
         }));
 
         return transformedTransactions;

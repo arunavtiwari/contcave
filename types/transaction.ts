@@ -15,6 +15,7 @@ export interface Transaction {
     merchantTransactionId?: string;
     phonePeTransactionId?: string;
     reservationId?: string;
+    bookingId?: string;
     listingId?: string;
     failureReason?: string;
 }
