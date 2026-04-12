@@ -1,6 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 
 import prisma from "@/lib/prismadb";
+import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 
 
 export function parseTimeToMinutes(timeStr: string): number {
@@ -71,6 +72,15 @@ export async function checkSetConflicts(
     dateStart.setHours(0, 0, 0, 0);
     const dateEnd = new Date(date);
     dateEnd.setHours(23, 59, 59, 999);
+
+    const ymd = date.toISOString().slice(0, 10);
+    const reqSH = String(Math.floor(requestedStart / 60)).padStart(2, "0");
+    const reqSM = String(requestedStart % 60).padStart(2, "0");
+    const reqEH = String(Math.floor(requestedEnd / 60)).padStart(2, "0");
+    const reqEM = String(requestedEnd % 60).padStart(2, "0");
+
+    const reqStartAbs = new Date(`${ymd}T${reqSH}:${reqSM}:00+05:30`).getTime();
+    const reqEndAbs = new Date(`${ymd}T${reqEH}:${reqEM}:00+05:30`).getTime();
 
     const listing = await db.listing.findUnique({
         where: { id: listingId },
@@ -158,6 +168,30 @@ export async function checkSetConflicts(
                 hasConflict: true,
                 conflictType: "reservation",
                 conflictDetails: "One or more selected sets are already booked during this time.",
+            };
+        }
+    }
+
+    const googleEvents = await fetchListingCalendarEvents(listingId);
+    for (const ev of googleEvents) {
+        const sISO = ev?.start?.dateTime || ev?.start?.date;
+        const eISO = ev?.end?.dateTime || ev?.end?.date;
+        if (!sISO || !eISO) continue;
+
+        let evStartMs, evEndMs;
+        if (sISO.length === 10) {
+            evStartMs = new Date(`${sISO}T00:00:00+05:30`).getTime();
+            evEndMs = new Date(`${eISO}T00:00:00+05:30`).getTime();
+        } else {
+            evStartMs = new Date(sISO).getTime();
+            evEndMs = new Date(eISO).getTime();
+        }
+
+        if (evStartMs < reqEndAbs && reqStartAbs < evEndMs) {
+            return {
+                hasConflict: true,
+                conflictType: "block",
+                conflictDetails: "This time slot overlaps with a connected Google Calendar event.",
             };
         }
     }

@@ -9,6 +9,7 @@ import EmptyState from "@/components/EmptyState";
 import ListingClient from "@/components/ListingClient";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +81,8 @@ const DemoListingPage = async ({ params }: { params: Promise<RouteParams> }) => 
   const reservations = await getReservation({ listingId });
   const currentUser = await getCurrentUser();
 
+  const googleCalendarEvents = listing ? await fetchListingCalendarEvents(listing.id) : [];
+
   if (!listing) {
     return (
       <ClientOnly>
@@ -138,7 +141,7 @@ const DemoListingPage = async ({ params }: { params: Promise<RouteParams> }) => 
             listing={listing}
             currentUser={currentUser}
             reservations={reservations}
-
+            googleCalendarEvents={googleCalendarEvents}
           />
         </div>
       </>

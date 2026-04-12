@@ -10,6 +10,7 @@ import ListingClient from "@/components/ListingClient";
 import prisma from "@/lib/prismadb";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +124,8 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
   if (!listing) {
     return <EmptyState />;
   }
+
+  const googleCalendarEvents = await fetchListingCalendarEvents(listing.id);
 
   const imageCandidates =
     Array.isArray(listing.imageSrc) && listing.imageSrc.length > 0
@@ -340,6 +343,7 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
         listing={listing}
         currentUser={currentUser}
         reservations={reservations}
+        googleCalendarEvents={googleCalendarEvents}
       />
     </>
   );

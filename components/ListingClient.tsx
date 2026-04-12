@@ -1,6 +1,5 @@
 "use client";
 
-import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -38,7 +37,7 @@ type Props = {
   reservations?: SafeReservation[];
   listing: FullListing;
   currentUser?: SafeUser | null;
-
+  googleCalendarEvents?: GoogleCalendarEvent[];
 };
 
 interface GoogleCalendarEvent {
@@ -89,21 +88,18 @@ function ListingClient({
   reservations = [],
   listing,
   currentUser = null,
-
+  googleCalendarEvents = [],
 }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>([null, null]);
   const [selectedAddons, setSelectedAddons] = useState<AddonItem[]>([]);
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const [googleCalendarEvents, setGoogleCalendarEvents] = useState<GoogleCalendarEvent[]>([]);
-
 
   const [selectedSetIds, setSelectedSetIds] = useState<string[]>([]);
   const [isEntireStudioBooked, setIsEntireStudioBooked] = useState(false);
   const [isPackageSetModalOpen, setIsPackageSetModalOpen] = useState(false);
 
-  const ownerHasGoogleCalendar = !!listing?.user?.googleCalendarConnected;
   const abortRef = useRef<AbortController | null>(null);
   const lastSigRef = useRef("");
 
@@ -127,27 +123,7 @@ function ListingClient({
     if (selectedTimeSlot[1] !== endLabel) setSelectedTimeSlot([startLabel, endLabel]);
   }, [selectedDate, selectedPackage, selectedTimeSlot]);
 
-  useEffect(() => {
-    if (!ownerHasGoogleCalendar) {
-      setGoogleCalendarEvents([]);
-      return;
-    }
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    (async () => {
-      try {
-        const res = await axios.get("/api/calendar/events", {
-          params: { listingId: listing.id },
-          signal: controller.signal,
-        });
-        setGoogleCalendarEvents(Array.isArray(res.data) ? res.data : []);
-      } catch {
-        setGoogleCalendarEvents([]);
-      }
-    })();
-    return () => controller.abort();
-  }, [listing.id, ownerHasGoogleCalendar]);
+
 
   const operationalTimings: ReservationOperationalTimings = useMemo(
     () => buildOperationalTimings(listing),
