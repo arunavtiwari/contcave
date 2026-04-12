@@ -7,10 +7,10 @@ import getReservation from "@/app/actions/getReservations";
 import EmptyState from "@/components/EmptyState";
 import ListingSkeleton from "@/components/listing/ListingSkeleton";
 import ListingClient from "@/components/ListingClient";
+import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import prisma from "@/lib/prismadb";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL } from "@/lib/seo";
-import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 
 export const dynamic = "force-dynamic";
 

@@ -9,6 +9,7 @@ import { Suspense } from "react";
 
 import ClientOnly from "@/components/ClientOnly";
 import CookieConsent from "@/components/CookieConsentBanner";
+import Footer from "@/components/Footer";
 import GlobalScrollFix from "@/components/GlobalScrollFix";
 import MetaPixelTracker from "@/components/MetaPixelTracker";
 import LoginModal from "@/components/modals/LoginModal";
@@ -16,7 +17,6 @@ import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
 import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
-import Footer from "@/components/Footer";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import NextAuthProvider from "@/components/providers/NextAuthProvider";
 import ScrollToTop from "@/components/ScrollToTop";

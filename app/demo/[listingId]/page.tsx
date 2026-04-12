@@ -7,9 +7,9 @@ import getReservation from "@/app/actions/getReservations";
 import ClientOnly from "@/components/ClientOnly";
 import EmptyState from "@/components/EmptyState";
 import ListingClient from "@/components/ListingClient";
+import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, OG_IMAGE, SITE_URL } from "@/lib/seo";
-import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 
 export const dynamic = "force-dynamic";
 

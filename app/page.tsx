@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
+import ForBrands from "@/components/Brands/index";
 import CTA from "@/components/CTA";
 import FAQ from "@/components/FAQ";
 import StudioShowcase from "@/components/Features";
 import HowItWorks from "@/components/FeaturesTab";
 import Hero from "@/components/Hero";
-import ForBrands from "@/components/Brands/index";
 import SocialProof from "@/components/SocialProof/index";
 import {
   absoluteUrl,

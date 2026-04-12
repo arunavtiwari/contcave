@@ -42,12 +42,12 @@ type Props = {
 
 interface GoogleCalendarEvent {
   start?: {
-    date?: string;
-    dateTime?: string;
+    date?: string | null;
+    dateTime?: string | null;
   };
   end?: {
-    date?: string;
-    dateTime?: string;
+    date?: string | null;
+    dateTime?: string | null;
   };
 }
 
@@ -100,7 +100,6 @@ function ListingClient({
   const [isEntireStudioBooked, setIsEntireStudioBooked] = useState(false);
   const [isPackageSetModalOpen, setIsPackageSetModalOpen] = useState(false);
 
-  const abortRef = useRef<AbortController | null>(null);
   const lastSigRef = useRef("");
 
 
@@ -138,9 +137,9 @@ function ListingClient({
     };
 
     googleCalendarEvents.forEach((ev) => {
-      const startDate: string | undefined = ev?.start?.date;
-      const startDateTime: string | undefined = ev?.start?.dateTime;
-      const endDateTime: string | undefined = ev?.end?.dateTime;
+      const startDate = ev?.start?.date;
+      const startDateTime = ev?.start?.dateTime;
+      const endDateTime = ev?.end?.dateTime;
       if (startDate) {
         addDate(new Date(`${startDate}T00:00:00`));
         return;
@@ -174,7 +173,6 @@ function ListingClient({
           const closeDate = new Date(todayKey.getFullYear(), todayKey.getMonth(), todayKey.getDate(), ch, cm, 0, 0);
           if (now >= closeDate) addDate(todayKey);
         }
-        // closeMin === 0 means midnight (end of day); today is never "past close"
       }
       if (dayTiming?.enabled === false) addDate(todayKey);
     } catch { }
@@ -190,7 +188,6 @@ function ListingClient({
 
     const addInterval = (s: TimeHM, e: TimeHM, setIds?: string[]) => {
       if (!s || !e) return;
-      // Treat "00:00" (midnight) end as end-of-day
       const effectiveE = (hhmmToMinutes(e) === 0 ? LATEST_FAKE_CUTOFF : e) as TimeHM;
       if (hhmmToMinutes(s) >= hhmmToMinutes(effectiveE)) return;
       if (!setIds || setIds.length === 0) {

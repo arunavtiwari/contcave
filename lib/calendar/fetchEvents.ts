@@ -1,4 +1,5 @@
-import { google } from "googleapis";
+import { calendar_v3, google } from "googleapis";
+
 import prisma from "@/lib/prismadb";
 
 async function refreshCalendarAccessToken(account: {
@@ -51,7 +52,7 @@ export async function fetchListingCalendarEvents(listingId: string) {
     const timeMax = new Date();
     timeMax.setMonth(timeMax.getMonth() + 2);
 
-    let responseData: any[] = [];
+    let responseData: calendar_v3.Schema$Event[] = [];
 
     try {
         const response = await calendar.events.list({
@@ -62,14 +63,15 @@ export async function fetchListingCalendarEvents(listingId: string) {
             orderBy: "startTime",
         });
         responseData = response.data.items || [];
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const err = error as { code?: number; status?: number; message?: string };
         const isInvalidCredentials =
-            error.code === 401 ||
-            error.status === 401 ||
-            (error.message &&
-                (error.message.toLowerCase().includes("invalid credentials") ||
-                    error.message.includes("invalid_grant") ||
-                    error.message.toLowerCase().includes("unauthorized")));
+            err.code === 401 ||
+            err.status === 401 ||
+            (err.message &&
+                (err.message.toLowerCase().includes("invalid credentials") ||
+                    err.message.includes("invalid_grant") ||
+                    err.message.toLowerCase().includes("unauthorized")));
 
         if (isInvalidCredentials && googleAccount.refresh_token) {
             const refreshedTokens = await refreshCalendarAccessToken({
