@@ -196,7 +196,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                     label="Cancel Reservation"
                                     onClick={handleCancel}
                                     rounded
-                                    classNames="text-md font-semibold bg-white border-[#E74C3C] text-[#E74C3C]"
+                                    classNames="text-md font-semibold bg-white border-[#E74C3C]! text-[#E74C3C]!"
                                 />
                             )}
 
