@@ -9,7 +9,6 @@ import { Suspense } from "react";
 
 import ClientOnly from "@/components/ClientOnly";
 import CookieConsent from "@/components/CookieConsentBanner";
-import Footer from "@/components/Footer";
 import GlobalScrollFix from "@/components/GlobalScrollFix";
 import MetaPixelTracker from "@/components/MetaPixelTracker";
 import LoginModal from "@/components/modals/LoginModal";
@@ -275,8 +274,7 @@ export default async function RootLayout({
             <RentModal />
             <CookieConsent />
           </ClientOnly>
-          <div className="min-h-screen pt-21">{children}</div>
-          <Footer />
+          {children}
           <ScrollToTop />
           <Analytics />
           <SpeedInsights />

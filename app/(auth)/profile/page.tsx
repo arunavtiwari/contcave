@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getTransactions from "@/app/actions/getTransactions";
-import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
 import { getPaymentDetailsSafe } from "@/lib/payment-details";
@@ -25,27 +24,27 @@ const Profile = async () => {
 
   if (!currentUser) {
     return (
-      <ClientOnly>
-        <EmptyState title="Unauthorized" subtitle="Please login" />
-      </ClientOnly>
+      <EmptyState title="Unauthorized" subtitle="Please login" />
     );
   }
+  const isOwner = currentUser.is_owner === true;
+
   const [paymentDetailsResult, transactions] = await Promise.all([
     getPaymentDetailsSafe(currentUser.id),
-    getTransactions(currentUser.id),
+    isOwner
+      ? getTransactions(currentUser.id, { ownerView: true })
+      : Promise.resolve([]),
   ]);
 
   const paymentDetails = paymentDetailsResult.success ? (paymentDetailsResult.data as unknown as PaymentProfile) : null;
 
   return (
     <Container>
-      <ClientOnly>
-        <ProfileClient
-          profile={currentUser}
-          initialPaymentDetails={paymentDetails}
-          initialTransactions={transactions}
-        />
-      </ClientOnly>
+      <ProfileClient
+        profile={currentUser}
+        initialPaymentDetails={paymentDetails}
+        initialTransactions={transactions}
+      />
     </Container>
   );
 };

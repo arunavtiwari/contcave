@@ -142,7 +142,13 @@ function buildCSP(nonce: string): string {
             'https://fonts.gstatic.com',
             'https://graph.facebook.com',
             'https://www.googleapis.com',
-            'https://vitals.vercel-insights.com'
+            'https://vitals.vercel-insights.com',
+            'https://*.ably.io',
+            'wss://*.ably.io',
+            'https://*.ably-realtime.com',
+            'wss://*.ably-realtime.com',
+            'https://*.ably.net',
+            'wss://*.ably.net'
         ],
 
         'frame-src': ["'self'", 'https://www.google.com', 'https://sdk.cashfree.com', 'https://sandbox.cashfree.com', 'https://cashfree.com'],

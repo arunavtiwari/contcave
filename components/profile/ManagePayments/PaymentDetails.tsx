@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "react-toastify";
 
+import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import { PaymentProfile } from "@/types/payment";
 import { SafeUser } from "@/types/user";
@@ -11,7 +12,6 @@ import { SafeUser } from "@/types/user";
 interface BankField {
     label: string;
     name: string;
-    value: string;
     type: string;
     required: boolean;
     maxLength?: number;
@@ -21,9 +21,9 @@ interface BankField {
 interface TaxField {
     label: string;
     name: string;
-    value: string;
     required: boolean;
     maxLength?: number;
+    pattern?: string;
 }
 
 
@@ -45,48 +45,45 @@ const FieldInput = React.memo<{
     }, [field.name, onChange]);
 
     return (
-        <div className="flex flex-wrap items-center mb-4 xl:flex-nowrap">
+        <div className="grid gap-2 md:grid-cols-[280px_minmax(0,1fr)] md:items-center">
             <label
                 htmlFor={field.name}
-                className="text-base w-full xl:w-[300px] font-bold text-slate-950 mb-2 xl:mb-0"
+                className="text-base font-bold text-slate-950"
             >
                 {field.label}
                 {field.required && <span className="text-rose-500 ml-1">*</span>}
             </label>
-            <div className="flex flex-col w-full xl:w-[calc(100%-300px)]">
-                <div className="relative group">
-                    <input
-                        type={('type' in field) ? field.type : 'text'}
-                        id={field.name}
-                        name={field.name}
-                        value={value}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                        required={field.required}
-                        maxLength={field.maxLength}
-                        pattern={('pattern' in field) ? field.pattern : undefined}
-                        className={`
-                            w-full
-                            h-[44px]
-                            px-4
-                            font-light 
-                            bg-white 
-                            border-2
-                            rounded-xl
-                            focus:outline-none
-                            focus:border-black
-                            transition
-                            disabled:opacity-70
-                            disabled:cursor-not-allowed
-                            ${error ? "border-rose-500 focus:border-rose-500" : "border-neutral-200 hover:border-neutral-300"}
-                        `}
-                        aria-describedby={error ? `${field.name}-error` : undefined}
-                    />
-                </div>
+            <div className="flex flex-col">
+                <input
+                    type={('type' in field) ? field.type : 'text'}
+                    id={field.name}
+                    name={field.name}
+                    value={value}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    required={field.required}
+                    maxLength={field.maxLength}
+                    pattern={('pattern' in field) ? field.pattern : undefined}
+                    className={`
+                        h-[44px]
+                        w-full
+                        rounded-xl
+                        border
+                        bg-white
+                        px-4
+                        font-light
+                        outline-none
+                        transition
+                        disabled:cursor-not-allowed
+                        disabled:opacity-70
+                        ${error ? "border-rose-500 focus:border-rose-500" : "border-neutral-200 focus:border-black"}
+                    `}
+                    aria-describedby={error ? `${field.name}-error` : undefined}
+                />
                 {error && (
                     <span
                         id={`${field.name}-error`}
-                        className="text-rose-500 text-sm mt-1 ml-2"
+                        className="ml-1 mt-1 text-sm text-rose-500"
                         role="alert"
                     >
                         {error}
@@ -113,7 +110,6 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         {
             label: "Account Holder Name",
             name: "accountHolderName",
-            value: "",
             type: "text",
             required: true,
             maxLength: 100
@@ -121,7 +117,6 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         {
             label: "Bank Name",
             name: "bankName",
-            value: "",
             type: "text",
             required: true,
             maxLength: 50
@@ -129,7 +124,6 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         {
             label: "Account Number",
             name: "accountNumber",
-            value: "",
             type: "text",
             required: true,
             pattern: "[0-9]+"
@@ -137,7 +131,6 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         {
             label: "Re-enter Account Number",
             name: "reAccountNumber",
-            value: "",
             type: "text",
             required: true,
             maxLength: 20,
@@ -146,7 +139,6 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         {
             label: "IFSC Code (India)",
             name: "ifscCode",
-            value: "",
             type: "text",
             required: true,
             maxLength: 11,
@@ -158,14 +150,12 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         {
             label: "Company Name (optional)",
             name: "companyName",
-            value: "",
             required: false,
             maxLength: 100
         },
         {
             label: "GSTIN (optional)",
             name: "gstin",
-            value: "",
             required: false,
             maxLength: 15,
             pattern: "[0-9A-Z]{15}"
@@ -306,9 +296,9 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
     return (
         <div className="flex flex-col w-full gap-5">
-            <form onSubmit={(e) => e.preventDefault()} className="xl:space-y-8 lg:space-y-8 md:space-y-8 space-y-3">
+            <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
 
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <Heading
                         title="Bank Account Information"
                         subtitle="Provide your Bank information."
@@ -316,40 +306,41 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     />
 
 
-                    <div className="flex h-fit gap-3">
+                    <div className="flex h-fit flex gap-2 md:justify-end">
                         {isEditing ? (
                             <>
-                                <button
-                                    type="button"
-                                    onClick={handleCancel}
+                                <Button
+                                    label="Cancel"
+                                    variant="secondary"
                                     disabled={isPending}
-                                    className="bg-gray-500 hover:bg-gray-600 disabled:opacity-50 flex items-center justify-center text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleSave}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleCancel();
+                                    }}
+                                />
+                                <Button
+                                    label={isPending ? "Saving..." : "Save"}
                                     disabled={isPending || !hasChanges}
-                                    className="bg-black hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center transition-colors"
-                                >
-                                    {isPending ? 'Saving...' : 'Save'}
-                                </button>
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleSave();
+                                    }}
+                                />
                             </>
                         ) : (
-                            <button
-                                type="button"
-                                onClick={handleModify}
-                                className="bg-black hover:bg-gray-800 flex items-center justify-center text-white px-6 py-2 font-semibold shadow-lg rounded-full text-center transition-colors"
-                            >
-                                Modify
-                            </button>
+                            <Button
+                                label="Modify"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleModify();
+                                }}
+                            />
                         )}
                     </div>
                 </div>
 
 
-                <fieldset className="relative space-y-4 mt-3 p-6 rounded-xl border border-gray-200">
+                <fieldset className="space-y-4 rounded-xl border border-neutral-200 p-6">
                     <legend className="sr-only">Bank Account Information</legend>
                     {BANK_FIELDS.map((field) => (
                         <FieldInput
@@ -371,7 +362,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                 />
 
 
-                <fieldset className="relative space-y-4 p-6 rounded-xl border border-gray-200">
+                <fieldset className="space-y-4 rounded-xl border border-neutral-200 p-6">
                     <legend className="sr-only">Tax Information</legend>
                     {TAX_FIELDS.map((field) => (
                         <FieldInput
@@ -387,7 +378,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
 
                 {isEditing && hasChanges && (
-                    <div className="text-sm text-gray-800 bg-gray-100 p-3 rounded-lg border border-gray-200">
+                    <div className="rounded-lg border border-neutral-200 bg-gray-100 p-3 text-sm text-gray-800">
                         You have unsaved changes
                     </div>
                 )}

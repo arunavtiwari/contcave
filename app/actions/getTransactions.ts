@@ -20,10 +20,27 @@ export function mapTransactionStatus(
     }
 }
 
-export default async function getTransactions(userId: string) {
+type GetTransactionsOptions = {
+    ownerView?: boolean;
+};
+
+export default async function getTransactions(
+    userId: string,
+    options: GetTransactionsOptions = {}
+) {
     try {
+        const ownerView = options.ownerView === true;
+        const where = ownerView
+            ? {
+                OR: [
+                    { listing: { userId } },
+                    { reservation: { listing: { userId } } },
+                ],
+            }
+            : { userId };
+
         const transactions = await prisma.transaction.findMany({
-            where: { userId },
+            where,
             include: {
                 user: {
                     select: {
@@ -34,7 +51,13 @@ export default async function getTransactions(userId: string) {
                 reservation: {
                     select: {
                         id: true,
+                        bookingId: true,
                         startDate: true,
+                        user: {
+                            select: {
+                                name: true,
+                            },
+                        },
                         listing: {
                             select: {
                                 title: true,
@@ -62,14 +85,14 @@ export default async function getTransactions(userId: string) {
                 'N/A',
             merchant: transaction.paymentMethod || 'Unknown',
             date: transaction.createdAt,
-            guestName: transaction.user?.name || 'N/A',
+            guestName: transaction.reservation?.user?.name || transaction.user?.name || 'N/A',
             customerName: transaction.user?.name || 'N/A',
             amount: transaction.amount,
             currency: '₹',
             status: mapTransactionStatus(transaction.status),
             reservationId: transaction.reservationId || undefined,
             listingId: transaction.listingId || undefined,
-            bookingId: transaction.bookingId || undefined,
+            bookingId: transaction.bookingId || transaction.reservation?.bookingId || undefined,
         }));
 
         return transformedTransactions;

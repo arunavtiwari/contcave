@@ -27,10 +27,18 @@ async function refreshCalendarAccessToken(account: {
 export async function fetchListingCalendarEvents(listingId: string) {
     const listing = await prisma.listing.findUnique({
         where: { id: listingId },
-        include: { user: { include: { accounts: true } } },
+        include: {
+            user: {
+                select: {
+                    googleCalendarConnected: true,
+                    accounts: true,
+                },
+            },
+        },
     });
 
     if (!listing || !listing.user) return [];
+    if (!listing.user.googleCalendarConnected) return [];
 
     const googleAccount = listing.user.accounts.find(
         (a) => a.provider === "google-calendar"
@@ -65,40 +73,53 @@ export async function fetchListingCalendarEvents(listingId: string) {
         responseData = response.data.items || [];
     } catch (error: unknown) {
         const err = error as { code?: number; status?: number; message?: string };
+        const normalizedMessage = (err.message || "").toLowerCase();
         const isInvalidCredentials =
             err.code === 401 ||
             err.status === 401 ||
-            (err.message &&
-                (err.message.toLowerCase().includes("invalid credentials") ||
-                    err.message.includes("invalid_grant") ||
-                    err.message.toLowerCase().includes("unauthorized")));
+            (normalizedMessage.includes("invalid credentials") ||
+                normalizedMessage.includes("invalid_grant") ||
+                normalizedMessage.includes("unauthorized"));
+        const isInsufficientScope =
+            err.code === 403 ||
+            err.status === 403 ||
+            normalizedMessage.includes("insufficient authentication scopes") ||
+            normalizedMessage.includes("insufficient scopes");
+
+        if (isInsufficientScope) {
+            return [];
+        }
 
         if (isInvalidCredentials && googleAccount.refresh_token) {
-            const refreshedTokens = await refreshCalendarAccessToken({
-                refresh_token: googleAccount.refresh_token,
-            });
+            try {
+                const refreshedTokens = await refreshCalendarAccessToken({
+                    refresh_token: googleAccount.refresh_token,
+                });
 
-            await prisma.account.update({
-                where: { id: googleAccount.id },
-                data: {
-                    access_token: refreshedTokens.access_token,
-                    expires_at: refreshedTokens.expires_in
-                        ? Math.floor(Date.now() / 1000) + refreshedTokens.expires_in
-                        : null,
-                },
-            });
+                await prisma.account.update({
+                    where: { id: googleAccount.id },
+                    data: {
+                        access_token: refreshedTokens.access_token,
+                        expires_at: refreshedTokens.expires_in
+                            ? Math.floor(Date.now() / 1000) + refreshedTokens.expires_in
+                            : null,
+                    },
+                });
 
-            accessToken = refreshedTokens.access_token;
-            oauth2Client.setCredentials({ access_token: accessToken });
+                accessToken = refreshedTokens.access_token;
+                oauth2Client.setCredentials({ access_token: accessToken });
 
-            const response = await calendar.events.list({
-                calendarId: "primary",
-                timeMin: timeMin.toISOString(),
-                timeMax: timeMax.toISOString(),
-                singleEvents: true,
-                orderBy: "startTime",
-            });
-            responseData = response.data.items || [];
+                const response = await calendar.events.list({
+                    calendarId: "primary",
+                    timeMin: timeMin.toISOString(),
+                    timeMax: timeMax.toISOString(),
+                    singleEvents: true,
+                    orderBy: "startTime",
+                });
+                responseData = response.data.items || [];
+            } catch {
+                return [];
+            }
         } else {
             console.error("GCal Sync Error:", error);
         }

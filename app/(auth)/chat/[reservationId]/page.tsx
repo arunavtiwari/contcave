@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
+import ChatClient from "@/app/(auth)/chat/ChatClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import ChatClient from "@/app/chat/ChatClient";
 import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
-
+import { getAuthorizedChatReservation } from "@/lib/chat/reservation";
 
 export const metadata: Metadata = {
   title: "Reservation Chat",
@@ -17,7 +17,12 @@ export const metadata: Metadata = {
   },
 };
 
-const Profile = async () => {
+interface IParams {
+  reservationId: string;
+}
+
+const Profile = async (props: { params: Promise<IParams> }) => {
+  const { reservationId } = await props.params;
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -27,12 +32,21 @@ const Profile = async () => {
       </ClientOnly>
     );
   }
+
+  const booking = await getAuthorizedChatReservation(reservationId, currentUser.id);
+
+  if (!booking) {
+    return (
+      <ClientOnly>
+        <EmptyState title="Reservation unavailable" subtitle="This chat could not be loaded." />
+      </ClientOnly>
+    );
+  }
+
   return (
     <div className="mt-5">
       <Container>
-        <ClientOnly>
-          <ChatClient profile={currentUser} />
-        </ClientOnly>
+        <ChatClient profile={currentUser} reservationId={reservationId} initialBooking={booking} />
       </Container>
     </div>
   );

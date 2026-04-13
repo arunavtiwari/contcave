@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import getReservation from "@/app/actions/getReservation";
 import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/PaymentSuccessAnimation";
 import Button from "@/components/ui/Button";
-import Link from "next/link";
 
 
 export const metadata: Metadata = {

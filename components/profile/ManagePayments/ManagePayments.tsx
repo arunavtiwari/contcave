@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import PaymentDetails from "@/components/profile/ManagePayments/PaymentDetails";
 import TransactionHistory from "@/components/profile/ManagePayments/TransactionHistory";
@@ -15,7 +15,6 @@ interface Props {
     profile: SafeUser | null;
     paymentDetails?: PaymentProfile | null;
     transactions?: Transaction[];
-    paymentDataLoaded?: boolean;
     paymentDataLoading?: boolean;
     onPaymentDetailsUpdate?: (newPaymentDetails: PaymentProfile) => void;
 }
@@ -31,6 +30,9 @@ const ManagePayments: React.FC<Props> = ({
     onPaymentDetailsUpdate
 }) => {
     const [selectedTab, setSelectedTab] = useState<TabType>("Payment Details");
+    const [panelMinHeight, setPanelMinHeight] = useState(0);
+    const transactionPanelRef = useRef<HTMLDivElement | null>(null);
+    const paymentPanelRef = useRef<HTMLDivElement | null>(null);
 
     const apiCall = useCallback(async (url: string, options: RequestInit = {}) => {
         const response = await fetch(url, {
@@ -110,8 +112,6 @@ const ManagePayments: React.FC<Props> = ({
         }
 
         const finalAccountNumber = form.get('accountNumber') as string;
-
-
         const isMasked = finalAccountNumber && (finalAccountNumber.includes('*') || /^\*+$/.test(finalAccountNumber));
 
         if (finalAccountNumber && !isMasked) {
@@ -120,7 +120,6 @@ const ManagePayments: React.FC<Props> = ({
             if (cleanAccountNumber.length < 9) throw new Error('Account number must be at least 9 digits');
             if (cleanAccountNumber.length > 20) throw new Error('Account number must be 20 digits or less');
         } else if (isMasked) {
-
             form.delete('accountNumber');
         }
 
@@ -138,7 +137,6 @@ const ManagePayments: React.FC<Props> = ({
             if (data.data) {
                 onPaymentDetailsUpdate?.(data.data);
             }
-
             return data;
         } catch (error) {
             console.error('Error saving payment details:', error);
@@ -146,36 +144,47 @@ const ManagePayments: React.FC<Props> = ({
         }
     }, [profile?.id, apiCall, onPaymentDetailsUpdate]);
 
-    const renderSelectedComponent = useMemo(() => {
-        const commonProps = { profile };
+    const updatePanelMinHeight = useCallback(() => {
+        const transactionHeight = transactionPanelRef.current?.scrollHeight ?? 0;
+        const paymentHeight = paymentPanelRef.current?.scrollHeight ?? 0;
+        const maxHeight = Math.max(transactionHeight, paymentHeight);
 
-        switch (selectedTab) {
-            case "Transaction History":
-                return (
-                    <TransactionHistory
-                        {...commonProps}
-                        transactions={propTransactions || []}
-                        loading={paymentDataLoading || false}
-                        error={null}
-                        onRetry={() => { }}
-                    />
-                );
-            case "Payment Details":
-            default:
-                return (
-                    <PaymentDetails
-                        {...commonProps}
-                        paymentDetails={propPaymentDetails}
-                        onSave={handleSave}
-                    />
-                );
+        if (maxHeight > 0) {
+            setPanelMinHeight((prev) => (prev === maxHeight ? prev : maxHeight));
         }
-    }, [selectedTab, profile, propTransactions, paymentDataLoading, handleSave, propPaymentDetails]);
+    }, []);
+
+    useEffect(() => {
+        updatePanelMinHeight();
+    }, [updatePanelMinHeight, selectedTab, propTransactions, propPaymentDetails, paymentDataLoading]);
+
+    useEffect(() => {
+        if (typeof ResizeObserver === "undefined") {
+            return;
+        }
+
+        const observer = new ResizeObserver(() => {
+            updatePanelMinHeight();
+        });
+
+        if (transactionPanelRef.current) {
+            observer.observe(transactionPanelRef.current);
+        }
+        if (paymentPanelRef.current) {
+            observer.observe(paymentPanelRef.current);
+        }
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [updatePanelMinHeight]);
 
     const tabIndicatorStyles = useMemo(() => ({
         left: selectedTab === "Transaction History" ? "0.25rem" : "50%",
         right: selectedTab === "Transaction History" ? "50%" : "0.25rem",
     }), [selectedTab]);
+
+    const getTabSlug = useCallback((tab: TabType) => tab.toLowerCase().replace(/\s+/g, '-'), []);
 
     if (paymentDataLoading) {
         return (
@@ -207,37 +216,69 @@ const ManagePayments: React.FC<Props> = ({
             >
 
                 <div
-                    className="absolute top-1 bottom-1 bg-white rounded-full shadow-xs transition-all duration-300 ease-in-out"
+                    className="absolute top-1 bottom-1 rounded-full bg-white transition-all duration-300 ease-in-out"
                     style={tabIndicatorStyles}
                     aria-hidden="true"
                 />
 
 
-                {TABS.map((tab) => (
-                    <button
-                        key={tab}
-                        type="button"
-                        role="tab"
-                        aria-selected={selectedTab === tab}
-                        aria-controls={`${tab.toLowerCase().replace(' ', '-')}-panel`}
-                        className={`relative z-10 px-6 py-3 rounded-full text-base font-medium transition-colors duration-200 ${selectedTab === tab
-                            ? "text-black"
-                            : "text-gray-600 hover:text-gray-900"
-                            }`}
-                        onClick={() => handleTabChange(tab)}
-                    >
-                        {tab}
-                    </button>
-                ))}
+                {TABS.map((tab) => {
+                    const tabSlug = getTabSlug(tab);
+
+                    return (
+                        <button
+                            key={tab}
+                            id={`${tabSlug}-tab`}
+                            type="button"
+                            role="tab"
+                            aria-selected={selectedTab === tab}
+                            aria-controls={`${tabSlug}-panel`}
+                            className={`relative z-10 rounded-full px-6 py-3 text-base font-medium transition-colors duration-200 ${selectedTab === tab
+                                ? "text-black"
+                                : "text-gray-600 hover:text-gray-900"
+                                }`}
+                            onClick={() => handleTabChange(tab)}
+                        >
+                            {tab}
+                        </button>
+                    );
+                })}
             </nav>
 
 
             <main
-                role="tabpanel"
-                id={`${selectedTab.toLowerCase().replace(' ', '-')}-panel`}
-                aria-labelledby={`${selectedTab.toLowerCase().replace(' ', '-')}-tab`}
+                className="relative w-full"
+                style={panelMinHeight > 0 ? { minHeight: `${panelMinHeight}px` } : undefined}
             >
-                {renderSelectedComponent}
+                <section
+                    id="transaction-history-panel"
+                    role="tabpanel"
+                    aria-labelledby="transaction-history-tab"
+                    aria-hidden={selectedTab !== "Transaction History"}
+                    ref={transactionPanelRef}
+                    className={selectedTab === "Transaction History" ? "relative" : "pointer-events-none invisible absolute inset-0"}
+                >
+                    <TransactionHistory
+                        transactions={propTransactions || []}
+                        loading={paymentDataLoading || false}
+                        error={null}
+                        onRetry={() => { }}
+                    />
+                </section>
+                <section
+                    id="payment-details-panel"
+                    role="tabpanel"
+                    aria-labelledby="payment-details-tab"
+                    aria-hidden={selectedTab !== "Payment Details"}
+                    ref={paymentPanelRef}
+                    className={selectedTab === "Payment Details" ? "relative" : "pointer-events-none invisible absolute inset-0"}
+                >
+                    <PaymentDetails
+                        profile={profile}
+                        paymentDetails={propPaymentDetails}
+                        onSave={handleSave}
+                    />
+                </section>
             </main>
         </div>
     );

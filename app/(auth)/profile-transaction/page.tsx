@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getTransactions from "@/app/actions/getTransactions";
-import ClientOnly from "@/components/ClientOnly";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
 
@@ -23,18 +22,21 @@ const ProfileTransaction = async () => {
 
   if (!currentUser) {
     return (
-      <ClientOnly>
-        <EmptyState title="Unauthorized" subtitle="Please login" />
-      </ClientOnly>
+      <EmptyState title="Unauthorized" subtitle="Please login" />
     );
   }
-  const transactions = await getTransactions(currentUser.id);
+
+  if (!currentUser.is_owner) {
+    return (
+      <EmptyState title="Owners only" subtitle="Transaction history is available for owner accounts." />
+    );
+  }
+
+  const transactions = await getTransactions(currentUser.id, { ownerView: true });
 
   return (
     <Container>
-      <ClientOnly>
-        <ProfileTransactionClient currentUser={currentUser} transactions={transactions} />
-      </ClientOnly>
+      <ProfileTransactionClient currentUser={currentUser} transactions={transactions} />
     </Container>
   );
 };

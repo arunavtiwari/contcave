@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
-import { formatRetryAfterMs,rateLimit } from "@/lib/cashfree/rateLimit";
 import { handleCashfreeWebhook } from "@/lib/cashfree/webhookService";
+import { getClientIp } from "@/lib/http/requestMeta";
+import { formatRetryAfterMs, rateLimit } from "@/lib/security/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
     try {
-        const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
-                   req.headers.get("x-real-ip") || 
-                   "unknown";
+        const ip = getClientIp(req.headers);
         const key = `cf-webhook:${ip}`;
         const { allowed, resetAt } = rateLimit({ key, limit: 30, windowMs: 60_000 });
         

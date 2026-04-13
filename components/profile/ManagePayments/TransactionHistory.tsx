@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 
+import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import { Transaction } from "@/types/transaction";
 
@@ -68,11 +69,9 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         return (
             <div className="flex flex-col w-full gap-5">
                 <Heading title="Transaction History" subtitle="View your past transactions." variant="h4"></Heading>
-                <div className="p-10 rounded-xl border border-gray-200">
-                    <div className="text-center py-10">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-                        <p className="text-gray-500 mt-4">Loading transactions...</p>
-                    </div>
+                <div className="text-center py-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                    <p className="text-gray-500 mt-4">Loading transactions...</p>
                 </div>
             </div>
         );
@@ -82,18 +81,18 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     if (error) {
         return (
             <div className="flex flex-col w-full gap-5">
-                <div className="p-10 rounded-xl border border-gray-200">
-                    <div className="text-center py-10">
-                        <p className="text-red-500 mb-4">{error}</p>
-                        {onRetry && (
-                            <button
+                <div className="text-center py-10">
+                    <p className="text-red-500 mb-4">{error}</p>
+                    {onRetry && (
+                        <div className="flex justify-center">
+                            <Button
+                                label="Retry"
+                                rounded
                                 onClick={onRetry}
-                                className="px-4 py-2 bg-black text-white rounded-full hover:opacity-85 transition-opacity"
-                            >
-                                Retry
-                            </button>
-                        )}
-                    </div>
+                                classNames="w-auto px-4"
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -104,10 +103,8 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         return (
             <div className="flex flex-col w-full gap-5">
                 <Heading title="Transaction History" subtitle="View your past transactions." variant="h4"></Heading>
-                <div className="p-10 rounded-xl border border-gray-200">
-                    <div className="text-center py-10">
-                        <p className="text-gray-500">No transactions found</p>
-                    </div>
+                <div className="text-center py-10">
+                    <p className="text-gray-500">No transactions found</p>
                 </div>
             </div>
         );
@@ -117,54 +114,56 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     return (
         <div className="flex flex-col w-full gap-5">
             <Heading title="Transaction History" subtitle="View your past transactions." variant="h4"></Heading>
-            <div className="p-10 rounded-xl border border-gray-200">
-                <div className="space-y-6">
-                    {transactions.map((transaction, index) => {
-                        const { datePart, timePart } = formatDate(transaction.date);
-                        const businessName = getBusinessName(transaction);
-                        const customerName = getCustomerName(transaction);
+            <div className="space-y-6">
+                {transactions.map((transaction, index) => {
+                    const { datePart, timePart } = formatDate(transaction.date);
+                    const businessName = getBusinessName(transaction);
+                    const customerName = getCustomerName(transaction);
+                    const details = [
+                        { label: "Guest", value: customerName },
+                        {
+                            label: "Booking ID",
+                            value: transaction.bookingId ? `#${transaction.bookingId}` : "N/A",
+                            valueClassName: "break-all"
+                        },
+                        { label: "Amount", value: formatCurrency(transaction.amount, transaction.currency) },
+                        {
+                            label: "Status",
+                            value: (
+                                <span className={`text-sm font-medium ${getStatusColor(transaction.status)}`}>
+                                    {transaction.status}
+                                </span>
+                            )
+                        }
+                    ];
 
-                        return (
-                            <div
-                                key={transaction.id || index}
-                                className="relative flex xl:flex-nowrap lg:flex-nowrap md:flex-wrap flex-wrap items-center justify-between border border-slate-300 p-6 rounded-xl"
-                            >
-                                <div className="w-full">
-                                    <div className="text-base font-normal">
-                                        {businessName}
-                                    </div>
-                                    <div className="text-base font-semibold">
-                                        <span>{datePart} </span>|
-                                        <span> {timePart}</span>
-                                    </div>
+                    return (
+                        <div
+                            key={transaction.id || index}
+                            className="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 lg:flex-row lg:items-center"
+                        >
+                            <div className="w-full min-w-0 lg:basis-[42%]">
+                                <div className="text-sm font-normal">
+                                    {businessName}
                                 </div>
-                                <div className="w-full">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                                        {[
-                                            { label: "Guest", value: customerName },
-                                            { label: "Booking ID", value: transaction.bookingId ? `#${transaction.bookingId}` : "N/A" },
-                                            { label: "Amount", value: formatCurrency(transaction.amount, transaction.currency) },
-                                            {
-                                                label: "Status",
-                                                value: (
-                                                    <span className={`text-base font-medium ${getStatusColor(transaction.status)}`}>
-                                                        {transaction.status}
-                                                    </span>
-                                                )
-                                            }
-                                        ].map(({ label, value }, idx) => (
-                                            <div key={idx} className="text-left md:text-center">
-                                                <div className="text-sm font-semibold text-gray-500">{label}</div>
-                                                <div className="text-base font-semibold text-slate-900 wrap-break-word">{value}</div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                <div className="text-sm font-semibold">
+                                    <span>{datePart} </span>|
+                                    <span> {timePart}</span>
                                 </div>
-
                             </div>
-                        );
-                    })}
-                </div>
+                            <div className="w-full lg:basis-[58%]">
+                                <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+                                    {details.map(({ label, value, valueClassName }, idx) => (
+                                        <div key={idx} className="min-w-0 text-left lg:text-center">
+                                            <div className="text-sm font-semibold text-gray-500">{label}</div>
+                                            <div className={`text-sm font-semibold text-slate-900 break-words ${valueClassName ?? ""}`}>{value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

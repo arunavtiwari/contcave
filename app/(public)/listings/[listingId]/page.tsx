@@ -125,7 +125,10 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
     return <EmptyState />;
   }
 
-  const googleCalendarEvents = await fetchListingCalendarEvents(listing.id);
+  const shouldFetchCalendarEvents = Boolean(listing.user?.googleCalendarConnected);
+  const googleCalendarEvents = shouldFetchCalendarEvents
+    ? await fetchListingCalendarEvents(listing.id)
+    : [];
 
   const imageCandidates =
     Array.isArray(listing.imageSrc) && listing.imageSrc.length > 0

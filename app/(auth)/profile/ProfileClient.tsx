@@ -49,9 +49,7 @@ const ProfileClient = ({
     router.push(`${pathname}?tab=${param}`);
   }, [pathname, router]);
   const [paymentDetails, setPaymentDetails] = useState<PaymentProfile | null>(initialPaymentDetails || null);
-  const [transactions] = useState(initialTransactions || []);
-  const [paymentDataLoaded] = useState(true);
-  const [paymentDataLoading] = useState(false);
+  const transactions = initialTransactions || [];
 
   const updatePaymentDetails = useCallback((newPaymentDetails: PaymentProfile) => {
     setPaymentDetails(newPaymentDetails);
@@ -70,8 +68,7 @@ const ProfileClient = ({
             profile={profile}
             paymentDetails={paymentDetails}
             transactions={transactions}
-            paymentDataLoaded={paymentDataLoaded}
-            paymentDataLoading={paymentDataLoading}
+            paymentDataLoading={false}
             onPaymentDetailsUpdate={updatePaymentDetails}
           />
         );
