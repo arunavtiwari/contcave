@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import getReservation from "@/app/actions/getReservation";
 import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/PaymentSuccessAnimation";
+import Button from "@/components/ui/Button";
+import Link from "next/link";
 
 
 export const metadata: Metadata = {
@@ -144,9 +146,9 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
     );
 
     return (
-        <main className="max-w-3xl mx-auto p-6 flex items-center min-h-[calc(100vh-85px)]">
+        <main className="max-w-3xl mx-auto p-6 flex items-center">
             <div className="mx-auto rounded-xl border bg-white/90 backdrop-blur p-6 shadow-xs">
-                <h2 className="text-3xl font-bold text-center">{heading}</h2>
+                <h1 className="text-2xl font-semibold text-center">{heading}</h1>
                 {(isConfirmed || isFailed) && (
                     <div className="flex justify-center my-6">
                         <PaymentAnimation status={isFailed ? "error" : "success"} />
@@ -199,13 +201,10 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
                     </div>
                 )}
 
-                <div className="mt-8 text-center flex">
-                    <a
-                        href={primaryCtaHref}
-                        className="rounded-xl bg-black px-6 py-3 text-white hover:opacity-90 w-full"
-                    >
-                        {primaryCtaLabel}
-                    </a>
+                <div className="mt-6 text-center flex">
+                    <Link href={primaryCtaHref} className="w-full">
+                        <Button label={primaryCtaLabel} />
+                    </Link>
                 </div>
 
                 {isFailed && (

@@ -8,7 +8,7 @@ type ButtonVariant = "default" | "outline" | "success" | "danger" | "ghost" | "s
 
 type Props = {
   label: string;
-  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
   loading?: boolean;
   outline?: boolean;
@@ -34,7 +34,7 @@ function Button({
 
   const effectiveVariant = outline ? "outline" : variant;
 
-  const baseClasses = "relative cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 py-[10px] transition w-full flex justify-center items-center gap-2 border hover:opacity-80";
+  const baseClasses = "relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 py-[10px] transition w-full flex justify-center items-center gap-2 border hover:opacity-80";
   const roundedClass = rounded ? "rounded-full" : "rounded-xl";
 
   const variantClasses = {

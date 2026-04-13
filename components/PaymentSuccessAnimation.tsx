@@ -10,52 +10,53 @@ export default function PaymentAnimation({ status }: { status: PaymentStatus }) 
   const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setFlipped(true), 500);
-    return () => clearTimeout(timer);
+    // Keep flipping automatically every 3 seconds
+    const timer = setInterval(() => setFlipped((prev) => !prev), 3000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gray-100">
-      <div
-        className="relative h-32 w-32 cursor-pointer"
-        onClick={() => setFlipped(!flipped)}
+    <div className="relative h-14 w-14">
+      <motion.div
+        className="relative h-full w-full"
+        animate={{ rotateY: flipped ? 180 : 0 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+        style={{ transformStyle: "preserve-3d" }}
       >
-        <motion.div
-          className="relative h-full w-full"
-          animate={{ rotateY: flipped ? 180 : 0 }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          
-          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black border shadow-lg backface-hidden overflow-hidden">
-            <Image
-              src="/images/logo/logo_small.png"
-              alt="ContCave Icon Logo"
-              width={128}
-              height={128}
-              className="object-cover"
-            />
-          </div>
 
-          
-          <div
-            className={`absolute flex h-full w-full items-center justify-center rounded-full text-5xl text-white backface-hidden transform-[rotateY(180deg)] ${status === "success" ? "bg-green-500" : "bg-yellow-500"
-              }`}
-          >
-            <Image
-              src={
-                status === "success"
-                  ? "/images/icon/tick.png"
-                  : "/images/icon/error.png"
-              }
-              alt={status === "success" ? "Booking Success" : "Booking Error"}
-              width={128}
-              height={128}
-              className="object-cover"
-            />
-          </div>
-        </motion.div>
-      </div>
+        {/* Front Face: Tick / Error */}
+        <div
+          className={`absolute inset-0 flex items-center justify-center rounded-full backface-hidden ${status === "success" ? "bg-green-500" : "bg-yellow-500"
+            }`}
+        >
+          <Image
+            src={
+              status === "success"
+                ? "/images/icon/tick.png"
+                : "/images/icon/error.png"
+            }
+            alt={status === "success" ? "Booking Success" : "Booking Error"}
+            width={56}
+            height={56}
+            priority
+            className="object-cover"
+          />
+        </div>
+
+
+        {/* Back Face: ContCave Logo (Shows when flipped) */}
+        <div className="absolute inset-0 flex items-center justify-center rounded-full backface-hidden transform-[rotateY(180deg)]">
+          <Image
+            src="/images/logo/logo_small.png"
+            alt="ContCave Icon Logo"
+            width={56}
+            height={56}
+            priority
+            className="object-cover rounded-full"
+          />
+        </div>
+
+      </motion.div>
     </div>
   );
 }
