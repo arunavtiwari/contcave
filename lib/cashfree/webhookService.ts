@@ -687,6 +687,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                   startDate: formattedDate,
                   startTime: formattedTime,
                   locationLink,
+                  idempotencyKey: `confirm_customer_${afterTxnId}`,
                 });
               } else {
                 // Non-instant booking: acknowledge receipt, don't confirm yet
@@ -695,6 +696,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                   listingTitle: afterCustomer.studioName || "",
                   startDate: formattedDate,
                   startTime: formattedTime,
+                  idempotencyKey: `received_customer_${afterTxnId}`,
                 });
               }
             }
@@ -739,6 +741,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                 listingTitle: afterOwner.studioName || "",
                 startDate: formattedDate,
                 startTime: formattedTime,
+                idempotencyKey: `received_host_${afterTxnId}`,
               });
             }
           } catch (e: unknown) {

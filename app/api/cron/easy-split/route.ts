@@ -8,9 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
     try {
-        const cronSecret = req.headers.get("x-github-secret") || 
-                          req.headers.get("x-cron-secret") || 
-                          req.headers.get("authorization")?.replace("Bearer ", "");
+        const cronSecret = req.headers.get("x-github-secret");
         const expectedSecret = process.env.CRON_SECRET;
 
         if (!expectedSecret || cronSecret !== expectedSecret) {

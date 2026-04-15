@@ -322,11 +322,13 @@ export const WhatsappService = {
             listingTitle: string;
             startDate: string;
             startTime: string;
+            idempotencyKey?: string;
         }
     ): Promise<WhatsAppSendResult> {
         return this.sendMessage({
             to,
             templateName: "booking_received_host",
+            idempotencyKey: params.idempotencyKey,
             components: [
                 {
                     type: "body",
@@ -351,11 +353,13 @@ export const WhatsappService = {
             startDate: string;
             startTime: string;
             locationLink: string;
+            idempotencyKey?: string;
         }
     ): Promise<WhatsAppSendResult> {
         return this.sendMessage({
             to,
             templateName: "booking_confirmed_customer",
+            idempotencyKey: params.idempotencyKey,
             components: [
                 {
                     type: "body",
@@ -378,11 +382,13 @@ export const WhatsappService = {
             customerName: string;
             listingTitle: string;
             startTime: string;
+            idempotencyKey?: string;
         }
     ): Promise<WhatsAppSendResult> {
         return this.sendMessage({
             to,
             templateName: "booking_reminder_customer",
+            idempotencyKey: params.idempotencyKey,
             components: [
                 {
                     type: "body",
@@ -404,11 +410,13 @@ export const WhatsappService = {
             amount: string;
             listingTitle: string;
             date: string;
+            idempotencyKey?: string;
         }
     ): Promise<WhatsAppSendResult> {
         return this.sendMessage({
             to,
             templateName: "payment_transferred_host",
+            idempotencyKey: params.idempotencyKey,
             components: [
                 {
                     type: "body",
@@ -438,11 +446,13 @@ export const WhatsappService = {
             listingTitle: string;
             startDate: string;
             startTime: string;
+            idempotencyKey?: string;
         }
     ): Promise<WhatsAppSendResult> {
         return this.sendMessage({
             to,
             templateName: "booking_received_customer",
+            idempotencyKey: params.idempotencyKey,
             components: [
                 {
                     type: "body",
@@ -468,11 +478,13 @@ export const WhatsappService = {
             customerName: string;
             listingTitle: string;
             startDate: string;
+            idempotencyKey?: string;
         }
     ): Promise<WhatsAppSendResult> {
         return this.sendMessage({
             to,
             templateName: "booking_cancelled_host",
+            idempotencyKey: params.idempotencyKey,
             components: [
                 {
                     type: "body",
@@ -497,11 +509,13 @@ export const WhatsappService = {
             customerName: string;
             listingTitle: string;
             rejectReason?: string;
+            idempotencyKey?: string;
         }
     ): Promise<WhatsAppSendResult> {
         return this.sendMessage({
             to,
             templateName: "booking_rejected_customer",
+            idempotencyKey: params.idempotencyKey,
             components: [
                 {
                     type: "body",

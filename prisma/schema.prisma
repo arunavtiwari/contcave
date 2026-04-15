@@ -207,6 +207,7 @@ model Reservation {
   setPackageId        String?         @db.ObjectId
   pricingSnapshot     Json?
   totalPriceInt       Int?
+  reminderSent        Boolean         @default(false)
 
   @@index([userId])
   @@index([listingId])
