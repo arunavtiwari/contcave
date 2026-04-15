@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import { createErrorResponse, createSuccessResponse, handleRouteError } from '@/lib/api-utils';
-import { cfUpdateVendor, cfUploadVendorGSTIN } from '@/lib/cashfree/cashfree';
+import { cfUpdateVendor } from '@/lib/cashfree/cashfree';
 import { upsertPaymentDetailsSafe } from '@/lib/payment-details';
 import prisma from '@/lib/prismadb';
 import { paymentDetailsSchema, paymentDetailsUpdateSchema } from '@/lib/schemas/payment';
@@ -114,7 +114,6 @@ export async function POST(request: NextRequest) {
                     }
                 }
 
-                // Sync KYC/GST details inline via cfUpdateVendor
                 if (validated.gstin !== undefined) {
                     updatePayload.kyc_details = {
                         account_type: "BUSINESS",
@@ -127,17 +126,8 @@ export async function POST(request: NextRequest) {
                     await cfUpdateVendor(decryptedVendorId, updatePayload);
                 }
 
-                // Upload GSTIN as a vendor doc to move vendor out of "Action Required"
-                if (validated.gstin) {
-                    try {
-                        await cfUploadVendorGSTIN(decryptedVendorId, validated.gstin.toUpperCase());
-                    } catch (docErr) {
-                        console.error('[PaymentDetails] GSTIN doc upload failed (non-blocking):', docErr);
-                    }
-                }
             }
         } catch (syncError) {
-            // Log but don't fail — user data is already saved
             console.error('[PaymentDetails] Cashfree vendor sync failed (non-blocking):', syncError);
         }
 

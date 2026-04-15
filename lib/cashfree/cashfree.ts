@@ -262,44 +262,6 @@ export async function cfUpdateVendor(vendorId: string, payload: {
     }
 }
 
-/**
- * Upload GSTIN document to Cashfree vendor docs API.
- * This is required to move vendor from "Action Required" → "Active".
- */
-export async function cfUploadVendorGSTIN(vendorId: string, gstin: string) {
-    const url = `${cfSplitBaseURL()}/vendor-docs/${encodeURIComponent(vendorId)}`;
-    const httpsAgent = getFixieProxyAgent();
-
-    const formData = new FormData();
-    formData.append("doc_type", "gstin");
-    formData.append("doc_value", gstin.trim().toUpperCase());
-
-    try {
-        const { "Content-Type": _, ...authHeaders } = cfHeaders();
-        const res = await axios.post(url, formData, {
-            headers: {
-                ...authHeaders,
-                "x-api-version": "2025-01-01",
-            },
-            httpsAgent,
-            timeout: 30000,
-        });
-
-        return res.data;
-    } catch (error: unknown) {
-        let errorMessage = "Failed to upload GSTIN document";
-        if (axios.isAxiosError(error)) {
-            const status = error.response?.status;
-            const data = error.response?.data;
-            errorMessage = data?.message || error.message;
-            console.error(`[Cashfree UploadVendorGSTIN] Error (${status}):`, JSON.stringify(data));
-        } else if (error instanceof Error) {
-            errorMessage = error.message;
-        }
-        throw new Error(errorMessage);
-    }
-}
-
 
 export async function cfOnDemandTransfer(params: {
     vendor_id: string;
