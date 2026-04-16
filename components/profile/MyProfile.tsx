@@ -27,8 +27,10 @@ import VerificationModal from "@/components/modals/VerificationModal";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
+import { PROFILE_LANGUAGE_OPTIONS, PROFILE_TITLE_OPTIONS } from "@/constants/user";
 import useRentModal from "@/hook/useRentModal";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { UserDataBoundaryPayload, UserDataSchema } from "@/lib/schemas/user";
 import { SafeUser } from "@/types/user";
 
 interface ProfileClientProps {
@@ -45,37 +47,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
     const rentModel = useRentModal();
     const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
-
-
-    const languageOptions = [
-        "English", "Hindi", "French", "German", "Italian",
-        "Chinese", "Japanese", "Arabic", "Portuguese", "Russian"
-    ];
-
-
-    const titleOptions = ["Mr", "Mrs", "Ms", "Dr", "Prof"];
-
-    useEffect(() => {
-        const user = profile;
-        if (user) {
-            setCurrentUser(user);
-            setIsVerified(user.is_verified || false);
-        }
-    }, [profile]);
-
-    const [userData, setUserData] = useState<{
-        name: string;
-        description: string;
-        location: string;
-        languages: string[];
-        title: string;
-        email: string;
-        phone: string;
-        profileImage: string;
-        is_owner: boolean;
-        is_verified: boolean;
-        joinYear: string;
-    }>({
+    const [userData, setUserData] = useState<UserDataBoundaryPayload>({
         name: "",
         description: "",
         location: "",
@@ -97,21 +69,8 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
         const user = profile;
         if (user) {
             setCurrentUser(user);
-            setUserData({
-                name: user.name || "",
-                description: user.description || "",
-                location: user.location || "",
-                languages: user.languages || [],
-                title: user.title || "",
-                email: user.email || "",
-                phone: user.phone || "",
-                profileImage: user.profileImage || user.image || "",
-                is_owner: user.is_owner,
-                is_verified: user.is_verified,
-                joinYear: user.createdAt
-                    ? new Date(user.createdAt).toLocaleString("default", { month: "short", year: "numeric" })
-                    : "Jun 2025"
-            });
+            const parsedData = UserDataSchema.parse(user);
+            setUserData(parsedData);
         }
     }, [profile]);
 
@@ -288,7 +247,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 </div>
                                 {editMode ? (
                                     <div className="flex gap-2">
-                                        {titleOptions.map((title) => (
+                                        {PROFILE_TITLE_OPTIONS.map((title) => (
                                             <button
                                                 key={title}
                                                 onClick={() => handleTitleChange(title)}
@@ -377,7 +336,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 </div>
                                 {editMode ? (
                                     <div className="flex flex-wrap gap-2 max-w-xs justify-end">
-                                        {languageOptions.map((language) => (
+                                        {PROFILE_LANGUAGE_OPTIONS.map((language) => (
                                             <button
                                                 key={language}
                                                 onClick={() => handleLanguageToggle(language)}
@@ -514,7 +473,10 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                     axios.put("/api/user", payload)
                         .then((res) => {
                             const updatedUser = res.data;
-                            setUserData(updatedUser);
+
+                            // Immediately validate the incoming user data right at the network boundary
+                            const safeData = UserDataSchema.parse(updatedUser);
+                            setUserData(safeData);
                             setCurrentUser(updatedUser);
 
 
