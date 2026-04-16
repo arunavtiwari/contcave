@@ -15,8 +15,6 @@ import {
 import type { ChatBooking } from "@/lib/chat/types";
 import { SafeUser } from "@/types/user";
 
-export const dynamic = "force-dynamic";
-
 interface ChatClientProps {
   initialBooking: ChatBooking;
   profile: SafeUser | null;
@@ -73,10 +71,10 @@ function toChatMessage(message: AblyMessageLike): Message | null {
       typeof message.id === "string" && message.id.length > 0
         ? message.id
         : buildMessageId({
-            text,
-            email,
-            timestamp: normalizedTimestamp,
-          }),
+          text,
+          email,
+          timestamp: normalizedTimestamp,
+        }),
     text,
     email,
     name: typeof name === "string" && name.trim().length > 0 ? name : "Anonymous",
@@ -301,11 +299,10 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                   >
                     <div className="max-w-[85%] md:max-w-sm">
                       <div
-                        className={`p-2.5 rounded-full px-4 ${
-                          message.email === userEmail
-                            ? "bg-black text-white"
-                            : "border border-neutral-200 bg-white text-gray-800"
-                        }`}
+                        className={`p-2.5 rounded-full px-4 ${message.email === userEmail
+                          ? "bg-black text-white"
+                          : "border border-neutral-200 bg-white text-gray-800"
+                          }`}
                       >
                         {message.text}
                       </div>
@@ -358,14 +355,14 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
           </div>
         </div>
 
-        <div className="w-full shrink-0 rounded-xl border border-neutral-200 bg-white p-5 lg:w-[340px]">
+        <div className="w-full shrink-0 rounded-xl border border-neutral-200 bg-white p-5 lg:w-85">
           {propertyImage ? (
             <Image
               src={propertyImage}
               alt="Property Image"
               width={340}
               height={220}
-              className="aspect-[16/10] w-full rounded-lg object-cover"
+              className="aspect-16/10 w-full rounded-lg object-cover"
             />
           ) : null}
           <h2 className="mt-4 text-xl font-semibold leading-tight text-gray-900">

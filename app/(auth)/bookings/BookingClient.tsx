@@ -14,8 +14,6 @@ import Heading from "@/components/ui/Heading";
 import { openWhatsAppSupport } from "@/lib/whatsapp/whatsappSupport";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
-export const dynamic = "force-dynamic";
-
 type Props = {
   reservations: SafeReservation[];
   currentUser?: SafeUser | null;
