@@ -180,8 +180,8 @@ const ManagePayments: React.FC<Props> = ({
     }, [updatePanelMinHeight]);
 
     const tabIndicatorStyles = useMemo(() => ({
-        left: selectedTab === "Transaction History" ? "0.25rem" : "50%",
-        right: selectedTab === "Transaction History" ? "50%" : "0.25rem",
+        left: selectedTab === "Transaction History" ? "0.25rem" : "52%",
+        right: selectedTab === "Transaction History" ? "48%" : "0.25rem",
     }), [selectedTab]);
 
     const getTabSlug = useCallback((tab: TabType) => tab.toLowerCase().replace(/\s+/g, '-'), []);
