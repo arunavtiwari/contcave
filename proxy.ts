@@ -119,7 +119,8 @@ function buildCSP(nonce: string): string {
             'https://encrypted-tbn3.gstatic.com',
             'https://boxtudio.in',
             'https://www.elinchrom.com',
-            'https://cdn-icons-png.flaticon.com'
+            'https://cdn-icons-png.flaticon.com',
+            'https://www.facebook.com'
         ],
 
         'media-src': [
@@ -141,6 +142,8 @@ function buildCSP(nonce: string): string {
             'https://fonts.googleapis.com',
             'https://fonts.gstatic.com',
             'https://graph.facebook.com',
+            'https://connect.facebook.net',
+            'https://www.facebook.com',
             'https://www.googleapis.com',
             'https://vitals.vercel-insights.com',
             'https://*.ably.io',
