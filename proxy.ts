@@ -97,7 +97,7 @@ function buildCSP(nonce: string): string {
     const directives: Record<string, string[]> = {
         'default-src': ["'self'"],
         'base-uri': ["'self'"],
-        'form-action': ["'self'", 'https://sandbox.cashfree.com', 'https://api.cashfree.com', 'https://sbox.cashfree.com'],
+        'form-action': ["'self'", 'https://sandbox.cashfree.com', 'https://api.cashfree.com', 'https://sbox.cashfree.com', 'https://www.facebook.com'],
         'frame-ancestors': ["'none'"],
         'object-src': ["'none'"],
 
@@ -157,7 +157,7 @@ function buildCSP(nonce: string): string {
             'wss://vercel.live'
         ],
 
-        'frame-src': ["'self'", 'https://www.google.com', 'https://sdk.cashfree.com', 'https://sandbox.cashfree.com', 'https://cashfree.com', 'https://vercel.live'],
+        'frame-src': ["'self'", 'https://www.google.com', 'https://sdk.cashfree.com', 'https://sandbox.cashfree.com', 'https://cashfree.com', 'https://vercel.live', 'https://www.facebook.com'],
 
         'script-src': [
             "'self'",
