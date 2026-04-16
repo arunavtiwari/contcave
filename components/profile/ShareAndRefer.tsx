@@ -13,6 +13,7 @@ import {
 import { toast } from "react-toastify";
 
 import Heading from "@/components/ui/Heading";
+import { getBaseUrl } from "@/lib/utils/getBaseUrl";
 import { SafeUser } from "@/types/user";
 
 interface Props {
@@ -31,7 +32,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
     }, []);
 
     const referralCode = generateReferralCode(profile);
-    const referralLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://contcave.com'}/signup?ref=${referralCode}`;
+    const referralLink = `${getBaseUrl()}/signup?ref=${referralCode}`;
 
     const handleCopy = useCallback(async () => {
         try {

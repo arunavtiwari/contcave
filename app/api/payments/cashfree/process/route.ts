@@ -221,10 +221,10 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const appUrl = process.env.APP_URL;
+        const appUrl = process.env.NEXTAUTH_URL;
         if (!appUrl || typeof appUrl !== "string" || !appUrl.startsWith("http")) {
             return createErrorResponse(
-                "Server configuration error: APP_URL is missing or invalid",
+                "Server configuration error: NEXTAUTH_URL is missing or invalid",
                 500
             );
         }
