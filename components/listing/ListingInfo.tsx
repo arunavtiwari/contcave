@@ -13,6 +13,7 @@ import { FaStar } from "react-icons/fa";
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import Offers from "@/components/Offers";
+import { isRichTextEmpty, getPlainTextFromHTML } from "@/lib/richText";
 import Avatar from "@/components/ui/Avatar";
 import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hook/useCities";
@@ -143,9 +144,7 @@ function ListingInfo({
   const [shouldTruncate, setShouldTruncate] = useState(false);
 
   useEffect(() => {
-    const temp = document.createElement("div");
-    temp.innerHTML = description || "";
-    const text = temp.textContent || temp.innerText || "";
+    const text = getPlainTextFromHTML(description, 0);
     setShouldTruncate(text.length > 250);
   }, [description]);
 
@@ -526,7 +525,7 @@ function ListingInfo({
         </div>
       )}
 
-      {fullListing.customTerms && (
+      {!isRichTextEmpty(fullListing.customTerms) && (
         <>
           <div className="flex flex-col gap-4">
             <p className="text-xl font-semibold">Terms & Conditions by Host</p>
@@ -534,7 +533,7 @@ function ListingInfo({
               <div
                 className="prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-strong:text-black prose-headings:text-black"
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(fullListing.customTerms),
+                  __html: DOMPurify.sanitize(fullListing.customTerms || ""),
                 }}
               />
             </div>

@@ -3,6 +3,7 @@ import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/co
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
 import { sanitizeStringList } from "@/lib/strings/sanitizeStringList";
+import { isRichTextEmpty } from "@/lib/richText";
 
 export const runtime = "nodejs";
 
@@ -75,7 +76,14 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
     }
 
     if (listingData.customTerms !== undefined) {
-      listingData.customTerms = typeof listingData.customTerms === "string" ? listingData.customTerms.trim() : null;
+      listingData.customTerms = isRichTextEmpty(listingData.customTerms) ? null : String(listingData.customTerms).trim();
+    }
+
+    if (listingData.description !== undefined) {
+      if (isRichTextEmpty(listingData.description)) {
+        return createErrorResponse("description cannot be empty", 400);
+      }
+      listingData.description = String(listingData.description).trim();
     }
 
     if (listingData.slug !== undefined) {

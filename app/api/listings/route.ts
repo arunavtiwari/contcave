@@ -4,6 +4,7 @@ import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/
 import prisma from "@/lib/prismadb";
 import { generateUniqueSlug } from "@/lib/slug";
 import { sanitizeStringList } from "@/lib/strings/sanitizeStringList";
+import { isRichTextEmpty } from "@/lib/richText";
 
 
 const JITTER_METERS = 250;
@@ -94,6 +95,10 @@ export async function POST(request: Request) {
 
     if (!description || typeof description !== "string") {
       return createErrorResponse("description is required and must be a string", 400);
+    }
+
+    if (isRichTextEmpty(description)) {
+      return createErrorResponse("description cannot be empty", 400);
     }
 
     const trimmedDescription = description.trim();
@@ -263,7 +268,7 @@ export async function POST(request: Request) {
         setsHaveSamePrice: Boolean(setsHaveSamePrice),
         unifiedSetPrice: setsHaveSamePrice ? Math.round(Number(unifiedSetPrice)) : null,
         additionalSetPricingType: sanitizedPricingType,
-        customTerms: typeof customTerms === "string" ? customTerms.trim() : null,
+        customTerms: isRichTextEmpty(customTerms) ? null : customTerms.trim(),
 
       },
     });

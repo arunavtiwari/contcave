@@ -40,6 +40,7 @@ import { listingSchema } from "@/lib/schemas/listing";
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
 import { AdditionalSetPricingType } from "@/types/set";
+import { isRichTextEmpty } from "@/lib/richText";
 
 type LocationValue = CitySelectValue & {
   display_name?: string;
@@ -1138,7 +1139,7 @@ export default function RentModal() {
         verifications: data.verifications,
         agreementSignature: data.agreementSignature,
         terms: data.terms,
-        customTerms: data.customTerms || null,
+        customTerms: isRichTextEmpty(data.customTerms) ? null : data.customTerms.trim(),
         hasSets: data.hasSets,
         setsHaveSamePrice: Boolean(data.setsHaveSamePrice),
         unifiedSetPrice: data.setsHaveSamePrice ? Number(data.unifiedSetPrice) : null,
