@@ -71,6 +71,10 @@ export async function PATCH(request: Request) {
     }
 
     if (step === "bank") {
+      if (!bankVerifiedName || !accountNumber || !ifscCode) {
+        return createErrorResponse("Bank verification requires bankVerifiedName, accountNumber, and ifscCode", 400);
+      }
+
       updates.bank_verified = true;
       if (bankVerifiedName && typeof bankVerifiedName === "string") {
         const trimmed = bankVerifiedName.trim();
@@ -80,42 +84,40 @@ export async function PATCH(request: Request) {
       }
       updates.verified_via = { push: "bank_verification" };
 
-      if (accountNumber && ifscCode && bankVerifiedName) {
-        try {
-          const result = await upsertPaymentDetailsSafe({
-            userId: currentUser.id,
-            accountHolderName: bankVerifiedName.trim(),
-            bankName: (bankName && typeof bankName === "string") ? bankName.trim() : "Unknown",
-            accountNumber: accountNumber.trim(),
-            ifscCode: ifscCode.trim(),
-            companyName: (companyName && typeof companyName === "string") ? companyName.trim() : undefined,
-            gstin: (gstin && typeof gstin === "string") ? gstin.trim() : undefined,
-            cashfreeVendorId: (vendorId && typeof vendorId === "string") ? vendorId.trim() : undefined,
-          });
+      try {
+        const result = await upsertPaymentDetailsSafe({
+          userId: currentUser.id,
+          accountHolderName: bankVerifiedName.trim(),
+          bankName: (bankName && typeof bankName === "string") ? bankName.trim() : "Unknown",
+          accountNumber: accountNumber.trim(),
+          ifscCode: ifscCode.trim(),
+          companyName: (companyName && typeof companyName === "string") ? companyName.trim() : undefined,
+          gstin: (gstin && typeof gstin === "string") ? gstin.trim() : undefined,
+          cashfreeVendorId: (vendorId && typeof vendorId === "string") ? vendorId.trim() : undefined,
+        });
 
-          if (!result.success) {
-            throw new Error(result.error || 'Failed to save payment details during verification');
-          }
-
-          await auditService.logPaymentDetailsAccess(
-            currentUser.id,
-            'CREATE',
-            currentUser.id,
-            request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
-            request.headers.get('user-agent') || undefined,
-            {
-              hasAccountNumber: !!accountNumber,
-              hasIfscCode: !!ifscCode,
-              hasGstin: !!gstin,
-              hasVendorId: !!vendorId,
-              context: 'verification_flow'
-            }
-          );
-
-        } catch (error) {
-          console.error('Payment details processing failed during verification:', error);
-          throw new Error(`Verification processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to save payment details during verification');
         }
+
+        await auditService.logPaymentDetailsAccess(
+          currentUser.id,
+          'CREATE',
+          currentUser.id,
+          request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+          request.headers.get('user-agent') || undefined,
+          {
+            hasAccountNumber: !!accountNumber,
+            hasIfscCode: !!ifscCode,
+            hasGstin: !!gstin,
+            hasVendorId: !!vendorId,
+            context: 'verification_flow'
+          }
+        );
+
+      } catch (error) {
+        console.error('Payment details processing failed during verification:', error);
+        throw new Error(`Verification processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
@@ -161,6 +163,9 @@ export async function PATCH(request: Request) {
         where: { id: currentUser.id },
         data: { is_verified: true, verified_at: new Date() },
       }).catch(() => { });
+
+      // Sync the response so the frontend receives the absolute final state
+      updated.is_verified = true;
     }
 
     return createSuccessResponse(updated);
