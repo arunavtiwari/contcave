@@ -1,4 +1,4 @@
-import { cfSplitBaseURL, cfHeaders } from "./cashfree";
+import { cfHeaders, cfSplitBaseURL } from "./cashfree";
 
 type SplitItem = {
     vendor_id: string;
@@ -15,7 +15,7 @@ export type CreateOrderSplitInput = {
 };
 
 export class CashfreeEasySplitAPIError extends Error {
-    constructor(message: string, public status: number, public responseContext?: any) {
+    constructor(message: string, public status: number, public responseContext?: Record<string, unknown>) {
         super(`Cashfree Easy Split API Error: ${message}`);
         this.name = "CashfreeEasySplitAPIError";
     }
@@ -26,7 +26,7 @@ export async function createOrderSplit(input: CreateOrderSplitInput): Promise<vo
 
     const url = `${cfSplitBaseURL()}/orders/${encodeURIComponent(orderId)}/split`;
 
-    const body: Record<string, any> = { split };
+    const body: Record<string, unknown> = { split };
     if (typeof disable_split === "boolean") {
         body.disable_split = disable_split;
     }
@@ -48,12 +48,17 @@ export async function createOrderSplit(input: CreateOrderSplitInput): Promise<vo
 
     if (!response.ok) {
         let errorMessage = `Request failed with status ${response.status}`;
-        let responseContext: any = null;
+        let responseContext: Record<string, unknown> | undefined = undefined;
 
         try {
-            responseContext = await response.json();
-            errorMessage = responseContext?.message || responseContext?.status || errorMessage;
+            const ctx = await response.json();
+            if (ctx && typeof ctx === 'object' && !Array.isArray(ctx)) {
+                responseContext = ctx as Record<string, unknown>;
+                const msg = responseContext.message ?? responseContext.status;
+                if (msg) errorMessage = String(msg);
+            }
         } catch {
+            // Ignore JSON parsing errors
         }
 
         throw new CashfreeEasySplitAPIError(errorMessage, response.status, responseContext);

@@ -1,6 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
-import { META_PIXEL_ID } from "@/constants/metaPixel";
 import {
     buildFbc,
     extractFbp,

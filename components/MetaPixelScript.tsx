@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
@@ -31,7 +32,7 @@ export default function MetaPixelScript() {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [hasConsent]);
 
     if (!META_PIXEL_ID || !hasConsent) return null;
 
@@ -58,12 +59,14 @@ fbq('track','PageView');
                 }}
             />
             <noscript>
-                <img
-                    height="1"
-                    width="1"
+                <Image
+                    height={1}
+                    width={1}
                     style={{ display: "none" }}
                     src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
-                    alt=""
+                    alt="Meta Pixel"
+                    unoptimized
+                    priority
                 />
             </noscript>
         </>

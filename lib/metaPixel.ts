@@ -73,7 +73,8 @@ export function trackCustomEvent(
 export async function sendServerEvent(
   payload: CAPIEventPayload,
 ): Promise<CAPIResponse | null> {
-  const pixelId = process.env.META_PIXEL_ID;
+
+  const pixelId = META_PIXEL_ID;
   const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
 
   if (!pixelId || !accessToken) {
