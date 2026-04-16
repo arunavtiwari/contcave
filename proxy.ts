@@ -148,10 +148,13 @@ function buildCSP(nonce: string): string {
             'https://*.ably-realtime.com',
             'wss://*.ably-realtime.com',
             'https://*.ably.net',
-            'wss://*.ably.net'
+            'wss://*.ably.net',
+            'https://capig.datah04.com',
+            'https://vercel.live',
+            'wss://vercel.live'
         ],
 
-        'frame-src': ["'self'", 'https://www.google.com', 'https://sdk.cashfree.com', 'https://sandbox.cashfree.com', 'https://cashfree.com'],
+        'frame-src': ["'self'", 'https://www.google.com', 'https://sdk.cashfree.com', 'https://sandbox.cashfree.com', 'https://cashfree.com', 'https://vercel.live'],
 
         'script-src': [
             "'self'",
