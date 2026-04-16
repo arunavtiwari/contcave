@@ -71,6 +71,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
             setCurrentUser(user);
             const parsedData = UserDataSchema.parse(user);
             setUserData(parsedData);
+            setIsVerified(parsedData.is_verified);
         }
     }, [profile]);
 
@@ -149,9 +150,11 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                     <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
                                         {editMode ? (
                                             <ImageUpload
-                                                onChange={(value) =>
-                                                    setUserData({ ...userData, profileImage: value[value.length - 1] })
-                                                }
+                                                onChange={(value) => {
+                                                    if (value.length > 0) {
+                                                        setUserData({ ...userData, profileImage: value[value.length - 1] });
+                                                    }
+                                                }}
                                                 values={userData.profileImage ? [userData.profileImage] : []}
                                                 circle={true}
                                                 deferUpload
@@ -474,9 +477,9 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                         .then((res) => {
                             const updatedUser = res.data;
 
-                            // Immediately validate the incoming user data right at the network boundary
                             const safeData = UserDataSchema.parse(updatedUser);
                             setUserData(safeData);
+                            setIsVerified(safeData.is_verified);
                             setCurrentUser(updatedUser);
 
 
