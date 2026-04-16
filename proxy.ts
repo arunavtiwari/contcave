@@ -161,15 +161,6 @@ function buildCSP(nonce: string): string {
             "'unsafe-inline'",
             "'unsafe-eval'",
             "'wasm-unsafe-eval'"
-        ],
-
-        'script-src-elem': [
-            "'self'",
-            `'nonce-${nonce}'`,
-            'https:',
-            "'unsafe-inline'",
-            "'unsafe-eval'",
-            "'wasm-unsafe-eval'"
         ]
     }
 
