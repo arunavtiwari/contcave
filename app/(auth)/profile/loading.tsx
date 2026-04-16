@@ -72,12 +72,12 @@ export default function Loading() {
                             <div className="space-y-6">
                                 <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-6">
                                     <div className="flex flex-col items-center text-center space-y-4">
-                                        <div className="w-16 h-16 bg-neutral-100 rounded-full" />
+                                        <div className="w-16 h-16 bg-neutral-200 rounded-full" />
                                         <div className="flex flex-col items-center gap-2 w-full">
-                                            <div className="h-6 w-40 bg-neutral-100 rounded" />
-                                            <div className="h-10 w-full bg-neutral-100 rounded" />
+                                            <div className="h-6 w-40 bg-neutral-200 rounded" />
+                                            <div className="h-10 w-full bg-neutral-200 rounded" />
                                         </div>
-                                        <div className="h-12 w-full bg-neutral-100 rounded-lg mt-4" />
+                                        <div className="h-12 w-full bg-neutral-200 rounded-lg mt-4" />
                                     </div>
                                 </div>
                             </div>

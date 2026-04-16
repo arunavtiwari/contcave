@@ -15,7 +15,7 @@ const Heading: React.FC<HeadingProps> = ({
     subtitle,
     center,
     as,
-    variant = "h2",
+    variant = "h3",
     className = "",
     ...props
 }) => {
