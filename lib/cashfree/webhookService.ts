@@ -349,9 +349,7 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
           });
 
           if (conflict.hasConflict) {
-            console.error("[Webhook] Double Booking Detected!", { txnId: freshTxn.id, conflict });
 
-            // Auto-Refund Logic
             let refundStatus = "PENDING";
             let refundError = null;
 
@@ -433,7 +431,6 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             totalPrice: reservation.totalPrice
           });
 
-          // Calculate GST ownership and payout based on studio's GST status
           const rawStudioPaymentDetails = listing?.user?.paymentDetails;
           let studioHasGST = false;
           let plainVendorId: string | undefined = undefined;
@@ -667,7 +664,6 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             console.error("[Webhook] Customer email dispatch error", { txnId: afterTxnId, error: (e instanceof Error ? e.message : String(e)) });
           }
 
-          // Idempotent WhatsApp send — claim the flag before sending
           try {
             const claimed = await prisma.transaction.updateMany({
               where: { id: afterTxnId!, whatsappSentCustomer: false },
@@ -690,7 +686,6 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
                   idempotencyKey: `confirm_customer_${afterTxnId}`,
                 });
               } else {
-                // Non-instant booking: acknowledge receipt, don't confirm yet
                 await WhatsappService.sendBookingReceivedCustomer(afterCustomerPhone, {
                   customerName: afterCustomer.toName || "",
                   listingTitle: afterCustomer.studioName || "",
@@ -701,7 +696,6 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               }
             }
           } catch (e: unknown) {
-            // Roll back the claim on failure so it can be retried
             await prisma.transaction.updateMany({
               where: { id: afterTxnId!, whatsappSentCustomer: true },
               data: { whatsappSentCustomer: false },
@@ -723,7 +717,6 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
             console.error("[Webhook] Owner email dispatch error", { txnId: afterTxnId, error: (e instanceof Error ? e.message : String(e)) });
           }
 
-          // Idempotent WhatsApp send to host
           try {
             const claimed = await prisma.transaction.updateMany({
               where: { id: afterTxnId!, whatsappSentHost: false },
@@ -745,7 +738,6 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
               });
             }
           } catch (e: unknown) {
-            // Roll back the claim on failure
             await prisma.transaction.updateMany({
               where: { id: afterTxnId!, whatsappSentHost: true },
               data: { whatsappSentHost: false },

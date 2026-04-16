@@ -95,13 +95,8 @@ type Props = {
 };
 
 let cashfreePromise: Promise<Cashfree | null> | null = null;
-function getCashfree() {
+function getCashfree(mode: "sandbox" | "production") {
   if (!cashfreePromise) {
-    const mode =
-      (process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox").toLowerCase() ===
-        "production"
-        ? "production"
-        : "sandbox";
     cashfreePromise = load({ mode });
   }
   return cashfreePromise;
@@ -160,11 +155,9 @@ export default function ListingReservation({
   isAuthenticated,
   minBookingHours,
 
-
   selectedPackage = null,
 
   hasSets = false,
-
 
   additionalSetPricingType = null,
 
@@ -203,7 +196,6 @@ export default function ListingReservation({
   const mountedRef = useRef(true);
   const inflight = useRef<AbortController | null>(null);
   const sectionId = useId();
-
 
   const selectedStartLabel = selectedTime?.[0];
   useEffect(() => {
@@ -247,8 +239,6 @@ export default function ListingReservation({
     () => (Number.isFinite(time) && time > 0 ? time : 0),
     [time]
   );
-
-
 
   const bookingFee = useMemo(() => {
     if (selectedPackage) return Number(selectedPackage.offeredPrice || 0);
@@ -428,17 +418,18 @@ export default function ListingReservation({
       });
       const j = (await res.json().catch(() => ({}))) as {
         success?: boolean;
-        data?: { paymentSessionId?: string };
+        data?: { paymentSessionId?: string; mode?: "sandbox" | "production" };
         message?: string;
         error?: string;
       };
 
       const sessionId = j?.data?.paymentSessionId;
+      const mode = j?.data?.mode || "sandbox";
 
       if (!res.ok || !sessionId)
         throw new Error(j?.error || j?.message || "Failed to create reservation");
 
-      const cf = await getCashfree();
+      const cf = await getCashfree(mode);
       if (!cf) throw new Error("Unable to initialize payment gateway");
       await cf.checkout({
         paymentSessionId: sessionId,
@@ -460,7 +451,6 @@ export default function ListingReservation({
       selectedPackageId,
     ]
   );
-
 
   const handleReserve = useCallback(() => {
     if (!ready) return;
@@ -491,7 +481,6 @@ export default function ListingReservation({
   return (
     <section className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
       <div className="flex items-center justify-between p-4">
-
         <p
           className="flex gap-1 text-2xl font-semibold"
           id={`${sectionId}-title`}
@@ -503,7 +492,6 @@ export default function ListingReservation({
             {selectedPackage ? " (package)" : "/ hour"}
           </span>
         </p>
-
 
         <span
           className={`flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full ${instantBooking

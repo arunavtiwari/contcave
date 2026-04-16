@@ -1,3 +1,5 @@
+import { cfSplitBaseURL, cfHeaders } from "./cashfree";
+
 type SplitItem = {
     vendor_id: string;
     percentage?: number;
@@ -5,46 +7,55 @@ type SplitItem = {
     tags?: Record<string, string>;
 };
 
-function baseUrl() {
-    const env = (process.env.CASHFREE_ENV || process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox").toLowerCase();
-    return env === "production" ? "https://api.cashfree.com/pg" : "https://sandbox.cashfree.com/pg";
-}
-
-function headers(idempotencyKey?: string) {
-    const id = process.env.CASHFREE_API_ID || process.env.CASHFREE_APP_ID || "";
-    const secret = process.env.CASHFREE_API_SECRET || process.env.CASHFREE_SECRET_KEY || "";
-    if (!id || !secret) throw new Error("Cashfree API credentials missing");
-    const h: Record<string, string> = {
-        "Content-Type": "application/json",
-        "x-client-id": id,
-        "x-client-secret": secret,
-        "x-api-version": "2025-01-01"
-    };
-    if (idempotencyKey) h["x-idempotency-key"] = idempotencyKey;
-    return h;
-}
-
-export async function createOrderSplit(input: {
+export type CreateOrderSplitInput = {
     orderId: string;
     split: SplitItem[];
     idempotencyKey: string;
     disable_split?: boolean;
-}) {
-    const res = await fetch(`${baseUrl()}/easy-split/orders/${encodeURIComponent(input.orderId)}/split`, {
+};
+
+export class CashfreeEasySplitAPIError extends Error {
+    constructor(message: string, public status: number, public responseContext?: any) {
+        super(`Cashfree Easy Split API Error: ${message}`);
+        this.name = "CashfreeEasySplitAPIError";
+    }
+}
+
+export async function createOrderSplit(input: CreateOrderSplitInput): Promise<void> {
+    const { orderId, split, idempotencyKey, disable_split } = input;
+
+    const url = `${cfSplitBaseURL()}/orders/${encodeURIComponent(orderId)}/split`;
+
+    const body: Record<string, any> = { split };
+    if (typeof disable_split === "boolean") {
+        body.disable_split = disable_split;
+    }
+
+    const headers: Record<string, string> = {
+        ...cfHeaders(),
+        "x-api-version": "2025-01-01",
+    };
+
+    if (idempotencyKey) {
+        headers["x-idempotency-key"] = idempotencyKey;
+    }
+
+    const response = await fetch(url, {
         method: "POST",
-        headers: headers(input.idempotencyKey),
-        body: JSON.stringify({
-            split: input.split,
-            ...(typeof input.disable_split === "boolean" ? { disable_split: input.disable_split } : {}),
-        }),
+        headers,
+        body: JSON.stringify(body),
     });
 
-    if (!res.ok) {
-        let msg = `cashfree split error ${res.status}`;
+    if (!response.ok) {
+        let errorMessage = `Request failed with status ${response.status}`;
+        let responseContext: any = null;
+
         try {
-            const j = await res.json();
-            msg = j?.message || j?.status || msg;
-        } catch { }
-        throw new Error(msg);
+            responseContext = await response.json();
+            errorMessage = responseContext?.message || responseContext?.status || errorMessage;
+        } catch {
+        }
+
+        throw new CashfreeEasySplitAPIError(errorMessage, response.status, responseContext);
     }
 }

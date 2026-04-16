@@ -229,7 +229,6 @@ export async function cfUpdateVendor(vendorId: string, payload: {
     const url = `${cfSplitBaseURL()}/vendors/${encodeURIComponent(vendorId)}`;
     const httpsAgent = getFixieProxyAgent();
 
-    // Build body with only provided fields
     const body: Record<string, unknown> = {};
     if (payload.name) body.name = payload.name;
     if (payload.email) body.email = payload.email;

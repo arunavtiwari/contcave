@@ -106,20 +106,17 @@ export async function POST(req: NextRequest) {
             return createErrorResponse(conflict.conflictDetails || "One or more sets are no longer available for this time slot", 400);
         }
 
-        // --- Server-Side Price Calculation ---
         const startMin = parseTimeToMinutes(data.startTime);
         const endMin = parseTimeToMinutes(data.endTime);
         let durationMinutes = endMin - startMin;
-        if (durationMinutes <= 0) durationMinutes = 60; // Fallback to 1 hour if invalid
+        if (durationMinutes <= 0) durationMinutes = 60;
 
         let bookingFee = 0;
         let pricingBreakdown: unknown = null;
 
         if (listing.hasSets && listing.sets.length > 0) {
-            // Use shared pricing logic for sets/packages
             const setPricingType = listing.additionalSetPricingType as AdditionalSetPricingType || null;
 
-            // Map Prisma objects to strict types if needed (though usually compatible)
             const setsForCalc = listing.sets.map(s => ({
                 id: s.id,
                 name: s.name,
@@ -147,16 +144,13 @@ export async function POST(req: NextRequest) {
             bookingFee = result.subtotal;
             pricingBreakdown = result.breakdown;
         } else {
-            // Simple hourly calculation
             const hours = Math.ceil(durationMinutes / 60);
             bookingFee = Number(listing.price) * hours;
         }
 
-        // Addons Calculation
         const cleanedAddons = sanitizeAddons(data.selectedAddons);
         let addonsSum = 0;
 
-        // Host's addons stored as JSON on the listing (contains price + available qty)
         const listingAddons = Array.isArray(listing.addons)
             ? (listing.addons as Array<{ name?: string; price?: number; qty?: number }>)
             : [];
@@ -164,8 +158,6 @@ export async function POST(req: NextRequest) {
         for (const item of cleanedAddons) {
             let unitPrice = item.price;
             let maxAvailable = Infinity;
-
-            // Match against the listing's JSON addons (source of truth for host-set price & qty)
             const listingAddon = listingAddons.find(
                 (a) => a.name && item.name && a.name.toLowerCase() === item.name.toLowerCase()
             );
@@ -176,7 +168,6 @@ export async function POST(req: NextRequest) {
                 }
             }
 
-            // Enforce qty cap — booker cannot request more than available
             const requestedQty = Math.max(0, item.qty || 1);
             if (maxAvailable === 0) {
                 return createErrorResponse(`Addon "${item.name || "Unknown"}" is currently unavailable`, 400);
@@ -188,23 +179,19 @@ export async function POST(req: NextRequest) {
                 );
             }
 
-            // Basic sanity check
             unitPrice = Math.max(0, unitPrice);
             addonsSum += unitPrice * requestedQty;
 
-            // Update the item price/qty in our cleaned list to reflect what we are charging
             item.price = unitPrice;
             item.qty = requestedQty;
         }
 
-        const platformFee = 0; // Configurable later
+        const platformFee = 0;
         const subTotal = bookingFee + addonsSum + platformFee;
         const gstRate = 0.18;
         const gstAmount = Math.round(subTotal * gstRate);
         const finalCalculatedAmount = Math.round(subTotal + gstAmount);
 
-        // Security Check: You can either hard-fail if mismatch, or just use the calculated amount.
-        // Using calculated amount is smoother for UX (avoids "Changed in transit" errors).
         const amount = finalCalculatedAmount;
 
         if (amount <= 0) {
@@ -215,15 +202,10 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Amount exceeds maximum limit", 400);
         }
 
-        // --- Idempotency & Transaction Creation ---
-        // Generate a deterministic ID based on the booking key parameters.
-        // This ensures that if the user double-clicks or retries the exact same booking, we reuse the order.
         const idempotencyKey = `${currentUser.id}:${data.listingId}:${startMin}:${endMin}:${amount}`;
         const hash = require("crypto").createHash("sha256").update(idempotencyKey).digest("hex");
-        // tId format: tid_<first 16 chars of hash>
         const tId = "tid_" + hash.slice(0, 16);
 
-        // Check if a PENDING transaction already exists for this tId
         const existingTxn = await prisma.transaction.findFirst({
             where: {
                 cfTxnRef: tId,
@@ -294,9 +276,6 @@ export async function POST(req: NextRequest) {
             order_id = orderResult.order_id;
             payment_session_id = orderResult.payment_session_id;
         } catch (orderError) {
-            // If order exists (e.g. from a previous failed txn attempt that is no longer pending in DB but exists in Cashfree),
-            // we might need to handle it. For now, we fall through to failure.
-            // Ideally we could fetch it, but simplicity first.
             await prisma.transaction.update({
                 where: { id: txn.id },
                 data: {
@@ -331,9 +310,12 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        const mode = (process.env.CASHFREE_ENV || "SANDBOX").toLowerCase() === "production" ? "production" : "sandbox";
+
         return createSuccessResponse({
             tId,
             paymentSessionId: payment_session_id,
+            mode,
         });
     } catch (err: unknown) {
         if (err && typeof err === 'object' && 'name' in err && err.name === "ZodError") {
