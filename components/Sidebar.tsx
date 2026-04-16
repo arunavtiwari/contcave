@@ -60,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedM
                     {itemsToDisplay.map((item, index) => (
                         <li
                             key={index}
-                            className={`px-4 py-3 flex items-center gap-3 sm:hover:bg-gray-100 rounded-full cursor-pointer group ${selectedMenu === item.name ? "bg-gray-200" : ""
+                            className={`px-4 py-3 flex items-center gap-3 sm:hover:bg-gray-50 rounded-full cursor-pointer group ${selectedMenu === item.name ? "bg-gray-100" : ""
                                 }`}
                             onClick={() => handleMenuClick(item)}
                         >

@@ -2,9 +2,9 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { isRichTextEmpty } from "@/lib/richText";
 import { generateUniqueSlug } from "@/lib/slug";
 import { sanitizeStringList } from "@/lib/strings/sanitizeStringList";
-import { isRichTextEmpty } from "@/lib/richText";
 
 
 const JITTER_METERS = 250;

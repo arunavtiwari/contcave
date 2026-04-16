@@ -36,11 +36,11 @@ import Input from "@/components/ui/Input";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useRentModal from "@/hook/useRentModal";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import { isRichTextEmpty } from "@/lib/richText";
 import { listingSchema } from "@/lib/schemas/listing";
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
 import { AdditionalSetPricingType } from "@/types/set";
-import { isRichTextEmpty } from "@/lib/richText";
 
 type LocationValue = CitySelectValue & {
   display_name?: string;

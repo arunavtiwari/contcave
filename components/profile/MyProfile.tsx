@@ -1,9 +1,11 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import {
     FaCamera,
     FaCheck,
@@ -20,6 +22,7 @@ import {
     FaUser
 } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { z } from "zod";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
@@ -39,73 +42,134 @@ interface ProfileClientProps {
 
 const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
-    const [currentUser, setCurrentUser] = useState<SafeUser | null>(null);
-    const [isVerified, setIsVerified] = useState(false);
+    const [currentUser, setCurrentUser] = useState<SafeUser | null>(profile);
+    const [isVerified, setIsVerified] = useState(profile?.is_verified || false);
     const [editMode, setEditMode] = useState(false);
     const [showOwnerModal, setShowOwnerModal] = useState(false);
     const [showVerificationModal, setShowVerificationModal] = useState(false);
     const rentModel = useRentModal();
     const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
-    const [userData, setUserData] = useState<UserDataBoundaryPayload>({
-        name: "",
-        description: "",
-        location: "",
-        languages: [],
-        title: "",
-        email: "",
-        phone: "",
-        profileImage: "",
-        is_owner: false,
-        is_verified: false,
-        joinYear: "",
+    const form = useForm<z.input<typeof UserDataSchema>, unknown, UserDataBoundaryPayload>({
+        resolver: zodResolver(UserDataSchema),
+        defaultValues: (() => {
+            if (!profile) return {
+                name: "",
+                description: "",
+                location: "",
+                languages: [],
+                title: "",
+                email: "",
+                phone: "",
+                profileImage: "",
+                is_owner: false,
+                is_verified: false,
+                joinYear: "",
+            };
+            try {
+                return UserDataSchema.parse(profile);
+            } catch (_e) {
+                return {
+                    name: profile.name || "",
+                    description: profile.description || "",
+                    location: profile.location || "",
+                    languages: profile.languages || [],
+                    title: profile.title || "",
+                    email: profile.email || "",
+                    phone: profile.phone || "",
+                    profileImage: profile.image || "",
+                    is_owner: profile.is_owner || false,
+                    is_verified: profile.is_verified || false,
+                    joinYear: profile.createdAt ? new Date(profile.createdAt).getFullYear().toString() : "",
+                };
+            }
+        })()
     });
 
-    const onRent = useCallback(() => {
+    const { register, handleSubmit, watch, setValue, getValues, formState: { errors, isSubmitting } } = form;
+    const userData = watch();
+
+    const onRent = () => {
         rentModel.onOpen();
-    }, [rentModel]);
+    };
 
     useEffect(() => {
         const user = profile;
         if (user) {
             setCurrentUser(user);
-            const parsedData = UserDataSchema.parse(user);
-            setUserData(parsedData);
-            setIsVerified(parsedData.is_verified);
+            try {
+                const parsedData = UserDataSchema.parse(user);
+                form.reset(parsedData);
+                setIsVerified(parsedData.is_verified);
+            } catch (_e) {
+                // Ignore parse errors on update
+            }
         }
-    }, [profile]);
+    }, [profile, form]);
 
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setUserData({ ...userData, [e.target.name]: e.target.value });
+
+    const handleOwnerSuccess = async (newPhone?: string) => {
+        const payload = {
+            name: userData.name,
+            description: userData.description,
+            location: userData.location,
+            languages: userData.languages,
+            title: userData.title,
+            profileImage: userData.profileImage,
+            phone: newPhone || userData.phone,
+            is_owner: true,
+        };
+
+        try {
+            const res = await axios.put("/api/user", payload);
+            const updatedUser = res.data;
+            const safeData = UserDataSchema.parse(updatedUser);
+
+            form.reset(safeData);
+            setIsVerified(safeData.is_verified);
+            setCurrentUser(updatedUser);
+
+            setShowLoadingOverlay(false);
+            setShowVerificationModal(true);
+        } catch (err: unknown) {
+            console.error("Failed to update owner status:", err);
+            setShowLoadingOverlay(false);
+            if (axios.isAxiosError(err)) {
+                toast.error(err?.response?.data?.error || "Failed to update owner status");
+            } else {
+                toast.error("An unexpected error occurred.");
+            }
+        }
     };
 
     const handleLanguageToggle = (language: string) => {
-        const newLanguages = userData.languages.includes(language)
-            ? userData.languages.filter(lang => lang !== language)
-            : userData.languages.length < 2
-                ? [...userData.languages, language]
-                : userData.languages;
-        setUserData({ ...userData, languages: newLanguages });
+        const currentLanguages = getValues("languages") || [];
+        const newLanguages = currentLanguages.includes(language)
+            ? currentLanguages.filter(lang => lang !== language)
+            : currentLanguages.length < 2
+                ? [...currentLanguages, language]
+                : currentLanguages;
+        setValue("languages", newLanguages, { shouldDirty: true, shouldValidate: true });
     };
 
     const handleTitleChange = (title: string) => {
-        setUserData({ ...userData, title });
+        setValue("title", title, { shouldDirty: true, shouldValidate: true });
     };
 
-    const handleSave = async () => {
+    const onSubmit = async (data: UserDataBoundaryPayload) => {
         try {
-            let finalProfileImage = userData.profileImage;
+            let finalProfileImage = data.profileImage;
             if (finalProfileImage && finalProfileImage.startsWith("blob:")) {
                 const [uploadedUrl] = await uploadToCloudinary([finalProfileImage], "profiles");
                 finalProfileImage = uploadedUrl;
             }
-            const { name, description, location, languages, title, phone } = userData;
+            const { name, description, location, languages, title, phone } = data;
             await axios.put("/api/user", {
                 name, description, location, languages, title, phone,
                 profileImage: finalProfileImage || null,
             });
-            setUserData(prev => ({ ...prev, profileImage: finalProfileImage }));
+            setValue("profileImage", finalProfileImage);
             setEditMode(false);
             toast.success("Profile updated successfully!");
         } catch (error) {
@@ -115,11 +179,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
     };
 
     if (!currentUser) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
-            </div>
-        );
+        return null;
     }
 
     return (
@@ -139,7 +199,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
                 <div className="lg:col-span-2 space-y-8">
 
-                    <div className="bg-white rounded-2xl shadow-xs border border-gray-200 overflow-hidden">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
                         <div
                             className="relative h-32 bg-center bg-no-repeat bg-cover"
@@ -152,7 +212,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                             <ImageUpload
                                                 onChange={(value) => {
                                                     if (value.length > 0) {
-                                                        setUserData({ ...userData, profileImage: value[value.length - 1] });
+                                                        setValue("profileImage", value[value.length - 1], { shouldDirty: true, shouldValidate: true });
                                                     }
                                                 }}
                                                 values={userData.profileImage ? [userData.profileImage] : []}
@@ -186,9 +246,8 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                     {editMode ? (
                                         <Input
                                             id="name"
-                                            name="name"
-                                            value={userData.name}
-                                            onChange={handleChange}
+                                            register={register("name")}
+                                            errors={errors}
                                             className="text-2xl font-bold"
                                             placeholder="Your name"
                                         />
@@ -196,17 +255,30 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         <h2 className="text-2xl font-bold text-gray-900">{userData.name}</h2>
                                     )}
                                 </div>
+                                {editMode && (
+                                    <button
+                                        onClick={() => {
+                                            form.reset();
+                                            setEditMode(false);
+                                        }}
+                                        disabled={isSubmitting}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
                                 <button
-                                    onClick={() => editMode ? handleSave() : setEditMode(true)}
+                                    onClick={() => editMode ? handleSubmit(onSubmit)() : setEditMode(true)}
+                                    disabled={isSubmitting}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors ${editMode
-                                        ? 'bg-black text-white hover:bg-gray-800'
+                                        ? 'bg-black text-white hover:bg-gray-800 disabled:bg-gray-800 disabled:opacity-80'
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
                                 >
                                     {editMode ? (
                                         <>
-                                            <FaSave className="w-4 h-4" />
-                                            Save Changes
+                                            {isSubmitting ? <FaSpinner className="w-4 h-4 animate-spin" /> : <FaSave className="w-4 h-4" />}
+                                            {isSubmitting ? 'Saving...' : 'Save Changes'}
                                         </>
                                     ) : (
                                         <>
@@ -222,9 +294,8 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 {editMode ? (
                                     <Textarea
                                         id="description"
-                                        name="description"
-                                        value={userData.description}
-                                        onChange={handleChange}
+                                        {...register("description")}
+                                        errors={errors}
                                         placeholder="Tell everyone about yourself..."
                                         className="h-32"
                                     />
@@ -238,7 +309,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                     </div>
 
 
-                    <div className="bg-white rounded-2xl shadow-xs border border-gray-200 p-8">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                         <h3 className="text-xl font-semibold text-gray-900 mb-6">Personal Details</h3>
 
                         <div className="space-y-6">
@@ -291,15 +362,16 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                     {editMode ? (
                                         <Input
                                             id="phone"
-                                            name="phone"
                                             type="tel"
-                                            value={userData.phone}
+                                            register={register("phone", {
+                                                onChange: (e) => {
+                                                    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                    setValue("phone", digitsOnly, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            })}
+                                            errors={errors}
                                             placeholder="99xxxxxx21"
                                             maxLength={10}
-                                            onChange={(e) => {
-                                                const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                                handleChange({ target: { name: 'phone', value: digitsOnly } } as unknown as React.ChangeEvent<HTMLInputElement>);
-                                            }}
                                             className="w-28 p-0 border-none focus:ring-0"
                                         />
                                     ) : (
@@ -320,9 +392,8 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 {editMode ? (
                                     <Input
                                         id="location"
-                                        name="location"
-                                        value={userData.location}
-                                        onChange={handleChange}
+                                        register={register("location")}
+                                        errors={errors}
                                         className="w-48"
                                         placeholder="Enter location"
                                     />
@@ -343,23 +414,23 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                             <button
                                                 key={language}
                                                 onClick={() => handleLanguageToggle(language)}
-                                                disabled={!userData.languages.includes(language) && userData.languages.length >= 2}
-                                                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${userData.languages.includes(language)
+                                                disabled={!(userData.languages || []).includes(language) && (userData.languages || []).length >= 2}
+                                                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${(userData.languages || []).includes(language)
                                                     ? 'bg-black text-white'
-                                                    : userData.languages.length >= 2
+                                                    : (userData.languages || []).length >= 2
                                                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                     }`}
                                             >
-                                                {userData.languages.includes(language) && <FaCheck className="w-3 h-3 inline mr-1" />}
+                                                {(userData.languages || []).includes(language) && <FaCheck className="w-3 h-3 inline mr-1" />}
                                                 {language}
                                             </button>
                                         ))}
                                     </div>
                                 ) : (
                                     <div className="flex flex-wrap gap-2">
-                                        {userData.languages.length > 0 ? (
-                                            userData.languages.map((language) => (
+                                        {(userData.languages || []).length > 0 ? (
+                                            (userData.languages || []).map((language) => (
                                                 <span key={language} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
                                                     {language}
                                                 </span>
@@ -458,46 +529,11 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
             <OwnerEnableModal
                 isOpen={showOwnerModal}
                 onClose={() => setShowOwnerModal(false)}
-                onLoadingStart={() => {
-                    setShowLoadingOverlay(true);
-                }}
-                onSuccess={(newPhone?: string, _newEmail?: string) => {
-                    const payload = {
-                        name: userData.name,
-                        description: userData.description,
-                        location: userData.location,
-                        languages: userData.languages,
-                        title: userData.title,
-                        profileImage: userData.profileImage,
-                        phone: newPhone || userData.phone,
-                        is_owner: true,
-                    };
-
-                    axios.put("/api/user", payload)
-                        .then((res) => {
-                            const updatedUser = res.data;
-
-                            const safeData = UserDataSchema.parse(updatedUser);
-                            setUserData(safeData);
-                            setIsVerified(safeData.is_verified);
-                            setCurrentUser(updatedUser);
-
-
-                            setTimeout(() => {
-                                setShowLoadingOverlay(false);
-                                setShowVerificationModal(true);
-                            }, 1500);
-                        })
-                        .catch((err) => {
-                            console.error("Failed to update owner status:", err);
-                            setShowLoadingOverlay(false);
-                            toast.error(err?.response?.data?.error || "Failed to update owner status");
-                        });
-                }}
-                initialEmail={userData.email}
-                initialPhone={userData.phone}
+                onLoadingStart={() => setShowLoadingOverlay(true)}
+                onSuccess={handleOwnerSuccess}
+                initialEmail={userData.email || undefined}
+                initialPhone={userData.phone || undefined}
             />
-
 
 
             {showLoadingOverlay && (
@@ -507,23 +543,25 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                         <p className="text-xl font-semibold text-white">Starting Verification...</p>
                     </div>
                 </div>
-            )}
+            )
+            }
 
-            {currentUser && (
-                <VerificationModal
-                    isOpen={showVerificationModal}
-                    onClose={() => setShowVerificationModal(false)}
-                    currentUser={currentUser}
-                    onComplete={() => {
+            {
+                currentUser && (
+                    <VerificationModal
+                        isOpen={showVerificationModal}
+                        onClose={() => setShowVerificationModal(false)}
+                        currentUser={currentUser}
+                        onComplete={() => {
+                            setValue("is_verified", true, { shouldValidate: true });
+                            setIsVerified(true);
 
-                        setUserData((u) => ({ ...u, is_verified: true }));
-                        setIsVerified(true);
-
-                        setCurrentUser((u) => u ? { ...u, is_verified: true } : null);
-                    }}
-                />
-            )}
-        </div>
+                            setCurrentUser((u) => u ? { ...u, is_verified: true } : null);
+                        }}
+                    />
+                )
+            }
+        </div >
     );
 
 };
