@@ -546,7 +546,7 @@ function ListingInfo({
         <p className="text-xl font-semibold">Cancellation Policy</p>
         <p className="flex flex-wrap">
           Full refund for cancellations made at least 72 hours before the scheduled booking, partial refund for cancellations made
-          between 24 and 48 hours before the scheduled booking, and no refund for cancellations made within 24 hours of the scheduled booking.
+          between 24 and 72 hours before the scheduled booking, and no refund for cancellations made within 24 hours of the scheduled booking.
         </p>
 
         <Link href="/cancellation" className="text-blue-500 underline cursor-pointer w-fit">

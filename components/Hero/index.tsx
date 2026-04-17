@@ -7,12 +7,6 @@ import { BiSearch } from "react-icons/bi";
 
 import useSearchModal from "@/hook/useSearchModal";
 
-/* Bokeh — visible warm-white glows that breathe slowly */
-const BOKEH = [
-  { size: 380, top: "10%",  left: "50%", delay: 0,   dur: 9  },
-  { size: 240, top: "52%",  left: "68%", delay: 3,   dur: 12 },
-  { size: 180, top: "25%",  left: "79%", delay: 5.5, dur: 8  },
-];
 
 const Hero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,37 +77,7 @@ const Hero = () => {
           }}
         />
 
-        {/* ── Bokeh glows ── visible warm-white blobs, right half of frame */}
-        {BOKEH.map((b, i) => (
-          <motion.div
-            key={i}
-            className="absolute pointer-events-none"
-            style={{
-              zIndex: 11,
-              width: b.size,
-              height: b.size,
-              top: b.top,
-              left: b.left,
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(255,248,235,0.65) 0%, rgba(255,255,255,0.12) 45%, transparent 70%)",
-              filter: "blur(50px)",
-            }}
-            animate={{
-              y:       [0, -30, 0],
-              opacity: [0.55, 0.85, 0.55],
-              scale:   [1, 1.12, 1],
-            }}
-            transition={{
-              duration: b.dur,
-              repeat:   Infinity,
-              delay:    b.delay,
-              ease:     "easeInOut",
-            }}
-          />
-        ))}
-
-        {/* ── Left accent bar — grows downward from top ── */}
+{/* ── Left accent bar — grows downward from top ── */}
         <motion.div
           className="absolute left-0 top-0 bottom-0 w-[3px] z-20"
           initial={{ scaleY: 0 }}
