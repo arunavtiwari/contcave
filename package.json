@@ -10,7 +10,6 @@
 		"lint:fix": "eslint . --fix",
 		"type-check": "tsc --noEmit",
 		"typecheck": "tsc --noEmit",
-		"test:e2e": "playwright test",
 		"seed:test-owner": "node prisma/seed-test-owner.mjs",
 		"check": "npm run type-check && npm run lint",
 		"postinstall": "npx prisma generate"
@@ -94,7 +93,6 @@
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.3",
-		"@playwright/test": "^1.58.2",
 		"@types/bcryptjs": "^2.4.6",
 		"@types/css-modules": "^1.0.5",
 		"@types/leaflet": "^1.9.16",
