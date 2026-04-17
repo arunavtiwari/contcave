@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 import { IconType } from "react-icons";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 type ButtonVariant = "default" | "outline" | "success" | "danger" | "ghost" | "secondary";
+
+type ButtonSize = "sm" | "md";
 
 type Props = {
   label: string;
@@ -17,6 +20,9 @@ type Props = {
   isColor?: boolean;
   classNames?: string;
   variant?: ButtonVariant;
+  size?: ButtonSize;
+  href?: string;
+  target?: "_blank" | "_self";
 };
 
 function Button({
@@ -30,11 +36,18 @@ function Button({
   isColor,
   classNames,
   variant = "default",
+  size = "md",
+  href,
+  target,
 }: Props) {
-
   const effectiveVariant = outline ? "outline" : variant;
 
-  const baseClasses = "relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 py-2 px-5 transition w-full flex justify-center items-center gap-2 border hover:opacity-80";
+  const sizeClasses = {
+    sm: "py-1.5 px-3 text-xs w-auto",
+    md: "py-2 px-5 text-sm w-full",
+  };
+
+  const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 transition flex justify-center items-center gap-2 border hover:opacity-80 ${sizeClasses[size]}`;
   const roundedClass = rounded ? "rounded-full" : "rounded-xl";
 
   const variantClasses = {
@@ -48,17 +61,29 @@ function Button({
 
   const finalClasses = `${baseClasses} ${roundedClass} ${variantClasses[effectiveVariant]} ${classNames || ""}`;
 
-  return (
-    <button
-      disabled={disabled || loading}
-      onClick={onClick}
-      className={finalClasses}
-    >
+  const content = (
+    <>
       {loading && (
-        <AiOutlineLoading3Quarters className={`animate-spin text-lg ${effectiveVariant === 'outline' || effectiveVariant === 'ghost' ? 'text-black' : 'text-white'}`} />
+        <AiOutlineLoading3Quarters
+          className={`animate-spin text-lg ${effectiveVariant === "outline" || effectiveVariant === "ghost" ? "text-black" : "text-white"}`}
+        />
       )}
       {Icon && !loading && <Icon size={24} className={`${isColor && "text-blue-600"}`} />}
       <span>{loading ? "Processing..." : label}</span>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined} className={finalClasses}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button disabled={disabled || loading} onClick={onClick} className={finalClasses}>
+      {content}
     </button>
   );
 }

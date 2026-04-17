@@ -220,13 +220,24 @@ function applyCors(req: NextRequest, res: NextResponse): void {
 export async function proxy(request: NextRequest) {
     const start = Date.now()
     const pathname = request.nextUrl.pathname
+    const hostname = request.headers.get('host') || request.nextUrl.hostname
+
+    if (hostname.startsWith('admin.')) {
+        if (!pathname.startsWith('/admin') && !pathname.startsWith('/api') && !pathname.startsWith('/_next')) {
+            const url = new URL(request.nextUrl)
+            url.pathname = `/admin${pathname === '/' ? '' : pathname}`
+            return NextResponse.rewrite(url)
+        }
+    } else if (pathname.startsWith('/admin')) {
+        return new NextResponse(null, { status: 404 })
+    }
+
     const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
     const method = request.method
     const ip = getClientIP(request)
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
     try {
-        // Rate limit first (skip in development to avoid blocking during hot-reload)
         const isDev = process.env.NODE_ENV !== 'production'
         const rl = isDev ? { allowed: true, remaining: RATE_LIMIT.maxRequests, resetTime: Date.now() + RATE_LIMIT.windowMs } : checkRateLimit(ip)
         if (!rl.allowed) {

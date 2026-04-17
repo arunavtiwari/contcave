@@ -61,6 +61,7 @@ model User {
   paymentDetails          PaymentDetails?   @relation("UserPaymentDetails")
   paymentDetailsId        String?           @db.ObjectId
   is_owner                Boolean           @default(false)
+  isAdmin                 Boolean           @default(false)
   is_verified             Boolean           @default(false)
   transactions            Transaction[]
   googleCalendarConnected Boolean           @default(false)

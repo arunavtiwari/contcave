@@ -7,6 +7,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
+import Skeleton from "@/components/ui/Skeleton";
 import Switch from "@/components/ui/Switch";
 
 const dayNameToIndex: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
@@ -157,12 +158,12 @@ export default function CalendarComponent({
                     {loading ? (
                         <div className="flex space-x-4 mt-2">
                             <div className="flex flex-col w-1/2 gap-2">
-                                <div className="w-24 h-5.75 bg-gray-200 rounded-full animate-pulse" />
-                                <div className="w-full h-10 bg-gray-200 rounded-full animate-pulse" />
+                                <Skeleton className="w-24 h-5.75 rounded-full" />
+                                <Skeleton className="w-full h-10 rounded-full" />
                             </div>
                             <div className="flex flex-col w-1/2 gap-2">
-                                <div className="w-24 h-5.75 bg-gray-200 rounded-full animate-pulse" />
-                                <div className="w-full h-10 bg-gray-200 rounded-full animate-pulse" />
+                                <Skeleton className="w-24 h-5.75 rounded-full" />
+                                <Skeleton className="w-full h-10 rounded-full" />
                             </div>
                         </div>
                     ) : (
