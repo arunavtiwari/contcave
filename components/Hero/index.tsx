@@ -20,10 +20,8 @@ const Hero = () => {
   const scale        = useTransform(scrollYProgress, [0, 0.4], [1, 0.92]);
   const borderRadius = useTransform(scrollYProgress, [0, 0.4], ["0rem", "1.5rem"]);
 
-  /* ── Parallax layers ── */
-  // Video moves up slower than scroll → feels like it's far away / background depth
+
   const videoY   = useTransform(scrollYProgress, [0, 1], ["0%", "28%"]);
-  // Content moves up slightly → pulls away from the background
   const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-5%"]);
 
   return (
@@ -37,9 +35,6 @@ const Hero = () => {
         style={{ height: "calc(100vh - 80px)", minHeight: 480 }}
       >
 
-        {/* ── Camera flash on load ──
-            Stays fully white for 0.3s, then snaps off in 0.35s.
-            Feels like a studio strobe firing as the page opens. */}
         <motion.div
           className="absolute inset-0 z-50 pointer-events-none"
           initial={{ opacity: 1 }}
@@ -48,8 +43,7 @@ const Hero = () => {
           style={{ backgroundColor: "#FFFFFF" }}
         />
 
-        {/* ── Video — wrapped in a parallax motion.div ──
-            Taller than container + offset top, so the Y shift never reveals edges */}
+
         <motion.div
           className="absolute z-0 left-0 right-0"
           style={{ y: videoY, top: "-8%", height: "116%" }}
@@ -68,7 +62,7 @@ const Hero = () => {
           </video>
         </motion.div>
 
-        {/* ── Gradient overlay ── */}
+
         <div
           className="absolute inset-0 z-10"
           style={{
@@ -77,7 +71,7 @@ const Hero = () => {
           }}
         />
 
-{/* ── Left accent bar — grows downward from top ── */}
+
         <motion.div
           className="absolute left-0 top-0 bottom-0 w-[3px] z-20"
           initial={{ scaleY: 0 }}
