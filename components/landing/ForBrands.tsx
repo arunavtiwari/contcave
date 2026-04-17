@@ -2,6 +2,8 @@
 import { motion } from "framer-motion";
 import { FiBriefcase, FiZap } from "react-icons/fi";
 
+import Container from "../Container";
+
 const STUDIO_TYPES = [
   "Cyclorama walls",
   "Product photography",
@@ -23,10 +25,9 @@ const ForBrands = () => {
   return (
     <section
       id="for-brands"
-      className="py-12 lg:py-16"
-      style={{ backgroundColor: "#FAFAFA" }}
+      className="py-section bg-muted"
     >
-      <div className="mx-auto max-w-[1280px] px-4 md:px-10 xl:px-20">
+      <Container>
 
         {/* Header */}
         <motion.div
@@ -37,8 +38,8 @@ const ForBrands = () => {
           className="mb-8"
         >
           <p
-            className="mb-3 text-xs font-semibold uppercase tracking-[0.22em]"
-            style={{ color: "rgba(17,17,17,0.45)" }}
+            className="mb-3 text-xs font-semibold uppercase tracking-accent"
+            style={{ color: "var(--color-muted-foreground)" }}
           >
             For brands &amp; agencies
           </p>
@@ -48,7 +49,7 @@ const ForBrands = () => {
               fontSize: "clamp(1.9rem, 3.2vw, 2.8rem)",
               fontWeight: 700,
               lineHeight: 1.15,
-              color: "#111111",
+              color: "var(--color-foreground)",
             }}
           >
             Two ways to work with us.
@@ -66,10 +67,10 @@ const ForBrands = () => {
           {QUALITY_SIGNALS.map((s) => (
             <div key={s} className="flex items-center gap-2">
               <div
-                className="h-[3px] w-3 flex-shrink-0 rounded-full"
-                style={{ backgroundColor: "#111111" }}
+                className="h-0.75 w-3 shrink-0 rounded-full"
+                style={{ backgroundColor: "var(--color-foreground)" }}
               />
-              <span className="text-sm font-medium" style={{ color: "#333333" }}>
+              <span className="text-sm font-medium" style={{ color: "var(--color-muted-foreground)" }}>
                 {s}
               </span>
             </div>
@@ -87,13 +88,13 @@ const ForBrands = () => {
             viewport={{ once: true }}
             className="group/dark relative flex flex-col overflow-hidden rounded-2xl p-6 lg:p-10"
             style={{
-              backgroundColor: "#111111",
+              backgroundColor: "var(--color-primary)",
               minHeight: "280px",
             }}
           >
             {/* Shimmer sweep — slides across on parent hover via CSS group */}
             <div
-              className="pointer-events-none absolute inset-0 z-0 translate-x-[-100%] transition-transform duration-500 ease-in-out group-hover/dark:translate-x-[100%]"
+              className="pointer-events-none absolute inset-0 z-0 -translate-x-full transition-transform duration-500 ease-in-out group-hover/dark:translate-x-full"
               style={{
                 background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%)",
               }}
@@ -109,7 +110,7 @@ const ForBrands = () => {
                 <FiBriefcase size={18} color="#FFFFFF" />
               </div>
               <p
-                className="mb-3 text-xs font-semibold uppercase tracking-[0.2em]"
+                className="mb-3 text-xs font-semibold uppercase tracking-accent"
                 style={{ color: "rgba(255,255,255,0.45)" }}
               >
                 Concierge service
@@ -136,7 +137,7 @@ const ForBrands = () => {
                 <a
                   href="mailto:info@contcave.com"
                   className="inline-block rounded-full px-6 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-105"
-                  style={{ backgroundColor: "#FFFFFF", color: "#111111" }}
+                  style={{ backgroundColor: "var(--color-background)", color: "var(--color-primary)" }}
                 >
                   Share your brief
                 </a>
@@ -164,8 +165,8 @@ const ForBrands = () => {
             viewport={{ once: true }}
             className="flex flex-col rounded-2xl p-6 lg:p-10"
             style={{
-              backgroundColor: "#FFFFFF",
-              border: "1px solid rgba(17,17,17,0.09)",
+              backgroundColor: "var(--color-background)",
+              border: "1px solid var(--color-border)",
               minHeight: "280px",
             }}
           >
@@ -177,7 +178,7 @@ const ForBrands = () => {
               <FiZap size={18} color="#111111" />
             </div>
             <p
-              className="mb-3 text-xs font-semibold uppercase tracking-[0.2em]"
+              className="mb-3 text-xs font-semibold uppercase tracking-accent"
               style={{ color: "rgba(17,17,17,0.4)" }}
             >
               Instant book
@@ -222,7 +223,7 @@ const ForBrands = () => {
               <a
                 href="/home"
                 className="inline-block rounded-full px-6 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-105"
-                style={{ backgroundColor: "#111111", color: "#FFFFFF" }}
+                style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-foreground)" }}
               >
                 Browse studios
               </a>
@@ -230,7 +231,7 @@ const ForBrands = () => {
           </motion.div>
 
         </div>
-      </div>
+      </Container>
     </section>
   );
 };

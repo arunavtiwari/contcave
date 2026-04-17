@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 
+import BookingClient from "@/app/(main)/(auth)/bookings/BookingClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getReservation from "@/app/actions/getReservations";
 import EmptyState from "@/components/EmptyState";
-
-import BookingClient from "./BookingClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {

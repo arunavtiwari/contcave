@@ -32,7 +32,7 @@ export default function DeletePropertyModal({
 
     const bodyContent = (
         <div className="flex flex-col gap-4">
-            <div className="flex items-start gap-4 text-red-700 bg-red-50 p-4 rounded-xl border border-red-200 shadow-sm">
+            <div className="flex items-start gap-4 text-red-700 bg-red-50 p-4 rounded-xl border border-red-200 ">
                 <IoWarningOutline size={28} className="shrink-0 mt-0.5 text-red-600" />
                 <div>
                     <h4 className="font-bold text-[15px] mb-1">Irreversible Action</h4>
@@ -73,7 +73,7 @@ export default function DeletePropertyModal({
             <button
                 onClick={onConfirm}
                 disabled={!isMatch || isLoading}
-                className="w-1/2 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm"
+                className="w-1/2 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm "
             >
                 {isLoading ? "Deleting..." : "Delete Property"}
             </button>

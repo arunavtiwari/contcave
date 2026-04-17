@@ -5,7 +5,7 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { cfEnsureVendor } from "@/lib/cashfree/cashfree";
 import prisma from "@/lib/prismadb";
-import { ensureVendorSchema } from "@/lib/schemas/cashfree";
+import { ensureVendorSchema } from "@/schemas/cashfree";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

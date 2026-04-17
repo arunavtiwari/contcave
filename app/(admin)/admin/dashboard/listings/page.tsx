@@ -15,66 +15,66 @@ export default async function PendingListingsPage() {
         <div className="w-full flex flex-col gap-6">
             {/* Page Header */}
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-black">Pending Listings</h1>
-                <p className="text-sm text-neutral-500 mt-1">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">Pending Listings</h1>
+                <p className="text-sm text-muted-foreground mt-1">
                     Review and manage listings submitted by hosts.
                 </p>
             </div>
 
             {/* Stats Card */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl border border-neutral-200 p-5 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-neutral-50 flex items-center justify-center shrink-0">
-                        <FaClock size={18} className="text-neutral-900" />
+                <div className="bg-background rounded-xl border border-border p-5 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                        <FaClock size={18} className="text-foreground" />
                     </div>
                     <div>
-                        <div className="text-2xl font-bold text-black">{pendingListings.length}</div>
-                        <div className="text-xs text-neutral-500 font-medium">Awaiting Review</div>
+                        <div className="text-2xl font-bold text-foreground">{pendingListings.length}</div>
+                        <div className="text-xs text-muted-foreground font-medium">Awaiting Review</div>
                     </div>
                 </div>
             </div>
 
             {/* Table */}
             {pendingListings.length === 0 ? (
-                <div className="bg-white rounded-xl border border-neutral-200 px-6 py-16 flex flex-col items-center justify-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center">
-                        <FaExclamationTriangle size={20} className="text-neutral-400" />
+                <div className="bg-background rounded-xl border border-border px-6 py-16 flex flex-col items-center justify-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                        <FaExclamationTriangle size={20} className="text-muted-foreground" />
                     </div>
-                    <div className="text-sm font-medium text-black">No pending listings</div>
-                    <p className="text-sm text-neutral-500">All submissions have been reviewed. Check back later.</p>
+                    <div className="text-sm font-medium text-foreground">No pending listings</div>
+                    <p className="text-sm text-muted-foreground">All submissions have been reviewed. Check back later.</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+                <div className="bg-background rounded-xl border border-border overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-neutral-200">
+                        <table className="min-w-full divide-y divide-border">
                             <thead>
-                                <tr className="bg-neutral-50/80">
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                <tr className="bg-muted/80">
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                         Listing
                                     </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                         Host
                                     </th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                                         Category
                                     </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                         Price
                                     </th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                                         Submitted
                                     </th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                    <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-neutral-100">
+                            <tbody className="divide-y divide-muted">
                                 {pendingListings.map((listing) => (
-                                    <tr key={listing.id} className="hover:bg-neutral-50/50 transition-colors">
+                                    <tr key={listing.id} className="hover:bg-muted/50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
-                                                <div className="h-10 w-10 shrink-0 relative rounded-lg overflow-hidden border border-neutral-200">
+                                                <div className="h-10 w-10 shrink-0 relative rounded-lg overflow-hidden border border-border">
                                                     <Image
                                                         src={listing.imageSrc[0] || "/assets/placeholder.jpg"}
                                                         alt={listing.title}
@@ -84,28 +84,28 @@ export default async function PendingListingsPage() {
                                                     />
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <div className="text-sm font-medium text-black truncate max-w-48" title={listing.title}>
+                                                    <div className="text-sm font-medium text-foreground truncate max-w-48" title={listing.title}>
                                                         {listing.title}
                                                     </div>
-                                                    <div className="text-xs text-neutral-500 truncate max-w-48" title={listing.locationValue}>
+                                                    <div className="text-xs text-muted-foreground truncate max-w-48" title={listing.locationValue}>
                                                         {listing.locationValue}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-black">{listing.user?.name || "Unknown"}</div>
-                                            <div className="text-xs text-neutral-500">{listing.user?.email || "N/A"}</div>
+                                            <div className="text-sm text-foreground">{listing.user?.name || "Unknown"}</div>
+                                            <div className="text-xs text-muted-foreground">{listing.user?.email || "N/A"}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700 capitalize">
+                                            <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-foreground capitalize">
                                                 {listing.category}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                                             ₹{listing.price.toLocaleString("en-IN")}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                             {new Date(listing.createdAt).toLocaleDateString("en-IN", {
                                                 day: "numeric",
                                                 month: "short",

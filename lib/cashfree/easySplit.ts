@@ -1,4 +1,4 @@
-import { cfHeaders, cfSplitBaseURL } from "./cashfree";
+import { cfHeaders, cfSplitBaseURL } from "@/lib/cashfree/cashfree";
 
 type SplitItem = {
     vendor_id: string;

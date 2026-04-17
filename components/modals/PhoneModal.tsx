@@ -34,7 +34,7 @@ export default function PhoneModal({
             onClick={() => !phoneSaving && onClose()}
         >
             <div
-                className="w-full max-w-md rounded-2xl bg-white shadow-xl p-6"
+                className="w-full max-w-md rounded-2xl bg-white  p-6"
                 onClick={(e) => e.stopPropagation()}
             >
                 <h3 id={`${sectionId}-phone-title`} className="text-lg font-semibold mb-2">

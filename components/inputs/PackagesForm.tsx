@@ -67,7 +67,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
       {packages.map((pkg, idx) => (
         <div
           key={idx}
-          className="border border-black rounded-xl p-6 relative flex flex-col gap-4 bg-white shadow-xs"
+          className="border border-black rounded-xl p-6 relative flex flex-col gap-4 bg-white "
         >
 
           <button

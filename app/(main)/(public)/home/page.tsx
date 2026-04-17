@@ -116,7 +116,11 @@ export default async function Home(props: HomeProps) {
         <Container>
           <Categories />
           {listing.length === 0 ? (
-            <EmptyState showReset />
+            <EmptyState
+              showReset={Object.keys(searchParams).length > 0}
+              title={Object.keys(searchParams).length > 0 ? "No exact matches" : "No listings found"}
+              subtitle={Object.keys(searchParams).length > 0 ? "Try changing or removing some of your filters." : "We're currently adding new studios. Check back soon!"}
+            />
           ) : (
             <ListingFeed
               listings={listing}

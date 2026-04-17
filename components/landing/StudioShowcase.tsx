@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 
+import Container from "@/components/Container";
+
 const studios = [
   {
     id: 1,
@@ -90,7 +92,7 @@ const StudioCard = ({ studio, index }: { studio: typeof studios[number]; index: 
               }}
             >
               <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
-                <path d="M10 3L5 9L2 6" stroke="#4ADE80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10 3L5 9L2 6" stroke="#4ADE80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Verified
             </div>
@@ -111,10 +113,10 @@ const StudioCard = ({ studio, index }: { studio: typeof studios[number]; index: 
           {/* Info */}
           <div className="px-1">
             <div className="mb-1.5 flex items-start justify-between gap-2">
-              <h3 className="text-sm font-semibold leading-tight" style={{ color: "#111111" }}>
+              <h3 className="text-sm font-semibold leading-tight" style={{ color: "var(--color-foreground)" }}>
                 {studio.name}
               </h3>
-              <p className="flex-shrink-0 text-xs" style={{ color: "rgba(17,17,17,0.45)" }}>
+              <p className="shrink-0 text-xs" style={{ color: "var(--color-muted-foreground)" }}>
                 {studio.area ? `${studio.area}, ` : ""}{studio.city}
               </p>
             </div>
@@ -126,7 +128,7 @@ const StudioCard = ({ studio, index }: { studio: typeof studios[number]; index: 
                   key={tag}
                   className="rounded-full px-2.5 py-0.5 text-[10px] font-medium"
                   style={{
-                    backgroundColor: "rgba(17,17,17,0.06)",
+                    backgroundColor: "var(--color-muted)",
                     color: "#555555",
                     border: "1px solid rgba(17,17,17,0.07)",
                   }}
@@ -153,10 +155,10 @@ const StudioShowcase = () => {
   // Heading drifts up slower than scroll — depth cue
   const headingY = useTransform(scrollYProgress, [0, 1], [40, -40]);
   // Decorative text drifts faster — feels closer
-  const decoY    = useTransform(scrollYProgress, [0, 1], [0, -80]);
+  const decoY = useTransform(scrollYProgress, [0, 1], [0, -80]);
 
   return (
-    <section ref={sectionRef} id="features" className="relative overflow-hidden py-12 lg:py-16" style={{ backgroundColor: "#FFFFFF" }}>
+    <section ref={sectionRef} id="features" className="relative overflow-hidden py-section">
 
 
       <motion.p
@@ -178,7 +180,7 @@ const StudioShowcase = () => {
         </span>
       </motion.p>
 
-      <div className="mx-auto max-w-[1280px] px-4 md:px-10 xl:px-20">
+      <Container>
 
         {/* Header — parallax: drifts up slower than scroll */}
         <motion.div
@@ -191,8 +193,8 @@ const StudioShowcase = () => {
         >
           <div>
             <p
-              className="mb-3 text-xs font-semibold uppercase tracking-[0.22em]"
-              style={{ color: "rgba(17,17,17,0.45)" }}
+              className="mb-3 text-xs font-semibold uppercase tracking-accent"
+              style={{ color: "var(--color-muted-foreground)" }}
             >
               Explore spaces
             </p>
@@ -201,7 +203,7 @@ const StudioShowcase = () => {
                 fontFamily: "Georgia, 'Times New Roman', serif",
                 fontSize: "clamp(1.9rem, 3vw, 2.6rem)",
                 fontWeight: 700,
-                color: "#111111",
+                color: "var(--color-foreground)",
                 lineHeight: 1.2,
               }}
             >
@@ -211,7 +213,7 @@ const StudioShowcase = () => {
           <Link
             href="/home"
             className="hidden items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-70 md:flex"
-            style={{ color: "#111111" }}
+            style={{ color: "var(--color-foreground)" }}
           >
             View all studios
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -232,7 +234,7 @@ const StudioShowcase = () => {
           <Link
             href="/home"
             className="inline-flex items-center gap-1.5 text-sm font-medium"
-            style={{ color: "#111111" }}
+            style={{ color: "var(--color-foreground)" }}
           >
             View all studios
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -241,7 +243,7 @@ const StudioShowcase = () => {
           </Link>
         </div>
 
-      </div>
+      </Container>
     </section>
   );
 };

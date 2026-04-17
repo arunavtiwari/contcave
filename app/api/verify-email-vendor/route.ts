@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { getFixieProxyAgent } from "@/lib/fixie-proxy";
-import { emailVerificationSchema } from "@/lib/schemas/verification";
+import { emailVerificationSchema } from "@/schemas/verification";
 
 export async function POST(request: NextRequest) {
     try {

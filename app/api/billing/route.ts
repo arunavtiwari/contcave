@@ -1,7 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { billingSchema } from "@/lib/schemas/billing";
+import { billingSchema } from "@/schemas/billing";
 
 
 export async function POST(req: Request) {

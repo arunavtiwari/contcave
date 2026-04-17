@@ -101,7 +101,7 @@ function SortablePhotoItem({ id, url, index, onRemove }: SortablePhotoItemProps)
 // Separate Photo for DragOverlay so it doesn't try to register as a sortable node
 function DraggingPhotoOverlay({ url }: { url: string }) {
     return (
-        <div className="relative h-32 w-32 rounded-xl overflow-hidden border shadow-xl opacity-80 cursor-grabbing bg-white">
+        <div className="relative h-32 w-32 rounded-xl overflow-hidden border  opacity-80 cursor-grabbing bg-white">
             {isVideo(url) ? (
                 <video
                     src={url}

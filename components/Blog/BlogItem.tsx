@@ -25,7 +25,7 @@ const BlogItem = ({ blog }: { blog: BlogPost }) => {
         whileInView="visible"
         transition={{ duration: 1, delay: 0.5 }}
         viewport={{ once: true }}
-        className="animate_top rounded-xl bg-white p-4 pb-9 shadow-lg"
+        className="animate_top rounded-xl bg-white p-4 pb-9 "
       >
         <div className="relative block aspect-368/239 overflow-hidden transition rounded-xl">
           <Image src={meta.image.url} alt={title} fill className="hover:scale-110 transition" />

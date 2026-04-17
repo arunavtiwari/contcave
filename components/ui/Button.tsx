@@ -51,12 +51,12 @@ function Button({
   const roundedClass = rounded ? "rounded-full" : "rounded-xl";
 
   const variantClasses = {
-    default: "bg-black border-black text-white",
-    outline: "bg-white border-neutral-300 text-black hover:bg-neutral-50",
-    success: "bg-green-600 border-green-600 text-white hover:bg-green-700",
-    danger: "bg-rose-500 border-rose-500 text-white hover:bg-rose-600",
-    ghost: "bg-transparent border-transparent text-black hover:bg-neutral-100",
-    secondary: "bg-neutral-200 border-neutral-200 text-black hover:bg-neutral-300",
+    default: "bg-primary border-primary text-primary-foreground",
+    outline: "bg-background border-border text-foreground hover:bg-muted",
+    success: "bg-success border-success text-white hover:opacity-90",
+    danger: "bg-danger border-danger text-white hover:opacity-90",
+    ghost: "bg-transparent border-transparent text-foreground hover:bg-muted",
+    secondary: "bg-secondary border-secondary text-foreground hover:opacity-90",
   };
 
   const finalClasses = `${baseClasses} ${roundedClass} ${variantClasses[effectiveVariant]} ${classNames || ""}`;
@@ -65,7 +65,7 @@ function Button({
     <>
       {loading && (
         <AiOutlineLoading3Quarters
-          className={`animate-spin text-lg ${effectiveVariant === "outline" || effectiveVariant === "ghost" ? "text-black" : "text-white"}`}
+          className={`animate-spin text-lg ${effectiveVariant === "outline" || effectiveVariant === "ghost" ? "text-foreground" : "text-primary-foreground"}`}
         />
       )}
       {Icon && !loading && <Icon size={24} className={`${isColor && "text-blue-600"}`} />}

@@ -120,10 +120,10 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
       </Swiper>
 
       {/* Custom Navigation */}
-      <div className="swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-sm border border-[rgba(255,255,255,0.5)] hover:bg-[rgba(0,0,0,0.8)] transition opacity-0 group-hover:opacity-100">
+      <div className="swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full  border border-[rgba(255,255,255,0.5)] hover:bg-[rgba(0,0,0,0.8)] transition opacity-0 group-hover:opacity-100">
         <HiOutlineChevronLeft className="text-white" size={24} />
       </div>
-      <div className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full shadow-sm border border-[rgba(255,255,255,0.5)] hover:bg-[rgba(0,0,0,0.8)] transition opacity-0 group-hover:opacity-100">
+      <div className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full  border border-[rgba(255,255,255,0.5)] hover:bg-[rgba(0,0,0,0.8)] transition opacity-0 group-hover:opacity-100">
         <HiOutlineChevronRight className="text-white" size={24} />
       </div>
     </div>
@@ -172,7 +172,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
                     onClick={() => handleImageClick(4)}
                   />
                   <button
-                    className="absolute bottom-3 right-3 bg-white text-black px-4 py-1.5 rounded-lg shadow-sm hover:bg-neutral-200 transition font-medium text-base"
+                    className="absolute bottom-3 right-3 bg-white text-black px-4 py-1.5 rounded-lg  hover:bg-neutral-200 transition font-medium text-base"
                     onClick={handleShowAllPhotos}
                   >
                     Show all photos
@@ -208,7 +208,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
             <IoMdClose size={24} />
           </button>
 
-          <div className="w-full h-full max-w-7xl max-h-screen flex items-center justify-center group relative">
+          <div className="w-full h-full max-w-screen-2xl max-h-screen flex items-center justify-center group relative">
             <div className="w-full h-full">
               <Swiper
                 modules={[Navigation]}

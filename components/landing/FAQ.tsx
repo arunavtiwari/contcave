@@ -2,10 +2,10 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 
+import Container from "@/components/Container";
+
 import faqData from "./faqData";
 import FAQItem from "./FAQItem";
-
-
 
 const FAQ = () => {
   const [activeFaq, setActiveFaq] = useState(1);
@@ -36,10 +36,10 @@ const FAQ = () => {
         }}
       />
 
-      <section className="overflow-hidden pb-12 lg:pb-16">
+      <section className="overflow-hidden py-section">
 
-        <div className="relative mx-auto max-w-c-1235 px-4 md:px-8 xl:px-0">
-          <div className="flex flex-wrap gap-8 md:flex-nowrap xl:gap-32.5">
+        <Container>
+          <div className="flex flex-wrap gap-8 md:flex-nowrap xl:gap-32">
 
             {/* Left column */}
             <motion.div
@@ -53,30 +53,29 @@ const FAQ = () => {
               viewport={{ once: true }}
               className="animate_left md:w-2/5 lg:w-1/2"
             >
-              
+
 
               <p
-                className="text-xs font-semibold tracking-[0.2em] uppercase mb-3 mt-10"
-                style={{ color: "#111111" }}
+                className="text-xs font-semibold tracking-accent uppercase mb-3 mt-10 text-foreground"
               >
                 Common questions
               </p>
 
-              <h2 className="relative mb-4 text-3xl font-bold text-black xl:text-hero">
+              <h2 className="relative mb-4 text-3xl font-bold text-foreground xl:text-5xl">
                 Everything you{" "}
-                <span className="relative inline-block before:absolute before:bottom-2.5 before:left-0 before:-z-1 before:h-3 before:w-full before:bg-slate-200">
+                <span className="relative inline-block before:absolute before:bottom-2.5 before:left-0 before:-z-1 before:h-3 before:w-full before:bg-accent">
                   need to know.
                 </span>
               </h2>
 
-              <p className="text-base text-gray-500 leading-relaxed mb-6">
+              <p className="text-base text-muted-foreground leading-relaxed mb-6">
                 About booking a studio, listing your space, or how ContCave works.
               </p>
 
 
               <a
                 href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}
-                className="group mt-1 inline-flex items-center gap-1.5 text-black hover:font-bold"
+                className="group mt-1 inline-flex items-center gap-1.5 text-foreground hover:font-bold"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -109,7 +108,7 @@ const FAQ = () => {
               viewport={{ once: true }}
               className="animate_right md:w-3/5 lg:w-1/2"
             >
-              <div className="rounded-xl bg-white shadow-solid-8 border mt-10">
+              <div className="rounded-xl bg-background border border-border mt-10 overflow-hidden">
                 {faqData.map((faq, key) => (
                   <FAQItem
                     key={key}
@@ -120,7 +119,7 @@ const FAQ = () => {
             </motion.div>
 
           </div>
-        </div>
+        </Container>
       </section>
     </>
   );

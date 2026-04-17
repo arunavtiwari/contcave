@@ -6,8 +6,8 @@ import { createErrorResponse, createSuccessResponse, handleRouteError } from '@/
 import { cfUpdateVendor } from '@/lib/cashfree/cashfree';
 import { upsertPaymentDetailsSafe } from '@/lib/payment-details';
 import prisma from '@/lib/prismadb';
-import { paymentDetailsSchema, paymentDetailsUpdateSchema } from '@/lib/schemas/payment';
 import { encryptionService } from '@/lib/security/encryption';
+import { paymentDetailsSchema, paymentDetailsUpdateSchema } from '@/schemas/payment';
 
 const createSchema = paymentDetailsSchema.extend({
     userId: z.string().min(1, 'User ID is required'),

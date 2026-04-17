@@ -20,7 +20,7 @@ export default function Loading() {
                 </div>
 
                 {/* Main Content Skeleton */}
-                <div className="flex flex-col sm:p-8 sm:pt-12 w-full gap-5 sm:border-l-2 border-gray-200">
+                <div className="flex flex-col sm:p-8 sm:pt-12 w-full gap-5 sm:border-l-2 border-border">
                     <div className="flex flex-col w-full gap-5">
 
                         {/* Header Line */}
@@ -36,7 +36,7 @@ export default function Loading() {
                             <div className="lg:col-span-2 space-y-8">
 
                                 {/* Banner & Image Card */}
-                                <div className="bg-white rounded-2xl shadow-xs border border-gray-200 overflow-hidden">
+                                <div className="bg-background rounded-2xl border border-border overflow-hidden">
                                     <Skeleton className="h-32 w-full relative rounded-none">
                                         <div className="absolute -bottom-16 left-8">
                                             <Skeleton className="w-32 h-32 rounded-full border-4 border-white" />
@@ -52,7 +52,7 @@ export default function Loading() {
                                 </div>
 
                                 {/* Personal Details Card */}
-                                <div className="bg-white rounded-2xl shadow-xs border border-gray-200 p-8">
+                                <div className="bg-white rounded-2xl  border border-gray-200 p-8">
                                     <Skeleton className="h-6 w-40 mb-6" />
                                     <div className="space-y-6">
                                         {[...Array(5)].map((_, i) => (

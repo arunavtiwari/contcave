@@ -10,6 +10,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 
+import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
@@ -17,9 +18,7 @@ import useLoginModal from "@/hook/useLoginModal";
 import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
 import useRegisterModal from "@/hook/useRegisterModal";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
-import { RegisterSchema, registerSchema } from "@/lib/schemas/auth";
-
-import Modal from "./Modal";
+import { RegisterSchema, registerSchema } from "@/schemas/auth";
 
 function RegisterModal() {
   const registerModal = useRegisterModal();

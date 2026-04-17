@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { getFixieProxyAgent, handleProxyError } from "@/lib/fixie-proxy";
-import { otpSchema } from "@/lib/schemas/verification";
+import { otpSchema } from "@/schemas/verification";
 
 export async function POST(req: NextRequest) {
     try {

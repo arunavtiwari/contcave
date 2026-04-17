@@ -71,11 +71,11 @@ const CancellationPolicy = () => {
       <Container>
         <div className="pt-16 pb-32 max-w-4xl mx-auto space-y-10">
 
-          <div className="bg-white p-8 rounded-2xl shadow-lg space-y-6">
+          <div className="bg-background p-8 rounded-2xl border border-border space-y-6">
             <h2 className="text-3xl font-bold text-gray-900">
               Our Cancellation Policy
             </h2>
-            <p className="text-gray-700 text-lg">
+            <p className="text-muted-foreground text-lg">
               We understand that plans can change. To ensure transparency and
               fairness, we have outlined our cancellation policy below. Please
               read carefully to understand how cancellations are managed on our
@@ -84,11 +84,11 @@ const CancellationPolicy = () => {
           </div>
 
 
-          <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
+          <div className="bg-muted p-8 rounded-2xl border border-border space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Cancellation Timeframes
             </h3>
-            <ul className="list-disc pl-6 space-y-2 text-gray-700 text-lg">
+            <ul className="list-disc pl-6 space-y-2 text-muted-foreground text-lg">
               <li>
                 <b>Full Refund:</b> Cancellations made at least <b>48 hours</b>{" "}
                 before the scheduled booking.
@@ -106,7 +106,7 @@ const CancellationPolicy = () => {
           </div>
 
 
-          <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
+          <div className="bg-muted p-8 rounded-2xl border border-border space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Special Considerations
             </h3>
@@ -118,11 +118,11 @@ const CancellationPolicy = () => {
           </div>
 
 
-          <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
+          <div className="bg-muted p-8 rounded-2xl border border-border space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               How to Cancel a Booking
             </h3>
-            <ol className="list-decimal pl-6 space-y-2 text-gray-700 text-lg">
+            <ol className="list-decimal pl-6 space-y-2 text-muted-foreground text-lg">
               <li>Log in to your account on our platform.</li>
               <li>Navigate to "My Bookings" in your dashboard.</li>
               <li>Select the booking you wish to cancel.</li>
@@ -135,7 +135,7 @@ const CancellationPolicy = () => {
           </div>
 
 
-          <div className="bg-gray-50 p-8 rounded-2xl shadow space-y-4">
+          <div className="bg-muted p-8 rounded-2xl border border-border space-y-4">
             <h3 className="text-2xl font-semibold text-gray-900">
               Refund Process
             </h3>

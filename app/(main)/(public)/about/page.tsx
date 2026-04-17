@@ -97,7 +97,7 @@ const About = async () => {
                 What We Stand For
               </h2>
               <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-                <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-xs hover:shadow-lg transition">
+                <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center  hover: transition">
                   <Building2 className="mx-auto mb-4 w-10 h-10 text-black" />
                   <h3 className="text-xl font-semibold mb-3 text-black">
                     Space Utilisation
@@ -108,7 +108,7 @@ const About = async () => {
                   </p>
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-xs hover:shadow-lg transition">
+                <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center  hover: transition">
                   <Heart className="mx-auto mb-4 w-10 h-10 text-black" />
                   <h3 className="text-xl font-semibold mb-3 text-black">
                     Sustaining Human Creativity
@@ -119,7 +119,7 @@ const About = async () => {
                   </p>
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-xs hover:shadow-lg transition">
+                <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center  hover: transition">
                   <Users className="mx-auto mb-4 w-10 h-10 text-black" />
                   <h3 className="text-xl font-semibold mb-3 text-black">
                     Community First
@@ -172,18 +172,18 @@ const About = async () => {
             </section>
 
 
-            <section className="text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-black mb-6">
+            <section className="text-center pb-20">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                 Join the First Wave
               </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto mb-8">
+              <p className="text-muted-foreground max-w-2xl mx-auto mb-10 text-lg">
                 Be part of the movement to make creative spaces in India more
                 accessible, celebrated, and sustainable.
               </p>
               <a
                 href="https://docs.google.com/forms/d/e/1FAIpQLSdYngGwgLaHCYcejKqCvwsdhxykFbr2UxxCHdXusQrXDaubWA/viewform"
                 target="_blank"
-                className="inline-block bg-black text-white px-8 py-3 rounded-xl text-lg font-semibold hover:bg-gray-800 transition"
+                className="inline-block bg-primary text-white px-10 py-4 rounded-xl text-lg font-bold hover:opacity-90 transition tracking-accent"
               >
                 Get Involved
               </a>

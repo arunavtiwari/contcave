@@ -140,7 +140,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         <div className="flex items-stretch">
                             <div className="w-1/4">
                                 <button
-                                    className="flex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4] text-white hover:opacity-80 transition w-full"
+                                    className="flex items-center justify-center bg-primary rounded-l-full h-full cursor-pointer border border-primary text-white hover:opacity-80 transition w-full"
                                     onClick={toggleReceiptModal}
                                     aria-label="Info"
                                 >
@@ -150,7 +150,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             <div className="w-3/4">
                                 <Button
                                     label="Approve"
-                                    classNames="text-md font-semibold bg-[#27AE60] border-[#27AE60] text-white rounded-r-full"
+                                    classNames="text-md font-semibold bg-primary/80 border-primary text-white rounded-r-full"
                                     onClick={() => onApprove(reservation?.id ?? "")}
                                 />
                             </div>
@@ -161,7 +161,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         <Button
                             label="Reject"
                             rounded
-                            classNames="text-md font-semibold bg-[#E74C3C] text-white"
+                            classNames="text-md font-semibold bg-destructive text-white"
                             onClick={() => onReject(reservation?.id ?? "")}
                         />
                     )}
@@ -170,7 +170,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             <div className="flex items-stretch">
                                 <div className="w-1/4">
                                     <button
-                                        className="flex items-center justify-center bg-[#4682B4] rounded-l-full h-full cursor-pointer border border-[#4682B4] text-white hover:opacity-80 transition w-full"
+                                        className="flex items-center justify-center bg-primary rounded-l-full h-full cursor-pointer border border-primary text-white hover:opacity-80 transition w-full"
                                         onClick={toggleReceiptModal}
                                         aria-label="Info"
                                     >
@@ -196,7 +196,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                     label="Cancel Reservation"
                                     onClick={handleCancel}
                                     rounded
-                                    classNames="text-md font-semibold bg-white border-[#E74C3C]! text-[#E74C3C]!"
+                                    classNames="text-md font-semibold bg-white border-destructive! text-destructive!"
                                 />
                             )}
 

@@ -12,7 +12,7 @@ const SectionHeader = ({ headerInfo }: { headerInfo: HeaderInfo }) => {
 
   return (
     <>
-      
+
       <motion.div
         variants={{
           hidden: {
@@ -31,17 +31,17 @@ const SectionHeader = ({ headerInfo }: { headerInfo: HeaderInfo }) => {
         viewport={{ once: true }}
         className="animate_top mx-auto text-center"
       >
-        <div className="mb-4 inline-block rounded-full bg-zumthor px-4.5 py-1.5">
-          <span className="text-sectiontitle font-medium text-black ">
+        <div className="mb-4 inline-block rounded-full bg-accent-subtle px-badge-x py-1.5">
+          <span className="text-sm font-medium text-foreground">
             {title}
           </span>
         </div>
-        <h2 className="mx-auto mb-4 text-3xl font-bold text-black md:w-4/5 xl:w-1/2 xl:text-sectiontitle3">
+        <h2 className="mx-auto mb-4 text-3xl font-bold text-foreground md:w-4/5 xl:w-1/2 xl:text-5xl">
           {subtitle}
         </h2>
         <p className="mx-auto md:w-4/5 lg:w-3/5 xl:w-[46%]">{description}</p>
       </motion.div>
-      
+
     </>
   );
 };

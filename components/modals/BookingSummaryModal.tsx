@@ -6,7 +6,7 @@ import { useId, useState } from "react";
 import Checkbox from "@/components/ui/Checkbox";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
-import { billingSchema } from "@/lib/schemas/billing";
+import { billingSchema } from "@/schemas/billing";
 
 type GSTDetails = {
   companyName: string;
@@ -127,7 +127,7 @@ export default function BookingSummaryModal({
       onClick={() => onCloseAction()}
     >
       <div
-        className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6"
+        className="w-full max-w-lg rounded-2xl bg-white  p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h3

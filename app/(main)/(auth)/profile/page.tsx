@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 
+import ProfileClient from "@/app/(main)/(auth)/profile/ProfileClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getTransactions from "@/app/actions/getTransactions";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
 import { getPaymentDetailsSafe } from "@/lib/payment-details";
 import { PaymentProfile } from "@/types/payment";
-
-import ProfileClient from "./ProfileClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {

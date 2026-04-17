@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { resetPasswordSchema } from "@/lib/schemas/auth";
+import { resetPasswordSchema } from "@/schemas/auth";
 
 export async function POST(request: NextRequest) {
     try {

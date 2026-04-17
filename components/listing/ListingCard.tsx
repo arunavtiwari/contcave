@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import React, { useMemo } from "react";
-import { FaStar } from "react-icons/fa6";
 
 import HeartButton from "@/components/HeartButton";
 import Button from "@/components/ui/Button";
+import StarRating from "@/components/ui/StarRating";
 import useCities from "@/hook/useCities";
 import { safeListing } from "@/types/listing";
 import { SafeReservation } from "@/types/reservation";
@@ -108,7 +108,7 @@ const ListingCard: React.FC<Props> = ({
               {images.map((_, idx) => (
                 <span
                   key={idx}
-                  className="transition-all duration-300 rounded-full bg-white shadow-sm"
+                  className="transition-all duration-300 rounded-full bg-white "
                   style={{
                     width: idx === currentIndex ? 16 : 6,
                     height: 6,
@@ -130,9 +130,12 @@ const ListingCard: React.FC<Props> = ({
               {data.title}
             </div>
             {data.avgReviewRating && data.avgReviewRating != 0 && (
-              <div className="font-semibold text-sm flex items-center gap-1.5">
-                <FaStar size={18} color="gold" /> {data.avgReviewRating?.toFixed(1)}
-              </div>
+              <StarRating
+                rating={data.avgReviewRating}
+                size={18}
+                activeColor="text-yellow-500"
+                showText
+              />
             )}
           </div>
           <div className="font-light text-neutral-500">

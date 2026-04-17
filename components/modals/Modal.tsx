@@ -113,7 +113,7 @@ function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <div className={`flex flex-col w-full bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden ${customHeight || "h-[85vh] max-h-[85vh]"}`}>
+        <div className={`flex flex-col w-full bg-white rounded-2xl  ring-1 ring-black/5 overflow-hidden ${customHeight || "h-[85vh] max-h-[85vh]"}`}>
 
           <div className="flex items-center justify-center p-5 border-b border-gray-200 bg-gray-50 relative shrink-0">
             <h2 id="modal-title" className="text-lg font-semibold text-center text-gray-900">

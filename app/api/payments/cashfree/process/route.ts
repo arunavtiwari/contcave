@@ -7,7 +7,7 @@ import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { calculateSetPricing } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
-import { processPaymentSchema } from "@/lib/schemas/cashfree";
+import { processPaymentSchema } from "@/schemas/cashfree";
 import { AdditionalSetPricingType, ListingSet } from "@/types/set";
 
 

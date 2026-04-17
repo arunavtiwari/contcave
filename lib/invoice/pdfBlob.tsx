@@ -1,7 +1,7 @@
 import { Document, Page, renderToBuffer,StyleSheet, Text, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
 
-import { ARKANET_VENTURES_GST, GST_RATE } from "@/lib/constants/gst";
+import { ARKANET_VENTURES_GST, GST_RATE } from "@/constants/gst";
 
 type OwnerPaymentDetails = {
   ownerName?: string | null;

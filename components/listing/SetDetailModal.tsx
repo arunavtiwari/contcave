@@ -42,12 +42,12 @@ export default function SetDetailModal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-opacity duration-300" onClick={onClose}>
             <div
-                className="relative w-full max-w-4xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row h-[70vh] animate-in fade-in zoom-in-95 duration-200"
+                className="relative w-full max-w-4xl bg-white rounded-3xl overflow-hidden  flex flex-col md:flex-row h-[70vh] animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-20 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full transition backdrop-blur-md shadow-lg"
+                    className="absolute top-4 right-4 z-20 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full transition backdrop-blur-md "
                 >
                     <IoClose size={18} />
                 </button>
@@ -86,12 +86,12 @@ export default function SetDetailModal({
                             {set.images.length > 1 && (
                                 <>
                                     <button
-                                        className="set-modal-prev absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/80 hover:bg-white text-black rounded-full shadow-lg transition md:opacity-0 md:group-hover:opacity-100 md:-translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
+                                        className="set-modal-prev absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/80 hover:bg-white text-black rounded-full  transition md:opacity-0 md:group-hover:opacity-100 md:-translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
                                     >
                                         <IoChevronBack size={20} />
                                     </button>
                                     <button
-                                        className="set-modal-next absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/80 hover:bg-white text-black rounded-full shadow-lg transition md:opacity-0 md:group-hover:opacity-100 md:translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
+                                        className="set-modal-next absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/80 hover:bg-white text-black rounded-full  transition md:opacity-0 md:group-hover:opacity-100 md:translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
                                     >
                                         <IoChevronForward size={20} />
                                     </button>
@@ -122,7 +122,7 @@ export default function SetDetailModal({
                             <h2 className="text-3xl font-bold text-neutral-900 leading-tight">{set.name}</h2>
                         </div>
 
-                        <div className="inline-flex items-center px-3 py-1 bg-neutral-900 text-white rounded-full text-sm font-medium mb-6 shadow-sm">
+                        <div className="inline-flex items-center px-3 py-1 bg-neutral-900 text-white rounded-full text-sm font-medium mb-6 ">
                             {priceLabel}
                         </div>
 

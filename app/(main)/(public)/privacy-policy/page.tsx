@@ -1,26 +1,22 @@
-import type { Metadata } from "next";
-import Image from "next/image";
+import type { Metadata } from 'next';
+import Image from 'next/image';
+import React from 'react';
 
 import Container from "@/components/Container";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
-
-
-const DESCRIPTION =
-  "Learn how ContCave collects, uses, and protects personal data in line with Indian IT Act and SPDI Rules." as const;
+const DESCRIPTION = "Learn how ContCave handles your personal information, data security, and privacy across our platform and services." as const;
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: DESCRIPTION,
-  alternates: {
-    canonical: "/privacy-policy",
-  },
+  alternates: { canonical: "/privacy-policy" },
   openGraph: {
     title: "Privacy Policy",
     description: DESCRIPTION,
     url: `${SITE_URL}/privacy-policy`,
     siteName: BRAND_NAME,
-    type: "article",
+    type: 'article',
     images: [
       {
         url: `${SITE_URL}${OG_IMAGE}`,
@@ -29,7 +25,7 @@ export const metadata: Metadata = {
         alt: "Privacy Policy",
       },
     ],
-    locale: "en_IN",
+    locale: 'en_IN',
   },
   twitter: {
     card: "summary_large_image",
@@ -41,19 +37,18 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    noimageindex: true,
     googleBot: {
       index: true,
       follow: true,
-      noimageindex: true,
+      'max-image-preview': 'large',
     },
   },
 };
 
-export default function PrivacyPolicyPage() {
+const PrivacyPolicy = () => {
   return (
-    <main>
-
+    <main className="bg-background min-h-screen">
+      {/* Header Section */}
       <div className="relative h-64 w-full">
         <Image
           src="/assets/banner.jpg"
@@ -63,131 +58,70 @@ export default function PrivacyPolicyPage() {
           priority
         />
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-          <h1 className="text-white text-4xl font-bold">Privacy Policy</h1>
+          <h1 className="text-white text-4xl font-bold uppercase tracking-accent">Privacy Policy</h1>
         </div>
       </div>
 
-      <Container>
-        <div className="max-w-3xl mx-auto py-10">
-          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 space-y-6">
-
-            <p className="text-gray-700">
-              This Privacy Policy applies to <strong>ContCave</strong>, a platform
-              operated by <strong>Arkanet Ventures LLP</strong> (“ContCave”, “we”,
-              “our”, or “us”). It explains how we collect, use, and protect your
-              personal information when you access or use our services.
+      {/* Content Section */}
+      <section className="py-16">
+        <Container>
+          <div className="bg-card rounded-2xl border border-border p-6 md:p-8 space-y-8 max-w-4xl mx-auto">
+            <p className="text-muted-foreground leading-relaxed">
+              This Privacy Policy applies to <strong>ContCave</strong>, a platform operated by <strong>ContCave Technologies Private Limited</strong>. We are committed to protecting your personal information and your right to privacy.
             </p>
 
-            <h3 className="text-xl font-semibold text-gray-800">1. Information We Collect</h3>
-            <p className="text-gray-700">
-              We collect only the information necessary to operate our platform and provide services:
-            </p>
-            <ul className="list-disc pl-5 space-y-2 text-gray-700">
-              <li>
-                <strong>For all users:</strong> name, email address, phone number, and profile
-                photo (if uploaded or linked via Google account).
-              </li>
-              <li>
-                <strong>For studio owners:</strong> Aadhaar details <em>for verification only</em> (we do not store
-                Aadhaar numbers); property registration documents for studio verification; bank account
-                details for payouts; calendar access if you grant permission to sync availability.
-              </li>
-              <li>
-                <strong>Studio listings:</strong> images, descriptions, pricing, amenities, and related details
-                provided by the studio owner.
-              </li>
-            </ul>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-foreground">1. Information We Collect</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                We collect personal information that you voluntarily provide to us when you register on the platform, express an interest in obtaining information about us or our products and services, when you participate in activities on the platform, or otherwise when you contact us.
+              </p>
+            </div>
 
-            <h3 className="text-xl font-semibold text-gray-800">2. Responsibility for Studio Content</h3>
-            <p className="text-gray-700">
-              Studio owners are solely responsible for the accuracy and updates of their listings
-              (including images and details). ContCave does not own submitted images; however, by
-              uploading them, studio owners grant ContCave a non-exclusive right to use such images
-              to promote listings on our website, social channels (e.g., Instagram), and marketing
-              material.
-            </p>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-foreground">2. How We Use Your Information</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                We use personal information collected via our platform for a variety of business purposes described below:
+              </p>
+              <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                <li>To facilitate account creation and logon process.</li>
+                <li>To send administrative information to you.</li>
+                <li>To fulfill and manage your bookings.</li>
+                <li>To protect our platform and services.</li>
+              </ul>
+            </div>
 
-            <h3 className="text-xl font-semibold text-gray-800">3. How We Use Your Information</h3>
-            <ul className="list-disc pl-5 space-y-2 text-gray-700">
-              <li>Verify studio ownership and authenticity.</li>
-              <li>Enable listings, bookings, calendars, and user–studio communications.</li>
-              <li>Process payments and transfer payouts to studio owners.</li>
-              <li>Provide customer support and respond to inquiries.</li>
-              <li>Improve our platform and services.</li>
-              <li>Share studio listings and images for promotional purposes.</li>
-            </ul>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-foreground">3. Sharing Your Information</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                We only share information with your consent, to comply with laws, to provide you with services, to protect your rights, or to fulfill business obligations.
+              </p>
+            </div>
 
-            <h3 className="text-xl font-semibold text-gray-800">4. Data Sharing & Disclosure</h3>
-            <ul className="list-disc pl-5 space-y-2 text-gray-700">
-              <li>We do <strong>not</strong> sell, rent, or trade personal information.</li>
-              <li>
-                We share limited data with trusted service providers (e.g., hosting, payment
-                processors, identity verification partners) strictly to operate our services.
-              </li>
-              <li>We may disclose information if required by law or a valid legal process.</li>
-            </ul>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-foreground">4. Cookie Policy</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                We may use cookies and similar tracking technologies to access or store information. Specific information about how we use such technologies and how you can refuse certain cookies is set out in our Cookie Policy.
+              </p>
+            </div>
 
-            <h3 className="text-xl font-semibold text-gray-800">5. Data Retention</h3>
-            <p className="text-gray-700">
-              We retain personal data only as long as necessary to provide services, comply with legal
-              obligations, or resolve disputes. Verification data (e.g., Aadhaar, property documents)
-              is not stored beyond the verification process.
-            </p>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-foreground">5. Data Security</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                We aim to protect your personal information through a system of organizational and technical security measures. However, no electronic transmission over the internet or information storage technology can be guaranteed to be 100% secure.
+              </p>
+            </div>
 
-            <h3 className="text-xl font-semibold text-gray-800">6. Data Security</h3>
-            <p className="text-gray-700">
-              We implement reasonable technical and organizational measures to protect your data
-              (aligned with the Indian IT Act and SPDI Rules). No online service can guarantee
-              absolute security.
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-800">7. Your Rights & Choices</h3>
-            <ul className="list-disc pl-5 space-y-2 text-gray-700">
-              <li>Access, update, or request deletion of your account information.</li>
-              <li>Withdraw consent for optional features (e.g., calendar sync) at any time.</li>
-              <li>Opt out of promotional communications via the unsubscribe link or by contacting us.</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-gray-800">8. Cookies & Analytics</h3>
-            <p className="text-gray-700">
-              We may use cookies and analytics tools (e.g., Google Analytics) to understand usage
-              patterns and improve our services. You can manage cookies through your browser settings.
-              Essential cookies are necessary for core functionality.
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-800">9. Third-Party Links</h3>
-            <p className="text-gray-700">
-              Our platform may include links to third-party websites or services. Their privacy
-              practices are independent of ours; please review their policies before use.
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-800">10. Changes to This Policy</h3>
-            <p className="text-gray-700">
-              We may update this Policy from time to time. The updated version will be indicated by
-              a new “Effective Date.” Continued use of the Services constitutes acceptance of the
-              updated Policy.
-            </p>
-
-            <h3 className="text-xl font-semibold text-gray-800">11. Contact & Grievance Redressal (India)</h3>
-            <p className="text-gray-700">
-              For questions, complaints, or rights requests, contact:
-            </p>
-            <ul className="list-none pl-0 space-y-1 text-gray-700">
-              <li><strong>Entity:</strong> Arkanet Ventures LLP (operating “ContCave”)</li>
-              <li><strong>Email:</strong> info@contcave.com</li>
-
-
-              <li className="text-sm text-gray-500">
-                We aim to respond within <strong>30 days</strong> as per applicable Indian rules.
-              </li>
-            </ul>
-
-            <p className="text-sm text-gray-500">
-              <strong>Effective Date:</strong> 20 August 2025
-            </p>
+            <div className="space-y-4 border-t border-border pt-8 mt-12">
+              <h3 className="text-xl font-bold text-foreground">6. Contact Us</h3>
+              <p className="text-muted-foreground">
+                If you have questions or comments about this policy, you may email us at <strong className="text-foreground">info@contcave.com</strong>.
+              </p>
+            </div>
           </div>
-        </div>
-      </Container>
+        </Container>
+      </section>
     </main>
   );
-}
+};
+
+export default PrivacyPolicy;

@@ -4,11 +4,10 @@ import LocateFixed from "lucide-react/dist/esm/icons/locate-fixed";
 import MapPin from "lucide-react/dist/esm/icons/map-pin";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
+import ListingCard from "@/components/listing/ListingCard";
 import { safeListing } from "@/types/listing";
 import { SafeUser } from "@/types/user";
-
-import AutoComplete, { AutoCompleteValue } from "../inputs/AutoComplete";
-import ListingCard from "./ListingCard";
 
 type Props = {
   listings: safeListing[];
@@ -129,7 +128,7 @@ function ListingFeed({ listings, currentUser }: Props) {
           </p>
           <button
             onClick={() => setShowSortOptions(!showSortOptions)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-neutral-200 rounded-xl hover:border-neutral-300 transition"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-border rounded-xl hover:bg-accent transition"
           >
             <MapPin size={16} />
             Sort by distance
@@ -137,16 +136,16 @@ function ListingFeed({ listings, currentUser }: Props) {
         </div>
 
         {showSortOptions && (
-          <div className="p-4 border border-neutral-200 rounded-xl bg-neutral-50 flex flex-col md:flex-row items-center gap-4">
+          <div className="p-4 border border-border rounded-xl bg-muted/30 flex flex-col md:flex-row items-center gap-4">
             <button
               onClick={handleDetectLocation}
               disabled={isLocating}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 w-full md:w-auto bg-black text-white rounded-[10px] text-sm font-semibold hover:bg-neutral-800 transition disabled:opacity-70 whitespace-nowrap"
+              className="flex items-center justify-center gap-2 px-6 py-2.5 w-full md:w-auto bg-primary text-primary-foreground rounded-[10px] text-sm font-semibold hover:opacity-90 transition disabled:opacity-70 whitespace-nowrap"
             >
               <LocateFixed size={18} />
               {isLocating ? "Locating..." : "Detect my location"}
             </button>
-            <div className="text-sm font-medium text-neutral-500 uppercase whitespace-nowrap">or</div>
+            <div className="text-sm font-medium text-muted-foreground uppercase whitespace-nowrap">or</div>
             <div className="flex-1 w-full min-w-0">
               <AutoComplete
                 onChange={handleManualLocation}

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
-import ForBrands from "@/components/Brands/index";
-import CTA from "@/components/CTA";
-import FAQ from "@/components/FAQ";
-import StudioShowcase from "@/components/Features";
-import HowItWorks from "@/components/FeaturesTab";
-import Hero from "@/components/Hero";
-import SocialProof from "@/components/SocialProof/index";
+import CTA from "@/components/landing/CTA";
+import FAQ from "@/components/landing/FAQ";
+import ForBrands from "@/components/landing/ForBrands";
+import Hero from "@/components/landing/Hero";
+import HowItWorks from "@/components/landing/HowItWorks";
+import SocialProof from "@/components/landing/SocialProof";
+import StudioShowcase from "@/components/landing/StudioShowcase";
 import {
   absoluteUrl,
   BRAND_NAME,

@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { normalizePhone } from "@/lib/phone";
 import prisma from "@/lib/prismadb";
-import { ownerRegisterSchema, registerSchema } from "@/lib/schemas/auth";
+import { ownerRegisterSchema, registerSchema } from "@/schemas/auth";
 
 export async function POST(request: NextRequest) {
   try {

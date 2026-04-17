@@ -89,7 +89,7 @@ export default function BlogPage() {
                 <Link
                   key={post.id}
                   href={`/blog/${post.id}`}
-                  className="block bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden"
+                  className="block bg-white rounded-2xl  hover: transition-all overflow-hidden"
                 >
                   <div className="relative h-48">
                     {post.meta.image && (

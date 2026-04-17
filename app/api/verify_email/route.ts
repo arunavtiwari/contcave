@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { getFixieProxyAgent } from "@/lib/fixie-proxy";
-import { emailVerificationSchema } from "@/lib/schemas/verification";
+import { emailVerificationSchema } from "@/schemas/verification";
 
 export async function POST(req: NextRequest) {
   try {

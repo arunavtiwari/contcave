@@ -33,7 +33,7 @@ import Textarea from "@/components/ui/Textarea";
 import { PROFILE_LANGUAGE_OPTIONS, PROFILE_TITLE_OPTIONS } from "@/constants/user";
 import useRentModal from "@/hook/useRentModal";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-import { UserDataBoundaryPayload, UserDataSchema } from "@/lib/schemas/user";
+import { UserDataBoundaryPayload, UserDataSchema } from "@/schemas/user";
 import { SafeUser } from "@/types/user";
 
 interface ProfileClientProps {
@@ -199,7 +199,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
                 <div className="lg:col-span-2 space-y-8">
 
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
 
                         <div
                             className="relative h-32 bg-center bg-no-repeat bg-cover"
@@ -207,7 +207,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                         >
                             <div className="absolute -bottom-16 left-8">
                                 <div className="relative">
-                                    <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
+                                    <div className="w-32 h-32 rounded-full border-4 border-white  overflow-hidden bg-white">
                                         {editMode ? (
                                             <ImageUpload
                                                 onChange={(value) => {
@@ -230,7 +230,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         )}
                                     </div>
                                     {editMode && (
-                                        <button className="absolute bottom-2 right-2 bg-black text-white p-2 rounded-full shadow-lg hover:bg-gray-800 transition-colors">
+                                        <button className="absolute bottom-2 right-2 bg-black text-white p-2 rounded-full  hover:bg-gray-800 transition-colors">
                                             <FaCamera className="w-4 h-4" />
                                         </button>
                                     )}
@@ -309,7 +309,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                     </div>
 
 
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                    <div className="bg-white rounded-2xl  border border-gray-200 p-8">
                         <h3 className="text-xl font-semibold text-gray-900 mb-6">Personal Details</h3>
 
                         <div className="space-y-6">

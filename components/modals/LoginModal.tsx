@@ -15,7 +15,7 @@ import Input from "@/components/ui/Input";
 import useLoginModel from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
-import { type LoginSchema, loginSchema } from "@/lib/schemas/auth";
+import { type LoginSchema, loginSchema } from "@/schemas/auth";
 
 import Modal from "./Modal";
 

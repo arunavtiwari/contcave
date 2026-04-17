@@ -2,6 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import Container from "@/components/Container";
+import ListingHead from "@/components/listing/ListingHead";
+import ListingInfo from "@/components/listing/ListingInfo";
+import ListingReservation from "@/components/listing/ListingReservation";
+import PackageSetModal from "@/components/modals/PackageSetModal";
+import { categories } from "@/components/navbar/Categories";
 import {
   calculateSetPricing,
 } from "@/lib/pricing";
@@ -25,13 +31,6 @@ import {
   TimeLabel,
 } from "@/types/scheduling";
 import { SafeUser } from "@/types/user";
-
-import Container from "./Container";
-import ListingHead from "./listing/ListingHead";
-import ListingInfo from "./listing/ListingInfo";
-import ListingReservation from "./listing/ListingReservation";
-import PackageSetModal from "./modals/PackageSetModal";
-import { categories } from "./navbar/Categories";
 
 type Props = {
   reservations?: SafeReservation[];

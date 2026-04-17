@@ -48,7 +48,7 @@ export const metadata: Metadata = {
 
 const TermsAndConditions = () => {
     return (
-        <main>
+        <main className="bg-background min-h-screen">
             <div className="relative h-64 w-full">
                 <Image
                     src="/assets/banner.jpg"
@@ -58,99 +58,113 @@ const TermsAndConditions = () => {
                     priority
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <h1 className="text-white text-4xl font-bold">Terms & Conditions</h1>
+                    <h1 className="text-white text-4xl font-bold uppercase tracking-accent">Terms & Conditions</h1>
                 </div>
             </div>
 
-            <Container>
-                <div className="max-w-3xl mx-auto py-10">
-                    <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 space-y-6">
-                        <p className="text-gray-700">
+            <section className="py-16">
+                <Container>
+                    <div className="bg-card rounded-2xl border border-border p-6 md:p-8 space-y-8 max-w-4xl mx-auto">
+                        <p className="text-muted-foreground leading-relaxed">
                             Welcome to ContCave. By accessing or using our platform, you agree
                             to comply with these Terms & Conditions. Please read them
                             carefully.
                         </p>
 
-                        <h3 className="text-xl font-semibold text-gray-800">
-                            1. Use of Our Platform
-                        </h3>
-                        <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                            <li>You must be at least <b>18 years old</b> to use our services.</li>
-                            <li>
-                                Users are responsible for ensuring the accuracy of their
-                                account and listing details.
-                            </li>
-                            <li>
-                                Any misuse, fraudulent activity, or violation of laws will
-                                result in account suspension or termination.
-                            </li>
-                        </ul>
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-foreground">
+                                1. Use of Our Platform
+                            </h3>
+                            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                                <li>You must be at least <b>18 years old</b> to use our services.</li>
+                                <li>
+                                    Users are responsible for ensuring the accuracy of their
+                                    account and listing details.
+                                </li>
+                                <li>
+                                    Any misuse, fraudulent activity, or violation of laws will
+                                    result in account suspension or termination.
+                                </li>
+                            </ul>
+                        </div>
 
-                        <h3 className="text-xl font-semibold text-gray-800">
-                            2. Bookings & Payments
-                        </h3>
-                        <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                            <li>
-                                All bookings are subject to availability and confirmation.
-                            </li>
-                            <li>
-                                Payments must be made through our secure payment gateway.
-                            </li>
-                            <li>
-                                Service fees, if applicable, are non-refundable.
-                            </li>
-                        </ul>
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-foreground">
+                                2. Bookings & Payments
+                            </h3>
+                            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                                <li>
+                                    All bookings are subject to availability and confirmation.
+                                </li>
+                                <li>
+                                    Payments must be made through our secure payment gateway.
+                                </li>
+                                <li>
+                                    Service fees, if applicable, are non-refundable.
+                                </li>
+                            </ul>
+                        </div>
 
-                        <h3 className="text-xl font-semibold text-gray-800">
-                            3. Cancellations & Refunds
-                        </h3>
-                        <p className="text-gray-700">
-                            Cancellations and refunds are subject to our{" "}
-                            <a href="/cancellation" className="text-blue-600 underline">
-                                Cancellation Policy
-                            </a>
-                            . Users must follow the outlined process for any refund requests.
-                        </p>
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-foreground">
+                                3. Cancellations & Refunds
+                            </h3>
+                            <p className="text-muted-foreground leading-relaxed">
+                                Cancellations and refunds are subject to our{" "}
+                                <a href="/cancellation" className="text-primary hover:underline font-medium">
+                                    Cancellation Policy
+                                </a>
+                                . Users must follow the outlined process for any refund requests.
+                            </p>
+                        </div>
 
-                        <h3 className="text-xl font-semibold text-gray-800">
-                            4. Prohibited Activities
-                        </h3>
-                        <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                            <li>Posting false or misleading information.</li>
-                            <li>Engaging in illegal or unauthorized activities.</li>
-                            <li>
-                                Violating the rights of others, including intellectual property
-                                infringement.
-                            </li>
-                        </ul>
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-foreground">
+                                4. Prohibited Activities
+                            </h3>
+                            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                                <li>Posting false or misleading information.</li>
+                                <li>Engaging in illegal or unauthorized activities.</li>
+                                <li>
+                                    Violating the rights of others, including intellectual property
+                                    infringement.
+                                </li>
+                            </ul>
+                        </div>
 
-                        <h3 className="text-xl font-semibold text-gray-800">
-                            5. Limitation of Liability
-                        </h3>
-                        <p className="text-gray-700">
-                            ContCave is not responsible for any damages, losses, or disputes
-                            arising from bookings. Users and space providers assume full
-                            responsibility for their interactions.
-                        </p>
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-foreground">
+                                5. Limitation of Liability
+                            </h3>
+                            <p className="text-muted-foreground leading-relaxed">
+                                ContCave is not responsible for any damages, losses, or disputes
+                                arising from bookings. Users and space providers assume full
+                                responsibility for their interactions.
+                            </p>
+                        </div>
 
-                        <h3 className="text-xl font-semibold text-gray-800">
-                            6. Changes to Terms
-                        </h3>
-                        <p className="text-gray-700">
-                            We reserve the right to modify these terms at any time. Continued
-                            use of our platform implies acceptance of the updated terms.
-                        </p>
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-foreground">
+                                6. Changes to Terms
+                            </h3>
+                            <p className="text-muted-foreground leading-relaxed">
+                                We reserve the right to modify these terms at any time. Continued
+                                use of our platform implies acceptance of the updated terms.
+                            </p>
+                        </div>
 
-                        <h3 className="text-xl font-semibold text-gray-800">
-                            7. Contact Us
-                        </h3>
-                        <p className="text-gray-700">
-                            For any questions, reach out to us at{" "}
-                            <strong>info@contcave.com</strong>.
-                        </p>
+                        <div className="space-y-4 border-t border-border pt-8 mt-12">
+                            <h3 className="text-xl font-bold text-foreground">
+                                7. Contact Us
+                            </h3>
+                            <p className="text-muted-foreground">
+                                For any questions, reach out to us at{" "}
+                                <strong className="text-foreground">info@contcave.com</strong>.
+                            </p>
+                        </div>
                     </div>
-                </div>
-            </Container>
+                </Container>
+            </section>
         </main>
     );
 };

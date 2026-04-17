@@ -281,7 +281,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
     <div className="flex flex-col gap-5">
       <Heading title={`Chat with ${initialBooking.listing?.title || "Host"}`} />
       <div className="flex h-[calc(100vh-180px)] w-full grow flex-col gap-5 lg:flex-row">
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-gray-50">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-muted">
           <div className="grow overflow-y-auto p-4">
             <div className="flex flex-col space-y-4">
               {error && (
@@ -301,7 +301,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                       <div
                         className={`p-2.5 rounded-full px-4 ${message.email === userEmail
                           ? "bg-black text-white"
-                          : "border border-neutral-200 bg-white text-gray-800"
+                          : "border border-border bg-background text-foreground"
                           }`}
                       >
                         {message.text}
@@ -317,7 +317,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
             </div>
           </div>
 
-          <div className="flex-none p-4 border-t bg-white">
+          <div className="flex-none p-4 border-t bg-background">
             <div className="text-xs text-gray-500 mb-2 flex items-center justify-between">
               <span>{isChannelReady ? "Connected" : "Connecting..."}</span>
               <span>{newMessage.length}/{MAX_MESSAGE_LENGTH}</span>
@@ -355,7 +355,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
           </div>
         </div>
 
-        <div className="w-full shrink-0 rounded-xl border border-neutral-200 bg-white p-5 lg:w-85">
+        <div className="w-full shrink-0 rounded-xl border border-border bg-background p-5 lg:w-85">
           {propertyImage ? (
             <Image
               src={propertyImage}
@@ -393,7 +393,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
               </span>
             </div>
 
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-neutral-200 pt-3">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-border pt-3">
               <span className="text-gray-600">Add-ons Charge:</span>
               <span className="text-right font-semibold text-gray-900">₹ {addonsCharge}</span>
             </div>

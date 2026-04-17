@@ -3,11 +3,10 @@
 import { memo } from "react";
 
 import Container from "@/components/Container";
+import Logo from "@/components/navbar/Logo";
+import Search from "@/components/navbar/Search";
+import UserMenu from "@/components/navbar/UserMenu";
 import { SafeUser } from "@/types/user";
-
-import Logo from "./Logo";
-import Search from "./Search";
-import UserMenu from "./UserMenu";
 
 type Props = {
   currentUser?: SafeUser | null;
@@ -15,7 +14,7 @@ type Props = {
 
 const Navbar = memo(function Navbar({ currentUser }: Props) {
   return (
-    <div className="fixed w-full bg-white/70 backdrop-blur-md z-30 shadow-sm border-b border-gray-100">
+    <div className="fixed w-full bg-background/70 backdrop-blur-md z-30 border-b border-border">
       <div className="py-4">
         <Container>
           <div className="flex flex-row items-center justify-between gap-3 md:gap-0">

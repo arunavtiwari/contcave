@@ -1,9 +1,9 @@
 import { Listing } from "@prisma/client";
 
-import { Addon } from "./addon";
-import { Package } from "./package";
-import { AdditionalSetPricingType, ListingBlock, ListingSet } from "./set";
-import { SafeUser } from "./user";
+import { Addon } from "@/types/addon";
+import { Package } from "@/types/package";
+import { AdditionalSetPricingType, ListingBlock, ListingSet } from "@/types/set";
+import { SafeUser } from "@/types/user";
 
 export type safeListing = Omit<Listing, "createdAt"> & {
     createdAt: string;

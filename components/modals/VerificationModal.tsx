@@ -17,7 +17,7 @@ import {
   bankSchema,
   otpSchema,
   phoneVerificationSchema,
-} from "@/lib/schemas/verification";
+} from "@/schemas/verification";
 import { SafeUser } from "@/types/user";
 
 type Props = {

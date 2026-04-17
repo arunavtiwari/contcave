@@ -90,7 +90,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                             {selectedAddons.map((addon) => (
                                 <div
                                     key={addon.name}
-                                    className="border border-solid border-gray-300 rounded-xl shadow-sm p-5 bg-gray-50 h-full"
+                                    className="border border-solid border-gray-300 rounded-xl  p-5 bg-gray-50 h-full"
                                 >
                                     <ImageCheckbox
                                         addon={addon}
@@ -132,7 +132,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                             {availableAddons.map((addon) => (
                                 <div
                                     key={addon.name}
-                                    className="border border-solid border-gray-300 rounded-xl shadow-sm p-5 h-full"
+                                    className="border border-solid border-gray-300 rounded-xl  p-5 h-full"
                                 >
                                     <ImageCheckbox
                                         addon={addon}

@@ -8,10 +8,9 @@ import { Suspense, useCallback, useMemo, useState } from "react";
 
 import Calendar from "@/components/inputs/Calendar";
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
+import Modal from "@/components/modals/Modal";
 import Heading from "@/components/ui/Heading";
 import useSearchModal from "@/hook/useSearchModal";
-
-import Modal from "./Modal";
 
 enum STEPS {
   LOCATION = 0,

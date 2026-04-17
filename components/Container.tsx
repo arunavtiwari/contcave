@@ -1,15 +1,15 @@
 import React from "react";
 
 type Props = {
-  children: React.ReactNode;
+    children: React.ReactNode;
 };
 
 function Container({ children }: Props) {
-  return (
-    <div className="max-w-[2520px] mx-auto xl:px-20 md:px-10 px-6">
-      {children}
-    </div>
-  );
+    return (
+        <div className="mx-auto w-full max-w-screen-2xl px-6 md:px-10 lg:px-16 xl:px-20">
+            {children}
+        </div>
+    );
 }
 
 export default Container;

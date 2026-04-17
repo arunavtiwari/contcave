@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 
+import FavoritesClient from "@/app/(main)/(auth)/favorites/FavoritesClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getFavoriteListings from "@/app/actions/getFavoriteListings";
 import EmptyState from "@/components/EmptyState";
-
-import FavoritesClient from "./FavoritesClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {

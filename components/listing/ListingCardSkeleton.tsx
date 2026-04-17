@@ -4,7 +4,7 @@ import Skeleton from "@/components/ui/Skeleton";
 
 const ListingCardSkeleton = () => {
     return (
-        <div className="col-span-1 p-3 shadow-sm rounded-2xl border border-neutral-100/50">
+        <div className="col-span-1 p-3  rounded-2xl border border-neutral-100/50">
             <div className="flex flex-col gap-2 w-full">
                 {/* Image area skeleton */}
                 <Skeleton className="aspect-square w-full relative overflow-hidden rounded-xl" />

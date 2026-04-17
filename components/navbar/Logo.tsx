@@ -7,7 +7,7 @@ import { memo } from "react";
 const Logo = memo(function Logo() {
   return (
     <Link href="/">
-      <div className="logo-container">
+      <div className="w-full max-w-50">
         <Image
           alt="logo-large"
           height={100}

@@ -203,7 +203,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                         {blocks.map((block) => (
                             <div
                                 key={block.id}
-                                className="flex items-center justify-between p-4 border border-neutral-200 rounded-xl bg-white hover:shadow-sm transition"
+                                className="flex items-center justify-between p-4 border border-neutral-200 rounded-xl bg-white hover: transition"
                             >
                                 <div className="flex flex-col gap-1">
                                     <div className="font-medium flex items-center gap-2">

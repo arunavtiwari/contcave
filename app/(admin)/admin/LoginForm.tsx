@@ -11,7 +11,7 @@ export default function LoginForm() {
     const [state, formAction, isPending] = useActionState(loginAdmin, { error: "" });
 
     return (
-        <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white">
+        <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-background">
             <div className="flex items-center justify-center p-8 bg-black text-white">
                 <div className="max-w-md w-full [&_h2]:text-white! [&_p]:text-gray-400! mb-8">
                     <Heading

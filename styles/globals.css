@@ -3,161 +3,83 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-	/* Fonts */
+	/* 1. Core Primitives */
+	--color-black: #000000;
+	--color-white: #FFFFFF;
+
+	--color-neutral-50: #FAFAFA;
+	--color-neutral-100: #F5F5F5;
+	--color-neutral-200: #E5E5E5;
+	--color-neutral-300: #D4D4D4;
+	--color-neutral-400: #A3A3A3;
+	--color-neutral-500: #737373;
+	--color-neutral-600: #525252;
+	--color-neutral-700: #404040;
+	--color-neutral-800: #262626;
+	--color-neutral-900: #171717;
+	--color-neutral-950: #0A0A0A;
+
+	/* 2. Semantic Mappings (Functional Tokens) */
+	--color-primary: var(--color-black);
+	--color-primary-foreground: var(--color-white);
+
+	--color-background: var(--color-white);
+	--color-foreground: var(--color-black);
+
+	--color-muted: #F6F6F6;
+	--color-muted-foreground: var(--color-neutral-500);
+
+	--color-accent: #F6F6F6;
+	--color-accent-foreground: var(--color-black);
+	--color-accent-subtle: var(--color-neutral-50);
+
+	--color-border: var(--color-neutral-100);
+	--color-input: var(--color-neutral-100);
+	--color-ring: var(--color-black);
+
+	--color-success: #10B981;
+	--color-warning: #F59E0B;
+	--color-danger: #EF4444;
+
 	--font-inter: Inter, sans-serif;
 
-	/* Colors */
-	--color-current: currentColor;
-	--color-transparent: transparent;
-	--color-stroke: #EEEEEE;
-	--color-strokedark: #2D2F40;
-	--color-hoverdark: #252A42;
-	--color-titlebg: #ADFFF8;
-	--color-titlebg2: #FFEAC2;
-	--color-titlebgdark: #46495A;
-	--color-btndark: #292E45;
-	--color-white: #FFFFFF;
-	--color-blackho: #2C3149;
-	--color-blacksection: #1C2136;
-	--color-primary: #000000;
-	--color-primaryho: #111111;
-	--color-meta: #20C5A8;
-	--color-alabaster: #FBFBFB;
-	--color-zumthor: #EDF5FF;
-	--color-socialicon: #D1D8E0;
-	--color-red: #E74C3C;
+	--tracking-accent: 0.22em;
+	--tracking-wide: 0.1em;
+	--tracking-widest: 0.25em;
 
-	/* Font Sizes */
-	--text-metatitle: 12px;
-	--text-metatitle--line-height: 20px;
-	--text-sectiontitle: 14px;
-	--text-sectiontitle--line-height: 22px;
-	--text-regular: 16px;
-	--text-regular--line-height: 26px;
-	--text-metatitle3: 18px;
-	--text-metatitle3--line-height: 26px;
-	--text-metatitle2: 20px;
-	--text-metatitle2--line-height: 32px;
-	--text-para2: 22px;
-	--text-para2--line-height: 35px;
-	--text-itemtitle: 26px;
-	--text-itemtitle--line-height: 32px;
-	--text-itemtitle2: 24px;
-	--text-itemtitle2--line-height: 32px;
-	--text-hero: 44px;
-	--text-hero--line-height: 58px;
-	--text-sectiontitle3: 44px;
-	--text-sectiontitle3--line-height: 55px;
-	--text-sectiontitle2: 40px;
-	--text-sectiontitle2--line-height: 52px;
-	--text-sectiontitle4: 34px;
-	--text-sectiontitle4--line-height: 48px;
+	/* 4. Elevation (Semantic Shadows) */
+	--shadow-subtle: 0px 2px 10px rgba(0, 0, 0, 0.05);
+	--shadow-base: 0px 6px 90px rgba(0, 0, 0, 0.04);
+	--shadow-elevated: 0px 12px 120px rgba(0, 0, 0, 0.06);
 
-	/* Spacing */
-	--spacing-4_5: 1.125rem;
-	--spacing-5_5: 1.375rem;
-	--spacing-6_5: 1.625rem;
-	--spacing-7_5: 1.875rem;
-	--spacing-8_5: 2.125rem;
-	--spacing-10_5: 2.625rem;
-	--spacing-11_5: 2.875rem;
-	--spacing-12_5: 3.125rem;
-	--spacing-13: 3.25rem;
-	--spacing-13_5: 3.375rem;
-	--spacing-14_5: 3.625rem;
-	--spacing-15: 3.75rem;
-	--spacing-15_5: 3.875rem;
-	--spacing-16: 4rem;
-	--spacing-17: 4.25rem;
-	--spacing-17_5: 4.375rem;
-	--spacing-18: 4.5rem;
-	--spacing-18_5: 4.625rem;
-	--spacing-19: 4.75rem;
-	--spacing-21: 5.25rem;
-	--spacing-21_5: 5.375rem;
-	--spacing-22: 5.5rem;
-	--spacing-22_5: 5.625rem;
-	--spacing-25: 6.25rem;
-	--spacing-27: 6.75rem;
-	--spacing-27_5: 6.875rem;
-	--spacing-29: 7.25rem;
-	--spacing-29_5: 7.375rem;
-	--spacing-30: 7.5rem;
-	--spacing-32_5: 8.125rem;
-	--spacing-35: 8.75rem;
-	--spacing-37_5: 9.375rem;
-	--spacing-40: 10rem;
-	--spacing-42_5: 10.625rem;
-	--spacing-45: 11.25rem;
-	--spacing-46: 11.5rem;
-	--spacing-47_5: 11.875rem;
-	--spacing-50: 12.5rem;
-	--spacing-55: 13.75rem;
-	--spacing-60: 15rem;
-	--spacing-65: 16.25rem;
-	--spacing-67: 16.75rem;
-	--spacing-67_5: 16.875rem;
-	--spacing-90: 22.5rem;
+	/* 5. Layout & Spacing Tokens */
+	--spacing-section: 7rem;
+	--spacing-card-p: 2rem;
+}
 
-	/* Max Width */
-	--max-width-c-1390: 86.875rem;
-	--max-width-c-1315: 82.188rem;
-	--max-width-c-1280: 80rem;
-	--max-width-c-1235: 77.188rem;
-	--max-width-c-1154: 72.125rem;
-	--max-width-c-1016: 63.5rem;
-
-	/* Z-Index */
-	--z-index-99999: 99999;
-	--z-index-999: 999;
-	--z-index-1: 1;
-
-	/* Opacity */
-	--opacity-65: .65;
-
-	/* Box Shadow */
-	--shadow-solid-l: 0px 10px 120px 0px rgba(45, 74, 170, 0.1);
-	--shadow-solid-2: 0px 2px 10px rgba(122, 135, 167, 0.05);
-	--shadow-solid-3: 0px 6px 90px rgba(8, 14, 40, 0.04);
-	--shadow-solid-4: 0px 6px 90px rgba(8, 14, 40, 0.1);
-	--shadow-solid-5: 0px 8px 24px rgba(45, 74, 170, 0.08);
-	--shadow-solid-6: 0px 0px 24px rgba(10, 16, 35, 0.08);
-	--shadow-solid-7: 0px 30px 50px rgba(45, 74, 170, 0.1);
-	--shadow-solid-8: 0px 12px 120px rgba(45, 74, 170, 0.06);
-	--shadow-solid-9: 0px 12px 30px rgba(45, 74, 170, 0.06);
-	--shadow-solid-10: 0px 8px 30px rgba(45, 74, 170, 0.06);
-	--shadow-solid-11: 0px 6px 20px rgba(45, 74, 170, 0.05);
-	--shadow-solid-12: 0px 2px 10px rgba(0, 0, 0, 0.05);
-	--shadow-solid-13: 0px 2px 19px rgba(0, 0, 0, 0.05);
-
-	/* Animations */
-	--animate-line1: line 3s linear infinite;
-	--animate-line2: line 6s linear infinite;
-	--animate-line3: line 9s linear infinite;
-
-	@keyframes line {
-
-		0%,
-		100% {
-			transform: translateY(100%);
-		}
-
-		50% {
-			transform: translateY(0);
-		}
+@layer utilities {
+	.py-section {
+		padding-top: var(--spacing-section);
+		padding-bottom: var(--spacing-section);
 	}
 }
 
 @layer base {
 	* {
-		border-color: rgb(229, 231, 235);
+		border-color: var(--color-border);
+	}
+
+	body {
+		background-color: var(--color-background);
+		color: var(--color-foreground);
+		font-family: var(--font-inter);
 	}
 }
 
-/* Scrollbar */
+/* Utilities Refinement */
 ::-webkit-scrollbar {
-	width: 6px !important;
-	height: 8px !important;
+	width: 6px;
+	height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -165,178 +87,11 @@
 }
 
 ::-webkit-scrollbar-thumb {
-	background-color: black;
+	background-color: var(--color-black);
 	border-radius: 10px;
 }
 
-html,
-body,
-:root {
-	height: 100%;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
-}
-
-.leaflet-bottom,
-.leaflet-control,
-.leaflet-pane,
-.leaflet-top {
-	z-index: 0 !important;
-}
-
-.rdrMonth {
-	width: 100% !important;
-}
-
-.rdrCalendarWrapper {
-	font-size: 16px !important;
-	width: 100% !important;
-}
-
-.toggle-checkbox:checked {
-	right: 0;
-	border-color: black;
-}
-
-.toggle-checkbox:checked+.toggle-label {
-	background-color: black;
-}
-
-.toggle-label {
-	background-color: #d1d5db;
-}
-
-.toggle-checkbox {
-	border-color: #d1d5db;
-}
-
-.logo-container {
-	max-width: 200px;
-	width: 100%;
-}
-
-.w-30 {
-	width: 30%;
-}
-
-.image-checkbox {
-	/* display: flex; */
-	align-items: center;
-	cursor: pointer;
-	/*   border: 1px solid #ccc;
- */
-	border-radius: 15px;
-	padding: 10px;
-}
-
-.image-checkbox input[type="text"] {
-	width: 75px;
-	background: rgba(217, 217, 217, 0.6);
-	font-style: italic;
-	border-radius: 5px;
-	margin-left: 5px;
-	font-size: 12px;
-}
-
-.image-checkbox input[type="checkbox"] {
-	position: absolute;
-	margin: 5px;
-}
-
-.chip {
-	padding: 8px 12px;
-	border: 1px solid #ddd;
-	border-radius: 16px;
-	background-color: #f4f4f4;
-	cursor: pointer;
-	user-select: none;
-}
-
-.chip-selected {
-	background-color: #666;
-	color: white;
-	border-color: #666;
-}
-
-.banner {
-	position: relative;
-	width: 100%;
-	height: 200px;
-	display: block;
-}
-
-.overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0, 0, 0, 0.6);
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.banner-text {
-	color: white;
-	font-weight: bold;
-	font-size: 2em;
-	text-align: center;
-}
-
-.show {
-	visibility: visible;
-	opacity: 1;
-	max-height: 1000px;
-}
-
-.hide {
-	visibility: hidden;
-	opacity: 0;
-	max-height: 0 !important;
-	padding-top: 0 !important;
-	padding-bottom: 0 !important;
-}
-
-.button {
-	padding: 10px 20px;
-	border: none;
-	cursor: pointer;
-	font-size: 16px;
-	background-color: #000000;
-	color: #ffffff;
-	transition: background-color 0.3s ease;
-}
-
-.button-rounded {
-	border-radius: 5px;
-}
-
-button:not(:disabled) {
-	cursor: pointer;
-}
-
-.hide-scrollbar {
-	scrollbar-width: thin;
-	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-	height: 4px;
-}
-
-.hide-scrollbar::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.hide-scrollbar::-webkit-scrollbar-thumb {
-	background-color: rgba(0, 0, 0, 0.3);
-	border-radius: 10px;
-}
-
-
+/* 6. FullCalendar */
 
 /* Calendar */
 .fc-button {
@@ -393,12 +148,11 @@ button:not(:disabled) {
 
 .fc-daygrid-event,
 .fc-timegrid-event {
-	padding: 2px 8px;
+	padding: 2px 8px !important;
 }
 
 .fc-button:focus {
 	box-shadow: none !important;
-
 }
 
 .fc-daygrid-event-dot {
@@ -423,36 +177,11 @@ button:not(:disabled) {
 	color: transparent !important;
 }
 
-/* Remove ALL blue outlines and shadows from inputs and selects */
+/* Form Hardening */
 input:focus,
-input:focus-visible,
 textarea:focus,
-textarea:focus-visible,
-select:focus,
-select:focus-visible,
-button:focus,
-button:focus-visible {
+select:focus {
 	outline: none !important;
-	box-shadow: none !important;
-	-webkit-box-shadow: none !important;
-	-moz-box-shadow: none !important;
-}
-
-/* Remove blue outline from react-select */
-.css-1pahdxg-control:focus,
-.css-1pahdxg-control:focus-within,
-[class*="-control"]:focus,
-[class*="-control"]:focus-within {
-	outline: none !important;
-	box-shadow: none !important;
-	-webkit-box-shadow: none !important;
-	-moz-box-shadow: none !important;
-	border-color: black !important;
-}
-
-/* Ensure no blue outline on any focused element */
-*:focus,
-*:focus-visible {
-	outline: none !important;
-	box-shadow: none !important;
+	box-shadow: 0 0 0 2px var(--color-ring) !important;
+	border-color: var(--color-black) !important;
 }

@@ -42,13 +42,13 @@ const Heading: React.FC<HeadingProps> = ({
     return (
         <div className={`${center ? "text-center" : "text-start"} ${className}`}>
             <Component
-                className={`${variants[variant]} text-gray-900`}
+                className={`${variants[variant]} text-foreground`}
                 {...props}
             >
                 {title}
             </Component>
             {subtitle && (
-                <p className={`text-gray-500 mt-1 font-light ${subtitleVariants[variant]}`}>
+                <p className={`text-muted-foreground mt-1 font-light ${subtitleVariants[variant]}`}>
                     {subtitle}
                 </p>
             )}

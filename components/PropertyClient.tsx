@@ -9,8 +9,17 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { MdOutlineCurrencyRupee } from "react-icons/md";
 import { toast } from "react-toastify";
 
+import BlocksManager from "@/components/BlocksManager";
 import Calendar from "@/components/Calendar";
+import AddonsSelection from "@/components/inputs/AddonsSelection";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
+import ImageReorderGrid from "@/components/inputs/ImageReorderGrid";
+import ImageUpload from "@/components/inputs/ImageUpload";
+import PackagesForm from "@/components/inputs/PackagesForm";
+import SetsEditor from "@/components/inputs/SetsEditor";
+import ManageTimings from "@/components/ManageTimings";
+import CustomAddonModal from "@/components/modals/CustomAddonModal";
+import DeletePropertyModal from "@/components/modals/DeletePropertyModal";
 import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 import Sidebar from "@/components/Sidebar";
 import Button from "@/components/ui/Button";
@@ -22,16 +31,6 @@ import { uploadToCloudinary } from "@/lib/cloudinary";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
 import { Package as ListingPackage } from "@/types/package";
-
-import BlocksManager from "./BlocksManager";
-import AddonsSelection from "./inputs/AddonsSelection";
-import ImageReorderGrid from "./inputs/ImageReorderGrid";
-import ImageUpload from "./inputs/ImageUpload";
-import PackagesForm from "./inputs/PackagesForm";
-import SetsEditor from "./inputs/SetsEditor";
-import ManageTimings from "./ManageTimings";
-import CustomAddonModal from "./modals/CustomAddonModal";
-import DeletePropertyModal from "./modals/DeletePropertyModal";
 
 type Props = {
     listing: FullListing;
@@ -73,18 +72,17 @@ function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
 
 
 type TimeLabel = string;
+import RichTextEditor from "@/components/RichText/RichTextEditor";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 
-import RichTextEditor from "./RichText/RichTextEditor";
-
 const propertyFieldClassName =
-    "w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-900 transition outline-none focus:border-black hover:border-neutral-300";
+    "w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground transition outline-none focus:border-primary hover:border-border/80";
 
 const propertyCompactSelectClassName =
-    "rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-900 transition outline-none focus:border-black hover:border-neutral-300";
+    "rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground transition outline-none focus:border-primary hover:border-border/80";
 
 const propertyFieldSeparatorClassName =
-    "flex items-center justify-center self-stretch px-1 text-sm font-medium leading-none text-neutral-500";
+    "flex items-center justify-center self-stretch px-1 text-sm font-medium leading-none text-muted-foreground";
 
 const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Props) => {
     const [selectedMenu, setSelectedMenu] = useState("Edit Property");
@@ -326,14 +324,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             <div className="flex justify-center">
                 <Sidebar selectedMenu={selectedMenu} setSelectedMenu={setSelectedMenu} listingId={initialListing.id} />
 
-                <div className="flex flex-col sm:p-8 sm:pt-12 w-full gap-5 sm:border-l-2 border-gray-200">
+                <div className="flex flex-col sm:p-8 sm:pt-12 w-full gap-5 sm:border-l-2 border-border">
 
                     <div className={selectedMenu === "Edit Property" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
                         <Heading title="Edit Property" />
 
 
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="text-sm font-medium text-gray-700 sm:w-1/3">Name</label>
+                            <label className="text-sm font-medium text-muted-foreground sm:w-1/3">Name</label>
                             <input
                                 type="text"
                                 id="listingName"
@@ -347,7 +345,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="text-sm font-medium text-gray-700 sm:w-1/3">Custom URL</label>
                             <div className="w-full flex items-center">
-                                <span className="text-gray-500 mr-2">contcave.com/listings/</span>
+                                <span className="text-muted-foreground mr-2">contcave.com/listings/</span>
                                 <input
                                     type="text"
                                     id="listingSlug"
@@ -407,7 +405,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex sm:items-start gap-1 sm:gap-10 flex-col sm:flex-row">
                             <label className="block text-sm font-medium text-gray-700 sm:w-1/3 pt-2">
                                 Listed Services
-                                <p className="text-xs font-normal text-neutral-500 mt-1">Select all services available in this space</p>
+                                <p className="text-xs font-normal text-muted-foreground mt-1">Select all services available in this space</p>
                             </label>
                             <div className="w-full flex flex-wrap gap-2">
                                 {Array.from(new Set([...spaceTypes, ...(initialListing.type || [])])).map((t) => (
@@ -425,8 +423,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         className={`
                                             text-sm py-2 px-4 rounded-full border transition
                                             ${(initialListing.type || []).includes(t)
-                                                ? "bg-black text-white border-black"
-                                                : "bg-white text-gray-700 border-neutral-200 hover:border-black"
+                                                ? "bg-primary text-primary-foreground border-primary"
+                                                : "bg-background text-muted-foreground border-border hover:border-primary"
                                             }
                                         `}
                                     >
@@ -442,7 +440,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <div className="w-full relative">
                                 <MdOutlineCurrencyRupee
                                     size={24}
-                                    className="text-neutral-700 absolute top-2.5 left-2 border-r pr-1 border-neutral-300"
+                                    className="text-muted-foreground absolute top-2.5 left-2 border-r pr-1 border-border"
                                 />
                                 <input
                                     type="number"
@@ -668,7 +666,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
                                 <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
                                     Multi-Set Mode
-                                    <p className="text-xs font-normal text-neutral-500 mt-1">
+                                    <p className="text-xs font-normal text-muted-foreground mt-1">
                                         Enable multiple bookable sets (studios, rooms, etc.)
                                     </p>
                                 </label>
@@ -687,13 +685,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         <div className="flex gap-4 w-full">
                                             <button
                                                 onClick={() => handleInputChange("additionalSetPricingType", "FIXED")}
-                                                className={`flex-1 py-2 px-4 rounded-lg border transition ${initialListing.additionalSetPricingType === "FIXED" ? "bg-black text-white border-black" : "bg-white text-black border-neutral-300 hover:border-black"}`}
+                                                className={`flex-1 py-2 px-4 rounded-lg border transition ${initialListing.additionalSetPricingType === "FIXED" ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-border hover:border-primary"}`}
                                             >
                                                 Fixed Add-on
                                             </button>
                                             <button
                                                 onClick={() => handleInputChange("additionalSetPricingType", "HOURLY")}
-                                                className={`flex-1 py-2 px-4 rounded-lg border transition ${initialListing.additionalSetPricingType === "HOURLY" ? "bg-black text-white border-black" : "bg-white text-black border-neutral-300 hover:border-black"}`}
+                                                className={`flex-1 py-2 px-4 rounded-lg border transition ${initialListing.additionalSetPricingType === "HOURLY" ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-border hover:border-primary"}`}
                                             >
                                                 Hourly Add-on
                                             </button>
@@ -707,8 +705,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         <div className="flex gap-4">
                                             <label
                                                 className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
-                                                    ? "border-black bg-neutral-50 ring-1 ring-black"
-                                                    : "border-neutral-200 hover:border-neutral-300"
+                                                    ? "border-primary bg-muted ring-1 ring-primary"
+                                                    : "border-border hover:border-border/80"
                                                     }`}
                                             >
                                                 <input
@@ -722,8 +720,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                             </label>
                                             <label
                                                 className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === false
-                                                    ? "border-black bg-neutral-50 ring-1 ring-black"
-                                                    : "border-neutral-200 hover:border-neutral-300"
+                                                    ? "border-primary bg-muted ring-1 ring-primary"
+                                                    : "border-border hover:border-border/80"
                                                     }`}
                                             >
                                                 <input
@@ -757,7 +755,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="col-span-3 pt-5 flex justify-end">
                             <button
                                 type="button"
-                                className="inline-flex py-2 px-6 border border-transparent shadow-xs text-sm font-medium rounded-lg hover:opacity-85 text-white bg-black"
+                                className="inline-flex py-2 px-6 border border-transparent  text-sm font-medium rounded-lg hover:opacity-85 text-primary-foreground bg-primary"
                                 onClick={update}
                             >
                                 Save
@@ -774,7 +772,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                             {!isCalendarConnected && (
                                 <button
-                                    className="bg-black text-white px-15 h-fit py-2 rounded-lg hover:opacity-90 flex gap-4 justify-center items-center"
+                                    className="bg-primary text-primary-foreground px-15 h-fit py-2 rounded-lg hover:opacity-90 flex gap-4 justify-center items-center"
                                     onClick={() => signIn("google-calendar")}
                                 >
                                     <Image

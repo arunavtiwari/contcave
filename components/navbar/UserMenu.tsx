@@ -16,13 +16,12 @@ import {
 } from "react-icons/fi";
 import { MdApartment } from "react-icons/md";
 
+import MenuItem from "@/components/navbar/MenuItem";
 import Avatar from "@/components/ui/Avatar";
 import useLoginModel from "@/hook/useLoginModal";
 import useRegisterModal from "@/hook/useRegisterModal";
 import useRentModal from "@/hook/useRentModal";
 import { SafeUser } from "@/types/user";
-
-import MenuItem from "./MenuItem";
 
 type Props = {
   currentUser?: SafeUser | null;
@@ -92,7 +91,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
         <button
           type="button"
           onClick={toggleOpen}
-          className="ai-outline-menu p-4 md:py-1 md:px-2 border-2 flex flex-row items-center gap-3 rounded-full cursor-pointer hover:shadow-xs transition focus:outline-none focus-visible:ring-2 focus-visible:ring-black bg-white"
+          className="ai-outline-menu p-4 md:py-1 md:px-2 border-2 flex flex-row items-center gap-3 rounded-full cursor-pointer transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring bg-background"
         >
           <AiOutlineMenu />
           <div className="hidden md:block">
@@ -113,7 +112,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute rounded-xl min-w-60 bg-white overflow-hidden right-0 top-[3.2rem] text-sm p-3 border border-neutral-200"
+          className="absolute rounded-xl min-w-60 bg-background overflow-hidden right-0 top-[3.2rem] text-sm p-3 border border-border"
         >
           <div className="flex flex-col">
             {currentUser ? (

@@ -83,7 +83,7 @@ export default function RichTextEditor({
       <div className="relative border rounded-xl bg-white">
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className={`min-h-[160px] p-4 outline-none text-base ${
+            <ContentEditable className={`min-h-40 p-4 outline-none text-base ${
               disabled ? "pointer-events-none opacity-60" : ""
             }`} />
           }

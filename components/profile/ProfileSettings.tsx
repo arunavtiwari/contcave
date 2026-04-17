@@ -100,7 +100,7 @@ const ProfileSettings = ({ profile }: Props) => {
           )}
 
           <button
-            className="border-2 border-red px-10 py-1.5 rounded-full hover:opacity-85 text-red shadow-xs mt-3 text-sm font-semibold disabled:opacity-60"
+            className="border-2 border-red px-10 py-1.5 rounded-full hover:opacity-85 text-red  mt-3 text-sm font-semibold disabled:opacity-60"
             onClick={() => setShowConfirmModal(true)}
             disabled={isSubmitting}
           >

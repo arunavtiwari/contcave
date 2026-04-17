@@ -188,7 +188,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
     }
 
     return (
-        <div className="container">
+        <div className="select-none h-full">
             <FullCalendar
                 ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}

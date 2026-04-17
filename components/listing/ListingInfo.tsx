@@ -8,12 +8,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { IconType } from "react-icons";
-import { FaStar } from "react-icons/fa";
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
+import AddonsList from "@/components/listing/AddonList";
+import ListingCategory from "@/components/listing/ListingCategory";
+import PackageList from "@/components/listing/PackageList";
+import SetSelector from "@/components/listing/SetSelector";
 import Offers from "@/components/Offers";
 import Avatar from "@/components/ui/Avatar";
+import StarRating from "@/components/ui/StarRating";
 import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hook/useCities";
 import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
@@ -21,11 +25,6 @@ import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
 import { SafeUser } from "@/types/user";
-
-import AddonsList from "./AddonList";
-import ListingCategory from "./ListingCategory";
-import PackageList from "./PackageList";
-import SetSelector from "./SetSelector";
 
 const Map = dynamic(() => import("../Map"), { ssr: false });
 
@@ -273,9 +272,12 @@ function ListingInfo({
           <Avatar src={user?.image} />
         </div>
         {fullListing.avgReviewRating && fullListing.avgReviewRating !== 0 && (
-          <div className="font-semibold text-lg flex items-center gap-1.5 leading-4.5">
-            <FaStar size={20} color="gold" /> {fullListing.avgReviewRating?.toFixed(1)}
-          </div>
+          <StarRating
+            rating={fullListing.avgReviewRating}
+            size={20}
+            activeColor="text-yellow-500"
+            showText
+          />
         )}
       </div>
 
@@ -458,7 +460,7 @@ function ListingInfo({
             <>
               <div className="flex flex-col relative gap-4 pb-4">
                 {reviews.map((rv) => (
-                  <div className="flex items-center p-5 shadow-sm rounded-2xl border" key={rv.id}>
+                  <div className="flex items-center p-5  rounded-2xl border" key={rv.id}>
                     <div className="h-fit">
                       <Avatar src={rv.user?.image} size={45} />
                     </div>
@@ -501,19 +503,14 @@ function ListingInfo({
                 </div>
                 <div className="flex gap-2 items-center">
                   <span className="font-semibold">Rate</span>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((v) => (
-                      <button
-                        key={v}
-                        type="button"
-                        onClick={() => setReview({ ...review, rating: v })}
-                        className={`text-xl ${review.rating >= v ? "text-yellow-500" : "text-neutral-400"}`}
-                        aria-label={`${v} star`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
+                  <StarRating
+                    interactive
+                    rating={review.rating}
+                    onRate={(v) => setReview({ ...review, rating: v })}
+                    size={24}
+                    activeColor="text-yellow-500"
+                    inactiveColor="text-neutral-300"
+                  />
                 </div>
                 <button type="button" onClick={handleReviewSubmit} className="rounded-full bg-black w-full py-2.5 text-white hover:opacity-90 cursor-pointer">
                   Submit

@@ -74,17 +74,17 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
           <div className="flex items-center w-full">
             <button
               onClick={dec}
-              className="text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6] h-8 w-20 rounded-l-xl text-lg font-medium transition border border-[#D6D3D1]"
+              className="text-foreground/80 bg-muted hover:bg-muted/80 h-8 w-20 rounded-l-xl text-lg font-medium transition border border-border"
             >
               −
             </button>
-            <span className="bg-white text-[#2F2F2F] border-y flex items-center justify-center border-[#D6D3D1] h-8 w-full text-center">
+            <span className="bg-background text-foreground border-y flex items-center justify-center border-border h-8 w-full text-center">
               {qty}
             </span>
             <button
               onClick={inc}
               disabled={atMax}
-              className={`h-8 w-20 rounded-r-xl text-lg font-medium transition border border-[#D6D3D1] ${atMax ? "bg-neutral-200 text-neutral-400 cursor-not-allowed" : "text-[#4B4B4B] bg-[#F5F3F0] hover:bg-[#EDEAE6]"}`}
+              className={`h-8 w-20 rounded-r-xl text-lg font-medium transition border border-border ${atMax ? "bg-muted text-muted-foreground/60 cursor-not-allowed" : "text-foreground/80 bg-muted hover:bg-muted/80"}`}
             >
               +
             </button>

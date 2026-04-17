@@ -156,7 +156,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                                     {details.map(({ label, value, valueClassName }, idx) => (
                                         <div key={idx} className="min-w-0 text-left lg:text-center">
                                             <div className="text-sm font-semibold text-gray-500">{label}</div>
-                                            <div className={`text-sm font-semibold text-slate-900 break-words ${valueClassName ?? ""}`}>{value}</div>
+                                            <div className={`text-sm font-semibold text-slate-900 wrap-break-word ${valueClassName ?? ""}`}>{value}</div>
                                         </div>
                                     ))}
                                 </div>

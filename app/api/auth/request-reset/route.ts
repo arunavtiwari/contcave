@@ -5,7 +5,7 @@ import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/
 import { resetPasswordEmail } from "@/lib/email/email";
 import { sendEmail } from "@/lib/email/mailer";
 import prisma from "@/lib/prismadb";
-import { emailVerificationSchema } from "@/lib/schemas/verification";
+import { emailVerificationSchema } from "@/schemas/verification";
 
 export async function POST(request: NextRequest) {
     try {

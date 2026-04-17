@@ -12,7 +12,7 @@ export default function Loading() {
 
             {/* Stats Card */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+                <div className="bg-background rounded-xl border border-border p-5 flex items-center gap-4">
                     <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
                     <div>
                         <Skeleton className="h-7 w-8 mb-1" />

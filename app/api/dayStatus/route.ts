@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { dayStatusSchema } from "@/lib/schemas/dayStatus";
+import { dayStatusSchema } from "@/schemas/dayStatus";
 
 function validateDate(dateString: string): Date | null {
   const date = new Date(dateString);

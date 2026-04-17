@@ -15,7 +15,7 @@ import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
-import { type OwnerRegisterSchema, ownerRegisterSchema } from "@/lib/schemas/auth";
+import { type OwnerRegisterSchema, ownerRegisterSchema } from "@/schemas/auth";
 
 import Modal from "./Modal";
 

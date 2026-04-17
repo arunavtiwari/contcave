@@ -4,7 +4,7 @@ import { z } from 'zod';
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { getPaymentDetailsSafe } from '@/lib/payment-details';
-import { userIdSchema } from '@/lib/schemas/common';
+import { userIdSchema } from '@/schemas/common';
 
 interface RouteParams {
     params: Promise<{ userId: string }>;

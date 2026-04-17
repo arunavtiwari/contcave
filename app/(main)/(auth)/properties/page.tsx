@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 
+import PropertiesClient from "@/app/(main)/(auth)/properties/PropertiesClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings from "@/app/actions/getListings";
 import EmptyState from "@/components/EmptyState";
-
-import PropertiesClient from "./PropertiesClient";
 
 export const metadata: Metadata = {
   title: "My Properties",

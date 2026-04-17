@@ -37,7 +37,7 @@ import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/co
 import useRentModal from "@/hook/useRentModal";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { isRichTextEmpty } from "@/lib/richText";
-import { listingSchema } from "@/lib/schemas/listing";
+import { listingSchema } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
 import { AdditionalSetPricingType } from "@/types/set";
@@ -47,8 +47,8 @@ type LocationValue = CitySelectValue & {
   additionalInfo?: string;
 };
 
-import CustomAddonModal from "./CustomAddonModal";
-import Modal from "./Modal";
+import CustomAddonModal from "@/components/modals/CustomAddonModal";
+import Modal from "@/components/modals/Modal";
 
 enum STEPS {
   CATEGORY = 0,
@@ -670,7 +670,7 @@ export default function RentModal() {
                       alt={`Image ${index}`}
                       width={128}
                       height={128}
-                      className="h-32 w-32 rounded-xl object-cover border border-neutral-200 shadow-xs"
+                      className="h-32 w-32 rounded-xl object-cover border border-neutral-200 "
                       unoptimized
                     />
                     <button
@@ -1326,7 +1326,7 @@ export default function RentModal() {
       {/* Creating Listing Spinner Overlay */}
       {isSubmitting && (
         <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl ring-1 ring-black/5 px-10 py-12 flex flex-col items-center gap-6 max-w-sm w-full mx-4 animate-in fade-in zoom-in duration-300">
+          <div className="bg-white rounded-2xl  ring-1 ring-black/5 px-10 py-12 flex flex-col items-center gap-6 max-w-sm w-full mx-4 animate-in fade-in zoom-in duration-300">
             <div className="relative w-16 h-16">
               <div className="absolute inset-0 rounded-full border-4 border-neutral-200" />
               <div className="absolute inset-0 rounded-full border-4 border-t-black animate-spin" />

@@ -124,7 +124,7 @@ export default function CalendarComponent({
 
     return (
         <div className="flex items-center p-6 gap-30 bg-white justify-center">
-            <div className="border border-neutral-300 shadow-lg rounded-lg w-fit">
+            <div className="border border-neutral-300  rounded-lg w-fit">
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DateCalendar
                         value={selectedDate}

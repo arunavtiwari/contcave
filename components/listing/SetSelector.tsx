@@ -117,7 +117,7 @@ export default function SetSelector({
                     <button
                         onClick={() => swiperRef.current?.slidePrev()}
                         aria-label="Scroll left"
-                        className="absolute left-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-white rounded-full border border-neutral-300 shadow-md hover:shadow-lg hover:scale-105 transition-all cursor-pointer"
+                        className="absolute left-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-white rounded-full border border-neutral-300  hover: hover:scale-105 transition-all cursor-pointer"
                     >
                         <HiOutlineChevronLeft className="text-neutral-700" size={16} />
                     </button>
@@ -128,7 +128,7 @@ export default function SetSelector({
                     <button
                         onClick={() => swiperRef.current?.slideNext()}
                         aria-label="Scroll right"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-white rounded-full border border-neutral-300 shadow-md hover:shadow-lg hover:scale-105 transition-all cursor-pointer"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-white rounded-full border border-neutral-300  hover: hover:scale-105 transition-all cursor-pointer"
                     >
                         <HiOutlineChevronRight className="text-neutral-700" size={16} />
                     </button>
@@ -220,7 +220,7 @@ export default function SetSelector({
                                         <div className={`absolute inset-0 transition-all duration-300 flex items-center justify-center p-2 text-center
                                             ${isSelected ? "bg-black/40" : "bg-black/0 group-hover:bg-black/40"}
                                         `}>
-                                            <h4 className={`font-bold text-white text-lg drop-shadow-md leading-tight transition-opacity duration-300
+                                            <h4 className={`font-bold text-white text-lg drop- leading-tight transition-opacity duration-300
                                                 ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
                                             `}>
                                                 {set.name}
@@ -238,7 +238,7 @@ export default function SetSelector({
 
                                         {!isAvailable && (
                                             <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-20">
-                                                <span className="text-xs font-bold text-red-600 bg-white/80 px-2 py-1 rounded-md shadow-sm">
+                                                <span className="text-xs font-bold text-red-600 bg-white/80 px-2 py-1 rounded-md ">
                                                     Unavailable
                                                 </span>
                                             </div>

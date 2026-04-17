@@ -115,7 +115,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                             <div className="font-semibold text-sm mb-1">Host Signature</div>
                             {!signature ? (
                                 <label
-                                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border rounded-md shadow-sm text-sm font-medium transition"
+                                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border rounded-md  text-sm font-medium transition"
                                     style={{
                                         color: '#374151',
                                         borderColor: '#d1d5db',

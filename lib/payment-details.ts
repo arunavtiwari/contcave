@@ -1,6 +1,6 @@
 import { PaymentDetails, PrismaClient } from '@prisma/client';
 
-import { encryptionService } from './security/encryption';
+import { encryptionService } from "@/lib/security/encryption";
 
 const prisma = new PrismaClient();
 

@@ -66,9 +66,9 @@ const ResetPasswordContent = () => {
     if (!token) return null;
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] bg-gray-50 py-12 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] bg-muted py-12 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                <div className="bg-background py-8 px-4 border border-border sm:rounded-lg sm:px-10">
                     <div className="mb-6">
                         <Heading
                             title="Reset Password"

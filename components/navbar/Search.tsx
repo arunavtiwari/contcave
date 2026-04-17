@@ -40,7 +40,7 @@ const SearchContent = memo(function SearchContent() {
     <button
       type="button"
       onClick={handleClick}
-      className="border w-full md:w-auto p-2 rounded-full shadow-xs hover:shadow-sm transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
+      className="border border-border w-full md:w-auto p-2 rounded-full transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
     >
       <div className="flex flex-row items-center justify-between">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>
@@ -62,7 +62,7 @@ SearchContent.displayName = "SearchContent";
 const Search = memo(function Search() {
   return (
     <Suspense fallback={
-      <div className="border md:w-auto p-2 rounded-full shadow-xs">
+      <div className="border border-border md:w-auto p-2 rounded-full">
         <div className="flex flex-row items-center justify-between">
           <div className="text-sm font-semibold px-6">City</div>
           <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
