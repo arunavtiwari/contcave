@@ -222,7 +222,8 @@ export async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname
     const hostname = request.headers.get('host') || request.nextUrl.hostname
 
-    if (hostname.startsWith('admin.')) {
+    const isAdminDomain = hostname.startsWith('admin.') || hostname.includes('.admin.')
+    if (isAdminDomain) {
         if (!pathname.startsWith('/admin') && !pathname.startsWith('/api') && !pathname.startsWith('/_next')) {
             const url = new URL(request.nextUrl)
             url.pathname = `/admin${pathname === '/' ? '' : pathname}`
