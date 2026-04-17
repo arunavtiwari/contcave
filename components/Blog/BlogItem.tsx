@@ -27,12 +27,12 @@ const BlogItem = ({ blog }: { blog: BlogPost }) => {
         viewport={{ once: true }}
         className="animate_top rounded-xl bg-white p-4 pb-9 shadow-lg"
       >
-        <div className="relative block aspect-[368/239] overflow-hidden transition rounded-xl">
+        <div className="relative block aspect-368/239 overflow-hidden transition rounded-xl">
           <Image src={meta.image.url} alt={title} fill className="hover:scale-110 transition" />
         </div>
 
         <div className="px-4">
-          <h3 className="mb-3.5 mt-7.5 line-clamp-2 inline-block text-lg font-medium text-black duration-300 hover:text-primary xl:text-itemtitle2">
+          <h3 className="mb-3.5 mt-7.5 line-clamp-2 inline-block text-lg font-medium text-black duration-300 hover:text-neutral-500 xl:text-itemtitle2">
             {`${title.slice(0, 40)}...`}
           </h3>
           <p className="line-clamp-3">{meta.title}</p>

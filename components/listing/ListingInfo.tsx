@@ -16,7 +16,7 @@ import Offers from "@/components/Offers";
 import Avatar from "@/components/ui/Avatar";
 import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hook/useCities";
-import { getPlainTextFromHTML,isRichTextEmpty } from "@/lib/richText";
+import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
@@ -549,7 +549,7 @@ function ListingInfo({
           between 24 and 72 hours before the scheduled booking, and no refund for cancellations made within 24 hours of the scheduled booking.
         </p>
 
-        <Link href="/cancellation" className="text-blue-500 underline cursor-pointer w-fit">
+        <Link href="/cancellation" className="text-black font-semibold underline cursor-pointer w-fit">
           Know more about Cancellation Policy
         </Link>
 

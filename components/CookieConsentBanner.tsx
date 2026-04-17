@@ -23,7 +23,7 @@ const CookieConsentBanner = () => {
             }}
         >
             This website uses cookies to enhance your experience. By using our website, you consent to the use of cookies.
-            You can read more in our <Link href="/privacy-policy" className="text-blue-500">Privacy Policy</Link>.
+            You can read more in our <Link href="/privacy-policy" className="text-white underline font-medium">Privacy Policy</Link>.
         </CookieConsent>
     );
 };

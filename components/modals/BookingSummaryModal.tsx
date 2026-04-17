@@ -229,7 +229,7 @@ export default function BookingSummaryModal({
               <Link
                 href="/terms-and-conditions"
                 target="_blank"
-                className="text-blue-600 underline hover:text-blue-800 leading-none"
+                className="text-black font-semibold underline hover:text-neutral-700 leading-none"
               >
                 Terms & Conditions
               </Link>{" "}
@@ -237,7 +237,7 @@ export default function BookingSummaryModal({
               <Link
                 href="/privacy-policy"
                 target="_blank"
-                className="text-blue-600 underline hover:text-blue-800 leading-none"
+                className="text-black font-semibold underline hover:text-neutral-700 leading-none"
               >
                 Privacy Policy
               </Link>

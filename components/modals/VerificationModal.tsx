@@ -384,7 +384,7 @@ const VerificationModal: React.FC<Props> = ({
                 className={emailState.verified ? "border-green-500 bg-green-50 text-green-700" : ""}
               />
             </div>
-            <div className="min-w-[120px]">
+            <div className="min-w-30">
               <Button
                 label={emailState.verified ? "Verified" : "Verify"}
                 variant={emailState.verified ? "success" : "default"}
@@ -413,7 +413,7 @@ const VerificationModal: React.FC<Props> = ({
                 className={phoneState.verified ? "border-green-500 bg-green-50 text-green-700" : ""}
               />
             </div>
-            <div className="min-w-[120px]">
+            <div className="min-w-30">
               <Button
                 label={phoneState.verified ? "Verified" : "Verify"}
                 variant={phoneState.verified ? "success" : "default"}
@@ -478,7 +478,7 @@ const VerificationModal: React.FC<Props> = ({
               />
               <div className="mt-2 flex justify-between">
                 <span className="text-xs text-gray-500">Sent to linked mobile</span>
-                <button onClick={() => setAadhaarState(s => ({ ...s, refId: null, otp: "" }))} className="text-xs text-blue-600 underline">Change Number</button>
+                <button onClick={() => setAadhaarState(s => ({ ...s, refId: null, otp: "" }))} className="text-xs text-black font-semibold underline">Change Number</button>
               </div>
             </div>
           )}
