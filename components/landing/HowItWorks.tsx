@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FiCheckCircle, FiEye, FiSearch } from "react-icons/fi";
 
 import Container from "@/components/Container";
+import Heading from "@/components/ui/Heading";
 
 /*
   HowItWorks — replaces the old tabbed FeaturesTab component.
@@ -46,9 +47,11 @@ const HowItWorks = () => {
           <p className="mb-3 text-xs font-semibold uppercase tracking-accent text-muted-foreground/60">
             Simple by design
           </p>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
-            How ContCave works
-          </h2>
+          <Heading
+            title="How ContCave works"
+            variant="h2"
+            isLanding
+          />
         </motion.div>
 
         {/* Steps */}
@@ -86,8 +89,11 @@ const HowItWorks = () => {
                 <Icon size={18} />
               </motion.div>
 
-              {/* Title */}
-              <h3 className="text-xl font-semibold text-foreground">{title}</h3>
+              <Heading
+                title={title}
+                variant="h4"
+                className="text-foreground"
+              />
 
               {/* Body */}
               <p className="text-sm leading-relaxed text-muted-foreground">

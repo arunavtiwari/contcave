@@ -1,36 +1,30 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
-import React from "react";
-
 import Container from "@/components/Container";
+import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
 
 const CTA = () => {
   return (
     <section className="py-section">
       <Container>
-        <div
-          className="relative overflow-hidden rounded-lg bg-background border border-border"
-        >
-          {/* Black accent */}
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
-
-          {/* Dot grid texture — slowly drifts for a living feel */}
+        <div className="relative rounded-3xl overflow-hidden bg-background border-l-8 border-l-primary shadow-sm">
+          {/* Dot grid texture animation */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <motion.div
               className="absolute"
               style={{
                 inset: "-56px",
-                backgroundImage: "radial-gradient(rgba(17,17,17,0.05) 1px, transparent 1px)",
+                backgroundImage: "radial-gradient(circle, rgba(17,17,17,0.08) 1.5px, transparent 1.5px)",
                 backgroundSize: "28px 28px",
               }}
               animate={{ x: [0, 28, 0], y: [0, 28, 0] }}
-              transition={{ duration: 10, ease: "linear", repeat: Infinity }}
+              transition={{ duration: 20, ease: "linear", repeat: Infinity }}
             />
           </div>
 
-          <div className="relative z-10 flex flex-col gap-10 px-6 py-12 md:px-10 lg:flex-row lg:items-center lg:gap-20 xl:px-20 xl:py-20">
+          <div className="relative z-10 flex flex-col gap-10 px-6 py-12 md:px-10 lg:flex-row lg:items-center lg:gap-20 xl:px-20 xl:py-14 bg-background/40 backdrop-blur-[1px]">
 
             {/* Left — headline + CTA */}
             <motion.div
@@ -39,34 +33,26 @@ const CTA = () => {
               whileInView="visible"
               transition={{ duration: 0.8, delay: 0.1 }}
               viewport={{ once: true }}
-              className="lg:w-1/2"
+              className="lg:w-1/2 flex flex-col gap-4"
             >
-              <p className="mb-4 text-xs font-semibold uppercase tracking-accent text-foreground">
+              <p className="text-xs font-semibold uppercase tracking-accent text-foreground rounded-full border border-primary/50 px-4 py-2 w-fit">
                 For studio owners
               </p>
 
-              <h2
-                className="mb-6 font-serif text-foreground leading-[1.15]"
-                style={{
-                  fontSize: "clamp(2rem, 3.2vw, 2.8rem)",
-                  fontWeight: 700,
-                }}
-              >
-                Your studio deserves{" "}
-                <em className="text-foreground not-italic">serious creators.</em>
-              </h2>
+              <Heading
+                title="Your studio deserves serious creators."
+                subtitle="Connect your space with active creators and brands. Get consistent, high-quality bookings without the back-and-forth."
+                variant="h2"
+                isLanding
+              />
 
-              <p className="mb-8 text-base leading-relaxed text-muted-foreground">
-                Connect your space with active creators and brands. Get consistent, high-quality bookings without the back-and-forth.
-              </p>
-
-              <Link
+              <Button
+                label="List your studio"
                 href="/home"
-                aria-label="List your studio on ContCave"
-                className="inline-block rounded-full bg-primary text-primary-foreground px-7 py-3 text-base font-semibold transition-transform duration-300 hover:scale-105"
-              >
-                List your studio
-              </Link>
+                size="lg"
+                rounded
+                fit
+              />
 
               <p className="mt-4 text-xs text-muted-foreground/60">
                 No listing fee. Commission only on confirmed bookings.

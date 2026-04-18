@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRef } from "react";
 
 import Container from "@/components/Container";
+import Heading from "@/components/ui/Heading";
 
 const studios = [
   {
@@ -198,17 +199,11 @@ const StudioShowcase = () => {
             >
               Explore spaces
             </p>
-            <h2
-              style={{
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: "clamp(1.9rem, 3vw, 2.6rem)",
-                fontWeight: 700,
-                color: "var(--color-foreground)",
-                lineHeight: 1.2,
-              }}
-            >
-              Studios on ContCave
-            </h2>
+            <Heading
+              title="Studios on ContCave"
+              variant="h2"
+              isLanding
+            />
           </div>
           <Link
             href="/home"

@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 
 import Container from "@/components/Container";
+import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
 
 import faqData from "./faqData";
 import FAQItem from "./FAQItem";
@@ -41,7 +43,7 @@ const FAQ = () => {
         <Container>
           <div className="flex flex-wrap gap-8 md:flex-nowrap xl:gap-32">
 
-            {/* Left column */}
+            {/* Left */}
             <motion.div
               variants={{
                 hidden: { opacity: 0, x: -20 },
@@ -61,42 +63,51 @@ const FAQ = () => {
                 Common questions
               </p>
 
-              <h2 className="relative mb-4 text-3xl font-bold text-foreground xl:text-5xl">
-                Everything you{" "}
-                <span className="relative inline-block before:absolute before:bottom-2.5 before:left-0 before:-z-1 before:h-3 before:w-full before:bg-accent">
-                  need to know.
-                </span>
-              </h2>
+              <Heading
+                title={
+                  <>
+                    Everything you{" "}
+                    <span className="relative inline-block before:absolute before:bottom-2.5 before:left-0 before:-z-1 before:h-3 before:w-full before:bg-accent">
+                      need to know.
+                    </span>
+                  </>
+                }
+                variant="h2"
+                isLanding
+                className="mb-4 xl:text-5xl"
+              />
 
               <p className="text-base text-muted-foreground leading-relaxed mb-6">
                 About booking a studio, listing your space, or how ContCave works.
               </p>
 
 
-              <a
+              <Button
+                label="Still have questions? Message us"
                 href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}
-                className="group mt-1 inline-flex items-center gap-1.5 text-foreground hover:font-bold"
                 target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className="duration-300 group-hover:pr-2">
-                  Still have questions? Message us
-                </span>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M10.4767 6.16701L6.00668 1.69701L7.18501 0.518677L13.6667 7.00034L7.18501 13.482L6.00668 12.3037L10.4767 7.83368H0.333344V6.16701H10.4767Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </a>
+                variant="ghost"
+                rounded
+                fit
+                classNames="mt-2"
+                icon={(props) => (
+                  <svg
+                    {...props}
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M10.4767 6.16701L6.00668 1.69701L7.18501 0.518677L13.6667 7.00034L7.18501 13.482L6.00668 12.3037L10.4767 7.83368H0.333344V6.16701H10.4767Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                )}
+              />
             </motion.div>
 
-            {/* Right column — FAQ accordion */}
+            {/* Right — FAQ accordion */}
             <motion.div
               variants={{
                 hidden: { opacity: 0, x: 20 },

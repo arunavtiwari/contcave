@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 
 import Container from "@/components/Container";
 import StarRating from "@/components/ui/StarRating";
+import Heading from "@/components/ui/Heading";
+import { BsPatchCheckFill } from "react-icons/bs";
 import { reviews } from "@/constants/testimonials";
 
 interface ReviewCardProps {
@@ -25,13 +27,7 @@ const ReviewCard = ({ review }: ReviewCardProps) => (
         </p>
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1">
-        <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" className="text-muted-foreground/40">
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-            clipRule="evenodd"
-          />
-        </svg>
+        <BsPatchCheckFill className="text-primary" size={16} />
       </div>
     </div>
     <p className="mb-4 line-clamp-3 text-sm leading-relaxed italic text-foreground/80">
@@ -40,7 +36,6 @@ const ReviewCard = ({ review }: ReviewCardProps) => (
     <StarRating
       rating={5}
       size={11}
-      activeColor="text-amber-500"
     />
   </div>
 );
@@ -59,12 +54,14 @@ const SocialProof = () => {
           <p className="mb-3 text-xs font-semibold uppercase tracking-accent text-muted-foreground/60">
             Real shoots · Real reviews
           </p>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
-            Real shoots, real spaces.
-          </h2>
+          <Heading
+            title="Real shoots, real spaces."
+            variant="h2"
+            isLanding
+          />
         </motion.div>
 
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-center">
           <div className="w-full lg:w-85 lg:shrink-0">
             <div
               className="relative overflow-hidden rounded-2xl aspect-9/16 max-h-120"

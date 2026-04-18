@@ -7,7 +7,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 type ButtonVariant = "default" | "outline" | "success" | "danger" | "ghost" | "secondary";
 
-type ButtonSize = "sm" | "md";
+type ButtonSize = "sm" | "md" | "lg";
 
 type Props = {
   label: string;
@@ -21,6 +21,7 @@ type Props = {
   classNames?: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
+  fit?: boolean;
   href?: string;
   target?: "_blank" | "_self";
 };
@@ -37,26 +38,30 @@ function Button({
   classNames,
   variant = "default",
   size = "md",
+  fit,
   href,
   target,
 }: Props) {
   const effectiveVariant = outline ? "outline" : variant;
 
   const sizeClasses = {
-    sm: "py-1.5 px-3 text-xs w-auto",
-    md: "py-2 px-5 text-sm w-full",
+    sm: "py-1.5 px-3 text-xs",
+    md: "py-2 px-5 text-sm",
+    lg: "py-3 px-8 text-base",
   };
 
-  const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 transition flex justify-center items-center gap-2 border hover:opacity-80 ${sizeClasses[size]}`;
+  const widthClass = fit ? "w-fit" : (size === "sm" ? "w-auto" : "w-full");
+
+  const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 transition flex justify-center items-center gap-2 border hover:opacity-90 ${sizeClasses[size]} ${widthClass}`;
   const roundedClass = rounded ? "rounded-full" : "rounded-xl";
 
   const variantClasses = {
     default: "bg-primary border-primary text-primary-foreground",
-    outline: "bg-background border-border text-foreground hover:bg-muted",
-    success: "bg-success border-success text-white hover:opacity-90",
-    danger: "bg-danger border-danger text-white hover:opacity-90",
-    ghost: "bg-transparent border-transparent text-foreground hover:bg-muted",
-    secondary: "bg-secondary border-secondary text-foreground hover:opacity-90",
+    outline: "bg-background border-border text-foreground",
+    success: "bg-success border-success text-white",
+    danger: "bg-danger border-danger text-white",
+    ghost: "bg-transparent border-transparent text-foreground",
+    secondary: "bg-secondary border-secondary text-foreground",
   };
 
   const finalClasses = `${baseClasses} ${roundedClass} ${variantClasses[effectiveVariant]} ${classNames || ""}`;

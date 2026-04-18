@@ -20,10 +20,12 @@ const FAQItem = ({ faqData }: { faqData: FaqData }) => {
         onClick={() => {
           handleFaqToggle(id);
         }}
-        className={`flex cursor-pointer items-center justify-between px-6 py-5 text-lg font-medium transition-all duration-300 group w-full text-left ${isOpen ? "bg-muted text-foreground" : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
+        className={`flex cursor-pointer items-center justify-between px-6 py-5 text-base font-medium transition-colors duration-200 group w-full text-left ${isOpen
+          ? "bg-muted/40 text-foreground"
+          : "text-foreground/70 hover:text-foreground hover:bg-muted/20"
           }`}
       >
-        <span className="pr-4 transition-colors duration-300">
+        <span className="pr-4">
           {quest}
         </span>
 
@@ -60,8 +62,8 @@ const FAQItem = ({ faqData }: { faqData: FaqData }) => {
             transition={{ duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] }}
             className="overflow-hidden"
           >
-            <div className="border-t border-border px-6 py-5 lg:px-9 lg:py-8 bg-muted/30">
-              <p className="text-base leading-relaxed text-muted-foreground">
+            <div className="border-t border-border px-6 py-5 lg:px-9 lg:py-8 bg-muted/10">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 {ans}
               </p>
             </div>

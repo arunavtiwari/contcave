@@ -1,9 +1,10 @@
-import { Building2 } from "lucide-react";
+import { FaBuilding } from "react-icons/fa";
 
 export const NAV_ITEMS = [
     {
         name: "Listings",
         href: "/dashboard/listings",
-        icon: Building2,
+        icon: FaBuilding,
     },
 ] as const;
+

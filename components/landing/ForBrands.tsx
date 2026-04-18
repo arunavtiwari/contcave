@@ -2,7 +2,9 @@
 import { motion } from "framer-motion";
 import { FiBriefcase, FiZap } from "react-icons/fi";
 
-import Container from "../Container";
+import Container from "@/components/Container";
+import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
 
 const STUDIO_TYPES = [
   "Cyclorama walls",
@@ -43,17 +45,11 @@ const ForBrands = () => {
           >
             For brands &amp; agencies
           </p>
-          <h2
-            style={{
-              fontFamily: "Georgia, 'Times New Roman', serif",
-              fontSize: "clamp(1.9rem, 3.2vw, 2.8rem)",
-              fontWeight: 700,
-              lineHeight: 1.15,
-              color: "var(--color-foreground)",
-            }}
-          >
-            Two ways to work with us.
-          </h2>
+          <Heading
+            title="Two ways to work with us."
+            variant="h2"
+            isLanding
+          />
         </motion.div>
 
         {/* Quality signals strip */}
@@ -115,18 +111,12 @@ const ForBrands = () => {
               >
                 Concierge service
               </p>
-              <h3
-                className="mb-4 flex-1"
-                style={{
-                  fontFamily: "Georgia, 'Times New Roman', serif",
-                  fontSize: "clamp(1.4rem, 2.2vw, 1.9rem)",
-                  fontWeight: 700,
-                  color: "#FAF7F2",
-                  lineHeight: 1.25,
-                }}
-              >
-                Send us your brief
-              </h3>
+              <Heading
+                title="Send us your brief"
+                variant="h3"
+                isLanding
+                className="mb-4 flex-1 text-background!"
+              />
               <p
                 className="mb-8 text-sm leading-relaxed"
                 style={{ color: "rgba(255,255,255,0.55)" }}
@@ -134,25 +124,22 @@ const ForBrands = () => {
                 Running a campaign? Share your brief — shoot type, dates, crew size, budget. We&apos;ll match you with the right studio and handle the coordination.
               </p>
               <div className="mt-auto flex flex-wrap gap-3">
-                <a
+                <Button
+                  label="Share your brief"
                   href="mailto:info@contcave.com"
-                  className="inline-block rounded-full px-6 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-105"
-                  style={{ backgroundColor: "var(--color-background)", color: "var(--color-primary)" }}
-                >
-                  Share your brief
-                </a>
-                <a
-                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}
+                  variant="outline"
+                  rounded
+                  fit
+                />
+                <Button
+                  label="WhatsApp us"
+                  href={`https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}`}
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block rounded-full px-6 py-2.5 text-sm font-medium transition-transform duration-300 hover:scale-105"
-                  style={{
-                    border: "1px solid rgba(255,255,255,0.2)",
-                    color: "rgba(255,255,255,0.75)",
-                  }}
-                >
-                  WhatsApp us
-                </a>
+                  variant="outline"
+                  rounded
+                  fit
+                  classNames="!border-white/20 !text-white/75"
+                />
               </div>
             </div>
           </motion.div>
@@ -183,18 +170,12 @@ const ForBrands = () => {
             >
               Instant book
             </p>
-            <h3
+            <Heading
+              title="Book directly"
+              variant="h3"
+              isLanding
               className="mb-4 flex-1"
-              style={{
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: "clamp(1.4rem, 2.2vw, 1.9rem)",
-                fontWeight: 700,
-                color: "#111111",
-                lineHeight: 1.25,
-              }}
-            >
-              Book directly
-            </h3>
+            />
             <p
               className="mb-8 text-sm leading-relaxed"
               style={{ color: "#555555" }}
@@ -220,13 +201,12 @@ const ForBrands = () => {
             </div>
 
             <div className="mt-auto">
-              <a
+              <Button
+                label="Browse studios"
                 href="/home"
-                className="inline-block rounded-full px-6 py-2.5 text-sm font-semibold transition-transform duration-300 hover:scale-105"
-                style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-foreground)" }}
-              >
-                Browse studios
-              </a>
+                rounded
+                fit
+              />
             </div>
           </motion.div>
 

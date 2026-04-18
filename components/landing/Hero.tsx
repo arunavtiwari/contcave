@@ -6,6 +6,8 @@ import { useRef } from "react";
 import { BiSearch } from "react-icons/bi";
 
 import Container from "@/components/Container";
+import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
 import useSearchModal from "@/hook/useSearchModal";
 
 const Hero = () => {
@@ -68,14 +70,6 @@ const Hero = () => {
         />
 
         <motion.div
-          className="absolute left-0 top-0 bottom-0 w-0.75 z-20"
-          initial={{ scaleY: 0 }}
-          animate={{ scaleY: 1 }}
-          transition={{ duration: 0.9, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          style={{ backgroundColor: "var(--color-primary)", transformOrigin: "top" }}
-        />
-
-        <motion.div
           style={{ y: contentY }}
           className="relative z-20 w-full"
         >
@@ -91,21 +85,18 @@ const Hero = () => {
                 For Agencies, Brands and Creators
               </motion.p>
 
-              <motion.h1
+              <motion.div
                 initial={{ opacity: 0, y: 36 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.75, delay: 0.65 }}
-                style={{
-                  fontFamily: "Georgia, 'Times New Roman', serif",
-                  fontSize: "clamp(2rem, 5vw, 4.2rem)",
-                  fontWeight: 900,
-                  lineHeight: 1.05,
-                  color: "#FAF7F2",
-                  marginBottom: "0.5rem",
-                }}
               >
-                Book your next shoot location
-              </motion.h1>
+                <Heading
+                  title="Book your next shoot location"
+                  variant="h1"
+                  isLanding
+                  className="mb-2"
+                />
+              </motion.div>
 
               <motion.p
                 initial={{ opacity: 0, y: 24 }}
@@ -148,16 +139,14 @@ const Hero = () => {
                   </span>
                 </button>
 
-                <Link
+                <Button
+                  label="View all studios"
                   href="/home"
-                  className="inline-block rounded-full px-6 py-3 text-sm font-medium transition hover:opacity-80"
-                  style={{
-                    border: "1px solid rgba(255,255,255,0.3)",
-                    color: "rgba(255,255,255,0.85)",
-                  }}
-                >
-                  View all studios
-                </Link>
+                  variant="outline"
+                  size="lg"
+                  rounded
+                  fit
+                />
               </motion.div>
             </div>
           </Container>
