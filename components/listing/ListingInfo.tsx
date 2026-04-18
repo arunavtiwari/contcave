@@ -1,7 +1,6 @@
 "use client";
 
 import { Amenities } from "@prisma/client";
-import axios from "axios";
 import DOMPurify from "isomorphic-dompurify";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -9,8 +8,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { IconType } from "react-icons";
 
+import checkBooking from "@/app/actions/checkBooking";
+import createReview from "@/app/actions/createReview";
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
+import getReviews from "@/app/actions/getReviews";
 import AddonsList from "@/components/listing/AddonList";
 import ListingCategory from "@/components/listing/ListingCategory";
 import PackageList from "@/components/listing/PackageList";
@@ -31,10 +33,10 @@ const Map = dynamic(() => import("../Map"), { ssr: false });
 interface Review {
   id: string;
   comment: string;
-  createdAt: string;
+  createdAt: string | Date;
   user: {
-    name: string;
-    image: string;
+    name: string | null;
+    image: string | null;
   };
 }
 
@@ -152,25 +154,27 @@ function ListingInfo({
       const list = await getAddons();
       setAddonList(list || []);
       try {
-        const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
-        setReviews(res.data || []);
-      } catch (error) {
+        const data = await getReviews(fullListing.id);
+        setReviews(data || []);
+      } catch (error: unknown) {
         if (process.env.NODE_ENV === 'development') {
           console.error('[ListingInfo] Error fetching reviews:', error);
         }
       }
     };
-    const checkBooking = async () => {
+    const checkBookingStatus = async () => {
       try {
-        const res = await axios.get(`/api/checkbooking/${fullListing.id}`);
-        setCanReview(Boolean(res.data?.canReview));
-        setLatestReservationId(res.data?.latestReservationId ?? "");
-      } catch {
+        const data = await checkBooking(fullListing.id);
+        const reservation = data as unknown as { id?: string; status?: string } | null;
+        setCanReview(Boolean(reservation?.status === "PAID"));
+        setLatestReservationId(reservation?.id ?? "");
+      } catch (error) {
+        console.error('[ListingInfo] Error checking booking:', error);
         setCanReview(false);
       }
     };
     fetchData();
-    checkBooking();
+    checkBookingStatus();
   }, [fullListing.id]);
 
   useEffect(() => {
@@ -250,17 +254,17 @@ function ListingInfo({
 
   const handleReviewSubmit = async () => {
     try {
-      await axios.post("/api/reviews", {
+      await createReview({
         listingId: fullListing.id,
         reservationId: latestReservationId,
         rating: review.rating,
         comment: review.comment,
       });
-      const res = await axios.get(`/api/reviews/list/${fullListing.id}`);
-      setReviews(res.data);
+      const data = await getReviews(fullListing.id);
+      setReviews(data || []);
       setReview({ rating: 5, comment: "" });
-    } catch {
-
+    } catch (error) {
+      console.error('[ListingInfo] Error submitting review:', error);
     }
   };
 
@@ -376,7 +380,7 @@ function ListingInfo({
 
       <div className="flex flex-col gap-4">
         <p className="text-xl font-semibold">Where you’ll be</p>
-        <Map center={getValidCenter()} locationValue={locationValue} />
+        <Map center={getValidCenter() as [number, number] | undefined} locationValue={locationValue} />
       </div>
 
       <hr />

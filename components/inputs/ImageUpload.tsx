@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { IconType } from "react-icons";
 import { TbPhotoPlus } from "react-icons/tb";
 
-import { uploadToCloudinary } from "@/lib/cloudinary";
+
 
 type Props = {
   onChange: (value: string[]) => void;
@@ -85,9 +85,35 @@ function ImageUpload({
     setUploading(true);
 
     try {
-      const uploadedUrls = await uploadToCloudinary(Array.from(files));
-      if (uploadedUrls.length > 0) {
-        onChange([...values, ...uploadedUrls]);
+      const newUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const presignRes = await fetch("/api/upload/presign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: file.name, contentType: file.type }),
+        });
+
+        if (!presignRes.ok) {
+          const txt = await presignRes.text();
+          throw new Error(`Presign failed: ${txt}`);
+        }
+
+        const { url, publicUrl } = await presignRes.json();
+
+        const uploadRes = await fetch(url, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type
+          },
+          body: file,
+        });
+
+        if (!uploadRes.ok) throw new Error("Failed to upload file to storage");
+        newUrls.push(publicUrl);
+      }
+
+      if (newUrls.length > 0) {
+        onChange([...values, ...newUrls]);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";

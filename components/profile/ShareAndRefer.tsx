@@ -10,7 +10,7 @@ import {
     MdQuestionMark,
     MdShare
 } from "react-icons/md";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import Heading from "@/components/ui/Heading";
 import { getBaseUrl } from "@/lib/utils/getBaseUrl";
@@ -40,23 +40,17 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
             setCopied(true);
             toast.success("Referral link copied to clipboard!", {
                 position: "top-center",
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
+                
+
+
+
             });
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error("Failed to copy text: ", err);
             toast.error("Failed to copy link. Please try again.", {
                 position: "top-center",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-            });
+                                                                                            });
         }
     }, [referralLink]);
 
@@ -75,23 +69,13 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
             });
             toast.success("Link shared successfully!", {
                 position: "top-center",
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-            });
+                                                                                            });
         } catch (err) {
             if (err instanceof Error && err.name !== 'AbortError') {
                 console.error("Error sharing:", err);
                 toast.error("Failed to share. Link copied instead!", {
                     position: "top-center",
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                });
+                                                                                                                    });
                 handleCopy();
             }
         } finally {
@@ -113,12 +97,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 handleCopy();
                 toast.info("Link copied! Paste it in your Instagram story or bio.", {
                     position: "top-center",
-                    autoClose: 4000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                });
+                                                                                                                    });
                 return;
             case "messages":
                 shareUrl = `sms:?&body=${text}%20${url}`;

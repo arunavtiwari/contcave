@@ -7,6 +7,7 @@ import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { calculateSetPricing } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
+import { TransactionService } from "@/lib/transaction/service";
 import { processPaymentSchema } from "@/schemas/cashfree";
 import { AdditionalSetPricingType, ListingSet } from "@/types/set";
 
@@ -206,12 +207,7 @@ export async function POST(req: NextRequest) {
         const hash = require("crypto").createHash("sha256").update(idempotencyKey).digest("hex");
         const tId = "tid_" + hash.slice(0, 16);
 
-        const existingTxn = await prisma.transaction.findFirst({
-            where: {
-                cfTxnRef: tId,
-                status: "PENDING"
-            }
-        });
+        const existingTxn = await TransactionService.findByRef(tId);
 
         if (existingTxn && existingTxn.cfPaymentSessionId) {
             return createSuccessResponse({
@@ -223,32 +219,27 @@ export async function POST(req: NextRequest) {
 
         const appUrl = process.env.NEXTAUTH_URL;
         if (!appUrl || typeof appUrl !== "string" || !appUrl.startsWith("http")) {
-            return createErrorResponse(
-                "Server configuration error: NEXTAUTH_URL is missing or invalid",
-                500
-            );
+            return createErrorResponse("Server configuration error", 500);
         }
 
-        const txn = await prisma.transaction.create({
-            data: {
-                userId: currentUser.id,
-                listingId: data.listingId,
-                amount,
-                currency: "INR",
-                status: "PENDING",
-                description: "Listing reservation",
-                paymentMethod: "Cashfree",
-                cfTxnRef: tId,
-                metadata: {
-                    startDate: data.startDate,
-                    startTime: data.startTime,
-                    endTime: data.endTime,
-                    selectedAddons: cleanedAddons,
-                    instantBooking: !!data.instantBooking,
-                    setIds: Array.isArray(data.setIds) ? data.setIds : [],
-                    setPackageId: data.setPackageId || null,
-                    pricingSnapshot: pricingBreakdown || data.pricingSnapshot || null,
-                },
+        const txn = await TransactionService.create({
+            userId: currentUser.id,
+            listingId: data.listingId,
+            amount,
+            currency: "INR",
+            status: "PENDING",
+            description: "Listing reservation",
+            paymentMethod: "Cashfree",
+            cfTxnRef: tId,
+            metadata: {
+                startDate: data.startDate,
+                startTime: data.startTime,
+                endTime: data.endTime,
+                selectedAddons: cleanedAddons,
+                instantBooking: !!data.instantBooking,
+                setIds: Array.isArray(data.setIds) ? data.setIds : [],
+                setPackageId: data.setPackageId || null,
+                pricingSnapshot: pricingBreakdown || data.pricingSnapshot || null,
             },
         });
 
@@ -276,39 +267,11 @@ export async function POST(req: NextRequest) {
             order_id = orderResult.order_id;
             payment_session_id = orderResult.payment_session_id;
         } catch (orderError) {
-            await prisma.transaction.update({
-                where: { id: txn.id },
-                data: {
-                    status: "FAILED",
-                    description: `Payment initialization failed: ${orderError instanceof Error ? orderError.message : "Unknown error"}`,
-                },
-            }).catch(() => { });
-
-            const errorMessage = orderError instanceof Error
-                ? orderError.message
-                : "Failed to create payment order";
-
-            if (errorMessage.includes("authentication") || errorMessage.includes("credentials")) {
-                return createErrorResponse(
-                    "Payment service configuration error. Please contact support.",
-                    500,
-                    process.env.NODE_ENV === "development" ? { details: errorMessage } : undefined
-                );
-            }
-
+            await TransactionService.fail(txn.id, `Payment initialization failed: ${orderError instanceof Error ? orderError.message : "Unknown error"}`).catch(() => { });
             throw orderError;
         }
 
-        try {
-            await prisma.transaction.update({
-                where: { id: txn.id },
-                data: { cfPaymentSessionId: payment_session_id, cfOrderId: order_id },
-            });
-        } catch (updateError) {
-            if (process.env.NODE_ENV === "development") {
-                console.error("[Cashfree Process] Failed to update transaction:", updateError);
-            }
-        }
+        await TransactionService.updateSession(txn.id, payment_session_id, order_id).catch(() => { });
 
         const mode = (process.env.CASHFREE_ENV || "SANDBOX").toLowerCase() === "production" ? "production" : "sandbox";
 

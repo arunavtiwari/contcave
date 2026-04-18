@@ -19,3 +19,18 @@ export type SafeReservation = Omit<
     pricingSnapshot?: Prisma.JsonValue | null;
     totalPriceInt?: number | null;
 };
+
+export type ReservationResult = {
+    reservationId: string;
+    bookingId: string;
+    isInstant: boolean;
+};
+
+export interface ReservationMetadata {
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    setIds: string[];
+    selectedAddons?: string;
+    pricingSnapshot?: string;
+}

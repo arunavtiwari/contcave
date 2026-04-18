@@ -4,6 +4,9 @@ import Select, { GroupBase, StylesConfig } from "react-select";
 import Switch from "@/components/ui/Switch";
 import { spaceTypes } from "@/constants/spaceTypes";
 
+import FormField from "../ui/FormField";
+import Input from "../ui/Input";
+
 export type ListingDetails = {
     carpetArea: string;
     operationalDays: { start?: string; end?: string };
@@ -165,211 +168,191 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
 
     return (<div className="flex flex-col gap-8">
         {/* Carpet Area */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-            <label className="text-sm font-medium text-gray-700">
-                Carpet Area <span className="text-rose-500">*</span>
-                <span className="block text-xs text-gray-500 font-normal mt-0.5">Total floor area of the space</span>
-            </label>
-            <div className="md:col-span-2">
-                <div className="relative">
-                    <input
-                        type="text"
-                        placeholder="e.g. 2500"
-                        className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
-                        value={details.carpetArea}
-                        onChange={(e) => handleInputChange("carpetArea", e.target.value)}
-                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium pointer-events-none">
-                        sq ft
-                    </span>
-                </div>
-            </div>
-        </div>
+        <Input
+            id="carpetArea"
+            label="Carpet Area"
+            description="Total floor area of the space"
+            variant="horizontal"
+            type="text"
+            placeholder="e.g. 2500"
+            value={details.carpetArea}
+            onChange={(e) => handleInputChange("carpetArea", e.target.value)}
+            customRightContent={<span className="text-muted-foreground text-sm font-medium">sq ft</span>}
+            required
+        />
 
         <hr className="border-neutral-200" />
 
         {/* Operational Days */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <label className="text-sm font-medium text-gray-700 pt-2">
-                Operational Days <span className="text-rose-500">*</span>
-                <span className="block text-xs text-gray-500 font-normal mt-0.5">Days when the space is open</span>
-            </label>
-            <Select
-                options={dayOptions}
-                value={dayOptions.find((d) => d.value === details.operationalDays.start)}
-                onChange={(sel) =>
-                    handleInputChange("operationalDays", {
-                        ...details.operationalDays,
-                        start: sel?.value || "",
-                    })
-                }
-                placeholder="Start Day"
-                styles={customStyles}
-                isSearchable={false}
-                menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                menuPosition="fixed"
-                menuPlacement="auto"
-                maxMenuHeight={250}
-                menuShouldScrollIntoView={false}
-            />
-            <Select
-                options={dayOptions}
-                value={dayOptions.find((d) => d.value === details.operationalDays.end)}
-                onChange={(sel) =>
-                    handleInputChange("operationalDays", {
-                        ...details.operationalDays,
-                        end: sel?.value || "",
-                    })
-                }
-                placeholder="End Day"
-                styles={customStyles}
-                isSearchable={false}
-                menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                menuPosition="fixed"
-                menuPlacement="auto"
-                maxMenuHeight={250}
-                menuShouldScrollIntoView={false}
-            />
-        </div>
-
-        {/* Operational Hours */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <label className="text-sm font-medium text-gray-700 pt-2">
-                Opening Hours <span className="text-rose-500">*</span>
-                <span className="block text-xs text-gray-500 font-normal mt-0.5">Daily operating hours</span>
-            </label>
-            <div className="md:col-span-2 flex items-center justify-between mb-2">
-                <div className="flex flex-col">
-                    <span className="text-sm font-medium">Open all day</span>
-                    <span className="text-xs text-gray-500">Enable if your space is open 24 hours on operational days</span>
-                </div>
-                <Switch
-                    checked={isOpenAllDay}
-                    onChange={handleOpenAllDayToggle}
-                />
-            </div>
-            <div className="md:col-start-2">
+        <FormField
+            label="Operational Days"
+            description="Days when the space is open"
+            variant="horizontal"
+            required
+        >
+            <div className="flex gap-4 w-full">
                 <Select
-                    options={startTimeOptions}
-                    value={startTimeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
-                    onChange={(sel) => {
-                        const nextStart = sel?.value || "";
-                        const nextStartIdx = staticTimeOptions.findIndex((t) => t.value === nextStart);
-                        const currentEnd = details.operationalHours.end || "";
-                        const currentEndIdx = staticTimeOptions.findLastIndex((t) => t.value === currentEnd);
-                        const nextEnd =
-                            nextStartIdx !== -1 && (currentEndIdx === -1 || currentEndIdx <= nextStartIdx)
-                                ? staticTimeOptions[nextStartIdx + 1]?.value || currentEnd
-                                : currentEnd;
-
-                        handleInputChange("operationalHours", {
-                            ...details.operationalHours,
-                            start: nextStart,
-                            end: nextEnd,
-                        });
-                    }}
-
-                    placeholder="Start Time"
+                    options={dayOptions}
+                    value={dayOptions.find((d) => d.value === details.operationalDays.start)}
+                    onChange={(sel) =>
+                        handleInputChange("operationalDays", {
+                            ...details.operationalDays,
+                            start: sel?.value || "",
+                        })
+                    }
+                    placeholder="Start Day"
                     styles={customStyles}
-                    isDisabled={isOpenAllDay}
-                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                     isSearchable={false}
+                    className="flex-1"
+                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                     menuPosition="fixed"
                     menuPlacement="auto"
                     maxMenuHeight={250}
                     menuShouldScrollIntoView={false}
                 />
-            </div>
-            <div>
                 <Select
-                    options={endTimeOptions}
-                    value={endTimeOptions.find((t) => {
-                        // If it's open all day, we want the last 12:00 AM
-                        if (isOpenAllDay && t.value === "12:00 AM") return true;
-                        return t.value === (details.operationalHours.end || "");
-                    }) || null}
+                    options={dayOptions}
+                    value={dayOptions.find((d) => d.value === details.operationalDays.end)}
                     onChange={(sel) =>
-                        handleInputChange("operationalHours", {
-                            ...details.operationalHours,
+                        handleInputChange("operationalDays", {
+                            ...details.operationalDays,
                             end: sel?.value || "",
                         })
                     }
-                    placeholder="End Time"
+                    placeholder="End Day"
                     styles={customStyles}
-                    isDisabled={isOpenAllDay}
-                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                     isSearchable={false}
+                    className="flex-1"
+                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                     menuPosition="fixed"
                     menuPlacement="auto"
                     maxMenuHeight={250}
                     menuShouldScrollIntoView={false}
                 />
             </div>
-        </div>
+        </FormField>
+
+        {/* Operational Hours */}
+        <FormField
+            label="Opening Hours"
+            description="Daily operating hours"
+            variant="horizontal"
+            required
+        >
+            <div className="flex flex-col gap-4 w-full">
+                <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                        <span className="text-sm font-medium">Open all day</span>
+                        <span className="text-xs text-muted-foreground">Enable if your space is open 24 hours</span>
+                    </div>
+                    <Switch
+                        checked={isOpenAllDay}
+                        onChange={handleOpenAllDayToggle}
+                    />
+                </div>
+                <div className="flex gap-4">
+                    <Select
+                        options={startTimeOptions}
+                        value={startTimeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
+                        onChange={(sel) => {
+                            const nextStart = sel?.value || "";
+                            const nextStartIdx = staticTimeOptions.findIndex((t) => t.value === nextStart);
+                            const currentEnd = details.operationalHours.end || "";
+                            const currentEndIdx = staticTimeOptions.findLastIndex((t) => t.value === currentEnd);
+                            const nextEnd =
+                                nextStartIdx !== -1 && (currentEndIdx === -1 || currentEndIdx <= nextStartIdx)
+                                    ? staticTimeOptions[nextStartIdx + 1]?.value || currentEnd
+                                    : currentEnd;
+
+                            handleInputChange("operationalHours", {
+                                ...details.operationalHours,
+                                start: nextStart,
+                                end: nextEnd,
+                            });
+                        }}
+                        placeholder="Start Time"
+                        styles={customStyles}
+                        isDisabled={isOpenAllDay}
+                        className="flex-1"
+                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                        isSearchable={false}
+                        menuPosition="fixed"
+                        menuPlacement="auto"
+                        maxMenuHeight={250}
+                        menuShouldScrollIntoView={false}
+                    />
+                    <Select
+                        options={endTimeOptions}
+                        value={endTimeOptions.find((t) => {
+                            if (isOpenAllDay && t.value === "12:00 AM") return true;
+                            return t.value === (details.operationalHours.end || "");
+                        }) || null}
+                        onChange={(sel) =>
+                            handleInputChange("operationalHours", {
+                                ...details.operationalHours,
+                                end: sel?.value || "",
+                            })
+                        }
+                        placeholder="End Time"
+                        styles={customStyles}
+                        isDisabled={isOpenAllDay}
+                        className="flex-1"
+                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                        isSearchable={false}
+                        menuPosition="fixed"
+                        menuPlacement="auto"
+                        maxMenuHeight={250}
+                        menuShouldScrollIntoView={false}
+                    />
+                </div>
+            </div>
+        </FormField>
 
         <hr className="border-neutral-200" />
 
         {/* Minimum Booking & Max Pax */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">
-                    Min. Booking Hours <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                    <input
-                        type="text"
-                        placeholder="e.g. 2"
-                        className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={details.minimumBookingHours}
-                        onChange={(e) => {
-                            const onlyDigits = e.target.value.replace(/\D/g, "");
-                            handleInputChange("minimumBookingHours", onlyDigits);
-                        }}
-                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium pointer-events-none">
-                        hrs
-                    </span>
-                </div>
-            </div>
+            <Input
+                id="minimumBookingHours"
+                label="Min. Booking Hours"
+                variant="horizontal"
+                type="text"
+                placeholder="e.g. 2"
+                value={details.minimumBookingHours}
+                onChange={(e) => {
+                    const onlyDigits = e.target.value.replace(/\D/g, "");
+                    handleInputChange("minimumBookingHours", onlyDigits);
+                }}
+                customRightContent={<span className="text-muted-foreground text-sm font-medium">hrs</span>}
+                required
+            />
 
-            <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">
-                    Maximum Capacity <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                    <input
-                        type="text"
-                        placeholder="e.g. 10"
-                        className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-black transition"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={details.maximumPax ?? ""}
-                        onChange={(e) => {
-                            const onlyDigits = e.target.value.replace(/\D/g, "");
-                            handleInputChange("maximumPax", onlyDigits);
-                        }}
-                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium pointer-events-none">
-                        pax
-                    </span>
-                </div>
-            </div>
+            <Input
+                id="maximumPax"
+                label="Maximum Capacity"
+                variant="horizontal"
+                type="text"
+                placeholder="e.g. 10"
+                value={details.maximumPax ?? ""}
+                onChange={(e) => {
+                    const onlyDigits = e.target.value.replace(/\D/g, "");
+                    handleInputChange("maximumPax", onlyDigits);
+                }}
+                customRightContent={<span className="text-muted-foreground text-sm font-medium">pax</span>}
+                required
+            />
         </div>
 
         <hr className="border-neutral-200" />
 
         {/* Space Type */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <label className="text-sm font-medium text-gray-700 pt-2">
-                Space Type <span className="text-rose-500">*</span>
-                <span className="block text-xs text-gray-500 font-normal mt-0.5">Select all that apply</span>
-            </label>
-            <div className="md:col-span-2 flex flex-wrap gap-2">
+        <FormField
+            label="Space Type"
+            description="Select all that apply"
+            variant="horizontal"
+            required
+        >
+            <div className="flex flex-wrap gap-2 w-full">
                 {Array.from(new Set([...spaceTypes, ...(details.type || [])])).map((t) => (
                     <button
                         key={t}
@@ -378,8 +361,8 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                         className={`
                                 text-sm py-2 px-4 rounded-full border transition
                                 ${details.type.includes(t)
-                                ? "bg-black text-white border-black"
-                                : "bg-white text-gray-700 border-neutral-200 hover:border-black"
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background text-muted-foreground border-border hover:border-primary"
                             }
                             `}
                     >
@@ -387,34 +370,38 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                     </button>
                 ))}
             </div>
-        </div>
+        </FormField>
 
         <hr className="border-neutral-200" />
 
         {/* Toggles */}
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <div className="font-medium">Instant Booking</div>
-                    <div className="text-sm text-gray-500">Allow guests to book without waiting for approval</div>
+            <FormField
+                label="Instant Booking"
+                description="Allow guests to book without waiting for approval"
+                variant="horizontal"
+            >
+                <div className="flex items-center w-full">
+                    <Switch
+                        checked={details.instantBooking}
+                        onChange={(checked) => handleInputChange("instantBooking", !!checked)}
+                        variant="bolt"
+                    />
                 </div>
-                <Switch
-                    checked={details.instantBooking}
-                    onChange={(checked) => handleInputChange("instantBooking", !!checked)}
-                    variant="bolt"
-                />
-            </div>
+            </FormField>
 
-            <div className="flex justify-between items-center">
-                <div>
-                    <div className="font-medium">Multiple Sets</div>
-                    <div className="text-sm text-gray-500">Does this space have multiple sub-units?</div>
+            <FormField
+                label="Multiple Sets"
+                description="Does this space have multiple sub-units?"
+                variant="horizontal"
+            >
+                <div className="flex items-center w-full">
+                    <Switch
+                        checked={details.hasSets}
+                        onChange={(checked) => handleInputChange("hasSets", !!checked)}
+                    />
                 </div>
-                <Switch
-                    checked={details.hasSets}
-                    onChange={(checked) => handleInputChange("hasSets", !!checked)}
-                />
-            </div>
+            </FormField>
         </div>
     </div >
     );

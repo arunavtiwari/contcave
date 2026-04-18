@@ -1,14 +1,14 @@
 "use client";
 
 import { Amenities } from "@prisma/client";
-import axios from "axios";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SessionProvider, signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MdOutlineCurrencyRupee } from "react-icons/md";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
+import deleteListing from "@/app/actions/deleteListing";
+import updateListing from "@/app/actions/updateListing";
 import BlocksManager from "@/components/BlocksManager";
 import Calendar from "@/components/Calendar";
 import AddonsSelection from "@/components/inputs/AddonsSelection";
@@ -27,7 +27,7 @@ import Heading from "@/components/ui/Heading";
 import Switch from "@/components/ui/Switch";
 import { spaceTypes } from "@/constants/spaceTypes";
 import useIndianCities, { City } from "@/hook/useCities";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { uploadToR2 } from "@/lib/storage/upload";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
 import { Package as ListingPackage } from "@/types/package";
@@ -75,11 +75,11 @@ type TimeLabel = string;
 import RichTextEditor from "@/components/RichText/RichTextEditor";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 
+import FormField from "./ui/FormField";
+import Input from "./ui/Input";
+
 const propertyFieldClassName =
     "w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground transition outline-none focus:border-primary hover:border-border/80";
-
-const propertyCompactSelectClassName =
-    "rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground transition outline-none focus:border-primary hover:border-border/80";
 
 const propertyFieldSeparatorClassName =
     "flex items-center justify-center self-stretch px-1 text-sm font-medium leading-none text-muted-foreground";
@@ -125,13 +125,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     const handleDeleteProperty = useCallback(async () => {
         setIsDeleting(true);
         try {
-            await axios.delete(`/api/listings/${initialListing.id}`);
-            toast.info("Property deleted successfully", { toastId: "Listing_Deleted" });
+            await deleteListing(initialListing.id);
+            toast.info("Property deleted successfully", { id: "Listing_Deleted" });
             router.push("/properties");
             router.refresh();
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { error?: string } } };
-            toast.error(err?.response?.data?.error || "Failed to delete property", { toastId: "Property_Delete_Error_1" });
+            const message = error instanceof Error ? error.message : "Failed to delete property";
+            toast.error(message, { id: "Property_Delete_Error_1" });
         } finally {
             setIsDeleting(false);
             setIsDeleteModalOpen(false);
@@ -164,7 +164,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         );
 
         if (hasIncompletePackage) {
-            toast.error("Please complete all package fields before saving", { toastId: "Incomplete_Package_Update" });
+            toast.error("Please complete all package fields before saving", { id: "Incomplete_Package_Update" });
             return;
         }
 
@@ -173,12 +173,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         );
 
         if (invalidAddon) {
-            toast.error(`Please provide a valid price and quantity for ${invalidAddon.name}`, { toastId: "Invalid_Addon_Update" });
+            toast.error(`Please provide a valid price and quantity for ${invalidAddon.name}`, { id: "Invalid_Addon_Update" });
             return;
         }
 
         if ((initialListing.imageSrc?.length ?? 0) > 30) {
-            toast.error("Maximum 30 images allowed", { toastId: "Max_Images_Update" });
+            toast.error("Maximum 30 images allowed", { id: "Max_Images_Update" });
             return;
         }
 
@@ -196,7 +196,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
         try {
             const finalImageSrc = initialListing.imageSrc && initialListing.imageSrc.length > 0
-                ? await uploadToCloudinary(initialListing.imageSrc, "listing_main")
+                ? await uploadToR2(initialListing.imageSrc, "listing_main")
                 : [];
 
             const finalSets = initialListing.hasSets ? await Promise.all(
@@ -205,7 +205,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     name: s.name.trim(),
                     description: s.description?.trim() || null,
                     images: s.images && s.images.length > 0
-                        ? await uploadToCloudinary(s.images, "listing_sets")
+                        ? await uploadToR2(s.images, "listing_sets")
                         : [],
                     price: s.price,
                     position: i,
@@ -223,18 +223,11 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 sets: finalSets,
             };
 
-            await axios
-                .patch(`/api/listings/${initialListing.id}`, payload)
-                .then(() => {
-                    toast.info("Listing has been successfully updated", { toastId: "Listing_Updated" });
-                })
-                .catch((error) => {
-                    toast.error(error?.response?.data?.error || "Failed to update listing", {
-                        toastId: "Listing_Error_1",
-                    });
-                });
+            await updateListing(initialListing.id, payload);
+            toast.info("Listing has been successfully updated", { id: "Listing_Updated" });
+            router.refresh();
         } catch (error) {
-            const msg = error instanceof Error ? error.message : "Upload failed";
+            const msg = error instanceof Error ? error.message : "Update failed";
             toast.error(msg);
         }
     };
@@ -330,22 +323,22 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <Heading title="Edit Property" />
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="text-sm font-medium text-muted-foreground sm:w-1/3">Name</label>
-                            <input
-                                type="text"
-                                id="listingName"
-                                className={propertyFieldClassName}
-                                placeholder="Enter the listing name"
-                                value={initialListing.title ?? ""}
-                                onChange={(e) => handleInputChange("title", e.target.value)}
-                            />
-                        </div>
+                        <Input
+                            id="listingName"
+                            label="Name"
+                            variant="horizontal"
+                            placeholder="Enter the listing name"
+                            value={initialListing.title ?? ""}
+                            onChange={(e) => handleInputChange("title", e.target.value)}
+                        />
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="text-sm font-medium text-gray-700 sm:w-1/3">Custom URL</label>
+                        <FormField
+                            id="listingSlug"
+                            label="Custom URL"
+                            variant="horizontal"
+                        >
                             <div className="w-full flex items-center">
-                                <span className="text-muted-foreground mr-2">contcave.com/listings/</span>
+                                <span className="text-muted-foreground mr-2 text-sm">contcave.com/listings/</span>
                                 <input
                                     type="text"
                                     id="listingSlug"
@@ -355,38 +348,34 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     onChange={(e) => handleInputChange("slug", e.target.value)}
                                 />
                             </div>
-                        </div>
+                        </FormField>
 
 
-                        <div className="flex sm:items-start gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
-                                Description
-                            </label>
+                        <FormField
+                            label="Description"
+                            variant="horizontal"
+                        >
+                            <RichTextEditor
+                                value={initialListing.description ?? ""}
+                                onChange={(html) => handleInputChange("description", html)}
+                            />
+                        </FormField>
 
-                            <div className="w-full">
-                                <RichTextEditor
-                                    value={initialListing.description ?? ""}
-                                    onChange={(html) => handleInputChange("description", html)}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex sm:items-start gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
-                                Terms & Conditions by Host
-                            </label>
-
-                            <div className="w-full">
-                                <RichTextEditor
-                                    value={initialListing.customTerms ?? ""}
-                                    onChange={(html) => handleInputChange("customTerms", html)}
-                                />
-                            </div>
-                        </div>
+                        <FormField
+                            label="Terms & Conditions by Host"
+                            variant="horizontal"
+                        >
+                            <RichTextEditor
+                                value={initialListing.customTerms ?? ""}
+                                onChange={(html) => handleInputChange("customTerms", html)}
+                            />
+                        </FormField>
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Category</label>
+                        <FormField
+                            label="Category"
+                            variant="horizontal"
+                        >
                             <select
                                 className={propertyFieldClassName}
                                 value={initialListing.category ?? ""}
@@ -399,14 +388,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     </option>
                                 ))}
                             </select>
-                        </div>
+                        </FormField>
 
 
-                        <div className="flex sm:items-start gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3 pt-2">
-                                Listed Services
-                                <p className="text-xs font-normal text-muted-foreground mt-1">Select all services available in this space</p>
-                            </label>
+                        <FormField
+                            label="Listed Services"
+                            description="Select all services available in this space"
+                            variant="horizontal"
+                        >
                             <div className="w-full flex flex-wrap gap-2">
                                 {Array.from(new Set([...spaceTypes, ...(initialListing.type || [])])).map((t) => (
                                     <button
@@ -432,30 +421,25 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     </button>
                                 ))}
                             </div>
-                        </div>
+                        </FormField>
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Price</label>
-                            <div className="w-full relative">
-                                <MdOutlineCurrencyRupee
-                                    size={24}
-                                    className="text-muted-foreground absolute top-2.5 left-2 border-r pr-1 border-border"
-                                />
-                                <input
-                                    type="number"
-                                    id="listingPrice"
-                                    className={`${propertyFieldClassName} pl-10`}
-                                    placeholder="Price"
-                                    value={Number.isFinite(initialListing.price) ? initialListing.price : ""}
-                                    onChange={(e) => handleInputChange("price", Number(e.target.value))}
-                                />
-                            </div>
-                        </div>
+                        <Input
+                            id="listingPrice"
+                            label="Price"
+                            variant="horizontal"
+                            type="number"
+                            formatPrice
+                            placeholder="Price"
+                            value={Number.isFinite(initialListing.price) ? initialListing.price : ""}
+                            onChange={(e) => handleInputChange("price", Number(e.target.value))}
+                        />
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Location</label>
+                        <FormField
+                            label="Location"
+                            variant="horizontal"
+                        >
                             <select
                                 className={propertyFieldClassName}
                                 value={initialListing.locationValue ?? ""}
@@ -468,15 +452,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     </option>
                                 ))}
                             </select>
-                        </div>
+                        </FormField>
 
 
-                        <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
-                                Images / Videos
-                            </label>
-
-                            <div className="w-full mt-2 sm:mt-0">
+                        <FormField
+                            label="Images / Videos"
+                            variant="horizontal"
+                        >
+                            <div className="w-full">
                                 <ImageReorderGrid
                                     images={initialListing.imageSrc ?? []}
                                     onReorder={(newOrder) => handleInputChange("imageSrc", newOrder)}
@@ -496,12 +479,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        </FormField>
 
 
 
-                        <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Amenities</label>
+                        <FormField
+                            label="Amenities"
+                            variant="horizontal"
+                        >
                             <div className="flex w-full">
                                 <AmenitiesCheckbox
                                     checked={Array.isArray(initialListing.amenities) ? initialListing.amenities : []}
@@ -510,11 +495,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     customAmenities={initialListing.otherAmenities}
                                 />
                             </div>
-                        </div>
+                        </FormField>
 
 
-                        <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Addons</label>
+                        <FormField
+                            label="Addons"
+                            variant="horizontal"
+                        >
                             <div className="flex flex-col w-full">
                                 <AddonsSelection
                                     initialSelectedAddons={initialListing.addons}
@@ -528,11 +515,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     }}
                                 />
                             </div>
-                        </div>
+                        </FormField>
 
 
-                        <div className="flex gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Packages</label>
+                        <FormField
+                            label="Packages"
+                            variant="horizontal"
+                        >
                             <div className="flex flex-col w-full">
                                 <PackagesForm
                                     value={initialListing.packages ?? []}
@@ -540,27 +529,27 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     availableSets={initialListing.hasSets ? (initialListing.sets ?? []) : []}
                                 />
                             </div>
-                        </div>
+                        </FormField>
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Carpet Area</label>
-                            <input
-                                type="number"
-                                id="carpetArea"
-                                className={propertyFieldClassName}
-                                placeholder="Enter the carpet area"
-                                value={initialListing.carpetArea ?? ""}
-                                onChange={(e) => handleInputChange("carpetArea", e.target.value)}
-                            />
-                        </div>
+                        <Input
+                            id="carpetArea"
+                            label="Carpet Area"
+                            variant="horizontal"
+                            type="number"
+                            placeholder="Enter the carpet area"
+                            value={initialListing.carpetArea ?? ""}
+                            onChange={(e) => handleInputChange("carpetArea", e.target.value)}
+                        />
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Days</label>
+                        <FormField
+                            label="Operational Days"
+                            variant="horizontal"
+                        >
                             <div className="flex space-x-2 w-full">
                                 <select
-                                    className={`${propertyCompactSelectClassName} w-25 text-center`}
+                                    className={`${propertyFieldClassName} w-25 text-center px-0`}
                                     value={initialListing.operationalDays?.start ?? "Mon"}
                                     onChange={(e) => handleInputChange("operationalDays.start", e.target.value)}
                                 >
@@ -572,7 +561,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 </select>
                                 <span className={propertyFieldSeparatorClassName} aria-hidden="true">-</span>
                                 <select
-                                    className={`${propertyCompactSelectClassName} w-25 text-center`}
+                                    className={`${propertyFieldClassName} w-25 text-center px-0`}
                                     value={initialListing.operationalDays?.end ?? "Sun"}
                                     onChange={(e) => handleInputChange("operationalDays.end", e.target.value)}
                                 >
@@ -583,14 +572,16 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     ))}
                                 </select>
                             </div>
-                        </div>
+                        </FormField>
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Operational Hours</label>
+                        <FormField
+                            label="Operational Hours"
+                            variant="horizontal"
+                        >
                             <div className="flex space-x-2 w-full">
                                 <select
-                                    className={`${propertyCompactSelectClassName} w-36 text-center`}
+                                    className={`${propertyFieldClassName} w-36 text-center px-0`}
                                     value={startTime}
                                     onChange={(e) => onStartChange(e.target.value)}
                                 >
@@ -605,7 +596,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 <span className={propertyFieldSeparatorClassName} aria-hidden="true">-</span>
 
                                 <select
-                                    className={`${propertyCompactSelectClassName} w-36 text-center`}
+                                    className={`${propertyFieldClassName} w-36 text-center px-0`}
                                     value={endTime}
                                     onChange={(e) => onEndChange(e.target.value)}
                                 >
@@ -617,39 +608,33 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     ))}
                                 </select>
                             </div>
-                        </div>
+                        </FormField>
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
-                                Min. Booking Hours
-                            </label>
-                            <input
-                                type="text"
-                                id="minBookingHours"
-                                className={propertyFieldClassName}
-                                placeholder="Enter the minimum booking hours"
-                                value={initialListing.minimumBookingHours ?? ""}
-                                onChange={(e) => handleInputChange("minimumBookingHours", e.target.value)}
-                            />
-                        </div>
+                        <Input
+                            id="minBookingHours"
+                            label="Min. Booking Hours"
+                            variant="horizontal"
+                            placeholder="Enter the minimum booking hours"
+                            value={initialListing.minimumBookingHours ?? ""}
+                            onChange={(e) => handleInputChange("minimumBookingHours", e.target.value)}
+                        />
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Max PAX</label>
-                            <input
-                                type="text"
-                                id="maxPax"
-                                className={propertyFieldClassName}
-                                placeholder="Enter the maximum PAX"
-                                value={initialListing.maximumPax ?? ""}
-                                onChange={(e) => handleInputChange("maximumPax", e.target.value)}
-                            />
-                        </div>
+                        <Input
+                            id="maxPax"
+                            label="Max PAX"
+                            variant="horizontal"
+                            placeholder="Enter the maximum PAX"
+                            value={initialListing.maximumPax ?? ""}
+                            onChange={(e) => handleInputChange("maximumPax", e.target.value)}
+                        />
 
 
-                        <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                            <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Instant Book</label>
+                        <FormField
+                            label="Instant Book"
+                            variant="horizontal"
+                        >
                             <div className="w-full flex items-center">
                                 <Switch
                                     checked={Boolean(initialListing.instantBooking)}
@@ -657,31 +642,31 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     variant="bolt"
                                 />
                             </div>
-                        </div>
+                        </FormField>
 
                         <hr />
 
 
                         <div className="flex flex-col gap-6">
-                            <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                                <label className="block text-sm font-medium text-gray-700 sm:w-1/3">
-                                    Multi-Set Mode
-                                    <p className="text-xs font-normal text-muted-foreground mt-1">
-                                        Enable multiple bookable sets (studios, rooms, etc.)
-                                    </p>
-                                </label>
+                            <FormField
+                                label="Multi-Set Mode"
+                                description="Enable multiple bookable sets (studios, rooms, etc.)"
+                                variant="horizontal"
+                            >
                                 <div className="w-full flex items-center">
                                     <Switch
                                         checked={Boolean(initialListing.hasSets)}
                                         onChange={(checked) => handleInputChange("hasSets", checked)}
                                     />
                                 </div>
-                            </div>
+                            </FormField>
 
                             {initialListing.hasSets && (
                                 <div className="flex flex-col gap-6 pl-4">
-                                    <div className="flex sm:items-center gap-1 sm:gap-10 flex-col sm:flex-row">
-                                        <label className="block text-sm font-medium text-gray-700 sm:w-1/3">Pricing Type</label>
+                                    <FormField
+                                        label="Pricing Type"
+                                        variant="horizontal"
+                                    >
                                         <div className="flex gap-4 w-full">
                                             <button
                                                 onClick={() => handleInputChange("additionalSetPricingType", "FIXED")}
@@ -696,13 +681,15 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                                 Hourly Add-on
                                             </button>
                                         </div>
-                                    </div>
+                                    </FormField>
 
 
 
-                                    <div className="flex flex-col gap-4">
-                                        <label className="block text-sm font-medium text-gray-700">Will all sets have the same price?</label>
-                                        <div className="flex gap-4">
+                                    <FormField
+                                        label="Will all sets have the same price?"
+                                        variant="horizontal"
+                                    >
+                                        <div className="flex gap-4 w-full">
                                             <label
                                                 className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
                                                     ? "border-primary bg-muted ring-1 ring-primary"
@@ -734,10 +721,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                                 <div className="font-medium text-center">No, different prices</div>
                                             </label>
                                         </div>
-                                    </div>
+                                    </FormField>
 
-                                    <div className="flex flex-col gap-4">
-                                        <label className="block text-sm font-medium text-gray-700">Manage Sets</label>
+                                    <FormField
+                                        label="Manage Sets"
+                                        variant="horizontal"
+                                    >
                                         <SetsEditor
                                             sets={initialListing.sets ?? []}
                                             onChange={(updated) => handleInputChange("sets", updated)}
@@ -746,7 +735,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                             uniformPrice={unifiedSetPrice}
                                             onUniformPriceChange={setUnifiedSetPrice}
                                         />
-                                    </div>
+                                    </FormField>
 
                                 </div>
                             )}
@@ -776,7 +765,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     onClick={() => signIn("google-calendar")}
                                 >
                                     <Image
-                                        src="/images/icon/google_calendar.png"
+                                        src="/images/icons/google_calendar.png"
                                         alt="Google Calendar"
                                         width={30}
                                         height={30}

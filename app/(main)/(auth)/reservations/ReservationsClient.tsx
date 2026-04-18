@@ -1,10 +1,10 @@
 "use client";
 
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
+import { deleteReservation,updateReservation } from "@/app/actions/reservationActions";
 import Container from "@/components/Container";
 import BookingCard from "@/components/listing/BookingCard";
 import Modal from "@/components/modals/Modal";
@@ -53,19 +53,18 @@ function ReservationsClient({ reservations, currentUser }: Props) {
   }, []);
 
   const onApprove = useCallback(
-    (id: string) => {
+    async (id: string) => {
       setDeletingId(id);
-      axios
-        .patch(`/api/reservations/${id}`, { isApproved: 1 })
-        .then(() => {
-          toast.success("Reservation approved", { toastId: "Reservation_Approved" });
-          router.refresh();
-        })
-        .catch((error) => {
-          const msg = error?.response?.data?.error || "Something went wrong approving the reservation.";
-          toast.error(msg, { toastId: "Reservation_Error_3" });
-        })
-        .finally(() => setDeletingId(""));
+      try {
+        await updateReservation(id, { isApproved: 1 });
+        toast.success("Reservation approved", { id: "Reservation_Approved" });
+        router.refresh();
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : "Something went wrong approving the reservation.";
+        toast.error(msg, { id: "Reservation_Error_3" });
+      } finally {
+        setDeletingId("");
+      }
     },
     [router]
   );
@@ -85,15 +84,14 @@ function ReservationsClient({ reservations, currentUser }: Props) {
 
     if (modalAction === "cancel") {
       setDeletingId(selectedId);
-      axios
-        .patch(`/api/reservations/${selectedId}`, { isApproved: 3 })
+      updateReservation(selectedId, { isApproved: 3 })
         .then(() => {
-          toast.success("Reservation cancelled", { toastId: "Reservation_Cancelled" });
+          toast.success("Reservation cancelled", { id: "Reservation_Cancelled" });
           router.refresh();
         })
-        .catch((error) => {
-          const msg = error?.response?.data?.error || "Something went wrong cancelling the reservation.";
-          toast.error(msg, { toastId: "Reservation_Error_1" });
+        .catch((error: unknown) => {
+          const msg = error instanceof Error ? error.message : "Something went wrong cancelling the reservation.";
+          toast.error(msg, { id: "Reservation_Error_1" });
         })
         .finally(() => {
           setDeletingId("");
@@ -102,15 +100,14 @@ function ReservationsClient({ reservations, currentUser }: Props) {
 
     } else if (modalAction === "delete") {
       setDeletingId(selectedId);
-      axios
-        .delete(`/api/reservations/${selectedId}`)
+      deleteReservation(selectedId)
         .then(() => {
-          toast.info("Reservation deleted", { toastId: "Reservation_Deleted" });
+          toast.info("Reservation deleted", { id: "Reservation_Deleted" });
           router.refresh();
         })
-        .catch((error) => {
-          const msg = error?.response?.data?.error || "Something went wrong deleting the reservation.";
-          toast.error(msg, { toastId: "Reservation_Error_2" });
+        .catch((error: unknown) => {
+          const msg = error instanceof Error ? error.message : "Something went wrong deleting the reservation.";
+          toast.error(msg, { id: "Reservation_Error_2" });
         })
         .finally(() => {
           setDeletingId("");
@@ -129,18 +126,17 @@ function ReservationsClient({ reservations, currentUser }: Props) {
       }
 
       setDeletingId(selectedId);
-      axios
-        .patch(`/api/reservations/${selectedId}`, {
-          isApproved: 2,
-          rejectReason: finalReason,
-        })
+      updateReservation(selectedId, {
+        isApproved: 2,
+        rejectReason: finalReason,
+      })
         .then(() => {
-          toast.info("Reservation rejected", { toastId: "Reservation_Rejected" });
+          toast.info("Reservation rejected", { id: "Reservation_Rejected" });
           router.refresh();
         })
-        .catch((error) => {
-          const msg = error?.response?.data?.error || "Something went wrong rejecting the reservation.";
-          toast.error(msg, { toastId: "Reservation_Error_4" });
+        .catch((error: unknown) => {
+          const msg = error instanceof Error ? error.message : "Something went wrong rejecting the reservation.";
+          toast.error(msg, { id: "Reservation_Error_4" });
         })
         .finally(() => {
           setDeletingId("");

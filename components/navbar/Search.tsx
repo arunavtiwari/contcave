@@ -40,15 +40,15 @@ const SearchContent = memo(function SearchContent() {
     <button
       type="button"
       onClick={handleClick}
-      className="border border-border w-full md:w-auto p-2 rounded-full transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black"
+      className="border border-border w-full md:w-auto p-2 rounded-full transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <div className="flex flex-row items-center justify-between">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>
         <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
           {dateLabel}
         </div>
-        <div className="text-sm text-gray-600 flex flex-row items-center gap-3">
-          <div className="p-2 bg-black rounded-full text-white">
+        <div className="text-muted-foreground flex flex-row items-center gap-3">
+          <div className="p-2 bg-foreground rounded-full text-background">
             <BiSearch size={16} />
           </div>
         </div>
@@ -68,8 +68,8 @@ const Search = memo(function Search() {
           <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
             Date
           </div>
-          <div className="text-sm text-gray-600 flex flex-row items-center gap-3">
-            <div className="p-2 bg-black rounded-full text-white">
+          <div className="text-muted-foreground flex flex-row items-center gap-3">
+            <div className="p-2 bg-foreground rounded-full text-background">
               <BiSearch size={16} />
             </div>
           </div>

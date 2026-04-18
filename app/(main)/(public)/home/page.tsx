@@ -8,6 +8,7 @@ import ListingFeed from "@/components/listing/ListingFeed";
 import Categories from "@/components/navbar/Categories";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { safeListing } from "@/types/listing";
 
 export const dynamic = "force-dynamic";
 
@@ -123,7 +124,7 @@ export default async function Home(props: HomeProps) {
             />
           ) : (
             <ListingFeed
-              listings={listing}
+              listings={listing as unknown as safeListing[]}
               currentUser={currentUser}
             />
           )}

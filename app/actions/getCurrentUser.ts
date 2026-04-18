@@ -1,7 +1,5 @@
-import 'server-only';
-
 import { auth } from "@/auth";
-import prisma from "@/lib/prismadb";
+import { UserService } from "@/lib/user/service";
 
 export const dynamic = "force-dynamic";
 
@@ -13,40 +11,16 @@ export default async function getCurrentUser() {
   try {
     const session = await getSession();
 
-    if (!session?.user?.email) {
-      return null;
+    if (!session?.user?.email) return null;
+
+    let user = await UserService.findByEmail(session.user.email);
+    if (!user) return null;
+
+    if (user.markedForDeletion) {
+      user = await UserService.restoreProfile(user.id);
     }
 
-    const currentUser = await prisma.user.findUnique({
-      where: {
-        email: session.user.email,
-      },
-    });
-
-    if (!currentUser) {
-      return null;
-    }
-
-    if (currentUser.markedForDeletion) {
-      await prisma.user.update({
-        where: { id: currentUser.id },
-        data: {
-          markedForDeletion: false,
-          markedForDeletionAt: null,
-        },
-      });
-    }
-
-    return {
-      ...currentUser,
-      createdAt: currentUser.createdAt.toISOString(),
-      updatedAt: currentUser.updatedAt.toISOString(),
-      emailVerified: currentUser.emailVerified?.toISOString() || null,
-      markedForDeletionAt: currentUser.markedForDeletionAt?.toISOString() || null,
-      markedForDeletion: Boolean(currentUser.markedForDeletion),
-      verified_at: currentUser.verified_at?.toISOString() || null,
-      aadhaar_last4: currentUser.aadhaar_last4,
-    };
+    return UserService.serializeUser(user);
   } catch (error) {
     if (
       error &&

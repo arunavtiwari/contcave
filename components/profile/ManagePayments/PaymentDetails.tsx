@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";

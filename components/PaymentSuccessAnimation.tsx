@@ -32,8 +32,8 @@ export default function PaymentAnimation({ status }: { status: PaymentStatus }) 
           <Image
             src={
               status === "success"
-                ? "/images/icon/tick.png"
-                : "/images/icon/error.png"
+                ? "/images/icons/tick.png"
+                : "/images/icons/error.png"
             }
             alt={status === "success" ? "Booking Success" : "Booking Error"}
             width={56}

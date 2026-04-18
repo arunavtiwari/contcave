@@ -7,7 +7,7 @@ import { useCallback } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
@@ -51,15 +51,15 @@ function LoginModal({ }: Props) {
 
       if (callback?.error) {
         const friendlyMessage = getAuthErrorMessage(callback.error);
-        toast.error(friendlyMessage, { toastId: "Login_Error_1" });
+        toast.error(friendlyMessage, { id: "Login_Error_1" });
       } else if (callback?.ok) {
-        toast.success("Login successful", { toastId: "Login_Successfully" });
+        toast.success("Login successful", { id: "Login_Successfully" });
         router.refresh();
         loginModel.onClose();
       }
     } catch {
       toast.error("Something went wrong. Please try again.", {
-        toastId: "Login_Error_Unexpected",
+        id: "Login_Error_Unexpected",
       });
     } finally {
       setIsLoading(false);
@@ -105,7 +105,7 @@ function LoginModal({ }: Props) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-neutral-500 hover:text-black focus:outline-none transition-colors"
+                className="text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
               >
                 {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
               </button>
@@ -118,7 +118,7 @@ function LoginModal({ }: Props) {
                 loginModel.onClose();
                 router.push("/forgot-password");
               }}
-              className="text-sm text-neutral-600 hover:underline cursor-pointer"
+              className="text-sm text-muted-foreground hover:underline cursor-pointer"
             >
               Forgot Password?
             </span>
@@ -135,12 +135,12 @@ function LoginModal({ }: Props) {
             icon={FcGoogle}
             onClick={() => signIn("google")}
           />
-          <div className="text-neutral-500 text-center mt-4 font-light">
+          <div className="text-muted-foreground text-center mt-4 font-light">
             <div>
               {"Don't have an Account? "}
               <span
                 onClick={toggle}
-                className="text-neutral-800 cursor-pointer hover:underline"
+                className="text-foreground cursor-pointer hover:underline"
               >
                 Create Account
               </span>

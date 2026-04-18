@@ -4,6 +4,7 @@ import PropertiesClient from "@/app/(main)/(auth)/properties/PropertiesClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings from "@/app/actions/getListings";
 import EmptyState from "@/components/EmptyState";
+import { safeListing } from "@/types/listing";
 
 export const metadata: Metadata = {
   title: "My Properties",
@@ -33,7 +34,7 @@ const PropertiesPage = async () => {
     );
   }
 
-  return <PropertiesClient listings={listings} currentUser={currentUser} />;
+  return <PropertiesClient listings={listings as unknown as safeListing[]} currentUser={currentUser} />;
 };
 
 export default PropertiesPage;

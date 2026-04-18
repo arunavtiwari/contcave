@@ -1,22 +1,15 @@
 "use client";
 
-import "react-toastify/dist/ReactToastify.css";
-
-import { ToastContainer } from "react-toastify";
+import { Toaster } from "sonner";
 
 function ToastContainerBar() {
   return (
     <>
-      <ToastContainer
+      <Toaster
         position="top-center"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        pauseOnFocusLoss
-        pauseOnHover
-        theme="colored"
-        closeButton={false}
+        toastOptions={{
+          className: "bg-background/70 backdrop-blur-md border border-border shadow-md rounded-xl text-foreground font-medium",
+        }}
       />
     </>
   );

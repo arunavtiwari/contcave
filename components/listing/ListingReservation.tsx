@@ -11,6 +11,7 @@ import {
 } from "react";
 import { FaBolt } from "react-icons/fa";
 
+import { updateUser } from "@/app/actions/updateUser";
 import Calendar from "@/components/inputs/Calendar";
 import TimeSlotPicker from "@/components/inputs/TimeSlotPicker";
 import BookingSummaryModal from "@/components/modals/BookingSummaryModal";
@@ -30,7 +31,6 @@ import {
   ListingSet,
   SetPricingResult,
 } from "@/types/set";
-import { SafeUser } from "@/types/user";
 
 interface SafeReservation {
   startDate: Date | string;
@@ -56,7 +56,6 @@ type GSTDetails = {
 type LocalTimes = { start: TimeLabel | null; end: TimeLabel | null };
 
 type Props = {
-  user: SafeUser;
   listingId: string;
   price: number;
   totalPrice?: number;
@@ -134,7 +133,6 @@ const formatLabel = (d: Date): TimeLabel => {
 };
 
 export default function ListingReservation({
-  user,
   listingId,
   price,
   totalPrice,
@@ -344,15 +342,7 @@ export default function ListingReservation({
     setPhoneSaving(true);
     setPhoneError(null);
     try {
-      const res = await fetch("/api/user", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: normalized }),
-      });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j?.message || "Failed to save phone");
-      }
+      await updateUser({ phone: normalized });
       setCustomerPhone(normalized);
       setShowPhoneModal(false);
     } catch (e: unknown) {
@@ -641,7 +631,6 @@ export default function ListingReservation({
         subTotal={computedTotal}
         gstDetails={gstDetails}
         setGstDetailsAction={setGstDetails}
-        currentUserId={user.id}
         reservationId={""}
         transactionId={""} />
     </section>

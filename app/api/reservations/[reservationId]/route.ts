@@ -1,9 +1,7 @@
-import { formatInTimeZone } from "date-fns-tz";
-
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { WhatsappService } from "@/lib/whatsapp/service";
+import { ReservationService } from "@/lib/reservation/service";
 
 interface IParams {
   reservationId?: string;
@@ -68,15 +66,13 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
       return createErrorResponse("Reservation not found or unauthorized", 404);
     }
 
-    const softDeletedReservation = await prisma.reservation.update({
-      where: { id: reservationId },
-      data: {
-        markedForDeletion: true,
-        markedForDeletionAt: new Date(),
-      },
-    });
-
-    return createSuccessResponse(softDeletedReservation, 200, "Reservation deleted successfully");
+    try {
+      await ReservationService.delete(reservationId, currentUser.id);
+      return createSuccessResponse(null, 200, "Reservation deleted successfully");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete reservation";
+      return createErrorResponse(message, 400);
+    }
   } catch (error) {
     return handleRouteError(error, "DELETE /api/reservations/[reservationId]");
   }
@@ -127,116 +123,14 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       return createErrorResponse("No valid fields to update", 400);
     }
 
-    const existingReservation = await prisma.reservation.findFirst({
-      where: {
-        id: reservationId,
-        markedForDeletion: false,
-        OR: [
-          { listing: { userId: currentUser.id } }, // Host
-          { userId: currentUser.id }            // Customer
-        ]
-      },
-      select: { id: true, userId: true, listing: { select: { userId: true } } },
-    });
-
-    if (!existingReservation) {
-      return createErrorResponse("Reservation not found or unauthorized", 404);
+    try {
+      await ReservationService.updateStatus(reservationId, currentUser.id, updateData.isApproved as number, updateData.rejectReason as string);
+      return createSuccessResponse(null, 200, "Reservation updated successfully");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update reservation";
+      return createErrorResponse(message, 400);
     }
-
-    // Authorization checks:
-    // 1. Only host can Approve (1) or Reject (0)
-    if ((updateData.isApproved === 0 || updateData.isApproved === 1) && existingReservation.listing.userId !== currentUser.id) {
-      return createErrorResponse("Only listing owners can approve/reject reservations", 403);
-    }
-
-    // 2. Only customer can Cancel (3) - strictly for their own booking
-    if (updateData.isApproved === 3 && existingReservation.userId !== currentUser.id) {
-      return createErrorResponse("Only the customer can cancel their reservation", 403);
-    }
-
-    const updatedReservation = await prisma.reservation.update({
-      where: { id: reservationId },
-      data: updateData,
-    });
-
-    // Fire-and-forget WhatsApp notification on host approval, rejection, or customer cancellation
-    if (updateData.isApproved === 1 || updateData.isApproved === 0 || updateData.isApproved === 3) {
-      (async () => {
-        try {
-          const resv = await prisma.reservation.findUnique({
-            where: { id: reservationId },
-            include: {
-              user: { select: { phone: true, name: true } },
-              listing: { select: { title: true, actualLocation: true, user: { select: { name: true, phone: true } } } },
-            },
-          });
-
-          if (!resv) return;
-
-          // Strictly formatted in IST as per user specification
-          const startDateStr = resv.startDate ? formatInTimeZone(resv.startDate, "Asia/Kolkata", "dd MMM yyyy") : "";
-          const timeSlotStr = resv.endTime ? `${resv.startTime} to ${resv.endTime}` : (resv.startTime || "");
-
-          // Case 1: Host approves the booking -> Notify customer
-          if (updateData.isApproved === 1) {
-            const customerPhone = resv.user?.phone;
-            if (customerPhone) {
-              interface ActualLocation {
-                display_name?: string;
-              }
-              const location = resv.listing?.actualLocation as unknown as ActualLocation;
-              const locationLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                location?.display_name || ""
-              )}`;
-              await WhatsappService.sendBookingConfirmedCustomer(customerPhone, {
-                customerName: resv.user?.name || "Customer",
-                listingTitle: resv.listing?.title || "Studio",
-                startDate: startDateStr,
-                startTime: timeSlotStr,
-                locationLink,
-              }).catch(() => { });
-            }
-          }
-
-          // Case 2: Host rejects the booking -> Notify customer
-          if (updateData.isApproved === 0) {
-            const customerPhone = resv.user?.phone;
-            if (customerPhone) {
-              await WhatsappService.sendBookingRejectedCustomer(customerPhone, {
-                customerName: resv.user?.name || "Customer",
-                listingTitle: resv.listing?.title || "Studio",
-                rejectReason: (updateData.rejectReason as string) ?? "Not specified",
-              }).catch(() => { });
-            }
-          }
-
-          // Case 3: Customer cancels their own booking -> Notify host
-          if (updateData.isApproved === 3 && resv.userId === currentUser.id) {
-            const hostPhone = resv.listing?.user?.phone;
-            if (hostPhone) {
-              await WhatsappService.sendBookingCancelledHost(hostPhone, {
-                hostName: resv.listing?.user?.name || "Host",
-                customerName: resv.user?.name || "Customer",
-                listingTitle: resv.listing?.title || "Studio",
-                startDate: startDateStr,
-              }).catch(() => { });
-            }
-          }
-
-        } catch (e) {
-          console.error("[Reservation PATCH] WhatsApp notification error", {
-            reservationId,
-            error: e instanceof Error ? e.message : String(e),
-          });
-        }
-      })();
-    }
-
-    return createSuccessResponse(updatedReservation, 200, "Reservation updated successfully");
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
-      return createErrorResponse("Reservation not found", 404);
-    }
     return handleRouteError(error, "PATCH /api/reservations/[reservationId]");
   }
 }

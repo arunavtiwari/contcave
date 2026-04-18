@@ -112,7 +112,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute rounded-xl min-w-60 bg-background overflow-hidden right-0 top-[3.2rem] text-sm p-3 border border-border"
+          className="absolute rounded-xl min-w-60 bg-background overflow-hidden right-0 top-[3.2rem] text-sm p-3 border border-border shadow-lg"
         >
           <div className="flex flex-col">
             {currentUser ? (

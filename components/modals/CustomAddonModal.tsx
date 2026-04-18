@@ -4,13 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/ui/Input";
 import useAddonModal from "@/hook/useAddonModal";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { uploadToR2 } from "@/lib/storage/upload";
 
 import Modal from "./Modal";
 
@@ -51,7 +51,7 @@ function CustomAddonModal({ save }: Props) {
 
     setIsUploading(true);
     try {
-      const [uploadedUrl] = await uploadToCloudinary([addonFile], "addons");
+      const [uploadedUrl] = await uploadToR2([addonFile], "addons");
       save({ name: data.name, imageUrl: uploadedUrl });
       addonModel.onClose();
       reset();

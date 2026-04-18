@@ -1,6 +1,6 @@
 "use server";
 
-import 'server-only';
+
 
 import { Addon } from '@/types/addon';
 

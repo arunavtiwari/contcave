@@ -8,7 +8,7 @@ import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
@@ -53,11 +53,11 @@ function OwnerRegisterModal() {
 
             if (callback?.error) {
                 toast.error(getAuthErrorMessage(callback.error), {
-                    toastId: "Owner_Login_Error"
+                    id: "Owner_Login_Error"
                 });
             } else if (callback?.ok) {
                 toast.success("Owner registered and logged in successfully!", {
-                    toastId: "Owner_Registered"
+                    id: "Owner_Registered"
                 });
                 router.refresh();
                 ownerRegisterModal.onClose();
@@ -68,7 +68,7 @@ function OwnerRegisterModal() {
                 errorMsg = err.response?.data?.error || err.response?.data || errorMsg;
             }
             toast.error(errorMsg, {
-                toastId: "Owner_Error_1"
+                id: "Owner_Error_1"
             });
         } finally {
             setIsLoading(false);
@@ -131,7 +131,7 @@ function OwnerRegisterModal() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="text-neutral-500 hover:text-black focus:outline-none transition-colors"
+                                className="text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
                             >
                                 {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
                             </button>
@@ -148,11 +148,11 @@ function OwnerRegisterModal() {
                         icon={FcGoogle}
                         onClick={() => signIn("google-calendar")}
                     />
-                    <div className="text-neutral-500 text-center mt-4 font-light">
+                    <div className="text-muted-foreground text-center mt-4 font-light">
                         Already have an account?{" "}
                         <span
                             onClick={() => ownerRegisterModal.onClose()}
-                            className="text-neutral-800 cursor-pointer hover:underline"
+                            className="text-foreground cursor-pointer hover:underline"
                         >
                             Log in
                         </span>

@@ -108,19 +108,19 @@ function Modal({
         className={`relative mx-auto transform transition-all duration-300 ${showModal && isOpen
           ? "opacity-100 scale-100 translate-y-0"
           : "opacity-0 scale-95 translate-y-4"
-          } ${customWidth || "w-full md:w-4/6 lg:w-3/6 xl:w-2/5"}`}
+          } ${customWidth || "w-full md:w-4/6 lg:w-3/6 xl:w-2/5 md:max-w-3xl"}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <div className={`flex flex-col w-full bg-white rounded-2xl  ring-1 ring-black/5 overflow-hidden ${customHeight || "h-[85vh] max-h-[85vh]"}`}>
+        <div className={`flex flex-col w-full bg-background rounded-2xl ring-1 ring-border overflow-hidden ${customHeight || "h-[85vh] max-h-[85vh]"}`}>
 
-          <div className="flex items-center justify-center p-5 border-b border-gray-200 bg-gray-50 relative shrink-0">
-            <h2 id="modal-title" className="text-lg font-semibold text-center text-gray-900">
+          <div className="flex items-center justify-center p-5 border-b border-border bg-muted/30 relative shrink-0">
+            <h2 id="modal-title" className="text-lg font-semibold text-center text-foreground">
               {title}
             </h2>
             <button
-              className="absolute right-6 text-gray-500 hover:text-gray-800 transition focus:outline-none"
+              className="absolute right-6 text-muted-foreground hover:text-foreground transition focus:outline-none"
               onClick={handleClose}
               aria-label="Close modal"
             >
@@ -131,14 +131,14 @@ function Modal({
 
           <div
             ref={bodyRef}
-            className="flex-1 px-6 py-5 overflow-y-auto text-gray-800"
+            className="flex-1 px-6 py-5 overflow-y-auto text-foreground"
           >
             {body}
           </div>
 
 
           {!selfActionButton && (
-            <div className="px-6 py-4 border-t border-gray-200 flex flex-col md:flex-row gap-3 justify-end items-center bg-gray-50 shrink-0">
+            <div className="px-6 py-4 border-t border-border flex flex-col md:flex-row gap-3 justify-end items-center bg-muted/30 shrink-0">
               {secondaryAction && secondaryActionLabel && (
                 <Button
                   outline

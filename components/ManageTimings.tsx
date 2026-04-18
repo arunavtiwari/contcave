@@ -5,8 +5,9 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
+import { getDayStatus, updateDayStatus } from "@/app/actions/dayStatusActions";
 import Skeleton from "@/components/ui/Skeleton";
 import Switch from "@/components/ui/Switch";
 
@@ -74,12 +75,10 @@ export default function CalendarComponent({
             lastFetchedDate.current = formattedDate;
             setLoading(true);
             try {
-                const res = await fetch(`/api/dayStatus?listingId=${encodeURIComponent(listingId)}&date=${formattedDate}`);
-                if (!res.ok) throw new Error("Failed to fetch data");
-                const data = await res.json();
-                setIsListingActive(data.listingActive ?? true);
-                setStartTime(formatTime(data.startTime ?? defaultStartTime, "AM"));
-                setEndTime(formatTime(data.endTime ?? defaultEndTime, "PM"));
+                const data = await getDayStatus(listingId, formattedDate);
+                setIsListingActive(data?.listingActive ?? true);
+                setStartTime(formatTime(data?.startTime ?? defaultStartTime, "AM"));
+                setEndTime(formatTime(data?.endTime ?? defaultEndTime, "PM"));
             } catch {
                 setIsListingActive(true);
                 setStartTime(formatTime(defaultStartTime, "AM"));
@@ -105,13 +104,7 @@ export default function CalendarComponent({
             endTime,
         };
         try {
-            const res = await fetch("/api/dayStatus", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-            if (!res.ok) throw new Error("Save failed");
-            await res.json();
+            await updateDayStatus(payload);
             toast.success("Data saved successfully!");
         } catch {
             toast.error("Error saving day status");

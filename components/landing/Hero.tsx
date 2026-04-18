@@ -53,7 +53,7 @@ const Hero = () => {
             className="w-full h-full object-cover"
           >
             <source
-              src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload/v1775847837/download_wbbmxk.mp4`}
+              src={`${process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL}/static/hero-bg.mp4`}
               type="video/mp4"
             />
           </video>

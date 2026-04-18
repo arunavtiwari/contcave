@@ -28,11 +28,11 @@ function HeartButton({ listingId, currentUser }: Props) {
     >
       <AiOutlineHeart
         size={28}
-        className="fill-white absolute -top-[2px] -right-[2px]"
+        className="fill-white absolute -top-0.5 -right-0.5"
       />
       <AiFillHeart
         size={24}
-        className={hasFavorite ? "fill-rose-500" : "fill-neutral-500/70"}
+        className={hasFavorite ? "fill-rose-500" : "fill-muted-foreground/70"}
       />
     </div>
   );

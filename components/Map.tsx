@@ -3,32 +3,42 @@
 import "leaflet/dist/leaflet.css";
 
 import L from "leaflet";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import Flag from "react-world-flags";
 
 type IconDefaultWithUrl = L.Icon.Default & { _getIconUrl?: string };
 delete (L.Icon.Default.prototype as unknown as IconDefaultWithUrl)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconUrl: "/icons/marker.png",
+  iconRetinaUrl: "/icons/marker.png",
+  iconSize: [38, 38],
+  iconAnchor: [19, 38],
+  popupAnchor: [0, -38],
 });
 
+function FlyToMarker({ center }: { center: L.LatLngExpression }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, 10);
+  }, [center, map]);
+  return null;
+}
+
 type Props = {
-  center?: number[];
+  center?: [number, number];
   locationValue?: string;
 };
 
 function Map({ center, locationValue }: Props) {
-  const isValidCenter = Array.isArray(center) && 
+  const isValidCenter =
+    Array.isArray(center) &&
     center.length >= 2 &&
-    typeof center[0] === 'number' &&
-    typeof center[1] === 'number' &&
     Number.isFinite(center[0]) &&
     Number.isFinite(center[1]);
 
-  const mapCenter: L.LatLngExpression = isValidCenter 
-    ? [center[0], center[1]] 
+  const mapCenter: L.LatLngExpression = isValidCenter
+    ? [center[0], center[1]]
     : [20.5937, 78.9629];
 
   return (
@@ -36,23 +46,26 @@ function Map({ center, locationValue }: Props) {
       center={mapCenter}
       zoom={isValidCenter ? 10 : 4}
       scrollWheelZoom={false}
-      className="h-[35vh] rounded-lg"
+      attributionControl={false}
+      className="h-[35vh] w-full rounded-lg z-0"
     >
       <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
 
       {isValidCenter && (
-        <Marker position={mapCenter}>
-          {locationValue && (
-            <Popup>
-              <div className="flex justify-center items-center animate-bounce">
-                <Flag code={locationValue} className="w-10" />
-              </div>
-            </Popup>
-          )}
-        </Marker>
+        <>
+          <FlyToMarker center={mapCenter} />
+          <Marker position={mapCenter}>
+            {locationValue && (
+              <Popup>
+                <div className="flex justify-center items-center animate-bounce">
+                  <Flag code={locationValue} className="w-10" />
+                </div>
+              </Popup>
+            )}
+          </Marker>
+        </>
       )}
     </MapContainer>
   );

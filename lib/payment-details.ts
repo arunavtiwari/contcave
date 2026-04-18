@@ -270,8 +270,8 @@ export async function upsertPaymentDetailsSafe(input: UpsertPaymentDetailsInput)
 
         let encryptedAccountNumber = undefined;
         let accountNumberIV = undefined;
-        if (accountNumber && !accountNumber.includes('*')) {
-            const result = encryptionService.encrypt(accountNumber.trim());
+        if (accountNumber && !String(accountNumber).includes('*')) {
+            const result = encryptionService.encrypt(String(accountNumber).trim());
             encryptedAccountNumber = result.encrypted;
             accountNumberIV = result.iv;
         }
@@ -279,15 +279,15 @@ export async function upsertPaymentDetailsSafe(input: UpsertPaymentDetailsInput)
         let encryptedIfscCode = undefined;
         let ifscCodeIV = undefined;
         if (ifscCode) {
-            const result = encryptionService.encrypt(ifscCode.trim().toUpperCase());
+            const result = encryptionService.encrypt(String(ifscCode).trim().toUpperCase());
             encryptedIfscCode = result.encrypted;
             ifscCodeIV = result.iv;
         }
 
         let encryptedGstin = undefined;
         let gstinIV = undefined;
-        if (gstin && !gstin.includes('*')) {
-            const result = encryptionService.encrypt(gstin.trim().toUpperCase());
+        if (gstin && !String(gstin).includes('*')) {
+            const result = encryptionService.encrypt(String(gstin).trim().toUpperCase());
             encryptedGstin = result.encrypted;
             gstinIV = result.iv;
         }

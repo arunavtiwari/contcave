@@ -4,9 +4,10 @@ import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import axios from "axios";
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import getCalendarEvents from '@/app/actions/getCalendarEvents';
 
 import Modal from './modals/Modal';
 
@@ -131,10 +132,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
     const fetchEvents = useCallback(async () => {
         if (!googleCalendarConnected) return;
         try {
-            const res = await axios.get("/api/calendar/events", {
-                params: { listingId },
-            });
-            const data = res.data.data;
+            const data = await getCalendarEvents(listingId);
 
             if (data) {
                 const formattedEvents: Event[] = (data as CalendarEventResponse[]).map((event) => ({
@@ -153,9 +151,10 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
 
                 setEvents(filteredEvents);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error fetching events:', error);
-            if (axios.isAxiosError(error) && error.response?.status === 400) {
+            const err = error as { status?: number; code?: number };
+            if (err.status === 400 || err.code === 400) {
                 if (onError) onError();
             }
             // toast.error('Failed to load calendar events'); 
@@ -228,7 +227,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
                 actionLabel="Close"
                 selfActionButton={true}
                 body={
-                    <div className="flex flex-col gap-2 min-w-[350px]">
+                    <div className="flex flex-col gap-2 min-w-87.5">
                         <div>
                             <h2 className="text-xl font-semibold">{modalData.title}</h2>
                             <div className="flex gap-2 text-sm place-items-center">

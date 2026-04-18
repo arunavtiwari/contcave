@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import { SafeUser } from "@/types/user";
 
@@ -42,11 +42,11 @@ function useFavorite({ listingId, currentUser }: Props) {
         await request();
         router.refresh();
         toast.success(hasFavorite ? "Removed from favourites" : "Added to favourites", {
-          toastId: "Favorites"
+          id: "Favorites"
         });
       } catch (_error: unknown) {
         toast.error("Something Went Wrong", {
-          toastId: "Favorites_Error_1"
+          id: "Favorites_Error_1"
         });
       }
     },

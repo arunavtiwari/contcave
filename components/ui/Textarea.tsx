@@ -3,61 +3,44 @@
 import * as React from "react";
 import { FieldErrors } from "react-hook-form";
 
+import { cn } from "@/lib/utils";
+
+import FormField from "./FormField";
+
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
     label?: string;
+    description?: string;
     id: string;
     errors?: FieldErrors;
+    variant?: "vertical" | "horizontal";
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-    ({ className, label, id, errors, ...props }, ref) => {
-        const hasError = errors?.[id];
+    ({ className, label, description, id, required, errors, variant = "vertical", ...props }, ref) => {
+        const error = errors?.[id]?.message as string;
 
         return (
-            <div className="w-full">
-                {label && (
-                    <label
-                        htmlFor={id}
-                        className={`
-              block 
-              text-sm 
-              font-medium 
-              mb-1
-              ${hasError ? "text-rose-500" : "text-gray-700"}
-            `}
-                    >
-                        {label}
-                    </label>
-                )}
-
+            <FormField
+                id={id}
+                label={label}
+                description={description}
+                error={error}
+                required={required}
+                variant={variant}
+            >
                 <textarea
                     id={id}
-                    className={`
-             w-full
-             p-3
-             font-light 
-             bg-white 
-             border
-             rounded-xl
-             focus:outline-none
-             focus:border-black
-             transition
-             disabled:opacity-70
-             disabled:cursor-not-allowed
-             min-h-25
-             ${hasError ? "border-rose-500 focus:border-rose-500" : "border-neutral-200 hover:border-neutral-300"}
-             ${className}
-           `}
+                    className={cn(
+                        "w-full p-3 font-light bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed min-h-25",
+                        error
+                            ? "border-destructive focus:border-destructive ring-destructive/20 focus:ring-4"
+                            : "border-border hover:border-border/80 focus:border-primary focus:ring-4 focus:ring-primary/10",
+                        className
+                    )}
                     ref={ref}
                     {...props}
                 />
-
-                {hasError && (
-                    <p className="text-rose-500 text-sm mt-1">
-                        {errors?.[id]?.message as string}
-                    </p>
-                )}
-            </div>
+            </FormField>
         );
     }
 );

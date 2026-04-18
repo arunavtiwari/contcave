@@ -1,9 +1,9 @@
-import bcrypt from "bcryptjs";
 import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { normalizePhone } from "@/lib/phone";
 import prisma from "@/lib/prismadb";
+import { UserService } from "@/lib/user/service";
 import { ownerRegisterSchema, registerSchema } from "@/schemas/auth";
 
 export async function POST(request: NextRequest) {
@@ -50,32 +50,21 @@ export async function POST(request: NextRequest) {
       return createErrorResponse("An account with this email already exists", 409);
     }
 
-    const hashedPassword = await bcrypt.hash(validData.password, 12);
-
-    const user = await prisma.user.create({
-      data: {
+    try {
+      const user = await UserService.register({
         email: trimmedEmail,
         name: trimmedName,
-        hashedPassword,
+        password: validData.password,
         phone: normalizedPhone || undefined,
-        is_owner: isOwner,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        is_owner: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+        is_owner: isOwner
+      });
 
-    return createSuccessResponse(user, 201, "User registered successfully");
-  } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
-      return createErrorResponse("An account with this email already exists", 409);
+      return createSuccessResponse(user, 201, "User registered successfully");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Registration failed";
+      return createErrorResponse(message, 400);
     }
+  } catch (error) {
     return handleRouteError(error, "POST /api/register");
   }
 }

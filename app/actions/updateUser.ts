@@ -1,44 +1,22 @@
 "use server";
 
 import { auth } from "@/auth";
-import prisma from "@/lib/prismadb";
-
-
+import { UserService } from "@/lib/user/service";
+import { UserUpdateSchema } from "@/schemas/user";
+import { SafeUser } from "@/types/user";
 
 export async function getSession() {
   return await auth();
 }
 
-import { User } from "@prisma/client";
-
-export const updateUser = async (userData: Partial<User>) => {
+export const updateUser = async (userData: UserUpdateSchema): Promise<SafeUser> => {
   try {
     const session = await getSession();
+    if (!session?.user?.email) throw new Error("User not authenticated");
 
-    if (!session?.user?.email) {
-      throw new Error("User not authenticated");
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: {
-        email: session.user.email as string,
-      },
-      data: {
-        ...userData,
-        updatedAt: new Date(),
-      },
-    });
-
-    return {
-      ...updatedUser,
-      createdAt: updatedUser.createdAt.toISOString(),
-      updatedAt: updatedUser.updatedAt.toISOString(),
-      emailVerified: updatedUser.emailVerified?.toISOString() || null,
-    };
+    return await UserService.updateProfile(session.user.email, userData);
   } catch (error: unknown) {
     console.error("Failed to update user:", error);
-    throw new Error("Failed to update user");
+    throw error;
   }
 };
-
-export default updateUser;

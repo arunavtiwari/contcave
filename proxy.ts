@@ -112,7 +112,7 @@ function buildCSP(nonce: string): string {
             'https://maps.gstatic.com',
             'https://maps.googleapis.com',
             'https://lh3.googleusercontent.com',
-            'https://res.cloudinary.com',
+            process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL || '',
             'https://api.producthunt.com',
             'https://m.media-amazon.com',
             'https://encrypted-tbn0.gstatic.com',
@@ -126,7 +126,7 @@ function buildCSP(nonce: string): string {
         'media-src': [
             "'self'",
             'blob:',
-            'https://res.cloudinary.com',
+            process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL || '',
         ],
 
         'connect-src': [
@@ -137,7 +137,8 @@ function buildCSP(nonce: string): string {
             'data:',
             'https://api.cashfree.com',
             'https://sdk.cashfree.com',
-            'https://api.cloudinary.com',
+            'https://*.r2.cloudflarestorage.com',
+            process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL || '',
             'https://maps.googleapis.com',
             'https://fonts.googleapis.com',
             'https://fonts.gstatic.com',

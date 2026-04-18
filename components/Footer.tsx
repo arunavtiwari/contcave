@@ -24,13 +24,13 @@ function Footer() {
             <div className="flex flex-wrap justify-center sm:justify-normal gap-4 items-center w-full">
               <p className="text-base font-semibold">Follow Us</p>
               <a href="https://www.linkedin.com/company/contcave/?viewAsMember=true" target="_blank" rel="noopener noreferrer">
-                <Image src="/images/icon/Linkedin.svg" width={25} height={25} alt="linkedin" className="object-cover hover:scale-105 transition-all invert dark:invert-0" />
+                <Image src="/images/icons/linkedin.png" width={25} height={25} alt="linkedin" className="object-cover hover:scale-105 transition-all" />
               </a>
               <a href="https://x.com/contcave/" target="_blank" rel="noopener noreferrer">
-                <Image src="/images/icon/Twitter.svg" width={25} height={25} alt="twitter" className="object-cover hover:scale-105 transition-all invert dark:invert-0" />
+                <Image src="/images/icons/twitter.png" width={25} height={25} alt="twitter" className="object-cover hover:scale-105 transition-all" />
               </a>
               <a href="https://www.instagram.com/contcave/" target="_blank" rel="noopener noreferrer">
-                <Image src="/images/icon/Instagram.svg" width={25} height={25} alt="instagram" className="object-cover hover:scale-105 transition-all invert dark:invert-0" />
+                <Image src="/images/icons/instagram.png" width={25} height={25} alt="instagram" className="object-cover hover:scale-105 transition-all" />
               </a>
               <a href="https://www.producthunt.com/posts/contcave?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-contcave" target="_blank" rel="noopener noreferrer">
                 <Image src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=480635&theme=dark&t=1738752353649" alt="ContCave - We Help creators and brands Shoot Better Content | Product Hunt" width={250} height={54} className="rounded-full" style={{ width: 'auto', height: 'auto' }} />

@@ -1,13 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaCheckCircle, FaShieldAlt } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { z } from "zod";
 
+import {
+  createVendorAction,
+  generateAadhaarOtpAction,
+  updateVerificationStepAction,
+  verifyAadhaarOtpAction,
+  verifyEmailAction
+} from "@/app/actions/verificationActions";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -163,22 +169,21 @@ const VerificationModal: React.FC<Props> = ({
     setEmailState((s) => ({ ...s, checking: true }));
 
     try {
-      const resp = await axios.post("/api/verify_email", { email: emailState.value });
-      if (resp.data?.data?.result === "undeliverable") {
+      const resp = await verifyEmailAction(emailState.value);
+      if (resp?.data?.result === "undeliverable") {
         setEmailState((s) => ({ ...s, verified: false, checking: false }));
         setCustomErrors({ email: "Email address is not deliverable" });
         return;
       }
 
-      const updated = await axios.patch("/api/user/verify", { step: "email" });
-      setUserState(updated.data);
+      const updatedUser = await updateVerificationStepAction({ step: "email" });
+      setUserState(updatedUser as SafeUser);
       setEmailState((s) => ({ ...s, verified: true, checking: false }));
       toast.success("Email verified successfully");
     } catch (err: unknown) {
       console.error("Email verify error:", err);
       setEmailState((s) => ({ ...s, verified: false, checking: false }));
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      const message = axiosError.response?.data?.message || "Email verification failed";
+      const message = err instanceof Error ? err.message : "Email verification failed";
       setCustomErrors({ email: message });
     }
   };
@@ -194,22 +199,22 @@ const VerificationModal: React.FC<Props> = ({
     setPhoneState((s) => ({ ...s, checking: true }));
 
     try {
-      const updated = await axios.patch("/api/user/verify", {
+      const updatedUser = await updateVerificationStepAction({
         step: "phone",
         phone: phoneState.phoneValue,
       });
-      setUserState(updated.data);
+      setUserState(updatedUser as SafeUser);
       setPhoneState((s) => ({
         ...s,
         verified: true,
         checking: false,
-        phoneValue: updated.data.phone || phoneState.phoneValue,
+        phoneValue: (updatedUser as SafeUser).phone || phoneState.phoneValue,
       }));
       toast.success("Phone verified");
     } catch (err: unknown) {
       setPhoneState((s) => ({ ...s, verified: false, checking: false }));
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setCustomErrors({ phone: axiosError.response?.data?.message || "Phone verification failed" });
+      const message = err instanceof Error ? err.message : "Phone verification failed";
+      setCustomErrors({ phone: message });
     }
   };
 
@@ -227,16 +232,16 @@ const VerificationModal: React.FC<Props> = ({
 
     setLoading(true);
     try {
-      const resp = await axios.post("/api/generate_otp", { aadhaarNumber: cleaned });
-      if (resp.data.success) {
-        setAadhaarState((s) => ({ ...s, refId: resp.data.data.ref_id }));
+      const resp = await generateAadhaarOtpAction(cleaned);
+      if (resp.success) {
+        setAadhaarState((s) => ({ ...s, refId: resp.data.ref_id }));
         toast.success("OTP sent");
       } else {
-        setCustomErrors({ aadhaar: resp.data.error || "Failed to send OTP" });
+        setCustomErrors({ aadhaar: resp.error || "Failed to send OTP" });
       }
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setCustomErrors({ aadhaar: axiosError.response?.data?.message || "Failed to send OTP" });
+      const message = err instanceof Error ? err.message : "Failed to send OTP";
+      setCustomErrors({ aadhaar: message });
     } finally {
       setLoading(false);
     }
@@ -253,27 +258,24 @@ const VerificationModal: React.FC<Props> = ({
 
     setLoading(true);
     try {
-      const verifyResp = await axios.post("/api/verification", {
-        refId: aadhaarState.refId,
-        otp: aadhaarState.otp,
-      });
+      const verifyResp = await verifyAadhaarOtpAction(aadhaarState.refId, aadhaarState.otp);
 
-      if (verifyResp.data.success) {
-        const updated = await axios.patch("/api/user/verify", {
+      if (verifyResp.success) {
+        const updatedUser = await updateVerificationStepAction({
           step: "aadhaar",
           aadhaarRefId: aadhaarState.refId,
           aadhaarLast4: aadhaarState.aadhaarNumber.slice(-4),
         });
-        setUserState(updated.data);
+        setUserState(updatedUser as SafeUser);
         setAadhaarState((s) => ({ ...s, verified: true }));
         toast.success("Aadhaar Verified");
         setStep(3);
       } else {
-        setCustomErrors({ otp: verifyResp.data.error || "Verification failed" });
+        setCustomErrors({ otp: verifyResp.error || "Verification failed" });
       }
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setCustomErrors({ otp: axiosError.response?.data?.message || "Verification failed" });
+      const message = err instanceof Error ? err.message : "Verification failed";
+      setCustomErrors({ otp: message });
     } finally {
       setLoading(false);
     }
@@ -288,10 +290,11 @@ const VerificationModal: React.FC<Props> = ({
         display_name: userState?.name || data.accountHolderName,
         email: userState?.email,
         phone: String(phoneState.phoneValue),
-        account_number: String(data.accountNumber),
-        account_holder: data.accountHolderName,
-        ifsc: data.ifscCode,
-
+        bank: {
+          account_holder: data.accountHolderName,
+          account_number: data.accountNumber,
+          ifsc: data.ifscCode,
+        },
         kyc_details: {
           account_type: "BUSINESS",
           business_type: "B2B",
@@ -299,25 +302,25 @@ const VerificationModal: React.FC<Props> = ({
         },
       };
 
-      await axios.post("/api/create_vendor", vendorPayload);
+      await createVendorAction(vendorPayload);
 
-      const updated = await axios.patch("/api/user/verify", {
+      const updatedUser = await updateVerificationStepAction({
         step: "bank",
         bankVerifiedName: data.accountHolderName,
         vendorId: vendorPayload.vendor_id,
-        accountNumber: data.accountNumber,
-        ifscCode: data.ifscCode,
+        accountNumber: String(data.accountNumber),
+        ifscCode: data.ifscCode.toUpperCase(),
         bankName: data.bankName,
         gstin: data.gstNumber || undefined,
       });
 
-      setUserState(updated.data);
+      setUserState(updatedUser as SafeUser);
       toast.success("Bank Verified!");
       onComplete?.();
       onClose();
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      toast.error(axiosError.response?.data?.message || "Bank verification failed");
+      const message = err instanceof Error ? err.message : "Bank verification failed";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

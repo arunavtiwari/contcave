@@ -113,7 +113,7 @@ function SearchModalContent({ }: Props) {
         />
       </div>
       <hr />
-      <Map center={location?.latlng} />
+      <Map center={location?.latlng as [number, number] | undefined} />
     </div>
   );
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -21,9 +20,10 @@ import {
     FaSpinner,
     FaUser
 } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { z } from "zod";
 
+import { updateUser } from "@/app/actions/updateUser";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
@@ -32,8 +32,8 @@ import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import { PROFILE_LANGUAGE_OPTIONS, PROFILE_TITLE_OPTIONS } from "@/constants/user";
 import useRentModal from "@/hook/useRentModal";
-import { uploadToCloudinary } from "@/lib/cloudinary";
-import { UserDataBoundaryPayload, UserDataSchema } from "@/schemas/user";
+import { uploadToR2 } from "@/lib/storage/upload";
+import { UserDataBoundaryPayload, UserDataSchema, userUpdateSchema } from "@/schemas/user";
 import { SafeUser } from "@/types/user";
 
 interface ProfileClientProps {
@@ -110,20 +110,19 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
 
     const handleOwnerSuccess = async (newPhone?: string) => {
-        const payload = {
-            name: userData.name,
-            description: userData.description,
-            location: userData.location,
-            languages: userData.languages,
-            title: userData.title,
-            profileImage: userData.profileImage,
-            phone: newPhone || userData.phone,
+        const payload: z.infer<typeof userUpdateSchema> = {
+            name: (userData.name ?? undefined) || undefined,
+            description: (userData.description ?? undefined) || undefined,
+            location: (userData.location ?? undefined) || undefined,
+            languages: (userData.languages ?? undefined) || undefined,
+            title: (userData.title ?? undefined) || undefined,
+            profileImage: (userData.profileImage ?? undefined) || undefined,
+            phone: (newPhone ?? userData.phone ?? undefined) || undefined,
             is_owner: true,
         };
 
         try {
-            const res = await axios.put("/api/user", payload);
-            const updatedUser = res.data;
+            const updatedUser = await updateUser(payload);
             const safeData = UserDataSchema.parse(updatedUser);
 
             form.reset(safeData);
@@ -135,11 +134,8 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
         } catch (err: unknown) {
             console.error("Failed to update owner status:", err);
             setShowLoadingOverlay(false);
-            if (axios.isAxiosError(err)) {
-                toast.error(err?.response?.data?.error || "Failed to update owner status");
-            } else {
-                toast.error("An unexpected error occurred.");
-            }
+            const message = err instanceof Error ? err.message : "Failed to update owner status";
+            toast.error(message);
         }
     };
 
@@ -161,20 +157,21 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
         try {
             let finalProfileImage = data.profileImage;
             if (finalProfileImage && finalProfileImage.startsWith("blob:")) {
-                const [uploadedUrl] = await uploadToCloudinary([finalProfileImage], "profiles");
+                const [uploadedUrl] = await uploadToR2([finalProfileImage], "profiles");
                 finalProfileImage = uploadedUrl;
             }
             const { name, description, location, languages, title, phone } = data;
-            await axios.put("/api/user", {
+            await updateUser({
                 name, description, location, languages, title, phone,
                 profileImage: finalProfileImage || null,
             });
-            setValue("profileImage", finalProfileImage);
+            setValue("profileImage", finalProfileImage as string);
             setEditMode(false);
             toast.success("Profile updated successfully!");
         } catch (error) {
             console.error("Failed to update user data", error);
-            toast.error("Failed to update profile");
+            const message = error instanceof Error ? error.message : "Failed to update profile";
+            toast.error(message);
         }
     };
 

@@ -2,24 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 
-import prisma from "@/lib/prismadb";
+import { ListingService } from "@/lib/listing/service";
 
 export default async function approveListing(_prevState: unknown, formData: FormData): Promise<{ success?: boolean; error?: string }> {
     const listingId = formData.get("listingId") as string;
 
-    if (!listingId) {
-        return { error: "Listing ID is required." };
-    }
+    if (!listingId) return { error: "Listing ID is required." };
 
     try {
-        await prisma.listing.update({
-            where: { id: listingId },
-            data: {
-                status: "VERIFIED",
-                active: true,
-            },
-        });
-
+        await ListingService.updateStatus(listingId, "VERIFIED", true);
         revalidatePath("/dashboard/listings");
         return { success: true };
     } catch (error: unknown) {

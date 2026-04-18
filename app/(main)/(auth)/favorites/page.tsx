@@ -4,6 +4,7 @@ import FavoritesClient from "@/app/(main)/(auth)/favorites/FavoritesClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getFavoriteListings from "@/app/actions/getFavoriteListings";
 import EmptyState from "@/components/EmptyState";
+import { safeListing } from "@/types/listing";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -33,7 +34,7 @@ const FavoritePage = async () => {
     );
   }
 
-  return <FavoritesClient listings={listings} currentUser={currentUser} />;
+  return <FavoritesClient listings={listings as unknown as safeListing[]} currentUser={currentUser} />;
 };
 
 export default FavoritePage;

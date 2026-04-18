@@ -89,7 +89,7 @@ export default function BlogPage() {
                 <Link
                   key={post.id}
                   href={`/blog/${post.id}`}
-                  className="block bg-white rounded-2xl  hover: transition-all overflow-hidden"
+                  className="block bg-card rounded-2xl border border-border hover:shadow-md transition-all overflow-hidden"
                 >
                   <div className="relative h-48">
                     {post.meta.image && (
@@ -108,10 +108,10 @@ export default function BlogPage() {
                   </div>
 
                   <div className="p-4">
-                    <p className="text-gray-500 text-sm mb-2">
+                    <p className="text-muted-foreground text-sm mb-2">
                       Published on: {formattedDate}
                     </p>
-                    <p className="text-gray-700 line-clamp-3">
+                    <p className="text-foreground line-clamp-3">
                       {post.meta.description || "Read more about this topic…"}
                     </p>
                   </div>

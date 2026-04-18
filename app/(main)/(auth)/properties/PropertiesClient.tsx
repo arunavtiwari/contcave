@@ -3,7 +3,7 @@
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import Container from "@/components/Container";
 import ListingCard from "@/components/listing/ListingCard";
@@ -27,13 +27,13 @@ function PropertiesClient({ listings, currentUser }: Props) {
         .patch(`/api/listings/${id}`)
         .then(() => {
           toast.info("Listing deleted", {
-            toastId: "Listing_Deleted"
+            id: "Listing_Deleted"
           });
           router.refresh();
         })
         .catch((error) => {
           toast.error(error?.response?.data?.error, {
-            toastId: "Listing_Error_1"
+            id: "Listing_Error_1"
           });
         })
         .finally(() => {
@@ -49,13 +49,13 @@ function PropertiesClient({ listings, currentUser }: Props) {
         .delete(`/api/listings/${id}`)
         .then(() => {
           toast.info("Listing deleted", {
-            toastId: "Listing_Deleted"
+            id: "Listing_Deleted"
           });
           router.refresh();
         })
         .catch((error) => {
           toast.error(error?.response?.data?.error, {
-            toastId: "Listing_Error_2"
+            id: "Listing_Error_2"
           });
         })
         .finally(() => {

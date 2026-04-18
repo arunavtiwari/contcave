@@ -1,7 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { normalizePhone } from "@/lib/phone";
-import prisma from "@/lib/prismadb";
+import { UserService } from "@/lib/user/service";
 import { phoneUpdateSchema, userUpdateSchema } from "@/schemas/user";
 
 export async function PUT(request: Request) {
@@ -16,56 +16,19 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
-  
+
 
 
     const validation = userUpdateSchema.safeParse(body);
-
-
     if (!validation.success) {
-      const firstError = validation.error.issues[0];
-      return createErrorResponse(firstError.message, 400);
+      return createErrorResponse(validation.error.issues[0].message, 400);
     }
 
-    const validData = validation.data;
-
-
-    const updateData: Record<string, unknown> = {};
-    Object.entries(validData).forEach(([key, value]) => {
-      if (value !== undefined) {
-        updateData[key] = value;
-      }
-    });
-
-    if (Object.keys(updateData).length === 0) {
-      return createErrorResponse("No valid fields to update", 400);
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { email: currentUser.email },
-      data: updateData,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        description: true,
-        location: true,
-        languages: true,
-        title: true,
-        profileImage: true,
-        phone: true,
-        is_owner: true,
-        is_verified: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
+    const updatedUser = await UserService.updateProfile(currentUser.email, validation.data);
     return createSuccessResponse(updatedUser);
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
-      return createErrorResponse("User not found", 404);
-    }
+    const message = error instanceof Error ? error.message : "Failed to update profile";
+    if (message === "User not found") return createErrorResponse(message, 404);
     return handleRouteError(error, "PUT /api/user");
   }
 }
@@ -99,11 +62,8 @@ export async function PATCH(request: Request) {
       return createErrorResponse(firstError.message, 400);
     }
 
-    const updated = await prisma.user.update({
-      where: { email: currentUser?.email ?? "" },
-      data: { phone: normalized },
-      select: { id: true, phone: true },
-    });
+    if (!currentUser.email) return createErrorResponse("Email not found", 400);
+    const updated = await UserService.updateProfile(currentUser.email, { phone: normalized });
     return createSuccessResponse({ ok: true, phone: updated.phone });
   } catch (error) {
     return handleRouteError(error, "PATCH /api/user");
@@ -118,13 +78,7 @@ export async function DELETE() {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    await prisma.user.update({
-      where: { email: currentUser.email },
-      data: {
-        markedForDeletion: true,
-        markedForDeletionAt: new Date(),
-      },
-    });
+    await UserService.deleteProfile(currentUser.email);
 
     return createSuccessResponse({ ok: true });
   } catch (error) {

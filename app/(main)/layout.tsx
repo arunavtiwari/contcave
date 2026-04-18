@@ -18,7 +18,7 @@ import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import NextAuthProvider from "@/components/providers/NextAuthProvider";
-import ScrollToTop from "@/components/ScrollToTop";
+import ScrollToTop from "@/components/ScrollToTop/ScrollToTop";
 import ToastContainerBar from "@/components/ToastContainerBar";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import {

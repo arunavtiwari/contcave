@@ -3,7 +3,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";

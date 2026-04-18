@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BsFileEarmarkPdf } from "react-icons/bs";
 import { FiX } from "react-icons/fi";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import ImageUpload from './ImageUpload';
 

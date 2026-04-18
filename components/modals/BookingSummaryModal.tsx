@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 
+import { saveBillingInfo } from "@/app/actions/billingActions";
+import { createInvoice } from "@/app/actions/invoiceActions";
 import Checkbox from "@/components/ui/Checkbox";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
@@ -26,7 +28,6 @@ type BookingSummaryModalProps = {
   subTotal: number;
   gstDetails: GSTDetails;
   setGstDetailsAction: (v: GSTDetails) => void;
-  currentUserId: string;
   reservationId: string;
   transactionId: string;
 };
@@ -43,7 +44,6 @@ export default function BookingSummaryModal({
   subTotal,
   gstDetails,
   setGstDetailsAction,
-  currentUserId,
   reservationId,
   transactionId,
 }: BookingSummaryModalProps) {
@@ -68,36 +68,20 @@ export default function BookingSummaryModal({
       }
 
       try {
-
-        const billingRes = await fetch("/api/billing", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: currentUserId,
-            companyName: gstDetails.companyName,
-            gstin: gstDetails.gstin,
-            billingAddress: gstDetails.billingAddress,
-            isDefault: true,
-          }),
+        await saveBillingInfo({
+          companyName: gstDetails.companyName,
+          gstin: gstDetails.gstin,
+          billingAddress: gstDetails.billingAddress,
+          isDefault: true,
         });
-        const billingData = await billingRes.json();
-        if (!billingRes.ok) throw new Error(billingData.message || "Failed to save GST info");
 
         setGstDetailsAction({ ...gstDetails });
 
-
-        const invoiceRes = await fetch("/api/invoice", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: currentUserId,
-            reservationId,
-            transactionId,
-            amount: subTotal,
-          }),
+        const invoiceData = await createInvoice({
+          reservationId,
+          transactionId,
+          amount: subTotal,
         });
-        const invoiceData = await invoiceRes.json();
-        if (!invoiceRes.ok) throw new Error(invoiceData.message || "Invoice creation failed");
 
         console.warn("Invoice URL:", invoiceData.invoiceUrl);
         onConfirmAction();

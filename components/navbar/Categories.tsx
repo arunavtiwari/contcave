@@ -1,15 +1,15 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { memo, Suspense,useMemo } from "react";
-import { FaBuilding,FaPodcast } from "react-icons/fa";
+import { memo, Suspense, useMemo } from "react";
+import { FaBuilding, FaPodcast } from "react-icons/fa";
 import {
   GiCycle,
   GiMusicalNotes,
   GiPhotoCamera,
 } from "react-icons/gi";
 import { IoIosPartlySunny } from "react-icons/io";
-import { MdCelebration,MdHomeWork, MdLocalCafe } from "react-icons/md";
+import { MdCelebration, MdHomeWork, MdLocalCafe } from "react-icons/md";
 
 import CategoryBox from "@/components/CategoryBox";
 import FilterModal from "@/components/modals/FilterModal";
@@ -84,7 +84,7 @@ const CategoriesContent = memo(function CategoriesContent() {
   );
 
   return (
-    <div className="mt-4 mb-6 w-full flex flex-row items-center justify-between gap-2 border-b border-gray-200">
+    <div className="mt-4 mb-6 w-full flex flex-row items-center justify-between gap-2 border-b border-border">
       <div className="flex-1 overflow-x-auto hide-scrollbar flex gap-4 items-center">
         {categoryItems}
       </div>
@@ -98,17 +98,17 @@ CategoriesContent.displayName = "CategoriesContent";
 const Categories = memo(function Categories() {
   return (
     <Suspense fallback={
-      <div className="mt-4 mb-6 w-full flex flex-row items-center justify-between gap-2 border-b border-gray-200">
+      <div className="mt-4 mb-6 w-full flex flex-row items-center justify-between gap-2 border-b border-border">
         <div className="flex-1 overflow-x-auto hide-scrollbar flex gap-4 items-center">
           {categories.map((item) => (
-            <div key={item.label} className="flex flex-col items-center justify-center gap-2 p-3 border-b-2 border-transparent text-neutral-500">
+            <div key={item.label} className="flex flex-col items-center justify-center gap-2 p-3 border-b-2 border-transparent text-muted-foreground">
               <item.icon size={26} />
               <div className="font-medium text-xs w-fit whitespace-nowrap">{item.label}</div>
             </div>
           ))}
         </div>
         <div className="shrink-0">
-          <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm whitespace-nowrap">
+          <button className="px-4 py-2 bg-muted rounded-lg text-sm whitespace-nowrap">
             More Filters
           </button>
         </div>

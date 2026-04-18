@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Amenities } from "@prisma/client";
-import axios from "axios";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import React, {
@@ -14,10 +13,11 @@ import React, {
 } from "react";
 import { FieldPath, FieldValues, Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { IoMdClose } from "react-icons/io";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
+import { createListingAction, updateListingAction } from "@/app/actions/listingActions";
 import AddonsSelection from "@/components/inputs/AddonsSelection";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
@@ -35,8 +35,8 @@ import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useRentModal from "@/hook/useRentModal";
-import { uploadToCloudinary } from "@/lib/cloudinary";
 import { isRichTextEmpty } from "@/lib/richText";
+import { uploadToR2 } from "@/lib/storage/upload";
 import { listingSchema } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
@@ -635,7 +635,7 @@ export default function RentModal() {
                 }}
               />
             </div>
-            <Map center={actualLocation?.latlng as number[] | undefined} />
+            <Map center={actualLocation?.latlng as [number, number] | undefined} />
           </div>
         ),
       },
@@ -1109,7 +1109,7 @@ export default function RentModal() {
     rentModel.onClose();
 
     try {
-      const finalImageUrls = await uploadToCloudinary(remoteImages, "listing_main");
+      const finalImageUrls = await uploadToR2(remoteImages, "listing_main");
 
       if (finalImageUrls.length === 0) {
         setIsLoading(false);
@@ -1123,33 +1123,45 @@ export default function RentModal() {
         imageSrc: finalImageUrls,
         category: data.category,
         locationValue,
-        actualLocation: data.actualLocation || null,
+        actualLocation: data.actualLocation ? {
+          ...data.actualLocation,
+          latlng: data.actualLocation.latlng as [number, number]
+        } : undefined,
         price: Number(data.price),
         amenities: Array.isArray(data.amenities) ? data.amenities : [],
         otherAmenities: Array.isArray(data.otherAmenities) ? data.otherAmenities : [],
         addons: Array.isArray(data.addons) ? data.addons : [],
         carpetArea: data.carpetArea,
-        operationalDays: data.operationalDays,
-        operationalHours: data.operationalHours,
-        minimumBookingHours: data.minimumBookingHours,
-        maximumPax: data.maximumPax,
+        operationalHours: (data.operationalHours?.start && data.operationalHours?.end) ? {
+          start: String(data.operationalHours.start),
+          end: String(data.operationalHours.end)
+        } : undefined,
+        operationalDays: (data.operationalDays?.start && data.operationalDays?.end) ? {
+          start: String(data.operationalDays.start),
+          end: String(data.operationalDays.end)
+        } : undefined,
+        minimumBookingHours: data.minimumBookingHours || undefined,
+        maximumPax: data.maximumPax || undefined,
         instantBooking: data.instantBooking ?? false,
         type: data.type ?? [],
-        packages: Array.isArray(data.packages) ? data.packages : [],
-        verifications: data.verifications,
-        agreementSignature: data.agreementSignature,
+        packages: Array.isArray(data.packages) ? (data.packages as Package[]).map(p => ({
+          ...p,
+          isActive: p.isActive !== false,
+        })) : [],
+        verifications: data.verifications || undefined,
+        agreementSignature: data.agreementSignature || undefined,
         terms: data.terms,
-        customTerms: isRichTextEmpty(data.customTerms) ? null : data.customTerms.trim(),
+        customTerms: isRichTextEmpty(data.customTerms) ? undefined : String(data.customTerms).trim(),
         hasSets: data.hasSets,
         setsHaveSamePrice: Boolean(data.setsHaveSamePrice),
-        unifiedSetPrice: data.setsHaveSamePrice ? Number(data.unifiedSetPrice) : null,
+        unifiedSetPrice: data.setsHaveSamePrice ? Number(data.unifiedSetPrice) : undefined,
         additionalSetPricingType: data.hasSets ? data.additionalSetPricingType : null,
 
         sets: data.hasSets ? (data.sets ?? []).map((s, i) => ({
-          name: s.name.trim(),
-          description: s.description?.trim() || null,
-          images: s.images,
-          price: s.price,
+          name: String(s.name).trim(),
+          description: s.description ? String(s.description).trim() : null,
+          images: Array.isArray(s.images) ? (s.images as string[]) : [],
+          price: Number(s.price || 0),
           position: i,
         })) : [],
       };
@@ -1159,14 +1171,14 @@ export default function RentModal() {
         for (let i = 0; i < finalSets.length; i++) {
           const set = finalSets[i];
           if (set.images && set.images.length > 0) {
-            finalSets[i].images = await uploadToCloudinary(set.images, "listing_sets");
+            finalSets[i].images = await uploadToR2(set.images, "listing_sets");
           }
         }
       }
       payload.sets = finalSets;
 
-      const createRes = await axios.post("/api/listings", payload);
-      const listingId = createRes.data?.data?.id || createRes.data?.id;
+      const createdListing = await createListingAction(payload);
+      const listingId = createdListing?.id;
 
       if (!listingId) {
         throw new Error("Listing creation failed: No listing ID returned");
@@ -1179,13 +1191,11 @@ export default function RentModal() {
         if (docsWithFiles.length > 0) {
           try {
             const filesToUpload = docsWithFiles.map(d => d.file as File);
-            const uploadedUrls = await uploadToCloudinary(filesToUpload, `verifications/${listingId}`);
+            const uploadedUrls = await uploadToR2(filesToUpload, `verifications/${listingId}`);
 
             for (let i = 0; i < docsWithFiles.length; i++) {
               const doc = docsWithFiles[i];
               if (uploadedUrls[i]) {
-                // Note: uploadToCloudinary currently just returns the secure_url string.
-                // We spoof the other fields since RentModal expects this format.
                 uploadedVerificationDocs.push({
                   original_filename: doc.original_filename,
                   bytes: doc.bytes || 0,
@@ -1223,7 +1233,7 @@ export default function RentModal() {
 
       if (uploadedVerificationDocs.length > 0 || (data.agreementSignature && data.terms)) {
         try {
-          await axios.patch(`/api/listings/${listingId}`, {
+          await updateListingAction(listingId, {
             verifications: finalVerifications,
           });
         } catch (updateError) {
@@ -1234,27 +1244,8 @@ export default function RentModal() {
 
       setShowSuccessModal(true);
       toast.success("Listing created successfully!");
-    } catch (error) {
-      let errorMessage = "Something went wrong while creating the listing.";
-
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-        const responseError = error.response?.data?.error;
-        if (typeof responseError === "string") {
-          errorMessage = responseError;
-        } else if (status === 401) {
-          errorMessage = "Authentication required. Please log in again.";
-        } else if (status === 403) {
-          errorMessage = "Only owners can create listings. Please verify your account.";
-        } else if (status === 400) {
-          errorMessage = responseError || "Invalid data. Please check your inputs.";
-        } else if (status && status >= 500) {
-          errorMessage = "Server error. Please try again later.";
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong while creating the listing.";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

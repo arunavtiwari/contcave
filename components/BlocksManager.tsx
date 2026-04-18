@@ -1,6 +1,5 @@
 "use client";
 
-import axios from "axios";
 import { format } from "date-fns";
 import CalendarIcon from "lucide-react/dist/esm/icons/calendar";
 import Clock from "lucide-react/dist/esm/icons/clock";
@@ -8,9 +7,21 @@ import Plus from "lucide-react/dist/esm/icons/plus";
 import Trash2 from "lucide-react/dist/esm/icons/trash-2";
 import { useCallback, useEffect, useState } from "react";
 import Select, { Theme } from "react-select";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
-import { ListingBlock, ListingSet } from "@/types/set";
+import { createBlock, deleteBlock, getBlocks } from "@/app/actions/blockActions";
+export interface ListingBlock {
+    id: string;
+    listingId: string;
+    date: string | Date;
+    startTime: string;
+    endTime: string;
+    setIds?: string[];
+    reason?: string | null;
+    createdAt?: Date;
+}
+
+import { ListingSet } from "@/types/set";
 
 interface BlocksManagerProps {
     listingId: string;
@@ -47,8 +58,13 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
     const fetchBlocks = useCallback(async () => {
         try {
             setIsLoading(true);
-            const res = await axios.get(`/api/listings/${listingId}/blocks`);
-            setBlocks(res.data.data || []);
+            const data = await getBlocks(listingId);
+            const formattedBlocks = (data || []).map(b => ({
+                ...b,
+                date: b.date instanceof Date ? b.date.toISOString() : b.date,
+                reason: b.reason || ""
+            }));
+            setBlocks(formattedBlocks as unknown as ListingBlock[]);
         } catch (_error) {
             toast.error("Failed to load blocks");
         } finally {
@@ -63,7 +79,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
     const handleCreateBlock = async () => {
         try {
             setIsCreating(true);
-            await axios.post(`/api/listings/${listingId}/blocks`, newBlock);
+            await createBlock(listingId, newBlock);
             toast.success("Block created successfully");
             setNewBlock({
                 date: format(new Date(), "yyyy-MM-dd"),
@@ -74,8 +90,8 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
             });
             fetchBlocks();
         } catch (error: unknown) {
-            const axiosError = error as { response?: { data?: { error?: string } } };
-            toast.error(axiosError?.response?.data?.error || "Failed to create block");
+            const message = error instanceof Error ? error.message : "Failed to create block";
+            toast.error(message);
         } finally {
             setIsCreating(false);
         }
@@ -83,7 +99,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
 
     const handleDeleteBlock = async (blockId: string) => {
         try {
-            await axios.delete(`/api/listings/${listingId}/blocks?blockId=${blockId}`);
+            await deleteBlock(listingId, blockId);
             toast.success("Block removed");
             fetchBlocks();
         } catch (_error) {

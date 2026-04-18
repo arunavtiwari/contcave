@@ -1,5 +1,4 @@
 import { Invoice } from "@prisma/client";
-import crypto from "crypto";
 
 import { GST_RATE } from "@/constants/gst";
 import { AttachmentInput } from "@/lib/email/mailer";
@@ -18,50 +17,7 @@ export type InvoiceWithAttachment = {
   attachment?: AttachmentInput;
 };
 
-const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1";
 
-const CLOUDINARY_SIGN_KEYS = new Set([
-  "timestamp",
-  "folder",
-  "public_id",
-  "eager",
-  "transformation",
-  "context",
-  "tags",
-  "upload_preset",
-  "source",
-  "type",
-  "invalidate",
-]);
-
-type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
-
-type CloudinaryParams = {
-  folder?: string;
-  timestamp?: number;
-  public_id?: string;
-  eager?: string;
-  transformation?: string;
-  context?: string;
-  tags?: string[];
-  upload_preset?: string;
-  source?: string;
-  type?: string;
-  invalidate?: boolean;
-};
-
-function signCloudinaryParams(params: CloudinaryParams, apiSecret: string) {
-  const toSign = (Object.keys(params) as Array<keyof CloudinaryParams>)
-    .filter((key) => CLOUDINARY_SIGN_KEYS.has(key) && params[key] != null)
-    .sort()
-    .map((key) => {
-      const value = params[key] as JsonValue;
-      return `${key}=${typeof value === "string" ? value : JSON.stringify(value)}`;
-    })
-    .join("&");
-
-  return crypto.createHash("sha1").update(`${toSign}${apiSecret}`).digest("hex");
-}
 
 async function downloadInvoiceAttachment(
   invoice: Invoice
@@ -188,43 +144,32 @@ export async function ensureInvoiceWithAttachment(
     content: pdfBuffer.toString("base64"),
   };
 
-  const folder = "invoices";
+  const folder = `users/${user.id}/invoices`;
   const timestamp = Math.floor(Date.now() / 1000);
   const publicId = `reservation_${reservationId}_${timestamp}`;
+  const key = `${folder}/${publicId}.pdf`;
 
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
-  const apiKey =
-    process.env.CLOUDINARY_API_KEY ||
-    process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
-  const cloudName =
-    process.env.CLOUDINARY_CLOUD_NAME ||
-    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
+  if (!bucket) throw new Error("Missing R2 bucket config");
 
-  if (!apiSecret || !apiKey || !cloudName) {
-    throw new Error("Missing Cloudinary credentials");
+  const { PutObjectCommand } = await import("@aws-sdk/client-s3");
+  const { r2 } = await import("@/lib/storage/r2");
+
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: pdfBuffer,
+    ContentType: "application/pdf"
+  });
+
+  try {
+    await r2.send(command);
+  } catch (error) {
+    console.error("R2 invoice upload error:", error);
+    throw new Error("R2 upload failed");
   }
 
-  const paramsToSign: CloudinaryParams = { folder, timestamp, public_id: publicId };
-  const signature = signCloudinaryParams(paramsToSign, apiSecret);
-
-  const formData = new FormData();
-  formData.append("file", pdfBlob, `${publicId}.pdf`);
-  formData.append("folder", folder);
-  formData.append("timestamp", String(timestamp));
-  formData.append("public_id", publicId);
-  formData.append("api_key", apiKey);
-  formData.append("signature", signature);
-
-  const uploadRes = await fetch(
-    `${CLOUDINARY_UPLOAD_URL}/${cloudName}/image/upload`,
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
-  const uploadData = (await uploadRes.json()) as { secure_url?: string; error?: { message?: string } };
-  if (!uploadRes.ok || !uploadData?.secure_url)
-    throw new Error(uploadData?.error?.message || "Cloudinary upload failed");
+  const secureUrl = `${process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL}/${key}`;
 
   const invoiceRecord = await prisma.invoice.create({
     data: {
@@ -236,7 +181,7 @@ export async function ensureInvoiceWithAttachment(
       gstAmount,
       totalAmount,
       invoiceNumber,
-      invoiceUrl: uploadData.secure_url,
+      invoiceUrl: secureUrl,
     },
   });
 

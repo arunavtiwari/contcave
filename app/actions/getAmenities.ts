@@ -1,6 +1,6 @@
 "use server";
 
-import 'server-only';
+
 
 import { Amenities } from '@prisma/client';
 

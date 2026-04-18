@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
+import { deleteAccount } from "@/app/actions/profileActions";
 import Modal from "@/components/modals/Modal";
 import Heading from "@/components/ui/Heading";
 import { SafeUser } from "@/types/user";
@@ -26,10 +27,7 @@ const ProfileSettings = ({ profile }: Props) => {
   const handleDeleteRequest = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/user", { method: "DELETE" });
-      if (!response.ok) {
-        throw new Error("Failed to mark account for deletion");
-      }
+      await deleteAccount();
       toast.success("Account scheduled for deletion. Log in again to cancel.");
       setShowConfirmModal(false);
       await signOut({ callbackUrl: "/" });

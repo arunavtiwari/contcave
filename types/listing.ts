@@ -5,8 +5,14 @@ import { Package } from "@/types/package";
 import { AdditionalSetPricingType, ListingBlock, ListingSet } from "@/types/set";
 import { SafeUser } from "@/types/user";
 
-export type safeListing = Omit<Listing, "createdAt"> & {
+export type safeListing = Omit<Listing, "createdAt" | "addons" | "packages" | "operationalDays" | "operationalHours" | "actualLocation"> & {
     createdAt: string;
+    addons?: unknown;
+    packages?: unknown;
+    operationalDays?: unknown;
+    operationalHours?: unknown;
+    actualLocation?: unknown;
+    avgReviewRating?: number;
 };
 
 export type ActualLocation = {

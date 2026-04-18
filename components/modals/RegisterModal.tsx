@@ -8,7 +8,7 @@ import { useCallback, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
@@ -54,11 +54,11 @@ function RegisterModal() {
 
       if (callback?.error) {
         toast.error(getAuthErrorMessage(callback.error), {
-          toastId: "Login_Error_1"
+          id: "Login_Error_1"
         });
       } else if (callback?.ok) {
         toast.success("Successfully registered and logged in!", {
-          toastId: "Registered"
+          id: "Registered"
         });
         router.refresh();
         registerModal.onClose();
@@ -66,15 +66,15 @@ function RegisterModal() {
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.data?.error) {
         toast.error(err.response.data.error, {
-          toastId: "Registration_Error_Specific"
+          id: "Registration_Error_Specific"
         });
       } else if (axios.isAxiosError(err) && typeof err.response?.data === "string") {
         toast.error(err.response.data, {
-          toastId: "Registration_Error_String"
+          id: "Registration_Error_String"
         });
       } else {
         toast.error("Something went wrong during registration.", {
-          toastId: "Registration_Error_1"
+          id: "Registration_Error_1"
         });
       }
     } finally {
@@ -137,7 +137,7 @@ function RegisterModal() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-neutral-500 hover:text-black focus:outline-none transition-colors"
+                className="text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
               >
                 {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
               </button>
@@ -147,7 +147,7 @@ function RegisterModal() {
       }
       footer={
         <div className="flex flex-col gap-4 mt-6">
-          <hr className="border-neutral-300" />
+          <hr className="border-border" />
           <Button
             outline
             rounded
@@ -155,23 +155,23 @@ function RegisterModal() {
             icon={FcGoogle}
             onClick={() => signIn("google")}
           />
-          <div className="text-neutral-500 text-center mt-4 font-light">
+          <div className="text-muted-foreground text-center mt-4 font-light">
             <div>
               Already have an account?{" "}
               <span
                 onClick={toggle}
-                className="text-neutral-800 cursor-pointer hover:underline"
+                className="text-foreground cursor-pointer hover:underline"
               >
                 Log in
               </span>
             </div>
           </div>
-          <div className="text-neutral-500 text-center mt-4 font-light">
+          <div className="text-muted-foreground text-center mt-4 font-light">
             <div>
               Are you a space owner?{" "}
               <span
                 onClick={ownertoggle}
-                className="text-neutral-800 cursor-pointer hover:underline"
+                className="text-foreground cursor-pointer hover:underline"
               >
                 Register here
               </span>
