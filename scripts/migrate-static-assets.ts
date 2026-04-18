@@ -35,10 +35,9 @@ async function migrateAsset(url: string, key: string) {
 
 async function run() {
     try {
-        // Hero Video
-        const heroVideoUrl = "https://res.cloudinary.com/duqay465q/video/upload/v1775847837/download_wbbmxk.mp4";
+        await migrateAsset("https://res.cloudinary.com/duqay465q/video/upload/v1775847837/download_wbbmxk.mp4", "static/hero-bg.mp4");
         // Static Banners
-        const bannerUrl = `${publicUrlBase}/assets/banner.jpg`; // Fallback to local if running script
+        const bannerUrl = `${publicUrlBase}/assets/banner.jpg`;
         await migrateAsset(bannerUrl, "static/banner.jpg");
 
         console.log("\nStatic assets migrated successfully!");

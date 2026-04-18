@@ -9,8 +9,6 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"type-check": "tsc --noEmit",
-		"typecheck": "tsc --noEmit",
-		"seed:test-owner": "node prisma/seed-test-owner.mjs",
 		"check": "npm run type-check && npm run lint",
 		"postinstall": "npx prisma generate"
 	},
@@ -35,7 +33,7 @@
 		"@lexical/html": "^0.40.0",
 		"@lexical/react": "^0.40.0",
 		"@mui/x-date-pickers": "^8.26.0",
-		"@prisma/client": "6.19.3",
+		"@prisma/client": "^6.19.3",
 		"@react-google-maps/api": "^2.20.6",
 		"@react-pdf/renderer": "^4.3.2",
 		"@tailwindcss/forms": "^0.5.11",
@@ -56,7 +54,6 @@
 		"eslint": "^9.39.1",
 		"framer-motion": "^12.23.12",
 		"googleapis": "^169.0.0",
-		"graphql": "^16.10.0",
 		"gray-matter": "^4.0.3",
 		"gsap": "^3.12.7",
 		"https-proxy-agent": "^7.0.6",
@@ -85,7 +82,6 @@
 		"sass": "^1.86.3",
 		"server-only": "^0.0.1",
 		"sharp": "^0.34.5",
-		"socket.io": "^4.8.1",
 		"sonner": "^2.0.7",
 		"swiper": "^12.1.2",
 		"tailwind-merge": "^3.5.0",
@@ -105,7 +101,7 @@
 		"@types/react-world-flags": "^1.6.0",
 		"eslint-config-next": "^16.1.1",
 		"eslint-plugin-simple-import-sort": "^12.1.1",
-		"prisma": "6.19.3"
+		"prisma": "^6.19.3"
 	},
 	"overrides": {
 		"axios": "$axios"
