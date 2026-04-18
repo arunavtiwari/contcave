@@ -318,7 +318,7 @@ function ListingInfo({
       <div className="text-base font-normal">
         <div
           className={`prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1
-          prose-strong:text-black prose-headings:text-black
+          prose-strong:text-foreground prose-headings:text-foreground
           transition-all duration-300 ${!isExpanded ? "max-h-40 overflow-hidden relative" : ""
             }`}
         >
@@ -329,7 +329,7 @@ function ListingInfo({
           />
 
           {!isExpanded && shouldTruncate && (
-            <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-linear-to-t from-white to-transparent" />
+            <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-linear-to-t from-background to-transparent" />
           )}
         </div>
 
@@ -439,12 +439,12 @@ function ListingInfo({
         <p className="text-xl font-semibold">Listed Services</p>
         <div className="flex flex-wrap gap-2">
           {type.map((service: string, index: number) => (
-            <div key={index} className="bg-black text-white px-3 py-1 rounded-full">
+            <div key={index} className="bg-foreground text-background px-3 py-1 rounded-full">
               {service}
             </div>
           ))}
           <p className="text-gray-500 mt-3">
-            <strong className="text-black">Note:</strong> Please utilize this space for its intended activities to make the most of your experience.
+            <strong className="text-foreground">Note:</strong> Please utilize this space for its intended activities to make the most of your experience.
           </p>
         </div>
       </div>
@@ -492,7 +492,7 @@ function ListingInfo({
                 <div className="text-xl capitalize font-semibold">Submit your review</div>
                 <div className="relative">
                   <div className="text-sm font-bold mb-2">Write your message</div>
-                  <div className="flex w-full bg-white border border-slate-400 items-end px-2 py-2 rounded-md">
+                  <div className="flex w-full bg-background border border-slate-400 items-end px-2 py-2 rounded-md">
                     <Textarea
                       id="review-comment"
                       value={review.comment}
@@ -516,7 +516,7 @@ function ListingInfo({
                     inactiveColor="text-neutral-300"
                   />
                 </div>
-                <button type="button" onClick={handleReviewSubmit} className="rounded-full bg-black w-full py-2.5 text-white hover:opacity-90 cursor-pointer">
+                <button type="button" onClick={handleReviewSubmit} className="rounded-full bg-foreground w-full py-2.5 text-background hover:opacity-90 cursor-pointer">
                   Submit
                 </button>
               </div>
@@ -532,7 +532,7 @@ function ListingInfo({
             <p className="text-xl font-semibold">Terms & Conditions by Host</p>
             <div className="text-base font-normal">
               <div
-                className="prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-strong:text-black prose-headings:text-black"
+                className="prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-strong:text-foreground prose-headings:text-foreground"
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(fullListing.customTerms || ""),
                 }}
@@ -550,7 +550,7 @@ function ListingInfo({
           between 24 and 72 hours before the scheduled booking, and no refund for cancellations made within 24 hours of the scheduled booking.
         </p>
 
-        <Link href="/cancellation" className="text-black font-semibold underline cursor-pointer w-fit">
+        <Link href="/cancellation" className="text-foreground font-semibold underline cursor-pointer w-fit">
           Know more about Cancellation Policy
         </Link>
 

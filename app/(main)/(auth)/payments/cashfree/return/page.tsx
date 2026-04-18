@@ -67,7 +67,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
             <main className="max-w-xl mx-auto p-6 flex items-center justify-center">
                 <div className="flex flex-col items-center space-y-6">
 
-                    <div className="w-14 h-14 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
+                    <div className="w-14 h-14 border-4 border-gray-300 border-t-foreground rounded-full animate-spin"></div>
 
                     <h2 className="text-2xl font-bold text-center">Verifying your payment...</h2>
                     <p className="text-lg text-neutral-600 text-center">
@@ -147,7 +147,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
 
     return (
         <main className="max-w-3xl mx-auto p-6 flex items-center">
-            <div className="mx-auto rounded-xl border bg-white/90 backdrop-blur p-6 ">
+            <div className="mx-auto rounded-xl border bg-background/90 backdrop-blur p-6 ">
                 <h1 className="text-2xl font-semibold text-center">{heading}</h1>
                 {(isConfirmed || isFailed) && (
                     <div className="flex justify-center my-6">

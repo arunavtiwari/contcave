@@ -58,7 +58,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
           type="checkbox"
           checked={isChecked}
           onChange={handleCheckboxChange}
-          className="w-6 h-6 accent-black bg-gray-100 border-black border rounded-full focus:ring-transparent checked:bg-black checked:border-black"
+          className="w-6 h-6 accent-foreground bg-gray-100 border-foreground border rounded-full focus:ring-transparent checked:bg-foreground checked:border-foreground"
         />)}
         {hideCheckbox && (
           (imageUrl && imageUrl.trim() !== '') ? (

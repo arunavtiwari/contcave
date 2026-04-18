@@ -216,7 +216,7 @@ const ManagePayments: React.FC<Props> = ({
             >
 
                 <div
-                    className="absolute top-1 bottom-1 rounded-full bg-white transition-all duration-300 ease-in-out"
+                    className="absolute top-1 bottom-1 rounded-full bg-background transition-all duration-300 ease-in-out"
                     style={tabIndicatorStyles}
                     aria-hidden="true"
                 />
@@ -234,7 +234,7 @@ const ManagePayments: React.FC<Props> = ({
                             aria-selected={selectedTab === tab}
                             aria-controls={`${tabSlug}-panel`}
                             className={`relative z-10 rounded-full px-6 py-3 text-base font-medium transition-colors duration-200 ${selectedTab === tab
-                                ? "text-black"
+                                ? "text-foreground"
                                 : "text-gray-600 hover:text-gray-900"
                                 }`}
                             onClick={() => handleTabChange(tab)}

@@ -47,7 +47,7 @@ export default function Loading() {
 
                             {/* ListingReservation Skeleton */}
                             <div className="order-first mb-10 md:order-last md:col-span-3">
-                                <div className="p-4 bg-white border border-neutral-200 rounded-xl shadow-sm w-full h-100">
+                                <div className="p-4 bg-background border border-neutral-200 rounded-xl shadow-sm w-full h-100">
                                     <div className="flex flex-col gap-4">
                                         <Skeleton className="h-6 w-1/3" />
                                         <hr className="border-neutral-100" />

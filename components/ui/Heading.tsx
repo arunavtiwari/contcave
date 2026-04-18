@@ -5,6 +5,7 @@ type HeadingVariant = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 interface HeadingProps extends Omit<React.HTMLAttributes<HTMLHeadingElement>, "title"> {
     title: React.ReactNode;
     subtitle?: string;
+    subtitleClassName?: string;
     center?: boolean;
     as?: HeadingVariant;
     variant?: HeadingVariant;
@@ -14,6 +15,7 @@ interface HeadingProps extends Omit<React.HTMLAttributes<HTMLHeadingElement>, "t
 const Heading: React.FC<HeadingProps> = ({
     title,
     subtitle,
+    subtitleClassName = "",
     center,
     as,
     variant = "h3",
@@ -33,7 +35,7 @@ const Heading: React.FC<HeadingProps> = ({
     };
 
     const landingSizes: Record<HeadingVariant, string> = {
-        h1: "text-[clamp(2rem,5vw,4.2rem)] font-black leading-[1.05]",
+        h1: "text-[clamp(2rem,5vw,4.2rem)] font-foreground leading-[1.05]",
         h2: "text-[clamp(1.9rem,3.2vw,2.8rem)] font-bold leading-[1.15]",
         h3: "text-[clamp(1.4rem,2.2vw,1.9rem)] font-bold leading-[1.25]",
         h4: "text-xl font-bold",
@@ -55,15 +57,15 @@ const Heading: React.FC<HeadingProps> = ({
     const textColorClass = (isLanding && variant === "h1") ? "text-[#FAF7F2]" : "text-foreground";
 
     return (
-        <div className={`${center ? "text-center" : "text-start"} ${className}`}>
+        <div className={`${center ? "text-center" : "text-start"}`}>
             <Component
-                className={`${fontClass} ${sizeClass} ${textColorClass}`}
+                className={`${fontClass} ${sizeClass} ${textColorClass} ${className}`}
                 {...props}
             >
                 {title}
             </Component>
             {subtitle && (
-                <p className={`text-muted-foreground ${isLanding ? "mt-2" : "mt-1"} font-light ${subtitleVariants[variant]}`}>
+                <p className={`text-muted-foreground ${isLanding ? "mt-2" : "mt-1"} font-light ${subtitleVariants[variant]} ${subtitleClassName}`}>
                     {subtitle}
                 </p>
             )}

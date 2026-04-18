@@ -22,8 +22,8 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
                         type="checkbox"
                         className={`
               peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-neutral-300 
-              bg-white transition-all checked:border-black checked:bg-black hover:border-black
-              focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
+              bg-background transition-all checked:border-foreground checked:bg-foreground hover:border-foreground
+              focus:outline-none focus:ring-2 focus:ring-foreground focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
               ${className}
             `}
                         onChange={handleChange}
@@ -32,7 +32,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
                     />
                     <Check
                         size={14}
-                        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+                        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-background opacity-0 transition-opacity peer-checked:opacity-100"
                     />
                 </div>
                 {label && (

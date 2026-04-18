@@ -10,15 +10,9 @@ const CTA = () => {
     <section className="py-section">
       <Container>
         <div className="relative rounded-3xl overflow-hidden bg-background border-l-8 border-l-primary shadow-sm">
-          {/* Dot grid texture animation */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <motion.div
-              className="absolute"
-              style={{
-                inset: "-56px",
-                backgroundImage: "radial-gradient(circle, rgba(17,17,17,0.08) 1.5px, transparent 1.5px)",
-                backgroundSize: "28px 28px",
-              }}
+              className="absolute -inset-14 bg-[radial-gradient(circle,rgba(17,17,17,0.08)_1.5px,transparent_1.5px)] bg-size-[28px_28px]"
               animate={{ x: [0, 28, 0], y: [0, 28, 0] }}
               transition={{ duration: 20, ease: "linear", repeat: Infinity }}
             />
@@ -26,7 +20,6 @@ const CTA = () => {
 
           <div className="relative z-10 flex flex-col gap-10 px-6 py-12 md:px-10 lg:flex-row lg:items-center lg:gap-20 xl:px-20 xl:py-14 bg-background/40 backdrop-blur-[1px]">
 
-            {/* Left — headline + CTA */}
             <motion.div
               variants={{ hidden: { opacity: 0, y: -20 }, visible: { opacity: 1, y: 0 } }}
               initial="hidden"
@@ -59,7 +52,6 @@ const CTA = () => {
               </p>
             </motion.div>
 
-            {/* Right — benefit list */}
             <motion.div
               variants={{ hidden: { opacity: 0, x: 20 }, visible: { opacity: 1, x: 0 } }}
               initial="hidden"

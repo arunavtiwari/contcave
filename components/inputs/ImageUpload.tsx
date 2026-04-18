@@ -135,7 +135,7 @@ function ImageUpload({
     >
       {uploading ? (
         <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin"></div>
           <span className="text-sm font-medium">Uploading...</span>
         </div>
       ) : circle ? (

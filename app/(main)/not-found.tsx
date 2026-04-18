@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import Heading from "@/components/ui/Heading";
+import Button from "@/components/ui/Button";
+
 export const dynamic = 'force-static';
 export const dynamicParams = false;
 
@@ -28,26 +31,28 @@ export default function NotFound() {
                 </p>
             </div>
             <div className="flex max-w-xl flex-col gap-3">
-                <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-                    We couldn't find the page
-                </h1>
-                <p className="text-base text-gray-600 sm:text-lg">
-                    The page you&apos;re looking for may have moved or no longer exists.
-                </p>
+                <Heading
+                    title="We couldn't find the page"
+                    subtitle="The page you're looking for may have moved or no longer exists."
+                    variant="h1"
+                    center
+                />
             </div>
             <div className="flex flex-wrap justify-center gap-3">
-                <Link
+                <Button
+                    label="Go to homepage"
                     href="/"
-                    className="rounded-full bg-black px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-700"
-                >
-                    Go to homepage
-                </Link>
-                <Link
+                    variant="default"
+                    rounded
+                    fit
+                />
+                <Button
+                    label="Browse listings"
                     href="/listings"
-                    className="rounded-full border border-gray-900 px-6 py-2.5 text-sm font-semibold text-gray-900 transition hover:bg-gray-900 hover:text-white"
-                >
-                    Browse listings
-                </Link>
+                    variant="outline"
+                    rounded
+                    fit
+                />
             </div>
         </main>
     );

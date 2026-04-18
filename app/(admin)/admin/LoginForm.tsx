@@ -12,8 +12,8 @@ export default function LoginForm() {
 
     return (
         <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-background">
-            <div className="flex items-center justify-center p-8 bg-black text-white">
-                <div className="max-w-md w-full [&_h2]:text-white! [&_p]:text-gray-400! mb-8">
+            <div className="flex items-center justify-center p-8 bg-foreground text-background">
+                <div className="max-w-md w-full [&_h2]:text-background! [&_p]:text-gray-400! mb-8">
                     <Heading
                         title="Contcave Admin"
                         subtitle="Secure management portal."

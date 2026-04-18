@@ -31,7 +31,7 @@ interface BlocksManagerProps {
 const selectTheme = (theme: Theme): Theme => ({
     ...theme,
     borderRadius: 10,
-    colors: { ...theme.colors, primary: "black", primary25: "#F3F4F6", primary50: "#E5E7EB" },
+    colors: { ...theme.colors, primary: "foreground", primary25: "#F3F4F6", primary50: "#E5E7EB" },
 });
 
 import { TIME_SLOTS } from "@/constants/timeSlots";
@@ -131,7 +131,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             type="date"
                             value={newBlock.date}
                             onChange={(e) => setNewBlock({ ...newBlock, date: e.target.value })}
-                            className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10"
+                            className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-foreground/10"
                         />
                     </div>
 
@@ -144,7 +144,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             <select
                                 value={newBlock.startTime}
                                 onChange={(e) => setNewBlock({ ...newBlock, startTime: e.target.value })}
-                                className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10"
+                                className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-foreground/10"
                             >
                                 {TIME_SLOTS.map((t, idx) => (
                                     <option key={`start-${t}-${idx}`} value={t}>{t}</option>
@@ -159,7 +159,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             <select
                                 value={newBlock.endTime}
                                 onChange={(e) => setNewBlock({ ...newBlock, endTime: e.target.value })}
-                                className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10"
+                                className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-foreground/10"
                             >
                                 {TIME_SLOTS.map((t, idx) => (
                                     <option key={`end-${t}-${idx}`} value={t}>{t}</option>
@@ -193,14 +193,14 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             value={newBlock.reason}
                             onChange={(e) => setNewBlock({ ...newBlock, reason: e.target.value })}
                             placeholder="e.g., Maintenance, Personal Use"
-                            className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/10"
+                            className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-foreground/10"
                         />
                     </div>
                 </div>
                 <button
                     onClick={handleCreateBlock}
                     disabled={isCreating}
-                    className="mt-6 w-full bg-black text-white py-3 rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50"
+                    className="mt-6 w-full bg-foreground text-background py-3 rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50"
                 >
                     {isCreating ? "Creating..." : "Create Block"}
                 </button>
@@ -219,7 +219,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                         {blocks.map((block) => (
                             <div
                                 key={block.id}
-                                className="flex items-center justify-between p-4 border border-neutral-200 rounded-xl bg-white hover: transition"
+                                className="flex items-center justify-between p-4 border border-neutral-200 rounded-xl bg-background hover: transition"
                             >
                                 <div className="flex flex-col gap-1">
                                     <div className="font-medium flex items-center gap-2">

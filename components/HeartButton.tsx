@@ -28,7 +28,7 @@ function HeartButton({ listingId, currentUser }: Props) {
     >
       <AiOutlineHeart
         size={28}
-        className="fill-white absolute -top-0.5 -right-0.5"
+        className="fill-background absolute -top-0.5 -right-0.5"
       />
       <AiFillHeart
         size={24}

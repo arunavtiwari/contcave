@@ -40,7 +40,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
             setCopied(true);
             toast.success("Referral link copied to clipboard!", {
                 position: "top-center",
-                
+
 
 
 
@@ -50,7 +50,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
             console.error("Failed to copy text: ", err);
             toast.error("Failed to copy link. Please try again.", {
                 position: "top-center",
-                                                                                            });
+            });
         }
     }, [referralLink]);
 
@@ -69,13 +69,13 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
             });
             toast.success("Link shared successfully!", {
                 position: "top-center",
-                                                                                            });
+            });
         } catch (err) {
             if (err instanceof Error && err.name !== 'AbortError') {
                 console.error("Error sharing:", err);
                 toast.error("Failed to share. Link copied instead!", {
                     position: "top-center",
-                                                                                                                    });
+                });
                 handleCopy();
             }
         } finally {
@@ -97,7 +97,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 handleCopy();
                 toast.info("Link copied! Paste it in your Instagram story or bio.", {
                     position: "top-center",
-                                                                                                                    });
+                });
                 return;
             case "messages":
                 shareUrl = `sms:?&body=${text}%20${url}`;
@@ -125,17 +125,17 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 </h3>
                 <ol className="space-y-3 text-slate-700">
                     <li className="flex items-start">
-                        <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0">1</span>
+                        <span className="bg-blue-500 text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0">1</span>
                         <span>Share your unique referral link or code with friends.</span>
                     </li>
                     <li className="flex items-start">
-                        <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0">2</span>
+                        <span className="bg-blue-500 text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0">2</span>
                         <span>When someone signs up and books their first space using your referral link or code, you both earn rewards!</span>
                     </li>
                 </ol>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-6 ">
+            <div className="bg-background rounded-xl border border-gray-200 p-6 ">
                 <h3 className="text-lg font-semibold text-slate-900 mb-4">Your Referral Link</h3>
 
                 <div className="space-y-4">
@@ -149,7 +149,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                             </div>
                             <button
                                 onClick={handleCopy}
-                                className="ml-4 flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                                className="ml-4 flex items-center px-3 py-2 bg-blue-600 text-background rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
                                 disabled={copied}
                             >
                                 {copied ? (
@@ -185,7 +185,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                                 </button>
                                 <button
                                     onClick={handleNativeShare}
-                                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium"
+                                    className="flex items-center px-3 py-2 bg-green-600 text-background rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium"
                                     disabled={isSharing}
                                 >
                                     <MdShare className="w-4 h-4" />
@@ -240,25 +240,25 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-6">
-                    <div className="bg-white rounded-lg p-5 border border-gray-200">
+                    <div className="bg-background rounded-lg p-5 border border-gray-200">
                         <h3 className="text-lg font-semibold text-slate-900 mb-3">How It Works</h3>
                         <ol className="space-y-2 text-slate-700">
                             <li className="flex items-start">
-                                <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">1</span>
+                                <span className="bg-purple-500 text-background rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">1</span>
                                 <span className="text-sm">Shoot content at one of our featured properties and tag us in your posts or videos.</span>
                             </li>
                             <li className="flex items-start">
-                                <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">2</span>
+                                <span className="bg-purple-500 text-background rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">2</span>
                                 <span className="text-sm">Share your content with your audience and mention your experience with us.</span>
                             </li>
                             <li className="flex items-start">
-                                <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">3</span>
+                                <span className="bg-purple-500 text-background rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">3</span>
                                 <span className="text-sm">Contact us with links to your posts or videos to claim your rewards!</span>
                             </li>
                         </ol>
                     </div>
 
-                    <div className="bg-white rounded-lg p-5 border border-gray-200">
+                    <div className="bg-background rounded-lg p-5 border border-gray-200">
                         <h3 className="text-lg font-semibold text-slate-900 mb-3">Benefits for Influencers</h3>
                         <ul className="list-disc marker:text-emerald-500 pl-5 space-y-2 text-sm text-slate-700 leading-6">
                             <li>Exclusive discounts on future bookings.</li>
@@ -281,7 +281,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                                 className="w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full flex items-center justify-center transition-all duration-200 transform hover:scale-105"
                                 title="Follow us on Instagram"
                             >
-                                <FaInstagram className="w-5 h-5 text-white" />
+                                <FaInstagram className="w-5 h-5 text-background" />
                             </a>
                         </div>
                     </div>

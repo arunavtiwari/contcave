@@ -40,14 +40,14 @@ export default function SetDetailModal({
     if (!isOpen || !set) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-opacity duration-300" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4 backdrop-blur-sm transition-opacity duration-300" onClick={onClose}>
             <div
-                className="relative w-full max-w-4xl bg-white rounded-3xl overflow-hidden  flex flex-col md:flex-row h-[70vh] animate-in fade-in zoom-in-95 duration-200"
+                className="relative w-full max-w-4xl bg-background rounded-3xl overflow-hidden  flex flex-col md:flex-row h-[70vh] animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-20 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full transition backdrop-blur-md "
+                    className="absolute top-4 right-4 z-20 p-2 bg-foreground/40 hover:bg-foreground/60 text-background rounded-full transition backdrop-blur-md "
                 >
                     <IoClose size={18} />
                 </button>
@@ -86,21 +86,21 @@ export default function SetDetailModal({
                             {set.images.length > 1 && (
                                 <>
                                     <button
-                                        className="set-modal-prev absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/80 hover:bg-white text-black rounded-full  transition md:opacity-0 md:group-hover:opacity-100 md:-translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
+                                        className="set-modal-prev absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-background/80 hover:bg-background text-foreground rounded-full  transition md:opacity-0 md:group-hover:opacity-100 md:-translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
                                     >
                                         <IoChevronBack size={20} />
                                     </button>
                                     <button
-                                        className="set-modal-next absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/80 hover:bg-white text-black rounded-full  transition md:opacity-0 md:group-hover:opacity-100 md:translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
+                                        className="set-modal-next absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-background/80 hover:bg-background text-foreground rounded-full  transition md:opacity-0 md:group-hover:opacity-100 md:translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
                                     >
                                         <IoChevronForward size={20} />
                                     </button>
 
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm z-10">
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-foreground/20 px-3 py-1.5 rounded-full backdrop-blur-sm z-10">
                                         {set.images.map((_, idx) => (
                                             <div
                                                 key={idx}
-                                                className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? "bg-white w-6" : "bg-white/50 w-1.5"
+                                                className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? "bg-background w-6" : "bg-background/50 w-1.5"
                                                     }`}
                                             />
                                         ))}
@@ -116,13 +116,13 @@ export default function SetDetailModal({
                 </div>
 
 
-                <div className="w-full md:w-2/5 p-8 flex flex-col overflow-y-auto bg-white">
+                <div className="w-full md:w-2/5 p-8 flex flex-col overflow-y-auto bg-background">
                     <div className="flex-1">
                         <div className="flex items-start justify-between gap-4 mb-4">
                             <h2 className="text-3xl font-bold text-neutral-900 leading-tight">{set.name}</h2>
                         </div>
 
-                        <div className="inline-flex items-center px-3 py-1 bg-neutral-900 text-white rounded-full text-sm font-medium mb-6 ">
+                        <div className="inline-flex items-center px-3 py-1 bg-neutral-900 text-background rounded-full text-sm font-medium mb-6 ">
                             {priceLabel}
                         </div>
 

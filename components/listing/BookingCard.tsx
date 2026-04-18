@@ -85,14 +85,10 @@ const BookingCard: React.FC<BookingCardProps> = ({
         return "Cancelled";
     };
 
-    const getBannerColor = () => {
-        if (bookingStatus == 1) {
-            return "#218C54";
-        }
-        if (bookingStatus == 0) {
-            return "#B98A30";
-        }
-        return "#B53020";
+    const getStatusBannerColor = () => {
+        if (bookingStatus == 1) return "bg-status-approved";
+        if (bookingStatus == 0) return "bg-status-pending";
+        return "bg-status-rejected";
     };
 
     const toggleReceiptModal = () => setShowReceipt(!showReceipt);
@@ -127,8 +123,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         />
 
                         <div
-                            className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-white text-sm`}
-                            style={{ backgroundColor: getBannerColor() }}
+                            className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-background text-sm ${getStatusBannerColor()}`}
                         >
                             {getStatusBanner()}
                         </div>
@@ -140,7 +135,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         <div className="flex items-stretch">
                             <div className="w-1/4">
                                 <button
-                                    className="flex items-center justify-center bg-primary rounded-l-full h-full cursor-pointer border border-primary text-white hover:opacity-80 transition w-full"
+                                    className="flex items-center justify-center bg-primary rounded-l-full h-full cursor-pointer border border-primary text-background hover:opacity-80 transition w-full"
                                     onClick={toggleReceiptModal}
                                     aria-label="Info"
                                 >
@@ -150,7 +145,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             <div className="w-3/4">
                                 <Button
                                     label="Approve"
-                                    classNames="text-md font-semibold bg-primary/80 border-primary text-white rounded-r-full"
+                                    classNames="text-md font-semibold bg-primary/80 border-primary text-background rounded-r-full"
                                     onClick={() => onApprove(reservation?.id ?? "")}
                                 />
                             </div>
@@ -161,7 +156,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         <Button
                             label="Reject"
                             rounded
-                            classNames="text-md font-semibold bg-destructive text-white"
+                            classNames="text-md font-semibold bg-destructive text-background"
                             onClick={() => onReject(reservation?.id ?? "")}
                         />
                     )}
@@ -170,7 +165,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             <div className="flex items-stretch">
                                 <div className="w-1/4">
                                     <button
-                                        className="flex items-center justify-center bg-primary rounded-l-full h-full cursor-pointer border border-primary text-white hover:opacity-80 transition w-full"
+                                        className="flex items-center justify-center bg-primary rounded-l-full h-full cursor-pointer border border-primary text-background hover:opacity-80 transition w-full"
                                         onClick={toggleReceiptModal}
                                         aria-label="Info"
                                     >
@@ -183,9 +178,9 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                         label={onApprove ? "Message Client" : "Message Host"}
                                         onClick={() => onChat?.(reservation?.id ?? "")}
                                         disabled={bookingStatus != 1}
-                                        classNames={`text-md font-semibold rounded-r-full border-black ${bookingStatus == 1
-                                            ? "bg-gray-700 text-white"
-                                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                        classNames={`text-md font-semibold rounded-r-full border-foreground ${bookingStatus == 1
+                                            ? "bg-foreground/80 text-background"
+                                            : "bg-muted text-muted-foreground cursor-not-allowed"
                                             }`}
                                     />
                                 </div>
@@ -196,7 +191,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                     label="Cancel Reservation"
                                     onClick={handleCancel}
                                     rounded
-                                    classNames="text-md font-semibold bg-white border-destructive! text-destructive!"
+                                    classNames="text-md font-semibold bg-background border-destructive! text-destructive!"
                                 />
                             )}
 
@@ -206,7 +201,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                     label="Delete"
                                     onClick={() => onDelete(reservation?.id ?? "")}
                                     rounded
-                                    classNames="text-md font-semibold border-2 bg-white border-rose-500 text-rose-500"
+                                    classNames="text-md font-semibold border-2 bg-background border-rose-500 text-rose-500"
                                 />
                             )}
 
@@ -214,8 +209,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
                 </div>
             </motion.div>
             {showReceipt && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50">
-                    <div className="bg-white p-6 rounded-xl w-full max-w-xs md:max-w-md lg:max-w-lg">
+                <div className="fixed inset-0 bg-foreground bg-opacity-50 flex items-center justify-center px-4 z-50">
+                    <div className="bg-background p-6 rounded-xl w-full max-w-xs md:max-w-md lg:max-w-lg">
                         <div className="flex items-center mb-5">
                             <button
                                 className="hover:opacity-80 transition absolute"
@@ -269,8 +264,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
                         <div className="space-y-2">
                             <div className="flex justify-between">
-                                <span className="text-gray-700 font-medium">Reservation ID:</span>
-                                <span className="text-gray-900 font-bold">#{reservation?.bookingId}</span>
+                                <span className="text-muted-foreground font-medium">Reservation ID:</span>
+                                <span className="text-foreground font-bold">#{reservation?.bookingId}</span>
                             </div>
 
                             <div className="flex justify-between">
@@ -380,8 +375,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         </div>
 
                         <div className="flex justify-between mt-4 border-t pt-4">
-                            <span className="text-lg font-bold text-gray-700">Total:</span>
-                            <span className="text-lg font-bold text-gray-900">
+                            <span className="text-lg font-bold text-muted-foreground">Total:</span>
+                            <span className="text-lg font-bold text-foreground">
                                 ₹ {reservation?.totalPrice ?? 0}
                             </span>
                         </div>

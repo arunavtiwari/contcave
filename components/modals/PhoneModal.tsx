@@ -27,14 +27,14 @@ export default function PhoneModal({
     if (!isOpen) return null;
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/50 px-4"
             role="dialog"
             aria-modal="true"
             aria-labelledby={`${sectionId}-phone-title`}
             onClick={() => !phoneSaving && onClose()}
         >
             <div
-                className="w-full max-w-md rounded-2xl bg-white  p-6"
+                className="w-full max-w-md rounded-2xl bg-background  p-6"
                 onClick={(e) => e.stopPropagation()}
             >
                 <h3 id={`${sectionId}-phone-title`} className="text-lg font-semibold mb-2">
@@ -53,7 +53,7 @@ export default function PhoneModal({
                         inputMode="numeric"
                         pattern="[0-9]*"
                         autoFocus
-                        className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
+                        className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-2 focus:ring-foreground/10"
                         placeholder="10-digit number"
                         value={phoneInput}
                         onChange={(e) => {
@@ -75,7 +75,7 @@ export default function PhoneModal({
                     </button>
                     <button
                         type="button"
-                        className={`px-4 py-2 rounded-lg text-white ${phoneSaving ? "bg-neutral-500" : "bg-black hover:opacity-90"}`}
+                        className={`px-4 py-2 rounded-lg text-background ${phoneSaving ? "bg-neutral-500" : "bg-foreground hover:opacity-90"}`}
                         onClick={onSubmit}
                         disabled={phoneSaving}
                     >

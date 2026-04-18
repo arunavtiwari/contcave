@@ -100,7 +100,7 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="bg-white p-6 rounded-xl border border-neutral-200 ">
+            <div className="bg-background p-6 rounded-xl border border-neutral-200 ">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
                     <div className="flex flex-col gap-4">
@@ -123,7 +123,7 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
                                     "No Objection Certificate (NOC)"
                                 ].map((item, i) => (
                                     <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
                                         {item}
                                     </li>
                                 ))}
@@ -161,7 +161,7 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
                         {documents.map((doc, index) => (
                             <div
                                 key={index}
-                                className="group relative flex items-center p-3 bg-white border border-neutral-200 rounded-xl hover:border-black/30 transition-colors "
+                                className="group relative flex items-center p-3 bg-background border border-neutral-200 rounded-xl hover:border-foreground/30 transition-colors "
                             >
                                 <div className="p-2.5 bg-rose-50 text-rose-500 rounded-lg mr-3 group-hover:bg-rose-100 transition-colors">
                                     <BsFileEarmarkPdf size={20} />

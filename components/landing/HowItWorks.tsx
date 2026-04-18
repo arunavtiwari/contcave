@@ -1,61 +1,21 @@
 "use client";
 import { motion } from "framer-motion";
-import { FiCheckCircle, FiEye, FiSearch } from "react-icons/fi";
-
+import { STEPS } from "@/constants/how-it-works";
 import Container from "@/components/Container";
 import Heading from "@/components/ui/Heading";
-
-/*
-  HowItWorks — replaces the old tabbed FeaturesTab component.
-  3-step horizontal flow (desktop) / vertical stack (mobile).
-  No tabs, no illustrations, no animation delays on content.
-*/
-
-const STEPS = [
-  {
-    Icon: FiSearch,
-    step: "01",
-    title: "Search",
-    body: "Filter by city and shoot type. Every listing has real photos, equipment details, and transparent pricing.",
-  },
-  {
-    Icon: FiEye,
-    step: "02",
-    title: "Compare",
-    body: "See studio layouts, gear lists, and availability. No surprises on shoot day.",
-  },
-  {
-    Icon: FiCheckCircle,
-    step: "03",
-    title: "Book",
-    body: "Confirm your slot instantly. Show up and shoot.",
-  },
-];
+import SectionHeader from "@/components/ui/SectionHeader";
 
 const HowItWorks = () => {
   return (
     <section className="py-section bg-background">
       <Container>
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="mb-10"
-        >
-          <p className="mb-3 text-xs font-semibold uppercase tracking-accent text-muted-foreground/60">
-            Simple by design
-          </p>
-          <Heading
-            title="How ContCave works"
-            variant="h2"
-            isLanding
-          />
-        </motion.div>
+        <SectionHeader
+          badge="Simple by design"
+          title="How ContCave Works"
+          isLanding
+        />
 
-        {/* Steps */}
-        <div className="grid grid-cols-1 gap-0 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {STEPS.map(({ Icon, step, title, body }, i) => (
             <motion.div
               key={step}
@@ -63,17 +23,12 @@ const HowItWorks = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               viewport={{ once: true }}
-              className={`relative flex flex-col gap-4 px-5 py-8 md:px-10 ${i < STEPS.length - 1
-                ? "border-b border-border/40 md:border-b-0 md:border-r md:border-border/40"
-                : ""
-                }`}
+              className="relative flex flex-col gap-6 rounded-3xl border border-border bg-background p-8 shadow-sm transition-all duration-300 hover:shadow-md hover:border-foreground/10"
             >
-              {/* Step number — top right, muted */}
-              <span className="absolute right-8 top-8 text-[11px] font-semibold tracking-accent text-muted-foreground/30">
+              <span className="absolute right-6 top-6 text-2xl font-bold tracking-accent text-muted-foreground/10">
                 {step}
               </span>
 
-              {/* Icon — spring-bounce on viewport entry */}
               <motion.div
                 initial={{ scale: 0.4, opacity: 0 }}
                 whileInView={{ scale: 1, opacity: 1 }}
@@ -84,27 +39,23 @@ const HowItWorks = () => {
                   delay: i * 0.1,
                 }}
                 viewport={{ once: true }}
-                className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+                className="flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background"
               >
-                <Icon size={18} />
+                <Icon size={20} />
               </motion.div>
 
-              <Heading
-                title={title}
-                variant="h4"
-                className="text-foreground"
-              />
-
-              {/* Body */}
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {body}
-              </p>
+              <div className="flex flex-col gap-2">
+                <Heading
+                  title={title}
+                  variant="h4"
+                />
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {body}
+                </p>
+              </div>
             </motion.div>
           ))}
         </div>
-
-        {/* Divider line below steps — desktop only */}
-        <div className="mt-0 hidden md:block border-t border-border/40" />
       </Container>
     </section>
   );

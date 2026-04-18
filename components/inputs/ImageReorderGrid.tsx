@@ -88,7 +88,7 @@ function SortablePhotoItem({ id, url, index, onRemove }: SortablePhotoItemProps)
                         // Prevent dnd-kit from starting drag when clicking remove
                         e.stopPropagation();
                     }}
-                    className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-20"
+                    className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-20"
                     aria-label="Remove media"
                 >
                     <IoMdClose size={18} />
@@ -101,7 +101,7 @@ function SortablePhotoItem({ id, url, index, onRemove }: SortablePhotoItemProps)
 // Separate Photo for DragOverlay so it doesn't try to register as a sortable node
 function DraggingPhotoOverlay({ url }: { url: string }) {
     return (
-        <div className="relative h-32 w-32 rounded-xl overflow-hidden border  opacity-80 cursor-grabbing bg-white">
+        <div className="relative h-32 w-32 rounded-xl overflow-hidden border  opacity-80 cursor-grabbing bg-background">
             {isVideo(url) ? (
                 <video
                     src={url}

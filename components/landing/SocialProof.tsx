@@ -1,10 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-
 import Container from "@/components/Container";
 import StarRating from "@/components/ui/StarRating";
-import Heading from "@/components/ui/Heading";
+import SectionHeader from "@/components/ui/SectionHeader";
 import { BsPatchCheckFill } from "react-icons/bs";
 import { reviews } from "@/constants/testimonials";
 
@@ -44,22 +43,11 @@ const SocialProof = () => {
   return (
     <section className="py-section bg-muted/30">
       <Container>
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="mb-8"
-        >
-          <p className="mb-3 text-xs font-semibold uppercase tracking-accent text-muted-foreground/60">
-            Real shoots · Real reviews
-          </p>
-          <Heading
-            title="Real shoots, real spaces."
-            variant="h2"
-            isLanding
-          />
-        </motion.div>
+        <SectionHeader
+          badge="Real shoots · Real reviews"
+          title="Real shoots, real spaces."
+          isLanding
+        />
 
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center">
           <div className="w-full lg:w-85 lg:shrink-0">
@@ -77,25 +65,17 @@ const SocialProof = () => {
                 disablePictureInPicture
                 className="absolute inset-0 h-full w-full object-cover"
               />
-              <div
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background: "linear-gradient(to bottom, rgba(0,0,0,0.42) 0%, transparent 28%, transparent 55%, rgba(0,0,0,0.78) 100%)",
-                }}
-              />
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-foreground/42 via-transparent to-foreground/78" />
               <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-between">
-                <span
-                  className="rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-accent text-white"
-                  style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(6px)" }}
-                >
+                <span className="rounded-full bg-foreground/50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-accent text-background backdrop-blur-md">
                   Real Shoots via ContCave
                 </span>
               </div>
               <div className="absolute bottom-0 left-0 right-0 z-10 p-5">
-                <p className="text-sm font-semibold leading-tight text-white">
+                <p className="text-sm font-semibold leading-tight text-background">
                   Creative Studio
                 </p>
-                <p className="mt-0.5 text-xs text-white/60">
+                <p className="mt-0.5 text-xs text-background/60">
                   Transport Nagar · Lucknow
                 </p>
               </div>

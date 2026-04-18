@@ -108,7 +108,7 @@ const ListingCard: React.FC<Props> = ({
               {images.map((_, idx) => (
                 <span
                   key={idx}
-                  className="transition-all duration-300 rounded-full bg-white "
+                  className="transition-all duration-300 rounded-full bg-background "
                   style={{
                     width: idx === currentIndex ? 16 : 6,
                     height: 6,
@@ -155,7 +155,7 @@ const ListingCard: React.FC<Props> = ({
             {onEdit && (
               <Link
                 href={`/properties/${data.id}`}
-                className="button rounded-full px-4 py-2 bg-black text-white font-semibold hover:bg-neutral-800 transition"
+                className="button rounded-full px-4 py-2 bg-foreground text-background font-semibold hover:bg-neutral-800 transition"
               >
                 Manage
               </Link>
@@ -165,12 +165,12 @@ const ListingCard: React.FC<Props> = ({
               <>
                 <Button
                   label="Approve"
-                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-white ml-2"
+                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-background ml-2"
                   onClick={() => onApprove(reservation?.id ?? "")}
                 />
                 <Button
                   label="Cancel"
-                  classNames="text-md font-semibold py-3 border-2 bg-rose-500 border-rose-500 text-white ml-2"
+                  classNames="text-md font-semibold py-3 border-2 bg-rose-500 border-rose-500 text-background ml-2"
                   onClick={() => onApprove(reservation?.id ?? "")}
                 />
               </>
@@ -180,12 +180,12 @@ const ListingCard: React.FC<Props> = ({
               <>
                 <Button
                   label="Approved"
-                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-white ml-2"
+                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-background ml-2"
                   onClick={() => reservation.isApproved}
                 />
                 <Button
                   label="Chat"
-                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-white ml-2"
+                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-background ml-2"
                   onClick={() => onChat(reservation?.id ?? "")}
                 />
               </>

@@ -97,7 +97,7 @@ export default function AutoComplete({
           value={query}
           disabled={disabled}
           data-testid="address-autocomplete"
-          className="w-full py-2.5 px-3 font-light bg-white border border-gray-300 focus:border-black transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
+          className="w-full py-2.5 px-3 font-light bg-background border border-gray-300 focus:border-foreground transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -143,7 +143,7 @@ export default function AutoComplete({
           value={query}
           placeholder={placeholder}
           disabled
-          className="w-full py-2.5 px-3 font-light bg-white border border-gray-300 rounded-[10px] opacity-70 cursor-not-allowed"
+          className="w-full py-2.5 px-3 font-light bg-background border border-gray-300 rounded-[10px] opacity-70 cursor-not-allowed"
           readOnly
         />
       </div>
@@ -170,7 +170,7 @@ export default function AutoComplete({
           placeholder={placeholder}
           value={query}
           disabled={disabled}
-          className="w-full py-2.5 px-3 font-light bg-white border border-gray-300 focus:border-black transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
+          className="w-full py-2.5 px-3 font-light bg-background border border-gray-300 focus:border-foreground transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
           onChange={(e) => setQuery(e.target.value)}
         />
       </StandaloneSearchBox>

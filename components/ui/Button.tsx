@@ -52,14 +52,14 @@ function Button({
 
   const widthClass = fit ? "w-fit" : (size === "sm" ? "w-auto" : "w-full");
 
-  const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 transition flex justify-center items-center gap-2 border hover:opacity-90 ${sizeClasses[size]} ${widthClass}`;
+  const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 transition flex justify-center items-center gap-2 border hover:opacity-90 ${sizeClasses[size]} ${widthClass}`;
   const roundedClass = rounded ? "rounded-full" : "rounded-xl";
 
   const variantClasses = {
     default: "bg-primary border-primary text-primary-foreground",
     outline: "bg-background border-border text-foreground",
-    success: "bg-success border-success text-white",
-    danger: "bg-danger border-danger text-white",
+    success: "bg-success border-success text-background",
+    danger: "bg-danger border-danger text-background",
     ghost: "bg-transparent border-transparent text-foreground",
     secondary: "bg-secondary border-secondary text-foreground",
   };

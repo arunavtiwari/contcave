@@ -300,7 +300,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                     <div className="max-w-[85%] md:max-w-sm">
                       <div
                         className={`p-2.5 rounded-full px-4 ${message.email === userEmail
-                          ? "bg-black text-white"
+                          ? "bg-foreground text-background"
                           : "border border-border bg-background text-foreground"
                           }`}
                       >
@@ -326,7 +326,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
               <input
                 type="text"
                 placeholder="Type a message..."
-                className="grow rounded-l-full border border-neutral-300 px-4 py-2 outline-none focus:border-black"
+                className="grow rounded-l-full border border-neutral-300 px-4 py-2 outline-none focus:border-foreground"
                 value={newMessage}
                 onChange={(event) => {
                   setNewMessage(event.target.value);
@@ -342,7 +342,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                 maxLength={MAX_MESSAGE_LENGTH}
               />
               <button
-                className="flex items-center justify-center rounded-r-full bg-black px-4 text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-400"
+                className="flex items-center justify-center rounded-r-full bg-foreground px-4 text-background transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-400"
                 onClick={() => {
                   void handleSend();
                 }}

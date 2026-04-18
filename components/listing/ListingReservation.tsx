@@ -469,7 +469,7 @@ export default function ListingReservation({
   }, [gstDetails, startPayment]);
 
   return (
-    <section className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+    <section className="bg-background rounded-xl border border-neutral-200 overflow-hidden">
       <div className="flex items-center justify-between p-4">
         <p
           className="flex gap-1 text-2xl font-semibold"
@@ -550,7 +550,7 @@ export default function ListingReservation({
         <button
           type="button"
           disabled={!ready}
-          className={`rounded-xl w-full text-white transition-opacity py-3 ${ready ? "bg-black hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
+          className={`rounded-xl w-full text-background transition-opacity py-3 ${ready ? "bg-foreground hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
           onClick={handleReserve}
         >
           {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
@@ -597,12 +597,12 @@ export default function ListingReservation({
           <p>Platform fee</p>
           <p>{INR.format(clampRound(platformFee || 0))}</p>
         </div>
-        <div className="flex justify-between pb-3 text-black">
+        <div className="flex justify-between pb-3 text-foreground">
           <p className="font-medium">GST (18%)</p>
           <p className="font-medium">{INR.format(gstAmount)}</p>
         </div>
         <hr />
-        <div className="flex justify-between pt-4 text-black">
+        <div className="flex justify-between pt-4 text-foreground">
           <p className="font-semibold">Total</p>
           <p className="font-semibold">{INR.format(finalTotal)}</p>
         </div>

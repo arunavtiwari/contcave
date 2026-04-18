@@ -36,11 +36,10 @@ const Hero = () => {
         style={{ height: "calc(100vh - 80px)", minHeight: 480 }}
       >
         <motion.div
-          className="absolute inset-0 z-50 pointer-events-none"
+          className="absolute inset-0 z-50 pointer-events-none bg-background"
           initial={{ opacity: 1 }}
           animate={{ opacity: [1, 1, 0] }}
           transition={{ duration: 0.65, times: [0, 0.45, 1], ease: "easeOut" }}
-          style={{ backgroundColor: "var(--color-background)" }}
         />
 
         <motion.div
@@ -61,13 +60,7 @@ const Hero = () => {
           </video>
         </motion.div>
 
-        <div
-          className="absolute inset-0 z-10"
-          style={{
-            background:
-              "linear-gradient(160deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.88) 100%)",
-          }}
-        />
+        <div className="absolute inset-0 z-10 bg-linear-to-br from-foreground/50 to-foreground/90" />
 
         <motion.div
           style={{ y: contentY }}
@@ -79,8 +72,7 @@ const Hero = () => {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.55 }}
-                className="mb-4 text-xs font-medium uppercase tracking-accent"
-                style={{ color: "rgba(255,255,255,0.55)" }}
+                className="mb-4 text-xs font-medium uppercase tracking-accent text-background/55"
               >
                 For Agencies, Brands and Creators
               </motion.p>
@@ -102,10 +94,9 @@ const Hero = () => {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.65, delay: 0.75 }}
-                className="mb-6"
+                className="mb-6 text-background/60"
                 style={{
                   fontSize: "clamp(0.9rem, 1.6vw, 1.1rem)",
-                  color: "rgba(255,255,255,0.6)",
                   letterSpacing: "0.01em",
                 }}
               >
@@ -121,21 +112,15 @@ const Hero = () => {
                 <button
                   type="button"
                   onClick={searchModal.onOpen}
-                  className="flex items-center gap-3 rounded-full transition hover:opacity-90"
-                  style={{
-                    backgroundColor: "#FFFFFF",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
-                    padding: "10px 10px 10px 20px",
-                  }}
+                  className="flex items-center gap-3 rounded-full transition hover:opacity-90 bg-background shadow-foreground/25 p-2.5 pl-5"
                 >
-                  <span className="text-sm font-medium text-gray-500">
+                  <span className="text-sm font-medium text-muted-foreground">
                     Search by city…
                   </span>
                   <span
-                    className="flex items-center justify-center rounded-full"
-                    style={{ backgroundColor: "var(--color-primary)", padding: "8px" }}
+                    className="flex items-center justify-center rounded-full bg-primary p-2"
                   >
-                    <BiSearch size={15} color="#FFFFFF" />
+                    <BiSearch size={15} className="text-background" />
                   </span>
                 </button>
 

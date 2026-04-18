@@ -99,7 +99,7 @@ function Modal({
   return (
     <div
       onClick={handleBackdropClick}
-      className={`fixed inset-0 z-999 flex items-center justify-center px-4 transition-all duration-300 ${nestedModal ? "bg-black/30" : "bg-black/60"
+      className={`fixed inset-0 z-999 flex items-center justify-center px-4 transition-all duration-300 ${nestedModal ? "bg-foreground/30" : "bg-foreground/60"
         } ${isOpen ? "opacity-100" : "opacity-0"} ${nestedModal ? "" : isLoading ? "backdrop-blur-md" : "backdrop-blur-sm"
         }`}
     >

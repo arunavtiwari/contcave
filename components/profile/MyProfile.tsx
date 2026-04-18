@@ -196,7 +196,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
                 <div className="lg:col-span-2 space-y-8">
 
-                    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                    <div className="bg-background rounded-2xl border border-gray-200 overflow-hidden">
 
                         <div
                             className="relative h-32 bg-center bg-no-repeat bg-cover"
@@ -204,7 +204,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                         >
                             <div className="absolute -bottom-16 left-8">
                                 <div className="relative">
-                                    <div className="w-32 h-32 rounded-full border-4 border-white  overflow-hidden bg-white">
+                                    <div className="w-32 h-32 rounded-full border-4 border-background  overflow-hidden bg-background">
                                         {editMode ? (
                                             <ImageUpload
                                                 onChange={(value) => {
@@ -227,7 +227,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         )}
                                     </div>
                                     {editMode && (
-                                        <button className="absolute bottom-2 right-2 bg-black text-white p-2 rounded-full  hover:bg-gray-800 transition-colors">
+                                        <button className="absolute bottom-2 right-2 bg-foreground text-background p-2 rounded-full  hover:bg-gray-800 transition-colors">
                                             <FaCamera className="w-4 h-4" />
                                         </button>
                                     )}
@@ -259,7 +259,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                             setEditMode(false);
                                         }}
                                         disabled={isSubmitting}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors bg-background border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                                     >
                                         Cancel
                                     </button>
@@ -268,7 +268,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                     onClick={() => editMode ? handleSubmit(onSubmit)() : setEditMode(true)}
                                     disabled={isSubmitting}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors ${editMode
-                                        ? 'bg-black text-white hover:bg-gray-800 disabled:bg-gray-800 disabled:opacity-80'
+                                        ? 'bg-foreground text-background hover:bg-gray-800 disabled:bg-gray-800 disabled:opacity-80'
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
                                 >
@@ -306,7 +306,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                     </div>
 
 
-                    <div className="bg-white rounded-2xl  border border-gray-200 p-8">
+                    <div className="bg-background rounded-2xl  border border-gray-200 p-8">
                         <h3 className="text-xl font-semibold text-gray-900 mb-6">Personal Details</h3>
 
                         <div className="space-y-6">
@@ -323,7 +323,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                                 key={title}
                                                 onClick={() => handleTitleChange(title)}
                                                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${userData.title === title
-                                                    ? 'bg-black text-white'
+                                                    ? 'bg-foreground text-background'
                                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                     }`}
                                             >
@@ -413,7 +413,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                                 onClick={() => handleLanguageToggle(language)}
                                                 disabled={!(userData.languages || []).includes(language) && (userData.languages || []).length >= 2}
                                                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${(userData.languages || []).includes(language)
-                                                    ? 'bg-black text-white'
+                                                    ? 'bg-foreground text-background'
                                                     : (userData.languages || []).length >= 2
                                                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -459,7 +459,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 </div>
                                 <button
                                     onClick={() => setShowOwnerModal(true)}
-                                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                    className="w-full bg-blue-600 text-background py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                                 >
                                     Register as Owner
                                 </button>
@@ -480,7 +480,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 </div>
                                 <button
                                     onClick={() => setShowVerificationModal(true)}
-                                    className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors"
+                                    className="w-full bg-orange-600 text-background py-3 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors"
                                 >
                                     Start Verification
                                 </button>
@@ -502,7 +502,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 <div className="space-y-3">
                                     <button
                                         onClick={onRent}
-                                        className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                                        className="w-full bg-foreground text-background py-3 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
                                     >
                                         <FaHome className="w-4 h-4" />
                                         List Your Space
@@ -534,10 +534,10 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
 
             {showLoadingOverlay && (
-                <div className="fixed inset-0 z-1000 bg-black/60 backdrop-blur-md flex items-center justify-center">
+                <div className="fixed inset-0 z-1000 bg-foreground/60 backdrop-blur-md flex items-center justify-center">
                     <div className="flex flex-col items-center justify-center gap-4">
-                        <FaSpinner className="w-12 h-12 text-white animate-spin" />
-                        <p className="text-xl font-semibold text-white">Starting Verification...</p>
+                        <FaSpinner className="w-12 h-12 text-background animate-spin" />
+                        <p className="text-xl font-semibold text-background">Starting Verification...</p>
                     </div>
                 </div>
             )

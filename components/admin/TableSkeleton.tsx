@@ -8,7 +8,7 @@ import Skeleton from "@/components/ui/Skeleton";
  */
 export default function TableSkeleton() {
     return (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-background rounded-xl border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead>

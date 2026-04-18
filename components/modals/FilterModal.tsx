@@ -1,6 +1,6 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense,useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import CitySelect from "@/components/inputs/CitySelect";
 import { spaceTypes } from "@/constants/spaceTypes";
@@ -81,7 +81,7 @@ const FilterModalContent = () => {
                 setSelectedType((prev) => (prev === spaceType ? null : spaceType))
               }
               className={`px-3 py-1 rounded-full border text-sm ${selectedType === spaceType
-                ? "bg-black text-white border-black"
+                ? "bg-foreground text-background border-foreground"
                 : "border-gray-300 hover:bg-gray-100"
                 }`}
             >

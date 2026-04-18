@@ -5,6 +5,7 @@ import React from "react";
 import { FaArrowUpRightDots } from "react-icons/fa6";
 
 import { MAIN_SIDEBAR_ITEMS, NavigationItem, PROFILE_SIDEBAR_ITEMS } from "@/constants/navigation";
+import Button from "@/components/ui/Button";
 
 interface SidebarProps {
     selectedMenu: string;
@@ -29,7 +30,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedM
     }, [setSelectedMenu]);
 
     return (
-        <div className="flex fixed flex-col sm:sticky top-22.5 sm:top-21.25 pr-4 pl-0 py-1.5 sm:py-10 min-w-62.5 bg-black/30 sm:bg-background h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
+        <div className="flex fixed flex-col sm:sticky top-22.5 sm:top-21.25 pr-4 pl-0 py-1.5 sm:py-10 min-w-62.5 bg-foreground/30 sm:bg-background h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
             <nav>
                 <ul className="flex sm:flex-col sm:gap-2 gap-2">
                     {itemsToDisplay.map((item, index) => (
@@ -49,30 +50,25 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ selectedMenu, setSelectedM
             {menuType === "main" && (
                 <>
                     <div className="mt-5">
-                        <Link
+                        <Button
+                            label="Check Bookings"
                             href="/reservations"
-                            className="px-4 py-2.5 gap-3 flex items-center bg-primary text-primary-foreground hover:opacity-90 rounded-full cursor-pointer group justify-center"
-                        >
-                            <span>
-                                <FaArrowUpRightDots size={22} />
-                            </span>
-                            <span>Check Bookings</span>
-                        </Link>
+                            variant="default"
+                            rounded
+                            icon={FaArrowUpRightDots}
+                        />
                     </div>
 
                     {listingId && (
                         <div className="mt-5">
-                            <Link
+                            <Button
+                                label="Preview"
                                 href={`/listings/${listingId}`}
                                 target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-4 py-2 gap-3 flex items-center border border-primary text-foreground rounded-full cursor-pointer group justify-center"
-                            >
-                                <span>
-                                    <FaArrowUpRightDots size={22} />
-                                </span>
-                                <span>Preview</span>
-                            </Link>
+                                variant="outline"
+                                rounded
+                                icon={FaArrowUpRightDots}
+                            />
                         </div>
                     )}
                 </>

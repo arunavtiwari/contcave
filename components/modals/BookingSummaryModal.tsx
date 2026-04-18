@@ -104,14 +104,14 @@ export default function BookingSummaryModal({
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-foreground/50 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby={`${sectionId}-booking-summary-title`}
       onClick={() => onCloseAction()}
     >
       <div
-        className="w-full max-w-lg rounded-2xl bg-white  p-6"
+        className="w-full max-w-lg rounded-2xl bg-background  p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h3
@@ -213,7 +213,7 @@ export default function BookingSummaryModal({
               <Link
                 href="/terms-and-conditions"
                 target="_blank"
-                className="text-black font-semibold underline hover:text-neutral-700 leading-none"
+                className="text-foreground font-semibold underline hover:text-neutral-700 leading-none"
               >
                 Terms & Conditions
               </Link>{" "}
@@ -221,7 +221,7 @@ export default function BookingSummaryModal({
               <Link
                 href="/privacy-policy"
                 target="_blank"
-                className="text-black font-semibold underline hover:text-neutral-700 leading-none"
+                className="text-foreground font-semibold underline hover:text-neutral-700 leading-none"
               >
                 Privacy Policy
               </Link>
@@ -242,8 +242,8 @@ export default function BookingSummaryModal({
           </button>
           <button
             type="button"
-            className={`px-4 py-2 rounded-lg text-white ${agree
-              ? "bg-black hover:opacity-90"
+            className={`px-4 py-2 rounded-lg text-background ${agree
+              ? "bg-foreground hover:opacity-90"
               : "bg-gray-400 cursor-not-allowed"
               }`}
             onClick={handleConfirm}

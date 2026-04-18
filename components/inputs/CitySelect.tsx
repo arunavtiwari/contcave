@@ -52,7 +52,7 @@ function CitySelect({ value, onChange }: Props) {
           }),
           control: (base, state) => ({
             ...base,
-            borderColor: state.isFocused ? 'black' : base.borderColor,
+            borderColor: state.isFocused ? 'foreground' : base.borderColor,
           }),
         }}
         theme={(theme) => ({
@@ -60,7 +60,7 @@ function CitySelect({ value, onChange }: Props) {
           borderRadius: 10,
           colors: {
             ...theme.colors,
-            primary: "black",
+            primary: "foreground",
             primary25: "#F3F4F6",
             primary50: "#E5E7EB",
           },

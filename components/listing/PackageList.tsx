@@ -43,7 +43,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
             className={`
               relative border rounded-xl p-4 transition cursor-pointer
               ${selectedPackageId === pkg.id
-                ? "border-black bg-neutral-50 ring-1 ring-black"
+                ? "border-foreground bg-neutral-50 ring-1 ring-foreground"
                 : "border-neutral-200 hover:border-neutral-300"
               }
             `}
@@ -54,7 +54,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
                 className={`
                   w-6 h-6 rounded-full border-2 flex items-center justify-center transition shrink-0
                   ${selectedPackageId === pkg.id
-                    ? "border-black bg-black text-white"
+                    ? "border-foreground bg-foreground text-background"
                     : "border-neutral-300"
                   }
                 `}
@@ -89,7 +89,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
 
                     {(isMultiSets && pkg.requiredSetCount && pkg.requiredSetCount > 0) ? (
                       <>
-                        <span className="font-black text-xl leading-none text-neutral-300">•</span>
+                        <span className="font-foreground text-xl leading-none text-neutral-300">•</span>
                         <span className="text-neutral-600">
                           {pkg.requiredSetCount} sets included
                         </span>
@@ -98,7 +98,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
 
                     {(pkg.fixedAddOn || 0) > 0 && (
                       <>
-                        <span className="font-black text-xl leading-none text-neutral-300">•</span>
+                        <span className="font-foreground text-xl leading-none text-neutral-300">•</span>
                         <span className="text-green-600 font-medium">
                           + {INR.format(pkg.fixedAddOn || 0)} flat fee
                         </span>
@@ -114,7 +114,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
                       {INR.format(pkg.originalPrice || 0)}
                     </span>
                   )}
-                  <span className="font-semibold text-black text-lg">
+                  <span className="font-semibold text-foreground text-lg">
                     {INR.format(pkg.offeredPrice || 0)}
                   </span>
                 </div>

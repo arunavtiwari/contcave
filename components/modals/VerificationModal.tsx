@@ -481,7 +481,7 @@ const VerificationModal: React.FC<Props> = ({
               />
               <div className="mt-2 flex justify-between">
                 <span className="text-xs text-gray-500">Sent to linked mobile</span>
-                <button onClick={() => setAadhaarState(s => ({ ...s, refId: null, otp: "" }))} className="text-xs text-black font-semibold underline">Change Number</button>
+                <button onClick={() => setAadhaarState(s => ({ ...s, refId: null, otp: "" }))} className="text-xs text-foreground font-semibold underline">Change Number</button>
               </div>
             </div>
           )}
@@ -578,12 +578,12 @@ const VerificationModal: React.FC<Props> = ({
         const isComplete = step > s.id;
         const isActive = step === s.id;
         return (
-          <div key={s.id} className={`flex flex-col items-center bg-white px-2 ${isActive ? 'scale-110 transition-transform' : ''}`}>
+          <div key={s.id} className={`flex flex-col items-center bg-background px-2 ${isActive ? 'scale-110 transition-transform' : ''}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 
-                 ${isComplete ? "bg-green-600 border-green-600 text-white" : isActive ? "border-black bg-black text-white" : "border-gray-300 text-gray-400 bg-white"}`}>
+                 ${isComplete ? "bg-green-600 border-green-600 text-background" : isActive ? "border-foreground bg-foreground text-background" : "border-gray-300 text-gray-400 bg-background"}`}>
               {isComplete ? <FaCheckCircle /> : s.id}
             </div>
-            <span className={`text-xs mt-1 font-medium ${isActive ? "text-black" : "text-gray-400"}`}>{s.title}</span>
+            <span className={`text-xs mt-1 font-medium ${isActive ? "text-foreground" : "text-gray-400"}`}>{s.title}</span>
           </div>
         );
       })}

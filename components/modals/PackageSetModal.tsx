@@ -55,8 +55,8 @@ export default function PackageSetModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl  w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 backdrop-blur-sm p-4">
+            <div className="bg-background rounded-xl  w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
                 <div className="flex items-center justify-between p-4 border-b">
                     <h3 className="text-lg font-semibold">

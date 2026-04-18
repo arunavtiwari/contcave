@@ -39,7 +39,7 @@ export default function Loading() {
                                 <div className="bg-background rounded-2xl border border-border overflow-hidden">
                                     <Skeleton className="h-32 w-full relative rounded-none">
                                         <div className="absolute -bottom-16 left-8">
-                                            <Skeleton className="w-32 h-32 rounded-full border-4 border-white" />
+                                            <Skeleton className="w-32 h-32 rounded-full border-4 border-background" />
                                         </div>
                                     </Skeleton>
                                     <div className="pt-20 py-6 px-8">
@@ -52,7 +52,7 @@ export default function Loading() {
                                 </div>
 
                                 {/* Personal Details Card */}
-                                <div className="bg-white rounded-2xl  border border-gray-200 p-8">
+                                <div className="bg-background rounded-2xl  border border-gray-200 p-8">
                                     <Skeleton className="h-6 w-40 mb-6" />
                                     <div className="space-y-6">
                                         {[...Array(5)].map((_, i) => (

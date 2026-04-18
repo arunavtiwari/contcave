@@ -49,18 +49,18 @@ const staticTimeOptions: OptionType[] = TIME_SLOTS.map((t) => ({
 const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
     control: (provided, state) => ({
         ...provided,
-        backgroundColor: "white",
+        backgroundColor: "background",
         borderWidth: "1px",
-        borderColor: state.isFocused ? "black" : "#e5e5e5",
+        borderColor: state.isFocused ? "foreground" : "#e5e5e5",
         borderRadius: "0.5rem",
         padding: "0 4px",
-        boxShadow: state.isFocused ? "0 0 0 1px black" : "none",
+        boxShadow: state.isFocused ? "0 0 0 1px foreground" : "none",
         minHeight: "42px",
         height: "42px",
         fontSize: "0.875rem",
         transition: "all 0.2s ease",
         "&:hover": {
-            borderColor: state.isFocused ? "black" : "#a3a3a3",
+            borderColor: state.isFocused ? "foreground" : "#a3a3a3",
         },
     }),
     input: (provided) => ({
@@ -91,10 +91,10 @@ const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
         cursor: "pointer",
         fontSize: "0.875rem",
         padding: "10px 12px",
-        backgroundColor: state.isSelected ? "black" : state.isFocused ? "#f5f5f5" : "white",
-        color: state.isSelected ? "white" : "#171717",
+        backgroundColor: state.isSelected ? "foreground" : state.isFocused ? "#f5f5f5" : "background",
+        color: state.isSelected ? "background" : "#171717",
         ":active": {
-            backgroundColor: state.isSelected ? "black" : "#e5e5e5",
+            backgroundColor: state.isSelected ? "foreground" : "#e5e5e5",
         },
     }),
     menu: (provided) => ({

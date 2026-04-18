@@ -97,7 +97,7 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
           <button
             type="button"
             onClick={handleAddAmenity}
-            className="bg-black hover:opacity-90 text-white px-8 h-11 rounded-xl flex items-center justify-center font-medium transition"
+            className="bg-foreground hover:opacity-90 text-background px-8 h-11 rounded-xl flex items-center justify-center font-medium transition"
           >
             ADD
           </button>
@@ -109,7 +109,7 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
           {amenitiesList.map((amenity) => (
             <span
               key={amenity}
-              className="flex items-center gap-2 bg-black text-white text-xs px-4 py-1 rounded-full"
+              className="flex items-center gap-2 bg-foreground text-background text-xs px-4 py-1 rounded-full"
             >
               {amenity}
               <button type="button" onClick={() => handleRemoveAmenity(amenity)} className="text-lg">

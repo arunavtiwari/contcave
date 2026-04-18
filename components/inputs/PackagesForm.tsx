@@ -67,13 +67,13 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
       {packages.map((pkg, idx) => (
         <div
           key={idx}
-          className="border border-black rounded-xl p-6 relative flex flex-col gap-4 bg-white "
+          className="border border-foreground rounded-xl p-6 relative flex flex-col gap-4 bg-background "
         >
 
           <button
             type="button"
             onClick={() => removePackage(idx)}
-            className="absolute -top-3 -right-3 bg-white border border-black p-2 hover:bg-black hover:text-white transition z-10 rounded-md"
+            className="absolute -top-3 -right-3 bg-background border border-foreground p-2 hover:bg-foreground hover:text-background transition z-10 rounded-md"
             aria-label="Remove Package"
           >
             <Trash2 size={16} />
@@ -246,7 +246,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
       <button
         type="button"
         onClick={addPackage}
-        className="flex items-center gap-2 self-start px-5 py-3 border border-black text-black rounded-lg hover:bg-black hover:text-white transition"
+        className="flex items-center gap-2 self-start px-5 py-3 border border-foreground text-foreground rounded-lg hover:bg-foreground hover:text-background transition"
       >
         <Plus size={18} />
         Add Package

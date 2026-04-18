@@ -102,8 +102,8 @@ export default function SetSelector({
                         disabled={disabled && !isEntireStudioBooked}
                         className={`text-sm font-medium px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed
                             ${isEntireStudioBooked
-                                ? "bg-neutral-200 text-black hover:bg-neutral-300"
-                                : "bg-black text-white hover:bg-neutral-800"
+                                ? "bg-neutral-200 text-foreground hover:bg-neutral-300"
+                                : "bg-foreground text-background hover:bg-neutral-800"
                             }`}
                     >
                         {isEntireStudioBooked ? "Clear Selection" : "Book the Entire Studio"}
@@ -117,7 +117,7 @@ export default function SetSelector({
                     <button
                         onClick={() => swiperRef.current?.slidePrev()}
                         aria-label="Scroll left"
-                        className="absolute left-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-white rounded-full border border-neutral-300  hover: hover:scale-105 transition-all cursor-pointer"
+                        className="absolute left-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-background rounded-full border border-neutral-300  hover: hover:scale-105 transition-all cursor-pointer"
                     >
                         <HiOutlineChevronLeft className="text-neutral-700" size={16} />
                     </button>
@@ -128,7 +128,7 @@ export default function SetSelector({
                     <button
                         onClick={() => swiperRef.current?.slideNext()}
                         aria-label="Scroll right"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-white rounded-full border border-neutral-300  hover: hover:scale-105 transition-all cursor-pointer"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-background rounded-full border border-neutral-300  hover: hover:scale-105 transition-all cursor-pointer"
                     >
                         <HiOutlineChevronRight className="text-neutral-700" size={16} />
                     </button>
@@ -177,7 +177,7 @@ export default function SetSelector({
                                         onClick={() => !isDisabled && handleCardClick(set)}
                                         className={`
                                             relative w-full aspect-video rounded-xl overflow-hidden cursor-pointer group transition-all
-                                            ${isSelected ? "ring-2 ring-black ring-offset-2" : ""}
+                                            ${isSelected ? "ring-2 ring-foreground ring-offset-2" : ""}
                                             ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
                                         `}
                                     >
@@ -218,9 +218,9 @@ export default function SetSelector({
 
 
                                         <div className={`absolute inset-0 transition-all duration-300 flex items-center justify-center p-2 text-center
-                                            ${isSelected ? "bg-black/40" : "bg-black/0 group-hover:bg-black/40"}
+                                            ${isSelected ? "bg-foreground/40" : "bg-foreground/0 group-hover:bg-foreground/40"}
                                         `}>
-                                            <h4 className={`font-bold text-white text-lg drop- leading-tight transition-opacity duration-300
+                                            <h4 className={`font-bold text-background text-lg drop- leading-tight transition-opacity duration-300
                                                 ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
                                             `}>
                                                 {set.name}
@@ -237,8 +237,8 @@ export default function SetSelector({
                                         </div>
 
                                         {!isAvailable && (
-                                            <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-20">
-                                                <span className="text-xs font-bold text-red-600 bg-white/80 px-2 py-1 rounded-md ">
+                                            <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-center justify-center z-20">
+                                                <span className="text-xs font-bold text-red-600 bg-background/80 px-2 py-1 rounded-md ">
                                                     Unavailable
                                                 </span>
                                             </div>

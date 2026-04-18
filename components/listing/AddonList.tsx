@@ -67,7 +67,7 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
         </div>
 
         {qty === 0 ? (
-          <button onClick={add} className="bg-black text-white h-8 rounded-full">
+          <button onClick={add} className="bg-foreground text-background h-8 rounded-full">
             ADD
           </button>
         ) : (

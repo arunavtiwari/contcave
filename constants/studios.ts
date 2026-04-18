@@ -1,0 +1,32 @@
+export const studios = [
+    {
+        id: 1,
+        name: "Spacious Natural Light Studio",
+        city: "Delhi",
+        area: "Mayapuri",
+        price: "₹2000/hr",
+        tags: ["Product Shoot", "Cyclorama", "Natural Light"],
+        image: "/images/features/studio.png",
+        href: "/listings/spacious-natural-light-photo-film-studio",
+    },
+    {
+        id: 2,
+        name: "Luxury Creative Studio",
+        city: "Punjab",
+        area: "Mohali",
+        price: "₹2,500/hr",
+        tags: ["Podcast", "Product Shoot", "Lifestyle"],
+        image: "/images/features/book_studio.jpeg",
+        href: "/listings/luxury-creative-studio-in-mohali-with-styled-lifestyle-sets",
+    },
+    {
+        id: 3,
+        name: "Lifestyle Studio",
+        city: "Gurugram",
+        area: "Sector 18",
+        price: "₹2,000/hr",
+        tags: ["Fashion", "Lifestyle", "Product"],
+        image: "/images/features/collaborate.png",
+        href: "/home",
+    },
+];

@@ -240,7 +240,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
                                         })
                                         : 'N/A'}
                                 </p>
-                                <span className="shadow-sm font-black rounded-full">&bull;</span>
+                                <span className="shadow-sm font-foreground rounded-full">&bull;</span>
                                 <p>
                                     {modalData.start
                                         ? new Date(modalData.start).toLocaleTimeString([], {

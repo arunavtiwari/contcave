@@ -185,7 +185,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
             <div className="flex justify-between bg-gray-200 p-1.5 rounded-xl">
                 <button
                     type="button"
-                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-white " : "bg-transparent"
+                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-background " : "bg-transparent"
                         }`}
                     onClick={() => setActiveSegment("start")}
                     disabled={noDatePicked}
@@ -197,7 +197,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                 </button>
                 <button
                     type="button"
-                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "end" ? "bg-white " : "bg-transparent"
+                    className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "end" ? "bg-background " : "bg-transparent"
                         }`}
                     onClick={() => setActiveSegment("end")}
                     disabled={noDatePicked}
@@ -236,10 +236,10 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                                     onClick={() => handleClick(label)}
                                     disabled={disabled}
                                     className={`rounded-xl px-4 py-2 text-sm border transition-colors ${selected
-                                        ? "border-black bg-black text-white"
+                                        ? "border-foreground bg-foreground text-background"
                                         : disabled
                                             ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed"
-                                            : "border-neutral-300 bg-transparent hover:border-black"
+                                            : "border-neutral-300 bg-transparent hover:border-foreground"
                                         }`}
                                 >
                                     {label}

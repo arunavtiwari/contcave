@@ -769,7 +769,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         alt="Google Calendar"
                                         width={30}
                                         height={30}
-                                        className="bg-white rounded-lg"
+                                        className="bg-background rounded-lg"
                                     />
                                     Sync Google Calendar
                                 </button>
@@ -813,7 +813,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     onClick={() => setIsDeleteModalOpen(true)}
                                     outline
                                     rounded
-                                    classNames="px-6 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                                    classNames="px-6 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-background"
                                 />
                             </div>
                         </div>

@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 
+import SectionHeader from "@/components/ui/SectionHeader";
 import Container from "@/components/Container";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
@@ -43,7 +44,6 @@ const FAQ = () => {
         <Container>
           <div className="flex flex-wrap gap-8 md:flex-nowrap xl:gap-32">
 
-            {/* Left */}
             <motion.div
               variants={{
                 hidden: { opacity: 0, x: -20 },
@@ -55,15 +55,8 @@ const FAQ = () => {
               viewport={{ once: true }}
               className="animate_left md:w-2/5 lg:w-1/2"
             >
-
-
-              <p
-                className="text-xs font-semibold tracking-accent uppercase mb-3 mt-10 text-foreground"
-              >
-                Common questions
-              </p>
-
-              <Heading
+              <SectionHeader
+                badge="Common questions"
                 title={
                   <>
                     Everything you{" "}
@@ -72,15 +65,11 @@ const FAQ = () => {
                     </span>
                   </>
                 }
-                variant="h2"
+                description="About booking a studio, listing your space, or how ContCave works."
                 isLanding
-                className="mb-4 xl:text-5xl"
+                className="mt-10 mb-6"
+                badgeClassName="text-foreground"
               />
-
-              <p className="text-base text-muted-foreground leading-relaxed mb-6">
-                About booking a studio, listing your space, or how ContCave works.
-              </p>
-
 
               <Button
                 label="Still have questions? Message us"
@@ -107,7 +96,6 @@ const FAQ = () => {
               />
             </motion.div>
 
-            {/* Right — FAQ accordion */}
             <motion.div
               variants={{
                 hidden: { opacity: 0, x: 20 },

@@ -26,12 +26,10 @@ const Blog = () => {
             <Container>
                 <div className="animate_top mx-auto text-center">
                     <SectionHeader
-                        headerInfo={{
-                            title: "LATEST UPDATES & INSIGHTS",
-                            subtitle: "Keeping up with ContCave",
-                            description:
-                                "Explore featured listings, FAQs, and behind-the-scenes stories. Dive into our expert insights to fuel your creativity and stay ahead in the ever-evolving world of visual storytelling.",
-                        }}
+                        badge="LATEST UPDATES & INSIGHTS"
+                        title="Keeping up with ContCave"
+                        description="Explore featured listings, FAQs, and behind-the-scenes stories. Dive into our expert insights to fuel your creativity and stay ahead in the ever-evolving world of visual storytelling."
+                        center
                     />
                 </div>
             </Container>

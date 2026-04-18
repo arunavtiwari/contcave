@@ -141,7 +141,7 @@ export default function SetsEditor({
                     {sets.map((set, index) => (
                         <div
                             key={set.id || set.tempId || `new-${index}`}
-                            className="border border-neutral-200 rounded-xl overflow-hidden bg-white"
+                            className="border border-neutral-200 rounded-xl overflow-hidden bg-background"
                         >
                             <div
                                 className="flex items-center justify-between p-4 cursor-pointer hover:bg-neutral-50 transition"
@@ -254,7 +254,7 @@ export default function SetsEditor({
                                                         type="button"
                                                         onClick={() => removeImage(index, imgIndex)}
                                                         disabled={disabled}
-                                                        className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition"
+                                                        className="absolute top-1 right-1 p-1 bg-foreground/50 text-background rounded-full opacity-0 group-hover:opacity-100 transition"
                                                     >
                                                         <IoClose size={14} />
                                                     </button>

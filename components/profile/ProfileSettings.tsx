@@ -84,7 +84,7 @@ const ProfileSettings = ({ profile }: Props) => {
           </p>
 
           {profile?.markedForDeletion && (
-            <div className="mt-3 rounded-lg border border-dashed border-red-400 bg-white p-3 text-sm text-red-700">
+            <div className="mt-3 rounded-lg border border-dashed border-red-400 bg-background p-3 text-sm text-red-700">
               Account deletion requested
               {markedForDeletionAt ? (
                 <>

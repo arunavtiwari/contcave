@@ -68,8 +68,8 @@ export default function BlogPage() {
     <main className="max-w mx-auto px-4 py-8">
       <div className="banner mb-8 relative h-64 w-full">
         <Image src="/assets/banner.jpg" fill alt="ContCave Blog — Studio Booking Insights and Tips" className="object-cover" />
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-          <h1 className="text-white text-4xl font-bold">Blogs</h1>
+        <div className="absolute inset-0 bg-foreground/40 flex items-center justify-center">
+          <h1 className="text-background text-4xl font-bold">Blogs</h1>
         </div>
       </div>
 
@@ -100,8 +100,8 @@ export default function BlogPage() {
                         className="object-cover"
                       />
                     )}
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4">
-                      <h2 className="text-white text-lg font-bold text-center">
+                    <div className="absolute inset-0 bg-foreground/50 flex items-center justify-center p-4">
+                      <h2 className="text-background text-lg font-bold text-center">
                         {post.title}
                       </h2>
                     </div>

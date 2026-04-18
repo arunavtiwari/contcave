@@ -63,7 +63,7 @@ const AdminSidebar: React.FC = React.memo(() => {
             <div className="px-3 py-4 border-t border-border">
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-white/5 hover:text-white transition-all cursor-pointer"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-background/5 hover:text-background transition-all cursor-pointer"
                 >
                     <HiOutlineLogout size={18} />
                     <span className="hidden sm:block">Logout</span>

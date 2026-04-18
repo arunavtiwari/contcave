@@ -49,12 +49,12 @@ function LoadInitialValue({ value }: { value?: string }) {
     editor.update(() => {
       const root = $getRoot();
       root.clear();
-    
+
       const parser = new DOMParser();
       const dom = parser.parseFromString(value, "text/html");
-    
+
       const nodes = $generateNodesFromDOM(editor, dom);
-    
+
       nodes.forEach((node) => {
         if (node.getType() === "paragraph") {
           root.append(node);
@@ -80,12 +80,11 @@ export default function RichTextEditor({
 }: Props) {
   return (
     <LexicalComposer initialConfig={editorConfig}>
-      <div className="relative border rounded-xl bg-white">
+      <div className="relative border rounded-xl bg-background">
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className={`min-h-40 p-4 outline-none text-base ${
-              disabled ? "pointer-events-none opacity-60" : ""
-            }`} />
+            <ContentEditable className={`min-h-40 p-4 outline-none text-base ${disabled ? "pointer-events-none opacity-60" : ""
+              }`} />
           }
           placeholder={
             <div className="pointer-events-none absolute top-4 left-4 text-neutral-400 text-sm">

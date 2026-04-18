@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import { IoWarningOutline } from "react-icons/io5";
 
 import Modal from "./Modal";
@@ -46,14 +46,14 @@ export default function DeletePropertyModal({
                 <label className="text-[13px] font-semibold text-gray-700 block mb-2 uppercase tracking-wide">
                     To verify, type the property name:
                 </label>
-                <div className="font-mono text-sm block text-black p-3 mb-3 bg-gray-50 rounded-lg select-all border border-gray-200">
+                <div className="font-mono text-sm block text-foreground p-3 mb-3 bg-gray-50 rounded-lg select-all border border-gray-200">
                     {propertyName}
                 </div>
                 <input
                     type="text"
                     value={confirmName}
                     onChange={(e) => setConfirmName(e.target.value)}
-                    className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 transition outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                    className="w-full rounded-xl border border-neutral-300 bg-background px-4 py-3 text-sm text-neutral-900 transition outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
                     placeholder="Enter property name..."
                     disabled={isLoading}
                 />
@@ -66,14 +66,14 @@ export default function DeletePropertyModal({
             <button
                 onClick={onClose}
                 disabled={isLoading}
-                className="w-1/2 py-3 px-4 rounded-xl border border-neutral-300 bg-white text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 font-medium text-sm"
+                className="w-1/2 py-3 px-4 rounded-xl border border-neutral-300 bg-background text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 font-medium text-sm"
             >
                 Cancel
             </button>
             <button
                 onClick={onConfirm}
                 disabled={!isMatch || isLoading}
-                className="w-1/2 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm "
+                className="w-1/2 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-background transition disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm "
             >
                 {isLoading ? "Deleting..." : "Delete Property"}
             </button>

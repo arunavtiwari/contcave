@@ -675,7 +675,7 @@ export default function RentModal() {
                     />
                     <button
                       onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
+                      className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
                       aria-label="Remove image"
                     >
                       <IoMdClose size={18} />
@@ -801,7 +801,7 @@ export default function RentModal() {
               <div className="flex gap-4">
                 <label
                   className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "FIXED"
-                    ? "border-black bg-neutral-50 ring-1 ring-black"
+                    ? "border-foreground bg-neutral-50 ring-1 ring-foreground"
                     : "border-neutral-200 hover:border-neutral-300"
                     }`}
                 >
@@ -818,7 +818,7 @@ export default function RentModal() {
                 </label>
                 <label
                   className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "HOURLY"
-                    ? "border-black bg-neutral-50 ring-1 ring-black"
+                    ? "border-foreground bg-neutral-50 ring-1 ring-foreground"
                     : "border-neutral-200 hover:border-neutral-300"
                     }`}
                 >
@@ -840,7 +840,7 @@ export default function RentModal() {
               <div className="flex gap-4">
                 <label
                   className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
-                    ? "border-black bg-neutral-50 ring-1 ring-black"
+                    ? "border-foreground bg-neutral-50 ring-1 ring-foreground"
                     : "border-neutral-200 hover:border-neutral-300"
                     }`}
                 >
@@ -855,7 +855,7 @@ export default function RentModal() {
                 </label>
                 <label
                   className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === false
-                    ? "border-black bg-neutral-50 ring-1 ring-black"
+                    ? "border-foreground bg-neutral-50 ring-1 ring-foreground"
                     : "border-neutral-200 hover:border-neutral-300"
                     }`}
                 >
@@ -1300,7 +1300,7 @@ export default function RentModal() {
               <span>Step {currentStepIndex + 1} of {activeSteps.length}</span>
               <div className="flex-1 mx-2 bg-neutral-200 rounded-full h-2">
                 <div
-                  className="bg-black h-2 rounded-full transition-all"
+                  className="bg-foreground h-2 rounded-full transition-all"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -1316,11 +1316,11 @@ export default function RentModal() {
 
       {/* Creating Listing Spinner Overlay */}
       {isSubmitting && (
-        <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl  ring-1 ring-black/5 px-10 py-12 flex flex-col items-center gap-6 max-w-sm w-full mx-4 animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-1000 flex items-center justify-center bg-foreground/60 backdrop-blur-sm">
+          <div className="bg-background rounded-2xl  ring-1 ring-foreground/5 px-10 py-12 flex flex-col items-center gap-6 max-w-sm w-full mx-4 animate-in fade-in zoom-in duration-300">
             <div className="relative w-16 h-16">
               <div className="absolute inset-0 rounded-full border-4 border-neutral-200" />
-              <div className="absolute inset-0 rounded-full border-4 border-t-black animate-spin" />
+              <div className="absolute inset-0 rounded-full border-4 border-t-foreground animate-spin" />
             </div>
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-900">Creating your listing</h3>

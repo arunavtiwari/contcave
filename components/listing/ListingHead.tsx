@@ -120,11 +120,11 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
       </Swiper>
 
       {/* Custom Navigation */}
-      <div className="swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full  border border-[rgba(255,255,255,0.5)] hover:bg-[rgba(0,0,0,0.8)] transition opacity-0 group-hover:opacity-100">
-        <HiOutlineChevronLeft className="text-white" size={24} />
+      <div className="swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100">
+        <HiOutlineChevronLeft className="text-background" size={24} />
       </div>
-      <div className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(0,0,0,0.6)] backdrop-blur-2xl p-2 rounded-full  border border-[rgba(255,255,255,0.5)] hover:bg-[rgba(0,0,0,0.8)] transition opacity-0 group-hover:opacity-100">
-        <HiOutlineChevronRight className="text-white" size={24} />
+      <div className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100">
+        <HiOutlineChevronRight className="text-background" size={24} />
       </div>
     </div>
   );
@@ -172,7 +172,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
                     onClick={() => handleImageClick(4)}
                   />
                   <button
-                    className="absolute bottom-3 right-3 bg-white text-black px-4 py-1.5 rounded-lg  hover:bg-neutral-200 transition font-medium text-base"
+                    className="absolute bottom-3 right-3 bg-background text-foreground px-4 py-1.5 rounded-lg  hover:bg-neutral-200 transition font-medium text-base"
                     onClick={handleShowAllPhotos}
                   >
                     Show all photos
@@ -200,10 +200,10 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
       />
 
       {isLightboxOpen && (
-        <div className="fixed inset-0 z-9999 bg-black flex flex-col items-center justify-center">
+        <div className="fixed inset-0 z-9999 bg-foreground flex flex-col items-center justify-center">
           <button
             onClick={() => setIsLightboxOpen(false)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 z-50 p-2 bg-black/50 rounded-full transition"
+            className="absolute top-4 right-4 text-background hover:text-gray-300 z-50 p-2 bg-foreground/50 rounded-full transition"
           >
             <IoMdClose size={24} />
           </button>
@@ -240,11 +240,11 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
             </div>
 
             {/* Lighbox Custom Navigation */}
-            <div className="swiper-lb-prev absolute top-1/2 left-4 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] backdrop-blur-xl p-3 rounded-full transition opacity-0 group-hover:opacity-100">
-              <HiOutlineChevronLeft className="text-white" size={32} />
+            <div className="swiper-lb-prev absolute top-1/2 left-4 transform -translate-y-1/2 z-10 cursor-pointer bg-background/10 hover:bg-background/20 backdrop-blur-xl p-3 rounded-full transition opacity-0 group-hover:opacity-100">
+              <HiOutlineChevronLeft className="text-background" size={32} />
             </div>
-            <div className="swiper-lb-next absolute top-1/2 right-4 transform -translate-y-1/2 z-10 cursor-pointer bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] backdrop-blur-xl p-3 rounded-full transition opacity-0 group-hover:opacity-100">
-              <HiOutlineChevronRight className="text-white" size={32} />
+            <div className="swiper-lb-next absolute top-1/2 right-4 transform -translate-y-1/2 z-10 cursor-pointer bg-background/10 hover:bg-background/20 backdrop-blur-xl p-3 rounded-full transition opacity-0 group-hover:opacity-100">
+              <HiOutlineChevronRight className="text-background" size={32} />
             </div>
           </div>
         </div>

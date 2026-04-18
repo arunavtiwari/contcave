@@ -37,11 +37,11 @@ export default function ListingHeadSkeleton() {
                 <div className="relative group">
                     <Skeleton className="w-full h-[60vh] rounded-xl" />
 
-                    <div className="absolute top-1/2 left-3 transform -translate-y-1/2 z-10 bg-black/60 p-2 rounded-full border border-white/50">
-                        <HiOutlineChevronLeft className="text-white opacity-50" size={24} />
+                    <div className="absolute top-1/2 left-3 transform -translate-y-1/2 z-10 bg-foreground/60 p-2 rounded-full border border-background/50">
+                        <HiOutlineChevronLeft className="text-background opacity-50" size={24} />
                     </div>
-                    <div className="absolute top-1/2 right-3 transform -translate-y-1/2 z-10 bg-black/60 p-2 rounded-full border border-white/50">
-                        <HiOutlineChevronRight className="text-white opacity-50" size={24} />
+                    <div className="absolute top-1/2 right-3 transform -translate-y-1/2 z-10 bg-foreground/60 p-2 rounded-full border border-background/50">
+                        <HiOutlineChevronRight className="text-background opacity-50" size={24} />
                     </div>
                 </div>
             </div>

@@ -69,14 +69,14 @@ const FieldInput = React.memo<{
                         w-full
                         rounded-xl
                         border
-                        bg-white
+                        bg-background
                         px-4
                         font-light
                         outline-none
                         transition
                         disabled:cursor-not-allowed
                         disabled:opacity-70
-                        ${error ? "border-rose-500 focus:border-rose-500" : "border-neutral-200 focus:border-black"}
+                        ${error ? "border-rose-500 focus:border-rose-500" : "border-neutral-200 focus:border-foreground"}
                     `}
                     aria-describedby={error ? `${field.name}-error` : undefined}
                 />

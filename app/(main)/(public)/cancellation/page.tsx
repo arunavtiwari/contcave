@@ -60,8 +60,8 @@ const CancellationPolicy = () => {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-white text-center px-4">
+        <div className="absolute inset-0 bg-foreground/40 flex items-center justify-center">
+          <h1 className="text-3xl md:text-5xl font-bold text-background text-center px-4">
             Cancellation Policy
           </h1>
         </div>

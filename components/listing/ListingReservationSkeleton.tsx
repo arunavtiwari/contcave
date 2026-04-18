@@ -2,7 +2,7 @@ import Skeleton from "@/components/ui/Skeleton";
 
 export default function ListingReservationSkeleton() {
     return (
-        <div className="bg-white rounded-xl border border-neutral-200 p-6  w-full flex flex-col gap-6 sticky top-24">
+        <div className="bg-background rounded-xl border border-neutral-200 p-6  w-full flex flex-col gap-6 sticky top-24">
             <div className="flex items-center gap-2">
                 <Skeleton className="h-8 w-1/3" />
                 <Skeleton className="h-6 w-1/4" />

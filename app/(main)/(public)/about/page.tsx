@@ -75,7 +75,7 @@ const About = async () => {
           <div className="py-20 space-y-24">
 
             <section className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-black mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                 Our Story
               </h2>
               <p className="text-gray-700 text-lg leading-relaxed">
@@ -93,13 +93,13 @@ const About = async () => {
 
 
             <section>
-              <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-14">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-14">
                 What We Stand For
               </h2>
               <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-                <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center  hover: transition">
-                  <Building2 className="mx-auto mb-4 w-10 h-10 text-black" />
-                  <h3 className="text-xl font-semibold mb-3 text-black">
+                <div className="bg-background border border-gray-200 rounded-2xl p-8 text-center  hover: transition">
+                  <Building2 className="mx-auto mb-4 w-10 h-10 text-foreground" />
+                  <h3 className="text-xl font-semibold mb-3 text-foreground">
                     Space Utilisation
                   </h3>
                   <p className="text-gray-600">
@@ -108,9 +108,9 @@ const About = async () => {
                   </p>
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center  hover: transition">
-                  <Heart className="mx-auto mb-4 w-10 h-10 text-black" />
-                  <h3 className="text-xl font-semibold mb-3 text-black">
+                <div className="bg-background border border-gray-200 rounded-2xl p-8 text-center  hover: transition">
+                  <Heart className="mx-auto mb-4 w-10 h-10 text-foreground" />
+                  <h3 className="text-xl font-semibold mb-3 text-foreground">
                     Sustaining Human Creativity
                   </h3>
                   <p className="text-gray-600">
@@ -119,9 +119,9 @@ const About = async () => {
                   </p>
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center  hover: transition">
-                  <Users className="mx-auto mb-4 w-10 h-10 text-black" />
-                  <h3 className="text-xl font-semibold mb-3 text-black">
+                <div className="bg-background border border-gray-200 rounded-2xl p-8 text-center  hover: transition">
+                  <Users className="mx-auto mb-4 w-10 h-10 text-foreground" />
+                  <h3 className="text-xl font-semibold mb-3 text-foreground">
                     Community First
                   </h3>
                   <p className="text-gray-600">
@@ -134,13 +134,13 @@ const About = async () => {
 
 
             <section>
-              <h2 className="text-3xl md:text-4xl font-bold text-black text-center mb-14">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-14">
                 Our Vision
               </h2>
               <div className="relative border-l-2 border-gray-300 max-w-3xl mx-auto">
                 <div className="mb-12 ml-8">
-                  <span className="absolute -left-3 w-6 h-6 bg-black rounded-full"></span>
-                  <h3 className="text-xl font-semibold text-black">
+                  <span className="absolute -left-3 w-6 h-6 bg-foreground rounded-full"></span>
+                  <h3 className="text-xl font-semibold text-foreground">
                     2024 – The Spark
                   </h3>
                   <p className="text-gray-600">
@@ -149,8 +149,8 @@ const About = async () => {
                   </p>
                 </div>
                 <div className="mb-12 ml-8">
-                  <span className="absolute -left-3 w-6 h-6 bg-black rounded-full"></span>
-                  <h3 className="text-xl font-semibold text-black">
+                  <span className="absolute -left-3 w-6 h-6 bg-foreground rounded-full"></span>
+                  <h3 className="text-xl font-semibold text-foreground">
                     2025 – The Launch
                   </h3>
                   <p className="text-gray-600">
@@ -159,8 +159,8 @@ const About = async () => {
                   </p>
                 </div>
                 <div className="ml-8">
-                  <span className="absolute -left-3 w-6 h-6 bg-black rounded-full"></span>
-                  <h3 className="text-xl font-semibold text-black">
+                  <span className="absolute -left-3 w-6 h-6 bg-foreground rounded-full"></span>
+                  <h3 className="text-xl font-semibold text-foreground">
                     What&apos;s ahead of us?
                   </h3>
                   <p className="text-gray-600">
@@ -183,7 +183,7 @@ const About = async () => {
               <a
                 href="https://docs.google.com/forms/d/e/1FAIpQLSdYngGwgLaHCYcejKqCvwsdhxykFbr2UxxCHdXusQrXDaubWA/viewform"
                 target="_blank"
-                className="inline-block bg-primary text-white px-10 py-4 rounded-xl text-lg font-bold hover:opacity-90 transition tracking-accent"
+                className="inline-block bg-primary text-background px-10 py-4 rounded-xl text-lg font-bold hover:opacity-90 transition tracking-accent"
               >
                 Get Involved
               </a>

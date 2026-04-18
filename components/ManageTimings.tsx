@@ -116,7 +116,7 @@ export default function CalendarComponent({
     }
 
     return (
-        <div className="flex items-center p-6 gap-30 bg-white justify-center">
+        <div className="flex items-center p-6 gap-30 bg-background justify-center">
             <div className="border border-neutral-300  rounded-lg w-fit">
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DateCalendar
@@ -127,9 +127,9 @@ export default function CalendarComponent({
                             return !isDayEnabled(date);
                         }}
                         sx={{
-                            ".Mui-selected": { color: "white", backgroundColor: "black!important" },
-                            ".Mui-selected:hover": { color: "white", backgroundColor: "black!important" },
-                            ".Mui-selected:focus, .Mui-selected:focus-visible": { color: "white", backgroundColor: "black!important", outline: "none" },
+                            ".Mui-selected": { color: "background", backgroundColor: "foreground!important" },
+                            ".Mui-selected:hover": { color: "background", backgroundColor: "foreground!important" },
+                            ".Mui-selected:focus, .Mui-selected:focus-visible": { color: "background", backgroundColor: "foreground!important", outline: "none" },
                         }}
                     />
                 </LocalizationProvider>
@@ -147,7 +147,7 @@ export default function CalendarComponent({
                 </div>
 
                 <div className="flex flex-col w-full">
-                    <span className="text-black text-lg font-semibold">Edit Timings</span>
+                    <span className="text-foreground text-lg font-semibold">Edit Timings</span>
                     {loading ? (
                         <div className="flex space-x-4 mt-2">
                             <div className="flex flex-col w-1/2 gap-2">
@@ -162,28 +162,28 @@ export default function CalendarComponent({
                     ) : (
                         <div className="flex space-x-4 mt-2">
                             <div className="flex flex-col w-1/2 gap-2">
-                                <label className="text-black">Start Time</label>
+                                <label className="text-foreground">Start Time</label>
                                 <input
                                     type="time"
                                     value={startTime}
                                     onChange={(e) => setStartTime(e.target.value)}
-                                    className="border border-black rounded-full px-4 py-2 text-sm font-medium text-black focus:border-black focus:ring-1 focus:ring-black hover:border-black appearance-none"
+                                    className="border border-foreground rounded-full px-4 py-2 text-sm font-medium text-foreground focus:border-foreground focus:ring-1 focus:ring-foreground hover:border-foreground appearance-none"
                                 />
                             </div>
                             <div className="flex flex-col w-1/2 gap-2">
-                                <label className="text-black">End Time</label>
+                                <label className="text-foreground">End Time</label>
                                 <input
                                     type="time"
                                     value={endTime}
                                     onChange={(e) => setEndTime(e.target.value)}
-                                    className="border border-black rounded-full px-4 py-2 text-sm font-medium text-black focus:border-black focus:ring-1 focus:ring-black hover:border-black appearance-none"
+                                    className="border border-foreground rounded-full px-4 py-2 text-sm font-medium text-foreground focus:border-foreground focus:ring-1 focus:ring-foreground hover:border-foreground appearance-none"
                                 />
                             </div>
                         </div>
                     )}
                 </div>
 
-                <button onClick={handleSave} className="w-full bg-black text-white py-3 rounded-full text-sm font-medium hover:opacity-90">
+                <button onClick={handleSave} className="w-full bg-foreground text-background py-3 rounded-full text-sm font-medium hover:opacity-90">
                     SAVE
                 </button>
             </div>
