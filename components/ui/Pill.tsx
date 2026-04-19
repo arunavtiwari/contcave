@@ -37,7 +37,7 @@ const Pill: React.FC<PillProps> = ({
     const variantClasses = {
         subtle: {
             default: "bg-foreground/10 text-foreground",
-            secondary: "bg-foreground/5 text-foreground/80",
+            secondary: "bg-foreground/4 text-foreground/80",
             destructive: "bg-destructive/10 text-destructive",
             success: "bg-success/10 text-success",
             warning: "bg-warning/10 text-warning",

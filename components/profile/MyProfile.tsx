@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
-    FaCamera,
     FaCheck,
     FaCreditCard,
     FaEdit,
@@ -15,7 +14,6 @@ import {
     FaMapMarkerAlt,
     FaPhone,
     FaSave,
-    FaShieldAlt,
     FaSpinner,
     FaUser
 } from "react-icons/fa";
@@ -182,19 +180,6 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
     return (
         <div className="flex flex-col w-full gap-5">
-
-            <div className="flex items-center justify-between">
-                <Heading title="My Profile" subtitle="Manage your personal information and preferences" />
-                {isVerified && (
-                    <Pill
-                        label="Verified"
-                        icon={FaShieldAlt}
-                        color="success"
-                        variant="subtle"
-                    />
-                )}
-            </div>
-
             <div className="grid lg:grid-cols-3 gap-8">
 
                 <div className="lg:col-span-2 space-y-8">
@@ -202,12 +187,12 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                     <div className="bg-background rounded-2xl border border-border overflow-hidden">
 
                         <div
-                            className="relative h-32 bg-center bg-no-repeat bg-cover"
+                            className="relative h-24 bg-center bg-no-repeat bg-cover"
                             style={{ backgroundImage: "url('/images/banner.svg')" }}
                         >
-                            <div className="absolute -bottom-16 left-8">
+                            <div className="absolute -bottom-12 left-8">
                                 <div className="relative">
-                                    <div className="w-32 h-32 rounded-full border-4 border-background  overflow-hidden bg-background">
+                                    <div className="w-24 h-24 rounded-full border-4 border-background  overflow-hidden bg-background">
                                         {editMode ? (
                                             <ImageUpload
                                                 onChange={(value) => {
@@ -229,30 +214,32 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                             />
                                         )}
                                     </div>
-                                    {editMode && (
-                                        <button className="absolute bottom-2 right-2 bg-foreground text-background p-2 rounded-full hover:bg-foreground/80 transition-colors shadow-lg">
-                                            <FaCamera className="w-4 h-4" />
-                                        </button>
-                                    )}
+
                                 </div>
                             </div>
                         </div>
 
 
 
-                        <div className="pt-20 py-6 px-8">
+                        <div className="pt-14 py-6 px-8">
                             <div className="flex justify-between mb-6 gap-8 items-center">
                                 <div className="flex-1">
                                     {editMode ? (
-                                        <Input
-                                            id="name"
-                                            register={register("name")}
-                                            errors={errors}
-                                            className="text-2xl font-bold p-0 border-0 focus:ring-0"
-                                            placeholder="Your name"
-                                        />
+                                        <div className="relative group">
+                                            <Input
+                                                id="name"
+                                                register={register("name")}
+                                                errors={errors}
+                                                placeholder="Your name"
+                                            />
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40">
+                                                <FaEdit className="w-4 h-4" />
+                                            </div>
+                                        </div>
                                     ) : (
-                                        <Heading title={userData.name} variant="h3" />
+                                        <div className="flex items-center gap-3">
+                                            <Heading title={userData.name || "Add your name"} variant="h3" className={!userData.name ? "text-muted-foreground/50 italic" : ""} />
+                                        </div>
                                     )}
                                 </div>
                                 {editMode && (
@@ -264,6 +251,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         }}
                                         variant="outline"
                                         disabled={isSubmitting}
+                                        fit
                                     />
                                 )}
                                 <Button
@@ -273,8 +261,9 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                     variant={editMode ? "default" : "outline"}
                                     disabled={isSubmitting}
                                     loading={editMode && isSubmitting}
+                                    fit
                                 />
-                                控制                            </div>
+                            </div>
 
 
                             <div className="mb-2">
@@ -309,17 +298,15 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 {editMode ? (
                                     <div className="flex gap-2">
                                         {PROFILE_TITLE_OPTIONS.map((title) => (
-                                            <button
+                                            <Button
                                                 key={title}
-                                                type="button"
+                                                label={title}
                                                 onClick={() => handleTitleChange(title)}
-                                                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${userData.title === title
-                                                    ? 'bg-foreground text-background shadow-sm'
-                                                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                                                    }`}
-                                            >
-                                                {title}
-                                            </button>
+                                                variant={userData.title === title ? "default" : "outline"}
+                                                size="sm"
+                                                rounded
+                                                fit
+                                            />
                                         ))}
                                     </div>
                                 ) : (
@@ -399,20 +386,17 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 {editMode ? (
                                     <div className="flex flex-wrap gap-2 max-w-xs justify-end">
                                         {PROFILE_LANGUAGE_OPTIONS.map((language) => (
-                                            <button
+                                            <Button
                                                 key={language}
+                                                label={language}
                                                 onClick={() => handleLanguageToggle(language)}
                                                 disabled={!(userData.languages || []).includes(language) && (userData.languages || []).length >= 2}
-                                                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${(userData.languages || []).includes(language)
-                                                    ? 'bg-foreground text-background'
-                                                    : (userData.languages || []).length >= 2
-                                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                    }`}
-                                            >
-                                                {(userData.languages || []).includes(language) && <FaCheck className="w-3 h-3 inline mr-1" />}
-                                                {language}
-                                            </button>
+                                                variant={(userData.languages || []).includes(language) ? "default" : "outline"}
+                                                icon={(userData.languages || []).includes(language) ? FaCheck : undefined}
+                                                size="sm"
+                                                rounded
+                                                fit
+                                            />
                                         ))}
                                     </div>
                                 ) : (
@@ -423,7 +407,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                                     key={language}
                                                     label={language}
                                                     variant="subtle"
-                                                    size="sm"
+                                                    color="secondary"
                                                 />
                                             ))
                                         ) : (
@@ -454,7 +438,8 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 <Button
                                     label="Register as Owner"
                                     onClick={() => setShowOwnerModal(true)}
-                                    classNames="shadow-sm"
+                                    classNames="shadow-sm mx-auto"
+                                    fit
                                 />
                             </div>
                         </div>
@@ -462,8 +447,14 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
                         <div className="bg-warning/5 border border-warning/20 rounded-2xl p-6">
                             <div className="text-center space-y-4">
-                                <div className="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto">
-                                    <FaShieldAlt className="w-8 h-8 text-warning" />
+                                <div className="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto overflow-hidden">
+                                    <Image
+                                        src="/images/icons/shield.png"
+                                        width={32}
+                                        height={32}
+                                        alt="Verification"
+                                        className="object-contain"
+                                    />
                                 </div>
                                 <div>
                                     <Heading title="Verification Pending" variant="h6" className="text-warning-900" />
@@ -474,7 +465,8 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 <Button
                                     label="Start Verification"
                                     onClick={() => setShowVerificationModal(true)}
-                                    classNames="shadow-sm"
+                                    classNames="shadow-sm mx-auto"
+                                    fit
                                 />
                             </div>
                         </div>
@@ -482,8 +474,14 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
                         <div className="bg-success/5 border border-success/20 rounded-2xl p-6">
                             <div className="text-center space-y-4">
-                                <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto">
-                                    <FaCheck className="w-8 h-8 text-success" />
+                                <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto overflow-hidden">
+                                    <Image
+                                        src="/images/icons/shield.png"
+                                        width={32}
+                                        height={32}
+                                        alt="Verified"
+                                        className="object-contain"
+                                    />
                                 </div>
                                 <Heading title="Profile Verified" variant="h5" subtitle="Your profile is verified! You can now list spaces and manage payments." center />
                                 <div className="space-y-3">
