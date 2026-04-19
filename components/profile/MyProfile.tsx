@@ -485,7 +485,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto">
                                     <FaCheck className="w-8 h-8 text-success" />
                                 </div>
-                                <Heading title="Profile Verified" variant="h6" subtitle="Your profile is verified! You can now list spaces and manage payments." />
+                                <Heading title="Profile Verified" variant="h5" subtitle="Your profile is verified! You can now list spaces and manage payments." center />
                                 <div className="space-y-3">
                                     <Button
                                         label="List Your Space"

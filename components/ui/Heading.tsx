@@ -37,7 +37,7 @@ const Heading: React.FC<HeadingProps> = ({
         h2: "text-base md:text-lg",
         h3: "text-base",
         h4: "text-sm",
-        h5: "text-xs",
+        h5: "text-sm",
         h6: "text-xs",
     };
 
