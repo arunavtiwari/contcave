@@ -2,27 +2,32 @@ import React from "react";
 
 import Skeleton from "@/components/ui/Skeleton";
 
-const ListingCardSkeleton = () => {
+interface ListingCardSkeletonProps {
+    hideActions?: boolean;
+}
+
+const ListingCardSkeleton: React.FC<ListingCardSkeletonProps> = ({ hideActions }) => {
     return (
-        <div className="col-span-1 p-3  rounded-2xl border border-neutral-100/50">
-            <div className="flex flex-col gap-2 w-full">
-                {/* Image area skeleton */}
-                <Skeleton className="aspect-square w-full relative overflow-hidden rounded-xl" />
+        <div className="relative bg-background border border-black/10 p-4 rounded-2xl flex flex-col gap-4">
+            {/* Media Skeleton */}
+            <Skeleton className="aspect-video w-full relative overflow-hidden rounded-xl bg-neutral-100" />
 
-                {/* Title and rating line */}
-                <div className="flex justify-between items-center mt-2">
-                    <Skeleton className="h-5 w-2/3" />
-                    <Skeleton className="h-5 w-8" />
+            {/* Info Section Skeleton */}
+            <div className="flex flex-col gap-2 px-0.5">
+                <Skeleton className="h-5 w-3/4 rounded-lg" />
+
+                <div className="flex gap-2">
+                    <Skeleton className="h-4 w-24 rounded-full" />
                 </div>
 
-                {/* Category and location line */}
-                <Skeleton className="h-4 w-1/2 mt-0.5" />
-
-                {/* Price line */}
-                <div className="flex items-center mt-2">
-                    <Skeleton className="h-5 w-1/3" />
-                </div>
+                <Skeleton className="h-3 w-1/2 mt-1 rounded-md" />
             </div>
+
+            {!hideActions && (
+                <div className="flex gap-2 mt-auto pt-4 border-t border-neutral-100">
+                    <Skeleton className="h-10 flex-1 rounded-xl" />
+                </div>
+            )}
         </div>
     );
 };

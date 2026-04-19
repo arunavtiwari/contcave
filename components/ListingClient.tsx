@@ -37,6 +37,9 @@ type Props = {
   listing: FullListing;
   currentUser?: SafeUser | null;
   googleCalendarEvents?: GoogleCalendarEvent[];
+  processedDescription?: string | null;
+  processedTerms?: string | null;
+  descriptionShouldTruncate?: boolean;
 };
 
 interface GoogleCalendarEvent {
@@ -88,6 +91,9 @@ function ListingClient({
   listing,
   currentUser = null,
   googleCalendarEvents = [],
+  processedDescription,
+  processedTerms,
+  descriptionShouldTruncate
 }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>([null, null]);
@@ -637,6 +643,10 @@ function ListingClient({
                 includedSetId={pricingResult?.includedSetId || null}
                 selectedPackage={selectedPackage}
                 isSetSelectionDisabled={!!selectedPackage}
+
+                processedDescription={processedDescription}
+                processedTerms={processedTerms}
+                descriptionShouldTruncate={descriptionShouldTruncate}
               />
               <div className="order-first mb-10 md:order-last md:col-span-3">
                 <ListingReservation

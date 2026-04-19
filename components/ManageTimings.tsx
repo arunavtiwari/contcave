@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { getDayStatus, updateDayStatus } from "@/app/actions/dayStatusActions";
+import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import Switch from "@/components/ui/Switch";
 
@@ -141,8 +142,8 @@ export default function CalendarComponent({
                     <Switch
                         checked={isListingActive}
                         onChange={setIsListingActive}
-                        onColor="var(--color-success)"
-                        offColor="var(--color-neutral-300)"
+                        onColor="#10B981"
+                        offColor="#D4D4D4"
                         variant="bolt"
                     />
                 </div>
@@ -153,43 +154,44 @@ export default function CalendarComponent({
                         <div className="flex space-x-4 mt-2">
                             <div className="flex flex-col w-1/2 gap-2">
                                 <Skeleton className="w-24 h-5.75 rounded-full" />
-                                <Skeleton className="w-full h-10 rounded-full" />
+                                <Skeleton className="w-full h-10 rounded-xl" />
                             </div>
                             <div className="flex flex-col w-1/2 gap-2">
                                 <Skeleton className="w-24 h-5.75 rounded-full" />
-                                <Skeleton className="w-full h-10 rounded-full" />
+                                <Skeleton className="w-full h-10 rounded-xl" />
                             </div>
                         </div>
                     ) : (
                         <div className="flex space-x-4 mt-2">
                             <div className="flex flex-col w-1/2 gap-2">
-                                <label className="text-foreground">Start Time</label>
+                                <label className="text-foreground text-sm font-medium">Start Time</label>
                                 <input
                                     type="time"
                                     value={startTime}
                                     onChange={(e) => setStartTime(e.target.value)}
-                                    className="border border-foreground rounded-full px-4 py-2 text-sm font-medium text-foreground focus:border-foreground focus:ring-1 focus:ring-foreground hover:border-foreground appearance-none"
+                                    className="border border-foreground rounded-xl px-4 h-11 text-sm font-medium text-foreground focus:border-foreground focus:ring-1 focus:ring-foreground hover:border-foreground appearance-none"
                                 />
                             </div>
                             <div className="flex flex-col w-1/2 gap-2">
-                                <label className="text-foreground">End Time</label>
+                                <label className="text-foreground text-sm font-medium">End Time</label>
                                 <input
                                     type="time"
                                     value={endTime}
                                     onChange={(e) => setEndTime(e.target.value)}
-                                    className="border border-foreground rounded-full px-4 py-2 text-sm font-medium text-foreground focus:border-foreground focus:ring-1 focus:ring-foreground hover:border-foreground appearance-none"
+                                    className="border border-foreground rounded-xl px-4 h-11 text-sm font-medium text-foreground focus:border-foreground focus:ring-1 focus:ring-foreground hover:border-foreground appearance-none"
                                 />
                             </div>
                         </div>
                     )}
                 </div>
 
-                <button
+                <Button
+                    label="SAVE TIMINGS"
                     onClick={handleSave}
-                    className="w-full bg-foreground text-background py-3.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all active:scale-[0.98] shadow-lg shadow-foreground/10"
-                >
-                    SAVE TIMINGS
-                </button>
+                    variant="default"
+                    size="lg"
+                    classNames="w-full rounded-xl text-sm font-bold shadow-lg shadow-foreground/10"
+                />
             </div>
         </div>
     );

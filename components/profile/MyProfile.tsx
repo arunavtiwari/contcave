@@ -21,10 +21,10 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { updateUser } from "@/app/actions/updateUser";
+import CitySelect from "@/components/inputs/CitySelect";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
-import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
@@ -180,7 +180,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
     }
 
     return (
-        <div className="flex flex-col w-full gap-5">
+        <div className="flex flex-col w-full gap-8">
             <Heading title="My Profile" subtitle="Manage your profile information." />
             <div className="grid lg:grid-cols-3 gap-8">
 
@@ -255,36 +255,39 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         )}
                                     </AnimatePresence>
                                 </div>
-                                <AnimatePresence>
-                                    {editMode && (
-                                        <motion.div
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 20 }}
-                                            transition={{ duration: 0.2 }}
-                                        >
-                                            <Button
-                                                label="Cancel"
-                                                onClick={() => {
-                                                    form.reset();
-                                                    setEditMode(false);
-                                                }}
-                                                variant="outline"
-                                                disabled={isSubmitting}
-                                                fit
-                                            />
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                                <Button
-                                    label={editMode ? (isSubmitting ? 'Saving...' : 'Save Changes') : 'Edit Profile'}
-                                    onClick={() => editMode ? handleSubmit(onSubmit)() : setEditMode(true)}
-                                    icon={editMode ? (isSubmitting ? FaSpinner : FaSave) : FaEdit}
-                                    variant={editMode ? "default" : "outline"}
-                                    disabled={isSubmitting}
-                                    loading={editMode && isSubmitting}
-                                    fit
-                                />
+                                <div className="flex items-center gap-2">
+                                    <AnimatePresence>
+                                        {editMode && (
+                                            <motion.div
+                                                initial={{ opacity: 0, x: 20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: 20 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                <Button
+                                                    label="Cancel"
+                                                    onClick={() => {
+                                                        form.reset();
+                                                        setEditMode(false);
+                                                    }}
+                                                    variant="destructive"
+                                                    outline
+                                                    disabled={isSubmitting}
+                                                    fit
+                                                />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                    <Button
+                                        label={editMode ? (isSubmitting ? 'Saving...' : 'Save Changes') : 'Edit Profile'}
+                                        onClick={() => editMode ? handleSubmit(onSubmit)() : setEditMode(true)}
+                                        variant="ghost"
+                                        outline
+                                        disabled={isSubmitting}
+                                        loading={editMode && isSubmitting}
+                                        fit
+                                    />
+                                </div>
                             </div>
 
 
@@ -600,7 +603,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                     />
                                     <Button
                                         label="Payment Details"
-                                        href="/profile?tab=manage-payments"
+                                        href="/dashboard/payments"
                                         icon={FaCreditCard}
                                         variant="outline"
                                     />

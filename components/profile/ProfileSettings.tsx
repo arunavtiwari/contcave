@@ -39,9 +39,9 @@ const ProfileSettings = ({ profile }: Props) => {
   };
 
   return (
-    <div className="flex flex-col w-full gap-5">
+    <div className="flex flex-col w-full gap-8">
       <Heading title="Settings" subtitle="Manage your account settings." />
-      <div className="flex flex-col gap-5 sm:gap-8">
+      <div className="flex flex-col gap-8">
         <div className="pl-4">
           <ul className="list-decimal flex flex-col gap-5">
             <li>

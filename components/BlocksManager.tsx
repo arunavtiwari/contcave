@@ -10,6 +10,7 @@ import Select, { GroupBase, StylesConfig, Theme } from "react-select";
 import { toast } from "sonner";
 
 import { createBlock, deleteBlock, getBlocks } from "@/app/actions/blockActions";
+import Button from "@/components/ui/Button";
 export interface ListingBlock {
     id: string;
     listingId: string;
@@ -227,13 +228,14 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                         />
                     </div>
                 </div>
-                <button
+                <Button
+                    label={isCreating ? "Creating..." : "Create Block"}
                     onClick={handleCreateBlock}
                     disabled={isCreating}
-                    className="mt-6 w-full bg-foreground text-background py-3 rounded-xl font-medium hover:opacity-90 transition disabled:opacity-50"
-                >
-                    {isCreating ? "Creating..." : "Create Block"}
-                </button>
+                    loading={isCreating}
+                    rounded
+                    classNames="mt-6 w-full font-bold text-base py-4"
+                />
             </div>
 
             <div className="space-y-4">

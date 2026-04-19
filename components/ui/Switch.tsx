@@ -15,16 +15,22 @@ const Switch: React.FC<SwitchProps> = ({ variant = "default", ...props }) => {
         <ReactSwitch
             onChange={props.onChange ?? (() => { })}
             checked={props.checked ?? false}
-            offColor="var(--color-neutral-300)"
-            onColor="var(--color-foreground)"
+            offColor="#D4D4D4" // Fallback to neutral-300 hex
+            onColor="#000000"  // Fallback to foreground hex
             uncheckedIcon={false}
-            offHandleColor="var(--color-foreground)"
-            activeBoxShadow="0 0 2px 3px var(--color-foreground)"
             checkedIcon={false}
-            height={30}
-            handleDiameter={20}
+            height={28}
+            width={56}
+            handleDiameter={22}
+            offHandleColor="#FFFFFF"
+            onHandleColor="#FFFFFF"
+            activeBoxShadow="0 0 2px 3px rgba(0, 0, 0, 0.1)"
             checkedHandleIcon={
-                isBolt ? <FaBolt color="var(--color-warning)" className="w-full h-full py-0.5" /> : undefined
+                isBolt ? (
+                    <div className="flex items-center justify-center h-full">
+                        <FaBolt className="text-warning w-3.5 h-3.5" />
+                    </div>
+                ) : undefined
             }
             {...props}
         />

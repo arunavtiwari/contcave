@@ -99,50 +99,52 @@ function Modal({
   return (
     <div
       onClick={handleBackdropClick}
-      className={`fixed inset-0 z-999 flex items-center justify-center px-4 transition-all duration-300 ${nestedModal ? "bg-foreground/30" : "bg-foreground/60"
-        } ${isOpen ? "opacity-100" : "opacity-0"} ${nestedModal ? "" : isLoading ? "backdrop-blur-md" : "backdrop-blur-sm"
+      className={`fixed inset-0 z-999 flex items-center justify-center px-4 transition-all duration-500 ${nestedModal ? "bg-foreground/20" : "bg-black/60"
+        } ${isOpen ? "opacity-100" : "opacity-0"} ${nestedModal ? "" : isLoading ? "backdrop-blur-md" : "backdrop-blur-[2px]"
         }`}
     >
       <div
         ref={modalRef}
-        className={`relative mx-auto transform transition-all duration-300 ${showModal && isOpen
+        className={`relative mx-auto transform transition-all duration-500 ease-out ${showModal && isOpen
           ? "opacity-100 scale-100 translate-y-0"
-          : "opacity-0 scale-95 translate-y-4"
-          } ${customWidth || "w-full md:w-4/6 lg:w-3/6 xl:w-2/5 md:max-w-3xl"}`}
+          : "opacity-0 scale-[0.98] translate-y-8"
+          } ${customWidth || "w-full md:w-4/6 lg:w-3/6 xl:w-2/5 md:max-w-2xl"}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <div className={`flex flex-col w-full bg-background rounded-2xl ring-1 ring-border overflow-hidden ${customHeight || "h-[85vh] max-h-[85vh]"}`}>
+        <div className={`flex flex-col w-full bg-background rounded-4xl shadow-2xl shadow-black/20 ring-1 ring-border/50 overflow-hidden ${customHeight || "h-auto max-h-[90vh]"}`}>
 
-          <div className="flex items-center justify-center p-5 border-b border-border bg-muted/30 relative shrink-0">
-            <h2 id="modal-title" className="text-lg font-semibold text-center text-foreground">
+          {/* Header */}
+          <div className="flex items-center justify-between px-8 py-6 bg-background relative shrink-0">
+            <h2 id="modal-title" className="text-xl font-bold tracking-tight text-foreground">
               {title}
             </h2>
             <button
-              className="absolute right-6 text-muted-foreground hover:text-foreground transition focus:outline-none"
+              className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground focus:outline-none"
               onClick={handleClose}
               aria-label="Close modal"
             >
-              <IoMdCloseCircle size={26} />
+              <IoMdCloseCircle size={24} className="opacity-80 hover:opacity-100" />
             </button>
           </div>
 
 
           <div
             ref={bodyRef}
-            className="flex-1 px-6 py-5 overflow-y-auto text-foreground"
+            className="flex-1 px-8 pb-8 pt-2 overflow-y-auto text-[15px] leading-relaxed text-muted-foreground"
           >
             {body}
           </div>
 
 
           {!selfActionButton && (
-            <div className="px-6 py-4 border-t border-border flex flex-col md:flex-row gap-3 justify-end items-center bg-muted/30 shrink-0">
+            <div className="px-8 py-5 flex flex-col md:flex-row gap-3 justify-end items-center bg-muted/20 shrink-0 border-t border-border/40">
               {secondaryAction && secondaryActionLabel && (
                 <Button
                   outline
                   rounded
+                  classNames="border-border/60 hover:bg-background"
                   disabled={disabled}
                   label={secondaryActionLabel}
                   onClick={handleSecondAction}
@@ -160,7 +162,7 @@ function Modal({
           )}
 
 
-          {footer && <div className="px-6 pb-4 shrink-0">{footer}</div>}
+          {footer && <div className="px-8 pb-6 shrink-0">{footer}</div>}
         </div>
       </div>
     </div>

@@ -69,6 +69,10 @@
 }
 
 @layer base {
+	html {
+		scrollbar-gutter: stable;
+	}
+
 	* {
 		border-color: var(--color-border);
 	}
@@ -130,51 +134,27 @@ select,
 
 .fc-prev-button,
 .fc-dayGridMonth-button {
-	border-top-left-radius: 9999px !important;
-	border-bottom-left-radius: 9999px !important;
+	border-top-left-radius: 12px !important;
+	border-bottom-left-radius: 12px !important;
 	border-top-right-radius: 0 !important;
 	border-bottom-right-radius: 0 !important;
 }
 
-.fc-timeGridWeek-button {
+.fc-next-button,
+.fc-timeGridDay-button {
+	border-top-right-radius: 12px !important;
+	border-bottom-right-radius: 12px !important;
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+}
+
+.fc-button-group .fc-button:not(:first-child):not(:last-child) {
 	border-radius: 0 !important;
 }
 
-.fc-daygrid-event {
-	border-radius: 10px !important;
-	text-align: center;
-	cursor: pointer !important;
-	background-color: var(--color-primary) !important;
-	color: var(--color-primary-foreground) !important;
-	display: block;
-	overflow: hidden;
-}
+/* FullCalendar Button Gap Fix moved to main section */
 
-.fc-daygrid-event .fc-event-title,
-.fc-daygrid-event .fc-event-time,
-.fc-timegrid-event .fc-event-title,
-.fc-timegrid-event .fc-event-time,
-.fc-event-main {
-	display: block;
-	max-width: 100%;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.fc-daygrid-event,
-.fc-timegrid-event {
-	padding: 2px 8px !important;
-}
-
-.fc-button:focus {
-	box-shadow: none !important;
-}
-
-.fc-daygrid-event-dot {
-	display: none !important;
-}
-
+/* react-date-range fixes */
 .rdrSelected,
 .rdrInRange,
 .rdrStartEdge,
@@ -186,11 +166,135 @@ select,
 .rdrDayStartPreview {
 	border-color: transparent !important;
 	background-color: rgba(128, 128, 128, 0.1) !important;
-
 }
 
 .rdrDay {
-	color: transparent !important;
+	color: var(--color-foreground) !important;
+	height: 42px !important;
 }
 
-/* Form Hardening Removed to allow component-level 1px focus control */
+.rdrDayNumber span {
+	font-weight: 500 !important;
+}
+
+.rdrDayDisabled {
+	background-color: transparent !important;
+	opacity: 0.3 !important;
+}
+
+.rdrCalendarWrapper {
+	font-family: inherit;
+	color: var(--color-foreground);
+}
+
+/* FullCalendar (Event Grid) Beautification */
+.fc {
+	font-family: inherit;
+	--fc-border-color: var(--color-border);
+	--fc-today-bg-color: rgba(0, 0, 0, 0.03);
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+	border: 1px solid var(--color-border);
+}
+
+.fc-theme-standard,
+.fc-scrollgrid {
+	border-radius: 12px !important;
+	overflow: hidden !important;
+}
+
+.fc-col-header-cell {
+	padding: 12px 0 !important;
+	background-color: rgba(0, 0, 0, 0.02);
+	font-weight: 600;
+	text-transform: uppercase;
+	font-size: 0.75rem;
+	letter-spacing: 0.05em;
+}
+
+.fc-daygrid-event,
+.fc-timegrid-event,
+.fc-v-event {
+	border: none !important;
+	border-radius: 12px !important;
+	padding: 4px 8px !important;
+	font-size: 0.8rem !important;
+	font-weight: 600 !important;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+	margin: 1px 2px !important;
+	transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+	background-color: var(--color-foreground) !important;
+	color: var(--color-background) !important;
+}
+
+.fc-daygrid-event:hover,
+.fc-timegrid-event:hover,
+.fc-v-event:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fc-daygrid-event .fc-event-title {
+	padding: 0 !important;
+}
+
+/* Fix event grid overflow and aesthetic */
+.fc-daygrid-day-number {
+	font-size: 0.875rem;
+	font-weight: 500;
+	padding: 8px !important;
+}
+
+.fc-button-group {
+	gap: 6px;
+}
+
+.fc-button-group .fc-button:not(:first-child) {
+	margin-left: 0 !important;
+}
+
+.fc-button {
+	background-color: transparent !important;
+	border: 1px solid var(--color-border) !important;
+	color: var(--color-foreground) !important;
+	border-radius: 12px !important;
+	font-weight: 600 !important;
+	font-size: 0.875rem !important;
+	padding: 8px 16px !important;
+	text-transform: capitalize !important;
+	transition: all 0.2s ease !important;
+}
+
+.fc-button:hover {
+	background-color: var(--color-foreground) !important;
+	color: var(--color-background) !important;
+	border-color: var(--color-foreground) !important;
+}
+
+.fc-button-active,
+.fc-button:active,
+.fc-button:focus {
+	background-color: var(--color-foreground) !important;
+	color: var(--color-background) !important;
+	border-color: var(--color-foreground) !important;
+	box-shadow: none !important;
+	outline: none !important;
+}
+
+.fc-toolbar-title {
+	font-size: 1.25rem !important;
+	font-weight: 700 !important;
+	letter-spacing: -0.02em;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-day {
+	min-height: 100px;
+}
+
+.fc-event-main {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: normal;
+}

@@ -117,16 +117,16 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
           <div className="flex flex-col">
             {currentUser ? (
               <>
-                <MenuItem onClick={closeMenu} href="/bookings" label="My Bookings" icon={FiCalendar} />
-                <MenuItem onClick={closeMenu} href="/favorites" label="My Favorites" icon={FiHeart} />
+                <MenuItem onClick={closeMenu} href="/dashboard/bookings" label="My Bookings" icon={FiCalendar} />
+                <MenuItem onClick={closeMenu} href="/dashboard/favorites" label="My Favorites" icon={FiHeart} />
                 {currentUser?.is_owner && (
                   <>
-                    <MenuItem onClick={closeMenu} href="/reservations" label="Guest Reservations" icon={FiUserCheck} />
-                    <MenuItem onClick={closeMenu} href="/properties" label="My Properties" icon={MdApartment} />
+                    <MenuItem onClick={closeMenu} href="/dashboard/reservations" label="Guest Reservations" icon={FiUserCheck} />
+                    <MenuItem onClick={closeMenu} href="/dashboard/properties" label="My Properties" icon={MdApartment} />
                     <MenuItem onClick={handleRent} label="List your space" icon={FiPlusCircle} />
                   </>
                 )}
-                <MenuItem onClick={closeMenu} href="/profile" label="My Profile" icon={FiUser} />
+                <MenuItem onClick={closeMenu} href="/dashboard/profile" label="My Profile" icon={FiUser} />
                 <hr className="my-2" />
                 <MenuItem onClick={handleLogout} label="Logout" icon={FiLogOut} />
               </>

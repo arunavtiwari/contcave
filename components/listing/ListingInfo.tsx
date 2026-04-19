@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { Amenities } from "@prisma/client";
-import DOMPurify from "isomorphic-dompurify";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,6 +20,7 @@ import Offers from "@/components/Offers";
 import Avatar from "@/components/ui/Avatar";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
+import SafeHtml from "@/components/ui/SafeHtml";
 import StarRating from "@/components/ui/StarRating";
 import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hook/useCities";
@@ -71,6 +71,10 @@ type Props = {
   includedSetId?: string | null;
   selectedPackage?: Package | null;
   isSetSelectionDisabled?: boolean;
+
+  processedDescription?: string | null;
+  processedTerms?: string | null;
+  descriptionShouldTruncate?: boolean;
 };
 
 function ListingInfo({
@@ -93,6 +97,9 @@ function ListingInfo({
   includedSetId = null,
   selectedPackage = null,
   isSetSelectionDisabled = false,
+  processedDescription,
+  processedTerms,
+  descriptionShouldTruncate
 }: Props) {
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
@@ -141,16 +148,12 @@ function ListingInfo({
   const [latestReservationId, setLatestReservationId] = useState("");
   const [review, setReview] = useState({ rating: 5, comment: "" });
   const [isExpanded, setIsExpanded] = useState(false);
-
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
-
-  const [shouldTruncate, setShouldTruncate] = useState(false);
-
-  useEffect(() => {
-    const text = getPlainTextFromHTML(description, 0);
-    setShouldTruncate(text.length > 250);
-  }, [description]);
+  const shouldTruncate = useMemo(() => {
+    if (descriptionShouldTruncate !== undefined) return descriptionShouldTruncate;
+    return getPlainTextFromHTML(description, 0).length > 250;
+  }, [description, descriptionShouldTruncate]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -319,22 +322,11 @@ function ListingInfo({
       )}
 
       <div className="text-base font-normal">
-        <div
-          className={`prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1
-          prose-strong:text-foreground prose-headings:text-foreground
-          transition-all duration-300 ${!isExpanded ? "max-h-40 overflow-hidden relative" : ""
-            }`}
-        >
-          <div
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(description || ""),
-            }}
-          />
-
-          {!isExpanded && shouldTruncate && (
-            <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-linear-to-t from-background to-transparent" />
-          )}
-        </div>
+        <SafeHtml
+          html={processedDescription || description || ""}
+          sanitize={!processedDescription}
+          className={!isExpanded ? "max-h-40 overflow-hidden relative" : ""}
+        />
 
         {shouldTruncate && (
           <button
@@ -541,14 +533,10 @@ function ListingInfo({
         <>
           <div className="flex flex-col gap-4">
             <Heading title="Terms & Conditions by Host" variant="h5" />
-            <div className="text-base font-normal">
-              <div
-                className="prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-strong:text-foreground prose-headings:text-foreground"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(fullListing.customTerms || ""),
-                }}
-              />
-            </div>
+            <SafeHtml
+              html={processedTerms || fullListing.customTerms || ""}
+              sanitize={!processedTerms}
+            />
           </div>
           <hr />
         </>
@@ -571,4 +559,3 @@ function ListingInfo({
 }
 
 export default ListingInfo;
-

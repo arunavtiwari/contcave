@@ -62,13 +62,13 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
 
     const renderEventContent = (eventInfo: EventContentArg) => {
         return (
-            <div className="px-2 py-1 leading-tight">
+            <div className="flex flex-col min-w-0 py-1 px-1.5">
                 {eventInfo.timeText && (
-                    <div className="text-xs opacity-80 overflow-hidden text-ellipsis whitespace-nowrap">
+                    <div className="text-[9px] opacity-75 font-bold uppercase tracking-tight leading-none mb-1">
                         {eventInfo.timeText}
                     </div>
                 )}
-                <div className="text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap">
+                <div className="text-[10px] font-medium truncate">
                     {eventInfo.event.title}
                 </div>
             </div>
@@ -191,7 +191,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
     }
 
     return (
-        <div className="select-none h-full">
+        <div className="select-none h-full bg-background rounded-2xl border border-border p-5">
             <FullCalendar
                 ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
@@ -207,6 +207,13 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
                 eventContent={renderEventContent}
                 handleWindowResize={true}
                 displayEventEnd={true}
+                buttonText={{
+                    month: "Month",
+                    week: "Week",
+                    day: "Day",
+                    list: "List",
+                    today: "Today"
+                }}
                 eventTimeFormat={{
                     hour: 'numeric',
                     minute: '2-digit',

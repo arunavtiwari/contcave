@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useCallback, useState } from "react";
 import {
     FaInstagram,
@@ -110,7 +110,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
     }, [referralLink, handleCopy]);
 
     return (
-        <div className="flex flex-col w-full mx-auto space-y-8">
+        <div className="flex flex-col w-full gap-8">
             <Heading
                 title="Share with Friends and Earn Rewards"
                 subtitle="Refer your friends to ContCave and both of you can earn rewards"

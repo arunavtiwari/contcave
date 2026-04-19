@@ -25,7 +25,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         const error = errors?.[id]?.message as string;
 
         const sizeClasses = {
-            sm: "h-9 px-3 text-xs",
+            sm: "h-10 px-3 text-xs",
             md: "h-11 px-4 text-sm",
         };
 

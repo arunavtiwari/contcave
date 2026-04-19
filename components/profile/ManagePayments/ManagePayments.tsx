@@ -188,7 +188,7 @@ const ManagePayments: React.FC<Props> = ({
 
     if (paymentDataLoading) {
         return (
-            <div className="flex flex-col w-full gap-5">
+            <div className="flex flex-col w-full gap-8">
                 <Heading
                     title="Manage Payments"
                     subtitle="View your payment details and past transactions."
@@ -202,7 +202,7 @@ const ManagePayments: React.FC<Props> = ({
     }
 
     return (
-        <div className="flex flex-col w-full gap-5">
+        <div className="flex flex-col w-full gap-8">
             <Heading
                 title="Manage Payments"
                 subtitle="View your payment details and past transactions."

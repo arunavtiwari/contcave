@@ -1,3 +1,4 @@
+import DOMPurify from "isomorphic-dompurify";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
@@ -9,6 +10,7 @@ import EmptyState from "@/components/EmptyState";
 import ListingSkeleton from "@/components/listing/ListingSkeleton";
 import ListingClient from "@/components/ListingClient";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
+import { getPlainTextFromHTML } from "@/lib/richText";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, asciiClean, BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
@@ -248,6 +250,12 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
 
   const reviewCount = await getReviewCount(listing.id);
 
+  // Pre-sanitize and process rich text on the server for zero-glitch rendering
+  const processedDescription = DOMPurify.sanitize(listing.description);
+  const processedTerms = listing.customTerms ? DOMPurify.sanitize(listing.customTerms) : null;
+  const descriptionShouldTruncate = getPlainTextFromHTML(listing.description, 0).length > 250;
+
+
   const aggregateRating =
     listing.avgReviewRating != null &&
       listing.avgReviewRating > 0 &&
@@ -333,6 +341,9 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
         currentUser={currentUser}
         reservations={reservations}
         googleCalendarEvents={googleCalendarEvents}
+        processedDescription={processedDescription}
+        processedTerms={processedTerms}
+        descriptionShouldTruncate={descriptionShouldTruncate}
       />
     </>
   );

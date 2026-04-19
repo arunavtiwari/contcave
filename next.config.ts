@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
             { protocol: 'https', hostname: 'boxtudio.in' },
             { protocol: 'https', hostname: 'www.elinchrom.com' },
             { protocol: 'https', hostname: 'cdn-icons-png.flaticon.com' },
+            { protocol: 'https', hostname: 'res.cloudinary.com' },
             { protocol: 'http', hostname: '127.0.0.1' }
         ],
         formats: ['image/avif', 'image/webp'],

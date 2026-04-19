@@ -7,7 +7,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 type ButtonVariant = "default" | "outline" | "success" | "destructive" | "ghost" | "secondary";
 
-type ButtonSize = "sm" | "md" | "lg";
+type ButtonSize = "sm" | "md" | "lg" | "xl";
 
 type Props = {
   label?: string;
@@ -44,10 +44,10 @@ function Button({
 }: Props) {
 
   const sizeClasses = {
-    sm: "py-1.5 px-3 text-xs",
-    md: "py-2 px-5 text-sm",
-    lg: "py-2.5 px-6 text-sm",
-    xl: "py-3 px-8 text-base",
+    sm: "h-10 px-4 text-xs",
+    md: "h-11 px-6 text-sm",
+    lg: "h-12 px-8 text-sm",
+    xl: "h-14 px-10 text-base",
   };
 
   const widthClass = fit ? "w-fit" : (size === "sm" ? "w-auto" : "w-full");
@@ -80,7 +80,7 @@ function Button({
       solid: "bg-background border-foreground/20 text-foreground",
       outline: "bg-background border-foreground/20 text-foreground",
     }
-  };
+  } as const;
 
   const finalClasses = `${baseClasses} ${roundedClass} ${variantClasses[variant][outline ? "outline" : "solid"]} ${classNames || ""}`;
 

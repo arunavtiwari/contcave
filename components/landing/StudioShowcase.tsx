@@ -1,97 +1,25 @@
 ﻿"use client";
-import { motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
-import Image from "next/image";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import { useRef } from "react";
-import { FiCheck, FiChevronRight } from "react-icons/fi";
+import { FiChevronRight } from "react-icons/fi";
 
 import Container from "@/components/Container";
+import ListingCard from "@/components/listing/ListingCard";
 import Button from "@/components/ui/Button";
-import Heading from "@/components/ui/Heading";
-import Pill from "@/components/ui/Pill";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { studios } from "@/constants/studios";
 
 const StudioCard = ({ studio, index }: { studio: (typeof studios)[number]; index: number }) => {
-  const rawX = useMotionValue(0);
-  const rawY = useMotionValue(0);
-  const springX = useSpring(rawX, { stiffness: 260, damping: 22 });
-  const springY = useSpring(rawY, { stiffness: 260, damping: 22 });
-  const rotateY = useTransform(springX, [-0.5, 0.5], [-12, 12]);
-  const rotateX = useTransform(springY, [-0.5, 0.5], [9, -9]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    rawX.set((e.clientX - rect.left) / rect.width - 0.5);
-    rawY.set((e.clientY - rect.top) / rect.height - 0.5);
-  };
-  const handleMouseLeave = () => { rawX.set(0); rawY.set(0); };
-
   return (
-    <div style={{ perspective: "900px" }}>
-      <motion.div
-        initial={{ opacity: 0, y: 24 + index * 36 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-        viewport={{ once: true }}
-        className="transform-3d"
-        style={{ rotateX, rotateY }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
-        <Link href={studio.href} className="group block">
-          <div
-            className="relative mb-3 overflow-hidden rounded-2xl aspect-video">
-            <Image
-              src={studio.image}
-              alt={studio.name}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-            />
-
-            <Pill
-              label="Verified"
-              icon={FiCheck}
-              variant="glass"
-              size="xs"
-              className="absolute left-3 top-3 bg-foreground/70 text-background"
-            />
-
-            <Pill
-              label={studio.price}
-              variant="glass"
-              size="sm"
-              className="absolute bottom-3 right-3"
-            />
-          </div>
-
-          <div className="px-1">
-            <div className="mb-1.5 flex items-start justify-between gap-2">
-              <Heading
-                title={studio.name}
-                variant="h6"
-                className="text-sm font-semibold text-foreground"
-              />
-              <p className="shrink-0 text-xs font-medium text-muted-foreground">
-                {studio.area ? `${studio.area}, ` : ""}{studio.city}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-1.5">
-              {studio.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border-2 border-border px-2.5 py-1 text-[10px] font-medium text-muted-foreground"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        </Link>
-      </motion.div>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 24 + index * 36 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+      viewport={{ once: true }}
+    >
+      <ListingCard data={studio} showHeart={false} />
+    </motion.div>
   );
 };
 
