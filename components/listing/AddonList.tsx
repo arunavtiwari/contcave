@@ -77,7 +77,7 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
               onClick={dec}
               className="text-foreground/80 bg-muted hover:bg-muted/80 h-8 w-20 rounded-l-xl text-lg font-medium transition border border-border"
             >
-              âˆ’
+              −
             </button>
             <span className="bg-background text-foreground border-y flex items-center justify-center border-border h-8 w-full text-center">
               {qty}
@@ -153,7 +153,7 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
         className="mb-4"
       />
 
-      {/* Mobile: Swiper carousel â€” swipe only, no arrows, free-mode momentum */}
+      {/* Mobile: Swiper carousel — swipe only, no arrows, free-mode momentum */}
       <div className="sm:hidden">
         <Swiper
           modules={[FreeMode]}

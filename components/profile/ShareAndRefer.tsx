@@ -11,6 +11,7 @@ import {
 } from "react-icons/md";
 import { toast } from "sonner";
 
+import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import { getBaseUrl } from "@/lib/utils/getBaseUrl";
 import { SafeUser } from "@/types/user";
@@ -111,11 +112,11 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
     return (
         <div className="flex flex-col w-full mx-auto space-y-8">
             <Heading
-                title="Share with Friends and Earn Rewards ðŸ™Œ"
+                title="Share with Friends and Earn Rewards"
                 subtitle="Refer your friends to ContCave and both of you can earn rewards"
             />
 
-            <div className="bg-foreground/5 rounded-2xl p-6 border border-foreground/20">
+            <div className="bg-muted/30 rounded-2xl p-6 border border-foreground/20">
                 <Heading title="How It Works" variant="h5" className="mb-6" />
                 <ol className="space-y-4 text-muted-foreground">
                     <li className="flex items-start">
@@ -133,7 +134,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 <h3 className="text-lg font-semibold text-foreground mb-4">Your Referral Link</h3>
 
                 <div className="space-y-4">
-                    <div className="bg-muted rounded-lg p-4 border border-border">
+                    <div className="bg-muted/30 rounded-lg p-4 border border-border">
                         <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm text-muted-foreground mb-1">Referral Code</p>
@@ -141,23 +142,14 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                                     {referralCode}
                                 </p>
                             </div>
-                            <button
+                            <Button
+                                label={copied ? "Copied!" : "Copy"}
                                 onClick={handleCopy}
-                                className="ml-4 flex items-center px-6 py-2 bg-foreground text-background rounded-xl hover:opacity-90 transition-all duration-200 text-sm font-bold shadow-sm active:scale-95"
                                 disabled={copied}
-                            >
-                                {copied ? (
-                                    <>
-                                        <span className="w-4 h-4 mr-2">âœ“</span>
-                                        Copied!
-                                    </>
-                                ) : (
-                                    <>
-                                        <MdContentCopy className="w-4 h-4 mr-2" />
-                                        Copy
-                                    </>
-                                )}
-                            </button>
+                                icon={copied ? undefined : MdContentCopy}
+                                classNames="ml-4 shadow-sm"
+                                fit
+                            />
                         </div>
                     </div>
 
@@ -170,20 +162,22 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                                 </p>
                             </div>
                             <div className="flex gap-2">
-                                <button
+                                <Button
                                     onClick={handleCopy}
-                                    className="flex items-center px-4 py-2 bg-background text-foreground border border-border rounded-xl hover:bg-muted transition-all duration-200 text-sm font-bold"
+                                    variant="outline"
                                     disabled={copied}
-                                >
-                                    <MdContentCopy className="w-4 h-4" />
-                                </button>
-                                <button
+                                    icon={MdContentCopy}
+                                    size="sm"
+                                    fit
+                                />
+                                <Button
                                     onClick={handleNativeShare}
-                                    className="flex items-center px-4 py-2 bg-success text-success-foreground rounded-xl hover:bg-success/90 transition-all duration-200 text-sm font-bold shadow-sm"
+                                    variant="success"
                                     disabled={isSharing}
-                                >
-                                    <MdShare className="w-4 h-4" />
-                                </button>
+                                    icon={MdShare}
+                                    size="sm"
+                                    fit
+                                />
                             </div>
                         </div>
                     </div>

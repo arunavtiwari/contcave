@@ -242,7 +242,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                                 month: "short",
                                                 year: "numeric",
                                             })
-                                            : "â€”"}
+                                            : "—"}
                                         {reservation?.startTime ? `, ${reservation.startTime}` : ""}
                                         {" "}was rejected by the host.
                                     </p>
@@ -257,7 +257,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                     <div className="space-y-3">
                                         {reservation?.isApproved === 2 && (
                                             <p>
-                                                Donâ€™t worry! Your payment will be refunded as per our policy. Weâ€™ll help you with your refund right away. Tap the button below to connect with our team on WhatsApp.
+                                                Don't worry! Your payment will be refunded as per our policy. We'll help you with your refund right away. Tap the button below to connect with our team on WhatsApp.
                                             </p>
                                         )}
                                         {reservation?.isApproved === 3 && (
@@ -302,7 +302,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground font-medium">Time:</span>
                                 <span className="text-foreground">
-                                    {reservation?.startTime ?? ""} â€“ {reservation?.endTime ?? ""}
+                                    {reservation?.startTime ?? ""} – {reservation?.endTime ?? ""}
                                 </span>
                             </div>
 

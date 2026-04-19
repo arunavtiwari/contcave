@@ -46,7 +46,7 @@ const Heading: React.FC<HeadingProps> = ({
     const textColorClass = "text-foreground";
 
     return (
-        <div className={`${center ? "text-center" : "text-start"} space-y-2`}>
+        <div className={`${center ? "text-center" : "text-start"}`}>
             <Component
                 className={`${fontClass} ${sizeClass} ${textColorClass} ${className}`}
                 {...props}
@@ -54,7 +54,7 @@ const Heading: React.FC<HeadingProps> = ({
                 {title}
             </Component>
             {subtitle && (
-                <p className={`text-muted-foreground font-light ${subtitleSizes[variant]} ${subtitleClassName}`}>
+                <p className={`text-muted-foreground ${subtitleSizes[variant]} ${subtitleClassName}`}>
                     {subtitle}
                 </p>
             )}

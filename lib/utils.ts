@@ -54,3 +54,21 @@ export function formatINR(amount: number): string {
         maximumFractionDigits: 0,
     }).format(amount);
 }
+
+/**
+ * Formats a time using en-IN locale and Asia/Kolkata timezone.
+ */
+export function formatISTTime(
+    date: Date | string | number | undefined | null,
+    options: Intl.DateTimeFormatOptions = {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    }
+): string {
+    if (!date) return "—";
+    return new Date(date).toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        ...options,
+    });
+}

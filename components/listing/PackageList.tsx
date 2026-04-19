@@ -93,7 +93,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
 
                     {(isMultiSets && pkg.requiredSetCount && pkg.requiredSetCount > 0) ? (
                       <>
-                        <span className="text-muted-foreground/30">â€¢</span>
+                        <span className="text-muted-foreground/30">•</span>
                         <span className="text-muted-foreground font-medium">
                           {pkg.requiredSetCount} sets included
                         </span>

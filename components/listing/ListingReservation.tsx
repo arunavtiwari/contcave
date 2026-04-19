@@ -553,7 +553,7 @@ export default function ListingReservation({
 
       <div className="p-4">
         <Button
-          label={isPaying ? "Redirecting to Cashfreeâ€¦" : "Reserve and Pay"}
+          label={isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
           onClick={handleReserve}
           disabled={!ready}
           loading={isPaying}

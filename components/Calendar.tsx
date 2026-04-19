@@ -254,7 +254,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
                                             timeZone: "Asia/Kolkata",
                                         })
                                         : "N/A"}{" "}
-                                    â€“{" "}
+                                    –{" "}
                                     {modalData.end
                                         ? new Date(modalData.end).toLocaleTimeString("en-IN", {
                                             hour: "2-digit",

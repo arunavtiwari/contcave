@@ -104,7 +104,7 @@ const ListingCard: React.FC<Props> = ({
             </div>
           </Link>
 
-          {/* Dot indicators â€” only visible on hover */}
+          {/* Dot indicators — only visible on hover */}
           {images.length > 1 && (
             <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 pointer-events-none opacity-0 group-hover/image:opacity-100 transition-opacity duration-300">
               {images.map((_, idx) => (
@@ -186,7 +186,7 @@ const ListingCard: React.FC<Props> = ({
                 />
                 <Button
                   label="Cancel"
-                  variant="danger"
+                  variant="destructive"
                   classNames="text-sm font-bold"
                   onClick={() => onApprove(reservation?.id ?? "")}
                   rounded

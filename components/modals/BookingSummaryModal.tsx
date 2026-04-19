@@ -250,7 +250,7 @@ export default function BookingSummaryModal({
             onClick={handleConfirm}
             disabled={!agree || saving}
           >
-            {saving ? "Savingâ€¦" : "Confirm & Continue"}
+            {saving ? "Saving…" : "Confirm & Continue"}
           </button>
         </div>
       </div>

@@ -101,10 +101,9 @@ const ProfileSettings = ({ profile }: Props) => {
               label="DELETE ACCOUNT"
               onClick={() => setShowConfirmModal(true)}
               disabled={isSubmitting}
-              variant="danger"
+              variant="destructive"
               outline
-              classNames="font-bold px-8"
-              size="sm"
+
             />
           </div>
         </div>

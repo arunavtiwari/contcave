@@ -382,7 +382,7 @@ function ListingInfo({
       )}
 
       <div className="flex flex-col gap-4">
-        <Heading title="Where youâ€™ll be" variant="h5" />
+        <Heading title="Where you'll be" variant="h5" />
         <Map center={getValidCenter() as [number, number] | undefined} locationValue={locationValue} />
       </div>
 

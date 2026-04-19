@@ -12,7 +12,7 @@ const VALUES = [
     {
         icon: Building2,
         title: "Space Utilisation",
-        body: "No creative space should go to waste â€” whether it's a cafÃ©, a studio, or a hidden corner. Every space can inspire art.",
+        body: "No creative space should go to waste — whether it's a café, a studio, or a hidden corner. Every space can inspire art.",
     },
     {
         icon: Heart,

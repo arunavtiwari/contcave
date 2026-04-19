@@ -5,12 +5,12 @@ import React from "react";
 import { IconType } from "react-icons";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
-type ButtonVariant = "default" | "outline" | "success" | "danger" | "ghost" | "secondary";
+type ButtonVariant = "default" | "outline" | "success" | "destructive" | "ghost" | "secondary";
 
 type ButtonSize = "sm" | "md" | "lg";
 
 type Props = {
-  label: string;
+  label?: string;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
   loading?: boolean;
@@ -42,7 +42,6 @@ function Button({
   href,
   target,
 }: Props) {
-  const effectiveVariant = outline ? "outline" : variant;
 
   const sizeClasses = {
     sm: "py-1.5 px-3 text-xs",
@@ -56,25 +55,44 @@ function Button({
   const roundedClass = rounded ? "rounded-full" : "rounded-xl";
 
   const variantClasses = {
-    default: "bg-foreground border-foreground text-background",
-    outline: "bg-background border-foreground/20 text-foreground",
-    success: "bg-success border-success text-background",
-    danger: "bg-danger border-danger text-background",
-    ghost: "bg-transparent border-transparent text-foreground",
-    secondary: "bg-background/10 border-background/20 text-background",
+    default: {
+      solid: "bg-foreground border-foreground text-background",
+      outline: "bg-background border-foreground text-foreground",
+    },
+    success: {
+      solid: "bg-success border-success text-background",
+      outline: "bg-background border-success text-success",
+    },
+    destructive: {
+      solid: "bg-destructive border-destructive text-destructive-foreground",
+      outline: "bg-background border-destructive text-destructive",
+    },
+    ghost: {
+      solid: "bg-transparent border-transparent text-foreground",
+      outline: "bg-transparent border-border text-foreground",
+    },
+    secondary: {
+      solid: "bg-background/10 border-background/20 text-background",
+      outline: "border-background/20 text-background",
+    },
+    outline: {
+      solid: "bg-background border-foreground/20 text-foreground",
+      outline: "bg-background border-foreground/20 text-foreground",
+    }
   };
 
-  const finalClasses = `${baseClasses} ${roundedClass} ${variantClasses[effectiveVariant]} ${classNames || ""}`;
+  const finalClasses = `${baseClasses} ${roundedClass} ${variantClasses[variant][outline ? "outline" : "solid"]} ${classNames || ""}`;
 
   const content = (
     <>
       {loading && (
         <AiOutlineLoading3Quarters
-          className={`animate-spin text-lg ${effectiveVariant === "outline" || effectiveVariant === "ghost" ? "text-foreground" : "text-background"}`}
+          className={`animate-spin text-lg ${outline || variant === "ghost" ? "text-foreground" : "text-background"}`}
         />
       )}
       {Icon && !loading && <Icon size={20} className={`${isColor && "text-info"}`} />}
-      <span>{loading ? "Processing..." : label}</span>
+      {label && <span>{loading ? "Processing..." : label}</span>}
+      {!label && loading && <span className="sr-only">Processing...</span>}
     </>
   );
 

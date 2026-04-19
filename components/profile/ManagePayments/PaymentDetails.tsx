@@ -304,8 +304,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                         subtitle="Provide your Bank information."
                         variant="h4"
                     />
-
-
+                    
                     <div className="flex h-fit gap-2 md:justify-end">
                         {isEditing ? (
                             <>

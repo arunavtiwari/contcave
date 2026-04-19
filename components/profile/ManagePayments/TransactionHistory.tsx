@@ -4,7 +4,7 @@ import React from "react";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
-import { formatINR, formatISTDateTime } from "@/lib/utils";
+import { formatINR, formatISTDate, formatISTTime } from "@/lib/utils";
 import { Transaction } from "@/types/transaction";
 
 
@@ -40,8 +40,8 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     };
 
     const formatDate = (dateString: string | Date) => {
-        const formatted = formatISTDateTime(dateString);
-        const [datePart, timePart] = formatted.split(', ');
+        const datePart = formatISTDate(dateString, { day: 'numeric', month: 'short', year: 'numeric' });
+        const timePart = formatISTTime(dateString);
         return { datePart, timePart };
     };
 
@@ -138,7 +138,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                             key={transaction.id || index}
                             className="flex flex-col gap-5 rounded-xl border border-border p-5 lg:flex-row lg:items-center"
                         >
-                            <div className="w-full min-w-0 lg:basis-[42%]">
+                            <div className="w-full min-w-0 lg:basis-[42%] flex flex-col gap-1">
                                 <div className="text-sm font-normal">
                                     {businessName}
                                 </div>
@@ -150,7 +150,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                             <div className="w-full lg:basis-[58%]">
                                 <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
                                     {details.map(({ label, value, valueClassName }, idx) => (
-                                        <div key={idx} className="min-w-0 text-left lg:text-center">
+                                        <div key={idx} className="min-w-0 text-left lg:text-center flex flex-col gap-1 items-center">
                                             <div className="text-sm font-semibold text-muted-foreground">{label}</div>
                                             <div className={`text-sm font-semibold text-foreground wrap-break-word ${valueClassName ?? ""}`}>{value}</div>
                                         </div>

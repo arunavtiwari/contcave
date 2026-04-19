@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -27,6 +26,7 @@ import { updateUser } from "@/app/actions/updateUser";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
+import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import Pill from "@/components/ui/Pill";
@@ -256,38 +256,25 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                     )}
                                 </div>
                                 {editMode && (
-                                    <button
+                                    <Button
+                                        label="Cancel"
                                         onClick={() => {
                                             form.reset();
                                             setEditMode(false);
                                         }}
+                                        variant="outline"
                                         disabled={isSubmitting}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors bg-background border border-border text-muted-foreground hover:bg-muted/50 disabled:opacity-50"
-                                    >
-                                        Cancel
-                                    </button>
+                                    />
                                 )}
-                                <button
+                                <Button
+                                    label={editMode ? (isSubmitting ? 'Saving...' : 'Save Changes') : 'Edit Profile'}
                                     onClick={() => editMode ? handleSubmit(onSubmit)() : setEditMode(true)}
+                                    icon={editMode ? (isSubmitting ? FaSpinner : FaSave) : FaEdit}
+                                    variant={editMode ? "default" : "outline"}
                                     disabled={isSubmitting}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors ${editMode
-                                        ? 'bg-foreground text-background hover:opacity-90 disabled:opacity-80'
-                                        : 'bg-muted text-muted-foreground hover:bg-muted/70'
-                                        }`}
-                                >
-                                    {editMode ? (
-                                        <>
-                                            {isSubmitting ? <FaSpinner className="w-4 h-4 animate-spin" /> : <FaSave className="w-4 h-4" />}
-                                            {isSubmitting ? 'Saving...' : 'Save Changes'}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FaEdit className="w-4 h-4" />
-                                            Edit Profile
-                                        </>
-                                    )}
-                                </button>
-                            </div>
+                                    loading={editMode && isSubmitting}
+                                />
+                                控制                            </div>
 
 
                             <div className="mb-2">
@@ -464,12 +451,11 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         Register yourself as a space owner to start hosting and get verified.
                                     </p>
                                 </div>
-                                <button
+                                <Button
+                                    label="Register as Owner"
                                     onClick={() => setShowOwnerModal(true)}
-                                    className="w-full bg-foreground text-background py-3 px-4 rounded-xl font-semibold hover:opacity-90 transition-all shadow-sm active:scale-[0.98]"
-                                >
-                                    Register as Owner
-                                </button>
+                                    classNames="shadow-sm"
+                                />
                             </div>
                         </div>
                     ) : !isVerified ? (
@@ -485,12 +471,11 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         Verify your details to unlock space owner features and start hosting.
                                     </p>
                                 </div>
-                                <button
+                                <Button
+                                    label="Start Verification"
                                     onClick={() => setShowVerificationModal(true)}
-                                    className="w-full bg-warning text-warning-foreground py-3 px-4 rounded-xl font-semibold hover:bg-warning/90 transition-all shadow-sm active:scale-[0.98]"
-                                >
-                                    Start Verification
-                                </button>
+                                    classNames="shadow-sm"
+                                />
                             </div>
                         </div>
                     ) : (
@@ -500,27 +485,20 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto">
                                     <FaCheck className="w-8 h-8 text-success" />
                                 </div>
-                                <div>
-                                    <Heading title="Profile Verified" variant="h6" className="text-success-900" />
-                                    <p className="text-muted-foreground text-sm mt-2">
-                                        Your profile is verified! You can now list spaces and manage payments.
-                                    </p>
-                                </div>
+                                <Heading title="Profile Verified" variant="h6" subtitle="Your profile is verified! You can now list spaces and manage payments." />
                                 <div className="space-y-3">
-                                    <button
+                                    <Button
+                                        label="List Your Space"
                                         onClick={onRent}
-                                        className="w-full bg-foreground text-background py-3 px-4 rounded-xl font-semibold hover:bg-foreground/90 transition-all flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]"
-                                    >
-                                        <FaHome className="w-4 h-4" />
-                                        List Your Space
-                                    </button>
-                                    <Link
+                                        icon={FaHome}
+                                        classNames="shadow-sm"
+                                    />
+                                    <Button
+                                        label="Payment Details"
                                         href="/profile?tab=manage-payments"
-                                        className="w-full bg-muted text-muted-foreground py-3 px-4 rounded-xl font-semibold hover:bg-muted/80 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <FaCreditCard className="w-4 h-4" />
-                                        Payment Details
-                                    </Link>
+                                        icon={FaCreditCard}
+                                        variant="outline"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -560,7 +538,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                             setValue("is_verified", true, { shouldValidate: true });
                             setIsVerified(true);
 
-                            setCurrentUser((u) => u ? { ...u, is_verified: true } : null);
+                            setCurrentUser((u: SafeUser | null) => u ? { ...u, is_verified: true } : null);
                         }}
                     />
                 )

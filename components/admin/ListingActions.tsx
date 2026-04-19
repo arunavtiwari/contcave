@@ -37,7 +37,7 @@ export default function ListingActions({ listingId, previewUrl }: Props) {
                 <input type="hidden" name="listingId" value={listingId} />
                 <Button
                     label="Reject"
-                    variant="danger"
+                    variant="destructive"
                     size="sm"
                     loading={rejectPending}
                 />
