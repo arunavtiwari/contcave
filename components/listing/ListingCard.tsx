@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -6,6 +6,8 @@ import React, { useMemo } from "react";
 
 import HeartButton from "@/components/HeartButton";
 import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
+import Pill from "@/components/ui/Pill";
 import StarRating from "@/components/ui/StarRating";
 import useCities from "@/hook/useCities";
 import { safeListing } from "@/types/listing";
@@ -71,7 +73,7 @@ const ListingCard: React.FC<Props> = ({
   }, [reservation, data.price]);
 
   return (
-    <div className="col-span-1 cursor-pointer group p-3 rounded-2xl border border-neutral-200">
+    <div className="col-span-1 cursor-pointer group p-3 rounded-2xl bg-background shadow-sm hover:shadow-md transition-shadow">
       <div className="flex flex-col gap-2 w-full">
         {/* Image area with hover slideshow */}
         <div
@@ -102,7 +104,7 @@ const ListingCard: React.FC<Props> = ({
             </div>
           </Link>
 
-          {/* Dot indicators — only visible on hover */}
+          {/* Dot indicators â€” only visible on hover */}
           {images.length > 1 && (
             <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 pointer-events-none opacity-0 group-hover/image:opacity-100 transition-opacity duration-300">
               {images.map((_, idx) => (
@@ -125,70 +127,90 @@ const ListingCard: React.FC<Props> = ({
         </div>
 
         <Link href={onEdit ? `/properties/${data.id}` : `/listings/${data.slug}`}>
-          <div className="flex justify-between items-center">
-            <div className="font-semibold text-base">
-              {data.title}
+          <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0 flex-1">
+              <Heading
+                title={data.title}
+                variant="h6"
+                className="truncate"
+              />
             </div>
             {data.avgReviewRating && data.avgReviewRating != 0 && (
               <StarRating
                 rating={data.avgReviewRating}
                 size={18}
-                activeColor="text-yellow-500"
                 showText
               />
             )}
           </div>
-          <div className="font-light text-neutral-500">
+          <div className="text-sm font-light text-muted-foreground mt-1">
             {data.category} | {location?.label}
           </div>
         </Link>
 
-        <div className="flex flex-row items-center">
-          <div className="flex gap-1 font-semibold">
-            {data.hasSets && <span className="font-light text-neutral-500 mr-1">Starting from</span>}
-            ₹{price} {!reservation && <div className="font-light">/ Hour</div>}
-          </div>
+        <div className="flex flex-row items-center mt-1">
+          <Pill
+            label={
+              <div className="flex gap-1 items-center">
+                {data.hasSets && <span className="font-light opacity-70 lowercase">From</span>}
+                <span>₹{price}</span>
+                {!reservation && <span className="font-light opacity-70 lowercase">/ Hr</span>}
+              </div>
+            }
+            variant="subtle"
+            color="secondary"
+            size="sm"
+          />
         </div>
 
         {(onEdit || (!reservation?.isApproved && onApprove) || (reservation?.isApproved !== 0 && onChat)) && (
           <div className="flex mt-2">
             {onEdit && (
-              <Link
+              <Button
+                label="Manage"
                 href={`/properties/${data.id}`}
-                className="button rounded-full px-4 py-2 bg-foreground text-background font-semibold hover:bg-neutral-800 transition"
-              >
-                Manage
-              </Link>
+                rounded
+                fit
+                classNames="text-sm font-semibold"
+              />
             )}
 
             {!reservation?.isApproved && onApprove && (
-              <>
+              <div className="flex gap-2">
                 <Button
                   label="Approve"
-                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-background ml-2"
+                  variant="success"
+                  classNames="text-sm font-bold"
                   onClick={() => onApprove(reservation?.id ?? "")}
+                  rounded
                 />
                 <Button
                   label="Cancel"
-                  classNames="text-md font-semibold py-3 border-2 bg-destructive border-destructive text-background ml-2"
+                  variant="danger"
+                  classNames="text-sm font-bold"
                   onClick={() => onApprove(reservation?.id ?? "")}
+                  rounded
                 />
-              </>
+              </div>
             )}
 
             {reservation && reservation?.isApproved != 0 && onChat && (
-              <>
+              <div className="flex gap-2">
                 <Button
                   label="Approved"
-                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-background ml-2"
-                  onClick={() => reservation.isApproved}
+                  variant="success"
+                  classNames="text-sm font-bold"
+                  disabled
+                  rounded
                 />
                 <Button
                   label="Chat"
-                  classNames="text-md font-semibold py-3 border-2 bg-green-500 border-green-500 text-background ml-2"
+                  variant="outline"
+                  classNames="text-sm font-bold"
                   onClick={() => onChat(reservation?.id ?? "")}
+                  rounded
                 />
-              </>
+              </div>
             )}
           </div>
         )}
@@ -199,3 +221,4 @@ const ListingCard: React.FC<Props> = ({
 }
 
 export default ListingCard;
+

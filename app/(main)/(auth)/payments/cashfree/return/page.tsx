@@ -40,7 +40,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
         return (
             <main className="max-w-xl mx-auto p-6">
                 <h1 className="text-3xl font-bold">Your Reservation</h1>
-                <p className="mt-4 text-xl text-red-600">
+                <p className="mt-4 text-xl text-destructive font-medium">
                     Missing <code>order_id</code> (or <code>tid</code>) in URL.
                 </p>
             </main>
@@ -67,10 +67,10 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
             <main className="max-w-xl mx-auto p-6 flex items-center justify-center">
                 <div className="flex flex-col items-center space-y-6">
 
-                    <div className="w-14 h-14 border-4 border-gray-300 border-t-foreground rounded-full animate-spin"></div>
+                    <div className="w-14 h-14 border-4 border-border border-t-primary rounded-full animate-spin"></div>
 
                     <h2 className="text-2xl font-bold text-center">Verifying your payment...</h2>
-                    <p className="text-lg text-neutral-600 text-center">
+                    <p className="text-lg text-muted-foreground text-center">
                         This may take a few seconds. Please wait while we confirm your reservation.
                     </p>
                 </div>
@@ -155,7 +155,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
                     </div>
                 )}
                 {subtext && (
-                    <p className="mt-1 text-lg text-neutral-800 text-center">{subtext}</p>
+                    <p className="mt-1 text-lg text-foreground/80 text-center">{subtext}</p>
                 )}
 
                 {!isFailed && (
@@ -208,7 +208,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
                 </div>
 
                 {isFailed && (
-                    <p className="mt-3 text-sm text-neutral-500">
+                    <p className="mt-3 text-sm text-muted-foreground">
                         Need help? Write to{" "}
                         <a
                             href="mailto:info@contcave.com"

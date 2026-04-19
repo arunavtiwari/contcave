@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { FiCheck, FiChevronRight } from "react-icons/fi";
 import Container from "@/components/Container";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import Pill from "@/components/ui/Pill";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { studios } from "@/constants/studios";
 
@@ -49,14 +50,20 @@ const StudioCard = ({ studio, index }: { studio: (typeof studios)[number]; index
               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
             />
 
-            <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold bg-foreground/70 text-background backdrop-blur">
-              <FiCheck size={10} className="text-success" strokeWidth={2.5} />
-              Verified
-            </div>
+            <Pill
+              label="Verified"
+              icon={FiCheck}
+              variant="glass"
+              size="xs"
+              className="absolute left-3 top-3 bg-foreground/70 text-background"
+            />
 
-            <div className="absolute bottom-3 right-3 rounded-full px-3 py-1 text-xs font-semibold bg-background/90 text-foreground backdrop-blur-sm">
-              {studio.price}
-            </div>
+            <Pill
+              label={studio.price}
+              variant="glass"
+              size="sm"
+              className="absolute bottom-3 right-3"
+            />
           </div>
 
           <div className="px-1">
@@ -157,3 +164,4 @@ const StudioShowcase = () => {
 };
 
 export default StudioShowcase;
+

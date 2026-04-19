@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import React from "react";
 import { FiSearch } from "react-icons/fi";
 
+import Button from "./ui/Button";
 import Heading from "./ui/Heading";
 
 type Props = {
@@ -38,12 +38,12 @@ function EmptyState({
 
       {showReset && (
         <div className="mt-8">
-          <Link
-            href="/home"
-            className="inline-flex items-center justify-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-foreground-foreground transition-all hover:opacity-90 active:scale-95"
-          >
-            Clear all filters
-          </Link>
+          <Button
+            label="Clear all filters"
+            onClick={() => window.location.href = '/home'}
+            classNames="px-8"
+            rounded
+          />
         </div>
       )}
     </motion.div>
@@ -51,3 +51,4 @@ function EmptyState({
 }
 
 export default EmptyState;
+

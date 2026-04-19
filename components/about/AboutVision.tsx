@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 import { motion } from "framer-motion";
 import React from "react";
 
-import SectionHeader from "@/components/ui/SectionHeader";
 import Heading from "@/components/ui/Heading";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 const MILESTONES = [
     {
@@ -59,7 +59,7 @@ const AboutVision = () => {
                                 className={`ml-16 md:ml-0 md:w-1/2 ${item.side === "left" ? "md:text-right md:pr-16" : "md:pl-16"
                                     }`}
                             >
-                                <span className="text-primary font-bold tracking-widest text-sm">
+                                <span className="text-foreground font-bold tracking-widest text-sm">
                                     {item.year}
                                 </span>
                                 <Heading title={item.title} variant="h4" className="mt-1 mb-3" />
@@ -76,3 +76,4 @@ const AboutVision = () => {
 };
 
 export default AboutVision;
+

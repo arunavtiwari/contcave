@@ -1,4 +1,4 @@
-import Image from 'next/image';
+﻿import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
 import { Addon } from "@/types/addon";
@@ -108,7 +108,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
                   type="number"
                   value={price}
                   onChange={handlePriceChange}
-                  className="w-37.5 text-center border border-border rounded-xl py-1 pl-10 focus:ring-1 focus:ring-primary/10 transition outline-none"
+                  className="w-37.5 text-center border border-border rounded-xl py-1 pl-10 focus:ring-1 focus:ring-foreground/10 transition outline-none"
                   placeholder="Price"
                   disabled={!isChecked}
                 />
@@ -124,7 +124,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
                 type="number"
                 value={qty}
                 onChange={handleQtyChange}
-                className="w-37.5 text-center border border-border rounded-xl py-1 px-3 focus:ring-1 focus:ring-primary/10 transition outline-none"
+                className="w-37.5 text-center border border-border rounded-xl py-1 px-3 focus:ring-1 focus:ring-foreground/10 transition outline-none"
                 placeholder="Quantity"
                 disabled={!isChecked}
               />
@@ -137,3 +137,4 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
 };
 
 export default ImageCheckbox;
+

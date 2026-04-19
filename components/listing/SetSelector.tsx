@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -11,6 +11,7 @@ import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import Checkbox from "@/components/ui/Checkbox";
+import Heading from "@/components/ui/Heading";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
 
@@ -95,15 +96,18 @@ export default function SetSelector({
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold">Select Sets</h3>
+                <Heading
+                    title="Select Sets"
+                    variant="h5"
+                />
                 {onSelectAll && !selectedPackage && (
                     <button
                         onClick={onSelectAll}
                         disabled={disabled && !isEntireStudioBooked}
                         className={`text-sm font-medium px-4 py-2 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed
                             ${isEntireStudioBooked
-                                ? "bg-neutral-200 text-foreground hover:bg-neutral-300"
-                                : "bg-foreground text-background hover:bg-neutral-800"
+                                ? "bg-muted text-foreground hover:bg-muted/80 shadow-sm"
+                                : "bg-foreground text-background hover:bg-neutral-800 shadow-sm hover:shadow-md"
                             }`}
                     >
                         {isEntireStudioBooked ? "Clear Selection" : "Book the Entire Studio"}
@@ -117,9 +121,9 @@ export default function SetSelector({
                     <button
                         onClick={() => swiperRef.current?.slidePrev()}
                         aria-label="Scroll left"
-                        className="absolute left-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-background rounded-full border border-neutral-300  hover: hover:scale-105 transition-all cursor-pointer"
+                        className="absolute left-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-background rounded-full border border-border  hover:scale-105 transition-all cursor-pointer shadow-sm hover:shadow-md"
                     >
-                        <HiOutlineChevronLeft className="text-neutral-700" size={16} />
+                        <HiOutlineChevronLeft className="text-muted-foreground" size={16} />
                     </button>
                 )}
 
@@ -128,9 +132,9 @@ export default function SetSelector({
                     <button
                         onClick={() => swiperRef.current?.slideNext()}
                         aria-label="Scroll right"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-background rounded-full border border-neutral-300  hover: hover:scale-105 transition-all cursor-pointer"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 bg-background rounded-full border border-border  hover:scale-105 transition-all cursor-pointer shadow-sm hover:shadow-md"
                     >
-                        <HiOutlineChevronRight className="text-neutral-700" size={16} />
+                        <HiOutlineChevronRight className="text-muted-foreground" size={16} />
                     </button>
                 )}
 
@@ -211,8 +215,8 @@ export default function SetSelector({
                                                 className="object-cover transition group-hover:scale-105"
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-neutral-200 flex items-center justify-center">
-                                                <span className="text-xs text-neutral-500">No Image</span>
+                                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                                                <span className="text-xs text-muted-foreground">No Image</span>
                                             </div>
                                         )}
 
@@ -232,7 +236,7 @@ export default function SetSelector({
                                             <Checkbox
                                                 checked={isSelected}
                                                 readOnly
-                                                className="pointer-events-none data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                                                className="pointer-events-none data-[state=checked]:bg-success data-[state=checked]:border-success"
                                             />
                                         </div>
 
@@ -252,7 +256,7 @@ export default function SetSelector({
             </div>
 
             {sets.length === 0 && (
-                <p className="text-center text-neutral-500 py-8">
+                <p className="text-center text-muted-foreground py-8">
                     No sets available for this listing
                 </p>
             )}
@@ -270,3 +274,4 @@ export default function SetSelector({
         </div>
     );
 }
+

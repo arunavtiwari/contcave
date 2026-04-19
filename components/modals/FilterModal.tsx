@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
@@ -80,9 +80,9 @@ const FilterModalContent = () => {
               onClick={() =>
                 setSelectedType((prev) => (prev === spaceType ? null : spaceType))
               }
-              className={`px-3 py-1 rounded-full border text-sm ${selectedType === spaceType
-                ? "bg-foreground text-background border-foreground"
-                : "border-border hover:bg-accent"
+              className={`px-4 py-2 rounded-xl border transition text-sm ${selectedType === spaceType
+                ? "bg-foreground text-background border-foreground shadow-sm"
+                : "border-border hover:bg-muted text-muted-foreground"
                 }`}
             >
               {spaceType}
@@ -97,7 +97,7 @@ const FilterModalContent = () => {
     <div className="shrink-0">
       <button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-gray-100 rounded-xl text-sm whitespace-nowrap"
+        className="px-4 py-2 bg-muted hover:bg-muted/80 transition-colors rounded-xl text-sm font-semibold whitespace-nowrap active:scale-95 border border-border"
       >
         More Filters
       </button>
@@ -132,3 +132,4 @@ const FilterModal = () => {
 };
 
 export default FilterModal;
+

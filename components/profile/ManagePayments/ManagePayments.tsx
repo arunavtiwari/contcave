@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import PaymentDetails from "@/components/profile/ManagePayments/PaymentDetails";
@@ -194,7 +194,7 @@ const ManagePayments: React.FC<Props> = ({
                     subtitle="View your payment details and past transactions."
                 />
                 <div className="flex justify-center items-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
                     <span className="ml-2 text-muted-foreground">Loading payment data...</span>
                 </div>
             </div>
@@ -285,3 +285,4 @@ const ManagePayments: React.FC<Props> = ({
 };
 
 export default ManagePayments;
+

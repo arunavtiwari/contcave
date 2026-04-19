@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Amenities } from "@prisma/client";
 import Image from "next/image";
@@ -79,7 +79,7 @@ import FormField from "./ui/FormField";
 import Input from "./ui/Input";
 
 const propertyFieldClassName =
-    "w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground transition outline-none focus:border-primary focus:ring-1 focus:ring-primary/10 hover:border-border/80";
+    "w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground transition outline-none focus:border-foreground focus:ring-1 focus:ring-foreground/10 hover:border-border/80";
 
 const propertyFieldSeparatorClassName =
     "flex items-center justify-center self-stretch px-1 text-sm font-medium leading-none text-muted-foreground";
@@ -412,8 +412,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         className={`
                                             text-sm py-2 px-4 rounded-full border transition
                                             ${(initialListing.type || []).includes(t)
-                                                ? "bg-primary text-foreground-foreground border-primary"
-                                                : "bg-background text-muted-foreground border-border hover:border-primary"
+                                                ? "bg-foreground text-background border-foreground"
+                                                : "bg-background text-muted-foreground border-border hover:border-foreground"
                                             }
                                         `}
                                     >
@@ -670,13 +670,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         <div className="flex gap-4 w-full">
                                             <button
                                                 onClick={() => handleInputChange("additionalSetPricingType", "FIXED")}
-                                                className={`flex-1 py-2 px-4 rounded-xl border transition ${initialListing.additionalSetPricingType === "FIXED" ? "bg-primary text-foreground-foreground border-primary" : "bg-background text-foreground border-border hover:border-primary"}`}
+                                                className={`flex-1 py-2 px-4 rounded-xl border transition ${initialListing.additionalSetPricingType === "FIXED" ? "bg-foreground text-background border-foreground" : "bg-background text-foreground border-border hover:border-foreground"}`}
                                             >
                                                 Fixed Add-on
                                             </button>
                                             <button
                                                 onClick={() => handleInputChange("additionalSetPricingType", "HOURLY")}
-                                                className={`flex-1 py-2 px-4 rounded-xl border transition ${initialListing.additionalSetPricingType === "HOURLY" ? "bg-primary text-foreground-foreground border-primary" : "bg-background text-foreground border-border hover:border-primary"}`}
+                                                className={`flex-1 py-2 px-4 rounded-xl border transition ${initialListing.additionalSetPricingType === "HOURLY" ? "bg-foreground text-background border-foreground" : "bg-background text-foreground border-border hover:border-foreground"}`}
                                             >
                                                 Hourly Add-on
                                             </button>
@@ -692,7 +692,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         <div className="flex gap-4 w-full">
                                             <label
                                                 className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
-                                                    ? "border-primary bg-muted ring-1 ring-primary"
+                                                    ? "border-foreground bg-muted ring-1 ring-foreground/10"
                                                     : "border-border hover:border-border/80"
                                                     }`}
                                             >
@@ -707,7 +707,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                             </label>
                                             <label
                                                 className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === false
-                                                    ? "border-primary bg-muted ring-1 ring-primary"
+                                                    ? "border-foreground bg-muted ring-1 ring-foreground/10"
                                                     : "border-border hover:border-border/80"
                                                     }`}
                                             >
@@ -744,7 +744,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="col-span-3 pt-5 flex justify-end">
                             <button
                                 type="button"
-                                className="inline-flex py-2 px-6 border border-transparent  text-sm font-medium rounded-xl hover:opacity-85 text-foreground-foreground bg-primary"
+                                className="inline-flex py-2 px-6 border border-transparent  text-sm font-medium rounded-xl hover:opacity-85 text-background bg-foreground"
                                 onClick={update}
                             >
                                 Save
@@ -757,11 +757,11 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="flex justify-between w-full items-center">
                             <Heading
                                 title="Connect Your Google Calendar"
-                                subtitle="Sync offline and ContCave bookings to keep your availability up to date—automatically"
+                                subtitle="Sync offline and ContCave bookings to keep your availability up to dateâ€”automatically"
                             />
                             {!isCalendarConnected && (
                                 <button
-                                    className="bg-primary text-foreground-foreground px-15 h-fit py-2 rounded-xl hover:opacity-90 flex gap-4 justify-center items-center"
+                                    className="bg-foreground text-background px-15 h-fit py-2 rounded-xl hover:opacity-90 flex gap-4 justify-center items-center"
                                     onClick={() => signIn("google-calendar")}
                                 >
                                     <Image
@@ -844,3 +844,4 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 };
 
 export default PropertyClient;
+

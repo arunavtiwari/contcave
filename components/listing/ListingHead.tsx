@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -172,7 +172,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
                     onClick={() => handleImageClick(4)}
                   />
                   <button
-                    className="absolute bottom-3 right-3 bg-background text-foreground px-4 py-1.5 rounded-lg  hover:bg-neutral-200 transition font-medium text-base"
+                    className="absolute bottom-4 right-4 bg-background/70 backdrop-blur-md text-foreground px-6 py-2 rounded-xl hover:bg-background/90 transition-all font-semibold shadow-premium text-sm uppercase tracking-wide"
                     onClick={handleShowAllPhotos}
                   >
                     Show all photos
@@ -203,7 +203,7 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
         <div className="fixed inset-0 z-9999 bg-foreground flex flex-col items-center justify-center">
           <button
             onClick={() => setIsLightboxOpen(false)}
-            className="absolute top-4 right-4 text-background hover:text-gray-300 z-50 p-2 bg-foreground/50 rounded-full transition"
+            className="absolute top-6 right-6 text-background hover:text-white z-50 p-2.5 bg-background/20 backdrop-blur-xl border border-white/20 rounded-full transition-all hover:scale-110 active:scale-95"
           >
             <IoMdClose size={24} />
           </button>
@@ -254,3 +254,4 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
 }
 
 export default ListingHead;
+

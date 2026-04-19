@@ -5,20 +5,13 @@ import Container from "@/components/Container";
 import PageBanner from "@/components/ui/PageBanner";
 import { getPostData, getSortedPostsData } from "@/lib/posts";
 import { safeJsonLd } from "@/lib/safeJsonLd";
-import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { absoluteUrl, asciiClean, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { formatISTDate } from "@/lib/utils";
 
 const FALLBACK_DESCRIPTION =
   "Insights and stories from ContCave on studios, production workflows, and the creative economy in India.";
 
 type RouteParams = { id: string };
-
-const asciiClean = (value: string | undefined | null): string | undefined =>
-  value
-    ?.replace(/<[^>]*>?/gm, " ") // Strip HTML tags
-    .replace(/&#?[a-z0-9]+;/ig, " ") // Strip HTML entities
-    .replace(/[^\x20-\x7E]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 
 export async function generateStaticParams() {
   return getSortedPostsData().map((post) => ({ id: post.id }));
@@ -93,6 +86,8 @@ export async function generateMetadata({
   }
 }
 
+import Heading from "@/components/ui/Heading";
+
 export default async function PostPage(props: { params: Promise<RouteParams> }) {
   const { id } = await props.params;
   const post = await getPostData(id);
@@ -119,11 +114,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
     isPartOf: { "@id": `${SITE_URL}/#website` },
   };
 
-  const formattedDate = new Date(post.publishedAt).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const formattedDate = formatISTDate(post.publishedAt);
 
   return (
     <main className="bg-background min-h-screen">
@@ -146,9 +137,12 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
               switch (block.blockType) {
                 case "heading":
                   return (
-                    <h2 key={block.id} className="text-2xl font-bold text-foreground">
-                      {block.content}
-                    </h2>
+                    <Heading
+                      key={block.id}
+                      title={block.content}
+                      variant="h2"
+                      className="text-foreground"
+                    />
                   );
                 case "paragraph":
                   return (

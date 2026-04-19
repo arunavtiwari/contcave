@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { FieldErrors } from "react-hook-form";
@@ -34,7 +34,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                         "w-full p-3 font-light bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed min-h-25",
                         error
                             ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20"
-                            : "border-border hover:border-border/80 focus:border-primary focus:ring-1 focus:ring-primary/10",
+                            : "border-border hover:border-border/80 focus:border-foreground focus:ring-1 focus:ring-foreground/10",
                         className
                     )}
                     ref={ref}
@@ -47,3 +47,4 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 Textarea.displayName = "Textarea";
 
 export default Textarea;
+

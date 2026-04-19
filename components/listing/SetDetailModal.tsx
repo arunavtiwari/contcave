@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -109,7 +109,7 @@ export default function SetDetailModal({
                             )}
                         </>
                     ) : (
-                        <div className="flex items-center justify-center h-full text-neutral-400 bg-neutral-50">
+                        <div className="flex items-center justify-center h-full text-muted-foreground bg-muted">
                             <span className="text-lg font-medium">No images available</span>
                         </div>
                     )}
@@ -119,14 +119,14 @@ export default function SetDetailModal({
                 <div className="w-full md:w-2/5 p-8 flex flex-col overflow-y-auto bg-background">
                     <div className="flex-1">
                         <div className="flex items-start justify-between gap-4 mb-4">
-                            <h2 className="text-3xl font-bold text-neutral-900 leading-tight">{set.name}</h2>
+                            <h2 className="text-3xl font-bold text-foreground leading-tight">{set.name}</h2>
                         </div>
 
-                        <div className="inline-flex items-center px-3 py-1 bg-neutral-900 text-background rounded-full text-sm font-medium mb-6 ">
+                        <div className="inline-flex items-center px-4 py-2 bg-foreground text-background rounded-xl text-sm font-bold mb-6 shadow-lg shadow-foreground/10">
                             {priceLabel}
                         </div>
 
-                        <div className="prose prose-neutral text-neutral-600 mb-8 leading-relaxed">
+                        <div className="prose prose-neutral text-muted-foreground mb-8 leading-relaxed">
                             <p>{set.description || "No description available for this set."}</p>
                         </div>
                     </div>
@@ -139,7 +139,7 @@ export default function SetDetailModal({
                         )}
 
                         {!isEligible && (
-                            <div className="p-4 bg-yellow-50 text-yellow-800 rounded-xl text-sm text-center font-medium border border-yellow-100">
+                            <div className="p-4 bg-warning/10 text-warning rounded-xl text-sm text-center font-bold border border-warning/20">
                                 Not eligible for the selected package
                             </div>
                         )}
@@ -160,3 +160,4 @@ export default function SetDetailModal({
         </div>
     );
 }
+

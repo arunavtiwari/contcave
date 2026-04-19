@@ -1,10 +1,9 @@
-"use client";
-import React from "react";
+﻿"use client";
 
+import AboutCTA from "./AboutCTA";
 import AboutStory from "./AboutStory";
 import AboutValues from "./AboutValues";
 import AboutVision from "./AboutVision";
-import AboutCTA from "./AboutCTA";
 
 const AboutContent = () => {
     return (

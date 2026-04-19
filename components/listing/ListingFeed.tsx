@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import LocateFixed from "lucide-react/dist/esm/icons/locate-fixed";
 import MapPin from "lucide-react/dist/esm/icons/map-pin";
@@ -140,7 +140,7 @@ function ListingFeed({ listings, currentUser }: Props) {
             <button
               onClick={handleDetectLocation}
               disabled={isLocating}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 w-full md:w-auto bg-primary text-foreground-foreground rounded-[10px] text-sm font-semibold hover:opacity-90 transition disabled:opacity-70 whitespace-nowrap"
+              className="flex items-center justify-center gap-2 px-6 py-2.5 w-full md:w-auto bg-foreground text-background rounded-[10px] text-sm font-semibold hover:opacity-90 transition disabled:opacity-70 whitespace-nowrap"
             >
               <LocateFixed size={18} />
               {isLocating ? "Locating..." : "Detect my location"}
@@ -166,3 +166,4 @@ function ListingFeed({ listings, currentUser }: Props) {
 }
 
 export default ListingFeed;
+

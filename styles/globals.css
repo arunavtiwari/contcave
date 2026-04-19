@@ -20,11 +20,6 @@
 	--color-neutral-950: #0A0A0A;
 
 	/* 2. Semantic Mappings (Functional Tokens) */
-	--color-primary: var(--color-black);
-	--color-primary-10: rgb(0 0 0 / 0.1);
-	--color-primary-20: rgb(0 0 0 / 0.2);
-	--color-primary-foreground: var(--color-white);
-
 	--color-background: var(--color-white);
 	--color-foreground: var(--color-black);
 
@@ -44,6 +39,9 @@
 	--color-danger: #EF4444;
 	--color-destructive: var(--color-danger);
 	--color-destructive-foreground: var(--color-white);
+
+	--color-info: #2563EB;
+	--color-info-foreground: var(--color-white);
 
 	--color-status-approved: #218C54;
 	--color-status-pending: #B98A30;

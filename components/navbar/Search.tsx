@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSearchParams } from "next/navigation";
 import { memo, Suspense, useCallback, useMemo } from "react";
@@ -6,6 +6,7 @@ import { BiSearch } from "react-icons/bi";
 
 import useCountries from "@/hook/useCities";
 import useSearchModal from "@/hook/useSearchModal";
+import { formatISTDate } from "@/lib/utils";
 
 const SearchContent = memo(function SearchContent() {
   const searchModel = useSearchModal();
@@ -24,9 +25,10 @@ const SearchContent = memo(function SearchContent() {
 
   const dateLabel = useMemo(() => {
     if (startDate) {
-      const start = new Date(startDate as string);
-      const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-      const formattedDate = start.toLocaleString('en-US', options);
+      const formattedDate = formatISTDate(startDate as string, {
+        month: "short",
+        day: "numeric",
+      });
       return <span style={{ fontSize: '14px' }}>{formattedDate}</span>;
     }
     return "Date";
@@ -40,7 +42,7 @@ const SearchContent = memo(function SearchContent() {
     <button
       type="button"
       onClick={handleClick}
-      className="border border-border w-full md:w-auto p-2 rounded-full transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+      className="w-full md:w-auto p-2 rounded-full transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] bg-background/20 backdrop-blur-2xl shadow-sm border border-border/10 hover:shadow-md"
     >
       <div className="flex flex-row items-center justify-between">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>
@@ -62,7 +64,7 @@ SearchContent.displayName = "SearchContent";
 const Search = memo(function Search() {
   return (
     <Suspense fallback={
-      <div className="border border-border md:w-auto p-2 rounded-full">
+      <div className="md:w-auto p-2 rounded-full bg-background/20 backdrop-blur-2xl shadow-sm border border-border/10">
         <div className="flex flex-row items-center justify-between">
           <div className="text-sm font-semibold px-6">City</div>
           <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
@@ -84,3 +86,4 @@ const Search = memo(function Search() {
 Search.displayName = "Search";
 
 export default Search;
+

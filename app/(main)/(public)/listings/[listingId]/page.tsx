@@ -10,23 +10,11 @@ import ListingSkeleton from "@/components/listing/ListingSkeleton";
 import ListingClient from "@/components/ListingClient";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import { safeJsonLd } from "@/lib/safeJsonLd";
-import { absoluteUrl, BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { absoluteUrl, asciiClean, BRAND_NAME, DEFAULT_KEYWORDS, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 type RouteParams = { listingId?: string };
-
-const asciiClean = (
-  value: string | string[] | undefined | null
-): string | undefined => {
-  const source = Array.isArray(value) ? value.join(" ") : value;
-  return source
-    ?.replace(/<[^>]*>?/gm, " ") // Strip HTML tags
-    .replace(/&#?[a-z0-9]+;/ig, " ") // Strip HTML entities
-    .replace(/[^\x20-\x7E]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-};
 
 export async function generateMetadata({
   params,

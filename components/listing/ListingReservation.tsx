@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Cashfree, load } from "@cashfreepayments/cashfree-js";
 import {
@@ -16,6 +16,9 @@ import Calendar from "@/components/inputs/Calendar";
 import TimeSlotPicker from "@/components/inputs/TimeSlotPicker";
 import BookingSummaryModal from "@/components/modals/BookingSummaryModal";
 import PhoneModal from "@/components/modals/PhoneModal";
+import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
+import Pill from "@/components/ui/Pill";
 import useLoginModal from "@/hook/useLoginModal";
 import { normalizePhone } from "@/lib/phone";
 import { Package } from "@/types/package";
@@ -469,7 +472,7 @@ export default function ListingReservation({
   }, [gstDetails, startPayment]);
 
   return (
-    <section className="bg-background rounded-xl border border-neutral-200 overflow-hidden">
+    <section className="bg-background rounded-xl shadow-sm border border-border/10 overflow-hidden">
       <div className="flex items-center justify-between p-4">
         <p
           className="flex gap-1 text-2xl font-semibold"
@@ -478,27 +481,27 @@ export default function ListingReservation({
           {selectedPackage
             ? INR.format(Number(selectedPackage.offeredPrice || 0))
             : INR.format(price)}{" "}
-          <span className="text-neutral-600 font-normal">
+          <span className="text-muted-foreground font-normal">
             {selectedPackage ? " (package)" : "/ hour"}
           </span>
         </p>
 
-        <span
-          className={`flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full ${instantBooking
-            ? "bg-green-100 text-green-700"
-            : "bg-yellow-100 text-yellow-700"
-            }`}
-        >
-          {instantBooking && <FaBolt className="text-yellow-500 w-3 h-3" />}
-          {instantBooking ? "Instant Book" : "Request to Book"}
-        </span>
+        <Pill
+          label={instantBooking ? "Instant Book" : "Request to Book"}
+          variant="subtle"
+          color={instantBooking ? "success" : "warning"}
+          icon={instantBooking ? FaBolt : undefined}
+          size="xs"
+        />
       </div>
 
       <hr />
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
-        <h2 className="text-lg" id={`${sectionId}-date-label`}>
-          Select Date for Booking
-        </h2>
+        <Heading
+          title="Select Date for Booking"
+          variant="h6"
+          id={`${sectionId}-date-label`}
+        />
       </div>
       <Calendar
         value={selectedDate ?? null}
@@ -529,9 +532,11 @@ export default function ListingReservation({
         </>
       )}
       <div className="p-4 pb-0 flex items-center justify-between font-semibold text-lg">
-        <h2 className="text-lg" id={`${sectionId}-time-label`}>
-          Pick your Time Slot
-        </h2>
+        <Heading
+          title="Pick your Time Slot"
+          variant="h6"
+          id={`${sectionId}-time-label`}
+        />
       </div>
       <TimeSlotPicker
         onTimeSelect={handleTimeSelect}
@@ -547,23 +552,23 @@ export default function ListingReservation({
       <hr />
 
       <div className="p-4">
-        <button
-          type="button"
-          disabled={!ready}
-          className={`rounded-xl w-full text-background transition-opacity py-3 ${ready ? "bg-foreground hover:opacity-90" : "bg-neutral-400 cursor-not-allowed"}`}
+        <Button
+          label={isPaying ? "Redirecting to Cashfreeâ€¦" : "Reserve and Pay"}
           onClick={handleReserve}
-        >
-          {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
-        </button>
+          disabled={!ready}
+          loading={isPaying}
+          rounded
+          classNames="font-bold text-base py-4"
+        />
         {!!err && (
-          <p className="mt-2 text-sm text-destructive" role="alert">
+          <p className="mt-4 text-sm text-destructive font-medium bg-destructive/5 p-3 rounded-lg border border-destructive/10" role="alert">
             {err}
           </p>
         )}
       </div>
 
       <hr />
-      <div className="p-4 flex flex-col text-neutral-600 gap-1" aria-live="polite">
+      <div className="p-4 flex flex-col text-muted-foreground gap-1.5" aria-live="polite">
         <div className="flex justify-between">
           {selectedPackage ? (
             <p>Package: {selectedPackage.title}</p>
@@ -571,19 +576,19 @@ export default function ListingReservation({
             <div className="flex-1">
               <p>Base booking ({pricingResult.breakdown.includedSetName})</p>
               {pricingResult.breakdown.additionalSets.map((s) => (
-                <p key={s.id} className="text-sm text-neutral-500">
+                <p key={s.id} className="text-sm text-muted-foreground">
                   + {s.name} ({additionalSetPricingType === "HOURLY" ? `${INR.format(s.price)}/hr` : INR.format(s.price)})
                 </p>
               ))}
               {pricingResult.breakdown.packageTitle && (
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-muted-foreground">
                   + Package: {pricingResult.breakdown.packageTitle}
                 </p>
               )}
             </div>
           ) : (
             <p>
-              Base booking fee {INR.format(price)} × {safeHours} hr
+              Base booking fee {INR.format(price)} Ã— {safeHours} hr
               {safeHours === 1 ? "" : "s"}
             </p>
           )}
@@ -613,10 +618,10 @@ export default function ListingReservation({
         phoneInput={phoneInput}
         phoneError={phoneError}
         phoneSaving={phoneSaving}
-        setPhoneInput={setPhoneInput}
-        setPhoneError={setPhoneError}
-        onClose={() => setShowPhoneModal(false)}
-        onSubmit={submitPhone}
+        setPhoneInputAction={setPhoneInput}
+        setPhoneErrorAction={setPhoneError}
+        onCloseAction={() => setShowPhoneModal(false)}
+        onSubmitAction={submitPhone}
       />
 
       <BookingSummaryModal
@@ -636,3 +641,4 @@ export default function ListingReservation({
     </section>
   );
 }
+

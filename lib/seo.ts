@@ -36,3 +36,14 @@ export function absoluteUrl(path: string): string {
   if (path.startsWith("http")) return path;
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
+
+
+export const asciiClean = (value: string | string[] | undefined | null): string | undefined => {
+  const source = Array.isArray(value) ? value.join(" ") : value;
+  return source
+    ?.replace(/<[^>]*>?/gm, " ")
+    .replace(/&#?[a-z0-9]+;/gi, " ")
+    .replace(/[^\x20-\x7E]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};

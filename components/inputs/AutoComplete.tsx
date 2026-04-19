@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Libraries, StandaloneSearchBox, useLoadScript } from '@react-google-maps/api';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
@@ -97,7 +97,7 @@ export default function AutoComplete({
           value={query}
           disabled={disabled}
           data-testid="address-autocomplete"
-          className="w-full py-2.5 px-3 font-light bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary/10 transition disabled:opacity-70 disabled:cursor-not-allowed rounded-xl outline-none"
+          className="w-full py-2.5 px-3 font-light bg-background border border-border focus:border-foreground focus:ring-1 focus:ring-foreground/10 transition disabled:opacity-70 disabled:cursor-not-allowed rounded-xl outline-none"
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -170,10 +170,11 @@ export default function AutoComplete({
           placeholder={placeholder}
           value={query}
           disabled={disabled}
-          className="w-full py-2.5 px-3 font-light bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary/10 transition disabled:opacity-70 disabled:cursor-not-allowed rounded-xl outline-none"
+          className="w-full py-2.5 px-3 font-light bg-background border border-border focus:border-foreground focus:ring-1 focus:ring-foreground/10 transition disabled:opacity-70 disabled:cursor-not-allowed rounded-xl outline-none"
           onChange={(e) => setQuery(e.target.value)}
         />
       </StandaloneSearchBox>
     </div>
   );
 }
+

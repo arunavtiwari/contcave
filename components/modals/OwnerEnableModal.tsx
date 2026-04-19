@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { FaExclamationCircle, FaInfoCircle } from "react-icons/fa";
 
@@ -95,7 +95,7 @@ const OwnerEnableModal: React.FC<Props> = ({
             }}
             className={`w-full px-4 py-3 rounded-xl border transition-colors ${errors.email
               ? "border-destructive focus:border-destructive focus:ring-destructive/20"
-              : "border-border focus:border-primary focus:ring-primary/10"
+              : "border-border focus:border-foreground focus:ring-foreground/10"
               } focus:outline-none focus:ring-1`}
             placeholder="your.email@example.com"
 
@@ -126,7 +126,7 @@ const OwnerEnableModal: React.FC<Props> = ({
               }}
               className={`flex-1 px-4 py-3 rounded-xl border transition-colors ${errors.phone
                 ? "border-destructive focus:border-destructive focus:ring-destructive/20"
-                : "border-border focus:border-primary focus:ring-primary/10"
+                : "border-border focus:border-foreground focus:ring-foreground/10"
                 } focus:outline-none focus:ring-1`}
               placeholder="10-digit mobile number"
               maxLength={10}
@@ -176,3 +176,4 @@ const OwnerEnableModal: React.FC<Props> = ({
 };
 
 export default OwnerEnableModal;
+

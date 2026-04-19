@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -76,7 +76,7 @@ const FieldInput = React.memo<{
                         transition
                         disabled:cursor-not-allowed
                         disabled:opacity-70
-                        ${error ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20" : "border-border focus:border-primary focus:ring-1 focus:ring-primary/10"}
+                        ${error ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20" : "border-border focus:border-foreground focus:ring-1 focus:ring-foreground/10"}
                     `}
                     aria-describedby={error ? `${field.name}-error` : undefined}
                 />
@@ -388,3 +388,4 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 };
 
 export default PaymentDetails;
+

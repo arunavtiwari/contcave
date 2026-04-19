@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { format } from "date-fns";
 import CalendarIcon from "lucide-react/dist/esm/icons/calendar";
@@ -38,16 +38,16 @@ const selectStyles: StylesConfig<SelectOption, true, GroupBase<SelectOption>> = 
         ...provided,
         backgroundColor: "var(--color-background)",
         borderWidth: "1px",
-        borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+        borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",
         borderRadius: "0.75rem",
         padding: "0 4px",
-        boxShadow: state.isFocused ? "0 0 0 1px var(--color-primary-10)" : "none",
+        boxShadow: state.isFocused ? "0 0 0 1px rgba(0,0,0,0.1)" : "none",
         minHeight: "42px",
         height: "42px",
         fontSize: "0.875rem",
         transition: "all 0.2s ease",
         "&:hover": {
-            borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+            borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",
         },
     }),
 };
@@ -57,8 +57,8 @@ const selectTheme = (theme: Theme): Theme => ({
     borderRadius: 12,
     colors: {
         ...theme.colors,
-        primary: "var(--color-primary)",
-        primary25: "var(--color-primary-10)",
+        primary: "var(--color-foreground)",
+        primary25: "rgba(0,0,0,0.1)",
         primary50: "var(--color-border)"
     },
 });
@@ -160,7 +160,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             type="date"
                             value={newBlock.date}
                             onChange={(e) => setNewBlock({ ...newBlock, date: e.target.value })}
-                            className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/10"
+                            className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-foreground/10"
                         />
                     </div>
 
@@ -173,7 +173,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             <select
                                 value={newBlock.startTime}
                                 onChange={(e) => setNewBlock({ ...newBlock, startTime: e.target.value })}
-                                className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/10"
+                                className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-foreground/10"
                             >
                                 {TIME_SLOTS.map((t, idx) => (
                                     <option key={`start-${t}-${idx}`} value={t}>{t}</option>
@@ -188,7 +188,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             <select
                                 value={newBlock.endTime}
                                 onChange={(e) => setNewBlock({ ...newBlock, endTime: e.target.value })}
-                                className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/10"
+                                className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-foreground/10"
                             >
                                 {TIME_SLOTS.map((t, idx) => (
                                     <option key={`end-${t}-${idx}`} value={t}>{t}</option>
@@ -223,7 +223,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             value={newBlock.reason}
                             onChange={(e) => setNewBlock({ ...newBlock, reason: e.target.value })}
                             placeholder="e.g., Maintenance, Personal Use"
-                            className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/10"
+                            className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-foreground/10"
                         />
                     </div>
                 </div>
@@ -286,3 +286,4 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
         </div>
     );
 }
+

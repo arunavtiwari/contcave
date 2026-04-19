@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { signOut } from "next-auth/react";
@@ -112,7 +112,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute rounded-xl min-w-60 bg-background overflow-hidden right-0 top-[3.2rem] text-sm p-3 border border-border shadow-lg"
+          className="absolute rounded-xl min-w-60 bg-background overflow-hidden right-0 top-[3.2rem] text-sm p-3 border border-border shadow-sm"
         >
           <div className="flex flex-col">
             {currentUser ? (
@@ -146,3 +146,4 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
 UserMenu.displayName = "UserMenu";
 
 export default UserMenu;
+

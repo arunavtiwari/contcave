@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+﻿import React, { useCallback, useMemo } from "react";
 import Select, { GroupBase, StylesConfig } from "react-select";
 
 import Switch from "@/components/ui/Switch";
@@ -52,16 +52,16 @@ const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
         ...provided,
         backgroundColor: "var(--color-background)",
         borderWidth: "1px",
-        borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+        borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",
         borderRadius: "0.75rem",
         padding: "0 4px",
-        boxShadow: state.isFocused ? "0 0 0 1px var(--color-primary-10)" : "none",
+        boxShadow: state.isFocused ? "0 0 0 1px rgba(0,0,0,0.1)" : "none",
         minHeight: "42px",
         height: "42px",
         fontSize: "0.875rem",
         transition: "all 0.2s ease",
         "&:hover": {
-            borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+            borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",
         },
     }),
     input: (provided) => ({
@@ -277,7 +277,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                             control: (state) => cn(
                                 "py-0.5 rounded-xl transition-all duration-200 outline-none flex-1 border",
                                 state.isFocused
-                                    ? "border-primary ring-1 ring-primary/10"
+                                    ? "border-foreground ring-1 ring-foreground/10"
                                     : "border-border hover:border-border/80"
                             ),
                         }}
@@ -309,7 +309,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                             control: (state) => cn(
                                 "py-0.5 rounded-xl transition-all duration-200 outline-none flex-1 border",
                                 state.isFocused
-                                    ? "border-primary ring-1 ring-primary/10"
+                                    ? "border-foreground ring-1 ring-foreground/10"
                                     : "border-border hover:border-border/80"
                             ),
                         }}
@@ -380,8 +380,8 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                         className={`
                                 text-sm py-2 px-4 rounded-full border transition
                                 ${details.type.includes(t)
-                                ? "bg-primary text-foreground-foreground border-primary"
-                                : "bg-background text-muted-foreground border-border hover:border-primary"
+                                ? "bg-foreground text-background border-foreground shadow-sm"
+                                : "bg-background text-muted-foreground border-border hover:border-foreground/50"
                             }
                             `}
                     >
@@ -391,7 +391,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             </div>
         </FormField>
 
-        <hr className="border-neutral-200" />
+        <hr className="border-border" />
 
         {/* Toggles */}
         <div className="space-y-6">
@@ -427,3 +427,4 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
 };
 
 export default OtherListingDetails;
+

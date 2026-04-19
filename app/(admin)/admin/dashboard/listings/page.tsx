@@ -3,6 +3,7 @@ import { FaClock, FaExclamationTriangle } from "react-icons/fa";
 
 import getPendingListings from "@/app/actions/getPendingListings";
 import ListingActions from "@/components/admin/ListingActions";
+import { formatINR,formatISTDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -103,10 +104,10 @@ export default async function PendingListingsPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                                            ₹{listing.price.toLocaleString("en-IN")}
+                                            {formatINR(listing.price)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                                            {new Date(listing.createdAt).toLocaleDateString("en-IN", {
+                                            {formatISTDate(listing.createdAt, {
                                                 day: "numeric",
                                                 month: "short",
                                                 year: "numeric",

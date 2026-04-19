@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Amenities } from "@prisma/client";
 import DOMPurify from "isomorphic-dompurify";
@@ -19,10 +19,13 @@ import PackageList from "@/components/listing/PackageList";
 import SetSelector from "@/components/listing/SetSelector";
 import Offers from "@/components/Offers";
 import Avatar from "@/components/ui/Avatar";
+import Heading from "@/components/ui/Heading";
+import Pill from "@/components/ui/Pill";
 import StarRating from "@/components/ui/StarRating";
 import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hook/useCities";
 import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
+import { formatISTDate } from "@/lib/utils";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
@@ -270,16 +273,16 @@ function ListingInfo({
 
   return (
     <div className="col-span-4 flex flex-col gap-8">
-      <div className="flex gap-2 justify-between">
-        <div className="text-xl font-semibold flex flex-row items-center gap-2">
-          <div>Hosted by {user?.name}</div>
-          <Avatar src={user?.image} />
+      <div className="flex gap-2 justify-between items-start">
+        <div className="text-xl font-semibold flex flex-row items-center gap-3">
+          <Avatar src={user?.image} size={40} />
+          <Heading title={`Hosted by ${user?.name}`} variant="h6" />
         </div>
         {fullListing.avgReviewRating && fullListing.avgReviewRating !== 0 && (
           <StarRating
             rating={fullListing.avgReviewRating}
             size={20}
-            activeColor="text-yellow-500"
+            activeColor="text-warning"
             showText
           />
         )}
@@ -379,14 +382,14 @@ function ListingInfo({
       )}
 
       <div className="flex flex-col gap-4">
-        <p className="text-xl font-semibold">Where you’ll be</p>
+        <Heading title="Where youâ€™ll be" variant="h5" />
         <Map center={getValidCenter() as [number, number] | undefined} locationValue={locationValue} />
       </div>
 
       <hr />
 
       <div className="flex flex-col gap-4">
-        <p className="text-xl font-semibold">Operational Timings</p>
+        <Heading title="Operational Timings" variant="h5" />
         <div className="flex gap-10">
           {(opDaysStart || opDaysEnd) && (
             <div>
@@ -406,7 +409,7 @@ function ListingInfo({
       <hr />
 
       <div className="flex flex-col gap-4">
-        <p className="text-xl font-semibold">Additional Information</p>
+        <Heading title="Additional Information" variant="h5" />
         {(carpetArea || carpetArea === 0) && (
           <div className="flex gap-10">
             <div className="w-1/2">
@@ -436,14 +439,17 @@ function ListingInfo({
       <hr />
 
       <div className="flex flex-col gap-4">
-        <p className="text-xl font-semibold">Listed Services</p>
+        <Heading title="Listed Services" variant="h5" />
         <div className="flex flex-wrap gap-2">
           {type.map((service: string, index: number) => (
-            <div key={index} className="bg-foreground text-background px-3 py-1 rounded-full">
-              {service}
-            </div>
+            <Pill
+              key={index}
+              label={service}
+              variant="subtle"
+              size="sm"
+            />
           ))}
-          <p className="text-gray-500 mt-3">
+          <p className="text-muted-foreground mt-3">
             <strong className="text-foreground">Note:</strong> Please utilize this space for its intended activities to make the most of your experience.
           </p>
         </div>
@@ -454,10 +460,11 @@ function ListingInfo({
       {(reviews.length > 0 || canReview) && (
         <div className="flex flex-col gap-8">
           <div className="flex items-center justify-between">
-            <p className="text-xl font-semibold">Reviews</p>
-            <p className="text-lg font-semibold">
-              <span className="pr-1">{reviews.length}</span> Ratings
-            </p>
+            <Heading title="Reviews" variant="h5" />
+            <div className="text-lg font-semibold flex items-center gap-1.5">
+              <span className="text-2xl">{reviews.length}</span>
+              <span className="text-muted-foreground text-sm font-medium uppercase tracking-wider">Ratings</span>
+            </div>
           </div>
 
           {reviews.length > 0 && (
@@ -475,8 +482,12 @@ function ListingInfo({
                       <div>
                         <p>{rv.comment}</p>
                       </div>
-                      <div className="text-sm text-neutral-500">
-                        {new Date(rv.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      <div className="text-sm text-muted-foreground">
+                        {formatISTDate(rv.createdAt, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
                       </div>
                     </div>
                   </div>
@@ -489,7 +500,7 @@ function ListingInfo({
           {canReview && (
             <>
               <div className="flex flex-col gap-4">
-                <div className="text-xl capitalize font-semibold">Submit your review</div>
+                <Heading title="Submit your review" variant="h5" className="capitalize" />
                 <div className="relative">
                   <div className="text-sm font-bold mb-2">Write your message</div>
                   <div className="flex w-full bg-background border border-border items-end px-2 py-2 rounded-xl">
@@ -512,8 +523,8 @@ function ListingInfo({
                     rating={review.rating}
                     onRate={(v) => setReview({ ...review, rating: v })}
                     size={24}
-                    activeColor="text-yellow-500"
-                    inactiveColor="text-neutral-300"
+                    activeColor="text-warning"
+                    inactiveColor="text-muted-foreground"
                   />
                 </div>
                 <button type="button" onClick={handleReviewSubmit} className="rounded-full bg-foreground w-full py-2.5 text-background hover:opacity-90 cursor-pointer">
@@ -529,7 +540,7 @@ function ListingInfo({
       {!isRichTextEmpty(fullListing.customTerms) && (
         <>
           <div className="flex flex-col gap-4">
-            <p className="text-xl font-semibold">Terms & Conditions by Host</p>
+            <Heading title="Terms & Conditions by Host" variant="h5" />
             <div className="text-base font-normal">
               <div
                 className="prose max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-strong:text-foreground prose-headings:text-foreground"
@@ -544,7 +555,7 @@ function ListingInfo({
       )}
 
       <div className="flex flex-col gap-4">
-        <p className="text-xl font-semibold">Cancellation Policy</p>
+        <Heading title="Cancellation Policy" variant="h5" />
         <p className="flex flex-wrap">
           Full refund for cancellations made at least 72 hours before the scheduled booking, partial refund for cancellations made
           between 24 and 72 hours before the scheduled booking, and no refund for cancellations made within 24 hours of the scheduled booking.
@@ -560,3 +571,4 @@ function ListingInfo({
 }
 
 export default ListingInfo;
+

@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import React from "react";
-import { FaRegStar,FaStar, FaStarHalfStroke } from "react-icons/fa6";
+import { FaRegStar, FaStar, FaStarHalfStroke } from "react-icons/fa6";
 
 interface StarRatingProps {
     rating: number;
@@ -20,8 +20,8 @@ const StarRating: React.FC<StarRatingProps> = ({
     maxRating = 5,
     size = 18,
     className = "",
-    activeColor = "text-amber-500",
-    inactiveColor = "text-muted-foreground/40",
+    activeColor = "text-warning",
+    inactiveColor = "text-muted-foreground/30",
     interactive = false,
     onRate,
     showText = false,
@@ -70,3 +70,4 @@ const StarRating: React.FC<StarRatingProps> = ({
 };
 
 export default StarRating;
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Select from "react-select";
 import Flag from "react-world-flags";
@@ -52,16 +52,16 @@ function CitySelect({ value, onChange }: Props) {
           control: (base, state) => ({
             ...base,
             backgroundColor: "var(--color-background)",
-            borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+            borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",
             borderRadius: "0.75rem",
             padding: "0 4px",
-            boxShadow: state.isFocused ? "0 0 0 1px var(--color-primary-10)" : "none",
+            boxShadow: state.isFocused ? "0 0 0 1px rgba(0,0,0,0.1)" : "none",
             minHeight: "42px",
             height: "42px",
             fontSize: "1.125rem", // text-lg
             transition: "all 0.2s ease",
             "&:hover": {
-              borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+              borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",
             },
           }),
         }}
@@ -70,8 +70,8 @@ function CitySelect({ value, onChange }: Props) {
           borderRadius: 12,
           colors: {
             ...theme.colors,
-            primary: "var(--color-primary)",
-            primary25: "var(--color-primary-10)",
+            primary: "var(--color-foreground)",
+            primary25: "rgba(0,0,0,0.1)",
             primary50: "var(--color-border)",
           },
         })}
@@ -81,3 +81,4 @@ function CitySelect({ value, onChange }: Props) {
 }
 
 export default CitySelect;
+

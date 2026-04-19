@@ -1,18 +1,18 @@
-"use client";
+﻿"use client";
+import { motion } from "framer-motion";
 import Building2 from "lucide-react/dist/esm/icons/building-2";
 import Heart from "lucide-react/dist/esm/icons/heart";
 import Users from "lucide-react/dist/esm/icons/users";
-import { motion } from "framer-motion";
 import React from "react";
 
-import SectionHeader from "@/components/ui/SectionHeader";
 import Heading from "@/components/ui/Heading";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 const VALUES = [
     {
         icon: Building2,
         title: "Space Utilisation",
-        body: "No creative space should go to waste — whether it's a café, a studio, or a hidden corner. Every space can inspire art.",
+        body: "No creative space should go to waste â€” whether it's a cafÃ©, a studio, or a hidden corner. Every space can inspire art.",
     },
     {
         icon: Heart,
@@ -62,3 +62,4 @@ const AboutValues = () => {
 };
 
 export default AboutValues;
+

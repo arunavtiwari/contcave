@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import React, { useCallback, useMemo, useState } from "react";
@@ -7,6 +7,9 @@ import { FaCircleInfo, FaTrashCan } from "react-icons/fa6";
 import { IoMdCloseCircle } from "react-icons/io";
 
 import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
+import Pill from "@/components/ui/Pill";
+import { formatISTDate } from "@/lib/utils";
 import { openWhatsAppSupport } from "@/lib/whatsapp/whatsappSupport";
 import { Addon } from "@/types/addon";
 import { safeListing } from "@/types/listing";
@@ -72,25 +75,6 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
     const bookingStatus = reservation?.isApproved;
 
-    const getStatusBanner = () => {
-        if (bookingStatus == 1) {
-            return "Approved";
-        }
-        if (bookingStatus == 0) {
-            return "Pending";
-        }
-        if (bookingStatus == 2) {
-            return "Rejected";
-        }
-        return "Cancelled";
-    };
-
-    const getStatusBannerColor = () => {
-        if (bookingStatus == 1) return "bg-status-approved";
-        if (bookingStatus == 0) return "bg-status-pending";
-        return "bg-status-rejected";
-    };
-
     const toggleReceiptModal = () => setShowReceipt(!showReceipt);
 
     const handleSupportWhatsApp = () => {
@@ -110,47 +94,71 @@ const BookingCard: React.FC<BookingCardProps> = ({
                     delay: 0.5,
                     ease: [0, 0.71, 0.2, 1.01],
                 }}
-                className="relative col-span-1 border p-3 rounded-2xl"
+                className="relative col-span-1 bg-background shadow-sm hover:shadow-md transition-shadow p-3 rounded-2xl"
             >
                 <div className="flex flex-col gap-2 w-full">
                     <div className="aspect-square w-full relative overflow-hidden rounded-xl">
 
                         <Image
                             fill
-                            className="object-cover h-full w-full"
+                            className="object-cover h-full w-full transition-transform duration-500 group-hover:scale-105"
                             src={data.imageSrc?.[0] ?? ""}
-                            alt="listing"
+                            alt={data.title}
                         />
 
-                        <div
-                            className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-background text-sm ${getStatusBannerColor()}`}
-                        >
-                            {getStatusBanner()}
+                        <div className="absolute top-3 right-3 z-20">
+                            <Pill
+                                label={
+                                    bookingStatus === 1 ? "Approved" :
+                                        bookingStatus === 0 ? "Pending" :
+                                            bookingStatus === 2 ? "Rejected" : "Cancelled"
+                                }
+                                variant="glass"
+                                color={
+                                    bookingStatus === 1 ? "success" :
+                                        bookingStatus === 0 ? "warning" : "destructive"
+                                }
+                                size="xs"
+                            />
                         </div>
                     </div>
 
 
-                    <div className="font-semibold text-lg">{data.title}</div>
+                    <div className="flex flex-col gap-1">
+                        <Heading
+                            title={data.title}
+                            variant="h6"
+                        />
+                        <div className="flex flex-wrap gap-2">
+                            {!reservation?.isApproved && onApprove ? (
+                                <Pill label="Pending Approval" variant="subtle" color="warning" size="xs" />
+                            ) : reservation?.isApproved ? (
+                                <Pill label="Management Approved" variant="subtle" color="success" size="xs" />
+                            ) : (
+                                <Pill label="Pending Payment" variant="subtle" color="neutral" size="xs" />
+                            )}
+                        </div>
+                    </div>
                     {!reservation?.isApproved && onApprove && (
-                        <div className="flex items-stretch">
+                        <div className="flex items-stretch gap-0 mt-3">
                             <div className="w-1/4">
                                 <button
-                                    className="flex items-center justify-center bg-primary rounded-l-full h-full cursor-pointer border border-primary text-background hover:opacity-80 transition w-full"
+                                    className="flex items-center justify-center bg-muted/50 rounded-l-xl h-full cursor-pointer border border-border border-r-0 text-foreground hover:bg-muted transition w-full"
                                     onClick={toggleReceiptModal}
                                     aria-label="Info"
                                 >
-                                    <FaCircleInfo size={24} />
+                                    <FaCircleInfo size={20} className="text-muted-foreground" />
                                 </button>
                             </div>
                             <div className="w-3/4">
                                 <Button
                                     label="Approve"
-                                    classNames="text-md font-semibold bg-primary/80 border-primary text-background rounded-r-full"
+                                    size="sm"
+                                    classNames="w-full text-sm font-semibold bg-foreground text-background rounded-l-none rounded-r-xl border-l-0"
                                     onClick={() => onApprove(reservation?.id ?? "")}
                                 />
                             </div>
                         </div>
-
                     )}
                     {!reservation?.isApproved && onReject && (
                         <Button
@@ -165,11 +173,11 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             <div className="flex items-stretch">
                                 <div className="w-1/4">
                                     <button
-                                        className="flex items-center justify-center bg-primary rounded-l-full h-full cursor-pointer border border-primary text-background hover:opacity-80 transition w-full"
+                                        className="flex items-center justify-center bg-muted/50 rounded-l-xl h-full cursor-pointer border border-border border-r-0 text-foreground hover:bg-muted transition w-full"
                                         onClick={toggleReceiptModal}
                                         aria-label="Info"
                                     >
-                                        <FaCircleInfo size={24} />
+                                        <FaCircleInfo size={20} className="text-muted-foreground" />
                                     </button>
                                 </div>
 
@@ -178,9 +186,10 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                         label={onApprove ? "Message Client" : "Message Host"}
                                         onClick={() => onChat?.(reservation?.id ?? "")}
                                         disabled={bookingStatus != 1}
-                                        classNames={`text-md font-semibold rounded-r-full border-foreground ${bookingStatus == 1
-                                            ? "bg-foreground/80 text-background"
-                                            : "bg-muted text-muted-foreground cursor-not-allowed"
+                                        size="sm"
+                                        classNames={`w-full text-sm font-semibold rounded-l-none rounded-r-xl border-l-0 ${bookingStatus == 1
+                                            ? "bg-foreground text-background"
+                                            : "bg-muted text-muted-foreground cursor-not-allowed border-muted"
                                             }`}
                                     />
                                 </div>
@@ -228,8 +237,12 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                         Unfortunately, your booking request for {reservation?.listing?.title} on
                                         {" "}
                                         {reservation?.startDate
-                                            ? new Date(reservation.startDate).toLocaleDateString()
-                                            : "—"}
+                                            ? formatISTDate(reservation.startDate, {
+                                                day: "numeric",
+                                                month: "short",
+                                                year: "numeric",
+                                            })
+                                            : "â€”"}
                                         {reservation?.startTime ? `, ${reservation.startTime}` : ""}
                                         {" "}was rejected by the host.
                                     </p>
@@ -237,14 +250,14 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                 {reservation?.isApproved === 2 && reservation?.rejectReason && (
                                     <div>
                                         <div>Reason Provided:</div>
-                                        <div>“{reservation.rejectReason}”</div>
+                                        <div>â€œ{reservation.rejectReason}â€</div>
                                     </div>
                                 )}
                                 {!onApprove && (
                                     <div className="space-y-3">
                                         {reservation?.isApproved === 2 && (
                                             <p>
-                                                Don’t worry! Your payment will be refunded as per our policy. We’ll help you with your refund right away. Tap the button below to connect with our team on WhatsApp.
+                                                Donâ€™t worry! Your payment will be refunded as per our policy. Weâ€™ll help you with your refund right away. Tap the button below to connect with our team on WhatsApp.
                                             </p>
                                         )}
                                         {reservation?.isApproved === 3 && (
@@ -269,29 +282,33 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             </div>
 
                             <div className="flex justify-between">
-                                <span className="text-gray-700 font-medium">Property:</span>
-                                <span className="text-gray-900">{reservation?.listing?.title}</span>
+                                <span className="text-muted-foreground font-medium">Property:</span>
+                                <span className="text-foreground">{reservation?.listing?.title}</span>
                             </div>
 
                             <div className="flex justify-between">
-                                <span className="text-gray-700 font-medium">Date of Booking:</span>
-                                <span className="text-gray-900">
+                                <span className="text-muted-foreground font-medium">Date of Booking:</span>
+                                <span className="text-foreground">
                                     {reservation?.startDate
-                                        ? new Date(reservation.startDate).toLocaleDateString()
-                                        : "—"}
+                                        ? formatISTDate(reservation.startDate, {
+                                            day: "numeric",
+                                            month: "short",
+                                            year: "numeric"
+                                        })
+                                        : "â€”"}
                                 </span>
                             </div>
 
                             <div className="flex justify-between">
-                                <span className="text-gray-700 font-medium">Time:</span>
-                                <span className="text-gray-900">
-                                    {reservation?.startTime ?? ""} – {reservation?.endTime ?? ""}
+                                <span className="text-muted-foreground font-medium">Time:</span>
+                                <span className="text-foreground">
+                                    {reservation?.startTime ?? ""} â€“ {reservation?.endTime ?? ""}
                                 </span>
                             </div>
 
                             <div className="flex justify-between">
-                                <span className="text-gray-700 font-medium">Duration:</span>
-                                <span className="text-gray-900">
+                                <span className="text-muted-foreground font-medium">Duration:</span>
+                                <span className="text-foreground">
                                     {(() => {
                                         const parse12h = (s: string | undefined): number | null => {
                                             if (!s) return null;
@@ -319,8 +336,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             </div>
 
                             <div className="flex justify-between">
-                                <span className="text-gray-700 font-medium">Add-ons:</span>
-                                {<span className="text-gray-900">
+                                <span className="text-muted-foreground font-medium">Add-ons:</span>
+                                {<span className="text-foreground">
                                     {addons
                                         .map((item: Addon) => item.name)
                                         .join(", ") || "None"}
@@ -328,8 +345,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             </div>
 
                             <div className="flex justify-between">
-                                <span className="text-gray-700 font-medium">Add-ons Charge:</span>
-                                <span className="text-gray-900 font-semibold">
+                                <span className="text-muted-foreground font-medium">Add-ons Charge:</span>
+                                <span className="text-foreground font-semibold">
                                     ₹ {addons.reduce(
                                         (acc: number, value: Addon) => acc + value.qty * value.price,
                                         0
@@ -338,8 +355,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
                             </div>
 
                             <div className="flex justify-between">
-                                <span className="text-gray-700 font-medium">Property Charge:</span>
-                                <span className="text-gray-900 font-semibold">
+                                <span className="text-muted-foreground font-medium">Property Charge:</span>
+                                <span className="text-foreground font-semibold">
                                     ₹ {(reservation?.totalPrice ?? 0) -
                                         addons.reduce(
                                             (acc: number, value: Addon) => acc + value.qty * value.price,
@@ -350,24 +367,29 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
                             {snapshot?.packageTitle && (
                                 <div className="flex justify-between">
-                                    <span className="text-gray-700 font-medium">Package:</span>
-                                    <span className="text-gray-900">{snapshot.packageTitle}</span>
+                                    <span className="text-muted-foreground font-medium">Package:</span>
+                                    <span className="text-foreground">{snapshot.packageTitle}</span>
                                 </div>
                             )}
 
                             {(snapshot?.includedSetName || (snapshot?.additionalSets && snapshot.additionalSets.length > 0)) && (
                                 <div className="flex flex-col gap-1 pt-1">
-                                    <span className="text-gray-700 font-medium">Booked Sets:</span>
+                                    <span className="text-muted-foreground font-medium">Booked Sets:</span>
                                     <div className="flex flex-wrap gap-2">
                                         {snapshot.includedSetName && (
-                                            <span className="px-2 py-0.5 bg-neutral-100 text-neutral-700 text-xs rounded-md border border-neutral-200">
-                                                {snapshot.includedSetName}
-                                            </span>
+                                            <Pill
+                                                label={snapshot.includedSetName}
+                                                variant="subtle"
+                                                size="xs"
+                                            />
                                         )}
                                         {snapshot.additionalSets?.map((s) => (
-                                            <span key={s.id} className="px-2 py-0.5 bg-neutral-100 text-neutral-700 text-xs rounded-md border border-neutral-200">
-                                                {s.name}
-                                            </span>
+                                            <Pill
+                                                key={s.id}
+                                                label={s.name}
+                                                variant="subtle"
+                                                size="xs"
+                                            />
                                         ))}
                                     </div>
                                 </div>
@@ -388,3 +410,4 @@ const BookingCard: React.FC<BookingCardProps> = ({
 }
 
 export default BookingCard;
+

@@ -13,6 +13,7 @@ import {
   normalizeAddons,
 } from "@/lib/chat/bookingDisplay";
 import type { ChatBooking } from "@/lib/chat/types";
+import { formatISTDateTime } from "@/lib/utils";
 import { SafeUser } from "@/types/user";
 
 interface ChatClientProps {
@@ -285,12 +286,12 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
           <div className="grow overflow-y-auto p-4">
             <div className="flex flex-col space-y-4">
               {error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="rounded-xl border border-destructive/10 bg-destructive/5 px-4 py-3 text-sm text-destructive font-medium">
                   {error}
                 </div>
               )}
               {messages.length === 0 ? (
-                <div className="text-sm text-gray-500">No messages yet.</div>
+                <div className="text-sm text-muted-foreground">No messages yet.</div>
               ) : (
                 messages.map((message) => (
                   <div
@@ -306,8 +307,8 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                       >
                         {message.text}
                       </div>
-                      <div className="text-xs text-gray-600 mt-2">
-                        {message.name} - {new Date(message.timestamp).toLocaleString()}
+                      <div className="text-xs text-muted-foreground mt-2">
+                        {message.name} - {formatISTDateTime(message.timestamp)}
                       </div>
                     </div>
                   </div>
@@ -318,7 +319,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
           </div>
 
           <div className="flex-none p-4 border-t bg-background">
-            <div className="text-xs text-gray-500 mb-2 flex items-center justify-between">
+            <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between">
               <span>{isChannelReady ? "Connected" : "Connecting..."}</span>
               <span>{newMessage.length}/{MAX_MESSAGE_LENGTH}</span>
             </div>
@@ -326,7 +327,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
               <input
                 type="text"
                 placeholder="Type a message..."
-                className="grow rounded-l-full border border-neutral-300 px-4 py-2 outline-none focus:border-foreground"
+                className="grow rounded-l-full border border-border px-4 py-2 outline-none focus:border-foreground"
                 value={newMessage}
                 onChange={(event) => {
                   setNewMessage(event.target.value);
@@ -342,7 +343,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                 maxLength={MAX_MESSAGE_LENGTH}
               />
               <button
-                className="flex items-center justify-center rounded-r-full bg-foreground px-4 text-background transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-400"
+                className="flex items-center justify-center rounded-r-full bg-foreground px-4 text-background transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
                 onClick={() => {
                   void handleSend();
                 }}
@@ -365,49 +366,49 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
               className="aspect-16/10 w-full rounded-lg object-cover"
             />
           ) : null}
-          <h2 className="mt-4 text-xl font-semibold leading-tight text-gray-900">
+          <h2 className="mt-4 text-xl font-bold leading-tight text-foreground">
             {initialBooking.listing?.title}
           </h2>
           <div className="mt-4 flex flex-col gap-3 text-sm">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
-              <span className="text-gray-600">Date of booking:</span>
-              <span className="text-right font-semibold text-gray-900">{bookingDateLabel}</span>
+              <span className="text-muted-foreground">Date of booking:</span>
+              <span className="text-right font-bold text-foreground">{bookingDateLabel}</span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
-              <span className="text-gray-600">Time:</span>
-              <span className="text-right font-semibold text-gray-900">{bookingTimeLabel}</span>
+              <span className="text-muted-foreground">Time:</span>
+              <span className="text-right font-bold text-foreground">{bookingTimeLabel}</span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
-              <span className="text-gray-600">Duration:</span>
-              <span className="text-right font-semibold text-gray-900">
+              <span className="text-muted-foreground">Duration:</span>
+              <span className="text-right font-bold text-foreground">
                 {duration > 0 ? `${duration} hours` : "—"}
               </span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
-              <span className="text-gray-600">Add-ons:</span>
-              <span className="text-right font-semibold text-gray-900">
+              <span className="text-muted-foreground">Add-ons:</span>
+              <span className="text-right font-bold text-foreground">
                 {addons.length > 0 ? addons.map((item) => item.name).join(", ") : "None"}
               </span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-border pt-3">
-              <span className="text-gray-600">Add-ons Charge:</span>
-              <span className="text-right font-semibold text-gray-900">₹ {addonsCharge}</span>
+              <span className="text-muted-foreground">Add-ons Charge:</span>
+              <span className="text-right font-bold text-foreground">₹ {addonsCharge}</span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
-              <span className="text-gray-600">Property Charge:</span>
-              <span className="text-right font-semibold text-gray-900">
+              <span className="text-muted-foreground">Property Charge:</span>
+              <span className="text-right font-bold text-foreground">
                 ₹ {propertyCharge}
               </span>
             </div>
 
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-neutral-300 pt-3">
-              <span className="font-semibold text-gray-800">Total:</span>
-              <span className="text-right font-semibold text-gray-900">₹ {initialBooking.totalPrice}</span>
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-border pt-3">
+              <span className="font-bold text-foreground">Total:</span>
+              <span className="text-right font-bold text-foreground">₹ {initialBooking.totalPrice}</span>
             </div>
           </div>
         </div>

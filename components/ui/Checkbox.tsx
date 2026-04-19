@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Check from "lucide-react/dist/esm/icons/check";
 import * as React from "react";
@@ -21,7 +21,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
                     <input
                         type="checkbox"
                         className={`
-              peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-neutral-300 
+              peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-border 
               bg-background transition-all checked:border-foreground checked:bg-foreground hover:border-foreground
               focus:outline-none focus:ring-1 focus:ring-foreground focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
               ${className}
@@ -50,3 +50,4 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
 Checkbox.displayName = "Checkbox";
 
 export default Checkbox;
+

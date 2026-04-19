@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useCallback, useState } from "react";
 import {
     FaInstagram,
@@ -7,7 +7,6 @@ import {
 import {
     MdContentCopy,
     MdMessage,
-    MdQuestionMark,
     MdShare
 } from "react-icons/md";
 import { toast } from "sonner";
@@ -112,25 +111,20 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
     return (
         <div className="flex flex-col w-full mx-auto space-y-8">
             <Heading
-                title="Share with Friends and Earn Rewards 🙌"
+                title="Share with Friends and Earn Rewards ðŸ™Œ"
                 subtitle="Refer your friends to ContCave and both of you can earn rewards"
             />
 
-            <div className="bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                    <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-2">
-                        <MdQuestionMark />
-                    </span>
-                    How It Works
-                </h3>
-                <ol className="space-y-3 text-muted-foreground">
+            <div className="bg-foreground/5 rounded-2xl p-6 border border-foreground/20">
+                <Heading title="How It Works" variant="h5" className="mb-6" />
+                <ol className="space-y-4 text-muted-foreground">
                     <li className="flex items-start">
-                        <span className="bg-blue-500 text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0">1</span>
-                        <span>Share your unique referral link or code with friends.</span>
+                        <span className="bg-foreground text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0 shadow-sm">1</span>
+                        <span className="font-medium">Share your unique referral link or code with friends.</span>
                     </li>
                     <li className="flex items-start">
-                        <span className="bg-blue-500 text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0">2</span>
-                        <span>When someone signs up and books their first space using your referral link or code, you both earn rewards!</span>
+                        <span className="bg-foreground text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0 shadow-sm">2</span>
+                        <span className="font-medium">When someone signs up and books their first space using your referral link, you both earn rewards!</span>
                     </li>
                 </ol>
             </div>
@@ -149,12 +143,12 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                             </div>
                             <button
                                 onClick={handleCopy}
-                                className="ml-4 flex items-center px-3 py-2 bg-blue-600 text-background rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                                className="ml-4 flex items-center px-6 py-2 bg-foreground text-background rounded-xl hover:opacity-90 transition-all duration-200 text-sm font-bold shadow-sm active:scale-95"
                                 disabled={copied}
                             >
                                 {copied ? (
                                     <>
-                                        <span className="w-4 h-4 mr-2">✓</span>
+                                        <span className="w-4 h-4 mr-2">âœ“</span>
                                         Copied!
                                     </>
                                 ) : (
@@ -178,14 +172,14 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                             <div className="flex gap-2">
                                 <button
                                     onClick={handleCopy}
-                                    className="flex items-center px-3 py-2 bg-muted text-muted-foreground border border-border rounded-lg hover:bg-muted/80 transition-colors duration-200 text-sm font-medium"
+                                    className="flex items-center px-4 py-2 bg-background text-foreground border border-border rounded-xl hover:bg-muted transition-all duration-200 text-sm font-bold"
                                     disabled={copied}
                                 >
                                     <MdContentCopy className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={handleNativeShare}
-                                    className="flex items-center px-3 py-2 bg-green-600 text-background rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium"
+                                    className="flex items-center px-4 py-2 bg-success text-success-foreground rounded-xl hover:bg-success/90 transition-all duration-200 text-sm font-bold shadow-sm"
                                     disabled={isSharing}
                                 >
                                     <MdShare className="w-4 h-4" />
@@ -203,24 +197,24 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => handleSocialShare("messages")}
-                                className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors duration-200"
+                                className="w-12 h-12 bg-foreground/10 hover:bg-foreground/20 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
                                 title="Share via Messages"
                             >
-                                <MdMessage className="w-5 h-5 text-blue-600" />
+                                <MdMessage className="w-6 h-6 text-foreground" />
                             </button>
                             <button
                                 onClick={() => handleSocialShare("instagram")}
-                                className="w-10 h-10 bg-pink-100 hover:bg-pink-200 rounded-full flex items-center justify-center transition-colors duration-200"
+                                className="w-12 h-12 bg-pink-500/10 hover:bg-pink-500/20 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
                                 title="Share on Instagram"
                             >
-                                <FaInstagram className="w-5 h-5 text-pink-600" />
+                                <FaInstagram className="w-6 h-6 text-pink-600" />
                             </button>
                             <button
                                 onClick={() => handleSocialShare("whatsapp")}
-                                className="w-10 h-10 bg-green-100 hover:bg-green-200 rounded-full flex items-center justify-center transition-colors duration-200"
+                                className="w-12 h-12 bg-success/10 hover:bg-success/20 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
                                 title="Share on WhatsApp"
                             >
-                                <FaWhatsapp className="w-5 h-5 text-green-600" />
+                                <FaWhatsapp className="w-6 h-6 text-success" />
                             </button>
                         </div>
                     </div>
@@ -229,38 +223,35 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
 
             <div className="border-t border-border"></div>
 
-            <div className="bg-linear-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
-                <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
-                    <span className="mr-2">🎉</span>
-                    Promote and Earn
-                </h2>
-                <p className="text-base text-muted-foreground leading-relaxed mb-6">
+            <div className="bg-info/5 rounded-2xl p-8 border border-info/20">
+                <Heading title="Promote and Earn ðŸŽ‰" variant="h4" className="mb-4" />
+                <p className="text-base text-muted-foreground leading-relaxed mb-8 max-w-2xl">
                     If you're an influencer or content creator with a following, you can promote ContCave
                     while shooting at our properties and earn benefits/discounts.
                 </p>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                    <div className="bg-background rounded-lg p-5 border border-border">
-                        <h3 className="text-lg font-semibold text-foreground mb-3">How It Works</h3>
-                        <ol className="space-y-2 text-muted-foreground">
+                <div className="grid md:grid-cols-2 gap-8">
+                    <div className="bg-background rounded-2xl p-6 border border-border shadow-sm">
+                        <Heading title="How It Works" variant="h5" className="mb-4" />
+                        <ol className="space-y-3 text-muted-foreground">
                             <li className="flex items-start">
-                                <span className="bg-purple-500 text-background rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">1</span>
-                                <span className="text-sm">Shoot content at one of our featured properties and tag us in your posts or videos.</span>
+                                <span className="bg-info text-background rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 shrink-0 shadow-sm">1</span>
+                                <span className="text-sm font-medium">Shoot content at one of our featured properties and tag us in your posts or videos.</span>
                             </li>
                             <li className="flex items-start">
-                                <span className="bg-purple-500 text-background rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">2</span>
-                                <span className="text-sm">Share your content with your audience and mention your experience with us.</span>
+                                <span className="bg-info text-background rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 shrink-0 shadow-sm">2</span>
+                                <span className="text-sm font-medium">Share your content with your audience and mention your experience with us.</span>
                             </li>
                             <li className="flex items-start">
-                                <span className="bg-purple-500 text-background rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">3</span>
-                                <span className="text-sm">Contact us with links to your posts or videos to claim your rewards!</span>
+                                <span className="bg-info text-background rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 shrink-0 shadow-sm">3</span>
+                                <span className="text-sm font-medium">Contact us with links to your posts or videos to claim your rewards!</span>
                             </li>
                         </ol>
                     </div>
 
-                    <div className="bg-background rounded-lg p-5 border border-border">
-                        <h3 className="text-lg font-semibold text-foreground mb-3">Benefits for Influencers</h3>
-                        <ul className="list-disc marker:text-emerald-500 pl-5 space-y-2 text-sm text-muted-foreground leading-6">
+                    <div className="bg-background rounded-2xl p-6 border border-border shadow-sm">
+                        <Heading title="Benefits for Influencers" variant="h5" className="mb-4" />
+                        <ul className="list-disc marker:text-success pl-5 space-y-3 text-sm text-muted-foreground leading-6 font-medium">
                             <li>Exclusive discounts on future bookings.</li>
                             <li>Featured promotion on our platform and social media channels.</li>
                             <li>Potential collaboration opportunities.</li>
@@ -268,22 +259,20 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                     </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-purple-200">
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                        <p className="text-lg font-medium text-foreground">
-                            Follow and Tag Us Now!
-                        </p>
-                        <div className="flex items-center gap-3">
-                            <a
-                                href="https://instagram.com/contcave"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full flex items-center justify-center transition-all duration-200 transform hover:scale-105"
-                                title="Follow us on Instagram"
-                            >
-                                <FaInstagram className="w-5 h-5 text-background" />
-                            </a>
-                        </div>
+                <div className="mt-8 pt-6 border-t border-info/20 flex items-center justify-between flex-wrap gap-4">
+                    <p className="text-lg font-bold text-foreground">
+                        Follow and Tag Us Now!
+                    </p>
+                    <div className="flex items-center gap-3">
+                        <a
+                            href="https://instagram.com/contcave"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-12 h-12 bg-foreground text-background hover:opacity-90 rounded-full flex items-center justify-center transition-all duration-200 transform hover:scale-110 shadow-lg"
+                            title="Follow us on Instagram"
+                        >
+                            <FaInstagram className="w-6 h-6" />
+                        </a>
                     </div>
                 </div>
             </div>
@@ -292,3 +281,4 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
 };
 
 export default ShareAndRefer;
+

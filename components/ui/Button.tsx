@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import React from "react";
@@ -70,10 +70,10 @@ function Button({
     <>
       {loading && (
         <AiOutlineLoading3Quarters
-          className={`animate-spin text-lg ${effectiveVariant === "outline" || effectiveVariant === "ghost" ? "text-foreground" : "text-foreground-foreground"}`}
+          className={`animate-spin text-lg ${effectiveVariant === "outline" || effectiveVariant === "ghost" ? "text-foreground" : "text-background"}`}
         />
       )}
-      {Icon && !loading && <Icon size={20} className={`${isColor && "text-blue-600"}`} />}
+      {Icon && !loading && <Icon size={20} className={`${isColor && "text-info"}`} />}
       <span>{loading ? "Processing..." : label}</span>
     </>
   );
@@ -94,3 +94,4 @@ function Button({
 }
 
 export default Button;
+

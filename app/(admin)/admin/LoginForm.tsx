@@ -34,7 +34,7 @@ export default function LoginForm() {
                     </div>
 
                     {state?.error && (
-                        <div className="p-3 mb-4 text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="p-4 mb-6 text-sm text-destructive bg-destructive/5 border border-destructive/10 rounded-xl font-medium">
                             {state.error}
                         </div>
                     )}

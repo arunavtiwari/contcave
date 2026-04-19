@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 
 import Container from "@/components/Container";
@@ -49,23 +49,23 @@ function Footer() {
 
           {/* Right Side */}
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-6 text-sm font-medium text-center md:text-left">
-            <div className="flex flex-col space-y-2">
-              <p className="text-xl font-bold">Company</p>
+            <div className="flex flex-col space-y-3">
+              <p className="text-lg font-bold text-foreground">Company</p>
               <Link href="/about" className="cursor-pointer text-muted-foreground hover:text-foreground transition-all text-sm">About</Link>
               <Link href="/privacy-policy" className="cursor-pointer text-muted-foreground hover:text-foreground transition-all text-sm">Privacy Policy</Link>
               <Link href="/terms-and-conditions" className="cursor-pointer text-muted-foreground hover:text-foreground transition-all text-sm">Terms & Conditions</Link>
               <Link href="/blog" className="cursor-pointer text-muted-foreground hover:text-foreground transition-all text-sm">Blogs</Link>
             </div>
 
-            <div className="flex flex-col space-y-2">
-              <p className="text-xl font-bold">Support</p>
+            <div className="flex flex-col space-y-3">
+              <p className="text-lg font-bold text-foreground">Support</p>
               <Link href="/about" className="text-muted-foreground hover:text-foreground transition-all text-sm">Help Center</Link>
               <Link href="/cancellation" className="text-muted-foreground hover:text-foreground transition-all text-sm">Cancellation Policy</Link>
               <a href="mailto:info@contcave.com" className="text-muted-foreground hover:text-foreground transition-all text-sm">Contact Us</a>
             </div>
 
-            <div className="flex flex-col space-y-2">
-              <p className="text-xl font-bold">Activities</p>
+            <div className="flex flex-col space-y-3">
+              <p className="text-lg font-bold text-foreground">Activities</p>
               <Link href="/home?category=Photography" className="text-muted-foreground hover:text-foreground transition-all text-sm">Photo Shoot</Link>
               <Link href="/home?category=Filming" className="text-muted-foreground hover:text-foreground transition-all text-sm">Filming Content</Link>
               <Link href="/home?category=Pre-Wedding" className="text-muted-foreground hover:text-foreground transition-all text-sm">Pre-Wedding Shoot</Link>
@@ -75,8 +75,8 @@ function Footer() {
               <Link href="/home?category=Meeting" className="text-muted-foreground hover:text-foreground transition-all text-sm">Meetings</Link>
             </div>
 
-            <div className="flex flex-col space-y-2">
-              <p className="text-xl font-bold">Across India</p>
+            <div className="flex flex-col space-y-3">
+              <p className="text-lg font-bold text-foreground">Across India</p>
               <div className="grid grid-cols-1 gap-2">
                 <Link href="/home?locationValue=Delhi" className="text-muted-foreground hover:text-foreground transition-all text-sm">Delhi NCR</Link>
                 <Link href="/home?locationValue=Mumbai" className="text-muted-foreground hover:text-foreground transition-all text-sm">Mumbai</Link>
@@ -90,11 +90,12 @@ function Footer() {
         </div>
       </Container>
       {/* Copyright */}
-      <div className="bg-foreground text-foreground-foreground py-2 text-xs text-center">
-        © {new Date().getFullYear()} ContCave by Arkanet Ventures LLP. All rights reserved.
+      <div className="bg-foreground text-background py-3 text-[10px] md:text-xs text-center">
+        Â© {new Date().getFullYear()} ContCave by Arkanet Ventures LLP. All rights reserved.
       </div>
     </footer>
   );
 }
 
 export default Footer;
+

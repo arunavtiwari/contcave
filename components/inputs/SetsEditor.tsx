@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useCallback, useState } from "react";
@@ -291,7 +291,7 @@ export default function SetsEditor({
             </button>
 
             {sets.length >= 50 && (
-                <p className="text-sm text-amber-600">Maximum 50 sets allowed</p>
+                <p className="text-sm text-warning">Maximum 50 sets allowed</p>
             )}
         </div>
     );

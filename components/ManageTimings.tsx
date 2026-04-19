@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
@@ -116,8 +116,8 @@ export default function CalendarComponent({
     }
 
     return (
-        <div className="flex items-center p-6 gap-30 bg-background justify-center">
-            <div className="border border-neutral-300  rounded-lg w-fit">
+        <div className="flex items-center p-8 gap-12 bg-background justify-center rounded-2xl border border-border shadow-sm">
+            <div className="border border-border rounded-xl w-fit overflow-hidden">
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DateCalendar
                         value={selectedDate}
@@ -184,10 +184,14 @@ export default function CalendarComponent({
                     )}
                 </div>
 
-                <button onClick={handleSave} className="w-full bg-foreground text-background py-3 rounded-full text-sm font-medium hover:opacity-90">
-                    SAVE
+                <button
+                    onClick={handleSave}
+                    className="w-full bg-foreground text-background py-3.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all active:scale-[0.98] shadow-lg shadow-foreground/10"
+                >
+                    SAVE TIMINGS
                 </button>
             </div>
         </div>
     );
 }
+

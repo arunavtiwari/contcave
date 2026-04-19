@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 
@@ -10,7 +10,7 @@ const CTA = () => {
   return (
     <section className="py-section">
       <Container>
-        <div className="relative rounded-3xl overflow-hidden bg-background border-l-8 border-l-primary shadow-sm">
+        <div className="relative rounded-3xl overflow-hidden bg-background border-l-8 border-l-foreground shadow-sm">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <motion.div
               className="absolute -inset-14 bg-[radial-gradient(circle,var(--color-foreground)_1.5px,transparent_1.5px)] opacity-[0.08] bg-size-[28px_28px]"
@@ -108,3 +108,4 @@ const CTA = () => {
 };
 
 export default CTA;
+

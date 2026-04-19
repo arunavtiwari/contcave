@@ -5,6 +5,7 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import AgreementDocument from "@/components/pdfs/AgreementDocument";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { formatISTDate } from "@/lib/utils";
 
 export async function POST(request: Request) {
     try {
@@ -40,11 +41,7 @@ export async function POST(request: Request) {
         }
 
         // 1. Generate PDF Buffer
-        const dateStr = new Date().toLocaleDateString("en-IN", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-        });
+        const dateStr = formatISTDate(new Date());
 
         const buffer = await renderToBuffer(
             React.createElement(AgreementDocument as React.ElementType, {

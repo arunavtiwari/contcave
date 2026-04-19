@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { motion } from "framer-motion";
 import React from "react";
 
@@ -18,7 +18,7 @@ const AboutStory = () => {
                 <p>
                     We started <strong className="text-foreground font-semibold">ContCave</strong> with one belief: no creative
                     idea should be left unrealized just because the right space wasn&apos;t
-                    accessible. Every café corner, every studio, every underused nook
+                    accessible. Every cafÃ© corner, every studio, every underused nook
                     deserves a chance to tell a story.
                 </p>
                 <p>
@@ -32,3 +32,4 @@ const AboutStory = () => {
 };
 
 export default AboutStory;
+

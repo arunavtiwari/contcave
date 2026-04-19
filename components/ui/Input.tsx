@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import IndianRupee from "lucide-react/dist/esm/icons/indian-rupee";
 import * as React from "react";
@@ -49,7 +49,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                             customRightContent ? "pr-12" : "pr-4",
                             error
                                 ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20"
-                                : "border-border hover:border-border/80 focus:border-primary focus:ring-1 focus:ring-primary/10",
+                                : "border-border hover:border-border/80 focus:border-foreground focus:ring-1 focus:ring-foreground/10",
                             className
                         )}
                         ref={ref}
@@ -76,3 +76,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 export default Input;
+

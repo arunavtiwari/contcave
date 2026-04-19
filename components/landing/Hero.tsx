@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useRef } from "react";
@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import useCities from "@/hook/useCities";
 import useSearchModal from "@/hook/useSearchModal";
+import { formatISTDate } from "@/lib/utils";
 
 const HeroSearch = () => {
   const searchModal = useSearchModal();
@@ -27,8 +28,10 @@ const HeroSearch = () => {
 
   const dateLabel = useMemo(() => {
     if (startDate) {
-      const start = new Date(startDate as string);
-      return start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      return formatISTDate(startDate as string, {
+        month: "short",
+        day: "numeric",
+      });
     }
     return null;
   }, [startDate]);
@@ -38,7 +41,7 @@ const HeroSearch = () => {
       type="button"
       onClick={searchModal.onOpen}
       aria-label="Open studio search"
-      className="group flex w-full max-w-lg flex-row items-center rounded-full border border-background/20 bg-background/70 backdrop-blur-md p-2 text-left shadow-2xl transition-all active:scale-[0.98] md:max-w-xl lg:max-w-2xl"
+      className="group flex w-full max-w-lg flex-row items-center rounded-full border border-background/20 bg-background/20 backdrop-blur-2xl p-2 text-left shadow-2xl transition-all active:scale-[0.98] md:max-w-xl lg:max-w-2xl"
     >
       <div className="flex flex-1 flex-row items-center divide-x divide-border/50">
         <div className="flex flex-1 flex-col px-4 md:px-7">
@@ -46,7 +49,7 @@ const HeroSearch = () => {
             Location
           </span>
           <span className="truncate text-sm font-semibold text-foreground">
-            {locationLabel || "Search by city…"}
+            {locationLabel || "Search by city..."}
           </span>
         </div>
         <div className="hidden flex-1 flex-col px-4 sm:flex md:px-7">

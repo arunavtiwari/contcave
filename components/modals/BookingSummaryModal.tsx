@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useId, useState } from "react";
@@ -6,6 +6,7 @@ import { useId, useState } from "react";
 import { saveBillingInfo } from "@/app/actions/billingActions";
 import { createInvoice } from "@/app/actions/invoiceActions";
 import Checkbox from "@/components/ui/Checkbox";
+import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import { billingSchema } from "@/schemas/billing";
@@ -114,12 +115,12 @@ export default function BookingSummaryModal({
         className="w-full max-w-lg rounded-2xl bg-background  p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3
+        <Heading
+          title="Booking Summary"
+          variant="h5"
           id={`${sectionId}-booking-summary-title`}
-          className="text-lg font-semibold mb-2"
-        >
-          Booking Summary
-        </h3>
+          className="mb-2"
+        />
 
 
         <div className="mb-4 space-y-2 text-muted-foreground">
@@ -158,7 +159,7 @@ export default function BookingSummaryModal({
 
 
         {needGST && (
-          <div className="space-y-3 mb-4 text-gray-700">
+          <div className="space-y-3 mb-4 text-foreground">
 
             <div>
               <Input
@@ -203,7 +204,7 @@ export default function BookingSummaryModal({
 
 
         <div className="mt-4 mb-5">
-          <div className="flex items-center gap-1 text-sm text-gray-700">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Checkbox
               label="I agree to the"
               checked={agree}
@@ -249,10 +250,11 @@ export default function BookingSummaryModal({
             onClick={handleConfirm}
             disabled={!agree || saving}
           >
-            {saving ? "Saving…" : "Confirm & Continue"}
+            {saving ? "Savingâ€¦" : "Confirm & Continue"}
           </button>
         </div>
       </div>
     </div>
   );
 }
+

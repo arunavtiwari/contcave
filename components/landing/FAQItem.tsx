@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useMemo } from "react";
@@ -11,6 +11,8 @@ type FaqData = {
   quest: string;
   ans: string;
 };
+
+import Heading from "@/components/ui/Heading";
 
 const contentVariants = {
   collapsed: {
@@ -59,7 +61,11 @@ const FAQItem = ({ faqData }: { faqData: FaqData }) => {
           : "text-foreground/70 hover:text-foreground hover:bg-muted/20"
           }`}
       >
-        <span className="pr-4">{quest}</span>
+        <Heading
+          title={quest}
+          variant="h6"
+          className="pr-4 text-base!"
+        />
 
         <motion.div
           animate={chevronAnimate}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect, useState } from "react";
@@ -16,6 +16,7 @@ import {
 } from "@/app/actions/verificationActions";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import {
   aadhaarSchema,
@@ -366,7 +367,7 @@ const VerificationModal: React.FC<Props> = ({
       return (
         <div className="space-y-6">
           <div className="space-y-1">
-            <h3 className="text-xl font-semibold">Contact Info</h3>
+            <Heading title="Contact Info" variant="h5" />
             <p className="text-sm text-muted-foreground">Verify email and phone to continue.</p>
           </div>
 
@@ -384,7 +385,7 @@ const VerificationModal: React.FC<Props> = ({
                 }}
                 disabled={emailState.verified}
                 errors={{ email: getFieldError("email") }}
-                className={emailState.verified ? "border-green-500 bg-green-50 text-green-700" : ""}
+                className={emailState.verified ? "border-success bg-success/10 text-success-900" : ""}
               />
             </div>
             <div className="min-w-30">
@@ -413,7 +414,7 @@ const VerificationModal: React.FC<Props> = ({
                 disabled={phoneState.verified}
                 errors={{ phone: getFieldError("phone") }}
                 maxLength={10}
-                className={phoneState.verified ? "border-green-500 bg-green-50 text-green-700" : ""}
+                className={phoneState.verified ? "border-success bg-success/10 text-success-900" : ""}
               />
             </div>
             <div className="min-w-30">
@@ -434,16 +435,16 @@ const VerificationModal: React.FC<Props> = ({
       return (
         <div className="space-y-6">
           <div className="space-y-1">
-            <h3 className="text-xl font-semibold">Aadhaar KYC</h3>
+            <Heading title="Aadhaar KYC" variant="h5" />
             <p className="text-sm text-muted-foreground">Secure identity verification.</p>
           </div>
 
           {aadhaarState.verified || userState?.aadhaar_verified ? (
-            <div className="bg-green-500/10 border border-green-500/50 rounded-xl p-5 flex items-center gap-4">
-              <FaCheckCircle className="text-green-600 text-xl" />
+            <div className="bg-success/10 border border-success/20 rounded-2xl p-6 flex items-center gap-4">
+              <FaCheckCircle className="text-success text-2xl" />
               <div>
-                <p className="font-semibold text-green-900">Aadhaar Verified</p>
-                <p className="text-sm text-green-700">Identity confirmed securely.</p>
+                <Heading title="Aadhaar Verified" variant="h6" className="text-success-900" />
+                <p className="text-sm text-success-700 font-medium">Identity confirmed securely.</p>
               </div>
             </div>
           ) : !aadhaarState.refId ? (
@@ -493,17 +494,17 @@ const VerificationModal: React.FC<Props> = ({
       return (
         <div className="space-y-6">
           <div className="space-y-1">
-            <h3 className="text-xl font-semibold">Bank Details</h3>
+            <Heading title="Bank Details" variant="h5" />
             <p className="text-sm text-muted-foreground">For secure payouts directly to your account.</p>
           </div>
 
           {userState?.bank_verified ? (
-            <div className="bg-green-500/10 border border-green-500/50 rounded-xl p-5">
+            <div className="bg-success/10 border border-success/20 rounded-2xl p-6">
               <div className="flex items-center gap-3">
-                <FaCheckCircle className="text-green-600 text-xl" />
-                <p className="font-semibold text-green-900">Bank Verified</p>
+                <FaCheckCircle className="text-success text-2xl" />
+                <Heading title="Bank Verified" variant="h6" className="text-success-900" />
               </div>
-              <p className="ml-8 text-sm text-green-700 mt-1">Holder: {userState.bank_verified_name}</p>
+              <p className="ml-9 text-sm text-success-700 font-medium mt-1">Holder: {userState.bank_verified_name}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -559,12 +560,12 @@ const VerificationModal: React.FC<Props> = ({
     }
 
     return (
-      <div className="flex flex-col items-center py-10 text-center">
-        <div className="bg-green-100 p-4 rounded-full mb-4">
-          <FaCheckCircle className="text-4xl text-green-600" />
+      <div className="flex flex-col items-center py-12 text-center">
+        <div className="bg-success/10 p-5 rounded-full mb-6">
+          <FaCheckCircle className="text-5xl text-success" />
         </div>
-        <h3 className="text-2xl font-bold">All Set!</h3>
-        <p className="text-muted-foreground mt-2">You have successfully verified your profile.</p>
+        <Heading title="All Set!" variant="h4" className="mb-2" />
+        <p className="text-muted-foreground font-medium">You have successfully verified your profile.</p>
       </div>
     );
   };
@@ -579,9 +580,9 @@ const VerificationModal: React.FC<Props> = ({
         const isActive = step === s.id;
         return (
           <div key={s.id} className={`flex flex-col items-center bg-background px-2 ${isActive ? 'scale-110 transition-transform' : ''}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 
-                 ${isComplete ? "bg-green-600 border-green-600 text-background" : isActive ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground bg-background"}`}>
-              {isComplete ? <FaCheckCircle /> : s.id}
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300
+                 ${isComplete ? "bg-success border-success text-success-foreground" : isActive ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground bg-background"}`}>
+              {isComplete ? <FaCheckCircle size={18} /> : s.id}
             </div>
             <span className={`text-xs mt-1 font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}>{s.title}</span>
           </div>
@@ -610,3 +611,4 @@ const VerificationModal: React.FC<Props> = ({
 };
 
 export default VerificationModal;
+

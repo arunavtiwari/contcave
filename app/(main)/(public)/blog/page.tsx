@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
 
 import Container from "@/components/Container";
 import PageBanner from "@/components/ui/PageBanner";
@@ -62,6 +60,9 @@ export const metadata: Metadata = {
   },
 };
 
+import BlogItem from "@/components/Blog/BlogItem";
+import Heading from "@/components/ui/Heading";
+
 export default function BlogPage() {
   const posts: BlogPost[] = getSortedPostsData();
   const grouped = groupPostsByCategory(posts);
@@ -76,54 +77,19 @@ export default function BlogPage() {
       {/* Blog Cards */}
       <section className="py-20 -mt-10 relative z-20">
         <Container>
-          <div className="space-y-20 max-w-6xl mx-auto">
+          <div className="space-y-24 max-w-6xl mx-auto ">
             {Object.entries(grouped).map(([category, posts]) => (
-              <section key={category}>
-                <h2 className="text-2xl font-bold mb-8 text-foreground pb-4 border-b border-border">
-                  {category}
-                </h2>
+              <section key={category} className="flex flex-col gap-6">
+                <Heading
+                  title={category}
+                  variant="h4"
+                  className="uppercase"
+                />
 
-                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                  {posts.map(post => {
-                    const formattedDate = new Date(post.publishedAt).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    });
-
-                    return (
-                      <Link
-                        key={post.id}
-                        href={`/blog/${post.id}`}
-                        className="group block bg-background rounded-2xl border border-border hover:border-primary/20 hover:shadow-xl transition-all duration-300 overflow-hidden"
-                      >
-                        <div className="relative h-56 overflow-hidden">
-                          {post.meta.image && (
-                            <Image
-                              src={post.meta.image.url}
-                              alt={post.title}
-                              fill
-                              className="object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
-                          )}
-                          <div className="absolute inset-0 bg-linear-to-t from-foreground/60 to-transparent flex items-end p-6">
-                            <h3 className="text-background text-lg font-bold leading-tight">
-                              {post.title}
-                            </h3>
-                          </div>
-                        </div>
-
-                        <div className="p-6">
-                          <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-3">
-                            {formattedDate}
-                          </p>
-                          <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
-                            {post.meta.description || "Read more about this topic…"}
-                          </p>
-                        </div>
-                      </Link>
-                    );
-                  })}
+                <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+                  {posts.map(post => (
+                    <BlogItem key={post.id} post={post} />
+                  ))}
                 </div>
               </section>
             ))}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 
 import { IconType } from "react-icons";
@@ -20,7 +20,7 @@ const ListingCategory: React.FC<ListingCategoryProps> = ({
         <Icon size={40} className="" />
         <div className="flex flex-col">
           <p className="text-lg font-semibold">{label}</p>
-          <p className="text-neutral-500">{description}</p>
+          <p className="text-muted-foreground">{description}</p>
         </div>
       </div>
     </div >

@@ -1,5 +1,6 @@
-"use client";
+﻿"use client";
 import { motion } from "framer-motion";
+
 import Container from "@/components/Container";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
@@ -8,7 +9,7 @@ const AboutCTA = () => {
     return (
         <section className="py-section">
             <Container>
-                <div className="relative rounded-3xl overflow-hidden bg-background border-l-8 border-l-primary shadow-sm">
+                <div className="relative rounded-3xl overflow-hidden bg-background border-l-8 border-l-foreground shadow-sm">
                     {/* Animated Background */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         <motion.div
@@ -55,3 +56,4 @@ const AboutCTA = () => {
 };
 
 export default AboutCTA;
+

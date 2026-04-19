@@ -1,4 +1,4 @@
-import "swiper/css";
+﻿import "swiper/css";
 import "swiper/css/free-mode";
 
 import Image from "next/image";
@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FreeMode } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
+import Heading from "@/components/ui/Heading";
 import { Addon } from "@/types/addon";
 type AddonListItem = { name: string; imageUrl?: string };
 
@@ -37,7 +38,7 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
   const atMax = qty >= maxQty;
 
   return (
-    <div className="flex gap-4 items-center bg-neutral-100 rounded-lg p-2 border border-neutral-200">
+    <div className="flex gap-4 items-center bg-muted/30 rounded-lg p-2 border border-border/10 shadow-xs">
       <div className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden">
         <Image
           src={resolvedImg}
@@ -50,15 +51,15 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
 
       <div className="text-sm overflow-hidden flex flex-col gap-2 w-full">
         <div className="flex flex-col gap-0.5 w-full">
-          <p className="truncate text-base font-semibold text-neutral-800" title={addon.name}>
+          <p className="truncate text-base font-semibold text-foreground" title={addon.name}>
             {addon.name}
           </p>
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="text-neutral-600 text-sm">₹ {toPrice(addon.price)}</p>
+            <p className="text-muted-foreground text-sm">₹ {toPrice(addon.price)}</p>
             {Number.isFinite(maxQty) && (
               <>
-                <span className="h-1 w-1 bg-neutral-400 rounded-full shrink-0"></span>
-                <p className="text-neutral-500 text-sm">
+                <span className="h-1 w-1 bg-border rounded-full shrink-0"></span>
+                <p className="text-muted-foreground text-sm">
                   {maxQty === 1 ? "Only 1 available" : `${maxQty} available`}
                 </p>
               </>
@@ -76,7 +77,7 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
               onClick={dec}
               className="text-foreground/80 bg-muted hover:bg-muted/80 h-8 w-20 rounded-l-xl text-lg font-medium transition border border-border"
             >
-              −
+              âˆ’
             </button>
             <span className="bg-background text-foreground border-y flex items-center justify-center border-border h-8 w-full text-center">
               {qty}
@@ -146,9 +147,13 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Add-ons</h2>
+      <Heading
+        title="Add-ons"
+        variant="h5"
+        className="mb-4"
+      />
 
-      {/* Mobile: Swiper carousel — swipe only, no arrows, free-mode momentum */}
+      {/* Mobile: Swiper carousel â€” swipe only, no arrows, free-mode momentum */}
       <div className="sm:hidden">
         <Swiper
           modules={[FreeMode]}
@@ -188,3 +193,4 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
 };
 
 export default AddonsList;
+

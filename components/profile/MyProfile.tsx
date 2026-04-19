@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
@@ -29,6 +29,7 @@ import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
+import Pill from "@/components/ui/Pill";
 import Textarea from "@/components/ui/Textarea";
 import { PROFILE_LANGUAGE_OPTIONS, PROFILE_TITLE_OPTIONS } from "@/constants/user";
 import useRentModal from "@/hook/useRentModal";
@@ -185,10 +186,12 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
             <div className="flex items-center justify-between">
                 <Heading title="My Profile" subtitle="Manage your personal information and preferences" />
                 {isVerified && (
-                    <div className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full border border-green-200">
-                        <FaShieldAlt className="w-4 h-4" />
-                        <span className="text-sm font-medium">Verified</span>
-                    </div>
+                    <Pill
+                        label="Verified"
+                        icon={FaShieldAlt}
+                        color="success"
+                        variant="subtle"
+                    />
                 )}
             </div>
 
@@ -227,7 +230,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         )}
                                     </div>
                                     {editMode && (
-                                        <button className="absolute bottom-2 right-2 bg-foreground text-background p-2 rounded-full  hover:bg-gray-800 transition-colors">
+                                        <button className="absolute bottom-2 right-2 bg-foreground text-background p-2 rounded-full hover:bg-foreground/80 transition-colors shadow-lg">
                                             <FaCamera className="w-4 h-4" />
                                         </button>
                                     )}
@@ -245,11 +248,11 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                             id="name"
                                             register={register("name")}
                                             errors={errors}
-                                            className="text-2xl font-bold"
+                                            className="text-2xl font-bold p-0 border-0 focus:ring-0"
                                             placeholder="Your name"
                                         />
                                     ) : (
-                                        <h2 className="text-2xl font-bold text-foreground">{userData.name}</h2>
+                                        <Heading title={userData.name} variant="h3" />
                                     )}
                                 </div>
                                 {editMode && (
@@ -307,7 +310,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
 
                     <div className="bg-background rounded-2xl  border border-border p-8">
-                        <h3 className="text-xl font-semibold text-foreground mb-6">Personal Details</h3>
+                        <Heading title="Personal Details" variant="h5" className="mb-6" />
 
                         <div className="space-y-6">
 
@@ -321,10 +324,11 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         {PROFILE_TITLE_OPTIONS.map((title) => (
                                             <button
                                                 key={title}
+                                                type="button"
                                                 onClick={() => handleTitleChange(title)}
                                                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${userData.title === title
-                                                    ? 'bg-foreground text-background'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                    ? 'bg-foreground text-background shadow-sm'
+                                                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                                                     }`}
                                             >
                                                 {title}
@@ -395,15 +399,15 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         placeholder="Enter location"
                                     />
                                 ) : (
-                                    <span className="text-gray-900 font-medium">{userData.location || "Not specified"}</span>
+                                    <span className="text-foreground font-medium">{userData.location || "Not specified"}</span>
                                 )}
                             </div>
 
 
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
-                                    <FaGlobe className="w-5 h-5 text-gray-400" />
-                                    <span className="font-medium text-gray-700">Languages</span>
+                                    <FaGlobe className="w-5 h-5 text-muted-foreground/60" />
+                                    <span className="font-medium text-muted-foreground">Languages</span>
                                 </div>
                                 {editMode ? (
                                     <div className="flex flex-wrap gap-2 max-w-xs justify-end">
@@ -428,9 +432,12 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                     <div className="flex flex-wrap gap-2">
                                         {(userData.languages || []).length > 0 ? (
                                             (userData.languages || []).map((language) => (
-                                                <span key={language} className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm font-medium">
-                                                    {language}
-                                                </span>
+                                                <Pill
+                                                    key={language}
+                                                    label={language}
+                                                    variant="subtle"
+                                                    size="sm"
+                                                />
                                             ))
                                         ) : (
                                             <span className="text-muted-foreground/60">No languages specified</span>
@@ -446,20 +453,20 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                 <div className="space-y-6">
                     {!userData.is_owner ? (
 
-                        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+                        <div className="bg-foreground/5 border border-foreground/20 rounded-2xl p-6">
                             <div className="text-center space-y-4">
-                                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                                    <FaUser className="w-8 h-8 text-blue-600" />
+                                <div className="w-16 h-16 bg-foreground/10 rounded-full flex items-center justify-center mx-auto">
+                                    <FaUser className="w-8 h-8 text-foreground" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-blue-900">Become an Owner</h3>
-                                    <p className="text-blue-700 text-sm mt-2">
+                                    <Heading title="Become an Owner" variant="h6" className="text-foreground" />
+                                    <p className="text-muted-foreground text-sm mt-2">
                                         Register yourself as a space owner to start hosting and get verified.
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setShowOwnerModal(true)}
-                                    className="w-full bg-blue-600 text-background py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                    className="w-full bg-foreground text-background py-3 px-4 rounded-xl font-semibold hover:opacity-90 transition-all shadow-sm active:scale-[0.98]"
                                 >
                                     Register as Owner
                                 </button>
@@ -467,20 +474,20 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                         </div>
                     ) : !isVerified ? (
 
-                        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6">
+                        <div className="bg-warning/5 border border-warning/20 rounded-2xl p-6">
                             <div className="text-center space-y-4">
-                                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
-                                    <FaShieldAlt className="w-8 h-8 text-orange-600" />
+                                <div className="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto">
+                                    <FaShieldAlt className="w-8 h-8 text-warning" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-orange-900">Verification Pending</h3>
-                                    <p className="text-orange-700 text-sm mt-2">
+                                    <Heading title="Verification Pending" variant="h6" className="text-warning-900" />
+                                    <p className="text-muted-foreground text-sm mt-2">
                                         Verify your details to unlock space owner features and start hosting.
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setShowVerificationModal(true)}
-                                    className="w-full bg-orange-600 text-background py-3 px-4 rounded-lg font-medium hover:bg-orange-700 transition-colors"
+                                    className="w-full bg-warning text-warning-foreground py-3 px-4 rounded-xl font-semibold hover:bg-warning/90 transition-all shadow-sm active:scale-[0.98]"
                                 >
                                     Start Verification
                                 </button>
@@ -488,28 +495,28 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                         </div>
                     ) : (
 
-                        <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
+                        <div className="bg-success/5 border border-success/20 rounded-2xl p-6">
                             <div className="text-center space-y-4">
-                                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                                    <FaCheck className="w-8 h-8 text-green-600" />
+                                <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto">
+                                    <FaCheck className="w-8 h-8 text-success" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-green-900">Profile Verified</h3>
-                                    <p className="text-green-700 text-sm mt-2">
+                                    <Heading title="Profile Verified" variant="h6" className="text-success-900" />
+                                    <p className="text-muted-foreground text-sm mt-2">
                                         Your profile is verified! You can now list spaces and manage payments.
                                     </p>
                                 </div>
                                 <div className="space-y-3">
                                     <button
                                         onClick={onRent}
-                                        className="w-full bg-foreground text-background py-3 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                                        className="w-full bg-foreground text-background py-3 px-4 rounded-xl font-semibold hover:bg-foreground/90 transition-all flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]"
                                     >
                                         <FaHome className="w-4 h-4" />
                                         List Your Space
                                     </button>
                                     <Link
                                         href="/profile?tab=manage-payments"
-                                        className="w-full bg-gray-100 text-gray-900 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                                        className="w-full bg-muted text-muted-foreground py-3 px-4 rounded-xl font-semibold hover:bg-muted/80 transition-all flex items-center justify-center gap-2"
                                     >
                                         <FaCreditCard className="w-4 h-4" />
                                         Payment Details
@@ -564,4 +571,5 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 };
 
 export default MyProfile;
+
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { motion } from "framer-motion";
 import { FiBriefcase, FiZap } from "react-icons/fi";
 
@@ -61,7 +61,7 @@ const ForBrands = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.1 }}
             viewport={{ once: true }}
-            className="group/dark relative flex min-h-70 flex-col overflow-hidden rounded-2xl bg-primary p-6 lg:p-10"
+            className="group/dark relative flex min-h-70 flex-col overflow-hidden rounded-2xl bg-foreground p-6 lg:p-10"
           >
             <div className="pointer-events-none absolute inset-0 z-0 -translate-x-full bg-linear-to-r from-transparent via-background/5 to-transparent transition-transform duration-500 ease-in-out group-hover/dark:translate-x-full" />
 

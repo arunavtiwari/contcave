@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
@@ -75,7 +75,7 @@ function LoadInitialValue({ value }: { value?: string }) {
 export default function RichTextEditor({
   value,
   onChange,
-  placeholder = "Write something amazing about your space…",
+  placeholder = "Write something amazing about your space",
   disabled = false,
 }: Props) {
   return (
@@ -87,7 +87,7 @@ export default function RichTextEditor({
               }`} />
           }
           placeholder={
-            <div className="pointer-events-none absolute top-4 left-4 text-neutral-400 text-sm">
+            <div className="pointer-events-none absolute top-4 left-4 text-muted-foreground/60 text-sm">
               {placeholder}
             </div>
           }

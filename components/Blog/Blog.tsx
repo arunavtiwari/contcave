@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 
@@ -39,7 +39,7 @@ const Blog = () => {
                     <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:gap-10">
                         {blogs.length > 0 ? (
                             blogs.slice(0, 3).map((blog, key) => (
-                                <BlogItem blog={blog} key={key} />
+                                <BlogItem post={blog} key={key} />
                             ))
                         ) : (
                             <p className="text-muted-foreground text-center">Loading...</p>
@@ -52,3 +52,4 @@ const Blog = () => {
 };
 
 export default Blog;
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -19,7 +19,7 @@ const AboutHero = () => {
             >
                 <Image
                     src="/images/blogs/studio.png"
-                    alt="ContCave — Creator infrastructure for India"
+                    alt="ContCave â€” Creator infrastructure for India"
                     fill
                     className="object-cover opacity-65"
                     priority
@@ -83,3 +83,4 @@ const AboutHero = () => {
 };
 
 export default AboutHero;
+

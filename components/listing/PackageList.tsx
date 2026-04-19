@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { IoCheckmark } from "react-icons/io5";
 
+import Heading from "@/components/ui/Heading";
 import { Package } from "@/types/package";
 
 interface Props {
@@ -31,7 +32,10 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xl font-semibold">Available Packages</p>
+      <Heading
+        title="Available Packages"
+        variant="h5"
+      />
 
       <div
         className="grid gap-4"
@@ -43,8 +47,8 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
             className={`
               relative border rounded-xl p-4 transition cursor-pointer
               ${selectedPackageId === pkg.id
-                ? "border-foreground bg-neutral-50 ring-1 ring-foreground"
-                : "border-neutral-200 hover:border-neutral-300"
+                ? "border-foreground bg-muted/20 ring-1 ring-foreground shadow-md"
+                : "border-border/50 hover:border-border bg-background shadow-sm hover:shadow-md"
               }
             `}
           >
@@ -69,13 +73,13 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
 
 
                   {pkg.description && (
-                    <p className="text-sm text-neutral-500 mt-1 line-clamp-2">
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                       {pkg.description}
                     </p>
                   )}
 
                   {pkg.features?.length > 0 && (
-                    <ul className="mt-2 flex flex-col gap-1 text-neutral-600 list-disc list-inside text-sm">
+                    <ul className="mt-2 flex flex-col gap-1 text-muted-foreground list-disc list-inside text-sm">
                       {pkg.features.map((f, i) => (
                         <li key={i}>{f}</li>
                       ))}
@@ -83,14 +87,14 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
                   )}
 
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-                    <span className="font-medium text-neutral-700">
+                    <span className="font-semibold text-foreground">
                       Duration: {pkg.durationHours} hr{pkg.durationHours > 1 ? "s" : ""}
                     </span>
 
                     {(isMultiSets && pkg.requiredSetCount && pkg.requiredSetCount > 0) ? (
                       <>
-                        <span className="font-foreground text-xl leading-none text-neutral-300">•</span>
-                        <span className="text-neutral-600">
+                        <span className="text-muted-foreground/30">â€¢</span>
+                        <span className="text-muted-foreground font-medium">
                           {pkg.requiredSetCount} sets included
                         </span>
                       </>
@@ -98,8 +102,8 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
 
                     {(pkg.fixedAddOn || 0) > 0 && (
                       <>
-                        <span className="font-foreground text-xl leading-none text-neutral-300">•</span>
-                        <span className="text-green-600 font-medium">
+                        <span className="text-muted-foreground/30">â€¢</span>
+                        <span className="text-success font-bold">
                           + {INR.format(pkg.fixedAddOn || 0)} flat fee
                         </span>
                       </>
@@ -110,7 +114,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
 
                 <div className="flex items-center gap-2 sm:justify-end">
                   {(pkg.originalPrice || 0) > (pkg.offeredPrice || 0) && (
-                    <span className="text-sm text-neutral-500 line-through">
+                    <span className="text-sm text-muted-foreground line-through">
                       {INR.format(pkg.originalPrice || 0)}
                     </span>
                   )}
@@ -126,3 +130,4 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useMemo, useState } from "react";
@@ -6,7 +6,9 @@ import { toast } from "sonner";
 
 import { deleteAccount } from "@/app/actions/profileActions";
 import Modal from "@/components/modals/Modal";
+import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import { formatISTDateTime } from "@/lib/utils";
 import { SafeUser } from "@/types/user";
 
 type Props = {
@@ -18,10 +20,7 @@ const ProfileSettings = ({ profile }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const markedForDeletionAt = useMemo(() => {
-    if (!profile?.markedForDeletionAt) return null;
-    const date = new Date(profile.markedForDeletionAt);
-    if (Number.isNaN(date.valueOf())) return null;
-    return date.toLocaleString();
+    return formatISTDateTime(profile?.markedForDeletionAt);
   }, [profile?.markedForDeletionAt]);
 
   const handleDeleteRequest = async () => {
@@ -75,16 +74,16 @@ const ProfileSettings = ({ profile }: Props) => {
             </li>
           </ul>
         </div>
-        <div className="bg-muted p-5 rounded-xl">
-          <h2 className="text-lg font-bold mb-2">Danger Zone</h2>
-          <p className="text-red-700 text-base font-bold">Delete Account</p>
+        <div className="bg-destructive/5 p-6 rounded-2xl border border-destructive/20">
+          <Heading title="Danger Zone" variant="h5" className="mb-4 text-destructive" />
+          <p className="text-destructive text-base font-bold mb-1">Delete Account</p>
           <p className="text-muted-foreground font-medium text-sm">
             <span className="italic">Warning:</span> Deleting your account will permanently remove all
             your data and cannot be undone.
           </p>
 
           {profile?.markedForDeletion && (
-            <div className="mt-3 rounded-lg border border-dashed border-red-400 bg-background p-3 text-sm text-red-700">
+            <div className="mt-4 rounded-xl border border-dashed border-destructive/30 bg-background p-4 text-sm text-destructive">
               Account deletion requested
               {markedForDeletionAt ? (
                 <>
@@ -97,13 +96,17 @@ const ProfileSettings = ({ profile }: Props) => {
             </div>
           )}
 
-          <button
-            className="border-2 border-danger px-10 py-1.5 rounded-full hover:opacity-85 text-danger mt-3 text-sm font-semibold disabled:opacity-60"
-            onClick={() => setShowConfirmModal(true)}
-            disabled={isSubmitting}
-          >
-            DELETE
-          </button>
+          <div className="mt-6 flex justify-start">
+            <Button
+              label="DELETE ACCOUNT"
+              onClick={() => setShowConfirmModal(true)}
+              disabled={isSubmitting}
+              variant="danger"
+              outline
+              classNames="font-bold px-8"
+              size="sm"
+            />
+          </div>
         </div>
       </div>
 
@@ -134,3 +137,4 @@ const ProfileSettings = ({ profile }: Props) => {
 };
 
 export default ProfileSettings;
+

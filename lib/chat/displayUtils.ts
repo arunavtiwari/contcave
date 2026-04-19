@@ -1,8 +1,4 @@
-const bookingDateFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "2-digit",
-  month: "long",
-  year: "numeric",
-});
+import { formatISTDate } from "@/lib/utils";
 
 const TIME_12H_PATTERN = /^\s*(1[0-2]|0?[1-9]):([0-5][0-9])\s*(AM|PM)\s*$/i;
 const TIME_24H_PATTERN = /^\s*([0-1]?\d|2[0-3]):([0-5][0-9])\s*$/;
@@ -69,14 +65,9 @@ export function calculateDurationInHours(startTimeValue: string, endTimeValue: s
 }
 
 export function formatBookingDateValue(dateValue: string | undefined) {
-  if (!dateValue) {
-    return "—";
-  }
-
-  const parsedDate = new Date(dateValue);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "—";
-  }
-
-  return bookingDateFormatter.format(parsedDate);
+  return formatISTDate(dateValue, {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  });
 }

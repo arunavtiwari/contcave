@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { formatISTDate } from "@/lib/utils";
+
 export const userUpdateSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name is too long (max 100 characters)").optional(),
     description: z.string().max(1000, "Description is too long (max 1000 characters)").optional(),
@@ -48,7 +50,10 @@ export const UserDataSchema = z.object({
     is_owner: data.is_owner,
     is_verified: data.is_verified,
     joinYear: data.createdAt
-        ? new Date(data.createdAt).toLocaleString("default", { month: "short", year: "numeric" })
+        ? formatISTDate(data.createdAt, {
+            month: "short",
+            year: "numeric",
+        })
         : "Jun 2025"
 }));
 

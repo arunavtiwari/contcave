@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import React from "react";
 
+import AboutContent from "@/components/about/AboutContent";
+import AboutHero from "@/components/about/AboutHero";
 import Container from "@/components/Container";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
-
-import AboutHero from "@/components/about/AboutHero";
-import AboutContent from "@/components/about/AboutContent";
 
 const DESCRIPTION =
   "Learn how ContCave empowers creatives with a curated network of production-ready studios, industry partners, and hands-on support." as const;

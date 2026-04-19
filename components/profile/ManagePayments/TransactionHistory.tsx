@@ -1,8 +1,10 @@
-"use client";
+﻿"use client";
 import React from "react";
 
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import Pill from "@/components/ui/Pill";
+import { formatINR, formatISTDateTime } from "@/lib/utils";
 import { Transaction } from "@/types/transaction";
 
 
@@ -22,38 +24,29 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     error = null,
     onRetry
 }) => {
-    const getStatusColor = (status: string): string => {
+    const getStatusVariant = (status: string): "success" | "warning" | "destructive" | "neutral" => {
         switch (status.toLowerCase()) {
             case 'pending':
-                return 'text-amber-600';
+                return 'warning';
             case 'successful':
             case 'success':
-                return 'text-green-600';
+                return 'success';
             case 'failed':
             case 'failure':
-                return 'text-destructive';
+                return 'destructive';
             default:
-                return 'text-muted-foreground';
+                return 'neutral';
         }
     };
 
     const formatDate = (dateString: string | Date) => {
-        const date = new Date(dateString);
-        const options: Intl.DateTimeFormatOptions = {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        };
-        const formatted = date.toLocaleDateString('en-US', options);
-        const [datePart, timePart] = formatted.split(' at ');
+        const formatted = formatISTDateTime(dateString);
+        const [datePart, timePart] = formatted.split(', ');
         return { datePart, timePart };
     };
 
-    const formatCurrency = (amount: number, currency: string = '₹'): string => {
-        return `${currency} ${amount.toLocaleString()}`;
+    const formatCurrency = (amount: number, _currency: string = '₹'): string => {
+        return formatINR(amount);
     };
 
     const getBusinessName = (transaction: Transaction): string => {
@@ -130,9 +123,12 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                         {
                             label: "Status",
                             value: (
-                                <span className={`text-sm font-medium ${getStatusColor(transaction.status)}`}>
-                                    {transaction.status}
-                                </span>
+                                <Pill
+                                    label={transaction.status}
+                                    color={getStatusVariant(transaction.status)}
+                                    variant="subtle"
+                                    size="xs"
+                                />
                             )
                         }
                     ];
@@ -170,3 +166,4 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
 };
 
 export default TransactionHistory;
+

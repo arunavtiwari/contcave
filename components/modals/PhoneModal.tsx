@@ -1,16 +1,19 @@
-"use client";
+﻿"use client";
 
 import { useId } from "react";
+
+import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
 
 type PhoneModalProps = {
     isOpen: boolean;
     phoneInput: string;
     phoneError: string | null;
     phoneSaving: boolean;
-    setPhoneInput: (v: string) => void;
-    setPhoneError: (v: string | null) => void;
-    onClose: () => void;
-    onSubmit: () => void;
+    setPhoneInputAction: (v: string) => void;
+    setPhoneErrorAction: (v: string | null) => void;
+    onCloseAction: () => void;
+    onSubmitAction: () => void;
 };
 
 export default function PhoneModal({
@@ -18,10 +21,10 @@ export default function PhoneModal({
     phoneInput,
     phoneError,
     phoneSaving,
-    setPhoneInput,
-    setPhoneError,
-    onClose,
-    onSubmit,
+    setPhoneInputAction,
+    setPhoneErrorAction,
+    onCloseAction,
+    onSubmitAction,
 }: PhoneModalProps) {
     const sectionId = useId();
     if (!isOpen) return null;
@@ -31,16 +34,19 @@ export default function PhoneModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby={`${sectionId}-phone-title`}
-            onClick={() => !phoneSaving && onClose()}
+            onClick={() => !phoneSaving && onCloseAction()}
         >
             <div
                 className="w-full max-w-md rounded-2xl bg-background  p-6"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h3 id={`${sectionId}-phone-title`} className="text-lg font-semibold mb-2">
-                    Add your mobile number
-                </h3>
-                <p className="text-sm text-neutral-600 mb-4">
+                <Heading
+                    title="Add your mobile number"
+                    variant="h5"
+                    id={`${sectionId}-phone-title`}
+                    className="mb-2"
+                />
+                <p className="text-sm text-muted-foreground mb-4">
                     Please provide a valid mobile number to continue with your booking.
                 </p>
                 <div className="space-y-2">
@@ -53,36 +59,35 @@ export default function PhoneModal({
                         inputMode="numeric"
                         pattern="[0-9]*"
                         autoFocus
-                        className="w-full rounded-xl border border-neutral-300 px-3 py-2 outline-none focus:ring-1 focus:ring-foreground/10"
+                        className="w-full rounded-xl border border-border px-3 py-2 outline-none focus:ring-1 focus:ring-foreground/10 transition-shadow"
                         placeholder="10-digit number"
                         value={phoneInput}
                         onChange={(e) => {
-                            setPhoneError(null);
-                            setPhoneInput(e.target.value);
+                            setPhoneErrorAction(null);
+                            setPhoneInputAction(e.target.value);
                         }}
                         disabled={phoneSaving}
                     />
                     {!!phoneError && <p className="text-sm text-destructive">{phoneError}</p>}
                 </div>
-                <div className="mt-5 flex gap-2 justify-end">
-                    <button
-                        type="button"
-                        className="px-4 py-2 rounded-xl border border-neutral-300 hover:bg-neutral-50"
-                        onClick={() => !phoneSaving && onClose()}
+                <div className="mt-8 flex gap-3 justify-end">
+                    <Button
+                        label="Cancel"
+                        variant="outline"
+                        onClick={onCloseAction}
                         disabled={phoneSaving}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        className={`px-4 py-2 rounded-xl text-background ${phoneSaving ? "bg-neutral-500" : "bg-foreground hover:opacity-90"}`}
-                        onClick={onSubmit}
-                        disabled={phoneSaving}
-                    >
-                        {phoneSaving ? "Saving…" : "Save & Continue"}
-                    </button>
+                        rounded
+                    />
+                    <Button
+                        label={phoneSaving ? "Saving…" : "Save & Continue"}
+                        onClick={onSubmitAction}
+                        loading={phoneSaving}
+                        rounded
+                    />
                 </div>
             </div>
         </div>
     );
 }
+
+

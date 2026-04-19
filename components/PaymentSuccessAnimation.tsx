@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -26,7 +26,7 @@ export default function PaymentAnimation({ status }: { status: PaymentStatus }) 
 
         {/* Front Face: Tick / Error */}
         <div
-          className={`absolute inset-0 flex items-center justify-center rounded-full backface-hidden ${status === "success" ? "bg-green-500" : "bg-yellow-500"
+          className={`absolute inset-0 flex items-center justify-center rounded-full backface-hidden ${status === "success" ? "bg-success shadow-lg shadow-success/20" : "bg-warning shadow-lg shadow-warning/20"
             }`}
         >
           <Image
@@ -60,3 +60,4 @@ export default function PaymentAnimation({ status }: { status: PaymentStatus }) 
     </div>
   );
 }
+
