@@ -92,7 +92,7 @@ const ProfileClient = ({
       />
 
 
-      <div className="flex flex-col sm:p-8 sm:pt-12 w-full gap-5 sm:border-l-2 border-border">
+      <div className="flex flex-col sm:p-8 sm:pt-6 w-full gap-5 sm:border-l-2 border-border">
         {renderSelectedComponent()}
       </div>
     </div>

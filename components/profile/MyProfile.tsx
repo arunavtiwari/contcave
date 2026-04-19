@@ -180,6 +180,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
     return (
         <div className="flex flex-col w-full gap-5">
+            <Heading title="My Profile" subtitle="Manage your profile information." />
             <div className="grid lg:grid-cols-3 gap-8">
 
                 <div className="lg:col-span-2 space-y-8">
@@ -469,15 +470,14 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
                         <div className="bg-success/5 border border-success/20 rounded-2xl p-6">
                             <div className="text-center space-y-4">
-                                <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto overflow-hidden">
-                                    <Image
-                                        src="/images/icons/shield.png"
-                                        width={32}
-                                        height={32}
-                                        alt="Verified"
-                                        className="object-contain"
-                                    />
-                                </div>
+                                <Image
+                                    src="/images/icons/shield.png"
+                                    width={48}
+                                    height={48}
+                                    alt="Verified"
+                                    className="mx-auto"
+                                />
+
                                 <Heading title="Profile Verified" variant="h5" subtitle="Your profile is verified! You can now list spaces and manage payments." center />
                                 <div className="space-y-3">
                                     <Button
