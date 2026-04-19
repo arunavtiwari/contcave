@@ -1,11 +1,11 @@
 ﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
-    FaCheck,
     FaCreditCard,
     FaEdit,
     FaEnvelope,
@@ -24,6 +24,7 @@ import { updateUser } from "@/app/actions/updateUser";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
+import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
@@ -220,36 +221,61 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                             </div>
                         </div>
 
-
-
                         <div className="pt-14 py-6 px-8">
                             <div className="flex justify-between mb-6 gap-8 items-center">
                                 <div className="flex-1">
-                                    {editMode ? (
-                                        <Input
-                                            id="name"
-                                            register={register("name")}
-                                            errors={errors}
-                                            placeholder="Your name"
-                                        />
-                                    ) : (
-                                        <div className="flex items-center gap-3">
-                                            <Heading title={userData.name || "Add your name"} variant="h4" className={!userData.name ? "text-muted-foreground/50 italic" : ""} />
-                                        </div>
-                                    )}
+                                    <AnimatePresence mode="wait">
+                                        {editMode ? (
+                                            <motion.div
+                                                key="edit-name"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="flex-1"
+                                            >
+                                                <Input
+                                                    id="name"
+                                                    register={register("name")}
+                                                    errors={errors}
+                                                    placeholder="Your name"
+                                                />
+                                            </motion.div>
+                                        ) : (
+                                            <motion.div
+                                                key="view-name"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="flex items-center gap-3"
+                                            >
+                                                <Heading title={userData.name || "Add your name"} variant="h4" className={!userData.name ? "text-muted-foreground/50 italic" : ""} />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
-                                {editMode && (
-                                    <Button
-                                        label="Cancel"
-                                        onClick={() => {
-                                            form.reset();
-                                            setEditMode(false);
-                                        }}
-                                        variant="outline"
-                                        disabled={isSubmitting}
-                                        fit
-                                    />
-                                )}
+                                <AnimatePresence>
+                                    {editMode && (
+                                        <motion.div
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: 20 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <Button
+                                                label="Cancel"
+                                                onClick={() => {
+                                                    form.reset();
+                                                    setEditMode(false);
+                                                }}
+                                                variant="outline"
+                                                disabled={isSubmitting}
+                                                fit
+                                            />
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                                 <Button
                                     label={editMode ? (isSubmitting ? 'Saving...' : 'Save Changes') : 'Edit Profile'}
                                     onClick={() => editMode ? handleSubmit(onSubmit)() : setEditMode(true)}
@@ -263,19 +289,37 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
 
                             <div className="mb-2">
-                                {editMode ? (
-                                    <Textarea
-                                        id="description"
-                                        {...register("description")}
-                                        errors={errors}
-                                        placeholder="Tell everyone about yourself..."
-                                        className="h-32"
-                                    />
-                                ) : (
-                                    <p className="text-muted-foreground leading-relaxed">
-                                        {userData.description || "No description added yet."}
-                                    </p>
-                                )}
+                                <AnimatePresence mode="wait">
+                                    {editMode ? (
+                                        <motion.div
+                                            key="edit-desc"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <Textarea
+                                                id="description"
+                                                {...register("description")}
+                                                errors={errors}
+                                                placeholder="Tell everyone about yourself..."
+                                                className="h-32"
+                                            />
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="view-desc"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                                {userData.description || "No description added yet."}
+                                            </p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
                     </div>
@@ -288,68 +332,104 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <FaUser className="w-5 h-5 text-muted-foreground/60" />
-                                    <span className="font-medium text-muted-foreground">Title</span>
+                                    <FaUser size={18} className="text-muted-foreground/60" />
+                                    <span className="font-medium text-muted-foreground text-sm">Title</span>
                                 </div>
-                                {editMode ? (
-                                    <div className="flex gap-2">
-                                        {PROFILE_TITLE_OPTIONS.map((title) => (
-                                            <Button
-                                                key={title}
-                                                label={title}
-                                                onClick={() => handleTitleChange(title)}
-                                                variant={userData.title === title ? "default" : "outline"}
-                                                size="sm"
-                                                rounded
-                                                fit
-                                            />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <span className="text-foreground font-medium">{userData.title || "Not specified"}</span>
-                                )}
+                                <AnimatePresence mode="wait">
+                                    {editMode ? (
+                                        <motion.div
+                                            key="edit-title"
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: 10 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="flex gap-2"
+                                        >
+                                            {PROFILE_TITLE_OPTIONS.map((title) => (
+                                                <Button
+                                                    key={title}
+                                                    label={title}
+                                                    onClick={() => handleTitleChange(title)}
+                                                    variant={userData.title === title ? "default" : "outline"}
+                                                    size="sm"
+                                                    rounded
+                                                    fit
+                                                />
+                                            ))}
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="view-title"
+                                            initial={{ opacity: 0, x: 10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -10 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <span className="text-foreground font-medium text-sm">{userData.title || "Not specified"}</span>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
 
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <FaEnvelope className="w-5 h-5 text-muted-foreground/60" />
-                                    <span className="font-medium text-muted-foreground">Email</span>
+                                    <FaEnvelope size={18} className="text-muted-foreground/60" />
+                                    <span className="font-medium text-muted-foreground text-sm">Email</span>
                                 </div>
-                                <span className="text-foreground font-medium">{userData.email}</span>
+                                <span className="text-foreground font-medium text-sm">{userData.email}</span>
                             </div>
 
 
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-3">
-                                    <FaPhone className="w-5 h-5 text-muted-foreground/60" />
-                                    <span className="font-medium text-muted-foreground">Phone</span>
+                                    <FaPhone size={18} className="text-muted-foreground/60" />
+                                    <span className="font-medium text-muted-foreground text-sm">Phone</span>
                                 </div>
                                 <div
-                                    className={`flex items-center justify-end rounded-xl ${editMode ? 'px-3 py-2 border border-slate-300' : ''
+                                    className={`flex items-center justify-end rounded-xl transition-all ${editMode ? 'pl-3 border border-border bg-background' : ''
                                         }`}
                                 >
-                                    <span className="mr-2 pr-2 border-r whitespace-nowrap">+91</span>
-                                    {editMode ? (
-                                        <Input
-                                            id="phone"
-                                            type="tel"
-                                            register={register("phone", {
-                                                onChange: (e) => {
-                                                    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                                    setValue("phone", digitsOnly, { shouldDirty: true, shouldValidate: true });
-                                                }
-                                            })}
-                                            errors={errors}
-                                            placeholder="99xxxxxx21"
-                                            maxLength={10}
-                                            className="w-28 p-0 border-none focus:ring-0"
-                                        />
-                                    ) : (
-                                        <span className="text-foreground font-medium whitespace-nowrap">
-                                            {userData.phone || 'Not added'}
-                                        </span>
-                                    )}
+                                    <span className="mr-2 pr-2 border-r whitespace-nowrap text-sm text-muted-foreground">+91</span>
+                                    <AnimatePresence mode="wait">
+                                        {editMode ? (
+                                            <motion.div
+                                                key="edit-phone"
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: 10 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                <Input
+                                                    id="phone"
+                                                    type="tel"
+                                                    register={register("phone", {
+                                                        onChange: (e) => {
+                                                            const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                            setValue("phone", digitsOnly, { shouldDirty: true, shouldValidate: true });
+                                                        }
+                                                    })}
+                                                    errors={errors}
+                                                    placeholder="99xxxxxx21"
+                                                    maxLength={10}
+                                                    className="w-28 h-9 p-0 border-none focus:ring-0 bg-transparent"
+                                                    size="sm"
+                                                />
+                                            </motion.div>
+                                        ) : (
+                                            <motion.div
+                                                key="view-phone"
+                                                initial={{ opacity: 0, x: 10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -10 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                <span className="text-foreground font-medium whitespace-nowrap text-sm">
+                                                    {userData.phone || 'Not added'}
+                                                </span>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </div>
 
@@ -357,60 +437,92 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <FaMapMarkerAlt className="w-5 h-5 text-muted-foreground/60" />
-                                    <span className="font-medium text-muted-foreground">Location</span>
+                                    <FaMapMarkerAlt size={18} className="text-muted-foreground/60" />
+                                    <span className="font-medium text-muted-foreground text-sm">City</span>
                                 </div>
-                                {editMode ? (
-                                    <Input
-                                        id="location"
-                                        register={register("location")}
-                                        errors={errors}
-                                        className="w-48"
-                                        placeholder="Enter location"
-                                    />
-                                ) : (
-                                    <span className="text-foreground font-medium">{userData.location || "Not specified"}</span>
-                                )}
+                                <AnimatePresence mode="wait">
+                                    {editMode ? (
+                                        <motion.div
+                                            key="edit-city"
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: 10 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="w-48"
+                                        >
+                                            <CitySelect
+                                                size="sm"
+                                                value={userData.location ? { label: userData.location, value: userData.location, state: "", latlng: [0, 0] } : undefined}
+                                                onChange={(city) => setValue("location", city.label, { shouldDirty: true, shouldValidate: true })}
+                                            />
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="view-city"
+                                            initial={{ opacity: 0, x: 10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -10 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <span className="text-foreground font-medium text-sm">{userData.location || "Not specified"}</span>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
 
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
-                                    <FaGlobe className="w-5 h-5 text-muted-foreground/60" />
-                                    <span className="font-medium text-muted-foreground">Languages</span>
+                                    <FaGlobe size={18} className="text-muted-foreground/60" />
+                                    <span className="font-medium text-muted-foreground text-sm">Languages</span>
                                 </div>
-                                {editMode ? (
-                                    <div className="flex flex-wrap gap-2 max-w-xs justify-end">
-                                        {PROFILE_LANGUAGE_OPTIONS.map((language) => (
-                                            <Button
-                                                key={language}
-                                                label={language}
-                                                onClick={() => handleLanguageToggle(language)}
-                                                disabled={!(userData.languages || []).includes(language) && (userData.languages || []).length >= 2}
-                                                variant={(userData.languages || []).includes(language) ? "default" : "outline"}
-                                                icon={(userData.languages || []).includes(language) ? FaCheck : undefined}
-                                                size="sm"
-                                                rounded
-                                                fit
-                                            />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-wrap gap-2">
-                                        {(userData.languages || []).length > 0 ? (
-                                            (userData.languages || []).map((language) => (
-                                                <Pill
+                                <AnimatePresence mode="wait">
+                                    {editMode ? (
+                                        <motion.div
+                                            key="edit-langs"
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: 10 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="flex flex-wrap gap-2 max-w-xs justify-end"
+                                        >
+                                            {PROFILE_LANGUAGE_OPTIONS.map((language) => (
+                                                <Button
                                                     key={language}
                                                     label={language}
-                                                    variant="subtle"
-                                                    color="secondary"
+                                                    onClick={() => handleLanguageToggle(language)}
+                                                    disabled={!(userData.languages || []).includes(language) && (userData.languages || []).length >= 2}
+                                                    variant={(userData.languages || []).includes(language) ? "default" : "outline"}
+                                                    size="sm"
+                                                    rounded
+                                                    fit
                                                 />
-                                            ))
-                                        ) : (
-                                            <span className="text-muted-foreground/60">No languages specified</span>
-                                        )}
-                                    </div>
-                                )}
+                                            ))}
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="view-langs"
+                                            initial={{ opacity: 0, x: 10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -10 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="flex flex-wrap gap-2"
+                                        >
+                                            {(userData.languages || []).length > 0 ? (
+                                                (userData.languages || []).map((language) => (
+                                                    <Pill
+                                                        key={language}
+                                                        label={language}
+                                                        variant="subtle"
+                                                        color="secondary"
+                                                    />
+                                                ))
+                                            ) : (
+                                                <span className="text-muted-foreground/60">No languages specified</span>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
                     </div>

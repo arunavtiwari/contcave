@@ -130,7 +130,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 </ol>
             </div>
 
-            <div className="bg-background rounded-xl border border-border p-6 ">
+            <div className="bg-background rounded-2xl border border-border p-6 ">
                 <h3 className="text-lg font-semibold text-foreground mb-4">Your Referral Link</h3>
 
                 <div className="space-y-4">

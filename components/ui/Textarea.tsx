@@ -13,11 +13,17 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
     id: string;
     errors?: FieldErrors;
     variant?: "vertical" | "horizontal";
+    size?: "sm" | "md";
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-    ({ className, label, description, id, required, errors, variant = "vertical", ...props }, ref) => {
+    ({ className, label, description, id, required, errors, variant = "vertical", size = "md", ...props }, ref) => {
         const error = errors?.[id]?.message as string;
+
+        const sizeClasses = {
+            sm: "text-xs p-2.5 min-h-[80px]",
+            md: "text-sm p-3 min-h-[100px]",
+        };
 
         return (
             <FormField
@@ -31,7 +37,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                 <textarea
                     id={id}
                     className={cn(
-                        "w-full p-3 font-light bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed min-h-25",
+                        "w-full font-light bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed",
+                        sizeClasses[size],
                         error
                             ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20"
                             : "border-border hover:border-border/80 focus:border-foreground focus:ring-1 focus:ring-foreground/10",

@@ -17,9 +17,10 @@ export type CitySelectValue = {
 type Props = {
   value?: CitySelectValue;
   onChange: (value: CitySelectValue) => void;
+  size?: "sm" | "md";
 };
 
-function CitySelect({ value, onChange }: Props) {
+function CitySelect({ value, onChange, size = "md" }: Props) {
   const { getAll } = useIndianCities();
 
   return (
@@ -41,8 +42,8 @@ function CitySelect({ value, onChange }: Props) {
           </div>
         )}
         classNames={{
-          input: () => "text-lg cursor-pointer",
-          option: () => "text-lg cursor-pointer",
+          input: () => `${size === "sm" ? "text-sm" : "text-lg"} cursor-pointer`,
+          option: () => `${size === "sm" ? "text-sm" : "text-lg"} cursor-pointer`,
         }}
         styles={{
           input: (base) => ({
@@ -56,9 +57,9 @@ function CitySelect({ value, onChange }: Props) {
             borderRadius: "0.75rem",
             padding: "0 4px",
             boxShadow: state.isFocused ? "0 0 0 1px rgba(0,0,0,0.1)" : "none",
-            minHeight: "42px",
-            height: "42px",
-            fontSize: "1.125rem", // text-lg
+            minHeight: size === "sm" ? "36px" : "42px",
+            height: size === "sm" ? "36px" : "42px",
+            fontSize: size === "sm" ? "0.875rem" : "1.125rem",
             transition: "all 0.2s ease",
             "&:hover": {
               borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",

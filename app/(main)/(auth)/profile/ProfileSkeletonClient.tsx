@@ -143,7 +143,7 @@ const ShareReferSkeleton = () => (
             </div>
         </div>
 
-        <div className="bg-background rounded-xl border border-border p-6 space-y-6">
+        <div className="bg-background rounded-2xl border border-border p-6 space-y-6">
             <Skeleton className="h-7 w-48" />
             <div className="space-y-4">
                 {[...Array(2)].map((_, i) => (
