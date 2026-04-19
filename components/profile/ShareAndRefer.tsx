@@ -153,7 +153,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                         </div>
                     </div>
 
-                    <div className="bg-muted rounded-lg p-4 border border-border">
+                    <div className="bg-muted/30 rounded-lg p-4 border border-border">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm text-muted-foreground mb-1">Referral Link</p>

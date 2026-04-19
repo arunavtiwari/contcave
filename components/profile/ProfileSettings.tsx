@@ -96,16 +96,14 @@ const ProfileSettings = ({ profile }: Props) => {
             </div>
           )}
 
-          <div className="mt-6 flex justify-start">
-            <Button
-              label="DELETE ACCOUNT"
-              onClick={() => setShowConfirmModal(true)}
-              disabled={isSubmitting}
-              variant="destructive"
-              outline
-
-            />
-          </div>
+          <Button
+            label="DELETE ACCOUNT"
+            onClick={() => setShowConfirmModal(true)}
+            disabled={isSubmitting}
+            variant="destructive"
+            outline
+            classNames="w-fit! mt-6"
+          />
         </div>
       </div>
 
@@ -118,6 +116,7 @@ const ProfileSettings = ({ profile }: Props) => {
         secondaryAction={() => setShowConfirmModal(false)}
         secondaryActionLabel="Cancel"
         disabled={isSubmitting}
+        customHeight="h-fit"
         body={
           <div className="space-y-3 text-sm text-muted-foreground">
             <p>
