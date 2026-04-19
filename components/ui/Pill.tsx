@@ -53,7 +53,7 @@ const Pill: React.FC<PillProps> = ({
         },
         glass: {
             default: "bg-background/90 backdrop-blur-sm text-foreground",
-            secondary: "bg-background/70 backdrop-blur-sm text-foreground/80",
+            secondary: "bg-background/5 backdrop-blur-sm text-background",
             destructive: "bg-destructive/20 backdrop-blur-md border border-destructive/20 text-destructive",
             success: "bg-success/20 backdrop-blur-md border border-success/20 text-success",
             warning: "bg-warning/20 backdrop-blur-md border border-warning/20 text-warning",
@@ -67,7 +67,7 @@ const Pill: React.FC<PillProps> = ({
         <div
             onClick={onClick}
             className={cn(
-                "inline-flex items-center justify-center gap-1.5 font-bold uppercase tracking-wider rounded-full border border-transparent transition-all",
+                "inline-flex items-center justify-center gap-1.5 font-medium tracking-wider rounded-full border border-transparent transition-all",
                 sizeClasses[size],
                 colorScheme,
                 isClickable && "cursor-pointer hover:opacity-85 active:scale-95",

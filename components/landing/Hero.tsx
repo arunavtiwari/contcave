@@ -7,6 +7,8 @@ import { BiSearch } from "react-icons/bi";
 import Container from "@/components/Container";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import Pill from "@/components/ui/Pill";
+import { HERO_HIGHLIGHTS } from "@/constants/landing";
 import useCities from "@/hook/useCities";
 import useSearchModal from "@/hook/useSearchModal";
 import { formatISTDate } from "@/lib/utils";
@@ -41,27 +43,27 @@ const HeroSearch = () => {
       type="button"
       onClick={searchModal.onOpen}
       aria-label="Open studio search"
-      className="group flex w-full max-w-lg flex-row items-center rounded-full border border-background/20 bg-background/20 backdrop-blur-2xl p-2 text-left shadow-2xl transition-all active:scale-[0.98] md:max-w-xl lg:max-w-2xl"
+      className="group flex w-full max-w-lg flex-row items-center rounded-full border border-background/20 bg-background/10 backdrop-blur-2xl p-1 text-left shadow-sm transition-all active:scale-[0.98] md:max-w-xl lg:max-w-2xl"
     >
       <div className="flex flex-1 flex-row items-center divide-x divide-border/50">
         <div className="flex flex-1 flex-col px-4 md:px-7">
-          <span className="text-[10px] font-bold uppercase text-muted-foreground">
+          <span className="text-[10px] uppercase text-background/50">
             Location
           </span>
-          <span className="truncate text-sm font-semibold text-foreground">
+          <span className="truncate text-sm font-medium text-background">
             {locationLabel || "Search by city..."}
           </span>
         </div>
         <div className="hidden flex-1 flex-col px-4 sm:flex md:px-7">
-          <span className="text-[10px] font-bold uppercase text-muted-foreground">
+          <span className="text-[10px] uppercase text-background/50">
             Date
           </span>
-          <span className="truncate text-sm font-semibold text-foreground">
+          <span className="truncate text-sm font-medium text-background">
             {dateLabel || "Add date"}
           </span>
         </div>
       </div>
-      <div className="flex shrink-0 items-center justify-center rounded-full bg-foreground/60 p-2 text-background transition-transform group-hover:scale-105 md:p-4">
+      <div className="flex shrink-0 items-center justify-center rounded-full bg-foreground/40 p-2 text-background transition-transform group-hover:scale-105 md:p-3 backdrop-blur-lg">
         <BiSearch size={22} />
       </div>
     </button>
@@ -129,7 +131,7 @@ const Hero = () => {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.55 }}
-                className="mb-4 text-xs font-medium uppercase tracking-accent text-background/55"
+                className="mb-2 text-xs font-medium uppercase tracking-accent text-muted/70"
               >
                 For Agencies, Brands and Creators
               </motion.p>
@@ -142,18 +144,26 @@ const Hero = () => {
                 <Heading
                   title="Book your next shoot location"
                   variant="h1"
-                  className="mb-2 text-background!"
+                  className="mb-6 text-background!"
                 />
               </motion.div>
 
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.65, delay: 0.75 }}
-                className="mb-6 text-background/60 text-[clamp(0.9rem,1.6vw,1.1rem)] tracking-[0.01em]"
+                className="mb-6 flex flex-wrap gap-2"
               >
-                Verified studios · Instant booking · Transparent pricing
-              </motion.p>
+                {HERO_HIGHLIGHTS.map((highlight: string) => (
+                  <Pill
+                    key={highlight}
+                    label={highlight}
+                    variant="glass"
+                    size="sm"
+                    color="secondary"
+                  />
+                ))}
+              </motion.div>
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -169,14 +179,14 @@ const Hero = () => {
                   </Suspense>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 mt-2">
                   <Button
                     label="View all studios"
                     href="/home"
                     variant="outline"
-                    size="lg"
                     rounded
                     fit
+                    size="lg"
                   />
                 </div>
               </motion.div>

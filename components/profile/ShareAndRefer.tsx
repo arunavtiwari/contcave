@@ -218,7 +218,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
             <div className="border-t border-border"></div>
 
             <div className="bg-info/5 rounded-2xl p-8 border border-info/20">
-                <Heading title="Promote and Earn ðŸŽ‰" variant="h4" className="mb-4" />
+                <Heading title="Promote and Earn" variant="h4" className="mb-4" />
                 <p className="text-base text-muted-foreground leading-relaxed mb-8 max-w-2xl">
                     If you're an influencer or content creator with a following, you can promote ContCave
                     while shooting at our properties and earn benefits/discounts.

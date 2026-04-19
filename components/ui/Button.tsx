@@ -46,7 +46,8 @@ function Button({
   const sizeClasses = {
     sm: "py-1.5 px-3 text-xs",
     md: "py-2 px-5 text-sm",
-    lg: "py-3 px-8 text-base",
+    lg: "py-2.5 px-6 text-sm",
+    xl: "py-3 px-8 text-base",
   };
 
   const widthClass = fit ? "w-fit" : (size === "sm" ? "w-auto" : "w-full");
