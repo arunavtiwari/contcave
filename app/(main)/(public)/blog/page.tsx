@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import Container from "@/components/Container";
+import PageBanner from "@/components/ui/PageBanner";
 import { getSortedPostsData, groupPostsByCategory } from "@/lib/posts";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 import { BlogPost } from "@/types/blog";
@@ -10,7 +12,7 @@ const DESCRIPTION =
   "Read ContCave's latest articles on studio booking, production workflows, and creative industry insights across India." as const;
 
 export const metadata: Metadata = {
-  title: "Blog — Insights, Tips, and Updates",
+  title: "Blogs — Insights, Tips, and Updates",
   description: DESCRIPTION,
   keywords: [
     "ContCave blog",
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
     canonical: "/blog",
   },
   openGraph: {
-    title: "Blog — Insights & Tips",
+    title: "Blogs — Insights & Tips",
     description: DESCRIPTION,
     url: `${SITE_URL}/blog`,
     siteName: BRAND_NAME,
@@ -42,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blog — Insights & Tips",
+    title: "Blogs — Insights & Tips",
     description: DESCRIPTION,
     site: "@ContCave",
     creator: "@ContCave",
@@ -65,64 +67,69 @@ export default function BlogPage() {
   const grouped = groupPostsByCategory(posts);
 
   return (
-    <main className="max-w mx-auto px-4 py-8">
-      <div className="banner mb-8 relative h-64 w-full">
-        <Image src="/assets/banner.jpg" fill alt="ContCave Blog — Studio Booking Insights and Tips" className="object-cover" />
-        <div className="absolute inset-0 bg-foreground/40 flex items-center justify-center">
-          <h1 className="text-background text-4xl font-bold">Blogs</h1>
-        </div>
-      </div>
+    <main className="bg-background min-h-screen">
+      <PageBanner
+        title="Blogs"
+        subtitle="Insights, tips, and updates from the ContCave team."
+      />
 
-      {Object.entries(grouped).map(([category, posts]) => (
-        <section key={category} className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">{category}</h2>
+      {/* Blog Cards */}
+      <section className="py-20 -mt-10 relative z-20">
+        <Container>
+          <div className="space-y-20 max-w-6xl mx-auto">
+            {Object.entries(grouped).map(([category, posts]) => (
+              <section key={category}>
+                <h2 className="text-2xl font-bold mb-8 text-foreground pb-4 border-b border-border">
+                  {category}
+                </h2>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map(post => {
-              const formattedDate = new Date(post.publishedAt).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              });
+                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                  {posts.map(post => {
+                    const formattedDate = new Date(post.publishedAt).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    });
 
-              return (
-                <Link
-                  key={post.id}
-                  href={`/blog/${post.id}`}
-                  className="block bg-card rounded-2xl border border-border hover:shadow-md transition-all overflow-hidden"
-                >
-                  <div className="relative h-48">
-                    {post.meta.image && (
-                      <Image
-                        src={post.meta.image.url}
-                        alt={post.title}
-                        fill
-                        className="object-cover"
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-foreground/50 flex items-center justify-center p-4">
-                      <h2 className="text-background text-lg font-bold text-center">
-                        {post.title}
-                      </h2>
-                    </div>
-                  </div>
+                    return (
+                      <Link
+                        key={post.id}
+                        href={`/blog/${post.id}`}
+                        className="group block bg-background rounded-2xl border border-border hover:border-primary/20 hover:shadow-xl transition-all duration-300 overflow-hidden"
+                      >
+                        <div className="relative h-56 overflow-hidden">
+                          {post.meta.image && (
+                            <Image
+                              src={post.meta.image.url}
+                              alt={post.title}
+                              fill
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                          )}
+                          <div className="absolute inset-0 bg-linear-to-t from-foreground/60 to-transparent flex items-end p-6">
+                            <h3 className="text-background text-lg font-bold leading-tight">
+                              {post.title}
+                            </h3>
+                          </div>
+                        </div>
 
-                  <div className="p-4">
-                    <p className="text-muted-foreground text-sm mb-2">
-                      Published on: {formattedDate}
-                    </p>
-                    <p className="text-foreground line-clamp-3">
-                      {post.meta.description || "Read more about this topic…"}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
+                        <div className="p-6">
+                          <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-3">
+                            {formattedDate}
+                          </p>
+                          <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+                            {post.meta.description || "Read more about this topic…"}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
           </div>
-        </section>
-      ))}
+        </Container>
+      </section>
     </main>
   );
 }
-
-

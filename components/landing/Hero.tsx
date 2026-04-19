@@ -38,11 +38,11 @@ const HeroSearch = () => {
       type="button"
       onClick={searchModal.onOpen}
       aria-label="Open studio search"
-      className="group flex w-full max-w-xl flex-row items-center rounded-full border border-white/10 bg-background/95 p-2 text-left shadow-2xl backdrop-blur-md transition-all hover:bg-background active:scale-[0.98] md:max-w-2xl lg:max-w-3xl"
+      className="group flex w-full max-w-lg flex-row items-center rounded-full border border-background/20 bg-background/70 backdrop-blur-md p-2 text-left shadow-2xl transition-all active:scale-[0.98] md:max-w-xl lg:max-w-2xl"
     >
       <div className="flex flex-1 flex-row items-center divide-x divide-border/50">
         <div className="flex flex-1 flex-col px-4 md:px-7">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+          <span className="text-[10px] font-bold uppercase text-muted-foreground">
             Location
           </span>
           <span className="truncate text-sm font-semibold text-foreground">
@@ -50,7 +50,7 @@ const HeroSearch = () => {
           </span>
         </div>
         <div className="hidden flex-1 flex-col px-4 sm:flex md:px-7">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+          <span className="text-[10px] font-bold uppercase text-muted-foreground">
             Date
           </span>
           <span className="truncate text-sm font-semibold text-foreground">
@@ -58,7 +58,7 @@ const HeroSearch = () => {
           </span>
         </div>
       </div>
-      <div className="flex shrink-0 items-center justify-center rounded-full bg-primary p-3.5 text-background shadow-lg shadow-primary/20 transition-transform group-hover:scale-105 md:p-4">
+      <div className="flex shrink-0 items-center justify-center rounded-full bg-foreground/60 p-2 text-background transition-transform group-hover:scale-105 md:p-4">
         <BiSearch size={22} />
       </div>
     </button>
@@ -82,7 +82,7 @@ const Hero = () => {
   return (
     <motion.div
       ref={containerRef}
-      style={{ scale, borderRadius: borderRadius as unknown as string }}
+      style={{ scale, borderRadius }}
       className="overflow-hidden"
     >
       <div
@@ -97,8 +97,8 @@ const Hero = () => {
         />
 
         <motion.div
-          className="absolute z-0 left-0 right-0"
-          style={{ y: videoY, top: "-8%", height: "116%" }}
+          className="absolute z-0 left-0 right-0 top-[-8%] h-[116%]"
+          style={{ y: videoY }}
         >
           <video
             autoPlay
@@ -147,11 +147,7 @@ const Hero = () => {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.65, delay: 0.75 }}
-                className="mb-6 text-background/60"
-                style={{
-                  fontSize: "clamp(0.9rem, 1.6vw, 1.1rem)",
-                  letterSpacing: "0.01em",
-                }}
+                className="mb-6 text-background/60 text-[clamp(0.9rem,1.6vw,1.1rem)] tracking-[0.01em]"
               >
                 Verified studios · Instant booking · Transparent pricing
               </motion.p>

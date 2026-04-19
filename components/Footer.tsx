@@ -11,23 +11,27 @@ function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 py-12">
           {/* Left Side */}
           <div className="grid place-items-center md:place-items-start gap-8">
-            <Logo />
+            {/* Logo & Description */}
+            <div className="flex flex-col items-center md:items-start w-full gap-2 max-w-md">
+              <Logo />
+              <p className="text-sm text-muted-foreground text-center md:text-left ">ContCave helps creators discover, compare, and book verified studios and production-ready spaces across India.</p>
+            </div>
 
             {/* Follow Us */}
-            <div className="flex flex-col flex-wrap gap-4 w-full">
+            <div className="flex items-center gap-4">
               <p className="text-base font-semibold text-center md:text-left">Follow Us</p>
               <div className="flex gap-4 items-center">
                 <a href="https://www.linkedin.com/company/contcave/" target="_blank" rel="noopener noreferrer">
-                  <Image src="/images/icons/linkedin.png" width={32} height={32} alt="linkedin" className="object-cover hover:scale-105 transition-all" />
+                  <Image src="/images/icons/linkedin.png" width={32} height={32} alt="linkedin" className="object-cover hover:scale-105 transition-all contrast-180" />
                 </a>
                 <a href="https://x.com/contcave/" target="_blank" rel="noopener noreferrer">
-                  <Image src="/images/icons/twitter.png" width={32} height={32} alt="twitter" className="object-cover hover:scale-105 transition-all" />
+                  <Image src="/images/icons/twitter.png" width={32} height={32} alt="twitter" className="object-cover hover:scale-105 transition-all contrast-180" />
                 </a>
                 <a href="https://www.instagram.com/contcave/" target="_blank" rel="noopener noreferrer">
-                  <Image src="/images/icons/instagram.png" width={32} height={32} alt="instagram" className="object-cover hover:scale-105 transition-all contrast-200" />
+                  <Image src="/images/icons/instagram.png" width={32} height={32} alt="instagram" className="object-cover hover:scale-105 transition-all contrast-180" />
                 </a>
                 <a href="https://www.producthunt.com/posts/contcave?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-contcave" target="_blank" rel="noopener noreferrer">
-                  <Image src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=480635&theme=dark&t=1738752353649" alt="ContCave - We Help creators and brands Shoot Better Content | Product Hunt" width={250} height={54} className="rounded-xl" />
+                  <Image src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=480635&theme=dark&t=1738752353649" alt="ContCave - We Help creators and brands Shoot Better Content | Product Hunt" width={150} height={32} className="rounded-xl" />
                 </a>
               </div>
             </div>
