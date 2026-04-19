@@ -225,20 +225,15 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                             <div className="flex justify-between mb-6 gap-8 items-center">
                                 <div className="flex-1">
                                     {editMode ? (
-                                        <div className="relative group">
-                                            <Input
-                                                id="name"
-                                                register={register("name")}
-                                                errors={errors}
-                                                placeholder="Your name"
-                                            />
-                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40">
-                                                <FaEdit className="w-4 h-4" />
-                                            </div>
-                                        </div>
+                                        <Input
+                                            id="name"
+                                            register={register("name")}
+                                            errors={errors}
+                                            placeholder="Your name"
+                                        />
                                     ) : (
                                         <div className="flex items-center gap-3">
-                                            <Heading title={userData.name || "Add your name"} variant="h3" className={!userData.name ? "text-muted-foreground/50 italic" : ""} />
+                                            <Heading title={userData.name || "Add your name"} variant="h4" className={!userData.name ? "text-muted-foreground/50 italic" : ""} />
                                         </div>
                                     )}
                                 </div>
