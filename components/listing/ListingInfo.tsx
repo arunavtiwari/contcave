@@ -492,7 +492,7 @@ function ListingInfo({
                 <div className="text-xl capitalize font-semibold">Submit your review</div>
                 <div className="relative">
                   <div className="text-sm font-bold mb-2">Write your message</div>
-                  <div className="flex w-full bg-background border border-slate-400 items-end px-2 py-2 rounded-md">
+                  <div className="flex w-full bg-background border border-border items-end px-2 py-2 rounded-xl">
                     <Textarea
                       id="review-comment"
                       value={review.comment}

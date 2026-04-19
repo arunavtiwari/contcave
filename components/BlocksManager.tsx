@@ -6,7 +6,7 @@ import Clock from "lucide-react/dist/esm/icons/clock";
 import Plus from "lucide-react/dist/esm/icons/plus";
 import Trash2 from "lucide-react/dist/esm/icons/trash-2";
 import { useCallback, useEffect, useState } from "react";
-import Select, { Theme } from "react-select";
+import Select, { GroupBase, StylesConfig, Theme } from "react-select";
 import { toast } from "sonner";
 
 import { createBlock, deleteBlock, getBlocks } from "@/app/actions/blockActions";
@@ -28,10 +28,39 @@ interface BlocksManagerProps {
     sets: ListingSet[];
 }
 
+interface SelectOption {
+    value: string;
+    label: string;
+}
+
+const selectStyles: StylesConfig<SelectOption, true, GroupBase<SelectOption>> = {
+    control: (provided, state) => ({
+        ...provided,
+        backgroundColor: "var(--color-background)",
+        borderWidth: "1px",
+        borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+        borderRadius: "0.75rem",
+        padding: "0 4px",
+        boxShadow: state.isFocused ? "0 0 0 1px var(--color-primary-10)" : "none",
+        minHeight: "42px",
+        height: "42px",
+        fontSize: "0.875rem",
+        transition: "all 0.2s ease",
+        "&:hover": {
+            borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+        },
+    }),
+};
+
 const selectTheme = (theme: Theme): Theme => ({
     ...theme,
-    borderRadius: 10,
-    colors: { ...theme.colors, primary: "foreground", primary25: "#F3F4F6", primary50: "#E5E7EB" },
+    borderRadius: 12,
+    colors: {
+        ...theme.colors,
+        primary: "var(--color-primary)",
+        primary25: "var(--color-primary-10)",
+        primary50: "var(--color-border)"
+    },
 });
 
 import { TIME_SLOTS } from "@/constants/timeSlots";
@@ -116,7 +145,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
 
     return (
         <div className="space-y-8">
-            <div className="bg-neutral-50 p-6 rounded-2xl border border-neutral-200">
+            <div className="bg-muted/30 p-6 rounded-2xl border border-border">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                     <Plus size={20} />
                     Create New Block
@@ -131,7 +160,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             type="date"
                             value={newBlock.date}
                             onChange={(e) => setNewBlock({ ...newBlock, date: e.target.value })}
-                            className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-foreground/10"
+                            className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/10"
                         />
                     </div>
 
@@ -144,7 +173,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             <select
                                 value={newBlock.startTime}
                                 onChange={(e) => setNewBlock({ ...newBlock, startTime: e.target.value })}
-                                className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-foreground/10"
+                                className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/10"
                             >
                                 {TIME_SLOTS.map((t, idx) => (
                                     <option key={`start-${t}-${idx}`} value={t}>{t}</option>
@@ -159,7 +188,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             <select
                                 value={newBlock.endTime}
                                 onChange={(e) => setNewBlock({ ...newBlock, endTime: e.target.value })}
-                                className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-foreground/10"
+                                className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/10"
                             >
                                 {TIME_SLOTS.map((t, idx) => (
                                     <option key={`end-${t}-${idx}`} value={t}>{t}</option>
@@ -182,6 +211,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             }
                             placeholder="Block entire listing if none selected"
                             theme={selectTheme}
+                            styles={selectStyles}
                             className="text-sm"
                         />
                     </div>
@@ -193,7 +223,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             value={newBlock.reason}
                             onChange={(e) => setNewBlock({ ...newBlock, reason: e.target.value })}
                             placeholder="e.g., Maintenance, Personal Use"
-                            className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-foreground/10"
+                            className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/10"
                         />
                     </div>
                 </div>
@@ -209,9 +239,9 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
             <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Existing Blocks</h3>
                 {isLoading ? (
-                    <div className="text-center py-8 text-neutral-500">Loading blocks...</div>
+                    <div className="text-center py-8 text-muted-foreground">Loading blocks...</div>
                 ) : blocks.length === 0 ? (
-                    <div className="text-center py-8 text-neutral-500 border-2 border-dashed rounded-2xl">
+                    <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-2xl">
                         No active blocks found
                     </div>
                 ) : (
@@ -219,31 +249,31 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                         {blocks.map((block) => (
                             <div
                                 key={block.id}
-                                className="flex items-center justify-between p-4 border border-neutral-200 rounded-xl bg-background hover: transition"
+                                className="flex items-center justify-between p-4 border border-border rounded-xl bg-background hover: transition"
                             >
                                 <div className="flex flex-col gap-1">
                                     <div className="font-medium flex items-center gap-2">
-                                        <CalendarIcon size={16} className="text-neutral-400" />
+                                        <CalendarIcon size={16} className="text-muted-foreground" />
                                         {format(new Date(block.date), "PPP")}
                                     </div>
-                                    <div className="text-sm text-neutral-500 flex items-center gap-2">
+                                    <div className="text-sm text-muted-foreground flex items-center gap-2">
                                         <Clock size={14} />
                                         {block.startTime} - {block.endTime}
                                     </div>
                                     {block.setIds && block.setIds.length > 0 && (
-                                        <div className="text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full w-fit mt-1">
+                                        <div className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full w-fit mt-1">
                                             {block.setIds.length} set(s) blocked
                                         </div>
                                     )}
                                     {block.reason && (
-                                        <div className="text-sm text-neutral-600 italic mt-1">
+                                        <div className="text-sm text-muted-foreground italic mt-1">
                                             "{block.reason}"
                                         </div>
                                     )}
                                 </div>
                                 <button
                                     onClick={() => handleDeleteBlock(block.id)}
-                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                                    className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition"
                                     aria-label="Delete block"
                                 >
                                     <Trash2 size={18} />

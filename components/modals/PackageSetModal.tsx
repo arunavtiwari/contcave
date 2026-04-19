@@ -64,7 +64,7 @@ export default function PackageSetModal({
                     </h3>
                     <button
                         onClick={onClose}
-                        className="p-1 hover:bg-neutral-100 rounded-full transition"
+                        className="p-1 hover:bg-muted rounded-full transition"
                     >
                         <IoClose size={24} />
                     </button>
@@ -73,7 +73,7 @@ export default function PackageSetModal({
 
                 <div className="p-6 overflow-y-auto">
                     <div className="mb-4">
-                        <p className="text-neutral-600">
+                        <p className="text-muted-foreground">
                             {requiredCount > 0
                                 ? `Please select exactly ${requiredCount} set${requiredCount === 1 ? "" : "s"} for this package.`
                                 : "Please select the sets you want to include in this package."}
@@ -94,7 +94,7 @@ export default function PackageSetModal({
                 </div>
 
 
-                <div className="p-4 border-t bg-neutral-50 flex justify-end gap-3">
+                <div className="p-4 border-t bg-muted flex justify-end gap-3">
                     <Button
                         label="Cancel"
                         onClick={onClose}

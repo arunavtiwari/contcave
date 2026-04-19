@@ -94,7 +94,7 @@ function CustomAddonModal({ save }: Props) {
                   alt="Uploaded Add-on"
                   width={128}
                   height={128}
-                  className="w-32 h-32 rounded-xl border border-neutral-300 object-cover"
+                  className="w-32 h-32 rounded-xl border border-border object-cover"
                   unoptimized
                 />
               )}

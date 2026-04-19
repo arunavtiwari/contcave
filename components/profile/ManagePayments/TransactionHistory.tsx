@@ -31,9 +31,9 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                 return 'text-green-600';
             case 'failed':
             case 'failure':
-                return 'text-red-600';
+                return 'text-destructive';
             default:
-                return 'text-gray-600';
+                return 'text-muted-foreground';
         }
     };
 
@@ -70,8 +70,8 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
             <div className="flex flex-col w-full gap-5">
                 <Heading title="Transaction History" subtitle="View your past transactions." variant="h4"></Heading>
                 <div className="text-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-                    <p className="text-gray-500 mt-4">Loading transactions...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
+                    <p className="text-muted-foreground mt-4">Loading transactions...</p>
                 </div>
             </div>
         );
@@ -82,7 +82,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         return (
             <div className="flex flex-col w-full gap-5">
                 <div className="text-center py-10">
-                    <p className="text-red-500 mb-4">{error}</p>
+                    <p className="text-destructive mb-4">{error}</p>
                     {onRetry && (
                         <div className="flex justify-center">
                             <Button
@@ -104,7 +104,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
             <div className="flex flex-col w-full gap-5">
                 <Heading title="Transaction History" subtitle="View your past transactions." variant="h4"></Heading>
                 <div className="text-center py-10">
-                    <p className="text-gray-500">No transactions found</p>
+                    <p className="text-muted-foreground">No transactions found</p>
                 </div>
             </div>
         );
@@ -140,7 +140,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                     return (
                         <div
                             key={transaction.id || index}
-                            className="flex flex-col gap-5 rounded-xl border border-neutral-200 p-5 lg:flex-row lg:items-center"
+                            className="flex flex-col gap-5 rounded-xl border border-border p-5 lg:flex-row lg:items-center"
                         >
                             <div className="w-full min-w-0 lg:basis-[42%]">
                                 <div className="text-sm font-normal">
@@ -155,8 +155,8 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                                 <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
                                     {details.map(({ label, value, valueClassName }, idx) => (
                                         <div key={idx} className="min-w-0 text-left lg:text-center">
-                                            <div className="text-sm font-semibold text-gray-500">{label}</div>
-                                            <div className={`text-sm font-semibold text-slate-900 wrap-break-word ${valueClassName ?? ""}`}>{value}</div>
+                                            <div className="text-sm font-semibold text-muted-foreground">{label}</div>
+                                            <div className={`text-sm font-semibold text-foreground wrap-break-word ${valueClassName ?? ""}`}>{value}</div>
                                         </div>
                                     ))}
                                 </div>

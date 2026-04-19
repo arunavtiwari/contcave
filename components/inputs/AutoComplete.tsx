@@ -97,7 +97,7 @@ export default function AutoComplete({
           value={query}
           disabled={disabled}
           data-testid="address-autocomplete"
-          className="w-full py-2.5 px-3 font-light bg-background border border-gray-300 focus:border-foreground transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
+          className="w-full py-2.5 px-3 font-light bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary/10 transition disabled:opacity-70 disabled:cursor-not-allowed rounded-xl outline-none"
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -117,7 +117,7 @@ export default function AutoComplete({
 
   if (!apiKey) {
     return (
-      <div className="text-sm text-red-600">
+      <div className="text-sm text-destructive">
         Missing NEXT_PUBLIC_GOOGLE_MAPS_API.
       </div>
     );
@@ -125,7 +125,7 @@ export default function AutoComplete({
 
   if (loadError) {
     return (
-      <div className="text-sm text-red-600">
+      <div className="text-sm text-destructive">
         Google Maps failed to load. Check CSP and API key restrictions.
       </div>
     );
@@ -143,7 +143,7 @@ export default function AutoComplete({
           value={query}
           placeholder={placeholder}
           disabled
-          className="w-full py-2.5 px-3 font-light bg-background border border-gray-300 rounded-[10px] opacity-70 cursor-not-allowed"
+          className="w-full py-2.5 px-3 font-light bg-background border border-border rounded-xl outline-none opacity-70 cursor-not-allowed"
           readOnly
         />
       </div>
@@ -170,7 +170,7 @@ export default function AutoComplete({
           placeholder={placeholder}
           value={query}
           disabled={disabled}
-          className="w-full py-2.5 px-3 font-light bg-background border border-gray-300 focus:border-foreground transition disabled:opacity-70 disabled:cursor-not-allowed rounded-[10px]"
+          className="w-full py-2.5 px-3 font-light bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary/10 transition disabled:opacity-70 disabled:cursor-not-allowed rounded-xl outline-none"
           onChange={(e) => setQuery(e.target.value)}
         />
       </StandaloneSearchBox>

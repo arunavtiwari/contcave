@@ -133,7 +133,7 @@ export default function SetDetailModal({
 
                     <div className="mt-auto pt-6 border-t border-neutral-100 space-y-4">
                         {!isAvailable && (
-                            <div className="p-4 bg-red-50 text-red-700 rounded-xl text-sm text-center font-medium border border-red-100">
+                            <div className="p-4 bg-destructive/10 text-destructive rounded-xl text-sm text-center font-medium border border-destructive/20">
                                 Not available for the selected time
                             </div>
                         )}

@@ -195,7 +195,7 @@ const ManagePayments: React.FC<Props> = ({
                 />
                 <div className="flex justify-center items-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-2 text-gray-600">Loading payment data...</span>
+                    <span className="ml-2 text-muted-foreground">Loading payment data...</span>
                 </div>
             </div>
         );
@@ -210,7 +210,7 @@ const ManagePayments: React.FC<Props> = ({
 
 
             <nav
-                className="relative inline-flex bg-gray-100 rounded-full p-1 w-fit self-center border border-gray-200"
+                className="relative inline-flex bg-muted rounded-full p-1 w-fit self-center border border-border"
                 role="tablist"
                 aria-label="Payment management tabs"
             >
@@ -235,7 +235,7 @@ const ManagePayments: React.FC<Props> = ({
                             aria-controls={`${tabSlug}-panel`}
                             className={`relative z-10 rounded-full px-6 py-3 text-base font-medium transition-colors duration-200 ${selectedTab === tab
                                 ? "text-foreground"
-                                : "text-gray-600 hover:text-gray-900"
+                                : "text-muted-foreground hover:text-foreground"
                                 }`}
                             onClick={() => handleTabChange(tab)}
                         >

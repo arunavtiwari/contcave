@@ -40,7 +40,7 @@ const SearchContent = memo(function SearchContent() {
     <button
       type="button"
       onClick={handleClick}
-      className="border border-border w-full md:w-auto p-2 rounded-full transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="border border-border w-full md:w-auto p-2 rounded-full transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
     >
       <div className="flex flex-row items-center justify-between">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>

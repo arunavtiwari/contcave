@@ -201,7 +201,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
                                     label="Delete"
                                     onClick={() => onDelete(reservation?.id ?? "")}
                                     rounded
-                                    classNames="text-md font-semibold border-2 bg-background border-rose-500 text-rose-500"
+                                    classNames="text-md font-semibold border-2 bg-background border-destructive text-destructive"
                                 />
                             )}
 

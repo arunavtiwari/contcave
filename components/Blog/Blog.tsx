@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 
 import getBlogData from "@/app/actions/getBlogData";
-import SectionHeader from "@/components/Common/SectionHeader";
 import Container from "@/components/Container";
+import SectionHeader from "@/components/ui/SectionHeader";
 import { BlogPost } from "@/types/blog";
 
 import BlogItem from "./BlogItem";

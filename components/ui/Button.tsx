@@ -52,16 +52,16 @@ function Button({
 
   const widthClass = fit ? "w-fit" : (size === "sm" ? "w-auto" : "w-full");
 
-  const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 transition flex justify-center items-center gap-2 border hover:opacity-90 ${sizeClasses[size]} ${widthClass}`;
+  const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 transition active:scale-[0.98] flex justify-center items-center gap-2 border hover:opacity-90 ${sizeClasses[size]} ${widthClass}`;
   const roundedClass = rounded ? "rounded-full" : "rounded-xl";
 
   const variantClasses = {
-    default: "bg-primary border-primary text-primary-foreground",
-    outline: "bg-background border-border text-foreground",
+    default: "bg-foreground border-foreground text-background",
+    outline: "bg-background border-foreground/20 text-foreground",
     success: "bg-success border-success text-background",
     danger: "bg-danger border-danger text-background",
     ghost: "bg-transparent border-transparent text-foreground",
-    secondary: "bg-secondary border-secondary text-foreground",
+    secondary: "bg-background/10 border-background/20 text-background",
   };
 
   const finalClasses = `${baseClasses} ${roundedClass} ${variantClasses[effectiveVariant]} ${classNames || ""}`;
@@ -70,10 +70,10 @@ function Button({
     <>
       {loading && (
         <AiOutlineLoading3Quarters
-          className={`animate-spin text-lg ${effectiveVariant === "outline" || effectiveVariant === "ghost" ? "text-foreground" : "text-primary-foreground"}`}
+          className={`animate-spin text-lg ${effectiveVariant === "outline" || effectiveVariant === "ghost" ? "text-foreground" : "text-foreground-foreground"}`}
         />
       )}
-      {Icon && !loading && <Icon size={24} className={`${isColor && "text-blue-600"}`} />}
+      {Icon && !loading && <Icon size={20} className={`${isColor && "text-blue-600"}`} />}
       <span>{loading ? "Processing..." : label}</span>
     </>
   );

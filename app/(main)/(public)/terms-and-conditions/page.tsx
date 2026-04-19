@@ -111,7 +111,7 @@ const TermsAndConditions = () => {
                             </h3>
                             <p className="text-muted-foreground leading-relaxed">
                                 Cancellations and refunds are subject to our{" "}
-                                <a href="/cancellation" className="text-primary hover:underline font-medium">
+                                <a href="/cancellation" className="text-foreground hover:underline font-medium">
                                     Cancellation Policy
                                 </a>
                                 . Users must follow the outlined process for any refund requests.

@@ -9,6 +9,7 @@ import { Suspense, useCallback, useMemo, useState } from "react";
 import Calendar from "@/components/inputs/Calendar";
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import Modal from "@/components/modals/Modal";
+import Checkbox from "@/components/ui/Checkbox";
 import Heading from "@/components/ui/Heading";
 import useSearchModal from "@/hook/useSearchModal";
 
@@ -103,13 +104,11 @@ function SearchModalContent({ }: Props) {
       <div className="flex flex-row items-center justify-between">
         <div className="flex flex-col">
           <div className="font-medium">Multi-set listings</div>
-          <div className="font-light text-neutral-500">Only show studios with multiple sets</div>
+          <div className="font-light text-muted-foreground">Only show studios with multiple sets</div>
         </div>
-        <input
-          type="checkbox"
+        <Checkbox
           checked={hasSets}
-          onChange={(e) => setHasSets(e.target.checked)}
-          className="w-5 h-5 cursor-pointer"
+          onCheckedChange={(checked) => setHasSets(checked)}
         />
       </div>
       <hr />

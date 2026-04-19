@@ -1,6 +1,5 @@
 "use client"
 import Link from "next/link";
-import React from "react";
 import CookieConsent from "react-cookie-consent";
 
 const CookieConsentBanner = () => {
@@ -12,10 +11,10 @@ const CookieConsentBanner = () => {
             enableDeclineButton
             cookieName="ContcavCookieConsent"
             style={{
-                background: "rgba(0, 0, 0, 0.9)", color: "#FFF", justifyContent: "center", alignItems: "center"
+                background: "var(--color-foreground)", opacity: 0.9, color: "var(--color-background)", justifyContent: "center", alignItems: "center"
             }}
-            buttonStyle={{ backgroundColor: "#4CAF50", color: "#FFF", fontSize: "14px", borderRadius: "40px" }}
-            declineButtonStyle={{ backgroundColor: "#f44336", color: "#FFF", fontSize: "14px", borderRadius: "40px" }}
+            buttonStyle={{ backgroundColor: "var(--color-success)", color: "var(--color-background)", fontSize: "14px", borderRadius: "40px" }}
+            declineButtonStyle={{ backgroundColor: "var(--color-danger)", color: "var(--color-background)", fontSize: "14px", borderRadius: "40px" }}
             expires={365}
             onAccept={() => {
             }}

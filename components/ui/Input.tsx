@@ -48,8 +48,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                             formatPrice ? "pl-10" : "pl-4",
                             customRightContent ? "pr-12" : "pr-4",
                             error
-                                ? "border-destructive focus:border-destructive ring-destructive/20 focus:ring-4"
-                                : "border-border hover:border-border/80 focus:border-primary focus:ring-4 focus:ring-primary/10",
+                                ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20"
+                                : "border-border hover:border-border/80 focus:border-primary focus:ring-1 focus:ring-primary/10",
                             className
                         )}
                         ref={ref}

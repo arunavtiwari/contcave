@@ -114,7 +114,7 @@ export default function SetsEditor({
         <div className="space-y-4">
 
             {isPricingUniform && (
-                <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200">
+                <div className="bg-muted p-4 rounded-xl border border-border">
                     <Input
                         id="uniform-price"
                         label={`${priceLabel} (₹) - Applies to ALL sets`}
@@ -130,7 +130,7 @@ export default function SetsEditor({
                         min={0}
                         placeholder="0"
                     />
-                    <p className="text-xs text-neutral-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                         This price will be used for every set you add.
                     </p>
                 </div>
@@ -141,16 +141,16 @@ export default function SetsEditor({
                     {sets.map((set, index) => (
                         <div
                             key={set.id || set.tempId || `new-${index}`}
-                            className="border border-neutral-200 rounded-xl overflow-hidden bg-background"
+                            className="border border-border rounded-xl overflow-hidden bg-background"
                         >
                             <div
-                                className="flex items-center justify-between p-4 cursor-pointer hover:bg-neutral-50 transition"
+                                className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted transition"
                                 onClick={() =>
                                     setExpandedIndex(expandedIndex === index ? null : index)
                                 }
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-sm font-medium">
+                                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
                                         {index + 1}
                                     </div>
                                     <div>
@@ -158,7 +158,7 @@ export default function SetsEditor({
                                             {set.name || `Set ${index + 1}`}
                                         </p>
 
-                                        <p className="text-sm text-neutral-500">
+                                        <p className="text-sm text-muted-foreground">
                                             {INR.format(set.price || 0)}
                                             {pricingType === "HOURLY" ? "/hr" : ""}
                                         </p>
@@ -172,7 +172,7 @@ export default function SetsEditor({
                                             removeSet(index);
                                         }}
                                         disabled={disabled}
-                                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                                        className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition disabled:opacity-50"
                                         aria-label="Remove set"
                                     >
                                         <IoTrash size={18} />
@@ -181,7 +181,7 @@ export default function SetsEditor({
                             </div>
 
                             {expandedIndex === index && (
-                                <div className="border-t border-neutral-200 p-4 space-y-4">
+                                <div className="border-t border-border p-4 space-y-4">
                                     <div>
                                         <Input
                                             id={`set-name-${index}`}
@@ -284,7 +284,7 @@ export default function SetsEditor({
                 type="button"
                 onClick={addSet}
                 disabled={disabled || sets.length >= 50}
-                className="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-neutral-300 rounded-xl text-neutral-600 hover:border-neutral-400 hover:text-neutral-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border rounded-xl text-muted-foreground hover:border-foreground/40 hover:text-foreground transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <IoAdd size={20} />
                 Add Set

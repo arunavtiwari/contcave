@@ -90,7 +90,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                             {selectedAddons.map((addon) => (
                                 <div
                                     key={addon.name}
-                                    className="border border-solid border-gray-300 rounded-xl  p-5 bg-gray-50 h-full"
+                                    className="border border-solid border-border rounded-xl  p-5 bg-muted h-full"
                                 >
                                     <ImageCheckbox
                                         addon={addon}
@@ -119,7 +119,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                     </div>
                 </div>
             )}
-            {rentModal && selectedAddons.length > 0 && <hr className="my-4" />}
+            {rentModal && selectedAddons.length > 0 && <hr className="my-4 border-border" />}
 
 
             <div className='flex justify-start'>
@@ -132,7 +132,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                             {availableAddons.map((addon) => (
                                 <div
                                     key={addon.name}
-                                    className="border border-solid border-gray-300 rounded-xl  p-5 h-full"
+                                    className="border border-solid border-border rounded-xl  p-5 h-full"
                                 >
                                     <ImageCheckbox
                                         addon={addon}

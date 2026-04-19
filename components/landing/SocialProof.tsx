@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Container from "@/components/Container";
-import StarRating from "@/components/ui/StarRating";
-import SectionHeader from "@/components/ui/SectionHeader";
 import { BsPatchCheckFill } from "react-icons/bs";
+
+import Container from "@/components/Container";
+import SectionHeader from "@/components/ui/SectionHeader";
+import StarRating from "@/components/ui/StarRating";
 import { reviews } from "@/constants/testimonials";
 
 interface ReviewCardProps {
@@ -26,7 +27,7 @@ const ReviewCard = ({ review }: ReviewCardProps) => (
         </p>
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1">
-        <BsPatchCheckFill className="text-primary" size={16} />
+        <BsPatchCheckFill className="text-foreground" size={16} />
       </div>
     </div>
     <p className="mb-4 line-clamp-3 text-sm leading-relaxed italic text-foreground/80">
@@ -46,13 +47,12 @@ const SocialProof = () => {
         <SectionHeader
           badge="Real shoots · Real reviews"
           title="Real shoots, real spaces."
-          isLanding
         />
 
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center">
           <div className="w-full lg:w-85 lg:shrink-0">
             <div
-              className="relative overflow-hidden rounded-2xl aspect-9/16 max-h-120"
+              className="relative overflow-hidden rounded-3xl aspect-9/16 max-h-120 shadow-sm"
             >
               <video
                 src="/videos/shoot_1.mp4"
@@ -66,12 +66,12 @@ const SocialProof = () => {
                 className="absolute inset-0 h-full w-full object-cover"
               />
               <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-foreground/42 via-transparent to-foreground/78" />
-              <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-between">
-                <span className="rounded-full bg-foreground/50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-accent text-background backdrop-blur-md">
-                  Real Shoots via ContCave
+              <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-center">
+                <span className="rounded-full px-3 py-2 text-[10px] font-semibold uppercase tracking-accent text-background backdrop-blur-md bg-background/10">
+                  Shoots via ContCave
                 </span>
               </div>
-              <div className="absolute bottom-0 left-0 right-0 z-10 p-5">
+              <div className="absolute bottom-0 left-0 right-0 z-10 p-5 backdrop-blur-sm bg-background/10 text-center">
                 <p className="text-sm font-semibold leading-tight text-background">
                   Creative Studio
                 </p>

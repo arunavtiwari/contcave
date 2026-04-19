@@ -32,28 +32,28 @@ export default function DeletePropertyModal({
 
     const bodyContent = (
         <div className="flex flex-col gap-4">
-            <div className="flex items-start gap-4 text-red-700 bg-red-50 p-4 rounded-xl border border-red-200 ">
-                <IoWarningOutline size={28} className="shrink-0 mt-0.5 text-red-600" />
+            <div className="flex items-start gap-4 text-destructive bg-destructive/10 p-4 rounded-xl border border-destructive/20 ">
+                <IoWarningOutline size={28} className="shrink-0 mt-0.5 text-destructive" />
                 <div>
                     <h4 className="font-bold text-[15px] mb-1">Irreversible Action</h4>
-                    <p className="text-sm leading-relaxed text-red-600/90 text-justify">
+                    <p className="text-sm leading-relaxed text-destructive/90 text-justify">
                         Deleting this property will permanently remove all associated data,
                         including settings, blocks, and media. This action cannot be undone.
                     </p>
                 </div>
             </div>
             <div className="mt-2">
-                <label className="text-[13px] font-semibold text-gray-700 block mb-2 uppercase tracking-wide">
+                <label className="text-[13px] font-semibold text-muted-foreground block mb-2 uppercase tracking-wide">
                     To verify, type the property name:
                 </label>
-                <div className="font-mono text-sm block text-foreground p-3 mb-3 bg-gray-50 rounded-lg select-all border border-gray-200">
+                <div className="font-mono text-sm block text-foreground p-3 mb-3 bg-muted rounded-xl select-all border border-border">
                     {propertyName}
                 </div>
                 <input
                     type="text"
                     value={confirmName}
                     onChange={(e) => setConfirmName(e.target.value)}
-                    className="w-full rounded-xl border border-neutral-300 bg-background px-4 py-3 text-sm text-neutral-900 transition outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                    className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground transition outline-none focus:border-destructive focus:ring-1 focus:ring-destructive/20"
                     placeholder="Enter property name..."
                     disabled={isLoading}
                 />
@@ -66,14 +66,14 @@ export default function DeletePropertyModal({
             <button
                 onClick={onClose}
                 disabled={isLoading}
-                className="w-1/2 py-3 px-4 rounded-xl border border-neutral-300 bg-background text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 font-medium text-sm"
+                className="w-1/2 py-3 px-4 rounded-xl border border-border bg-background text-muted-foreground hover:bg-muted transition disabled:opacity-50 font-medium text-sm"
             >
                 Cancel
             </button>
             <button
                 onClick={onConfirm}
                 disabled={!isMatch || isLoading}
-                className="w-1/2 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-background transition disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm "
+                className="w-1/2 py-3 px-4 rounded-xl bg-destructive hover:bg-destructive/90 text-background transition disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm "
             >
                 {isLoading ? "Deleting..." : "Delete Property"}
             </button>

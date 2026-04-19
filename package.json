@@ -53,6 +53,7 @@
 		"dayjs": "^1.11.13",
 		"eslint": "^9.39.1",
 		"framer-motion": "^12.23.12",
+		"geist": "^1.7.0",
 		"googleapis": "^169.0.0",
 		"gray-matter": "^4.0.3",
 		"gsap": "^3.12.7",

@@ -522,7 +522,7 @@ export default function ListingReservation({
         <>
           <div className="p-4">
             {!setValidation.valid && selectedSetIds.length > 0 && (
-              <p className="mt-2 text-sm text-red-500">{setValidation.error}</p>
+              <p className="mt-2 text-sm text-destructive">{setValidation.error}</p>
             )}
           </div>
           <hr />
@@ -556,7 +556,7 @@ export default function ListingReservation({
           {isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
         </button>
         {!!err && (
-          <p className="mt-2 text-sm text-red-600" role="alert">
+          <p className="mt-2 text-sm text-destructive" role="alert">
             {err}
           </p>
         )}

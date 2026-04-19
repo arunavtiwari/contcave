@@ -107,7 +107,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
               errors={{}}
               onWheel={(e) => (e.target as HTMLInputElement).blur()}
             />
-            <p className="text-xs text-neutral-500 mt-1">Minimum duration is 1 hour</p>
+            <p className="text-xs text-muted-foreground mt-1">Minimum duration is 1 hour</p>
           </div>
 
 
@@ -126,7 +126,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 errors={{}}
                 onWheel={(e) => (e.target as HTMLInputElement).blur()}
               />
-              <p className="text-xs text-neutral-500 mt-1">Price before discount</p>
+              <p className="text-xs text-muted-foreground mt-1">Price before discount</p>
             </div>
 
             <div className="flex-1">
@@ -143,7 +143,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 errors={{}}
                 onWheel={(e) => (e.target as HTMLInputElement).blur()}
               />
-              <p className="text-xs text-neutral-500 mt-1">Discounted price</p>
+              <p className="text-xs text-muted-foreground mt-1">Discounted price</p>
             </div>
           </div>
 
@@ -154,7 +154,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
               {pkg.features.map((f, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-1 bg-gray-100 border border-neutral-300 px-2 py-1 rounded-md"
+                  className="flex items-center gap-1 bg-muted border border-border px-2 py-1 rounded-md"
                 >
                   <span className="text-sm">{f}</span>
                   <button
@@ -166,7 +166,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                         pkg.features.filter((_, fi) => fi !== i)
                       )
                     }
-                    className="text-red-500 hover:text-red-700 font-bold"
+                    className="text-destructive hover:text-destructive/80 font-bold"
                     aria-label="Remove feature"
                   >
                     x
@@ -176,7 +176,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
               <input
                 type="text"
                 placeholder="Add feature"
-                className="outline-none px-2 py-1 border border-neutral-300 rounded-md"
+                className="outline-none px-2 py-1 border border-border rounded-md"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && e.currentTarget.value.trim() !== "") {
                     e.preventDefault();
@@ -189,7 +189,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 }}
               />
             </div>
-            <p className="text-xs text-neutral-500">Press Enter to add a feature</p>
+            <p className="text-xs text-muted-foreground">Press Enter to add a feature</p>
           </div>
 
 
@@ -217,7 +217,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
               </div>
 
               {pkg.requiredSetCount !== null && pkg.requiredSetCount !== undefined && (
-                <div className="flex flex-col gap-4 pl-6 border-l-2 border-neutral-100">
+                <div className="flex flex-col gap-4 pl-6 border-l-2 border-border">
                   <div className="grid grid-cols-1 gap-4">
                     <div className="flex flex-col gap-1">
 
@@ -232,7 +232,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                         errors={{}}
                         onWheel={(e) => (e.target as HTMLInputElement).blur()}
                       />
-                      <p className="text-xs text-neutral-500">How many sets are included in this package price</p>
+                      <p className="text-xs text-muted-foreground">How many sets are included in this package price</p>
                     </div>
                   </div>
                 </div>

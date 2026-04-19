@@ -48,10 +48,10 @@ const FieldInput = React.memo<{
         <div className="grid gap-2 md:grid-cols-[280px_minmax(0,1fr)] md:items-center">
             <label
                 htmlFor={field.name}
-                className="text-base font-bold text-slate-950"
+                className="text-base font-bold text-foreground"
             >
                 {field.label}
-                {field.required && <span className="text-rose-500 ml-1">*</span>}
+                {field.required && <span className="text-destructive ml-1">*</span>}
             </label>
             <div className="flex flex-col">
                 <input
@@ -65,7 +65,7 @@ const FieldInput = React.memo<{
                     maxLength={field.maxLength}
                     pattern={('pattern' in field) ? field.pattern : undefined}
                     className={`
-                        h-[44px]
+                        h-11
                         w-full
                         rounded-xl
                         border
@@ -76,14 +76,14 @@ const FieldInput = React.memo<{
                         transition
                         disabled:cursor-not-allowed
                         disabled:opacity-70
-                        ${error ? "border-rose-500 focus:border-rose-500" : "border-neutral-200 focus:border-foreground"}
+                        ${error ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20" : "border-border focus:border-primary focus:ring-1 focus:ring-primary/10"}
                     `}
                     aria-describedby={error ? `${field.name}-error` : undefined}
                 />
                 {error && (
                     <span
                         id={`${field.name}-error`}
-                        className="ml-1 mt-1 text-sm text-rose-500"
+                        className="ml-1 mt-1 text-sm text-destructive"
                         role="alert"
                     >
                         {error}
@@ -306,7 +306,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     />
 
 
-                    <div className="flex h-fit flex gap-2 md:justify-end">
+                    <div className="flex h-fit gap-2 md:justify-end">
                         {isEditing ? (
                             <>
                                 <Button
@@ -340,7 +340,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                 </div>
 
 
-                <fieldset className="space-y-4 rounded-xl border border-neutral-200 p-6">
+                <fieldset className="space-y-4 rounded-xl border border-border p-6">
                     <legend className="sr-only">Bank Account Information</legend>
                     {BANK_FIELDS.map((field) => (
                         <FieldInput
@@ -362,7 +362,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                 />
 
 
-                <fieldset className="space-y-4 rounded-xl border border-neutral-200 p-6">
+                <fieldset className="space-y-4 rounded-xl border border-border p-6">
                     <legend className="sr-only">Tax Information</legend>
                     {TAX_FIELDS.map((field) => (
                         <FieldInput
@@ -378,7 +378,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
 
                 {isEditing && hasChanges && (
-                    <div className="rounded-lg border border-neutral-200 bg-gray-100 p-3 text-sm text-gray-800">
+                    <div className="rounded-lg border border-border bg-muted p-3 text-sm text-foreground">
                         You have unsaved changes
                     </div>
                 )}

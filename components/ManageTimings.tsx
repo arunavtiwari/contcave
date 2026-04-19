@@ -141,7 +141,8 @@ export default function CalendarComponent({
                     <Switch
                         checked={isListingActive}
                         onChange={setIsListingActive}
-                        onColor="#34D399"
+                        onColor="var(--color-success)"
+                        offColor="var(--color-neutral-300)"
                         variant="bolt"
                     />
                 </div>

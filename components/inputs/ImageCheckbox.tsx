@@ -58,7 +58,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
           type="checkbox"
           checked={isChecked}
           onChange={handleCheckboxChange}
-          className="w-6 h-6 accent-foreground bg-gray-100 border-foreground border rounded-full focus:ring-transparent checked:bg-foreground checked:border-foreground"
+          className="w-6 h-6 accent-foreground bg-muted border-foreground border rounded-full focus:ring-transparent checked:bg-foreground checked:border-foreground"
         />)}
         {hideCheckbox && (
           (imageUrl && imageUrl.trim() !== '') ? (
@@ -67,12 +67,12 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
               alt={label || "image"}
               width={80}
               height={80}
-              className="rounded-md w-20 h-20 mt-6 mb-2 object-cover"
+              className="rounded-xl w-20 h-20 mt-6 mb-2 object-cover"
               onClick={onClickChange}
             />
           ) : (
             <div
-              className="rounded-md w-20 h-20 mt-6 mb-2 bg-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-1"
+              className="rounded-xl w-20 h-20 mt-6 mb-2 bg-muted flex items-center justify-center text-muted-foreground/50 text-xs text-center p-1"
               onClick={onClickChange}
             >
               No Image
@@ -86,10 +86,10 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
               alt={label || "image"}
               width={97}
               height={97}
-              className="rounded-md mt-2 object-cover w-24.25 h-24.25"
+              className="rounded-xl mt-2 object-cover w-24.25 h-24.25"
             />
           ) : (
-            <div className="rounded-md mt-2 w-24.25 h-24.25 bg-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-1">
+            <div className="rounded-xl mt-2 w-24.25 h-24.25 bg-muted flex items-center justify-center text-muted-foreground/50 text-xs text-center p-1">
               No Image
             </div>
           )
@@ -103,12 +103,12 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
             <div className='flex items-center gap-2 w-full justify-between'>
               <label className="text-sm font-semibold shrink-0">Price</label>
               <div className="relative flex items-center">
-                <span className="absolute left-2 text-gray-500 border-r pr-2">₹</span>
+                <span className="absolute left-2 text-muted-foreground border-r pr-2">₹</span>
                 <input
                   type="number"
                   value={price}
                   onChange={handlePriceChange}
-                  className="w-37.5 text-center border rounded-xl py-1 pl-10"
+                  className="w-37.5 text-center border border-border rounded-xl py-1 pl-10 focus:ring-1 focus:ring-primary/10 transition outline-none"
                   placeholder="Price"
                   disabled={!isChecked}
                 />
@@ -124,7 +124,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
                 type="number"
                 value={qty}
                 onChange={handleQtyChange}
-                className="w-37.5 text-center border rounded-xl py-1 px-3"
+                className="w-37.5 text-center border border-border rounded-xl py-1 px-3 focus:ring-1 focus:ring-primary/10 transition outline-none"
                 placeholder="Quantity"
                 disabled={!isChecked}
               />

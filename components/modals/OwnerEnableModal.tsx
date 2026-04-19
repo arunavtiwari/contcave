@@ -83,8 +83,8 @@ const OwnerEnableModal: React.FC<Props> = ({
     <div className="space-y-6">
       <div className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email Address <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            Email Address <span className="text-destructive">*</span>
           </label>
           <input
             type="email"
@@ -93,15 +93,15 @@ const OwnerEnableModal: React.FC<Props> = ({
               setEmail(e.target.value);
               clearError("email");
             }}
-            className={`w-full px-4 py-3 rounded-lg border transition-colors ${errors.email
-              ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              } focus:outline-none focus:ring-2`}
+            className={`w-full px-4 py-3 rounded-xl border transition-colors ${errors.email
+              ? "border-destructive focus:border-destructive focus:ring-destructive/20"
+              : "border-border focus:border-primary focus:ring-primary/10"
+              } focus:outline-none focus:ring-1`}
             placeholder="your.email@example.com"
 
           />
           {errors.email && (
-            <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+            <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
               <FaExclamationCircle className="w-3 h-3" />
               {errors.email}
             </p>
@@ -109,11 +109,11 @@ const OwnerEnableModal: React.FC<Props> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Phone Number <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            Phone Number <span className="text-destructive">*</span>
           </label>
           <div className="flex items-center gap-2">
-            <span className="px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 font-medium whitespace-nowrap">
+            <span className="px-4 py-3 bg-muted border border-border rounded-xl text-muted-foreground font-medium whitespace-nowrap">
               +91
             </span>
             <input
@@ -124,37 +124,37 @@ const OwnerEnableModal: React.FC<Props> = ({
                 setPhone(value);
                 clearError("phone");
               }}
-              className={`flex-1 px-4 py-3 rounded-lg border transition-colors ${errors.phone
-                ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                } focus:outline-none focus:ring-2`}
+              className={`flex-1 px-4 py-3 rounded-xl border transition-colors ${errors.phone
+                ? "border-destructive focus:border-destructive focus:ring-destructive/20"
+                : "border-border focus:border-primary focus:ring-primary/10"
+                } focus:outline-none focus:ring-1`}
               placeholder="10-digit mobile number"
               maxLength={10}
 
             />
           </div>
           {errors.phone && (
-            <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+            <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
               <FaExclamationCircle className="w-3 h-3" />
               {errors.phone}
             </p>
           )}
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-          <FaInfoCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+        <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 flex items-start gap-3">
+          <FaInfoCircle className="w-5 h-5 text-accent shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-blue-900 mb-1">What happens next?</p>
-            <p className="text-xs text-blue-700">
+            <p className="text-sm font-medium text-foreground mb-1">What happens next?</p>
+            <p className="text-xs text-muted-foreground/80">
               We will use these contact details to start the verification process. You'll need to verify your email, phone, Aadhaar, and bank details to complete your registration as a studio host.
             </p>
           </div>
         </div>
 
         {errors.submit && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
-            <FaExclamationCircle className="w-4 h-4 text-red-600 shrink-0" />
-            <p className="text-sm text-red-600">{errors.submit}</p>
+          <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 flex items-center gap-2">
+            <FaExclamationCircle className="w-4 h-4 text-destructive shrink-0" />
+            <p className="text-sm text-destructive">{errors.submit}</p>
           </div>
         )}
       </div>

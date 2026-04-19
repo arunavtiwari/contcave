@@ -117,13 +117,13 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
             />
 
             <div className="bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                     <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-2">
                         <MdQuestionMark />
                     </span>
                     How It Works
                 </h3>
-                <ol className="space-y-3 text-slate-700">
+                <ol className="space-y-3 text-muted-foreground">
                     <li className="flex items-start">
                         <span className="bg-blue-500 text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0">1</span>
                         <span>Share your unique referral link or code with friends.</span>
@@ -135,15 +135,15 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 </ol>
             </div>
 
-            <div className="bg-background rounded-xl border border-gray-200 p-6 ">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">Your Referral Link</h3>
+            <div className="bg-background rounded-xl border border-border p-6 ">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Your Referral Link</h3>
 
                 <div className="space-y-4">
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="bg-muted rounded-lg p-4 border border-border">
                         <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm text-gray-600 mb-1">Referral Code</p>
-                                <p className="text-lg font-mono font-semibold text-slate-900 truncate">
+                                <p className="text-sm text-muted-foreground mb-1">Referral Code</p>
+                                <p className="text-lg font-mono font-semibold text-foreground truncate">
                                     {referralCode}
                                 </p>
                             </div>
@@ -167,18 +167,18 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                         </div>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="bg-muted rounded-lg p-4 border border-border">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm text-gray-600 mb-1">Referral Link</p>
-                                <p className="text-sm font-mono text-slate-700 truncate">
+                                <p className="text-sm text-muted-foreground mb-1">Referral Link</p>
+                                <p className="text-sm font-mono text-muted-foreground truncate">
                                     {referralLink}
                                 </p>
                             </div>
                             <div className="flex gap-2">
                                 <button
                                     onClick={handleCopy}
-                                    className="flex items-center px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 text-sm font-medium"
+                                    className="flex items-center px-3 py-2 bg-muted text-muted-foreground border border-border rounded-lg hover:bg-muted/80 transition-colors duration-200 text-sm font-medium"
                                     disabled={copied}
                                 >
                                     <MdContentCopy className="w-4 h-4" />
@@ -195,9 +195,9 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                     </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="mt-6 pt-6 border-t border-border">
                     <div className="flex items-center justify-between flex-wrap gap-4">
-                        <p className="text-lg font-medium text-slate-900">
+                        <p className="text-lg font-medium text-foreground">
                             Copy and share it with your friends now!
                         </p>
                         <div className="flex items-center gap-3">
@@ -227,22 +227,22 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                 </div>
             </div>
 
-            <div className="border-t border-gray-200"></div>
+            <div className="border-t border-border"></div>
 
             <div className="bg-linear-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
-                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center">
+                <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
                     <span className="mr-2">🎉</span>
                     Promote and Earn
                 </h2>
-                <p className="text-base text-slate-700 leading-relaxed mb-6">
+                <p className="text-base text-muted-foreground leading-relaxed mb-6">
                     If you're an influencer or content creator with a following, you can promote ContCave
                     while shooting at our properties and earn benefits/discounts.
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-6">
-                    <div className="bg-background rounded-lg p-5 border border-gray-200">
-                        <h3 className="text-lg font-semibold text-slate-900 mb-3">How It Works</h3>
-                        <ol className="space-y-2 text-slate-700">
+                    <div className="bg-background rounded-lg p-5 border border-border">
+                        <h3 className="text-lg font-semibold text-foreground mb-3">How It Works</h3>
+                        <ol className="space-y-2 text-muted-foreground">
                             <li className="flex items-start">
                                 <span className="bg-purple-500 text-background rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">1</span>
                                 <span className="text-sm">Shoot content at one of our featured properties and tag us in your posts or videos.</span>
@@ -258,9 +258,9 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                         </ol>
                     </div>
 
-                    <div className="bg-background rounded-lg p-5 border border-gray-200">
-                        <h3 className="text-lg font-semibold text-slate-900 mb-3">Benefits for Influencers</h3>
-                        <ul className="list-disc marker:text-emerald-500 pl-5 space-y-2 text-sm text-slate-700 leading-6">
+                    <div className="bg-background rounded-lg p-5 border border-border">
+                        <h3 className="text-lg font-semibold text-foreground mb-3">Benefits for Influencers</h3>
+                        <ul className="list-disc marker:text-emerald-500 pl-5 space-y-2 text-sm text-muted-foreground leading-6">
                             <li>Exclusive discounts on future bookings.</li>
                             <li>Featured promotion on our platform and social media channels.</li>
                             <li>Potential collaboration opportunities.</li>
@@ -270,7 +270,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
 
                 <div className="mt-6 pt-6 border-t border-purple-200">
                     <div className="flex items-center justify-between flex-wrap gap-4">
-                        <p className="text-lg font-medium text-slate-900">
+                        <p className="text-lg font-medium text-foreground">
                             Follow and Tag Us Now!
                         </p>
                         <div className="flex items-center gap-3">

@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import React from "react";
 import { FaArrowUpRightDots } from "react-icons/fa6";
 
-import { MAIN_SIDEBAR_ITEMS, NavigationItem, PROFILE_SIDEBAR_ITEMS } from "@/constants/navigation";
 import Button from "@/components/ui/Button";
+import { MAIN_SIDEBAR_ITEMS, NavigationItem, PROFILE_SIDEBAR_ITEMS } from "@/constants/navigation";
 
 interface SidebarProps {
     selectedMenu: string;

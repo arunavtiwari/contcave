@@ -3,12 +3,13 @@ import { motion, useMotionValue, useScroll, useSpring, useTransform } from "fram
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
-import { FiChevronRight } from "react-icons/fi";
+import { FiCheck, FiChevronRight } from "react-icons/fi";
+
 import Container from "@/components/Container";
+import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { studios } from "@/constants/studios";
-import Button from "@/components/ui/Button";
 
 const StudioCard = ({ studio, index }: { studio: (typeof studios)[number]; index: number }) => {
   const rawX = useMotionValue(0);
@@ -32,15 +33,14 @@ const StudioCard = ({ studio, index }: { studio: (typeof studios)[number]; index
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
         viewport={{ once: true }}
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="transform-3d"
+        style={{ rotateX, rotateY }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
         <Link href={studio.href} className="group block">
           <div
-            className="relative mb-3 overflow-hidden rounded-xl"
-            style={{ aspectRatio: "4/3" }}
-          >
+            className="relative mb-3 overflow-hidden rounded-2xl aspect-video">
             <Image
               src={studio.image}
               alt={studio.name}
@@ -50,9 +50,7 @@ const StudioCard = ({ studio, index }: { studio: (typeof studios)[number]; index
             />
 
             <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold bg-foreground/70 text-background backdrop-blur">
-              <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
-                <path d="M10 3L5 9L2 6" stroke="#4ADE80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <FiCheck size={10} className="text-success" strokeWidth={2.5} />
               Verified
             </div>
 
@@ -66,7 +64,7 @@ const StudioCard = ({ studio, index }: { studio: (typeof studios)[number]; index
               <Heading
                 title={studio.name}
                 variant="h6"
-                className="text-sm font-semibold leading-tight text-foreground"
+                className="text-sm font-semibold text-foreground"
               />
               <p className="shrink-0 text-xs font-medium text-muted-foreground">
                 {studio.area ? `${studio.area}, ` : ""}{studio.city}
@@ -77,7 +75,7 @@ const StudioCard = ({ studio, index }: { studio: (typeof studios)[number]; index
               {studio.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-muted/50 border border-border px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+                  className="rounded-full border-2 border-border px-2.5 py-1 text-[10px] font-medium text-muted-foreground"
                 >
                   {tag}
                 </span>
@@ -97,7 +95,6 @@ const StudioShowcase = () => {
     target: sectionRef,
     offset: ["start end", "end start"],
   });
-  const headingY = useTransform(scrollYProgress, [0, 1], [40, -40]);
   const decoY = useTransform(scrollYProgress, [0, 1], [0, -80]);
 
   return (
@@ -126,7 +123,6 @@ const StudioShowcase = () => {
           <SectionHeader
             badge="Explore spaces"
             title="Studios on ContCave"
-            isLanding
             className="mb-0!"
           />
           <Button

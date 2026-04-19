@@ -100,7 +100,7 @@ export default function SetSelector({
                     <button
                         onClick={onSelectAll}
                         disabled={disabled && !isEntireStudioBooked}
-                        className={`text-sm font-medium px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed
+                        className={`text-sm font-medium px-4 py-2 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed
                             ${isEntireStudioBooked
                                 ? "bg-neutral-200 text-foreground hover:bg-neutral-300"
                                 : "bg-foreground text-background hover:bg-neutral-800"
@@ -238,7 +238,7 @@ export default function SetSelector({
 
                                         {!isAvailable && (
                                             <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-center justify-center z-20">
-                                                <span className="text-xs font-bold text-red-600 bg-background/80 px-2 py-1 rounded-md ">
+                                                <span className="text-xs font-bold text-destructive bg-background/80 px-2 py-1 rounded-md ">
                                                     Unavailable
                                                 </span>
                                             </div>

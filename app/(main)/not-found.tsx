@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 
-import Heading from "@/components/ui/Heading";
 import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
 
 export const dynamic = 'force-static';
 export const dynamicParams = false;

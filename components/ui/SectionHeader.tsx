@@ -1,13 +1,13 @@
 "use client";
-import React from "react";
 import { motion } from "framer-motion";
+import React from "react";
+
 import Heading from "./Heading";
 
 interface SectionHeaderProps {
     badge: string;
     title: React.ReactNode;
     description?: string;
-    isLanding?: boolean;
     center?: boolean;
     className?: string;
     badgeClassName?: string;
@@ -17,7 +17,6 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
     badge,
     title,
     description,
-    isLanding = false,
     center = false,
     className = "",
     badgeClassName = "",
@@ -31,7 +30,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
             className={`mb-8 ${center ? "text-center" : "text-start"} ${className}`}
         >
             <p
-                className={`mb-3 text-xs font-semibold uppercase tracking-accent ${isLanding ? "text-muted-foreground" : "text-primary bg-primary/10 w-fit px-4 py-1.5 rounded-full border border-primary/20 mx-auto"
+                className={`mb-3 text-[10px] font-bold uppercase tracking-widest text-foreground/80 ${center ? "mx-auto" : ""
                     } ${badgeClassName}`}
             >
                 {badge}
@@ -40,7 +39,6 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
             <Heading
                 title={title}
                 variant="h2"
-                isLanding={isLanding}
                 center={center}
             />
 

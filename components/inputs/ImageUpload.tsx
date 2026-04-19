@@ -127,10 +127,10 @@ function ImageUpload({
   return (
     <label
       htmlFor={uid}
-      className={`relative cursor-pointer hover:bg-neutral-50 transition border-dashed flex flex-col justify-center items-center text-neutral-600 ${circle ? "rounded-full" : "rounded-xl"
+      className={`relative cursor-pointer hover:bg-muted transition border-dashed flex flex-col justify-center items-center text-muted-foreground ${circle ? "rounded-full" : "rounded-xl"
         } ${circle
           ? "w-full h-full"
-          : className || "w-32 h-32 p-4 border border-neutral-300"
+          : className || "w-32 h-32 p-4 border border-border"
         }`}
     >
       {uploading ? (
@@ -157,28 +157,28 @@ function ImageUpload({
             />
           )
         ) : (
-          <Icon size={30} className="text-neutral-600" />
+          <Icon size={30} className="text-muted-foreground" />
         )
       ) : (
         <div className="flex flex-col items-center gap-2 text-center">
           {className ? (
             <>
-              <div className="p-3 bg-neutral-100 rounded-full">
-                <Icon size={28} className="text-neutral-600" />
+              <div className="p-3 bg-muted rounded-full">
+                <Icon size={28} className="text-muted-foreground" />
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold text-sm text-gray-900">
+                <span className="font-semibold text-sm text-foreground">
                   {label}
                 </span>
-                <span className="text-xs text-gray-500 mt-1">
+                <span className="text-xs text-muted-foreground mt-1">
                   Drag & drop or click to browse
                 </span>
               </div>
             </>
           ) : (
             <>
-              <Icon size={30} className="text-neutral-600" />
-              <div className="font-semibold mt-1 text-xs text-neutral-600">
+              <Icon size={30} className="text-muted-foreground" />
+              <div className="font-semibold mt-1 text-xs text-muted-foreground">
                 {label === "Upload Image" ? "Upload" : label}
               </div>
             </>

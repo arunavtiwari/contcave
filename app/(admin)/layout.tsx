@@ -1,14 +1,15 @@
 import "../../styles/globals.css";
 
+import { GeistSans } from "geist/font/sans";
 import { Metadata, Viewport } from "next";
-import { Montserrat } from "next/font/google";
 import React from "react";
 
 import ClientOnly from "@/components/ClientOnly";
 import ToastContainerBar from "@/components/ToastContainerBar";
 import { BRAND_NAME, SITE_URL } from "@/lib/seo";
 
-const font = Montserrat({ subsets: ["latin"] });
+// Using Geist instead of Montserrat for consistency with the main app
+
 
 export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),
@@ -41,7 +42,7 @@ export default function AdminRootLayout({
 }) {
     return (
         <html lang="en">
-            <body className={font.className}>
+            <body className={GeistSans.className}>
                 <ClientOnly>
                     <ToastContainerBar />
                 </ClientOnly>

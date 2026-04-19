@@ -28,14 +28,13 @@ const ForBrands = () => {
   return (
     <section
       id="for-brands"
-      className="py-section bg-muted"
+      className="py-section bg-muted/30"
     >
       <Container>
 
         <SectionHeader
-          badge="For brands & agencies"
-          title="Two ways to work with us."
-          isLanding
+          badge="For Business"
+          title="Book spaces that convert."
         />
 
         <motion.div
@@ -75,11 +74,10 @@ const ForBrands = () => {
                   Concierge service
                 </p>
                 <Heading
-                  title="Send us your brief"
+                  title="Built for Speed"
                   variant="h3"
-                  isLanding
-                  className="text-background!"
-                  subtitle="Running a campaign? Share your brief — shoot type, dates, crew size, budget. We&apos;ll match you with the right studio and handle the coordination."
+                  className="mb-3 text-background!"
+                  subtitle="Find, book, and confirm in flat 2 minutes. No more back-and-forth on WhatsApp."
                   subtitleClassName="text-background/70!"
                 />
               </div>
@@ -96,7 +94,7 @@ const ForBrands = () => {
                   label="WhatsApp us"
                   href={`https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}`}
                   target="_blank"
-                  variant="outline"
+                  variant="secondary"
                   rounded
                   fit
                 />
@@ -120,10 +118,10 @@ const ForBrands = () => {
                   Instant book
                 </p>
                 <Heading
-                  title="Book directly"
+                  title="Verified Listings"
                   variant="h3"
-                  isLanding
-                  subtitle="Know what you&apos;re looking for? Browse verified studios, check real-time availability, and book instantly. Your crew, your gear — our space."
+                  subtitle="Every space is vetted by our team. What you see is exactly what you get."
+                  className="text-foreground!"
                 />
 
                 {/* Studio type tags */}
@@ -131,7 +129,7 @@ const ForBrands = () => {
                   {STUDIO_TYPES.map((t) => (
                     <span
                       key={t}
-                      className="rounded-full px-3 py-1 text-[11px] font-medium bg-foreground/5 text-muted-foreground border border-foreground/10"
+                      className="rounded-full border-2 border-border px-2.5 py-1 text-[10px] font-medium text-muted-foreground"
                     >
                       {t}
                     </span>
@@ -143,7 +141,7 @@ const ForBrands = () => {
                 <Button
                   label="Browse studios"
                   href="/home"
-                  variant="default"
+                  variant="outline"
                   rounded
                   fit
                 />

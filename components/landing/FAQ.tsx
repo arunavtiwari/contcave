@@ -1,11 +1,11 @@
 "use client";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { HiArrowRight } from "react-icons/hi";
 
-import SectionHeader from "@/components/ui/SectionHeader";
 import Container from "@/components/Container";
 import Button from "@/components/ui/Button";
-import Heading from "@/components/ui/Heading";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 import faqData from "./faqData";
 import FAQItem from "./FAQItem";
@@ -56,43 +56,23 @@ const FAQ = () => {
               className="animate_left md:w-2/5 lg:w-1/2"
             >
               <SectionHeader
-                badge="Common questions"
-                title={
-                  <>
-                    Everything you{" "}
-                    <span className="relative inline-block before:absolute before:bottom-2.5 before:left-0 before:-z-1 before:h-3 before:w-full before:bg-accent">
-                      need to know.
-                    </span>
-                  </>
-                }
-                description="About booking a studio, listing your space, or how ContCave works."
-                isLanding
-                className="mt-10 mb-6"
-                badgeClassName="text-foreground"
+                badge="FAQ"
+                title={<>Questions? We have <span className="text-secondary italic">Answers</span></>}
+                description="Everything you need to know about booking, payments, and studio protocols."
+                className="mb-12"
+                badgeClassName="md:mx-0"
               />
 
               <Button
                 label="Still have questions? Message us"
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}
+                href={`https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}`}
                 target="_blank"
                 variant="ghost"
                 rounded
                 fit
                 classNames="mt-2"
-                icon={(props) => (
-                  <svg
-                    {...props}
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M10.4767 6.16701L6.00668 1.69701L7.18501 0.518677L13.6667 7.00034L7.18501 13.482L6.00668 12.3037L10.4767 7.83368H0.333344V6.16701H10.4767Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                )}
+                icon={HiArrowRight}
+
               />
             </motion.div>
 

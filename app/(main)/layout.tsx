@@ -2,8 +2,8 @@ import "../../styles/globals.css";
 
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
-import { Montserrat } from "next/font/google";
 import { Suspense } from "react";
 
 import ClientOnly from "@/components/ClientOnly";
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     },
     appleWebApp: {
         capable: true,
-        statusBarStyle: "foreground-translucent",
+        statusBarStyle: "default",
     },
     manifest: "/manifest.json",
 };
@@ -201,7 +201,7 @@ const webSiteJsonLd = {
     },
 } as const;
 
-const font = Montserrat({ subsets: ["latin"] });
+
 
 export default async function RootLayout({
     children,
@@ -221,7 +221,7 @@ export default async function RootLayout({
 
 
             </head>
-            <body className={font.className}>
+            <body className={GeistSans.className}>
                 <NextAuthProvider>
                     <GlobalScrollFix />
                     <NavbarWrapper />

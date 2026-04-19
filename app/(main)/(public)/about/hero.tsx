@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 
 import Container from "@/components/Container";
-import Heading from "@/components/ui/Heading";
 import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
 
 const Hero = () => {
   return (
@@ -45,7 +45,6 @@ const Hero = () => {
             <Heading
               title="Building the infrastructure for creative spaces."
               variant="h1"
-              isLanding
             />
           </motion.div>
 

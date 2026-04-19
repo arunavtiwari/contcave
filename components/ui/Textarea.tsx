@@ -33,8 +33,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                     className={cn(
                         "w-full p-3 font-light bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed min-h-25",
                         error
-                            ? "border-destructive focus:border-destructive ring-destructive/20 focus:ring-4"
-                            : "border-border hover:border-border/80 focus:border-primary focus:ring-4 focus:ring-primary/10",
+                            ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20"
+                            : "border-border hover:border-border/80 focus:border-primary focus:ring-1 focus:ring-primary/10",
                         className
                     )}
                     ref={ref}

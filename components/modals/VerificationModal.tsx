@@ -367,7 +367,7 @@ const VerificationModal: React.FC<Props> = ({
         <div className="space-y-6">
           <div className="space-y-1">
             <h3 className="text-xl font-semibold">Contact Info</h3>
-            <p className="text-sm text-gray-500">Verify email and phone to continue.</p>
+            <p className="text-sm text-muted-foreground">Verify email and phone to continue.</p>
           </div>
 
 
@@ -435,11 +435,11 @@ const VerificationModal: React.FC<Props> = ({
         <div className="space-y-6">
           <div className="space-y-1">
             <h3 className="text-xl font-semibold">Aadhaar KYC</h3>
-            <p className="text-sm text-gray-500">Secure identity verification.</p>
+            <p className="text-sm text-muted-foreground">Secure identity verification.</p>
           </div>
 
           {aadhaarState.verified || userState?.aadhaar_verified ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-5 flex items-center gap-4">
+            <div className="bg-green-500/10 border border-green-500/50 rounded-xl p-5 flex items-center gap-4">
               <FaCheckCircle className="text-green-600 text-xl" />
               <div>
                 <p className="font-semibold text-green-900">Aadhaar Verified</p>
@@ -460,7 +460,7 @@ const VerificationModal: React.FC<Props> = ({
                 maxLength={12}
                 placeholder="12-digit number"
               />
-              <p className="mt-2 text-xs text-gray-400 flex items-center gap-1">
+              <p className="mt-2 text-xs text-muted-foreground/60 flex items-center gap-1">
                 <FaShieldAlt /> TLS Encrypted Connection
               </p>
             </div>
@@ -480,7 +480,7 @@ const VerificationModal: React.FC<Props> = ({
                 placeholder="xxxxxx"
               />
               <div className="mt-2 flex justify-between">
-                <span className="text-xs text-gray-500">Sent to linked mobile</span>
+                <span className="text-xs text-muted-foreground">Sent to linked mobile</span>
                 <button onClick={() => setAadhaarState(s => ({ ...s, refId: null, otp: "" }))} className="text-xs text-foreground font-semibold underline">Change Number</button>
               </div>
             </div>
@@ -494,11 +494,11 @@ const VerificationModal: React.FC<Props> = ({
         <div className="space-y-6">
           <div className="space-y-1">
             <h3 className="text-xl font-semibold">Bank Details</h3>
-            <p className="text-sm text-gray-500">For secure payouts directly to your account.</p>
+            <p className="text-sm text-muted-foreground">For secure payouts directly to your account.</p>
           </div>
 
           {userState?.bank_verified ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-5">
+            <div className="bg-green-500/10 border border-green-500/50 rounded-xl p-5">
               <div className="flex items-center gap-3">
                 <FaCheckCircle className="text-green-600 text-xl" />
                 <p className="font-semibold text-green-900">Bank Verified</p>
@@ -564,7 +564,7 @@ const VerificationModal: React.FC<Props> = ({
           <FaCheckCircle className="text-4xl text-green-600" />
         </div>
         <h3 className="text-2xl font-bold">All Set!</h3>
-        <p className="text-gray-500 mt-2">You have successfully verified your profile.</p>
+        <p className="text-muted-foreground mt-2">You have successfully verified your profile.</p>
       </div>
     );
   };
@@ -572,7 +572,7 @@ const VerificationModal: React.FC<Props> = ({
   const renderStepProgress = () => (
     <div className="mb-8 px-4 flex justify-between relative">
 
-      <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -z-10 -translate-y-1/2" />
+      <div className="absolute top-1/2 left-0 w-full h-0.5 bg-muted -z-10 -translate-y-1/2" />
 
       {steps.map((s, _idx) => {
         const isComplete = step > s.id;
@@ -580,10 +580,10 @@ const VerificationModal: React.FC<Props> = ({
         return (
           <div key={s.id} className={`flex flex-col items-center bg-background px-2 ${isActive ? 'scale-110 transition-transform' : ''}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 
-                 ${isComplete ? "bg-green-600 border-green-600 text-background" : isActive ? "border-foreground bg-foreground text-background" : "border-gray-300 text-gray-400 bg-background"}`}>
+                 ${isComplete ? "bg-green-600 border-green-600 text-background" : isActive ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground bg-background"}`}>
               {isComplete ? <FaCheckCircle /> : s.id}
             </div>
-            <span className={`text-xs mt-1 font-medium ${isActive ? "text-foreground" : "text-gray-400"}`}>{s.title}</span>
+            <span className={`text-xs mt-1 font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}>{s.title}</span>
           </div>
         );
       })}

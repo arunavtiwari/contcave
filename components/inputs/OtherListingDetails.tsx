@@ -3,6 +3,7 @@ import Select, { GroupBase, StylesConfig } from "react-select";
 
 import Switch from "@/components/ui/Switch";
 import { spaceTypes } from "@/constants/spaceTypes";
+import { cn } from "@/lib/utils";
 
 import FormField from "../ui/FormField";
 import Input from "../ui/Input";
@@ -49,18 +50,18 @@ const staticTimeOptions: OptionType[] = TIME_SLOTS.map((t) => ({
 const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
     control: (provided, state) => ({
         ...provided,
-        backgroundColor: "background",
+        backgroundColor: "var(--color-background)",
         borderWidth: "1px",
-        borderColor: state.isFocused ? "foreground" : "#e5e5e5",
-        borderRadius: "0.5rem",
+        borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+        borderRadius: "0.75rem",
         padding: "0 4px",
-        boxShadow: state.isFocused ? "0 0 0 1px foreground" : "none",
+        boxShadow: state.isFocused ? "0 0 0 1px var(--color-primary-10)" : "none",
         minHeight: "42px",
         height: "42px",
         fontSize: "0.875rem",
         transition: "all 0.2s ease",
         "&:hover": {
-            borderColor: state.isFocused ? "foreground" : "#a3a3a3",
+            borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
         },
     }),
     input: (provided) => ({
@@ -68,7 +69,7 @@ const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
         fontSize: "0.875rem",
         margin: 0,
         padding: 0,
-        color: "#171717",
+        color: "var(--color-foreground)",
     }),
     valueContainer: (provided) => ({
         ...provided,
@@ -79,31 +80,31 @@ const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
         margin: 0,
         fontSize: "0.875rem",
         fontWeight: 500,
-        color: "#171717",
+        color: "var(--color-foreground)",
     }),
     placeholder: (provided) => ({
         ...provided,
         fontSize: "0.875rem",
-        color: "#737373",
+        color: "var(--color-muted-foreground)",
     }),
     option: (provided, state) => ({
         ...provided,
         cursor: "pointer",
         fontSize: "0.875rem",
         padding: "10px 12px",
-        backgroundColor: state.isSelected ? "foreground" : state.isFocused ? "#f5f5f5" : "background",
-        color: state.isSelected ? "background" : "#171717",
+        backgroundColor: state.isSelected ? "var(--color-foreground)" : state.isFocused ? "var(--color-muted)" : "var(--color-background)",
+        color: state.isSelected ? "var(--color-background)" : "var(--color-foreground)",
         ":active": {
-            backgroundColor: state.isSelected ? "foreground" : "#e5e5e5",
+            backgroundColor: state.isSelected ? "var(--color-foreground)" : "var(--color-muted)",
         },
     }),
     menu: (provided) => ({
         ...provided,
-        borderRadius: "0.5rem",
+        borderRadius: "0.75rem",
         overflow: "hidden",
         marginTop: "4px",
         boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-        border: "1px solid #e5e5e5",
+        border: "1px solid var(--color-border)",
         zIndex: 999999,
         width: "100%", // Explicitly wide but constrained
         minWidth: "max-content", // Allow it to NOT shrink below content
@@ -181,7 +182,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             required
         />
 
-        <hr className="border-neutral-200" />
+        <hr className="border-border" />
 
         {/* Operational Days */}
         <FormField
@@ -271,6 +272,15 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                             });
                         }}
                         placeholder="Start Time"
+                        unstyled
+                        classNames={{
+                            control: (state) => cn(
+                                "py-0.5 rounded-xl transition-all duration-200 outline-none flex-1 border",
+                                state.isFocused
+                                    ? "border-primary ring-1 ring-primary/10"
+                                    : "border-border hover:border-border/80"
+                            ),
+                        }}
                         styles={customStyles}
                         isDisabled={isOpenAllDay}
                         className="flex-1"
@@ -294,6 +304,15 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                             })
                         }
                         placeholder="End Time"
+                        unstyled
+                        classNames={{
+                            control: (state) => cn(
+                                "py-0.5 rounded-xl transition-all duration-200 outline-none flex-1 border",
+                                state.isFocused
+                                    ? "border-primary ring-1 ring-primary/10"
+                                    : "border-border hover:border-border/80"
+                            ),
+                        }}
                         styles={customStyles}
                         isDisabled={isOpenAllDay}
                         className="flex-1"
@@ -308,7 +327,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             </div>
         </FormField>
 
-        <hr className="border-neutral-200" />
+        <hr className="border-border" />
 
         {/* Minimum Booking & Max Pax */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -343,7 +362,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             />
         </div>
 
-        <hr className="border-neutral-200" />
+        <hr className="border-border" />
 
         {/* Space Type */}
         <FormField
@@ -361,7 +380,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                         className={`
                                 text-sm py-2 px-4 rounded-full border transition
                                 ${details.type.includes(t)
-                                ? "bg-primary text-primary-foreground border-primary"
+                                ? "bg-primary text-foreground-foreground border-primary"
                                 : "bg-background text-muted-foreground border-border hover:border-primary"
                             }
                             `}

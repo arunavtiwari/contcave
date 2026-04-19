@@ -182,7 +182,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     return (
         <div className="p-4 pb-0" role="group" aria-label="Time slot picker">
 
-            <div className="flex justify-between bg-gray-200 p-1.5 rounded-xl">
+            <div className="flex justify-between bg-muted p-1.5 rounded-xl">
                 <button
                     type="button"
                     className={`flex-1 px-4 py-1 text-center font-bold rounded-xl ${activeSegment === "start" ? "bg-background " : "bg-transparent"
@@ -191,7 +191,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                     disabled={noDatePicked}
                 >
                     Start
-                    <span className="block text-xs text-gray-500">
+                    <span className="block text-xs text-muted-foreground">
                         {normStart || (noDatePicked ? "Pick a date first" : "Please select")}
                     </span>
                 </button>
@@ -203,20 +203,20 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                     disabled={noDatePicked}
                 >
                     End
-                    <span className="block text-xs text-gray-500">
+                    <span className="block text-xs text-muted-foreground">
                         {normEnd || (noDatePicked ? "Pick a date first" : "Please select")}
                     </span>
                 </button>
             </div>
 
             {noDatePicked ? (
-                <div className="p-4 text-sm text-neutral-600">
+                <div className="p-4 text-sm text-muted-foreground">
                     Please pick a date to see available time slots.
                 </div>
             ) : (
                 <>
 
-                    <p className="px-1 pb-2 mt-2 text-xs text-neutral-500">
+                    <p className="px-1 pb-2 mt-2 text-xs text-muted-foreground">
                         Minimum booking: {minBookingMinutes} minutes
                     </p>
 
@@ -238,8 +238,8 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                                     className={`rounded-xl px-4 py-2 text-sm border transition-colors ${selected
                                         ? "border-foreground bg-foreground text-background"
                                         : disabled
-                                            ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed"
-                                            : "border-neutral-300 bg-transparent hover:border-foreground"
+                                            ? "border-border bg-muted/50 text-muted-foreground/60 cursor-not-allowed"
+                                            : "border-border bg-transparent hover:border-foreground"
                                         }`}
                                 >
                                     {label}

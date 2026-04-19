@@ -573,7 +573,7 @@ export default function RentModal() {
                 />
               ))}
             </div>
-            {categoryError && <p className="text-rose-500 text-sm">{categoryError}</p>}
+            {categoryError && <p className="text-destructive text-sm">{categoryError}</p>}
           </div>
         ),
       },
@@ -586,8 +586,8 @@ export default function RentModal() {
           <div className="flex flex-col gap-4">
             <Heading title="Where is your space?" subtitle="Help creators find you" variant="h3" />
             <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                City <span className="text-rose-500 ml-1">*</span>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                City <span className="text-destructive ml-1">*</span>
               </label>
               <CitySelect
                 value={actualLocation as CitySelectValue | undefined}
@@ -599,11 +599,11 @@ export default function RentModal() {
                   setCityError("");
                 }}
               />
-              {cityError && <p className="text-rose-500 text-sm mt-1">{cityError}</p>}
+              {cityError && <p className="text-destructive text-sm mt-1">{cityError}</p>}
             </div>
             <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address <span className="text-rose-500 ml-1">*</span>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                Address <span className="text-destructive ml-1">*</span>
               </label>
               <AutoComplete
                 value={actualLocation?.display_name || ""}
@@ -616,7 +616,7 @@ export default function RentModal() {
                   setAddressError("");
                 }}
               />
-              {addressError && <p className="text-rose-500 text-sm mt-1">{addressError}</p>}
+              {addressError && <p className="text-destructive text-sm mt-1">{addressError}</p>}
             </div>
             <div className="w-full">
               <Input
@@ -649,18 +649,18 @@ export default function RentModal() {
             <Heading title="Add photos" subtitle="Show what your space looks like (Max 30 images)" variant="h3" />
             {imageSrc.length < 30 && (
               <div className="w-full">
-                <div className={`h-40 ${imageError ? "border-rose-500" : ""}`}>
+                <div className={`h-40 ${imageError ? "border-destructive" : ""}`}>
                   <ImageUpload
                     uid="rent-main-upload"
                     onChange={(v) => setCustomValue("imageSrc", v)}
                     values={imageSrc}
                     deferUpload
-                    className="w-full h-full p-4 border border-neutral-300"
+                    className="w-full h-full p-4 border border-border rounded-xl"
                   />
                 </div>
               </div>
             )}
-            {imageError && <p className="text-rose-500 text-sm mt-1">{imageError}</p>}
+            {imageError && <p className="text-destructive text-sm mt-1">{imageError}</p>}
             {imageSrc.length > 0 && (
               <div className="flex flex-wrap gap-4 justify-center sm:justify-start mt-2">
                 {imageSrc.map((item: string, index: number) => (
@@ -670,7 +670,7 @@ export default function RentModal() {
                       alt={`Image ${index}`}
                       width={128}
                       height={128}
-                      className="h-32 w-32 rounded-xl object-cover border border-neutral-200 "
+                      className="h-32 w-32 rounded-xl object-cover border border-border "
                       unoptimized
                     />
                     <button
@@ -710,7 +710,7 @@ export default function RentModal() {
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium">
                   Description
-                  <span className="text-rose-500 ml-1">*</span>
+                  <span className="text-destructive ml-1">*</span>
                 </label>
                 <LexicalEditor
                   value={descriptionValue}
@@ -724,7 +724,7 @@ export default function RentModal() {
                   disabled={isLoading}
                 />
                 {errors.description && (
-                  <span className="text-sm text-rose-500">{errors.description.message as string}</span>
+                  <span className="text-sm text-destructive">{errors.description.message as string}</span>
                 )}
               </div>
             </div>
@@ -801,8 +801,8 @@ export default function RentModal() {
               <div className="flex gap-4">
                 <label
                   className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "FIXED"
-                    ? "border-foreground bg-neutral-50 ring-1 ring-foreground"
-                    : "border-neutral-200 hover:border-neutral-300"
+                    ? "border-foreground bg-muted ring-1 ring-foreground"
+                    : "border-border hover:border-border/80"
                     }`}
                 >
                   <input
@@ -814,12 +814,12 @@ export default function RentModal() {
                     className="hidden"
                   />
                   <div className="font-medium">Fixed Add-on</div>
-                  <div className="text-sm text-neutral-500 mt-1">Each additional set adds a flat fee</div>
+                  <div className="text-sm text-muted-foreground mt-1">Each additional set adds a flat fee</div>
                 </label>
                 <label
                   className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "HOURLY"
-                    ? "border-foreground bg-neutral-50 ring-1 ring-foreground"
-                    : "border-neutral-200 hover:border-neutral-300"
+                    ? "border-foreground bg-muted ring-1 ring-foreground"
+                    : "border-border hover:border-border/80"
                     }`}
                 >
                   <input
@@ -831,7 +831,7 @@ export default function RentModal() {
                     className="hidden"
                   />
                   <div className="font-medium">Hourly Add-on</div>
-                  <div className="text-sm text-neutral-500 mt-1">Each additional set adds per-hour charges</div>
+                  <div className="text-sm text-muted-foreground mt-1">Each additional set adds per-hour charges</div>
                 </label>
               </div>
             </div>
@@ -840,8 +840,8 @@ export default function RentModal() {
               <div className="flex gap-4">
                 <label
                   className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
-                    ? "border-foreground bg-neutral-50 ring-1 ring-foreground"
-                    : "border-neutral-200 hover:border-neutral-300"
+                    ? "border-foreground bg-muted ring-1 ring-foreground"
+                    : "border-border hover:border-border/80"
                     }`}
                 >
                   <input
@@ -855,8 +855,8 @@ export default function RentModal() {
                 </label>
                 <label
                   className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === false
-                    ? "border-foreground bg-neutral-50 ring-1 ring-foreground"
-                    : "border-neutral-200 hover:border-neutral-300"
+                    ? "border-foreground bg-muted ring-1 ring-foreground"
+                    : "border-border hover:border-border/80"
                     }`}
                 >
                   <input
@@ -884,7 +884,7 @@ export default function RentModal() {
                 />
               </div>
             )}
-            {setsError && <p className="text-rose-500 text-sm -mt-2">{setsError}</p>}
+            {setsError && <p className="text-destructive text-sm -mt-2">{setsError}</p>}
           </div>
         ),
       },
@@ -953,7 +953,7 @@ export default function RentModal() {
               onVerification={handleVerificationChange}
               initialDocuments={verifications?.documents || []}
             />
-            {verificationError && <p className="text-rose-500 text-sm -mt-2">{verificationError}</p>}
+            {verificationError && <p className="text-destructive text-sm -mt-2">{verificationError}</p>}
           </div>
         ),
       },
@@ -1296,9 +1296,9 @@ export default function RentModal() {
 
         body={
           <>
-            <div className="flex items-center justify-between text-xs text-neutral-500 mb-3 px-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-3 px-2">
               <span>Step {currentStepIndex + 1} of {activeSteps.length}</span>
-              <div className="flex-1 mx-2 bg-neutral-200 rounded-full h-2">
+              <div className="flex-1 mx-2 bg-muted rounded-full h-2">
                 <div
                   className="bg-foreground h-2 rounded-full transition-all"
                   style={{ width: `${progress}%` }}
@@ -1319,12 +1319,12 @@ export default function RentModal() {
         <div className="fixed inset-0 z-1000 flex items-center justify-center bg-foreground/60 backdrop-blur-sm">
           <div className="bg-background rounded-2xl  ring-1 ring-foreground/5 px-10 py-12 flex flex-col items-center gap-6 max-w-sm w-full mx-4 animate-in fade-in zoom-in duration-300">
             <div className="relative w-16 h-16">
-              <div className="absolute inset-0 rounded-full border-4 border-neutral-200" />
+              <div className="absolute inset-0 rounded-full border-4 border-muted" />
               <div className="absolute inset-0 rounded-full border-4 border-t-foreground animate-spin" />
             </div>
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-gray-900">Creating your listing</h3>
-              <p className="text-sm text-gray-500 mt-2">Uploading images and setting up your space...</p>
+              <h3 className="text-xl font-semibold text-foreground">Creating your listing</h3>
+              <p className="text-sm text-muted-foreground mt-2">Uploading images and setting up your space...</p>
             </div>
           </div>
         </div>
@@ -1338,7 +1338,7 @@ export default function RentModal() {
         customHeight="h-auto"
         actionLabel="Close"
         body={
-          <div className="flex flex-col gap-3 text-gray-700 text-center">
+          <div className="flex flex-col gap-3 text-muted-foreground text-center">
             <p>Thank you for submitting your studio!</p>
             <p>Our team will review and verify your listing shortly.</p>
             <p>We&apos;ll notify you once it&apos;s live on ContCave.</p>

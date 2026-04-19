@@ -1,18 +1,18 @@
 "use client";
 import { motion } from "framer-motion";
-import { STEPS } from "@/constants/how-it-works";
+
 import Container from "@/components/Container";
 import Heading from "@/components/ui/Heading";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { STEPS } from "@/constants/how-it-works";
 
 const HowItWorks = () => {
   return (
     <section className="py-section bg-background">
       <Container>
         <SectionHeader
-          badge="Simple by design"
-          title="How ContCave Works"
-          isLanding
+          badge="Quick & Easy"
+          title="How it Works"
         />
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -25,7 +25,7 @@ const HowItWorks = () => {
               viewport={{ once: true }}
               className="relative flex flex-col gap-6 rounded-3xl border border-border bg-background p-8 shadow-sm transition-all duration-300 hover:shadow-md hover:border-foreground/10"
             >
-              <span className="absolute right-6 top-6 text-2xl font-bold tracking-accent text-muted-foreground/10">
+              <span className="absolute right-6 top-6 text-2xl font-bold text-muted-foreground/20">
                 {step}
               </span>
 
@@ -39,7 +39,7 @@ const HowItWorks = () => {
                   delay: i * 0.1,
                 }}
                 viewport={{ once: true }}
-                className="flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background"
+                className="flex h-10 w-10 items-center justify-center rounded-xl shadow-sm text-background bg-foreground/80"
               >
                 <Icon size={20} />
               </motion.div>

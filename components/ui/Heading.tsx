@@ -9,7 +9,6 @@ interface HeadingProps extends Omit<React.HTMLAttributes<HTMLHeadingElement>, "t
     center?: boolean;
     as?: HeadingVariant;
     variant?: HeadingVariant;
-    isLanding?: boolean;
 }
 
 const Heading: React.FC<HeadingProps> = ({
@@ -19,45 +18,35 @@ const Heading: React.FC<HeadingProps> = ({
     center,
     as,
     variant = "h3",
-    isLanding = false,
     className = "",
     ...props
 }) => {
     const Component = as || variant || "h2";
 
-    const variants: Record<HeadingVariant, string> = {
-        h1: isLanding ? "text-[#FAF7F2]" : "text-4xl font-extrabold",
-        h2: "text-3xl font-bold",
-        h3: "text-2xl font-bold",
-        h4: "text-xl font-bold",
-        h5: "text-lg font-bold",
-        h6: "text-base font-bold",
+    const sizes: Record<HeadingVariant, string> = {
+        h1: "text-[clamp(2.5rem,6vw,4.2rem)] font-semibold leading-[1.05] tracking-tight",
+        h2: "text-[clamp(2rem,4vw,2.8rem)] font-bold leading-[1.1] tracking-tight",
+        h3: "text-[clamp(1.5rem,3vw,2rem)] font-bold leading-[1.2] tracking-tight",
+        h4: "text-[clamp(1.2rem,2.5vw,1.6rem)] font-bold leading-[1.3]",
+        h5: "text-lg font-bold leading-[1.4]",
+        h6: "text-base font-bold leading-[1.5]",
     };
 
-    const landingSizes: Record<HeadingVariant, string> = {
-        h1: "text-[clamp(2rem,5vw,4.2rem)] font-foreground leading-[1.05]",
-        h2: "text-[clamp(1.9rem,3.2vw,2.8rem)] font-bold leading-[1.15]",
-        h3: "text-[clamp(1.4rem,2.2vw,1.9rem)] font-bold leading-[1.25]",
-        h4: "text-xl font-bold",
-        h5: "text-lg font-bold",
-        h6: "text-base font-bold",
-    };
-
-    const subtitleVariants: Record<HeadingVariant, string> = {
-        h1: "text-xl",
-        h2: "text-lg",
+    const subtitleSizes: Record<HeadingVariant, string> = {
+        h1: "text-lg md:text-xl",
+        h2: "text-base md:text-lg",
         h3: "text-base",
         h4: "text-sm",
         h5: "text-xs",
         h6: "text-xs",
     };
 
-    const fontClass = isLanding ? "font-serif" : "";
-    const sizeClass = isLanding ? landingSizes[variant] : variants[variant];
-    const textColorClass = (isLanding && variant === "h1") ? "text-[#FAF7F2]" : "text-foreground";
+    const fontClass = "font-serif";
+    const sizeClass = sizes[variant];
+    const textColorClass = "text-foreground";
 
     return (
-        <div className={`${center ? "text-center" : "text-start"}`}>
+        <div className={`${center ? "text-center" : "text-start"} space-y-2`}>
             <Component
                 className={`${fontClass} ${sizeClass} ${textColorClass} ${className}`}
                 {...props}
@@ -65,7 +54,7 @@ const Heading: React.FC<HeadingProps> = ({
                 {title}
             </Component>
             {subtitle && (
-                <p className={`text-muted-foreground ${isLanding ? "mt-2" : "mt-1"} font-light ${subtitleVariants[variant]} ${subtitleClassName}`}>
+                <p className={`text-muted-foreground font-light ${subtitleSizes[variant]} ${subtitleClassName}`}>
                     {subtitle}
                 </p>
             )}

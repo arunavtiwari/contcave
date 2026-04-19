@@ -196,7 +196,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
                 <div className="lg:col-span-2 space-y-8">
 
-                    <div className="bg-background rounded-2xl border border-gray-200 overflow-hidden">
+                    <div className="bg-background rounded-2xl border border-border overflow-hidden">
 
                         <div
                             className="relative h-32 bg-center bg-no-repeat bg-cover"
@@ -249,7 +249,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                             placeholder="Your name"
                                         />
                                     ) : (
-                                        <h2 className="text-2xl font-bold text-gray-900">{userData.name}</h2>
+                                        <h2 className="text-2xl font-bold text-foreground">{userData.name}</h2>
                                     )}
                                 </div>
                                 {editMode && (
@@ -259,7 +259,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                             setEditMode(false);
                                         }}
                                         disabled={isSubmitting}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors bg-background border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors bg-background border border-border text-muted-foreground hover:bg-muted/50 disabled:opacity-50"
                                     >
                                         Cancel
                                     </button>
@@ -268,8 +268,8 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                     onClick={() => editMode ? handleSubmit(onSubmit)() : setEditMode(true)}
                                     disabled={isSubmitting}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors ${editMode
-                                        ? 'bg-foreground text-background hover:bg-gray-800 disabled:bg-gray-800 disabled:opacity-80'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        ? 'bg-foreground text-background hover:opacity-90 disabled:opacity-80'
+                                        : 'bg-muted text-muted-foreground hover:bg-muted/70'
                                         }`}
                                 >
                                     {editMode ? (
@@ -297,7 +297,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         className="h-32"
                                     />
                                 ) : (
-                                    <p className="text-gray-600 leading-relaxed">
+                                    <p className="text-muted-foreground leading-relaxed">
                                         {userData.description || "No description added yet."}
                                     </p>
                                 )}
@@ -306,15 +306,15 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                     </div>
 
 
-                    <div className="bg-background rounded-2xl  border border-gray-200 p-8">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-6">Personal Details</h3>
+                    <div className="bg-background rounded-2xl  border border-border p-8">
+                        <h3 className="text-xl font-semibold text-foreground mb-6">Personal Details</h3>
 
                         <div className="space-y-6">
 
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <FaUser className="w-5 h-5 text-gray-400" />
-                                    <span className="font-medium text-gray-700">Title</span>
+                                    <FaUser className="w-5 h-5 text-muted-foreground/60" />
+                                    <span className="font-medium text-muted-foreground">Title</span>
                                 </div>
                                 {editMode ? (
                                     <div className="flex gap-2">
@@ -332,24 +332,24 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         ))}
                                     </div>
                                 ) : (
-                                    <span className="text-gray-900 font-medium">{userData.title || "Not specified"}</span>
+                                    <span className="text-foreground font-medium">{userData.title || "Not specified"}</span>
                                 )}
                             </div>
 
 
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <FaEnvelope className="w-5 h-5 text-gray-400" />
-                                    <span className="font-medium text-gray-700">Email</span>
+                                    <FaEnvelope className="w-5 h-5 text-muted-foreground/60" />
+                                    <span className="font-medium text-muted-foreground">Email</span>
                                 </div>
-                                <span className="text-gray-900 font-medium">{userData.email}</span>
+                                <span className="text-foreground font-medium">{userData.email}</span>
                             </div>
 
 
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-3">
-                                    <FaPhone className="w-5 h-5 text-gray-400" />
-                                    <span className="font-medium text-gray-700">Phone</span>
+                                    <FaPhone className="w-5 h-5 text-muted-foreground/60" />
+                                    <span className="font-medium text-muted-foreground">Phone</span>
                                 </div>
                                 <div
                                     className={`flex items-center justify-end rounded-xl ${editMode ? 'px-3 py-2 border border-slate-300' : ''
@@ -372,7 +372,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                             className="w-28 p-0 border-none focus:ring-0"
                                         />
                                     ) : (
-                                        <span className="text-gray-900 font-medium whitespace-nowrap">
+                                        <span className="text-foreground font-medium whitespace-nowrap">
                                             {userData.phone || 'Not added'}
                                         </span>
                                     )}
@@ -383,8 +383,8 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <FaMapMarkerAlt className="w-5 h-5 text-gray-400" />
-                                    <span className="font-medium text-gray-700">Location</span>
+                                    <FaMapMarkerAlt className="w-5 h-5 text-muted-foreground/60" />
+                                    <span className="font-medium text-muted-foreground">Location</span>
                                 </div>
                                 {editMode ? (
                                     <Input
@@ -428,12 +428,12 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                     <div className="flex flex-wrap gap-2">
                                         {(userData.languages || []).length > 0 ? (
                                             (userData.languages || []).map((language) => (
-                                                <span key={language} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                                                <span key={language} className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm font-medium">
                                                     {language}
                                                 </span>
                                             ))
                                         ) : (
-                                            <span className="text-gray-500">No languages specified</span>
+                                            <span className="text-muted-foreground/60">No languages specified</span>
                                         )}
                                     </div>
                                 )}

@@ -21,6 +21,8 @@
 
 	/* 2. Semantic Mappings (Functional Tokens) */
 	--color-primary: var(--color-black);
+	--color-primary-10: rgb(0 0 0 / 0.1);
+	--color-primary-20: rgb(0 0 0 / 0.2);
 	--color-primary-foreground: var(--color-white);
 
 	--color-background: var(--color-white);
@@ -40,12 +42,12 @@
 	--color-success: #10B981;
 	--color-warning: #F59E0B;
 	--color-danger: #EF4444;
+	--color-destructive: var(--color-danger);
+	--color-destructive-foreground: var(--color-white);
 
 	--color-status-approved: #218C54;
 	--color-status-pending: #B98A30;
 	--color-status-rejected: #B53020;
-
-	--font-inter: Inter, sans-serif;
 
 	--tracking-accent: 0.22em;
 	--tracking-wide: 0.1em;
@@ -76,8 +78,20 @@
 	body {
 		background-color: var(--color-background);
 		color: var(--color-foreground);
-		font-family: var(--font-inter);
 	}
+
+	button:active,
+	.button-active:active {
+		transform: scale(0.98);
+		transition: transform 0.1s ease;
+	}
+}
+
+select,
+[role="combobox"],
+[role="listbox"],
+[class*="react-select"] {
+	--tw-ring-color: transparent !important;
 }
 
 /* Utilities Refinement */
@@ -181,11 +195,4 @@
 	color: transparent !important;
 }
 
-/* Form Hardening */
-input:focus,
-textarea:focus,
-select:focus {
-	outline: none !important;
-	box-shadow: 0 0 0 2px var(--color-ring) !important;
-	border-color: var(--color-black) !important;
-}
+/* Form Hardening Removed to allow component-level 1px focus control */

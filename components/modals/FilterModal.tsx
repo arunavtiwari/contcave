@@ -82,7 +82,7 @@ const FilterModalContent = () => {
               }
               className={`px-3 py-1 rounded-full border text-sm ${selectedType === spaceType
                 ? "bg-foreground text-background border-foreground"
-                : "border-gray-300 hover:bg-gray-100"
+                : "border-border hover:bg-accent"
                 }`}
             >
               {spaceType}
@@ -97,7 +97,7 @@ const FilterModalContent = () => {
     <div className="shrink-0">
       <button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-gray-100 rounded-lg text-sm whitespace-nowrap"
+        className="px-4 py-2 bg-gray-100 rounded-xl text-sm whitespace-nowrap"
       >
         More Filters
       </button>
@@ -121,7 +121,7 @@ const FilterModal = () => {
   return (
     <Suspense fallback={
       <div className="shrink-0">
-        <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm whitespace-nowrap">
+        <button className="px-4 py-2 bg-muted rounded-xl text-sm whitespace-nowrap">
           More Filters
         </button>
       </div>

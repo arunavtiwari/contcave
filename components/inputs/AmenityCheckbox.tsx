@@ -76,7 +76,7 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
       </div>
 
       <div className="mt-8">
-        <label htmlFor="custom-amenity" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="custom-amenity" className="block text-sm font-medium text-foreground mb-1">
           Custom Amenity
         </label>
         <div className="flex gap-2 items-start">

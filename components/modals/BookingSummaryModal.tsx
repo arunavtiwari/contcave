@@ -122,7 +122,7 @@ export default function BookingSummaryModal({
         </h3>
 
 
-        <div className="mb-4 space-y-2 text-gray-700">
+        <div className="mb-4 space-y-2 text-muted-foreground">
           <div className="flex justify-between">
             <p>Booking Fee</p>
             <p>₹{bookingFee}</p>
@@ -199,7 +199,7 @@ export default function BookingSummaryModal({
           </div>
         )}
 
-        {gstError && <p className="text-sm text-red-600 mb-2">{gstError}</p>}
+        {gstError && <p className="text-sm text-destructive mb-2">{gstError}</p>}
 
 
         <div className="mt-4 mb-5">
@@ -213,7 +213,7 @@ export default function BookingSummaryModal({
               <Link
                 href="/terms-and-conditions"
                 target="_blank"
-                className="text-foreground font-semibold underline hover:text-neutral-700 leading-none"
+                className="text-foreground font-semibold underline hover:text-foreground/80 leading-none"
               >
                 Terms & Conditions
               </Link>{" "}
@@ -221,7 +221,7 @@ export default function BookingSummaryModal({
               <Link
                 href="/privacy-policy"
                 target="_blank"
-                className="text-foreground font-semibold underline hover:text-neutral-700 leading-none"
+                className="text-foreground font-semibold underline hover:text-foreground/80 leading-none"
               >
                 Privacy Policy
               </Link>
@@ -234,7 +234,7 @@ export default function BookingSummaryModal({
         <div className="mt-5 flex gap-2 justify-end">
           <button
             type="button"
-            className="px-4 py-2 rounded-lg border border-neutral-300 hover:bg-neutral-50"
+            className="px-4 py-2 rounded-xl border border-border hover:bg-muted"
             onClick={onCloseAction}
             disabled={saving}
           >
@@ -242,9 +242,9 @@ export default function BookingSummaryModal({
           </button>
           <button
             type="button"
-            className={`px-4 py-2 rounded-lg text-background ${agree
+            className={`px-4 py-2 rounded-xl text-background ${agree
               ? "bg-foreground hover:opacity-90"
-              : "bg-gray-400 cursor-not-allowed"
+              : "bg-muted cursor-not-allowed"
               }`}
             onClick={handleConfirm}
             disabled={!agree || saving}

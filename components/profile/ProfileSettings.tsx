@@ -46,7 +46,7 @@ const ProfileSettings = ({ profile }: Props) => {
         <div className="pl-4">
           <ul className="list-decimal flex flex-col gap-5">
             <li>
-              <div className="text-lg font-bold text-slate-950">Support</div>
+              <div className="text-lg font-bold text-foreground">Support</div>
               <ul className="list-disc pl-4">
                 <li>Access help resources, FAQs, or contact customer support.</li>
                 <li>Help Center</li>
@@ -54,7 +54,7 @@ const ProfileSettings = ({ profile }: Props) => {
               </ul>
             </li>
             <li>
-              <div className="text-lg font-bold text-slate-950">Legal & Compliance</div>
+              <div className="text-lg font-bold text-foreground">Legal & Compliance</div>
               <ul className="list-disc pl-4">
                 <li>Links to terms of service, privacy policy, and other legal documents</li>
                 <li>
@@ -66,7 +66,7 @@ const ProfileSettings = ({ profile }: Props) => {
               </ul>
             </li>
             <li>
-              <div className="text-lg font-bold text-slate-950">Feedback & Surveys</div>
+              <div className="text-lg font-bold text-foreground">Feedback & Surveys</div>
               <ul className="list-disc pl-4">
                 <li>Provide feedback or participate in surveys to improve the platform.</li>
                 <li>Submit Feedback</li>
@@ -75,10 +75,10 @@ const ProfileSettings = ({ profile }: Props) => {
             </li>
           </ul>
         </div>
-        <div className="bg-neutral-100 p-5 rounded-xl">
+        <div className="bg-muted p-5 rounded-xl">
           <h2 className="text-lg font-bold mb-2">Danger Zone</h2>
           <p className="text-red-700 text-base font-bold">Delete Account</p>
-          <p className="text-slate-600 font-medium text-sm">
+          <p className="text-muted-foreground font-medium text-sm">
             <span className="italic">Warning:</span> Deleting your account will permanently remove all
             your data and cannot be undone.
           </p>
@@ -98,7 +98,7 @@ const ProfileSettings = ({ profile }: Props) => {
           )}
 
           <button
-            className="border-2 border-red px-10 py-1.5 rounded-full hover:opacity-85 text-red  mt-3 text-sm font-semibold disabled:opacity-60"
+            className="border-2 border-danger px-10 py-1.5 rounded-full hover:opacity-85 text-danger mt-3 text-sm font-semibold disabled:opacity-60"
             onClick={() => setShowConfirmModal(true)}
             disabled={isSubmitting}
           >
@@ -117,7 +117,7 @@ const ProfileSettings = ({ profile }: Props) => {
         secondaryActionLabel="Cancel"
         disabled={isSubmitting}
         body={
-          <div className="space-y-3 text-sm text-slate-700">
+          <div className="space-y-3 text-sm text-muted-foreground">
             <p>
               Are you sure you want to delete your ContCave account? Your listings, reservations, and
               billing records will be permanently removed once the deletion request is processed.

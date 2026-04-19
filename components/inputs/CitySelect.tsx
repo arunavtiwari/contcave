@@ -27,7 +27,7 @@ function CitySelect({ value, onChange }: Props) {
       <Select
         inputId="city-select"
         placeholder="Anywhere"
-        isClearable
+        isClearable={false}
         options={getAll()}
         value={value}
         onChange={(value) => onChange(value as CitySelectValue)}
@@ -36,33 +36,43 @@ function CitySelect({ value, onChange }: Props) {
             <Flag code={option.value} className="w-5" />
             <div>
               {option.label}
-              <span className="text-neutral-500 ml-1">{option.region}</span>
+              <span className="text-muted-foreground ml-1">{option.region}</span>
             </div>
           </div>
         )}
         classNames={{
-          control: () => "py-0.5 border",
           input: () => "text-lg cursor-pointer",
           option: () => "text-lg cursor-pointer",
         }}
         styles={{
           input: (base) => ({
             ...base,
-            color: 'transparent',
+            color: "var(--color-foreground)",
           }),
           control: (base, state) => ({
             ...base,
-            borderColor: state.isFocused ? 'foreground' : base.borderColor,
+            backgroundColor: "var(--color-background)",
+            borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+            borderRadius: "0.75rem",
+            padding: "0 4px",
+            boxShadow: state.isFocused ? "0 0 0 1px var(--color-primary-10)" : "none",
+            minHeight: "42px",
+            height: "42px",
+            fontSize: "1.125rem", // text-lg
+            transition: "all 0.2s ease",
+            "&:hover": {
+              borderColor: state.isFocused ? "var(--color-primary)" : "var(--color-border)",
+            },
           }),
         }}
         theme={(theme) => ({
           ...theme,
-          borderRadius: 10,
+          borderRadius: 12,
           colors: {
             ...theme.colors,
-            primary: "foreground",
-            primary25: "#F3F4F6",
-            primary50: "#E5E7EB",
+            primary: "var(--color-primary)",
+            primary25: "var(--color-primary-10)",
+            primary50: "var(--color-border)",
           },
         })}
       />

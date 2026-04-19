@@ -1,18 +1,72 @@
 "use client";
-
 import { motion, useScroll, useTransform } from "framer-motion";
-import Link from "next/link";
-import { useRef } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useRef } from "react";
 import { BiSearch } from "react-icons/bi";
 
 import Container from "@/components/Container";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import useCities from "@/hook/useCities";
 import useSearchModal from "@/hook/useSearchModal";
+
+const HeroSearch = () => {
+  const searchModal = useSearchModal();
+  const params = useSearchParams();
+  const { getByValue } = useCities();
+
+  const locationValue = params?.get("locationValue");
+  const startDate = params?.get("selectedDate");
+
+  const locationLabel = useMemo(() => {
+    if (locationValue) {
+      return getByValue(locationValue as string)?.label;
+    }
+    return null;
+  }, [getByValue, locationValue]);
+
+  const dateLabel = useMemo(() => {
+    if (startDate) {
+      const start = new Date(startDate as string);
+      return start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
+    return null;
+  }, [startDate]);
+
+  return (
+    <button
+      type="button"
+      onClick={searchModal.onOpen}
+      aria-label="Open studio search"
+      className="group flex w-full max-w-xl flex-row items-center rounded-full border border-white/10 bg-background/95 p-2 text-left shadow-2xl backdrop-blur-md transition-all hover:bg-background active:scale-[0.98] md:max-w-2xl lg:max-w-3xl"
+    >
+      <div className="flex flex-1 flex-row items-center divide-x divide-border/50">
+        <div className="flex flex-1 flex-col px-4 md:px-7">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+            Location
+          </span>
+          <span className="truncate text-sm font-semibold text-foreground">
+            {locationLabel || "Search by city…"}
+          </span>
+        </div>
+        <div className="hidden flex-1 flex-col px-4 sm:flex md:px-7">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+            Date
+          </span>
+          <span className="truncate text-sm font-semibold text-foreground">
+            {dateLabel || "Add date"}
+          </span>
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center justify-center rounded-full bg-primary p-3.5 text-background shadow-lg shadow-primary/20 transition-transform group-hover:scale-105 md:p-4">
+        <BiSearch size={22} />
+      </div>
+    </button>
+  );
+};
 
 const Hero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const searchModal = useSearchModal();
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -28,7 +82,7 @@ const Hero = () => {
   return (
     <motion.div
       ref={containerRef}
-      style={{ scale, borderRadius }}
+      style={{ scale, borderRadius: borderRadius as unknown as string }}
       className="overflow-hidden"
     >
       <div
@@ -85,8 +139,7 @@ const Hero = () => {
                 <Heading
                   title="Book your next shoot location"
                   variant="h1"
-                  isLanding
-                  className="mb-2"
+                  className="mb-2 text-background!"
                 />
               </motion.div>
 
@@ -107,31 +160,26 @@ const Hero = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.85 }}
-                className="flex flex-wrap items-center gap-3"
+                className="flex flex-col gap-6"
               >
-                <button
-                  type="button"
-                  onClick={searchModal.onOpen}
-                  className="flex items-center gap-3 rounded-full transition hover:opacity-90 bg-background shadow-foreground/25 p-2.5 pl-5"
-                >
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Search by city…
-                  </span>
-                  <span
-                    className="flex items-center justify-center rounded-full bg-primary p-2"
-                  >
-                    <BiSearch size={15} className="text-background" />
-                  </span>
-                </button>
+                <div className="w-full">
+                  <Suspense fallback={
+                    <div className="h-16 w-full max-w-xl animate-pulse rounded-full bg-background/20 backdrop-blur-md md:max-w-2xl lg:max-w-3xl" />
+                  }>
+                    <HeroSearch />
+                  </Suspense>
+                </div>
 
-                <Button
-                  label="View all studios"
-                  href="/home"
-                  variant="outline"
-                  size="lg"
-                  rounded
-                  fit
-                />
+                <div className="flex items-center gap-3">
+                  <Button
+                    label="View all studios"
+                    href="/home"
+                    variant="outline"
+                    size="lg"
+                    rounded
+                    fit
+                  />
+                </div>
               </motion.div>
             </div>
           </Container>

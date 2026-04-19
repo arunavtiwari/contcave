@@ -170,7 +170,7 @@ const ListingCard: React.FC<Props> = ({
                 />
                 <Button
                   label="Cancel"
-                  classNames="text-md font-semibold py-3 border-2 bg-rose-500 border-rose-500 text-background ml-2"
+                  classNames="text-md font-semibold py-3 border-2 bg-destructive border-destructive text-background ml-2"
                   onClick={() => onApprove(reservation?.id ?? "")}
                 />
               </>

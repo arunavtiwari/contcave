@@ -43,7 +43,7 @@ export default function ListingActions({ listingId, previewUrl }: Props) {
                 />
             </form>
             {(approveState?.error || rejectState?.error) && (
-                <span className="text-xs text-red-500">
+                <span className="text-xs text-destructive">
                     {approveState?.error || rejectState?.error}
                 </span>
             )}

@@ -79,7 +79,7 @@ import FormField from "./ui/FormField";
 import Input from "./ui/Input";
 
 const propertyFieldClassName =
-    "w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground transition outline-none focus:border-primary hover:border-border/80";
+    "w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground transition outline-none focus:border-primary focus:ring-1 focus:ring-primary/10 hover:border-border/80";
 
 const propertyFieldSeparatorClassName =
     "flex items-center justify-center self-stretch px-1 text-sm font-medium leading-none text-muted-foreground";
@@ -412,7 +412,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         className={`
                                             text-sm py-2 px-4 rounded-full border transition
                                             ${(initialListing.type || []).includes(t)
-                                                ? "bg-primary text-primary-foreground border-primary"
+                                                ? "bg-primary text-foreground-foreground border-primary"
                                                 : "bg-background text-muted-foreground border-border hover:border-primary"
                                             }
                                         `}
@@ -670,13 +670,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         <div className="flex gap-4 w-full">
                                             <button
                                                 onClick={() => handleInputChange("additionalSetPricingType", "FIXED")}
-                                                className={`flex-1 py-2 px-4 rounded-lg border transition ${initialListing.additionalSetPricingType === "FIXED" ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-border hover:border-primary"}`}
+                                                className={`flex-1 py-2 px-4 rounded-xl border transition ${initialListing.additionalSetPricingType === "FIXED" ? "bg-primary text-foreground-foreground border-primary" : "bg-background text-foreground border-border hover:border-primary"}`}
                                             >
                                                 Fixed Add-on
                                             </button>
                                             <button
                                                 onClick={() => handleInputChange("additionalSetPricingType", "HOURLY")}
-                                                className={`flex-1 py-2 px-4 rounded-lg border transition ${initialListing.additionalSetPricingType === "HOURLY" ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-border hover:border-primary"}`}
+                                                className={`flex-1 py-2 px-4 rounded-xl border transition ${initialListing.additionalSetPricingType === "HOURLY" ? "bg-primary text-foreground-foreground border-primary" : "bg-background text-foreground border-border hover:border-primary"}`}
                                             >
                                                 Hourly Add-on
                                             </button>
@@ -744,7 +744,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         <div className="col-span-3 pt-5 flex justify-end">
                             <button
                                 type="button"
-                                className="inline-flex py-2 px-6 border border-transparent  text-sm font-medium rounded-lg hover:opacity-85 text-primary-foreground bg-primary"
+                                className="inline-flex py-2 px-6 border border-transparent  text-sm font-medium rounded-xl hover:opacity-85 text-foreground-foreground bg-primary"
                                 onClick={update}
                             >
                                 Save
@@ -761,7 +761,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             />
                             {!isCalendarConnected && (
                                 <button
-                                    className="bg-primary text-primary-foreground px-15 h-fit py-2 rounded-lg hover:opacity-90 flex gap-4 justify-center items-center"
+                                    className="bg-primary text-foreground-foreground px-15 h-fit py-2 rounded-xl hover:opacity-90 flex gap-4 justify-center items-center"
                                     onClick={() => signIn("google-calendar")}
                                 >
                                     <Image
@@ -769,7 +769,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                         alt="Google Calendar"
                                         width={30}
                                         height={30}
-                                        className="bg-background rounded-lg"
+                                        className="bg-background rounded-xl"
                                     />
                                     Sync Google Calendar
                                 </button>
@@ -801,9 +801,9 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     <div className={selectedMenu === "Settings" ? "flex flex-col gap-5 sm:gap-8 min-h-150" : "hidden"}>
                         <Heading title="Property Settings" subtitle="Manage your property settings and danger zone actions" />
 
-                        <div className="flex flex-col gap-4 p-6 border-2 border-red-200 rounded-xl bg-red-50">
-                            <h3 className="text-lg font-semibold text-red-600">Danger Zone</h3>
-                            <p className="text-sm text-gray-700">
+                        <div className="flex flex-col gap-4 p-6 border-2 border-destructive/20 rounded-xl bg-destructive/10">
+                            <h3 className="text-lg font-semibold text-destructive">Danger Zone</h3>
+                            <p className="text-sm text-muted-foreground">
                                 <span className="font-semibold">Warning:</span> Deleting your property will permanently remove all your
                                 data and cannot be undone. This action is irreversible.
                             </p>
@@ -813,7 +813,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     onClick={() => setIsDeleteModalOpen(true)}
                                     outline
                                     rounded
-                                    classNames="px-6 border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-background"
+                                    classNames="px-6 border-2 border-destructive text-destructive hover:bg-destructive hover:text-background"
                                 />
                             </div>
                         </div>
