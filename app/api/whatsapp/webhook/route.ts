@@ -6,8 +6,8 @@ import { createErrorResponse, handleRouteError } from "@/lib/api-utils";
 /* ------------------------------------------------------------------ */
 /*  WhatsApp Cloud API Webhook Handler                                 */
 /*  Handles:                                                           */
-/*    GET  Ã¢â‚¬â€œ Verification challenge (hub.verify_token)                 */
-/*    POST Ã¢â‚¬â€œ Inbound events (message status updates, incoming msgs)    */
+/*    GET  – Verification challenge (hub.verify_token)                 */
+/*    POST – Inbound events (message status updates, incoming msgs)    */
 /* ------------------------------------------------------------------ */
 
 const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || "";
@@ -40,7 +40,7 @@ function verifySignature(rawBody: string, signatureHeader: string): boolean {
 }
 
 /* ------------------------------------------------------------------ */
-/*  GET Ã¢â‚¬â€œ Webhook verification challenge                               */
+/*  GET – Webhook verification challenge                               */
 /* ------------------------------------------------------------------ */
 
 export async function GET(request: Request) {
@@ -67,7 +67,7 @@ export async function GET(request: Request) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  POST Ã¢â‚¬â€œ Inbound webhook events                                      */
+/*  POST – Inbound webhook events                                      */
 /* ------------------------------------------------------------------ */
 
 type WhatsAppWebhookEntry = {
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
             }
         }
 
-        // Always return 200 to acknowledge receipt Ã¢â‚¬â€ Meta retries for 7 days on non-200
+        // Always return 200 to acknowledge receipt — Meta retries for 7 days on non-200
         return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         // Even on error, return 200 to prevent infinite retry loops from Meta

@@ -1102,8 +1102,6 @@ export default function RentModal() {
     setIsLoading(true);
     setIsSubmitting(true);
 
-    // Capture the PDF generator BEFORE closing the modal Ã¢â‚¬â€ termsRef.current
-    // becomes null once TermsAndConditionsModal unmounts (~300ms after close).
     const generatePdf = termsRef.current?.generateAndUploadPdf ?? null;
 
     uiStore.onClose("rent");

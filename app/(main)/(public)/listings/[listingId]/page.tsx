@@ -243,7 +243,7 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
 
   const priceRange =
     typeof listing.price === "number" && Number.isFinite(listing.price)
-      ? `Ã¢â€šÂ¹${listing.price.toString()}+`
+      ? `₹${listing.price.toString()}+`
       : undefined;
 
   const url = absoluteUrl(`/listings/${listing.slug ?? listing.id}`);

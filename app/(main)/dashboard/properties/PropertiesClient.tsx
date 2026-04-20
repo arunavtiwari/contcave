@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { deleteListingAction, updateListingAction } from "@/app/actions/listingActions";
 import ListingCard from "@/components/listing/ListingCard";
+import Modal from "@/components/modals/Modal";
 import { safeListing } from "@/types/listing";
 import { SafeUser } from "@/types/user";
 
@@ -17,7 +18,9 @@ type Props = {
 function PropertiesClient({ listings, currentUser }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [_deletingId, setDeletingId] = useState("");
+  const [deletingId, setDeletingId] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState("");
 
   const onEdit = useCallback(
     (_id: string) => {
@@ -34,22 +37,29 @@ function PropertiesClient({ listings, currentUser }: Props) {
     [router]
   );
 
-  const onDelete = useCallback(
-    (id: string) => {
-      setDeletingId(id);
-      startTransition(async () => {
-        const res = await deleteListingAction(id);
-        if (res.success) {
-          toast.success("Listing deleted");
-          router.refresh();
-        } else {
-          toast.error(res.error || "Failed to delete listing");
-        }
-        setDeletingId("");
-      });
-    },
-    [router]
-  );
+  const onDelete = useCallback((id: string) => {
+    setSelectedId(id);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!selectedId) return;
+
+    setDeletingId(selectedId);
+    setIsModalOpen(false);
+
+    startTransition(async () => {
+      const res = await deleteListingAction(selectedId);
+      if (res.success) {
+        toast.success("Listing deleted");
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to delete listing");
+      }
+      setDeletingId("");
+      setSelectedId("");
+    });
+  }, [selectedId, router]);
 
   const onChat = useCallback(
     (id: string) => {
@@ -57,6 +67,7 @@ function PropertiesClient({ listings, currentUser }: Props) {
     },
     [router]
   );
+
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -68,12 +79,31 @@ function PropertiesClient({ listings, currentUser }: Props) {
             onDelete={onDelete}
             onEdit={onEdit}
             onChat={onChat}
-            disabled={_deletingId === listing.id}
+            disabled={deletingId === listing.id}
             actionLabel="Delete property"
             currentUser={currentUser}
+            allowScale={false}
           />
         ))}
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleConfirmDelete}
+        title="Delete Property"
+        actionLabel="Delete"
+        secondaryAction={() => setIsModalOpen(false)}
+        secondaryActionLabel="Cancel"
+        disabled={isPending}
+        body={
+          <div className="p-4">
+            <p className="text-center text-neutral-600">
+              Are you sure you want to delete this property? This action cannot be undone.
+            </p>
+          </div>
+        }
+      />
     </>
   );
 }

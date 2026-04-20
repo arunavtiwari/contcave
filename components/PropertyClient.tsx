@@ -754,7 +754,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     <div className="flex justify-between w-full items-center">
                         <Heading
                             title="Connect Your Google Calendar"
-                            subtitle="Sync offline and ContCave bookings to keep your availability up to dateÃ¢â‚¬â€automatically"
+                            subtitle="Sync offline and ContCave bookings to keep your availability up to date—automatically"
                         />
                         {!isCalendarConnected && (
                             <button

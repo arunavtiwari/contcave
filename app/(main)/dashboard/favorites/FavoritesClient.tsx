@@ -16,6 +16,7 @@ function FavoritesClient({ listings, currentUser }: Props) {
             currentUser={currentUser}
             key={listing.id}
             data={listing}
+            allowScale={false}
           />
         ))}
       </div>

@@ -153,7 +153,7 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
         className="mb-4"
       />
 
-      {/* Mobile: Swiper carousel Ã¢â‚¬â€ swipe only, no arrows, free-mode momentum */}
+      {/* Mobile: Swiper carousel —  swipe only, no arrows, free-mode momentum */}
       <div className="sm:hidden">
         <Swiper
           modules={[FreeMode]}

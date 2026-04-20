@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { deleteReservation, updateReservation } from "@/app/actions/reservationActions";
 import ListingCard from "@/components/listing/ListingCard";
 import Modal from "@/components/modals/Modal";
+import ReservationDetailModal from "@/components/modals/ReservationDetailModal";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
 
@@ -23,6 +24,9 @@ function ReservationsClient({ reservations, currentUser }: Props) {
   const [modalAction, setModalAction] = useState<"cancel" | "delete" | "reject" | "">("");
   const [selectedId, setSelectedId] = useState("");
 
+  const [isInfoModalOpen, setInfoModalOpen] = useState(false);
+  const [infoReservation, setInfoReservation] = useState<SafeReservation | null>(null);
+
   const [rejectReasonOption, setRejectReasonOption] = useState("");
   const [rejectReasonText, setRejectReasonText] = useState("");
 
@@ -32,6 +36,13 @@ function ReservationsClient({ reservations, currentUser }: Props) {
     setRejectReasonOption("");
     setRejectReasonText("");
     setSelectedId("");
+    setInfoModalOpen(false);
+    setInfoReservation(null);
+  }, []);
+
+  const handleShowInfo = useCallback((reservation: SafeReservation) => {
+    setInfoReservation(reservation);
+    setInfoModalOpen(true);
   }, []);
 
   const handleDeleteModal = useCallback((id: string) => {
@@ -172,13 +183,21 @@ function ReservationsClient({ reservations, currentUser }: Props) {
               onApprove={onApprove}
               onReject={onReject}
               onChat={onChat}
+              onShowInfo={handleShowInfo}
               disabled={deletingId === reservation.id}
               currentUser={currentUser}
               allowScale={false}
+              isHost={true}
             />
           );
         })}
       </div>
+
+      <ReservationDetailModal
+        isOpen={isInfoModalOpen}
+        onClose={() => setInfoModalOpen(false)}
+        reservation={infoReservation}
+      />
 
       {isModalOpen && (
         <Modal

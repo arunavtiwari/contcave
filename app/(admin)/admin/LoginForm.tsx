@@ -55,7 +55,7 @@ export default function LoginForm() {
                             label="Password"
                             type="password"
                             required
-                            placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
+                            placeholder="••••••••"
                         />
 
                         <div className="pt-2">

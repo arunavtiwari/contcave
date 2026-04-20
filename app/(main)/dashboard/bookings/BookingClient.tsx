@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { deleteReservation, updateReservation } from "@/app/actions/reservationActions";
 import ListingCard from "@/components/listing/ListingCard";
 import Modal from "@/components/modals/Modal";
+import ReservationDetailModal from "@/components/modals/ReservationDetailModal";
 import { openWhatsAppSupport } from "@/lib/whatsapp/whatsappSupport";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
@@ -28,6 +29,9 @@ function BookingClient({ reservations, currentUser }: Props) {
   const [isRefundOpen, setRefundOpen] = useState(false);
   const [refundReservationId, setRefundReservationId] = useState<string>("");
 
+  const [isInfoModalOpen, setInfoModalOpen] = useState(false);
+  const [infoReservation, setInfoReservation] = useState<SafeReservation | null>(null);
+
   const resetModal = useCallback(() => {
     setModalOpen(false);
     setModalAction("");
@@ -44,6 +48,11 @@ function BookingClient({ reservations, currentUser }: Props) {
     setSelectedId(id);
     setModalAction("delete");
     setModalOpen(true);
+  }, []);
+
+  const handleShowInfo = useCallback((reservation: SafeReservation) => {
+    setInfoReservation(reservation);
+    setInfoModalOpen(true);
   }, []);
 
   const handleRefundContact = useCallback(() => {
@@ -111,12 +120,20 @@ function BookingClient({ reservations, currentUser }: Props) {
             onCancel={handleCancelModal}
             onChat={onChat}
             onDelete={handleDeleteModal}
+            onShowInfo={handleShowInfo}
             disabled={deletingId === reservation.id}
             currentUser={currentUser}
             allowScale={false}
+            isHost={false}
           />
         ))}
       </div>
+
+      <ReservationDetailModal
+        isOpen={isInfoModalOpen}
+        onClose={() => setInfoModalOpen(false)}
+        reservation={infoReservation}
+      />
 
       {isModalOpen && (
         <Modal

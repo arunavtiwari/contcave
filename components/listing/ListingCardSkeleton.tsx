@@ -6,12 +6,14 @@ interface ListingCardSkeletonProps {
     hideActions?: boolean;
     showRating?: boolean;
     isReservation?: boolean;
+    isHost?: boolean;
 }
 
 const ListingCardSkeleton: React.FC<ListingCardSkeletonProps> = ({
     hideActions,
     showRating = true,
-    isReservation = false
+    isReservation = false,
+    isHost = false
 }) => (
     <div className="flex flex-col w-full">
         {/* Media shell matches rounded-2xl aspect-video */}
@@ -50,9 +52,13 @@ const ListingCardSkeleton: React.FC<ListingCardSkeletonProps> = ({
 
             {/* Action Buttons Row */}
             {!hideActions && (
-                <div className="flex mt-4 gap-2">
-                    <Skeleton className="h-10 flex-1 rounded-full" />
-                    <Skeleton className="h-10 flex-1 rounded-full" />
+                <div className="flex mt-4 pt-1 gap-2">
+                    {isReservation && (
+                        <Skeleton className="h-10 w-10 rounded-xl shrink-0" />
+                    )}
+                    <Skeleton className="h-10 flex-1 rounded-xl" />
+                    {(isReservation || !hideActions) && <Skeleton className="h-10 flex-1 rounded-xl" />}
+                    {isReservation && isHost && <Skeleton className="h-10 flex-1 rounded-xl" />}
                 </div>
             )}
         </div>

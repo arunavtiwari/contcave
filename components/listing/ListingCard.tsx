@@ -15,10 +15,10 @@ import { formatISTDate } from "@/lib/utils";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
 
-import ListingCardActions from "./ListingCardActions";
-import ListingCardContent from "./ListingCardContent";
-import ListingCardMedia from "./ListingCardMedia";
-import ListingCardSkeleton from "./ListingCardSkeleton";
+import ListingCardActions from "@/components/listing/ListingCardActions";
+import ListingCardContent from "@/components/listing/ListingCardContent";
+import ListingCardMedia from "@/components/listing/ListingCardMedia";
+import ListingCardSkeleton from "@/components/listing/ListingCardSkeleton";
 
 export interface ListingCardData {
   id: string | number;
@@ -52,6 +52,7 @@ interface ListingCardProps {
   onDelete?: (id: string) => void;
   onCancel?: (id: string) => void;
   onReject?: (id: string) => void;
+  onShowInfo?: (reservation: SafeReservation) => void;
   actionId?: string;
   disabled?: boolean;
   actionLabel?: string;
@@ -62,6 +63,7 @@ interface ListingCardProps {
   useTilt?: boolean;
   hideActions?: boolean;
   allowScale?: boolean;
+  isHost?: boolean;
 }
 
 const ListingCard: React.FC<ListingCardProps> = ({
@@ -74,6 +76,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
   onDelete,
   onCancel,
   onReject,
+  onShowInfo,
   actionId,
   disabled,
   actionLabel,
@@ -84,6 +87,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
   useTilt = false,
   hideActions = false,
   allowScale = true,
+  isHost = false,
 }) => {
   const { getByValue } = useCities();
 
@@ -130,6 +134,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
         hideActions={hideActions}
         showRating={showRating && hasRatingData}
         isReservation={!!reservation}
+        isHost={isHost}
       />
     );
   }
@@ -176,6 +181,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
           showRating={showRating}
           reservationDate={reservationDate}
           reservationTime={reservationTime}
+          reservation={reservation}
         />
 
         {!hideActions && (
@@ -188,9 +194,11 @@ const ListingCard: React.FC<ListingCardProps> = ({
             onDelete={onDelete}
             onCancel={onCancel}
             onReject={onReject}
+            onShowInfo={onShowInfo}
             actionId={actionId}
             disabled={disabled}
             actionLabel={actionLabel}
+            isHost={isHost}
           />
         )}
       </motion.div>

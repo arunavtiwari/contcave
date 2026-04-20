@@ -92,25 +92,25 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd).replace(/</g, "\\u003c") }}
       />
 
-      {/* 1. Hero Ã¢â‚¬â€ full-viewport, city search */}
+      {/* 1. Hero —  full-viewport, city search */}
       <Hero />
 
-      {/* 2. Studio Showcase Ã¢â‚¬â€ 6-card grid */}
+      {/* 2. Studio Showcase —  6-card grid */}
       <StudioShowcase />
 
-      {/* 3. For Brands & Agencies Ã¢â‚¬â€ two-path layout */}
+      {/* 3. For Brands & Agencies —  two-path layout */}
       <ForBrands />
 
-      {/* 4. How It Works Ã¢â‚¬â€ 3-step flow */}
+      {/* 4. How It Works —  3-step flow */}
       <HowItWorks />
 
-      {/* 5. Social Proof Ã¢â‚¬â€ video + 2-row reviews */}
+      {/* 5. Social Proof —  video + 2-row reviews */}
       <SocialProof />
 
       {/* 6. FAQ */}
       <FAQ />
 
-      {/* 7. For Studio Owners Ã¢â‚¬â€ CTA */}
+      {/* 7. For Studio Owners —  CTA */}
       <CTA />
     </main>
   );
