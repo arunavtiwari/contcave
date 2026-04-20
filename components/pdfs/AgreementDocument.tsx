@@ -1,8 +1,19 @@
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import path from "path";
 
+// Register Geist font from local node_modules
 Font.register({
-    family: "Open Sans",
-    src: "https://fonts.gstatic.com/s/opensans/v17/mem8YaGs126MiZpBA-UFVZ0e.ttf",
+    family: "Geist",
+    fonts: [
+        {
+            src: path.join(process.cwd(), "node_modules/geist/dist/fonts/geist-sans/Geist-Regular.ttf"),
+            fontWeight: "normal",
+        },
+        {
+            src: path.join(process.cwd(), "node_modules/geist/dist/fonts/geist-sans/Geist-Bold.ttf"),
+            fontWeight: "bold",
+        },
+    ],
 });
 
 interface AgreementDocumentProps {
@@ -13,7 +24,7 @@ interface AgreementDocumentProps {
 const styles = StyleSheet.create({
     page: {
         padding: 40,
-        fontFamily: "Open Sans",
+        fontFamily: "Geist",
         fontSize: 10,
         lineHeight: 1.5,
         color: "#000000",

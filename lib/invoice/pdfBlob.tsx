@@ -1,7 +1,22 @@
-import { Document, Page, renderToBuffer,StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Font, Page, renderToBuffer, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
+import path from "path";
 
-import { ARKANET_VENTURES_GST, GST_RATE } from "@/constants/gst";
+import { ARKANET_VENTURES_GST, DEFAULT_SAC_CODE, GST_RATE } from "@/constants/gst";
+
+Font.register({
+  family: "Geist",
+  fonts: [
+    {
+      src: path.join(process.cwd(), "node_modules/geist/dist/fonts/geist-sans/Geist-Regular.ttf"),
+      fontWeight: "normal",
+    },
+    {
+      src: path.join(process.cwd(), "node_modules/geist/dist/fonts/geist-sans/Geist-Bold.ttf"),
+      fontWeight: "bold",
+    },
+  ],
+});
 
 type OwnerPaymentDetails = {
   ownerName?: string | null;
@@ -65,14 +80,14 @@ function numberToWordsINR(num: number): string {
 
 const STYLES = StyleSheet.create({
   page: {
-    fontFamily: "Helvetica",
+    fontFamily: "Geist",
     backgroundColor: "#ffffff",
     padding: 0,
   },
   header: {
     backgroundColor: "#0f0e0c",
     color: "#ffffff",
-    padding: 40,
+    padding: 30,
     flexDirection: "row",
     justifyContent: "space-between",
   },
@@ -80,38 +95,39 @@ const STYLES = StyleSheet.create({
     flexDirection: "column",
   },
   brandName: {
-    fontFamily: "Times-Roman",
-    fontSize: 32,
-    marginBottom: 4,
+    fontFamily: "Geist",
+    fontSize: 28,
+    marginBottom: 2,
+    fontWeight: "bold",
   },
   brandSub: {
     color: "#c8a96e",
-    fontSize: 9,
+    fontSize: 8,
     letterSpacing: 2,
-    marginTop: 4,
+    marginTop: 2,
   },
   docMetaBox: {
     alignItems: "flex-end",
   },
   docLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#c8a96e",
     letterSpacing: 2,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   docTitle: {
-    fontSize: 22,
-    marginBottom: 10,
+    fontSize: 20,
+    marginBottom: 6,
   },
   docSubText: {
-    fontSize: 10,
+    fontSize: 9,
     color: "#aaaaaa",
     textAlign: "right",
-    lineHeight: 1.4,
+    lineHeight: 1.3,
   },
   section: {
-    paddingHorizontal: 40,
-    paddingVertical: 28,
+    paddingHorizontal: 30,
+    paddingVertical: 18,
     borderBottomWidth: 1,
     borderBottomColor: "#eeeeee",
     borderBottomStyle: "solid",
@@ -124,21 +140,23 @@ const STYLES = StyleSheet.create({
     width: "48%",
   },
   textBold: {
-    fontWeight: "heavy",
-    fontFamily: "Helvetica-Bold",
-    fontSize: 11,
-    marginBottom: 6,
+    fontWeight: "bold",
+    fontFamily: "Geist",
+    fontSize: 10,
+    marginBottom: 4,
     color: "#000000",
   },
   textNormal: {
-    fontSize: 11,
+    fontSize: 10,
     color: "#333333",
-    lineHeight: 1.4,
+    lineHeight: 1.3,
+    fontFamily: "Geist",
   },
   textMuted: {
-    fontSize: 11,
+    fontSize: 9,
     color: "#666666",
-    lineHeight: 1.4,
+    lineHeight: 1.3,
+    fontFamily: "Geist",
   },
   table: {
     width: "100%",
@@ -147,21 +165,22 @@ const STYLES = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 2,
     borderBottomColor: "#000000",
-    paddingBottom: 10,
-    marginBottom: 10,
+    paddingBottom: 8,
+    marginBottom: 8,
   },
   thLabel: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
+    fontSize: 9,
+    fontFamily: "Geist",
+    fontWeight: "bold",
   },
   tableBodyRow: {
     flexDirection: "row",
-    paddingVertical: 14,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#dddddd",
   },
   tdValue: {
-    fontSize: 11,
+    fontSize: 10,
   },
   col1: { width: "40%" },
   col2: { width: "15%" },
@@ -170,8 +189,8 @@ const STYLES = StyleSheet.create({
   col5: { width: "15%", textAlign: "right" },
   totalsWrapper: {
     width: "100%",
-    paddingHorizontal: 40,
-    paddingVertical: 20,
+    paddingHorizontal: 30,
+    paddingVertical: 15,
     alignItems: "flex-end",
   },
   totalsBox: {
@@ -183,11 +202,11 @@ const STYLES = StyleSheet.create({
     marginBottom: 6,
   },
   totalLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: "#333333",
   },
   totalValue: {
-    fontSize: 11,
+    fontSize: 10,
     color: "#333333",
   },
   grandTotalRow: {
@@ -200,11 +219,13 @@ const STYLES = StyleSheet.create({
   },
   grandTotalLabel: {
     fontSize: 16,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Geist",
+    fontWeight: "bold",
   },
   grandTotalValue: {
     fontSize: 16,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Geist",
+    fontWeight: "bold",
   },
   footerNotes: {
     fontSize: 10,
@@ -212,8 +233,8 @@ const STYLES = StyleSheet.create({
   },
   bottomBand: {
     backgroundColor: "#0f0e0c",
-    paddingHorizontal: 40,
-    paddingVertical: 15,
+    paddingHorizontal: 30,
+    paddingVertical: 12,
     flexDirection: "row",
     justifyContent: "space-between",
     position: "absolute",
@@ -255,7 +276,7 @@ const InvoiceDocument = ({
           <View style={STYLES.docMetaBox}>
             <Text style={STYLES.docLabel}>DOCUMENT</Text>
             <Text style={STYLES.docTitle}>TAX INVOICE</Text>
-            <View style={{ marginTop: 10 }}>
+            <View style={{ marginTop: 6 }}>
               <Text style={STYLES.docSubText}>Invoice No: {invoiceNumber}</Text>
               <Text style={STYLES.docSubText}>Invoice Date: {invoiceDate}</Text>
               <Text style={STYLES.docSubText}>Place: Uttar Pradesh</Text>
@@ -270,14 +291,14 @@ const InvoiceDocument = ({
           </View>
           <View style={STYLES.colHalf}>
             <Text style={STYLES.textBold}>SAC Code</Text>
-            <Text style={STYLES.textNormal}>998599</Text>
+            <Text style={STYLES.textNormal}>{DEFAULT_SAC_CODE}</Text>
           </View>
         </View>
 
         <View style={[STYLES.section, STYLES.row]}>
           <View style={STYLES.colHalf}>
             <Text style={STYLES.textBold}>Billed By</Text>
-            <Text style={{ ...STYLES.textNormal, marginBottom: 8 }}> </Text>
+            <View style={{ marginBottom: 4 }} />
             <Text style={STYLES.textNormal}>{billedBy.companyName}</Text>
             {isOwnerGST && <Text style={STYLES.textNormal}>c/o Studio Owner</Text>}
             {!isOwnerGST && <Text style={STYLES.textNormal}>SN/317-A, Shanti Nagar, Lucknow</Text>}
@@ -287,7 +308,7 @@ const InvoiceDocument = ({
           </View>
           <View style={STYLES.colHalf}>
             <Text style={STYLES.textBold}>Billed To</Text>
-            <Text style={{ ...STYLES.textNormal, marginBottom: 8 }}> </Text>
+            <View style={{ marginBottom: 4 }} />
             {billing?.companyName ? (
               <>
                 <Text style={STYLES.textNormal}>{billing.companyName}</Text>
@@ -305,7 +326,7 @@ const InvoiceDocument = ({
 
         <View style={STYLES.section}>
           <Text style={STYLES.textBold}>Booking Details</Text>
-          <Text style={{ ...STYLES.textNormal, marginBottom: 8 }}> </Text>
+          <View style={{ marginBottom: 4 }} />
           <Text style={STYLES.textNormal}>Studio Booking Services</Text>
           {bookingId && <Text style={STYLES.textNormal}>Booking ID: {bookingId}</Text>}
         </View>
@@ -324,7 +345,7 @@ const InvoiceDocument = ({
               <Text style={STYLES.textNormal}>Studio Space Rental</Text>
               <Text style={STYLES.textMuted}>Platform Booking Services</Text>
             </View>
-            <Text style={[STYLES.textNormal, STYLES.col2]}>998599</Text>
+            <Text style={[STYLES.textNormal, STYLES.col2]}>{DEFAULT_SAC_CODE}</Text>
             <Text style={[STYLES.textNormal, STYLES.col3]}>₹{amount.toFixed(2)}</Text>
             <Text style={[STYLES.textNormal, STYLES.col4]}>₹{gstAmount.toFixed(2)}</Text>
             <Text style={[STYLES.textNormal, STYLES.col5, { textAlign: "right" }]}>₹{totalAmount.toFixed(2)}</Text>
@@ -359,7 +380,7 @@ const InvoiceDocument = ({
           </Text>
         </View>
 
-        <View style={[STYLES.section, { borderBottomWidth: 0, marginTop: 10 }]}>
+        <View style={[STYLES.section, { borderBottomWidth: 0, marginTop: 4 }]}>
           <Text style={STYLES.footerNotes}>
             This is a computer-generated invoice and does not require a physical signature.
             {"\n"}

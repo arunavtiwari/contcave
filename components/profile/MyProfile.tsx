@@ -20,6 +20,8 @@ import {
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { cn } from "@/lib/utils";
+
 import { updateUser } from "@/app/actions/updateUser";
 import CitySelect from "@/components/inputs/CitySelect";
 import ImageUpload from "@/components/inputs/ImageUpload";
@@ -348,15 +350,14 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                             transition={{ duration: 0.2 }}
                                             className="flex gap-2"
                                         >
-                                            {PROFILE_TITLE_OPTIONS.map((title) => (
-                                                <Button
-                                                    key={title}
-                                                    label={title}
-                                                    onClick={() => handleTitleChange(title)}
-                                                    variant={userData.title === title ? "default" : "outline"}
-                                                    size="sm"
-                                                    rounded
-                                                    fit
+                                            {PROFILE_TITLE_OPTIONS.map((t) => (
+                                                <Pill
+                                                    key={t}
+                                                    label={t}
+                                                    onClick={() => handleTitleChange(t)}
+                                                    variant="subtle"
+                                                    color={userData.title === t ? "default" : "secondary"}
+                                                    className="cursor-pointer min-w-14"
                                                 />
                                             ))}
                                         </motion.div>
@@ -489,18 +490,28 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                             transition={{ duration: 0.2 }}
                                             className="flex flex-wrap gap-2 max-w-xs justify-end"
                                         >
-                                            {PROFILE_LANGUAGE_OPTIONS.map((language) => (
-                                                <Button
-                                                    key={language}
-                                                    label={language}
-                                                    onClick={() => handleLanguageToggle(language)}
-                                                    disabled={!(userData.languages || []).includes(language) && (userData.languages || []).length >= 2}
-                                                    variant={(userData.languages || []).includes(language) ? "default" : "outline"}
-                                                    size="sm"
-                                                    rounded
-                                                    fit
-                                                />
-                                            ))}
+                                            {PROFILE_LANGUAGE_OPTIONS.map((language) => {
+                                                const isSelected = (userData.languages || []).includes(language);
+                                                const isDisabled = !isSelected && (userData.languages || []).length >= 2;
+                                                return (
+                                                    <Pill
+                                                        key={language}
+                                                        label={language}
+                                                        onClick={() => {
+                                                            if (isSelected || !isDisabled) {
+                                                                handleLanguageToggle(language);
+                                                            }
+                                                        }}
+                                                        variant="subtle"
+                                                        color={isSelected ? "default" : "secondary"}
+                                                        className={cn(
+                                                            "cursor-pointer transition-all",
+                                                            isDisabled && "opacity-30 cursor-not-allowed grayscale",
+                                                            !isSelected && "hover:bg-neutral-100"
+                                                        )}
+                                                    />
+                                                );
+                                            })}
                                         </motion.div>
                                     ) : (
                                         <motion.div

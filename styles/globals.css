@@ -59,6 +59,7 @@
 	/* 5. Layout & Spacing Tokens */
 	--spacing-section: 7rem;
 	--spacing-card-p: 2rem;
+	--font-serif: Georgia, serif;
 }
 
 @layer utilities {

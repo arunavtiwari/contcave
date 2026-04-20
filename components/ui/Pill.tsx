@@ -3,7 +3,7 @@ import { IconType } from "react-icons";
 
 import { cn } from "@/lib/utils";
 
-export type PillVariant = "subtle" | "solid" | "glass";
+export type PillVariant = "subtle" | "glass";
 export type PillColor = "default" | "secondary" | "destructive" | "success" | "warning" | "neutral";
 export type PillSize = "xs" | "sm" | "md";
 
@@ -34,22 +34,14 @@ const Pill: React.FC<PillProps> = ({
         md: "px-3 h-9 text-sm",
     };
 
-    const variantClasses = {
+    const variantClasses: Record<PillVariant, Record<PillColor, string>> = {
         subtle: {
-            default: "bg-foreground/10 text-foreground",
-            secondary: "bg-foreground/4 text-foreground/80",
+            default: "bg-foreground/8 text-foreground",
+            secondary: "bg-foreground/3 text-foreground/80",
             destructive: "bg-destructive/10 text-destructive",
             success: "bg-success/10 text-success",
             warning: "bg-warning/10 text-warning",
             neutral: "bg-muted text-muted-foreground",
-        },
-        solid: {
-            default: "bg-foreground text-background",
-            secondary: "bg-muted text-foreground",
-            destructive: "bg-destructive text-destructive-foreground",
-            success: "bg-success text-white",
-            warning: "bg-warning text-white",
-            neutral: "bg-neutral-200 text-neutral-700",
         },
         glass: {
             default: "bg-background/90 backdrop-blur-sm text-foreground",

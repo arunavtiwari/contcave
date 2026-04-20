@@ -13,4 +13,5 @@ export const ARKANET_VENTURES_GST = {
 
 export const GST_RATE = 0.18;
 export const PLATFORM_COMMISSION_PERCENT = 12; // Arkanet keeps 12% commission
+export const DEFAULT_SAC_CODE = "998599"; // Other business support services
 

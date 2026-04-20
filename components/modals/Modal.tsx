@@ -113,7 +113,7 @@ function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <div className={`flex flex-col w-full bg-background rounded-4xl shadow-2xl shadow-black/20 ring-1 ring-border/50 overflow-hidden ${customHeight || "h-auto max-h-[90vh]"}`}>
+        <div className={`flex flex-col w-full bg-background rounded-3xl shadow-md overflow-hidden ${customHeight || "h-auto max-h-[90vh]"}`}>
 
           {/* Header */}
           <div className="flex items-center justify-between px-8 py-6 bg-background relative shrink-0">
@@ -143,8 +143,6 @@ function Modal({
               {secondaryAction && secondaryActionLabel && (
                 <Button
                   outline
-                  rounded
-                  classNames="border-border/60 hover:bg-background"
                   disabled={disabled}
                   label={secondaryActionLabel}
                   onClick={handleSecondAction}
@@ -152,7 +150,6 @@ function Modal({
               )}
 
               <Button
-                rounded
                 disabled={disabled}
                 label={actionLabel}
                 onClick={handleSubmit}

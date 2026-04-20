@@ -63,7 +63,6 @@ const ForBrands = () => {
             viewport={{ once: true }}
             className="group/dark relative flex min-h-70 flex-col overflow-hidden rounded-2xl bg-foreground p-6 lg:p-10"
           >
-            <div className="pointer-events-none absolute inset-0 z-0 -translate-x-full bg-linear-to-r from-transparent via-background/5 to-transparent transition-transform duration-500 ease-in-out group-hover/dark:translate-x-full" />
 
             <div className="relative z-10 flex flex-1 flex-col">
               <div className="flex-1">
