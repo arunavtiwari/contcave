@@ -15,10 +15,6 @@ import useCities from "@/hook/useCities";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
 
-/**
- * Enterprise-grade data contract for ListingCard.
- * Supports both platform core listings and landing page showcase data.
- */
 export interface ListingCardData {
   id: string | number;
   title?: string;
@@ -72,6 +68,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
   className = "",
   showHeart = true,
   showRating = true,
+  useTilt = false,
 }) => {
   const { getByValue } = useCities();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -113,6 +110,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-5deg", "5deg"]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (!useTilt) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
@@ -150,8 +148,8 @@ const ListingCard: React.FC<ListingCardProps> = ({
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         style={{
-          rotateY,
-          rotateX,
+          rotateY: useTilt ? rotateY : 0,
+          rotateX: useTilt ? rotateX : 0,
           transformStyle: "preserve-3d",
         }}
         className="flex flex-col w-full relative"
@@ -186,13 +184,13 @@ const ListingCard: React.FC<ListingCardProps> = ({
             label={
               <div className="flex gap-1 items-center font-medium">
                 {data.hasSets && <span className="text-[10px] opacity-70">From</span>}
-                <span className="text-sm">₹{formattedPrice.toLocaleString("en-IN")}</span>
+                <span className="text-xs">₹{formattedPrice.toLocaleString("en-IN")}</span>
                 {!reservation && <span className="text-[10px] opacity-70">/ Hr</span>}
               </div>
             }
             variant="glass"
             size="sm"
-            className="absolute bottom-3 right-3 z-20 shadow-lg border border-white/20"
+            className="absolute bottom-3 right-3 z-20"
           />
 
           {!onEdit && showHeart && (
@@ -231,22 +229,30 @@ const ListingCard: React.FC<ListingCardProps> = ({
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-[10px] font-bold text-muted-foreground/90 transition-colors group-hover:bg-neutral-100">
-              {data.category || (data.tags && data.tags[0]) || "Creative Space"}
-            </span>
+            <Pill
+              label={data.category || (data.tags && data.tags[0]) || "Creative Space"}
+              variant="subtle"
+              size="xs"
+              color="secondary"
+            />
 
             {ratingValue && showRating && (
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-neutral-200 bg-neutral-50 group-hover:bg-white transition-all shadow-sm">
-                <AiFillStar className="text-warning" size={12} />
-                <span className="text-[11px] font-extrabold text-foreground">
-                  {ratingValue.toFixed(1)}
-                  {data.reviewCount !== undefined && data.reviewCount > 0 && (
-                    <span className="font-medium text-muted-foreground opacity-60 ml-0.5 tracking-tighter">
-                      ({data.reviewCount})
-                    </span>
-                  )}
-                </span>
-              </div>
+              <Pill
+                label={
+                  <span className="text-[11px] font-extrabold flex items-center gap-1">
+                    {ratingValue.toFixed(1)}
+                    {data.reviewCount !== undefined && data.reviewCount > 0 && (
+                      <span className="font-medium text-muted-foreground opacity-60 tracking-tighter">
+                        ({data.reviewCount})
+                      </span>
+                    )}
+                  </span>
+                }
+                icon={AiFillStar}
+                variant="subtle"
+                size="xs"
+                color="secondary"
+              />
             )}
           </div>
         </div>

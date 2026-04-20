@@ -18,7 +18,7 @@ const StudioCard = ({ studio, index }: { studio: (typeof studios)[number]; index
       transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
       viewport={{ once: true }}
     >
-      <ListingCard data={studio} showHeart={false} />
+      <ListingCard data={studio} showHeart={false} useTilt={true} />
     </motion.div>
   );
 };

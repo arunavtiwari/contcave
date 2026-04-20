@@ -44,8 +44,8 @@ const Pill: React.FC<PillProps> = ({
             neutral: "bg-muted text-muted-foreground",
         },
         glass: {
-            default: "bg-background/90 backdrop-blur-sm text-foreground",
-            secondary: "bg-background/5 backdrop-blur-sm text-background",
+            default: "bg-background/80 backdrop-blur-md text-foreground",
+            secondary: "bg-background/5 backdrop-blur-md text-background",
             destructive: "bg-destructive/20 backdrop-blur-md border border-destructive/20 text-destructive",
             success: "bg-success/20 backdrop-blur-md border border-success/20 text-success",
             warning: "bg-warning/20 backdrop-blur-md border border-warning/20 text-warning",

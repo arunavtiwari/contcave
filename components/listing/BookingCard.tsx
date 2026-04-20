@@ -37,6 +37,7 @@ interface BookingCardProps {
     actionLabel?: string;
     actionId?: string;
     currentUser?: SafeUser | null;
+    useTilt?: boolean;
 }
 
 const BookingCard: React.FC<BookingCardProps> = ({
@@ -49,6 +50,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
     onChat,
     disabled,
     actionId,
+    useTilt = false,
 }) => {
     const [showReceipt, setShowReceipt] = useState(false);
 
@@ -120,6 +122,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
     const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-5deg", "5deg"]);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        if (!useTilt) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
@@ -148,8 +151,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
                     onMouseMove={handleMouseMove}
                     onMouseLeave={handleMouseLeave}
                     style={{
-                        rotateY,
-                        rotateX,
+                        rotateY: useTilt ? rotateY : 0,
+                        rotateX: useTilt ? rotateX : 0,
                         transformStyle: "preserve-3d",
                     }}
                     className="flex flex-col w-full relative"
@@ -215,13 +218,21 @@ const BookingCard: React.FC<BookingCardProps> = ({
                         <div className="flex items-center justify-between">
                             <div className="flex gap-2">
                                 {!reservation?.isApproved && onApprove ? (
-                                    <span className="rounded-full border border-warning/20 bg-warning/5 px-3 py-1 text-[10px] font-bold text-warning uppercase">
-                                        Action Required
-                                    </span>
+                                    <Pill
+                                        label="Action Required"
+                                        variant="subtle"
+                                        color="warning"
+                                        size="xs"
+                                        className="font-bold uppercase"
+                                    />
                                 ) : (
-                                    <span className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-[10px] font-bold text-muted-foreground/90 uppercase tracking-tighter">
-                                        {durationLabel} Session
-                                    </span>
+                                    <Pill
+                                        label={`${durationLabel} Session`}
+                                        variant="subtle"
+                                        color="secondary"
+                                        size="xs"
+                                        className="font-bold uppercase tracking-tighter"
+                                    />
                                 )}
                             </div>
 
