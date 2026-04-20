@@ -1273,7 +1273,7 @@ export default function RentModal() {
         disableOverlayClose={true}
         title={currentStepDefinition.modalTitle}
         actionLabel={actionLabel}
-        onSubmit={() => {
+        onSubmitAction={() => {
           if (step === STEPS.TERMS) {
             handleSubmit(onSubmit, (errors) => {
               if (errors.terms || !signature?.url) {
@@ -1287,8 +1287,8 @@ export default function RentModal() {
           }
         }}
         secondaryActionLabel={secondActionLabel}
-        secondaryAction={currentStepIndex <= 0 ? undefined : onBack}
-        onClose={() => uiStore.onClose("rent")}
+        secondaryActionAction={currentStepIndex <= 0 ? undefined : onBack}
+        onCloseAction={() => uiStore.onClose("rent")}
         selfActionButton={false}
 
 
@@ -1330,9 +1330,9 @@ export default function RentModal() {
 
       <Modal
         isOpen={showSuccessModal}
-        onClose={() => { setShowSuccessModal(false); }}
-        onSubmit={() => { setShowSuccessModal(false); }}
-        title="Listing Submitted Ã°Å¸Å½â€°"
+        onCloseAction={() => { setShowSuccessModal(false); }}
+        onSubmitAction={() => { setShowSuccessModal(false); }}
+        title="Listing Submitted 🎉"
         customHeight="h-auto"
         actionLabel="Close"
         body={

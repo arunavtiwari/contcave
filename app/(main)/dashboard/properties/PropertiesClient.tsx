@@ -89,11 +89,11 @@ function PropertiesClient({ listings, currentUser }: Props) {
 
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleConfirmDelete}
+        onCloseAction={() => setIsModalOpen(false)}
+        onSubmitAction={handleConfirmDelete}
         title="Delete Property"
         actionLabel="Delete"
-        secondaryAction={() => setIsModalOpen(false)}
+        secondaryActionAction={() => setIsModalOpen(false)}
         secondaryActionLabel="Cancel"
         disabled={isPending}
         body={

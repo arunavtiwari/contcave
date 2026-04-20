@@ -7,8 +7,8 @@ import Button from "@/components/ui/Button";
 
 type Props = {
   isOpen?: boolean;
-  onClose: () => void;
-  onSubmit: () => void;
+  onCloseAction: () => void;
+  onSubmitAction: () => void;
   title?: string;
   body?: React.ReactElement;
   footer?: React.ReactElement;
@@ -17,24 +17,25 @@ type Props = {
   customWidth?: string;
   fixedHeight?: boolean;
   selfActionButton?: boolean;
-  secondaryAction?: () => void;
+  secondaryActionAction?: () => void;
   secondaryActionLabel?: string;
   nestedModal?: boolean;
   isLoading?: boolean;
   disableOverlayClose?: boolean;
-
+  primaryActionVariant?: "default" | "outline" | "success" | "destructive" | "ghost" | "secondary";
+  actionDisabled?: boolean;
 };
 
 function Modal({
   isOpen,
-  onClose,
-  onSubmit,
+  onCloseAction,
+  onSubmitAction,
   title,
   body,
   actionLabel,
   footer,
   disabled,
-  secondaryAction,
+  secondaryActionAction,
   customWidth,
   selfActionButton,
   secondaryActionLabel,
@@ -43,6 +44,8 @@ function Modal({
   bodyRef,
   customHeight,
   disableOverlayClose,
+  primaryActionVariant = "default",
+  actionDisabled,
 }: Props & { bodyRef?: React.RefObject<HTMLDivElement | null>; customHeight?: string }) {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -66,18 +69,18 @@ function Modal({
 
   const handleClose = useCallback(() => {
     if (disabled) return;
-    onClose();
-  }, [disabled, onClose]);
+    onCloseAction();
+  }, [disabled, onCloseAction]);
 
   const handleSubmit = useCallback(() => {
     if (disabled) return;
-    onSubmit();
-  }, [onSubmit, disabled]);
+    onSubmitAction();
+  }, [onSubmitAction, disabled]);
 
   const handleSecondAction = useCallback(() => {
-    if (disabled || !secondaryAction) return;
-    secondaryAction();
-  }, [disabled, secondaryAction]);
+    if (disabled || !secondaryActionAction) return;
+    secondaryActionAction();
+  }, [disabled, secondaryActionAction]);
 
 
   useEffect(() => {
@@ -99,7 +102,7 @@ function Modal({
   return (
     <div
       onClick={handleBackdropClick}
-      className={`fixed inset-0 z-999 flex items-center justify-center px-4 transition-all duration-500 ${nestedModal ? "bg-foreground/20" : "bg-foreground/60"
+      className={`fixed inset-0 z-999 flex items-center justify-center backdrop-blur-sm px-4 transition-all duration-500 ${nestedModal ? "bg-foreground/20" : "bg-foreground/60"
         } ${isOpen ? "opacity-100" : "opacity-0"} ${nestedModal ? "" : isLoading ? "backdrop-blur-md" : "backdrop-blur-[2px]"
         }`}
     >
@@ -132,34 +135,37 @@ function Modal({
 
           <div
             ref={bodyRef}
-            className="flex-1 px-8 pb-8 pt-2 overflow-y-auto text-[15px] leading-relaxed text-muted-foreground"
+            className="flex-1 px-6 pb-6 pt-2 overflow-y-auto text-[15px] leading-relaxed text-muted-foreground"
           >
             {body}
           </div>
 
 
           {!selfActionButton && (
-            <div className="px-8 py-5 flex flex-col md:flex-row gap-3 justify-end items-center bg-muted/20 shrink-0 border-t border-border/40">
-              {secondaryAction && secondaryActionLabel && (
+            <div className="px-6 py-4 flex flex-col md:flex-row gap-3 justify-end items-center bg-muted/10 shrink-0 border-t border-border/40">
+              {secondaryActionAction && secondaryActionLabel && (
                 <Button
                   outline
                   disabled={disabled}
                   label={secondaryActionLabel}
                   onClick={handleSecondAction}
+                  rounded
                 />
               )}
 
               <Button
-                disabled={disabled}
+                disabled={disabled || actionDisabled}
                 label={actionLabel}
                 onClick={handleSubmit}
                 loading={isLoading}
+                variant={primaryActionVariant}
+                rounded
               />
             </div>
           )}
 
 
-          {footer && <div className="px-8 pb-6 shrink-0">{footer}</div>}
+          {footer && <div className="px-6 pb-6 shrink-0">{footer}</div>}
         </div>
       </div>
     </div>

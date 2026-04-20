@@ -75,8 +75,8 @@ function LoginModal({ }: Props) {
       isOpen={uiStore.modals.login}
       title="Login"
       actionLabel="Continue"
-      onClose={() => uiStore.onClose("login")}
-      onSubmit={handleSubmit(onSubmit)}
+      onCloseAction={() => uiStore.onClose("login")}
+      onSubmitAction={handleSubmit(onSubmit)}
       body={
         <div className="flex flex-col gap-4">
           <Heading title="Welcome Back" subtitle="Login to your Account!" center />

@@ -134,9 +134,9 @@ function SearchModalContent({ }: Props) {
   return (
     <Modal
       isOpen={uiStore.modals.search}
-      onClose={() => uiStore.onClose("search")}
-      onSubmit={onSubmit}
-      secondaryAction={step === STEPS.LOCATION ? undefined : onBack}
+      onCloseAction={() => uiStore.onClose("search")}
+      onSubmitAction={onSubmit}
+      secondaryActionAction={step === STEPS.LOCATION ? undefined : onBack}
       secondaryActionLabel={secondActionLabel}
       title="Filters"
       actionLabel={actionLabel}

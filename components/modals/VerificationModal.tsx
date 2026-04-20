@@ -29,7 +29,7 @@ import { SafeUser } from "@/types/user";
 
 type Props = {
   isOpen: boolean;
-  onClose: () => void;
+  onCloseAction: () => void;
   currentUser: SafeUser | null;
   onComplete?: () => void;
 };
@@ -53,7 +53,7 @@ const getInitialStep = (user: SafeUser | null): number => {
 
 const VerificationModal: React.FC<Props> = ({
   isOpen,
-  onClose,
+  onCloseAction,
   currentUser,
   onComplete,
 }) => {
@@ -318,7 +318,7 @@ const VerificationModal: React.FC<Props> = ({
       setUserState(updatedUser as SafeUser);
       toast.success("Bank Verified!");
       onComplete?.();
-      onClose();
+      onCloseAction();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Bank verification failed";
       toast.error(message);
@@ -594,10 +594,10 @@ const VerificationModal: React.FC<Props> = ({
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onCloseAction={onCloseAction}
       title="Verification Center"
       actionLabel={step === 3 ? "Complete" : step === 4 ? "Close" : "Continue"}
-      onSubmit={step === 4 ? onClose : handleNextClick}
+      onSubmitAction={step === 4 ? onCloseAction : handleNextClick}
       disabled={loading}
       isLoading={loading}
       body={

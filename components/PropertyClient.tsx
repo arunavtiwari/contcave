@@ -830,8 +830,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             </div>
             <DeletePropertyModal
                 isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={handleDeleteProperty}
+                onCloseAction={() => setIsDeleteModalOpen(false)}
+                onConfirmAction={handleDeleteProperty}
                 propertyName={initialListing.title || ""}
                 isLoading={isDeleting}
             />

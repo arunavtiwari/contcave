@@ -7,13 +7,13 @@ import { SafeReservation } from "@/types/reservation";
 
 interface ReservationDetailModalProps {
     isOpen: boolean;
-    onClose: () => void;
+    onCloseAction: () => void;
     reservation: SafeReservation | null;
 }
 
 const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
     isOpen,
-    onClose,
+    onCloseAction,
     reservation,
 }) => {
     if (!reservation) return null;
@@ -21,8 +21,8 @@ const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
     return (
         <Modal
             isOpen={isOpen}
-            onClose={onClose}
-            onSubmit={onClose}
+            onCloseAction={onCloseAction}
+            onSubmitAction={onCloseAction}
             title="Booking Information"
             actionLabel="Close"
             body={

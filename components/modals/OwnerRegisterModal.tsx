@@ -81,8 +81,8 @@ function OwnerRegisterModal() {
             isOpen={uiStore.modals.ownerRegister}
             title="Register as Owner"
             actionLabel="Register"
-            onClose={() => uiStore.onClose("ownerRegister")}
-            onSubmit={handleSubmit(onSubmit)}
+            onCloseAction={() => uiStore.onClose("ownerRegister")}
+            onSubmitAction={handleSubmit(onSubmit)}
             body={
                 <div className="flex flex-col gap-6">
                     <Heading title="Welcome to ContCave" subtitle="Create an Owner Account!" center />

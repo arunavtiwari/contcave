@@ -195,15 +195,15 @@ function ReservationsClient({ reservations, currentUser }: Props) {
 
       <ReservationDetailModal
         isOpen={isInfoModalOpen}
-        onClose={() => setInfoModalOpen(false)}
+        onCloseAction={() => setInfoModalOpen(false)}
         reservation={infoReservation}
       />
 
       {isModalOpen && (
         <Modal
           isOpen={isModalOpen}
-          onClose={() => !deletingId && setModalOpen(false)}
-          onSubmit={handleConfirmAction}
+          onCloseAction={() => !deletingId && setModalOpen(false)}
+          onSubmitAction={handleConfirmAction}
           title={
             modalAction === "reject"
               ? "Reason for Rejecting This Booking"
@@ -253,7 +253,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
                 ? "Cancel Reservation"
                 : "Delete Reservation"
           }
-          secondaryAction={() => !deletingId && setModalOpen(false)}
+          secondaryActionAction={() => !deletingId && setModalOpen(false)}
           secondaryActionLabel="Close"
         />
       )}

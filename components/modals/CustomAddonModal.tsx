@@ -74,8 +74,8 @@ function CustomAddonModal({ save }: Props) {
       title="Create Add-On"
       actionLabel={isUploading ? "Uploading..." : "Create"}
       disabled={isUploading}
-      onClose={() => uiStore.onClose("addon")}
-      onSubmit={handleSubmit(onSubmit)}
+      onCloseAction={() => uiStore.onClose("addon")}
+      onSubmitAction={handleSubmit(onSubmit)}
       body={
         <>
           <div className="flex flex-col gap-4 items-center">

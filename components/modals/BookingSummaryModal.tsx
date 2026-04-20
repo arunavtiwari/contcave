@@ -1,14 +1,14 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import React, { useState } from "react";
 
 import { saveBillingInfo } from "@/app/actions/billingActions";
 import { createInvoice } from "@/app/actions/invoiceActions";
 import Checkbox from "@/components/inputs/Checkbox";
 import Input from "@/components/inputs/Input";
 import Textarea from "@/components/inputs/Textarea";
-import Heading from "@/components/ui/Heading";
+import Modal from "@/components/modals/Modal";
 import { billingSchema } from "@/schemas/billing";
 
 type GSTDetails = {
@@ -48,13 +48,10 @@ export default function BookingSummaryModal({
   reservationId,
   transactionId,
 }: BookingSummaryModalProps) {
-  const sectionId = useId();
   const [needGST, setNeedGST] = useState(false);
   const [agree, setAgree] = useState(false);
   const [gstError, setGstError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  if (!isOpen) return null;
 
   const handleConfirm = async () => {
     setSaving(true);
@@ -97,166 +94,116 @@ export default function BookingSummaryModal({
         setSaving(false);
       }
     } else {
-
       onConfirmAction();
       setSaving(false);
     }
   };
 
-  return (
-    <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-foreground/50 backdrop-blur-sm p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={`${sectionId}-booking-summary-title`}
-      onClick={() => onCloseAction()}
-    >
-      <div
-        className="w-full max-w-lg rounded-2xl bg-background  p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Heading
-          title="Booking Summary"
-          variant="h5"
-          id={`${sectionId}-booking-summary-title`}
-          className="mb-2"
+  const bodyContent = (
+    <div className="flex flex-col gap-6 pt-2">
+      <div className="space-y-3 text-muted-foreground">
+        <div className="flex justify-between text-sm">
+          <p>Booking Fee</p>
+          <p>₹{bookingFee}</p>
+        </div>
+        <div className="flex justify-between text-sm">
+          <p>Addons</p>
+          <p>₹{addonsSum}</p>
+        </div>
+        <div className="flex justify-between text-sm">
+          <p>Platform Fee</p>
+          <p>₹{platformFee}</p>
+        </div>
+        <div className="flex justify-between text-sm">
+          <p>GST (18%)</p>
+          <p>₹{gstAmount}</p>
+        </div>
+        <hr className="border-border/40" />
+        <div className="flex justify-between font-bold text-foreground text-base">
+          <p>Total</p>
+          <p>₹{finalTotal}</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <Checkbox
+          label="Need GST Invoice?"
+          checked={needGST}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNeedGST(e.target.checked)}
         />
 
-
-        <div className="mb-4 space-y-2 text-muted-foreground">
-          <div className="flex justify-between">
-            <p>Booking Fee</p>
-            <p>{bookingFee}</p>
-          </div>
-          <div className="flex justify-between">
-            <p>Addons</p>
-            <p>{addonsSum}</p>
-          </div>
-          <div className="flex justify-between">
-            <p>Platform Fee</p>
-            <p>{platformFee}</p>
-          </div>
-          <div className="flex justify-between">
-            <p>GST (18%)</p>
-            <p>{gstAmount}</p>
-          </div>
-          <hr />
-          <div className="flex justify-between font-semibold">
-            <p>Total</p>
-            <p>{finalTotal}</p>
-          </div>
-        </div>
-
-
-
-        <div className="mb-4">
-          <Checkbox
-            label="Need GST Invoice?"
-            checked={needGST}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNeedGST(e.target.checked)}
-          />
-        </div>
-
-
         {needGST && (
-          <div className="space-y-3 mb-4 text-foreground">
-
-            <div>
-              <Input
-                id="companyName"
-                label="Company Name"
-                placeholder="e.g. Acme Corp Pvt Ltd"
-                value={gstDetails.companyName}
-                onChange={(e) =>
-                  setGstDetailsAction({ ...gstDetails, companyName: e.target.value })
-                }
-              />
-            </div>
-
-            <div>
-              <Input
-                id="gstin"
-                label="GSTIN"
-                maxLength={15}
-                value={gstDetails.gstin}
-                onChange={(e) =>
-                  setGstDetailsAction({ ...gstDetails, gstin: e.target.value.toUpperCase() })
-                }
-                placeholder="XXABCDE1234F2Z5"
-              />
-            </div>
-
-            <div>
-              <Textarea
-                id="billingAddress"
-                label="Billing Address"
-                placeholder="123, Business Park, Sector 5, Kolkata, 700091"
-                value={gstDetails.billingAddress}
-                onChange={(e) =>
-                  setGstDetailsAction({ ...gstDetails, billingAddress: e.target.value })
-                }
-              />
-            </div>
+          <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            <Input
+              id="companyName"
+              label="Company Name"
+              placeholder="e.g. Acme Corp Pvt Ltd"
+              value={gstDetails.companyName}
+              onChange={(e) =>
+                setGstDetailsAction({ ...gstDetails, companyName: e.target.value })
+              }
+            />
+            <Input
+              id="gstin"
+              label="GSTIN"
+              maxLength={15}
+              value={gstDetails.gstin}
+              onChange={(e) =>
+                setGstDetailsAction({ ...gstDetails, gstin: e.target.value.toUpperCase() })
+              }
+              placeholder="XXABCDE1234F2Z5"
+            />
+            <Textarea
+              id="billingAddress"
+              label="Billing Address"
+              placeholder="123, Business Park..."
+              value={gstDetails.billingAddress}
+              onChange={(e) =>
+                setGstDetailsAction({ ...gstDetails, billingAddress: e.target.value })
+              }
+            />
           </div>
         )}
 
-        {gstError && <p className="text-sm text-destructive mb-2">{gstError}</p>}
+        {gstError && <p className="text-sm text-destructive">{gstError}</p>}
 
-
-        <div className="mt-4 mb-5">
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+        <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
+          <div className="flex items-start gap-3">
             <Checkbox
-              label="I agree to the"
               checked={agree}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAgree(e.target.checked)}
             />
-            <span className="font-medium">
-              <Link
-                href="/terms-and-conditions"
-                target="_blank"
-                className="text-foreground font-semibold underline hover:text-foreground/80 leading-none"
-              >
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              I agree to the{" "}
+              <Link href="/terms-and-conditions" target="_blank" className="text-foreground font-semibold underline">
                 Terms & Conditions
               </Link>{" "}
               and{" "}
-              <Link
-                href="/privacy-policy"
-                target="_blank"
-                className="text-foreground font-semibold underline hover:text-foreground/80 leading-none"
-              >
+              <Link href="/privacy-policy" target="_blank" className="text-foreground font-semibold underline">
                 Privacy Policy
-              </Link>
-              .
-            </span>
+              </Link>.
+            </p>
           </div>
-        </div>
-
-
-        <div className="mt-5 flex gap-2 justify-end">
-          <button
-            type="button"
-            className="px-4 py-2 rounded-xl border border-border hover:bg-muted"
-            onClick={onCloseAction}
-            disabled={saving}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className={`px-4 py-2 rounded-xl text-background ${agree
-              ? "bg-foreground hover:opacity-90"
-              : "bg-muted cursor-not-allowed"
-              }`}
-            onClick={handleConfirm}
-            disabled={!agree || saving}
-          >
-            {saving ? "Saving…" : "Confirm & Continue"}
-          </button>
         </div>
       </div>
     </div>
   );
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onCloseAction={onCloseAction}
+      onSubmitAction={handleConfirm}
+      title="Booking Summary"
+      body={bodyContent}
+      actionLabel={saving ? "Processing..." : "Confirm & Continue"}
+      secondaryActionLabel="Cancel"
+      secondaryActionAction={onCloseAction}
+      actionDisabled={!agree}
+      disabled={saving}
+      isLoading={saving}
+      customWidth="w-full max-w-lg"
+      customHeight="h-fit"
+    />
+  );
 }
-
-
-

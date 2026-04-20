@@ -164,16 +164,14 @@ const OwnerEnableModal: React.FC<Props> = ({
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
-      onSubmit={handleSubmit}
-      title="Register as Studio Host"
+      onCloseAction={onClose}
+      onSubmitAction={handleSubmit}
+      title="Ready to List Your Studio?"
       body={body}
       actionLabel="Continue to Verification"
-
       customWidth="max-w-2xl"
     />
   );
 };
 
-export default OwnerEnableModal;
 

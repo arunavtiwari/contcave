@@ -553,7 +553,7 @@ export default function ListingReservation({
 
       <div className="p-4">
         <Button
-          label={isPaying ? "Redirecting to Cashfreeâ€¦" : "Reserve and Pay"}
+          label={isPaying ? "Redirecting to Cashfree..." : "Reserve and Pay"}
           onClick={handleReserve}
           disabled={!ready}
           loading={isPaying}
@@ -588,7 +588,7 @@ export default function ListingReservation({
             </div>
           ) : (
             <p>
-              Base booking fee {INR.format(price)} Ãƒâ€” {safeHours} hr
+              Base booking fee {INR.format(price)} × {safeHours} hr
               {safeHours === 1 ? "" : "s"}
             </p>
           )}

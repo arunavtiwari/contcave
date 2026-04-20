@@ -131,15 +131,15 @@ function BookingClient({ reservations, currentUser }: Props) {
 
       <ReservationDetailModal
         isOpen={isInfoModalOpen}
-        onClose={() => setInfoModalOpen(false)}
+        onCloseAction={() => setInfoModalOpen(false)}
         reservation={infoReservation}
       />
 
       {isModalOpen && (
         <Modal
           isOpen={isModalOpen}
-          onClose={() => !deletingId && setModalOpen(false)}
-          onSubmit={handleConfirmAction}
+          onCloseAction={() => !deletingId && setModalOpen(false)}
+          onSubmitAction={handleConfirmAction}
           title={modalAction === "cancel" ? "Cancel Reservation" : "Delete Reservation"}
           body={
             <p className="text-center">
@@ -147,7 +147,7 @@ function BookingClient({ reservations, currentUser }: Props) {
             </p>
           }
           actionLabel={modalAction === "cancel" ? "Cancel Reservation" : "Delete Reservation"}
-          secondaryAction={() => !deletingId && setModalOpen(false)}
+          secondaryActionAction={() => !deletingId && setModalOpen(false)}
           secondaryActionLabel="Close"
         />
       )}
@@ -155,8 +155,8 @@ function BookingClient({ reservations, currentUser }: Props) {
       {isRefundOpen && (
         <Modal
           isOpen={isRefundOpen}
-          onClose={() => setRefundOpen(false)}
-          onSubmit={handleRefundContact}
+          onCloseAction={() => setRefundOpen(false)}
+          onSubmitAction={handleRefundContact}
           title="Booking Cancelled 😔"
           body={(() => {
             const r = reservations.find((x) => x.id === refundReservationId);

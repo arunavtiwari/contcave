@@ -104,8 +104,8 @@ const FilterModalContent = () => {
 
       <Modal
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        onSubmit={handleApplyFilters}
+        onCloseAction={() => setIsOpen(false)}
+        onSubmitAction={handleApplyFilters}
         title="More Filters"
         body={body}
         actionLabel="Apply"

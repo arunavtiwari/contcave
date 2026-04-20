@@ -1,9 +1,4 @@
-"use client";
-
-import { useId } from "react";
-
-import Button from "@/components/ui/Button";
-import Heading from "@/components/ui/Heading";
+import Modal from "./Modal";
 
 type PhoneModalProps = {
     isOpen: boolean;
@@ -26,67 +21,54 @@ export default function PhoneModal({
     onCloseAction,
     onSubmitAction,
 }: PhoneModalProps) {
-    const sectionId = useId();
-    if (!isOpen) return null;
-    return (
-        <div
-            className="fixed inset-0 z-100 flex items-center justify-center bg-foreground/50 px-4"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={`${sectionId}-phone-title`}
-            onClick={() => !phoneSaving && onCloseAction()}
-        >
-            <div
-                className="w-full max-w-md rounded-2xl bg-background  p-6"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <Heading
-                    title="Add your mobile number"
-                    variant="h5"
-                    id={`${sectionId}-phone-title`}
-                    className="mb-2"
-                />
-                <p className="text-sm text-muted-foreground mb-4">
-                    Please provide a valid mobile number to continue with your booking.
-                </p>
-                <div className="space-y-2">
-                    <label htmlFor={`${sectionId}-phone-input`} className="text-sm">
-                        Mobile number
-                    </label>
+    const bodyContent = (
+        <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+                Please provide a valid mobile number to continue with your booking.
+            </p>
+            <div className="space-y-2">
+                <label className="text-sm font-medium">
+                    Mobile number
+                </label>
+                <div className="flex items-center gap-2">
+                    <span className="px-4 py-2 bg-muted border border-border rounded-xl text-muted-foreground font-medium text-sm">
+                        +91
+                    </span>
                     <input
-                        id={`${sectionId}-phone-input`}
                         type="tel"
                         inputMode="numeric"
                         pattern="[0-9]*"
                         autoFocus
-                        className="w-full rounded-xl border border-border px-3 py-2 outline-none focus:ring-1 focus:ring-foreground/10 transition-shadow"
+                        className="flex-1 rounded-xl border border-border px-3 py-2 outline-none focus:ring-1 focus:ring-foreground/10 transition-shadow text-sm"
                         placeholder="10-digit number"
                         value={phoneInput}
                         onChange={(e) => {
                             setPhoneErrorAction(null);
-                            setPhoneInputAction(e.target.value);
+                            setPhoneInputAction(e.target.value.replace(/\D/g, "").slice(0, 10));
                         }}
                         disabled={phoneSaving}
                     />
-                    {!!phoneError && <p className="text-sm text-destructive">{phoneError}</p>}
                 </div>
-                <div className="mt-8 flex gap-3 justify-end">
-                    <Button
-                        label="Cancel"
-                        variant="outline"
-                        onClick={onCloseAction}
-                        disabled={phoneSaving}
-                        rounded
-                    />
-                    <Button
-                        label={phoneSaving ? "Savingâ€¦" : "Save & Continue"}
-                        onClick={onSubmitAction}
-                        loading={phoneSaving}
-                        rounded
-                    />
-                </div>
+                {!!phoneError && <p className="text-sm text-destructive">{phoneError}</p>}
             </div>
         </div>
+    );
+
+    return (
+        <Modal
+            isOpen={isOpen}
+            onCloseAction={onCloseAction}
+            onSubmitAction={onSubmitAction}
+            title="Add your mobile number"
+            body={bodyContent}
+            actionLabel={phoneSaving ? "Saving..." : "Save & Continue"}
+            secondaryActionLabel="Cancel"
+            secondaryActionAction={onCloseAction}
+            disabled={phoneSaving}
+            isLoading={phoneSaving}
+            customWidth="w-full max-w-md"
+            customHeight="h-fit"
+        />
     );
 }
 

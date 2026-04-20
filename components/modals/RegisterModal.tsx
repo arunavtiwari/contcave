@@ -94,8 +94,8 @@ function RegisterModal() {
       isOpen={uiStore.modals.register}
       title="Register"
       actionLabel="Continue"
-      onClose={() => uiStore.onClose("register")}
-      onSubmit={handleSubmit(onSubmit)}
+      onCloseAction={() => uiStore.onClose("register")}
+      onSubmitAction={handleSubmit(onSubmit)}
       body={
         <div className="flex flex-col gap-6">
           <Heading title="Welcome to ContCave" subtitle="Create an Account!" center />

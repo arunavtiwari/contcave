@@ -7,16 +7,16 @@ import Modal from "./Modal";
 
 type Props = {
     isOpen: boolean;
-    onClose: () => void;
-    onConfirm: () => void;
+    onCloseAction: () => void;
+    onConfirmAction: () => void;
     propertyName: string;
     isLoading: boolean;
 };
 
 export default function DeletePropertyModal({
     isOpen,
-    onClose,
-    onConfirm,
+    onCloseAction,
+    onConfirmAction,
     propertyName,
     isLoading,
 }: Props) {
@@ -61,38 +61,23 @@ export default function DeletePropertyModal({
         </div>
     );
 
-    const footerContent = (
-        <div className="flex gap-3 w-full">
-            <button
-                onClick={onClose}
-                disabled={isLoading}
-                className="w-1/2 py-3 px-4 rounded-xl border border-border bg-background text-muted-foreground hover:bg-muted transition disabled:opacity-50 font-medium text-sm"
-            >
-                Cancel
-            </button>
-            <button
-                onClick={onConfirm}
-                disabled={!isMatch || isLoading}
-                className="w-1/2 py-3 px-4 rounded-xl bg-destructive hover:bg-destructive/90 text-background transition disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm "
-            >
-                {isLoading ? "Deleting..." : "Delete Property"}
-            </button>
-        </div>
-    );
 
     return (
         <Modal
             isOpen={isOpen}
-            onClose={onClose}
-            onSubmit={onConfirm}
+            onCloseAction={onCloseAction}
+            onSubmitAction={onConfirmAction}
             title="Delete Property"
             body={bodyContent}
-            footer={footerContent}
-            selfActionButton
-            actionLabel=""
+            actionLabel={isLoading ? "Deleting..." : "Delete Property"}
+            secondaryActionLabel="Cancel"
+            secondaryActionAction={onCloseAction}
+            primaryActionVariant="destructive"
+            actionDisabled={!isMatch}
             disabled={isLoading}
             customWidth="w-full md:w-[480px]"
             customHeight="h-fit"
+            isLoading={isLoading}
         />
     );
 }
