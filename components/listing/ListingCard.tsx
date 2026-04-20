@@ -1,19 +1,24 @@
-﻿"use client";
+"use client";
 
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import Image from "next/image";
-import Link from "next/link";
-import React, { useMemo, useRef, useState } from "react";
-import { AiFillStar } from "react-icons/ai";
-import { MdVerified } from "react-icons/md";
+import React, { useMemo } from "react";
 
-import HeartButton from "@/components/HeartButton";
-import Button from "@/components/ui/Button";
-import Heading from "@/components/ui/Heading";
-import Pill from "@/components/ui/Pill";
-import useCities from "@/hook/useCities";
+import useCities from "@/hooks/useCities";
+import {
+  formatPrice,
+  getDisplayTitle,
+  getListingHref,
+  getLocationLabel,
+  normalizeImages,
+} from "@/lib/utils/listing-client";
+import { formatISTDate } from "@/lib/utils";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
+
+import ListingCardActions from "./ListingCardActions";
+import ListingCardContent from "./ListingCardContent";
+import ListingCardMedia from "./ListingCardMedia";
+import ListingCardSkeleton from "./ListingCardSkeleton";
 
 export interface ListingCardData {
   id: string | number;
@@ -38,12 +43,15 @@ export interface ListingCardData {
 }
 
 interface ListingCardProps {
-  data: ListingCardData;
+  data?: ListingCardData;
+  isLoading?: boolean;
   reservation?: SafeReservation;
   onEdit?: (id: string) => void;
   onApprove?: (id: string) => void;
   onChat?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onCancel?: (id: string) => void;
+  onReject?: (id: string) => void;
   actionId?: string;
   disabled?: boolean;
   actionLabel?: string;
@@ -52,15 +60,20 @@ interface ListingCardProps {
   showHeart?: boolean;
   showRating?: boolean;
   useTilt?: boolean;
+  hideActions?: boolean;
+  allowScale?: boolean;
 }
 
 const ListingCard: React.FC<ListingCardProps> = ({
   data,
+  isLoading,
   reservation,
   onEdit,
   onApprove,
   onChat,
   onDelete,
+  onCancel,
+  onReject,
   actionId,
   disabled,
   actionLabel,
@@ -69,75 +82,57 @@ const ListingCard: React.FC<ListingCardProps> = ({
   showHeart = true,
   showRating = true,
   useTilt = false,
+  hideActions = false,
+  allowScale = true,
 }) => {
   const { getByValue } = useCities();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const slideshowInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Memoized Data Processing
-  const displayTitle = useMemo(() => data.title || data.name || "Untitled Space", [data.title, data.name]);
+  // 1. Memoized Normalized Data
+  const displayTitle = useMemo(() => getDisplayTitle(data), [data]);
+  const locationLabel = useMemo(() => getLocationLabel(data, getByValue), [data, getByValue]);
+  const images = useMemo(() => normalizeImages(data?.imageSrc || data?.image), [data?.imageSrc, data?.image]);
+  const formattedPrice = useMemo(() => formatPrice(data?.price, reservation), [reservation, data?.price]);
+  const ratingValue = useMemo(() => data?.avgReviewRating || data?.rating, [data?.avgReviewRating, data?.rating]);
+  const cardHref = useMemo(() => getListingHref(data, onEdit), [data, onEdit]);
 
-  const locationLabel = useMemo(() => {
-    if (data.locationValue) return getByValue(data.locationValue)?.label;
-    if (data.area) return `${data.area}, ${data.city}`;
-    return data.city || "Location Pending";
-  }, [data.locationValue, data.area, data.city, getByValue]);
+  const reservationDate = useMemo(() =>
+    reservation?.startDate ? formatISTDate(reservation.startDate, { day: "numeric", month: "short" }) : undefined
+    , [reservation?.startDate]);
 
-  const images = useMemo(() => {
-    const raw = data.imageSrc || data.image;
-    if (Array.isArray(raw)) return raw.length > 0 ? raw.slice(0, 5) : ["/assets/listing-image-default.png"];
-    if (typeof raw === "string") return [raw];
-    return ["/assets/listing-image-default.png"];
-  }, [data.imageSrc, data.image]);
+  const reservationTime = useMemo(() => reservation?.startTime, [reservation?.startTime]);
 
-  const formattedPrice = useMemo(() => {
-    if (reservation) return reservation.totalPrice;
-    const p = typeof data.price === "number" ? data.price : Number(String(data.price).replace(/[^\d]/g, ""));
-    return isNaN(p) ? 0 : p;
-  }, [reservation, data.price]);
-
-  const ratingValue = useMemo(() => data.avgReviewRating || data.rating, [data.avgReviewRating, data.rating]);
-  const cardHref = useMemo(() => data.href || (onEdit ? `/dashboard/properties/${data.id}` : `/listings/${data.slug || data.id}`), [data.href, onEdit, data.id, data.slug]);
-
-  // 2. Interaction State
+  // 2. Interaction State (Tilt)
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-
   const mouseXSpring = useSpring(x);
   const mouseYSpring = useSpring(y);
-
   const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["5deg", "-5deg"]);
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-5deg", "5deg"]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (!useTilt) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
+    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
+    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
     x.set(xPct);
     y.set(yPct);
   };
 
-  const handleMouseEnter = () => {
-    if (images.length <= 1) return;
-    slideshowInterval.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 2200);
-  };
-
   const handleMouseLeave = () => {
-    if (images.length > 1 && slideshowInterval.current) {
-      clearInterval(slideshowInterval.current);
-      slideshowInterval.current = null;
-    }
-    setCurrentIndex(0);
     x.set(0);
     y.set(0);
   };
+
+  if (isLoading) {
+    const hasRatingData = data ? (data.avgReviewRating != null || data.rating != null) : false;
+    return (
+      <ListingCardSkeleton
+        hideActions={hideActions}
+        showRating={showRating && hasRatingData}
+        isReservation={!!reservation}
+      />
+    );
+  }
 
   return (
     <div
@@ -154,174 +149,49 @@ const ListingCard: React.FC<ListingCardProps> = ({
         }}
         className="flex flex-col w-full relative"
       >
-        {/* Media Container */}
-        <div
-          className="relative mb-4 overflow-hidden rounded-2xl aspect-video bg-neutral-100 border border-black/5"
-          onMouseEnter={handleMouseEnter}
-        >
-          <Link href={cardHref} className="block h-full w-full">
-            <Image
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              className="object-cover h-full w-full transition-transform duration-700 ease-out group-hover:scale-110"
-              src={images[currentIndex]}
-              alt={displayTitle}
-              priority={false}
-            />
-            {/* Soft Overlay for readability */}
-            <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-black/5 opacity-60 pointer-events-none" />
-          </Link>
+        <ListingCardMedia
+          images={images}
+          displayTitle={displayTitle}
+          cardHref={cardHref}
+          isVerified={data?.status === "VERIFIED" || data?.verified}
+          formattedPrice={formattedPrice}
+          hasSets={data?.hasSets}
+          isReservation={!!reservation}
+          showHeart={showHeart}
+          listingId={String(data?.id || "")}
+          currentUser={currentUser}
+          onEdit={!!onEdit}
+          allowScale={allowScale}
+          reservationStatus={reservation?.isApproved ?? undefined}
+          totalPrice={reservation?.totalPrice}
+        />
 
-          {/* Verification Badge */}
-          {(data.status === "VERIFIED" || data.verified) && (
-            <div className="absolute left-3 top-3 z-20 p-1.5 rounded-full bg-white/90 backdrop-blur-md border border-white/50 shadow-sm transition-transform group-hover:scale-110">
-              <MdVerified className="text-[#1d9bf0]" size={15} />
-            </div>
-          )}
+        <ListingCardContent
+          displayTitle={displayTitle}
+          cardHref={cardHref}
+          locationLabel={locationLabel}
+          category={data?.category || (data?.tags && data.tags[0])}
+          ratingValue={ratingValue}
+          reviewCount={data?.reviewCount}
+          showRating={showRating}
+          reservationDate={reservationDate}
+          reservationTime={reservationTime}
+        />
 
-          {/* Pricing Backdrop */}
-          <Pill
-            label={
-              <div className="flex gap-1 items-center font-medium">
-                {data.hasSets && <span className="text-[10px] opacity-70">From</span>}
-                <span className="text-xs">₹{formattedPrice.toLocaleString("en-IN")}</span>
-                {!reservation && <span className="text-[10px] opacity-70">/ Hr</span>}
-              </div>
-            }
-            variant="glass"
-            size="sm"
-            className="absolute bottom-3 right-3 z-20"
+        {!hideActions && (
+          <ListingCardActions
+            id={String(data?.id || "")}
+            reservation={reservation}
+            onEdit={onEdit}
+            onApprove={onApprove}
+            onChat={onChat}
+            onDelete={onDelete}
+            onCancel={onCancel}
+            onReject={onReject}
+            actionId={actionId}
+            disabled={disabled}
+            actionLabel={actionLabel}
           />
-
-          {!onEdit && showHeart && (
-            <div className="absolute top-3 right-3 z-30 transition-transform hover:scale-110 active:scale-90">
-              <HeartButton listingId={String(data.id)} currentUser={currentUser} />
-            </div>
-          )}
-
-          {/* Slideshow Progress Indicators */}
-          {images.length > 1 && (
-            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
-              {images.map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-1 rounded-full transition-all duration-300 ${i === currentIndex ? "bg-white w-4" : "bg-white/40 w-1"
-                    }`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Content Section */}
-        <div className="px-0.5">
-          <div className="mb-2 flex items-start justify-between gap-3">
-            <Link href={cardHref} className="min-w-0 flex-1">
-              <Heading
-                title={displayTitle}
-                variant="h6"
-                className="text-[15px] leading-tight font-bold text-foreground truncate group-hover:text-primary transition-colors"
-              />
-            </Link>
-            <p className="shrink-0 text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider">
-              {locationLabel}
-            </p>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Pill
-              label={data.category || (data.tags && data.tags[0]) || "Creative Space"}
-              variant="subtle"
-              size="xs"
-              color="secondary"
-            />
-
-            {ratingValue && showRating && (
-              <Pill
-                label={
-                  <span className="text-[11px] font-extrabold flex items-center gap-1">
-                    {ratingValue.toFixed(1)}
-                    {data.reviewCount !== undefined && data.reviewCount > 0 && (
-                      <span className="font-medium text-muted-foreground opacity-60 tracking-tighter">
-                        ({data.reviewCount})
-                      </span>
-                    )}
-                  </span>
-                }
-                icon={AiFillStar}
-                variant="subtle"
-                size="xs"
-                color="secondary"
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Action Toolbar (Dynamic Context) */}
-        {(onEdit || onDelete || (!reservation?.isApproved && onApprove) || (reservation?.isApproved !== 0 && onChat)) && (
-          <div className="flex mt-4 pt-1 gap-2">
-            {onEdit && (
-              <Button
-                label="Manage Studio"
-                href={`/properties/${data.id}`}
-                rounded
-                classNames="text-xs font-bold flex-1"
-                disabled={disabled}
-              />
-            )}
-
-            {onDelete && (
-              <Button
-                label={actionLabel || "Delete"}
-                variant="outline"
-                rounded
-                classNames="text-xs font-bold flex-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(String(actionId || data.id));
-                }}
-                disabled={disabled}
-              />
-            )}
-
-            {!reservation?.isApproved && onApprove && (
-              <div className="flex gap-2 w-full">
-                <Button
-                  label="Approve"
-                  variant="success"
-                  classNames="text-xs font-bold flex-1"
-                  onClick={() => onApprove(String(reservation?.id))}
-                  rounded
-                />
-                <Button
-                  label="Decline"
-                  variant="destructive"
-                  classNames="text-xs font-bold flex-1"
-                  onClick={() => onApprove(String(reservation?.id))}
-                  rounded
-                />
-              </div>
-            )}
-
-            {reservation && reservation?.isApproved !== 0 && onChat && (
-              <div className="flex gap-2 w-full">
-                <Button
-                  label="Session Approved"
-                  variant="success"
-                  classNames="text-xs font-bold flex-1 cursor-default"
-                  disabled
-                  rounded
-                />
-                <Button
-                  label="Message Host"
-                  variant="outline"
-                  classNames="text-xs font-bold flex-1"
-                  onClick={() => onChat(String(reservation?.id))}
-                  rounded
-                />
-              </div>
-            )}
-          </div>
         )}
       </motion.div>
     </div>
@@ -329,4 +199,5 @@ const ListingCard: React.FC<ListingCardProps> = ({
 };
 
 export default React.memo(ListingCard);
+
 

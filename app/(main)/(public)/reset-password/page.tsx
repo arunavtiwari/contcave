@@ -6,11 +6,11 @@ import { Suspense, useEffect, useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
-import Input from "@/components/ui/Input";
 import Skeleton from "@/components/ui/Skeleton";
-import useLoginModal from "@/hook/useLoginModal";
+import useLoginModal from "@/hooks/useLoginModal";
 
 const ResetPasswordContent = () => {
     const router = useRouter();
@@ -123,3 +123,4 @@ const ResetPasswordPage = () => {
 };
 
 export default ResetPasswordPage;
+

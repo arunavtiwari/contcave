@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import useAddonModal from '@/hook/useAddonModal';
+import useAddonModal from '@/hooks/useAddonModal';
 import { Addon } from "@/types/addon";
 
 import ImageCheckbox from './ImageCheckbox';

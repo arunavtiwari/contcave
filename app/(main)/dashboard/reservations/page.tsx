@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import getReservation from "@/app/actions/getReservations";
+import { getReservations } from "@/app/actions/reservationActions";
 import EmptyState from "@/components/EmptyState";
 
 import ReservationsClient from "./ReservationsClient";
@@ -17,14 +17,30 @@ export const metadata: Metadata = {
   },
 };
 
-const ReservationsPage = async () => {
+import { Suspense } from "react";
+
+import BookingGridSkeleton from "@/components/listing/BookingGridSkeleton";
+import Heading from "@/components/ui/Heading";
+
+const ReservationsPage = () => {
+  return (
+    <div className="space-y-8">
+      <Heading title="Guest Reservations" subtitle="Bookings on your properties" />
+      <Suspense fallback={<BookingGridSkeleton count={6} />}>
+        <ReservationsContent />
+      </Suspense>
+    </div>
+  );
+};
+
+async function ReservationsContent() {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
     return <EmptyState title="Unauthorized" subtitle="Please login" />;
   }
 
-  const reservations = await getReservation({
+  const reservations = await getReservations({
     authorId: currentUser.id,
   });
 
@@ -43,6 +59,6 @@ const ReservationsPage = async () => {
       currentUser={currentUser}
     />
   );
-};
+}
 
 export default ReservationsPage;

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import AboutCTA from "./AboutCTA";
 import AboutStory from "./AboutStory";

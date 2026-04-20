@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import ContentLayout from "@/components/legal/ContentLayout";
+import ContentLayout from "@/components/ui/ContentLayout";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -63,15 +63,15 @@ const CancellationPolicy = () => {
         <h2>1. Cancellation Timeframes</h2>
         <ul>
           <li>
-            <strong>Full Refund (100%)</strong> — Cancellations made at least
+            <strong>Full Refund (100%)</strong> Ã¢â‚¬â€ Cancellations made at least
             48 hours before the scheduled booking.
           </li>
           <li>
-            <strong>Partial Refund (50%)</strong> — Cancellations made between
+            <strong>Partial Refund (50%)</strong> Ã¢â‚¬â€ Cancellations made between
             24 and 48 hours before the scheduled booking.
           </li>
           <li>
-            <strong>No Refund (0%)</strong> — Cancellations made within 24
+            <strong>No Refund (0%)</strong> Ã¢â‚¬â€ Cancellations made within 24
             hours of the scheduled booking.
           </li>
         </ul>
@@ -107,7 +107,7 @@ const CancellationPolicy = () => {
         <h2>4. Refund Process</h2>
         <p>
           Refunds, if applicable, will be processed back to the original
-          payment method within <strong>5–7 business days</strong>. Please
+          payment method within <strong>5Ã¢â‚¬â€œ7 business days</strong>. Please
           note that additional processing time may be required depending on
           your bank or payment provider.
         </p>

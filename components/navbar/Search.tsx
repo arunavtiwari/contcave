@@ -1,15 +1,15 @@
-﻿"use client";
+"use client";
 
 import { useSearchParams } from "next/navigation";
 import { memo, Suspense, useCallback, useMemo } from "react";
 import { BiSearch } from "react-icons/bi";
 
-import useCountries from "@/hook/useCities";
-import useSearchModal from "@/hook/useSearchModal";
+import useCountries from "@/hooks/useCities";
+import useUIStore from "@/hooks/useUIStore";
 import { formatISTDate } from "@/lib/utils";
 
 const SearchContent = memo(function SearchContent() {
-  const searchModel = useSearchModal();
+  const uiStore = useUIStore();
   const params = useSearchParams();
   const { getByValue } = useCountries();
 
@@ -35,8 +35,8 @@ const SearchContent = memo(function SearchContent() {
   }, [startDate]);
 
   const handleClick = useCallback(() => {
-    searchModel.onOpen();
-  }, [searchModel]);
+    uiStore.onOpen("search");
+  }, [uiStore]);
 
   return (
     <button

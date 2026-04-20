@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import React from "react";
@@ -50,7 +50,7 @@ function Button({
     xl: "h-14 px-10 text-base",
   };
 
-  const widthClass = fit ? "w-fit" : (size === "sm" ? "w-auto" : "w-full");
+  const widthClass = fit ? "w-fit" : "w-full";
 
   const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 transition active:scale-[0.98] flex justify-center items-center gap-2 border hover:opacity-90 ${sizeClasses[size]} ${widthClass}`;
   const roundedClass = rounded ? "rounded-full" : "rounded-xl";

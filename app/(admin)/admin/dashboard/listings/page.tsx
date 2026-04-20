@@ -1,9 +1,9 @@
 import Image from "next/image";
 import { FaClock, FaExclamationTriangle } from "react-icons/fa";
 
-import getPendingListings from "@/app/actions/getPendingListings";
+import { getPendingListings } from "@/app/actions/listingActions";
 import ListingActions from "@/components/admin/ListingActions";
-import { formatINR,formatISTDate } from "@/lib/utils";
+import { formatINR, formatISTDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 

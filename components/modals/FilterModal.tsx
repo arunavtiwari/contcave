@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
 import CitySelect from "@/components/inputs/CitySelect";
 import { spaceTypes } from "@/constants/spaceTypes";
-import useIndianCities from "@/hook/useCities";
+import useIndianCities from "@/hooks/useCities";
 
 import Modal from "./Modal";
 

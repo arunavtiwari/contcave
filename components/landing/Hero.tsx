@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useRef } from "react";
@@ -9,8 +9,8 @@ import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import { HERO_HIGHLIGHTS } from "@/constants/landing";
-import useCities from "@/hook/useCities";
-import useSearchModal from "@/hook/useSearchModal";
+import useCities from "@/hooks/useCities";
+import useSearchModal from "@/hooks/useSearchModal";
 import { formatISTDate } from "@/lib/utils";
 
 const HeroSearch = () => {
@@ -111,6 +111,7 @@ const Hero = () => {
             playsInline
             onEnded={(e) => e.currentTarget.pause()}
             className="w-full h-full object-cover"
+            controls={false}
           >
             <source
               src={`${process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL}/static/hero-bg.mp4`}
@@ -144,7 +145,7 @@ const Hero = () => {
                 <Heading
                   title="Book your next shoot location"
                   variant="h1"
-                  className="mb-6 text-background!"
+                  className="mb-6 text-background! max-w-2xl"
                 />
               </motion.div>
 

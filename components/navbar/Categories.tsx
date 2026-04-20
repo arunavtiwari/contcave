@@ -32,7 +32,7 @@ export const categories = [
   },
 
   {
-    label: "Café / Restaurant",
+    label: "CafÃƒÂ© / Restaurant",
     icon: MdLocalCafe,
     description: "Stylish eateries perfect for cozy, lifestyle photos.",
   },

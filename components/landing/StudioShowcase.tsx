@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import { useRef } from "react";

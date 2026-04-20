@@ -1,12 +1,12 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import { useCallback, useState } from "react";
 import { IoAdd, IoClose, IoTrash } from "react-icons/io5";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
-import Input from "@/components/ui/Input";
-import Textarea from "@/components/ui/Textarea";
+import Input from "@/components/inputs/Input";
+import Textarea from "@/components/inputs/Textarea";
 import { AdditionalSetPricingType } from "@/types/set";
 
 interface SetEditorItem {
@@ -117,7 +117,7 @@ export default function SetsEditor({
                 <div className="bg-muted p-4 rounded-xl border border-border">
                     <Input
                         id="uniform-price"
-                        label={`${priceLabel} (₹) - Applies to ALL sets`}
+                        label={`${priceLabel} (?) - Applies to ALL sets`}
                         type="number"
                         value={uniformPrice || ""}
                         onChange={(e) => {
@@ -217,7 +217,7 @@ export default function SetsEditor({
                                         <div>
                                             <Input
                                                 id={`set-price-${index}`}
-                                                label={`${priceLabel} (₹)`}
+                                                label={`${priceLabel} (?)`}
                                                 type="number"
                                                 value={set.price === null ? "" : set.price}
                                                 onChange={(e) => {
@@ -298,3 +298,4 @@ export default function SetsEditor({
 }
 
 export type { SetEditorItem };
+

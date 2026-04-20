@@ -272,8 +272,8 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
   const bookingDateLabel = formatBookingDate(initialBooking.startDate);
   const bookingTimeLabel =
     initialBooking.startTime && initialBooking.endTime
-      ? `${formatTimeString(initialBooking.startTime)} – ${formatTimeString(initialBooking.endTime)}`
-      : "—";
+      ? `${formatTimeString(initialBooking.startTime)} Ã¢â‚¬â€œ ${formatTimeString(initialBooking.endTime)}`
+      : "Ã¢â‚¬â€";
   const propertyImage = initialBooking.listing?.imageSrc?.find(
     (image): image is string => typeof image === "string" && image.trim().length > 0
   );
@@ -383,7 +383,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
               <span className="text-muted-foreground">Duration:</span>
               <span className="text-right font-bold text-foreground">
-                {duration > 0 ? `${duration} hours` : "—"}
+                {duration > 0 ? `${duration} hours` : "Ã¢â‚¬â€"}
               </span>
             </div>
 
@@ -396,19 +396,19 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-border pt-3">
               <span className="text-muted-foreground">Add-ons Charge:</span>
-              <span className="text-right font-bold text-foreground">₹ {addonsCharge}</span>
+              <span className="text-right font-bold text-foreground">Ã¢â€šÂ¹ {addonsCharge}</span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
               <span className="text-muted-foreground">Property Charge:</span>
               <span className="text-right font-bold text-foreground">
-                ₹ {propertyCharge}
+                Ã¢â€šÂ¹ {propertyCharge}
               </span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-border pt-3">
               <span className="font-bold text-foreground">Total:</span>
-              <span className="text-right font-bold text-foreground">₹ {initialBooking.totalPrice}</span>
+              <span className="text-right font-bold text-foreground">Ã¢â€šÂ¹ {initialBooking.totalPrice}</span>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import { signOut } from "next-auth/react";
@@ -18,9 +18,7 @@ import { MdApartment } from "react-icons/md";
 
 import MenuItem from "@/components/navbar/MenuItem";
 import Avatar from "@/components/ui/Avatar";
-import useLoginModel from "@/hook/useLoginModal";
-import useRegisterModal from "@/hook/useRegisterModal";
-import useRentModal from "@/hook/useRentModal";
+import useUIStore from "@/hooks/useUIStore";
 import { SafeUser } from "@/types/user";
 
 type Props = {
@@ -29,9 +27,7 @@ type Props = {
 
 const UserMenu = memo(function UserMenu({ currentUser }: Props) {
 
-  const registerModel = useRegisterModal();
-  const loginModel = useLoginModel();
-  const rentModel = useRentModal();
+  const uiStore = useUIStore();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -66,9 +62,9 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
 
 
   const handleRent = useCallback(() => {
-    rentModel.onOpen();
+    uiStore.onOpen("rent");
     closeMenu();
-  }, [rentModel, closeMenu]);
+  }, [uiStore, closeMenu]);
 
   const handleLogout = useCallback(() => {
     signOut({ callbackUrl: "/" });
@@ -76,14 +72,14 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
   }, [closeMenu]);
 
   const openLogin = useCallback(() => {
-    loginModel.onOpen();
+    uiStore.onOpen("login");
     closeMenu();
-  }, [loginModel, closeMenu]);
+  }, [uiStore, closeMenu]);
 
   const openRegister = useCallback(() => {
-    registerModel.onOpen();
+    uiStore.onOpen("register");
     closeMenu();
-  }, [registerModel, closeMenu]);
+  }, [uiStore, closeMenu]);
 
   return (
     <div className="relative">

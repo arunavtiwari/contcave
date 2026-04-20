@@ -17,7 +17,7 @@ function ErrorState({ error }: Props) {
                 name: error.name,
             });
         } else {
-            console.error("🚀 ~ file: error.tsx:12 ~ ErrorState ~ error:", error);
+            console.error("Ã°Å¸Å¡â‚¬ ~ file: error.tsx:12 ~ ErrorState ~ error:", error);
         }
     }, [error]);
 

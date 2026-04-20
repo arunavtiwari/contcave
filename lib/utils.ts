@@ -1,8 +1,41 @@
 import { type ClassValue, clsx } from "clsx";
+import * as crypto from "crypto";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
+}
+
+/**
+ * Generates a collision-resistant, human-readable 8-character Enterprise Booking ID.
+ * Excludes confusing characters like 0, O, 1, and I for premium user experience.
+ */
+export function generateBookingId(): string {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let result = "";
+    for (let i = 0; i < 8; i++) {
+        result += chars.charAt(crypto.randomInt(0, chars.length));
+    }
+    return "BKG-" + result;
+}
+
+/**
+ * Returns the base URL of the application.
+ */
+export function getBaseUrl(): string {
+    if (typeof window !== "undefined") {
+        return window.location.origin;
+    }
+
+    if (process.env.NEXTAUTH_URL) {
+        return process.env.NEXTAUTH_URL;
+    }
+
+    if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+
+    return "http://localhost:3000";
 }
 
 /**

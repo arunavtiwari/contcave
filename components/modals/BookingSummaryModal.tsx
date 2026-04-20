@@ -5,10 +5,10 @@ import { useId, useState } from "react";
 
 import { saveBillingInfo } from "@/app/actions/billingActions";
 import { createInvoice } from "@/app/actions/invoiceActions";
-import Checkbox from "@/components/ui/Checkbox";
+import Checkbox from "@/components/inputs/Checkbox";
+import Input from "@/components/inputs/Input";
+import Textarea from "@/components/inputs/Textarea";
 import Heading from "@/components/ui/Heading";
-import Input from "@/components/ui/Input";
-import Textarea from "@/components/ui/Textarea";
 import { billingSchema } from "@/schemas/billing";
 
 type GSTDetails = {
@@ -126,24 +126,24 @@ export default function BookingSummaryModal({
         <div className="mb-4 space-y-2 text-muted-foreground">
           <div className="flex justify-between">
             <p>Booking Fee</p>
-            <p>₹{bookingFee}</p>
+            <p>{bookingFee}</p>
           </div>
           <div className="flex justify-between">
             <p>Addons</p>
-            <p>₹{addonsSum}</p>
+            <p>{addonsSum}</p>
           </div>
           <div className="flex justify-between">
             <p>Platform Fee</p>
-            <p>₹{platformFee}</p>
+            <p>{platformFee}</p>
           </div>
           <div className="flex justify-between">
             <p>GST (18%)</p>
-            <p>₹{gstAmount}</p>
+            <p>{gstAmount}</p>
           </div>
           <hr />
           <div className="flex justify-between font-semibold">
             <p>Total</p>
-            <p>₹{finalTotal}</p>
+            <p>{finalTotal}</p>
           </div>
         </div>
 
@@ -250,11 +250,13 @@ export default function BookingSummaryModal({
             onClick={handleConfirm}
             disabled={!agree || saving}
           >
-            {saving ? "Saving…" : "Confirm & Continue"}
+            {saving ? "SavingÃ¢â‚¬Â¦" : "Confirm & Continue"}
           </button>
         </div>
       </div>
     </div>
   );
 }
+
+
 

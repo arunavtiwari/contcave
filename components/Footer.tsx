@@ -1,4 +1,4 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 
 import Container from "@/components/Container";
@@ -91,7 +91,7 @@ function Footer() {
       </Container>
       {/* Copyright */}
       <div className="bg-foreground text-background py-3 text-[10px] md:text-xs text-center">
-        © {new Date().getFullYear()} ContCave by Arkanet Ventures LLP. All rights reserved.
+        Â© {new Date().getFullYear()} ContCave by Arkanet Ventures LLP. All rights reserved.
       </div>
     </footer>
   );

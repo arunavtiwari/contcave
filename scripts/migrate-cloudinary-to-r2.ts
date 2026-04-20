@@ -89,16 +89,20 @@ async function migrateUsers() {
     });
 
     for (const user of users) {
-        const updates: any = {};
-        if (isCloudinaryUrl(user.image)) {
-            updates.image = await migrateUrl(user.image!, `users/${user.id}/profiles`);
-        }
-        if (isCloudinaryUrl(user.profileImage)) {
-            updates.profileImage = await migrateUrl(user.profileImage!, `users/${user.id}/profiles`);
-        }
-        if (Object.keys(updates).length > 0) {
-            await prisma.user.update({ where: { id: user.id }, data: updates });
-            console.log(`Updated user: ${user.id}`);
+        try {
+            const updates: any = {};
+            if (isCloudinaryUrl(user.image)) {
+                updates.image = await migrateUrl(user.image!, `users/${user.id}/profiles`);
+            }
+            if (isCloudinaryUrl(user.profileImage)) {
+                updates.profileImage = await migrateUrl(user.profileImage!, `users/${user.id}/profiles`);
+            }
+            if (Object.keys(updates).length > 0) {
+                await prisma.user.update({ where: { id: user.id }, data: updates });
+                console.log(`Updated user: ${user.id}`);
+            }
+        } catch (error) {
+            console.error(`[MIGRATE ERROR] Failed to migrate user ${user.id}:`, error);
         }
     }
 }
@@ -110,27 +114,40 @@ async function migrateInvoices() {
     });
 
     for (const invoice of invoices) {
-        if (isCloudinaryUrl(invoice.invoiceUrl)) {
-            const newUrl = await migrateUrl(invoice.invoiceUrl, `users/${invoice.userId}/invoices/${invoice.id}`);
-            await prisma.invoice.update({ where: { id: invoice.id }, data: { invoiceUrl: newUrl } });
-            console.log(`Updated invoice: ${invoice.id}`);
+        try {
+            if (isCloudinaryUrl(invoice.invoiceUrl)) {
+                const newUrl = await migrateUrl(invoice.invoiceUrl, `users/${invoice.userId}/invoices/${invoice.id}`);
+                await prisma.invoice.update({ where: { id: invoice.id }, data: { invoiceUrl: newUrl } });
+                console.log(`Updated invoice: ${invoice.id}`);
+            }
+        } catch (error) {
+            console.error(`[MIGRATE ERROR] Failed to migrate invoice ${invoice.id}:`, error);
         }
     }
 }
 
 async function migrateListingSets() {
     console.log("=== Migrating ListingSets ===");
-    const sets = await prisma.listingSet.findMany({ include: { listing: true } });
+    const sets = await prisma.listingSet.findMany();
     for (const set of sets) {
-        let hasCloudinary = false;
-        for (const img of set.images) {
-            if (isCloudinaryUrl(img)) hasCloudinary = true;
-        }
+        try {
+            const listing = await prisma.listing.findUnique({ where: { id: set.listingId } });
+            if (!listing) {
+                console.warn(`[SKIP] ListingSet ${set.id} has no associated listing.`);
+                continue;
+            }
+            let hasCloudinary = false;
+            for (const img of set.images) {
+                if (isCloudinaryUrl(img)) hasCloudinary = true;
+            }
 
-        if (hasCloudinary) {
-            const newImages = await migrateStringArray(set.images, `users/${set.listing.userId}/listings/${set.listingId}/sets/${set.id}`);
-            await prisma.listingSet.update({ where: { id: set.id }, data: { images: newImages } });
-            console.log(`Updated listing set: ${set.id}`);
+            if (hasCloudinary) {
+                const newImages = await migrateStringArray(set.images, `users/${listing.userId}/listings/${set.listingId}/sets/${set.id}`);
+                await prisma.listingSet.update({ where: { id: set.id }, data: { images: newImages } });
+                console.log(`Updated listing set: ${set.id}`);
+            }
+        } catch (error) {
+            console.error(`[MIGRATE ERROR] Failed to migrate listing set ${set.id}:`, error);
         }
     }
 }
@@ -140,73 +157,77 @@ async function migrateListings() {
     const listings = await prisma.listing.findMany();
 
     for (const listing of listings) {
-        let needsUpdate = false;
-        const updates: any = {};
+        try {
+            let needsUpdate = false;
+            const updates: any = {};
 
-        // 1. imageSrc array
-        let hasCloudinaryImageSrc = false;
-        for (const img of listing.imageSrc) {
-            if (isCloudinaryUrl(img)) hasCloudinaryImageSrc = true;
-        }
-        if (hasCloudinaryImageSrc) {
-            updates.imageSrc = await migrateStringArray(listing.imageSrc, `users/${listing.userId}/listings/${listing.id}/main`);
-            needsUpdate = true;
-        }
-
-        // 2. Addons JSON
-        if (listing.addons && Array.isArray(listing.addons)) {
-            let addonsChanged = false;
-            const newAddons = [];
-            for (const addon of listing.addons as any[]) {
-                if (addon.imageUrl && isCloudinaryUrl(addon.imageUrl)) {
-                    const newImageUrl = await migrateUrl(addon.imageUrl, `users/${listing.userId}/listings/${listing.id}/addons`);
-                    newAddons.push({ ...addon, imageUrl: newImageUrl });
-                    addonsChanged = true;
-                } else {
-                    newAddons.push(addon);
-                }
+            // 1. imageSrc array
+            let hasCloudinaryImageSrc = false;
+            for (const img of listing.imageSrc) {
+                if (isCloudinaryUrl(img)) hasCloudinaryImageSrc = true;
             }
-            if (addonsChanged) {
-                updates.addons = newAddons;
+            if (hasCloudinaryImageSrc) {
+                updates.imageSrc = await migrateStringArray(listing.imageSrc, `users/${listing.userId}/listings/${listing.id}/main`);
                 needsUpdate = true;
             }
-        }
 
-        // 3. Verifications JSON
-        if (listing.verifications && typeof listing.verifications === "object" && !Array.isArray(listing.verifications)) {
-            let verificationsChanged = false;
-            const verificationsCopy: any = { ...listing.verifications };
-
-            // 3a. Agreement PDF
-            if (verificationsCopy.agreementPdf && verificationsCopy.agreementPdf.url && isCloudinaryUrl(verificationsCopy.agreementPdf.url)) {
-                verificationsCopy.agreementPdf.url = await migrateUrl(verificationsCopy.agreementPdf.url, `users/${listing.userId}/listings/${listing.id}/agreements`);
-                verificationsChanged = true;
-            }
-
-            // 3b. Documents array
-            if (verificationsCopy.documents && Array.isArray(verificationsCopy.documents)) {
-                const newDocs = [];
-                for (const doc of verificationsCopy.documents) {
-                    if (doc.url && isCloudinaryUrl(doc.url)) {
-                        const newDocUrl = await migrateUrl(doc.url, `users/${listing.userId}/listings/${listing.id}/verifications`);
-                        newDocs.push({ ...doc, url: newDocUrl });
-                        verificationsChanged = true;
+            // 2. Addons JSON
+            if (listing.addons && Array.isArray(listing.addons)) {
+                let addonsChanged = false;
+                const newAddons = [];
+                for (const addon of listing.addons as any[]) {
+                    if (addon.imageUrl && isCloudinaryUrl(addon.imageUrl)) {
+                        const newImageUrl = await migrateUrl(addon.imageUrl, `users/${listing.userId}/listings/${listing.id}/addons`);
+                        newAddons.push({ ...addon, imageUrl: newImageUrl });
+                        addonsChanged = true;
                     } else {
-                        newDocs.push(doc);
+                        newAddons.push(addon);
                     }
                 }
-                verificationsCopy.documents = newDocs;
+                if (addonsChanged) {
+                    updates.addons = newAddons;
+                    needsUpdate = true;
+                }
             }
 
-            if (verificationsChanged) {
-                updates.verifications = verificationsCopy;
-                needsUpdate = true;
-            }
-        }
+            // 3. Verifications JSON
+            if (listing.verifications && typeof listing.verifications === "object" && !Array.isArray(listing.verifications)) {
+                let verificationsChanged = false;
+                const verificationsCopy: any = { ...listing.verifications };
 
-        if (needsUpdate) {
-            await prisma.listing.update({ where: { id: listing.id }, data: updates });
-            console.log(`Updated listing: ${listing.id}`);
+                // 3a. Agreement PDF
+                if (verificationsCopy.agreementPdf && verificationsCopy.agreementPdf.url && isCloudinaryUrl(verificationsCopy.agreementPdf.url)) {
+                    verificationsCopy.agreementPdf.url = await migrateUrl(verificationsCopy.agreementPdf.url, `users/${listing.userId}/listings/${listing.id}/agreements`);
+                    verificationsChanged = true;
+                }
+
+                // 3b. Documents array
+                if (verificationsCopy.documents && Array.isArray(verificationsCopy.documents)) {
+                    const newDocs = [];
+                    for (const doc of verificationsCopy.documents) {
+                        if (doc.url && isCloudinaryUrl(doc.url)) {
+                            const newDocUrl = await migrateUrl(doc.url, `users/${listing.userId}/listings/${listing.id}/verifications`);
+                            newDocs.push({ ...doc, url: newDocUrl });
+                            verificationsChanged = true;
+                        } else {
+                            newDocs.push(doc);
+                        }
+                    }
+                    verificationsCopy.documents = newDocs;
+                }
+
+                if (verificationsChanged) {
+                    updates.verifications = verificationsCopy;
+                    needsUpdate = true;
+                }
+            }
+
+            if (needsUpdate) {
+                await prisma.listing.update({ where: { id: listing.id }, data: updates });
+                console.log(`Updated listing: ${listing.id}`);
+            }
+        } catch (error) {
+            console.error(`[MIGRATE ERROR] Failed to migrate listing ${listing.id}:`, error);
         }
     }
 }

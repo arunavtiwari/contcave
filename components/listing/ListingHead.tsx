@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -13,7 +13,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import HeartButton from "@/components/HeartButton";
 import Modal from "@/components/modals/Modal";
 import Heading from "@/components/ui/Heading";
-import useCities from "@/hook/useCities";
+import useCities from "@/hooks/useCities";
 import { SafeUser } from "@/types/user";
 
 type Props = {

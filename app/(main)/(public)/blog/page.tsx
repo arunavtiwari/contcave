@@ -10,7 +10,7 @@ const DESCRIPTION =
   "Read ContCave's latest articles on studio booking, production workflows, and creative industry insights across India." as const;
 
 export const metadata: Metadata = {
-  title: "Blogs — Insights, Tips, and Updates",
+  title: "Blogs Ã¢â‚¬â€ Insights, Tips, and Updates",
   description: DESCRIPTION,
   keywords: [
     "ContCave blog",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     canonical: "/blog",
   },
   openGraph: {
-    title: "Blogs — Insights & Tips",
+    title: "Blogs Ã¢â‚¬â€ Insights & Tips",
     description: DESCRIPTION,
     url: `${SITE_URL}/blog`,
     siteName: BRAND_NAME,
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blogs — Insights & Tips",
+    title: "Blogs Ã¢â‚¬â€ Insights & Tips",
     description: DESCRIPTION,
     site: "@ContCave",
     creator: "@ContCave",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   },
 };
 
-import BlogItem from "@/components/Blog/BlogItem";
+import BlogItem from "@/components/blog/BlogItem";
 import Heading from "@/components/ui/Heading";
 
 export default function BlogPage() {

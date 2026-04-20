@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
-import { getBaseUrl } from "@/lib/utils/getBaseUrl";
+import { getBaseUrl } from "@/lib/utils";
 import { SafeUser } from "@/types/user";
 
 interface Props {

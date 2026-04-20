@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -10,7 +10,7 @@ import type { Swiper as SwiperClass } from "swiper";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-import Checkbox from "@/components/ui/Checkbox";
+import Checkbox from "@/components/inputs/Checkbox";
 import Heading from "@/components/ui/Heading";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
@@ -274,4 +274,5 @@ export default function SetSelector({
         </div>
     );
 }
+
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
@@ -7,34 +7,31 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
     FaCreditCard,
-    FaEdit,
     FaEnvelope,
     FaGlobe,
     FaHome,
     FaMapMarkerAlt,
     FaPhone,
-    FaSave,
     FaSpinner,
     FaUser
 } from "react-icons/fa";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { cn } from "@/lib/utils";
-
 import { updateUser } from "@/app/actions/updateUser";
 import CitySelect from "@/components/inputs/CitySelect";
 import ImageUpload from "@/components/inputs/ImageUpload";
+import Input from "@/components/inputs/Input";
+import Textarea from "@/components/inputs/Textarea";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
-import Input from "@/components/ui/Input";
 import Pill from "@/components/ui/Pill";
-import Textarea from "@/components/ui/Textarea";
 import { PROFILE_LANGUAGE_OPTIONS, PROFILE_TITLE_OPTIONS } from "@/constants/user";
-import useRentModal from "@/hook/useRentModal";
+import useRentModal from "@/hooks/useRentModal";
 import { uploadToR2 } from "@/lib/storage/upload";
+import { cn } from "@/lib/utils";
 import { UserDataBoundaryPayload, UserDataSchema, userUpdateSchema } from "@/schemas/user";
 import { SafeUser } from "@/types/user";
 
@@ -668,5 +665,6 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 };
 
 export default MyProfile;
+
 
 

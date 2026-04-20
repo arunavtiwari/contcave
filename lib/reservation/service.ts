@@ -8,10 +8,10 @@ import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
 import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
 import prisma from "@/lib/prismadb";
-import { generateBookingId } from "@/lib/utils/generateBookingId";
+import { generateBookingId } from "@/lib/utils";
 import { WhatsappService } from "@/lib/whatsapp/service";
 import { safeListing } from "@/types/listing";
-import { ReservationMetadata,ReservationResult } from "@/types/reservation";
+import { ReservationMetadata, ReservationResult } from "@/types/reservation";
 import { SafeReservation } from "@/types/reservation";
 
 

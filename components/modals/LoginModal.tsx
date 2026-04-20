@@ -9,11 +9,10 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
+import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
-import Input from "@/components/ui/Input";
-import useLoginModel from "@/hook/useLoginModal";
-import useRegisterModal from "@/hook/useRegisterModal";
+import useUIStore from "@/hooks/useUIStore";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { type LoginSchema, loginSchema } from "@/schemas/auth";
 
@@ -23,8 +22,7 @@ type Props = {};
 
 function LoginModal({ }: Props) {
   const router = useRouter();
-  const registerModel = useRegisterModal();
-  const loginModel = useLoginModel();
+  const uiStore = useUIStore();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -55,7 +53,7 @@ function LoginModal({ }: Props) {
       } else if (callback?.ok) {
         toast.success("Login successful", { id: "Login_Successfully" });
         router.refresh();
-        loginModel.onClose();
+        uiStore.onClose("login");
       }
     } catch {
       toast.error("Something went wrong. Please try again.", {
@@ -67,17 +65,17 @@ function LoginModal({ }: Props) {
   };
 
   const toggle = useCallback(() => {
-    loginModel.onClose();
-    registerModel.onOpen();
-  }, [loginModel, registerModel]);
+    uiStore.onClose("login");
+    uiStore.onOpen("register");
+  }, [uiStore]);
 
   return (
     <Modal
       disabled={isLoading}
-      isOpen={loginModel.isOpen}
+      isOpen={uiStore.modals.login}
       title="Login"
       actionLabel="Continue"
-      onClose={loginModel.onClose}
+      onClose={() => uiStore.onClose("login")}
       onSubmit={handleSubmit(onSubmit)}
       body={
         <div className="flex flex-col gap-4">
@@ -115,7 +113,7 @@ function LoginModal({ }: Props) {
           <div className="flex justify-end">
             <span
               onClick={() => {
-                loginModel.onClose();
+                uiStore.onClose("login");
                 router.push("/forgot-password");
               }}
               className="text-sm text-muted-foreground hover:underline cursor-pointer"
@@ -154,3 +152,4 @@ function LoginModal({ }: Props) {
 }
 
 export default LoginModal;
+

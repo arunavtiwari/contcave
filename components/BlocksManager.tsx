@@ -1,15 +1,12 @@
-﻿"use client";
+"use client";
 
 import { format } from "date-fns";
-import CalendarIcon from "lucide-react/dist/esm/icons/calendar";
-import Clock from "lucide-react/dist/esm/icons/clock";
-import Plus from "lucide-react/dist/esm/icons/plus";
-import Trash2 from "lucide-react/dist/esm/icons/trash-2";
+import { Calendar as CalendarIcon, Clock, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import Select, { GroupBase, StylesConfig, Theme } from "react-select";
 import { toast } from "sonner";
 
-import { createBlock, deleteBlock, getBlocks } from "@/app/actions/blockActions";
+import { createBlockAction, deleteBlockAction, getBlocksAction } from "@/app/actions/listingActions";
 import Button from "@/components/ui/Button";
 export interface ListingBlock {
     id: string;
@@ -88,7 +85,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
     const fetchBlocks = useCallback(async () => {
         try {
             setIsLoading(true);
-            const data = await getBlocks(listingId);
+            const data = await getBlocksAction(listingId);
             const formattedBlocks = (data || []).map(b => ({
                 ...b,
                 date: b.date instanceof Date ? b.date.toISOString() : b.date,
@@ -109,19 +106,22 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
     const handleCreateBlock = async () => {
         try {
             setIsCreating(true);
-            await createBlock(listingId, newBlock);
-            toast.success("Block created successfully");
-            setNewBlock({
-                date: format(new Date(), "yyyy-MM-dd"),
-                startTime: "9:00 AM",
-                endTime: "6:00 PM",
-                setIds: [],
-                reason: "",
-            });
-            fetchBlocks();
+            const res = await createBlockAction(listingId, newBlock);
+            if (res.success) {
+                toast.success("Block created successfully");
+                setNewBlock({
+                    date: format(new Date(), "yyyy-MM-dd"),
+                    startTime: "9:00 AM",
+                    endTime: "6:00 PM",
+                    setIds: [],
+                    reason: "",
+                });
+                fetchBlocks();
+            } else {
+                toast.error(res.error || "Failed to create block");
+            }
         } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : "Failed to create block";
-            toast.error(message);
+            toast.error("Failed to create block");
         } finally {
             setIsCreating(false);
         }
@@ -129,13 +129,18 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
 
     const handleDeleteBlock = async (blockId: string) => {
         try {
-            await deleteBlock(listingId, blockId);
-            toast.success("Block removed");
-            fetchBlocks();
+            const res = await deleteBlockAction(listingId, blockId);
+            if (res.success) {
+                toast.success("Block removed");
+                fetchBlocks();
+            } else {
+                toast.error(res.error || "Failed to remove block");
+            }
         } catch (_error) {
             toast.error("Failed to remove block");
         }
     };
+
 
     const setOptions = sets.map((s) => ({
         value: s.id,

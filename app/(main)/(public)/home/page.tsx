@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings, { IListingsParams } from "@/app/actions/getListings";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
 import ListingFeed from "@/components/listing/ListingFeed";
+import ListingFeedHeader from "@/components/listing/ListingFeedHeader";
+import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
 import Categories from "@/components/navbar/Categories";
+import { LocationSortProvider } from "@/hooks/useLocationSort";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 import { safeListing } from "@/types/listing";
@@ -69,7 +73,23 @@ interface HomeProps {
   searchParams: Promise<IListingsParams>;
 }
 
-export default async function Home(props: HomeProps) {
+export default function Home(props: HomeProps) {
+  return (
+    <main>
+      <Container>
+        <Categories />
+        <LocationSortProvider>
+          <ListingFeedHeader />
+          <Suspense fallback={<ListingGridSkeleton count={6} hideActions />}>
+            <HomeContent {...props} />
+          </Suspense>
+        </LocationSortProvider>
+      </Container>
+    </main>
+  );
+}
+
+async function HomeContent(props: HomeProps) {
   const searchParams = await props.searchParams;
   const [listing, currentUser] = await Promise.all([
     getListings(searchParams),
@@ -107,29 +127,24 @@ export default async function Home(props: HomeProps) {
 
   return (
     <>
-      <main>
-        {listing.length > 0 && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
-          />
-        )}
-        <Container>
-          <Categories />
-          {listing.length === 0 ? (
-            <EmptyState
-              showReset={Object.keys(searchParams).length > 0}
-              title={Object.keys(searchParams).length > 0 ? "No exact matches" : "No listings found"}
-              subtitle={Object.keys(searchParams).length > 0 ? "Try changing or removing some of your filters." : "We're currently adding new studios. Check back soon!"}
-            />
-          ) : (
-            <ListingFeed
-              listings={listing as unknown as safeListing[]}
-              currentUser={currentUser}
-            />
-          )}
-        </Container>
-      </main>
+      {listing.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
+        />
+      )}
+      {listing.length === 0 ? (
+        <EmptyState
+          showReset={Object.keys(searchParams).length > 0}
+          title={Object.keys(searchParams).length > 0 ? "No exact matches" : "No listings found"}
+          subtitle={Object.keys(searchParams).length > 0 ? "Try changing or removing some of your filters." : "We're currently adding new studios. Check back soon!"}
+        />
+      ) : (
+        <ListingFeed
+          listings={listing as unknown as safeListing[]}
+          currentUser={currentUser}
+        />
+      )}
     </>
   );
 }

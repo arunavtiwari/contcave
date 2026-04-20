@@ -8,7 +8,7 @@ Follow these steps to finalize your enterprise storage setup for the India regio
 3. **Location Hints**: Cloudflare automatically optimizes for the closest region (India). No manual selection is needed.
 
 ## 2. Generate API Credentials
-1. Click **Manage R2 API Tokens** → **Create API Token**.
+1. Click **Manage R2 API Tokens** → **Create Account API token**.
 2. Permissions: Select **Object Read & Write**.
 3. Copy the **Access Key ID** and **Secret Access Key**.
 
@@ -18,7 +18,13 @@ In bucket **Settings** → **CORS Policy**, add this JSON:
 ```json
 [
   {
-    "AllowedOrigins": ["https://contcave.com", "http://localhost:3000"],
+    "AllowedOrigins": [
+      "https://contcave.com",
+      "https://staging.contcave.com",
+      "https://admin.contcave.com",
+      "https://admin.staging.contcave.com",
+      "http://localhost:3000"
+    ],
     "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
     "AllowedHeaders": ["Content-Type", "Content-Length"],
     "ExposeHeaders": ["ETag"],
@@ -28,9 +34,12 @@ In bucket **Settings** → **CORS Policy**, add this JSON:
 ```
 
 ## 4. Public Access (CDN Speed)
-1. In bucket **Settings**, go to **Public Access**.
-2. Click **Connect Custom Domain**.
-3. Enter `assets.contcave.com`. Use this as your `NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL`.
+1. In the bucket view, click on the **Settings** tab.
+2. Select **Custom Domains** from the left sidebar.
+3. Click the **+ Add** button.
+4. Enter `assets.contcave.com` and click **Continue**.
+5. Review the automatic DNS record and click **Connect Domain**.
+6. Use `https://assets.contcave.com` as your `NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL`.
 
 ## 5. Environment Hand-off
 Populate your `.env`:

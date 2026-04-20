@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -10,17 +10,17 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
+import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
-import Input from "@/components/ui/Input";
-import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
+import useUIStore from "@/hooks/useUIStore";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { type OwnerRegisterSchema, ownerRegisterSchema } from "@/schemas/auth";
 
 import Modal from "./Modal";
 
 function OwnerRegisterModal() {
-    const ownerRegisterModal = useOwnerRegisterModal();
+    const uiStore = useUIStore();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -60,7 +60,7 @@ function OwnerRegisterModal() {
                     id: "Owner_Registered"
                 });
                 router.refresh();
-                ownerRegisterModal.onClose();
+                uiStore.onClose("ownerRegister");
             }
         } catch (err: unknown) {
             let errorMsg = "Something went wrong during registration.";
@@ -78,10 +78,10 @@ function OwnerRegisterModal() {
     return (
         <Modal
             disabled={isLoading}
-            isOpen={ownerRegisterModal.isOpen}
+            isOpen={uiStore.modals.ownerRegister}
             title="Register as Owner"
             actionLabel="Register"
-            onClose={ownerRegisterModal.onClose}
+            onClose={() => uiStore.onClose("ownerRegister")}
             onSubmit={handleSubmit(onSubmit)}
             body={
                 <div className="flex flex-col gap-6">
@@ -149,9 +149,9 @@ function OwnerRegisterModal() {
                         onClick={() => signIn("google-calendar")}
                     />
                     <div className="text-muted-foreground text-center mt-4 font-light">
-                        Already have an account?{" "}
+                        Already have an account{" "}
                         <span
-                            onClick={() => ownerRegisterModal.onClose()}
+                            onClick={() => uiStore.onClose("ownerRegister")}
                             className="text-foreground cursor-pointer hover:underline"
                         >
                             Log in
@@ -165,3 +165,5 @@ function OwnerRegisterModal() {
 }
 
 export default OwnerRegisterModal;
+
+

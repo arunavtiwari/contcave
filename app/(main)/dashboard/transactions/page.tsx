@@ -16,7 +16,23 @@ export const metadata: Metadata = {
   },
 };
 
-const ProfileTransaction = async () => {
+import { Suspense } from "react";
+
+import BookingGridSkeleton from "@/components/listing/BookingGridSkeleton";
+import Heading from "@/components/ui/Heading";
+
+const ProfileTransaction = () => {
+  return (
+    <div className="space-y-8">
+      <Heading title="Transactions" subtitle="Your earnings and payouts" />
+      <Suspense fallback={<BookingGridSkeleton count={6} />}>
+        <TransactionContent />
+      </Suspense>
+    </div>
+  );
+};
+
+async function TransactionContent() {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -36,6 +52,6 @@ const ProfileTransaction = async () => {
   return (
     <TransactionClient currentUser={currentUser} transactions={transactions} />
   );
-};
+}
 
 export default ProfileTransaction;

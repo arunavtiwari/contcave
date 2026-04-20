@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { FaRegStar, FaStar, FaStarHalfStroke } from "react-icons/fa6";

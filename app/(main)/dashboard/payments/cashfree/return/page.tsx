@@ -93,7 +93,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
     });
     const dateFmt = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 
-    const venueTitle = reservation.listing?.title ?? "—";
+    const venueTitle = reservation.listing?.title ?? "Ã¢â‚¬â€";
     const venueAddress =
         reservation.listing?.actualLocation &&
             typeof reservation.listing.actualLocation === "object" &&
@@ -112,7 +112,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
     const subtext = isPending
         ? "We'll notify you as soon as it's confirmed."
         : isFailed
-            ? "Don’t worry, you can try again with the same or a different payment method."
+            ? "DonÃ¢â‚¬â„¢t worry, you can try again with the same or a different payment method."
             : undefined;
 
     const listingHref = listingId ? `/listings/${listingId}` : "/";
@@ -127,7 +127,7 @@ export default async function CashfreeReturnPage({ searchParams }: Props) {
             <ul className="mt-3 list-disc pl-4 space-y-1 text-base">
                 <li>
                     <span className="font-medium">Venue:</span> {venueTitle}
-                    {venueAddress && <span> — {venueAddress}</span>}
+                    {venueAddress && <span> Ã¢â‚¬â€ {venueAddress}</span>}
                 </li>
                 <li>
                     <span className="font-medium">Date:</span>{" "}

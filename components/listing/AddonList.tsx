@@ -55,7 +55,7 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
             {addon.name}
           </p>
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="text-muted-foreground text-sm">₹ {toPrice(addon.price)}</p>
+            <p className="text-muted-foreground text-sm"> {toPrice(addon.price)}</p>
             {Number.isFinite(maxQty) && (
               <>
                 <span className="h-1 w-1 bg-border rounded-full shrink-0"></span>
@@ -77,7 +77,7 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
               onClick={dec}
               className="text-foreground/80 bg-muted hover:bg-muted/80 h-8 w-20 rounded-l-xl text-lg font-medium transition border border-border"
             >
-              −
+              -
             </button>
             <span className="bg-background text-foreground border-y flex items-center justify-center border-border h-8 w-full text-center">
               {qty}
@@ -153,7 +153,7 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
         className="mb-4"
       />
 
-      {/* Mobile: Swiper carousel — swipe only, no arrows, free-mode momentum */}
+      {/* Mobile: Swiper carousel Ã¢â‚¬â€ swipe only, no arrows, free-mode momentum */}
       <div className="sm:hidden">
         <Swiper
           modules={[FreeMode]}
@@ -193,4 +193,5 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
 };
 
 export default AddonsList;
+
 

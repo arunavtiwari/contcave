@@ -1,4 +1,4 @@
-﻿import type { EventClickArg, EventContentArg } from '@fullcalendar/core';
+import type { EventClickArg, EventContentArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
@@ -7,7 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import getCalendarEvents from '@/app/actions/getCalendarEvents';
+import { getCalendarEventsAction } from "@/app/actions/calendarActions";
 import { formatISTDate } from '@/lib/utils';
 
 import Modal from './modals/Modal';
@@ -133,7 +133,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
     const fetchEvents = useCallback(async () => {
         if (!googleCalendarConnected) return;
         try {
-            const data = await getCalendarEvents(listingId);
+            const data = await getCalendarEventsAction(listingId);
 
             if (data) {
                 const formattedEvents: Event[] = (data as CalendarEventResponse[]).map((event) => ({
@@ -147,9 +147,6 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
 
                 const filteredEvents = formattedEvents.filter((event) => {
                     const eventDate = new Date(event.start);
-                    // Use UTC day if it's already ISO, or handle carefully.
-                    // But businessDays is based on 0-6. eventDate.getDay() is local.
-                    // This is a bit tricky with DRY but let's keep it consistent.
                     return businessDays.includes(eventDate.getDay());
                 });
 
@@ -161,7 +158,6 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
             if (err.status === 400 || err.code === 400) {
                 if (onError) onError();
             }
-            // toast.error('Failed to load calendar events'); 
         }
     }, [listingId, businessDays, googleCalendarConnected, onError]);
 
@@ -261,7 +257,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
                                             timeZone: "Asia/Kolkata",
                                         })
                                         : "N/A"}{" "}
-                                    –{" "}
+                                    â€“{" "}
                                     {modalData.end
                                         ? new Date(modalData.end).toLocaleTimeString("en-IN", {
                                             hour: "2-digit",

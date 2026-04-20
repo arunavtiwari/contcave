@@ -88,7 +88,7 @@ export default async function getTransactions(
             guestName: transaction.reservation?.user?.name || transaction.user?.name || 'N/A',
             customerName: transaction.user?.name || 'N/A',
             amount: transaction.amount,
-            currency: '₹',
+            currency: 'Ã¢â€šÂ¹',
             status: mapTransactionStatus(transaction.status),
             reservationId: transaction.reservationId || undefined,
             listingId: transaction.listingId || undefined,

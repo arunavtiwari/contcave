@@ -1,12 +1,12 @@
-﻿import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import Select, { GroupBase, StylesConfig } from "react-select";
 
-import Switch from "@/components/ui/Switch";
+import Switch from "@/components/inputs/Switch";
 import { spaceTypes } from "@/constants/spaceTypes";
 import { cn } from "@/lib/utils";
 
-import FormField from "../ui/FormField";
-import Input from "../ui/Input";
+import FormField from "./FormField";
+import Input from "./Input";
 
 export type ListingDetails = {
     carpetArea: string;
@@ -177,7 +177,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             type="text"
             placeholder="e.g. 2500"
             value={details.carpetArea}
-            onChange={(e) => handleInputChange("carpetArea", e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("carpetArea", e.target.value)}
             customRightContent={<span className="text-muted-foreground text-sm font-medium">sq ft</span>}
             required
         />
@@ -338,7 +338,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 type="text"
                 placeholder="e.g. 2"
                 value={details.minimumBookingHours}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const onlyDigits = e.target.value.replace(/\D/g, "");
                     handleInputChange("minimumBookingHours", onlyDigits);
                 }}
@@ -353,7 +353,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 type="text"
                 placeholder="e.g. 10"
                 value={details.maximumPax ?? ""}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const onlyDigits = e.target.value.replace(/\D/g, "");
                     handleInputChange("maximumPax", onlyDigits);
                 }}
@@ -427,4 +427,5 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
 };
 
 export default OtherListingDetails;
+
 

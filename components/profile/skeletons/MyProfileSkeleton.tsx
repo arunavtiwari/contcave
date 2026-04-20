@@ -12,9 +12,9 @@ const MyProfileSkeleton = () => (
         <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
                 <div className="bg-background rounded-2xl border border-border overflow-hidden">
-                    <div className="h-24 w-full bg-neutral-100 relative">
+                    <div className="h-24 w-full bg-neutral-100 dark:bg-neutral-800/10 relative">
                         <div className="absolute -bottom-12 left-8">
-                            <Skeleton className="w-24 h-24 rounded-full! border-4 border-background bg-neutral-200" />
+                            <Skeleton className="w-24 h-24 rounded-full border-4 border-background" />
                         </div>
                     </div>
                     <div className="pt-14 py-6 px-8">

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useId } from "react";
 
@@ -79,7 +79,7 @@ export default function PhoneModal({
                         rounded
                     />
                     <Button
-                        label={phoneSaving ? "Saving…" : "Save & Continue"}
+                        label={phoneSaving ? "Savingâ€¦" : "Save & Continue"}
                         onClick={onSubmitAction}
                         loading={phoneSaving}
                         rounded

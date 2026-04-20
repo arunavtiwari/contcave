@@ -103,7 +103,7 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
             <div className='flex items-center gap-2 w-full justify-between'>
               <label className="text-sm font-semibold shrink-0">Price</label>
               <div className="relative flex items-center">
-                <span className="absolute left-2 text-muted-foreground border-r pr-2">₹</span>
+                <span className="absolute left-2 text-muted-foreground border-r pr-2"></span>
                 <input
                   type="number"
                   value={price}
@@ -137,4 +137,5 @@ const ImageCheckbox = ({ imageUrl, label, hideCheckbox, hideInputFields, checked
 };
 
 export default ImageCheckbox;
+
 

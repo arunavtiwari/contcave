@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getFavoriteListings from "@/app/actions/getFavoriteListings";
 import EmptyState from "@/components/EmptyState";
+import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
 import { safeListing } from "@/types/listing";
 
 import FavoritesClient from "./FavoritesClient";
@@ -18,7 +20,20 @@ export const metadata: Metadata = {
   },
 };
 
-const FavoritePage = async () => {
+import Heading from "@/components/ui/Heading";
+
+const FavoritePage = () => {
+  return (
+    <div className="space-y-8">
+      <Heading title="Favorites" subtitle="List of places you favorited!" />
+      <Suspense fallback={<ListingGridSkeleton count={6} hideActions />}>
+        <FavoriteContent />
+      </Suspense>
+    </div>
+  );
+};
+
+async function FavoriteContent() {
   const currentUser = await getCurrentUser();
   const listings = await getFavoriteListings();
 
@@ -36,6 +51,6 @@ const FavoritePage = async () => {
   }
 
   return <FavoritesClient listings={listings as unknown as safeListing[]} currentUser={currentUser} />;
-};
+}
 
 export default FavoritePage;

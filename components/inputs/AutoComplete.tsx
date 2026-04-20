@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { Libraries, StandaloneSearchBox, useLoadScript } from '@react-google-maps/api';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';

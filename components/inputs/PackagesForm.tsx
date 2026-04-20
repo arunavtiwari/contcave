@@ -1,11 +1,10 @@
 "use client";
 
-import Plus from "lucide-react/dist/esm/icons/plus";
-import Trash2 from "lucide-react/dist/esm/icons/trash-2";
+import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-import Checkbox from "@/components/ui/Checkbox";
-import Input from "@/components/ui/Input";
+import Checkbox from "@/components/inputs/Checkbox";
+import Input from "@/components/inputs/Input";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
 
@@ -254,3 +253,4 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
     </div>
   );
 }
+

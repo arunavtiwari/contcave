@@ -1,13 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 import { deleteReservation, updateReservation } from "@/app/actions/reservationActions";
-import BookingCard from "@/components/listing/BookingCard";
+import ListingCard from "@/components/listing/ListingCard";
 import Modal from "@/components/modals/Modal";
-import Heading from "@/components/ui/Heading";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
 
@@ -41,6 +40,12 @@ function ReservationsClient({ reservations, currentUser }: Props) {
     setModalOpen(true);
   }, []);
 
+  const handleCancelModal = useCallback((id: string) => {
+    setSelectedId(id);
+    setModalAction("cancel");
+    setModalOpen(true);
+  }, []);
+
   const handleRejectModal = useCallback((id: string) => {
     setSelectedId(id);
     setRejectReasonOption("");
@@ -53,12 +58,15 @@ function ReservationsClient({ reservations, currentUser }: Props) {
     async (id: string) => {
       setDeletingId(id);
       try {
-        await updateReservation(id, { isApproved: 1 });
-        toast.success("Reservation approved", { id: "Reservation_Approved" });
-        router.refresh();
+        const res = await updateReservation(id, { isApproved: 1 });
+        if (res.success) {
+          toast.success("Reservation approved", { id: "Reservation_Approved" });
+          router.refresh();
+        } else {
+          toast.error(res.error || "Something went wrong approving the reservation.", { id: "Reservation_Error_3" });
+        }
       } catch (error: unknown) {
-        const msg = error instanceof Error ? error.message : "Something went wrong approving the reservation.";
-        toast.error(msg, { id: "Reservation_Error_3" });
+        toast.error("Something went wrong", { id: "Reservation_Error_3" });
       } finally {
         setDeletingId("");
       }
@@ -82,13 +90,13 @@ function ReservationsClient({ reservations, currentUser }: Props) {
     if (modalAction === "cancel") {
       setDeletingId(selectedId);
       updateReservation(selectedId, { isApproved: 3 })
-        .then(() => {
-          toast.success("Reservation cancelled", { id: "Reservation_Cancelled" });
-          router.refresh();
-        })
-        .catch((error: unknown) => {
-          const msg = error instanceof Error ? error.message : "Something went wrong cancelling the reservation.";
-          toast.error(msg, { id: "Reservation_Error_1" });
+        .then((res) => {
+          if (res.success) {
+            toast.success("Reservation cancelled", { id: "Reservation_Cancelled" });
+            router.refresh();
+          } else {
+            toast.error(res.error || "Something went wrong", { id: "Reservation_Error_1" });
+          }
         })
         .finally(() => {
           setDeletingId("");
@@ -98,13 +106,13 @@ function ReservationsClient({ reservations, currentUser }: Props) {
     } else if (modalAction === "delete") {
       setDeletingId(selectedId);
       deleteReservation(selectedId)
-        .then(() => {
-          toast.info("Reservation deleted", { id: "Reservation_Deleted" });
-          router.refresh();
-        })
-        .catch((error: unknown) => {
-          const msg = error instanceof Error ? error.message : "Something went wrong deleting the reservation.";
-          toast.error(msg, { id: "Reservation_Error_2" });
+        .then((res) => {
+          if (res.success) {
+            toast.info("Reservation deleted", { id: "Reservation_Deleted" });
+            router.refresh();
+          } else {
+            toast.error(res.error || "Something went wrong", { id: "Reservation_Error_2" });
+          }
         })
         .finally(() => {
           setDeletingId("");
@@ -127,13 +135,13 @@ function ReservationsClient({ reservations, currentUser }: Props) {
         isApproved: 2,
         rejectReason: finalReason,
       })
-        .then(() => {
-          toast.info("Reservation rejected", { id: "Reservation_Rejected" });
-          router.refresh();
-        })
-        .catch((error: unknown) => {
-          const msg = error instanceof Error ? error.message : "Something went wrong rejecting the reservation.";
-          toast.error(msg, { id: "Reservation_Error_4" });
+        .then((res) => {
+          if (res.success) {
+            toast.info("Reservation rejected", { id: "Reservation_Rejected" });
+            router.refresh();
+          } else {
+            toast.error(res.error || "Something went wrong", { id: "Reservation_Error_4" });
+          }
         })
         .finally(() => {
           setDeletingId("");
@@ -151,22 +159,22 @@ function ReservationsClient({ reservations, currentUser }: Props) {
 
   return (
     <>
-      <Heading title="Reservations" subtitle="Bookings on your properties" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {reservations.map((reservation) => {
-          const isInstant = !!reservation.listing?.instantBooking;
           return (
-            <BookingCard
+            <ListingCard
               key={reservation.id}
               data={reservation.listing}
               reservation={reservation}
               actionId={reservation.id}
-              onDelete={() => handleDeleteModal(reservation.id)}
-              onApprove={!isInstant ? () => onApprove(reservation.id) : undefined}
-              onReject={!isInstant ? () => onReject(reservation.id) : undefined}
-              onChat={() => onChat(reservation.id)}
+              onCancel={handleCancelModal}
+              onDelete={handleDeleteModal}
+              onApprove={onApprove}
+              onReject={onReject}
+              onChat={onChat}
               disabled={deletingId === reservation.id}
               currentUser={currentUser}
+              allowScale={false}
             />
           );
         })}
@@ -194,12 +202,12 @@ function ReservationsClient({ reservations, currentUser }: Props) {
                   onChange={(e) => setRejectReasonOption(e.target.value)}
                   disabled={!!deletingId}
                 >
-                  <option value="" disabled hidden>Select a reason</option>
-                  <option value="Studio unavailable for the selected date/time">Studio unavailable for the selected date/time</option>
-                  <option value="Technical / maintenance issue">Technical / maintenance issue</option>
-                  <option value="Booking details incomplete or unclear">Booking details incomplete or unclear</option>
-                  <option value="Customer requested cancellation">Customer requested cancellation</option>
-                  <option value="Other (please specify)">Other (please specify)</option>
+                  <option value="" disabled hidden> Select a reason </option>
+                  <option value="Studio unavailable for the selected date/time"> Studio unavailable for the selected date/time </option>
+                  <option value="Technical / maintenance issue"> Technical / maintenance issue </option>
+                  <option value="Booking details incomplete or unclear"> Booking details incomplete or unclear </option>
+                  <option value="Customer requested cancellation"> Customer requested cancellation </option>
+                  <option value="Other (please specify)"> Other (please specify) </option>
                 </select>
 
                 {rejectReasonOption === "Other (please specify)" && (

@@ -8,8 +8,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
-import Input from "@/components/ui/Input";
-import useAddonModal from "@/hook/useAddonModal";
+import Input from "@/components/inputs/Input";
+import useUIStore from "@/hooks/useUIStore";
 import { uploadToR2 } from "@/lib/storage/upload";
 
 import Modal from "./Modal";
@@ -25,7 +25,7 @@ type Props = {
 };
 
 function CustomAddonModal({ save }: Props) {
-  const addonModel = useAddonModal();
+  const uiStore = useUIStore();
 
   const [image, setImage] = useState<string[]>([]);
   const [addonFile, setAddonFile] = useState<File | null>(null);
@@ -53,7 +53,7 @@ function CustomAddonModal({ save }: Props) {
     try {
       const [uploadedUrl] = await uploadToR2([addonFile], "addons");
       save({ name: data.name, imageUrl: uploadedUrl });
-      addonModel.onClose();
+      uiStore.onClose("addon");
       reset();
       setImage([]);
       setAddonFile(null);
@@ -70,11 +70,11 @@ function CustomAddonModal({ save }: Props) {
       customWidth="w-full max-w-md"
       customHeight="h-auto max-h-[600px]"
       nestedModal={true}
-      isOpen={addonModel.isOpen}
+      isOpen={uiStore.modals.addon}
       title="Create Add-On"
       actionLabel={isUploading ? "Uploading..." : "Create"}
       disabled={isUploading}
-      onClose={addonModel.onClose}
+      onClose={() => uiStore.onClose("addon")}
       onSubmit={handleSubmit(onSubmit)}
       body={
         <>
@@ -118,3 +118,4 @@ function CustomAddonModal({ save }: Props) {
 
 
 export default CustomAddonModal;
+

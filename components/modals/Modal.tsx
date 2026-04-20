@@ -99,7 +99,7 @@ function Modal({
   return (
     <div
       onClick={handleBackdropClick}
-      className={`fixed inset-0 z-999 flex items-center justify-center px-4 transition-all duration-500 ${nestedModal ? "bg-foreground/20" : "bg-black/60"
+      className={`fixed inset-0 z-999 flex items-center justify-center px-4 transition-all duration-500 ${nestedModal ? "bg-foreground/20" : "bg-foreground/60"
         } ${isOpen ? "opacity-100" : "opacity-0"} ${nestedModal ? "" : isLoading ? "backdrop-blur-md" : "backdrop-blur-[2px]"
         }`}
     >
@@ -113,10 +113,10 @@ function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <div className={`flex flex-col w-full bg-background rounded-3xl shadow-md overflow-hidden ${customHeight || "h-auto max-h-[90vh]"}`}>
+        <div className={`flex flex-col w-full bg-background rounded-2xl shadow-md overflow-hidden ${customHeight || "h-auto max-h-[90vh]"}`}>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-8 py-6 bg-background relative shrink-0">
+          <div className="flex items-center justify-between p-5 bg-background relative shrink-0">
             <h2 id="modal-title" className="text-xl font-bold tracking-tight text-foreground">
               {title}
             </h2>

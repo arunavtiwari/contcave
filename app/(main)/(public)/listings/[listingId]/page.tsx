@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListingById from "@/app/actions/getListingById";
-import getReservation from "@/app/actions/getReservations";
+import { getReservations } from "@/app/actions/reservationActions";
 import getReviewCount from "@/app/actions/getReviewCount";
 import EmptyState from "@/components/EmptyState";
 import ListingSkeleton from "@/components/listing/ListingSkeleton";
@@ -108,12 +108,13 @@ export async function generateMetadata({
 const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
   const params = await props.params;
   const listing = await getListingById(params);
-  const reservations = await getReservation(params);
-  const currentUser = await getCurrentUser();
 
   if (!listing) {
     return <EmptyState />;
   }
+
+  const reservations = await getReservations({ listingId: listing.id });
+  const currentUser = await getCurrentUser();
 
   const shouldFetchCalendarEvents = Boolean(listing.user?.googleCalendarConnected);
   const googleCalendarEvents = shouldFetchCalendarEvents
@@ -242,7 +243,7 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
 
   const priceRange =
     typeof listing.price === "number" && Number.isFinite(listing.price)
-      ? `₹${listing.price.toString()}+`
+      ? `Ã¢â€šÂ¹${listing.price.toString()}+`
       : undefined;
 
   const url = absoluteUrl(`/listings/${listing.slug ?? listing.id}`);

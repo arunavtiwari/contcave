@@ -1,12 +1,11 @@
 "use client";
 
-import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { deleteListingAction, updateListingAction } from "@/app/actions/listingActions";
 import ListingCard from "@/components/listing/ListingCard";
-import Heading from "@/components/ui/Heading";
 import { safeListing } from "@/types/listing";
 import { SafeUser } from "@/types/user";
 
@@ -17,61 +16,49 @@ type Props = {
 
 function PropertiesClient({ listings, currentUser }: Props) {
   const router = useRouter();
-  const [deletingId, setDeletingId] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const [_deletingId, setDeletingId] = useState("");
 
   const onEdit = useCallback(
-    (id: string) => {
-      axios
-        .patch(`/api/listings/${id}`)
-        .then(() => {
-          toast.info("Listing deleted", {
-            id: "Listing_Deleted"
-          });
+    (_id: string) => {
+      startTransition(async () => {
+        const res = await updateListingAction(_id, {}); // Basic update triggers revalidation
+        if (res.success) {
+          toast.success("Listing updated");
           router.refresh();
-        })
-        .catch((error) => {
-          toast.error(error?.response?.data?.error, {
-            id: "Listing_Error_1"
-          });
-        })
-        .finally(() => {
-        });
+        } else {
+          toast.error(res.error || "Failed to update listing");
+        }
+      });
     },
     [router]
   );
+
   const onDelete = useCallback(
     (id: string) => {
       setDeletingId(id);
-
-      axios
-        .delete(`/api/listings/${id}`)
-        .then(() => {
-          toast.info("Listing deleted", {
-            id: "Listing_Deleted"
-          });
+      startTransition(async () => {
+        const res = await deleteListingAction(id);
+        if (res.success) {
+          toast.success("Listing deleted");
           router.refresh();
-        })
-        .catch((error) => {
-          toast.error(error?.response?.data?.error, {
-            id: "Listing_Error_2"
-          });
-        })
-        .finally(() => {
-          setDeletingId("");
-        });
+        } else {
+          toast.error(res.error || "Failed to delete listing");
+        }
+        setDeletingId("");
+      });
     },
     [router]
   );
+
   const onChat = useCallback(
     (id: string) => {
       router.push(`/dashboard/chat/${id}`)
-
     },
     [router]
   );
   return (
     <>
-      <Heading title="My Properties" subtitle="Efficiently Manage, Update, and Showcase Your Listings with Ease." />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {listings.map((listing) => (
           <ListingCard
@@ -81,7 +68,7 @@ function PropertiesClient({ listings, currentUser }: Props) {
             onDelete={onDelete}
             onEdit={onEdit}
             onChat={onChat}
-            disabled={deletingId === listing.id}
+            disabled={_deletingId === listing.id}
             actionLabel="Delete property"
             currentUser={currentUser}
           />

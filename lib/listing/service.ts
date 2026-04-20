@@ -4,6 +4,7 @@ import prisma from "@/lib/prismadb";
 import { isRichTextEmpty } from "@/lib/richText";
 import { generateUniqueSlug } from "@/lib/slug";
 import { sanitizeStringList } from "@/lib/strings/sanitizeStringList";
+import { listingSchema } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing } from "@/types/listing";
 
@@ -24,32 +25,19 @@ export class ListingService {
      * Handles validation, normalization, and atomic persistence.
      */
     static async createListing(userId: string, body: Record<string, unknown>): Promise<FullListing> {
+        const validated = listingSchema.parse(body);
+
         const {
             title, description, imageSrc, category, locationValue, actualLocation,
             price, amenities, otherAmenities, addons, carpetArea, operationalDays,
             operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
-            verifications, terms, customTerms, packages,
+            verifications, customTerms, packages,
             hasSets, setsHaveSamePrice, unifiedSetPrice, additionalSetPricingType, sets,
-        } = body;
+            terms
+        } = validated;
 
-        // 1. Validation Logic
-        if (!title || typeof title !== "string") throw new Error("title is required");
         const trimmedTitle = title.trim();
-        if (trimmedTitle.length < 5) throw new Error("title must be at least 5 characters long");
-        if (trimmedTitle.length > 200) throw new Error("title is too long (max 200 characters)");
-
-        if (!description || typeof description !== "string") throw new Error("description is required");
-        if (isRichTextEmpty(description)) throw new Error("description cannot be empty");
         const trimmedDescription = description.trim();
-        if (trimmedDescription.length < 50) throw new Error("description must be at least 50 characters long");
-        if (trimmedDescription.length > 5000) throw new Error("description is too long (max 5000 characters)");
-
-        if (!imageSrc || !Array.isArray(imageSrc) || imageSrc.length === 0) throw new Error("At least one image is required");
-        if (imageSrc.length > 30) throw new Error("Maximum 30 images allowed");
-        if (imageSrc.some((img: unknown) => typeof img === "string" && img.startsWith("blob:"))) throw new Error("Invalid image URLs detected. Please re-upload your images.");
-
-        if (!category) throw new Error("category is required");
-        if (!locationValue) throw new Error("locationValue is required");
 
         // 2. Normalization
         const priceValue = Math.round(Number(price) || 0);
@@ -158,7 +146,8 @@ export class ListingService {
      * Resolves logic duplication and ensures relational safety.
      */
     static async updateListing(userId: string, listingId: string, body: Record<string, unknown>): Promise<FullListing> {
-        const { packages, sets, blocks: _blocks, verifications: _v, user: _u, id: _i, createdAt: _ca, updatedAt: _ua, avgReviewRating: _arr, ...listingData } = body;
+        const validated = listingSchema.partial().parse(body);
+        const { packages, sets, ...listingData } = validated;
 
         // 1. Permission Check
         const existingListing = await prisma.listing.findUnique({
@@ -169,9 +158,6 @@ export class ListingService {
 
         // 2. Normalization
         if (listingData.description && isRichTextEmpty(listingData.description as string)) throw new Error("Description cannot be empty");
-
-        const stringFields = ['carpetArea', 'minimumBookingHours', 'maximumPax'];
-        stringFields.forEach(f => { if (listingData[f] != null) listingData[f] = String(listingData[f]); });
 
         if (listingData.unifiedSetPrice != null) listingData.unifiedSetPrice = Math.round(Number(listingData.unifiedSetPrice));
         if (listingData.price != null) listingData.price = Math.round(Number(listingData.price));

@@ -7,9 +7,8 @@ import React, { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 import { deleteReservation, updateReservation } from "@/app/actions/reservationActions";
-import BookingCard from "@/components/listing/BookingCard";
+import ListingCard from "@/components/listing/ListingCard";
 import Modal from "@/components/modals/Modal";
-import Heading from "@/components/ui/Heading";
 import { openWhatsAppSupport } from "@/lib/whatsapp/whatsappSupport";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
@@ -102,20 +101,19 @@ function BookingClient({ reservations, currentUser }: Props) {
 
   return (
     <>
-      <Heading title="My Bookings" subtitle="Spaces booked by you" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {reservations.map((reservation) => (
-          <BookingCard
+          <ListingCard
             key={reservation.id}
             data={reservation.listing}
             reservation={reservation}
             actionId={reservation.id}
-            onAction={handleCancelModal}
+            onCancel={handleCancelModal}
             onChat={onChat}
             onDelete={handleDeleteModal}
             disabled={deletingId === reservation.id}
-            actionLabel="Cancel reservation"
             currentUser={currentUser}
+            allowScale={false}
           />
         ))}
       </div>
@@ -142,7 +140,7 @@ function BookingClient({ reservations, currentUser }: Props) {
           isOpen={isRefundOpen}
           onClose={() => setRefundOpen(false)}
           onSubmit={handleRefundContact}
-          title="Booking Cancelled 😓"
+          title="Booking Cancelled 😔"
           body={(() => {
             const r = reservations.find((x) => x.id === refundReservationId);
             const studioName = r?.listing?.title || "this studio";

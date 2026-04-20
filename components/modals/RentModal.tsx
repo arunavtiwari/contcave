@@ -24,17 +24,17 @@ import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplet
 import CategoryInput from "@/components/inputs/CategoryInput";
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import ImageUpload from "@/components/inputs/ImageUpload";
+import Input from "@/components/inputs/Input";
 import OtherListingDetails, { ListingDetails } from "@/components/inputs/OtherListingDetails";
 import PackagesForm from "@/components/inputs/PackagesForm";
+import LexicalEditor from "@/components/inputs/RichTextEditor"
 import SetsEditor, { SetEditorItem } from "@/components/inputs/SetsEditor";
 import SpaceVerification, { VerificationDocument, VerificationPayload } from "@/components/inputs/SpaceVerification";
 import TermsAndConditionsModal, { SignatureMeta, TermsRef } from "@/components/inputs/TermsAndConditions";
 import { categories } from "@/components/navbar/Categories";
-import LexicalEditor from "@/components/RichText/RichTextEditor"
 import Heading from "@/components/ui/Heading";
-import Input from "@/components/ui/Input";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
-import useRentModal from "@/hook/useRentModal";
+import useUIStore from "@/hooks/useUIStore";
 import { isRichTextEmpty } from "@/lib/richText";
 import { uploadToR2 } from "@/lib/storage/upload";
 import { listingSchema } from "@/schemas/listing";
@@ -134,7 +134,7 @@ type StepDefinition = {
 };
 
 export default function RentModal() {
-  const rentModel = useRentModal();
+  const uiStore = useUIStore();
 
   const [step, setStep] = useState(STEPS.CATEGORY);
   const [isLoading, setIsLoading] = useState(false);
@@ -1055,10 +1055,10 @@ export default function RentModal() {
   }, [reset]);
 
   useEffect(() => {
-    if (!rentModel.isOpen && !isSubmitting && !showSuccessModal) {
+    if (!uiStore.modals.rent && !isSubmitting && !showSuccessModal) {
       resetFormStates();
     }
-  }, [rentModel.isOpen, isSubmitting, showSuccessModal, resetFormStates]);
+  }, [uiStore.modals.rent, isSubmitting, showSuccessModal, resetFormStates]);
 
   // Lock body scroll while the spinner overlay is visible
   useEffect(() => {
@@ -1102,11 +1102,11 @@ export default function RentModal() {
     setIsLoading(true);
     setIsSubmitting(true);
 
-    // Capture the PDF generator BEFORE closing the modal — termsRef.current
+    // Capture the PDF generator BEFORE closing the modal Ã¢â‚¬â€ termsRef.current
     // becomes null once TermsAndConditionsModal unmounts (~300ms after close).
     const generatePdf = termsRef.current?.generateAndUploadPdf ?? null;
 
-    rentModel.onClose();
+    uiStore.onClose("rent");
 
     try {
       const finalImageUrls = await uploadToR2(remoteImages, "listing_main");
@@ -1178,7 +1178,7 @@ export default function RentModal() {
       payload.sets = finalSets;
 
       const createdListing = await createListingAction(payload);
-      const listingId = createdListing?.id;
+      const listingId = createdListing?.data?.id;
 
       if (!listingId) {
         throw new Error("Listing creation failed: No listing ID returned");
@@ -1271,7 +1271,7 @@ export default function RentModal() {
     <>
       <Modal
         disabled={isLoading}
-        isOpen={rentModel.isOpen}
+        isOpen={uiStore.modals.rent}
         disableOverlayClose={true}
         title={currentStepDefinition.modalTitle}
         actionLabel={actionLabel}
@@ -1290,7 +1290,7 @@ export default function RentModal() {
         }}
         secondaryActionLabel={secondActionLabel}
         secondaryAction={currentStepIndex <= 0 ? undefined : onBack}
-        onClose={rentModel.onClose}
+        onClose={() => uiStore.onClose("rent")}
         selfActionButton={false}
 
 
@@ -1334,7 +1334,7 @@ export default function RentModal() {
         isOpen={showSuccessModal}
         onClose={() => { setShowSuccessModal(false); }}
         onSubmit={() => { setShowSuccessModal(false); }}
-        title="Listing Submitted 🎉"
+        title="Listing Submitted Ã°Å¸Å½â€°"
         customHeight="h-auto"
         actionLabel="Close"
         body={
@@ -1348,3 +1348,4 @@ export default function RentModal() {
     </>
   );
 }
+

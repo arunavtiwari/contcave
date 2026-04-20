@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import ContentLayout from "@/components/legal/ContentLayout";
+import ContentLayout from "@/components/ui/ContentLayout";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 const DESCRIPTION =

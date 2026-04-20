@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Amenities } from "@prisma/client";
 import dynamic from "next/dynamic";
@@ -7,11 +7,12 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { IconType } from "react-icons";
 
-import checkBooking from "@/app/actions/checkBooking";
+import { checkBookingAction } from "@/app/actions/reservationActions";
 import createReview from "@/app/actions/createReview";
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import getReviews from "@/app/actions/getReviews";
+import Textarea from "@/components/inputs/Textarea";
 import AddonsList from "@/components/listing/AddonList";
 import ListingCategory from "@/components/listing/ListingCategory";
 import PackageList from "@/components/listing/PackageList";
@@ -22,8 +23,7 @@ import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
 import StarRating from "@/components/ui/StarRating";
-import Textarea from "@/components/ui/Textarea";
-import useCities from "@/hook/useCities";
+import useCities from "@/hooks/useCities";
 import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
 import { formatISTDate } from "@/lib/utils";
 import { Addon } from "@/types/addon";
@@ -170,10 +170,14 @@ function ListingInfo({
     };
     const checkBookingStatus = async () => {
       try {
-        const data = await checkBooking(fullListing.id);
-        const reservation = data as unknown as { id?: string; status?: string } | null;
-        setCanReview(Boolean(reservation?.status === "PAID"));
-        setLatestReservationId(reservation?.id ?? "");
+        const res = await checkBookingAction(fullListing.id);
+        const reservation = res.data;
+        if (reservation) {
+          setCanReview(Boolean(reservation.status === "PAID"));
+          setLatestReservationId(reservation.id ?? "");
+        } else {
+          setCanReview(false);
+        }
       } catch (error) {
         console.error('[ListingInfo] Error checking booking:', error);
         setCanReview(false);
@@ -559,3 +563,4 @@ function ListingInfo({
 }
 
 export default ListingInfo;
+

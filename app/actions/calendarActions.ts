@@ -1,7 +1,5 @@
 "use server";
 
-
-
 import { google } from "googleapis";
 
 import { auth } from "@/auth";
@@ -38,7 +36,10 @@ async function refreshCalendarAccessToken(account: {
     return refreshedTokens;
 }
 
-export default async function getCalendarEvents(listingId?: string) {
+/**
+ * Fetch calendar events for a listing
+ */
+export async function getCalendarEventsAction(listingId?: string) {
     try {
         let accessToken: string | null = null;
         let googleAccount: {
@@ -62,25 +63,19 @@ export default async function getCalendarEvents(listingId?: string) {
                 });
             }
 
-            if (!listing || !listing.user) {
-                return [];
-            }
+            if (!listing || !listing.user) return [];
 
-            const owner = listing.user as { accounts: Array<{ id: string; provider: string; access_token: string | null; refresh_token: string | null }> };
+            const owner = listing.user as any;
             googleAccount = owner.accounts.find(
-                (account) => account.provider === "google-calendar"
+                (account: any) => account.provider === "google-calendar"
             );
 
-            if (!googleAccount || !googleAccount.access_token) {
-                return [];
-            }
+            if (!googleAccount || !googleAccount.access_token) return [];
 
             accessToken = googleAccount.access_token;
         } else {
             const session = await auth();
-            if (!session || !session.calendarAccessToken) {
-                return [];
-            }
+            if (!session || !session.calendarAccessToken) return [];
             accessToken = session.calendarAccessToken;
         }
 
@@ -115,7 +110,7 @@ export default async function getCalendarEvents(listingId?: string) {
 
             return response.data.items || [];
         } catch (error: unknown) {
-            const err = error as { code?: number; status?: number; message?: string };
+            const err = error as any;
             const isInvalidCredentials =
                 err.code === 401 ||
                 err.status === 401 ||
@@ -154,7 +149,7 @@ export default async function getCalendarEvents(listingId?: string) {
             throw error;
         }
     } catch (error: unknown) {
-        console.error('[getCalendarEvents] Error:', error);
+        console.error('[getCalendarEventsAction] Error:', error);
         return [];
     }
 }

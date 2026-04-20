@@ -45,7 +45,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         return { datePart, timePart };
     };
 
-    const formatCurrency = (amount: number, _currency: string = '₹'): string => {
+    const formatCurrency = (amount: number, _currency: string = ''): string => {
         return formatINR(amount);
     };
 
@@ -166,4 +166,5 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
 };
 
 export default TransactionHistory;
+
 

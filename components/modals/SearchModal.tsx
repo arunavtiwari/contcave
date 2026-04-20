@@ -7,11 +7,11 @@ import qs from "query-string";
 import { Suspense, useCallback, useMemo, useState } from "react";
 
 import Calendar from "@/components/inputs/Calendar";
+import Checkbox from "@/components/inputs/Checkbox";
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import Modal from "@/components/modals/Modal";
-import Checkbox from "@/components/ui/Checkbox";
 import Heading from "@/components/ui/Heading";
-import useSearchModal from "@/hook/useSearchModal";
+import useUIStore from "@/hooks/useUIStore";
 
 enum STEPS {
   LOCATION = 0,
@@ -23,7 +23,7 @@ type Props = {};
 function SearchModalContent({ }: Props) {
   const router = useRouter();
   const params = useSearchParams();
-  const searchModel = useSearchModal();
+  const uiStore = useUIStore();
   const [location, setLocation] = useState<CitySelectValue>();
   const [step, setStep] = useState(STEPS.LOCATION);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -70,10 +70,10 @@ function SearchModalContent({ }: Props) {
     );
 
     setStep(STEPS.LOCATION);
-    searchModel.onClose();
+    uiStore.onClose("search");
 
     router.push(url);
-  }, [step, searchModel, location, router, selectedDate, params, hasSets]);
+  }, [step, uiStore, location, router, selectedDate, params, hasSets]);
 
   const actionLabel = useMemo(() => {
     if (step === STEPS.DATE) {
@@ -133,8 +133,8 @@ function SearchModalContent({ }: Props) {
 
   return (
     <Modal
-      isOpen={searchModel.isOpen}
-      onClose={searchModel.onClose}
+      isOpen={uiStore.modals.search}
+      onClose={() => uiStore.onClose("search")}
       onSubmit={onSubmit}
       secondaryAction={step === STEPS.LOCATION ? undefined : onBack}
       secondaryActionLabel={secondActionLabel}
@@ -154,3 +154,4 @@ function SearchModal({ }: Props) {
 }
 
 export default SearchModal;
+

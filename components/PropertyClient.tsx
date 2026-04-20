@@ -7,8 +7,7 @@ import { SessionProvider, signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import deleteListing from "@/app/actions/deleteListing";
-import updateListing from "@/app/actions/updateListing";
+import { deleteListingAction, updateListingAction } from "@/app/actions/listingActions";
 import BlocksManager from "@/components/BlocksManager";
 import Calendar from "@/components/Calendar";
 import AddonsSelection from "@/components/inputs/AddonsSelection";
@@ -17,15 +16,15 @@ import ImageReorderGrid from "@/components/inputs/ImageReorderGrid";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import PackagesForm from "@/components/inputs/PackagesForm";
 import SetsEditor from "@/components/inputs/SetsEditor";
+import Switch from "@/components/inputs/Switch";
 import ManageTimings from "@/components/ManageTimings";
 import CustomAddonModal from "@/components/modals/CustomAddonModal";
 import DeletePropertyModal from "@/components/modals/DeletePropertyModal";
 import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
-import Switch from "@/components/ui/Switch";
 import { spaceTypes } from "@/constants/spaceTypes";
-import useIndianCities, { City } from "@/hook/useCities";
+import useIndianCities, { City } from "@/hooks/useCities";
 import { uploadToR2 } from "@/lib/storage/upload";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
@@ -71,11 +70,11 @@ function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
 
 
 type TimeLabel = string;
-import RichTextEditor from "@/components/RichText/RichTextEditor";
+import RichTextEditor from "@/components/inputs/RichTextEditor";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 
-import FormField from "./ui/FormField";
-import Input from "./ui/Input";
+import FormField from "./inputs/FormField";
+import Input from "./inputs/Input";
 
 const propertyFieldClassName =
     "w-full rounded-xl border border-border bg-background px-4 h-11 text-sm text-foreground transition outline-none focus:border-foreground focus:ring-1 focus:ring-foreground/10 hover:border-border/80";
@@ -124,7 +123,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     const handleDeleteProperty = useCallback(async () => {
         setIsDeleting(true);
         try {
-            await deleteListing(initialListing.id);
+            const res = await deleteListingAction(initialListing.id);
+            if (res.error) throw new Error(res.error);
             toast.info("Property deleted successfully", { id: "Listing_Deleted" });
             router.push("/properties");
             router.refresh();
@@ -222,7 +222,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 sets: finalSets,
             };
 
-            await updateListing(initialListing.id, payload);
+            const res = await updateListingAction(initialListing.id, payload);
+            if (res.error) throw new Error(res.error);
             toast.info("Listing has been successfully updated", { id: "Listing_Updated" });
             router.refresh();
         } catch (error) {
@@ -753,7 +754,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     <div className="flex justify-between w-full items-center">
                         <Heading
                             title="Connect Your Google Calendar"
-                            subtitle="Sync offline and ContCave bookings to keep your availability up to date—automatically"
+                            subtitle="Sync offline and ContCave bookings to keep your availability up to dateÃ¢â‚¬â€automatically"
                         />
                         {!isCalendarConnected && (
                             <button
@@ -839,4 +840,6 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 };
 
 export default PropertyClient;
+
+
 

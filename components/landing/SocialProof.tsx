@@ -45,7 +45,7 @@ const SocialProof = () => {
     <section className="py-section bg-muted/30">
       <Container>
         <SectionHeader
-          badge="Real shoots · Real reviews"
+          badge="Real shoots Ã‚Â· Real reviews"
           title="Real shoots, real spaces."
         />
 
@@ -76,7 +76,7 @@ const SocialProof = () => {
                   Creative Studio
                 </p>
                 <p className="mt-0.5 text-xs text-background/60">
-                  Transport Nagar · Lucknow
+                  Transport Nagar Ã‚Â· Lucknow
                 </p>
               </div>
             </div>

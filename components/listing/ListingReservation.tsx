@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Cashfree, load } from "@cashfreepayments/cashfree-js";
 import {
@@ -19,7 +19,7 @@ import PhoneModal from "@/components/modals/PhoneModal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
-import useLoginModal from "@/hook/useLoginModal";
+import useLoginModal from "@/hooks/useLoginModal";
 import { normalizePhone } from "@/lib/phone";
 import { Package } from "@/types/package";
 import {
@@ -553,7 +553,7 @@ export default function ListingReservation({
 
       <div className="p-4">
         <Button
-          label={isPaying ? "Redirecting to Cashfree…" : "Reserve and Pay"}
+          label={isPaying ? "Redirecting to Cashfreeâ€¦" : "Reserve and Pay"}
           onClick={handleReserve}
           disabled={!ready}
           loading={isPaying}
@@ -588,7 +588,7 @@ export default function ListingReservation({
             </div>
           ) : (
             <p>
-              Base booking fee {INR.format(price)} Ã— {safeHours} hr
+              Base booking fee {INR.format(price)} Ãƒâ€” {safeHours} hr
               {safeHours === 1 ? "" : "s"}
             </p>
           )}

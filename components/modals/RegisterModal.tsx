@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -10,21 +10,17 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
+import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
-import Input from "@/components/ui/Input";
-import useLoginModal from "@/hook/useLoginModal";
-import useOwnerRegisterModal from "@/hook/useOwnerRegisterModal";
-import useRegisterModal from "@/hook/useRegisterModal";
+import useUIStore from "@/hooks/useUIStore";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { RegisterSchema, registerSchema } from "@/schemas/auth";
 
 function RegisterModal() {
-  const registerModal = useRegisterModal();
   const router = useRouter();
-  const loginModal = useLoginModal();
-  const ownerRegisterModal = useOwnerRegisterModal();
+  const uiStore = useUIStore();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -61,7 +57,7 @@ function RegisterModal() {
           id: "Registered"
         });
         router.refresh();
-        registerModal.onClose();
+        uiStore.onClose("register");
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.data?.error) {
@@ -83,22 +79,22 @@ function RegisterModal() {
   };
 
   const toggle = useCallback(() => {
-    loginModal.onOpen();
-    registerModal.onClose();
-  }, [loginModal, registerModal]);
+    uiStore.onOpen("login");
+    uiStore.onClose("register");
+  }, [uiStore]);
 
   const ownertoggle = useCallback(() => {
-    ownerRegisterModal.onOpen();
-    registerModal.onClose();
-  }, [ownerRegisterModal, registerModal]);
+    uiStore.onOpen("ownerRegister");
+    uiStore.onClose("register");
+  }, [uiStore]);
 
   return (
     <Modal
       disabled={isLoading}
-      isOpen={registerModal.isOpen}
+      isOpen={uiStore.modals.register}
       title="Register"
       actionLabel="Continue"
-      onClose={registerModal.onClose}
+      onClose={() => uiStore.onClose("register")}
       onSubmit={handleSubmit(onSubmit)}
       body={
         <div className="flex flex-col gap-6">
@@ -157,7 +153,7 @@ function RegisterModal() {
           />
           <div className="text-muted-foreground text-center mt-4 font-light">
             <div>
-              Already have an account?{" "}
+              Already have an account{" "}
               <span
                 onClick={toggle}
                 className="text-foreground cursor-pointer hover:underline"
@@ -168,7 +164,7 @@ function RegisterModal() {
           </div>
           <div className="text-muted-foreground text-center mt-4 font-light">
             <div>
-              Are you a space owner?{" "}
+              Are you a space owner{" "}
               <span
                 onClick={ownertoggle}
                 className="text-foreground cursor-pointer hover:underline"
@@ -185,3 +181,5 @@ function RegisterModal() {
 }
 
 export default RegisterModal;
+
+

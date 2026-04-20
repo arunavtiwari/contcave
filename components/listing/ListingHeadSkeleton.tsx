@@ -6,11 +6,11 @@ export default function ListingHeadSkeleton() {
     return (
         <>
             <div className="flex gap-2">
-                <div className="min-w-50">
+                <div className="min-w-0 flex-1">
                     {/* Title skeleton */}
-                    <Skeleton className="h-9 w-100 mb-2" />
+                    <Skeleton className="h-9 w-64 max-w-full mb-2" />
                     {/* Subtitle skeleton */}
-                    <Skeleton className="h-4 w-32 mt-2" />
+                    <Skeleton className="h-4 w-40 mt-2" />
                 </div>
                 <div className="pt-1">
                     {/* Heart button skeleton */}

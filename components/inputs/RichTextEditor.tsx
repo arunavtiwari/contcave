@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";

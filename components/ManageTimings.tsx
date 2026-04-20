@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
@@ -7,10 +7,10 @@ import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { getDayStatus, updateDayStatus } from "@/app/actions/dayStatusActions";
+import { getDayStatusAction, updateDayStatusAction } from "@/app/actions/listingActions";
+import Switch from "@/components/inputs/Switch";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
-import Switch from "@/components/ui/Switch";
 
 const dayNameToIndex: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
 
@@ -76,7 +76,7 @@ export default function CalendarComponent({
             lastFetchedDate.current = formattedDate;
             setLoading(true);
             try {
-                const data = await getDayStatus(listingId, formattedDate);
+                const data = await getDayStatusAction(listingId, formattedDate);
                 setIsListingActive(data?.listingActive ?? true);
                 setStartTime(formatTime(data?.startTime ?? defaultStartTime, "AM"));
                 setEndTime(formatTime(data?.endTime ?? defaultEndTime, "PM"));
@@ -105,12 +105,17 @@ export default function CalendarComponent({
             endTime,
         };
         try {
-            await updateDayStatus(payload);
-            toast.success("Data saved successfully!");
+            const res = await updateDayStatusAction(payload);
+            if (res.success) {
+                toast.success("Data saved successfully!");
+            } else {
+                toast.error(res.error || "Error saving day status");
+            }
         } catch {
             toast.error("Error saving day status");
         }
     };
+
 
     if (!mounted) {
         return null;
@@ -196,4 +201,5 @@ export default function CalendarComponent({
         </div>
     );
 }
+
 

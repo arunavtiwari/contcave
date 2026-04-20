@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import IndianRupee from "lucide-react/dist/esm/icons/indian-rupee";
+import { IndianRupee } from "lucide-react";
 import * as React from "react";
 import { FieldErrors, UseFormRegisterReturn } from "react-hook-form";
 

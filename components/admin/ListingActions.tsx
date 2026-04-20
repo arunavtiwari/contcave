@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useActionState } from "react";
+import React, { useTransition } from "react";
+import { toast } from "sonner";
 
-import approveListing from "@/app/actions/approveListing";
-import rejectListing from "@/app/actions/rejectListing";
+import { approveListingAction, rejectListingAction } from "@/app/actions/listingActions";
 import Button from "@/components/ui/Button";
 
 type Props = {
@@ -12,8 +12,30 @@ type Props = {
 };
 
 export default function ListingActions({ listingId, previewUrl }: Props) {
-    const [approveState, approveAction, approvePending] = useActionState(approveListing, {});
-    const [rejectState, rejectAction, rejectPending] = useActionState(rejectListing, {});
+    const [isApprovePending, startApproveTransition] = useTransition();
+    const [isRejectPending, startRejectTransition] = useTransition();
+
+    const handleApprove = () => {
+        startApproveTransition(async () => {
+            const res = await approveListingAction(listingId);
+            if (res.success) {
+                toast.success("Listing approved");
+            } else {
+                toast.error(res.error || "Failed to approve listing");
+            }
+        });
+    };
+
+    const handleReject = () => {
+        startRejectTransition(async () => {
+            const res = await rejectListingAction(listingId);
+            if (res.success) {
+                toast.success("Listing rejected");
+            } else {
+                toast.error(res.error || "Failed to reject listing");
+            }
+        });
+    };
 
     return (
         <div className="flex items-center justify-end gap-2">
@@ -24,29 +46,20 @@ export default function ListingActions({ listingId, previewUrl }: Props) {
                 href={previewUrl}
                 target="_blank"
             />
-            <form action={approveAction}>
-                <input type="hidden" name="listingId" value={listingId} />
-                <Button
-                    label="Approve"
-                    variant="success"
-                    size="sm"
-                    loading={approvePending}
-                />
-            </form>
-            <form action={rejectAction}>
-                <input type="hidden" name="listingId" value={listingId} />
-                <Button
-                    label="Reject"
-                    variant="destructive"
-                    size="sm"
-                    loading={rejectPending}
-                />
-            </form>
-            {(approveState?.error || rejectState?.error) && (
-                <span className="text-xs text-destructive">
-                    {approveState?.error || rejectState?.error}
-                </span>
-            )}
+            <Button
+                label="Approve"
+                variant="success"
+                size="sm"
+                loading={isApprovePending}
+                onClick={handleApprove}
+            />
+            <Button
+                label="Reject"
+                variant="destructive"
+                size="sm"
+                loading={isRejectPending}
+                onClick={handleReject}
+            />
         </div>
     );
 }
