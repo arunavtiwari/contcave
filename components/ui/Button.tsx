@@ -24,6 +24,7 @@ type Props = {
   fit?: boolean;
   href?: string;
   target?: "_blank" | "_self";
+  type?: "button" | "submit" | "reset";
 };
 
 function Button({
@@ -41,6 +42,7 @@ function Button({
   fit,
   href,
   target,
+  type = "button",
 }: Props) {
 
   const sizeClasses = {
@@ -106,7 +108,7 @@ function Button({
   }
 
   return (
-    <button disabled={disabled || loading} onClick={onClick} className={finalClasses}>
+    <button type={type} disabled={disabled || loading} onClick={onClick} className={finalClasses}>
       {content}
     </button>
   );

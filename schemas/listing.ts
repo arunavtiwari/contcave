@@ -14,10 +14,12 @@ export const locationSchema = z.object({
     additionalInfo: z.string().max(200, "Additional info too long").optional(),
 });
 
-export const operationalHoursSchema = z.object({
+export const operationalHoursBaseSchema = z.object({
     start: z.string().regex(/^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/, "Invalid start time (e.g. 9:00 AM)"),
     end: z.string().regex(/^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/, "Invalid end time (e.g. 12:00 AM)"),
-}).superRefine((value, ctx) => {
+});
+
+export const operationalHoursSchema = operationalHoursBaseSchema.superRefine((value, ctx) => {
     const startIdx = TIME_SLOTS.indexOf(value.start);
     const endIdx = TIME_SLOTS.lastIndexOf(value.end);
 
@@ -61,7 +63,7 @@ export const listingSetSchema = z.object({
 });
 
 
-export const packageSchema = z.object({
+export const packageBaseSchema = z.object({
     id: z.string().optional(),
     title: z.string().min(3, "Title too short").max(200, "Title too long"),
     description: z.string().max(500, "Description too long").optional().nullable(),
@@ -73,7 +75,9 @@ export const packageSchema = z.object({
     fixedAddOn: z.number().min(0).optional().nullable(),
     eligibleSetIds: z.array(z.string()).optional(),
     isActive: z.boolean().default(true),
-}).refine((data) => {
+});
+
+export const packageSchema = packageBaseSchema.refine((data) => {
     if (data.originalPrice && data.originalPrice > 0) {
         return data.offeredPrice <= data.originalPrice;
     }
@@ -84,7 +88,7 @@ export const packageSchema = z.object({
 });
 
 
-export const listingSchema = z.object({
+export const listingBaseSchema = z.object({
     category: z.string().min(1, "Category is required").max(100),
     locationValue: z.string().min(1, "Location is required"),
     actualLocation: locationSchema,
@@ -123,7 +127,9 @@ export const listingSchema = z.object({
     addons: z.unknown().optional(),
     verifications: z.unknown().optional().nullable(),
     agreementSignature: z.unknown().optional().nullable(),
-}).refine((data) => {
+});
+
+export const listingSchema = listingBaseSchema.refine((data) => {
     if (data.hasSets) {
         if (!data.sets || data.sets.length < 2) {
             return false;

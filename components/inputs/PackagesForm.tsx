@@ -1,14 +1,14 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import Checkbox from "@/components/inputs/Checkbox";
 import Input from "@/components/inputs/Input";
+import Button from "@/components/ui/Button";
+import Pill from "@/components/ui/Pill";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
-
-
 
 interface PackagesFormProps {
   value: Package[];
@@ -18,7 +18,6 @@ interface PackagesFormProps {
 
 export default function PackagesForm({ value, onChange, availableSets = [] }: PackagesFormProps) {
   const [packages, setPackages] = useState<Package[]>(value || []);
-
 
   useEffect(() => {
     setPackages(value || []);
@@ -66,21 +65,20 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
       {packages.map((pkg, idx) => (
         <div
           key={idx}
-          className="border border-foreground rounded-xl p-6 relative flex flex-col gap-4 bg-background "
+          className="border border-border rounded-2xl p-6 relative flex flex-col gap-5 bg-background shadow-sm transition-all duration-300"
         >
+          <div className="absolute -top-3 -right-3 z-10">
+            <Button
+              variant="ghost"
+              size="sm"
+              rounded
+              onClick={() => removePackage(idx)}
+              classNames="bg-background border-border text-destructive hover:bg-destructive hover:text-background w-10 h-10 p-0 shadow-sm"
+              icon={Trash2}
+            />
+          </div>
 
-          <button
-            type="button"
-            onClick={() => removePackage(idx)}
-            className="absolute -top-3 -right-3 bg-background border border-foreground p-2 hover:bg-foreground hover:text-background transition z-10 rounded-md"
-            aria-label="Remove Package"
-          >
-            <Trash2 size={16} />
-          </button>
-
-
-          <div className="w-full">
-
+          <div className="flex flex-col gap-5">
             <Input
               id={`title-${idx}`}
               label="Package Title"
@@ -88,30 +86,20 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
               value={pkg.title}
               onChange={(e) => updatePackage(idx, "title", e.target.value)}
               required
-              errors={{}}
             />
-          </div>
 
-
-          <div className="w-full">
-
-            <Input
-              id={`duration-${idx}`}
-              label="Duration (Hours)"
-              type="number"
-              placeholder="8"
-              value={pkg.durationHours}
-              onChange={(e) => updatePackage(idx, "durationHours", Number(e.target.value))}
-              required
-              errors={{}}
-              onWheel={(e) => (e.target as HTMLInputElement).blur()}
-            />
-            <p className="text-xs text-muted-foreground mt-1">Minimum duration is 1 hour</p>
-          </div>
-
-
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex-1">
+            {/* Duration, Original Price, Offered Price */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <Input
+                id={`duration-${idx}`}
+                label="Duration (Hours)"
+                type="number"
+                placeholder="8"
+                value={pkg.durationHours}
+                onChange={(e) => updatePackage(idx, "durationHours", Number(e.target.value))}
+                required
+                description="Minimum duration is 1 hour"
+              />
 
               <Input
                 id={`original-${idx}`}
@@ -122,13 +110,8 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 value={pkg.originalPrice}
                 onChange={(e) => updatePackage(idx, "originalPrice", Number(e.target.value))}
                 required
-                errors={{}}
-                onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                description="Price before discount"
               />
-              <p className="text-xs text-muted-foreground mt-1">Price before discount</p>
-            </div>
-
-            <div className="flex-1">
 
               <Input
                 id={`offered-${idx}`}
@@ -139,43 +122,35 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 value={pkg.offeredPrice}
                 onChange={(e) => updatePackage(idx, "offeredPrice", Number(e.target.value))}
                 required
-                errors={{}}
-                onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                description="Discounted price"
               />
-              <p className="text-xs text-muted-foreground mt-1">Discounted price</p>
             </div>
           </div>
 
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Features</label>
-            <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-3">
+            <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest px-1">Features</label>
+            <div className="flex flex-wrap gap-2 min-h-11 p-2 rounded-xl bg-muted/30 border border-dashed border-border/60">
               {pkg.features.map((f, i) => (
-                <div
+                <Pill
                   key={i}
-                  className="flex items-center gap-1 bg-muted border border-border px-2 py-1 rounded-md"
-                >
-                  <span className="text-sm">{f}</span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updatePackage(
-                        idx,
-                        "features",
-                        pkg.features.filter((_, fi) => fi !== i)
-                      )
-                    }
-                    className="text-destructive hover:text-destructive/80 font-bold"
-                    aria-label="Remove feature"
-                  >
-                    x
-                  </button>
-                </div>
+                  label={f}
+                  variant="card-feature"
+                  size="sm"
+                  onClick={() =>
+                    updatePackage(
+                      idx,
+                      "features",
+                      pkg.features.filter((_, fi) => fi !== i)
+                    )
+                  }
+                  className="group"
+                  icon={X}
+                />
               ))}
-              <input
-                type="text"
-                placeholder="Add feature"
-                className="outline-none px-2 py-1 border border-border rounded-md"
+              <Input
+                id={`new-feature-${idx}`}
+                placeholder="Type and press Enter..."
+                className="flex-1 min-w-37.5 bg-transparent border-none focus:ring-0 h-9 px-2 shadow-none"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && e.currentTarget.value.trim() !== "") {
                     e.preventDefault();
@@ -188,12 +163,11 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 }}
               />
             </div>
-            <p className="text-xs text-muted-foreground">Press Enter to add a feature</p>
+            <p className="text-[11px] text-muted-foreground/60 px-1 italic">Press Enter to add each feature</p>
           </div>
 
-
           {availableSets.length > 0 && (
-            <div className="border-t pt-4 mt-2">
+            <div className="border-t border-border/50 pt-6 mt-2">
               <div className="flex items-center gap-2 mb-4">
                 <Checkbox
                   id={`has-sets-${idx}`}
@@ -216,24 +190,17 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
               </div>
 
               {pkg.requiredSetCount !== null && pkg.requiredSetCount !== undefined && (
-                <div className="flex flex-col gap-4 pl-6 border-l-2 border-border">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="flex flex-col gap-1">
-
-                      <Input
-                        id={`req-sets-${idx}`}
-                        label="Number of Sets Included"
-                        type="number"
-                        placeholder="1"
-                        value={pkg.requiredSetCount || 1}
-                        onChange={(e) => updatePackage(idx, "requiredSetCount", Math.max(1, parseInt(e.target.value) || 1))}
-                        required
-                        errors={{}}
-                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                      />
-                      <p className="text-xs text-muted-foreground">How many sets are included in this package price</p>
-                    </div>
-                  </div>
+                <div className="pl-6 border-l-2 border-border/30">
+                  <Input
+                    id={`req-sets-${idx}`}
+                    label="Number of Sets Included"
+                    type="number"
+                    placeholder="1"
+                    value={pkg.requiredSetCount || 1}
+                    onChange={(e) => updatePackage(idx, "requiredSetCount", Math.max(1, parseInt(e.target.value) || 1))}
+                    required
+                    description="How many sets are included in this package price"
+                  />
                 </div>
               )}
             </div>
@@ -241,15 +208,14 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
         </div>
       ))}
 
-
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={addPackage}
-        className="flex items-center gap-2 self-start px-5 py-3 border border-foreground text-foreground rounded-lg hover:bg-foreground hover:text-background transition"
-      >
-        <Plus size={18} />
-        Add Package
-      </button>
+        label="Add New Package"
+        icon={Plus}
+        fit
+      />
     </div>
   );
 }

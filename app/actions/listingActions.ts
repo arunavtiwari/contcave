@@ -6,7 +6,7 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { ListingService } from "@/lib/listing/service";
 import prisma from "@/lib/prismadb";
 import { dayStatusSchema } from "../../schemas/dayStatus";
-import { listingSchema } from "../../schemas/listing";
+import { listingSchema, listingBaseSchema } from "../../schemas/listing";
 import type { FullListing } from "@/types/listing";
 
 /**
@@ -59,7 +59,7 @@ export async function updateListingAction(listingId: string, body: any): Promise
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) return { success: false, error: "Unauthorized" };
 
-        const updateSchema = listingSchema.partial();
+        const updateSchema = listingBaseSchema.partial();
         const validation = updateSchema.safeParse(body);
         if (!validation.success) {
             return { success: false, error: validation.error.issues[0].message };

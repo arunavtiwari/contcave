@@ -30,9 +30,8 @@ export const categories = [
     icon: FaPodcast,
     description: "Set up for audio/video podcast productions.",
   },
-
   {
-    label: "CafÃƒÂ© / Restaurant",
+    label: "Cafe / Restaurant",
     icon: MdLocalCafe,
     description: "Stylish eateries perfect for cozy, lifestyle photos.",
   },

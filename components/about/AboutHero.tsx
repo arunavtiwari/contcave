@@ -9,7 +9,7 @@ import Heading from "@/components/ui/Heading";
 
 const AboutHero = () => {
     return (
-        <section className="relative min-h-[60vh] flex items-center overflow-hidden bg-foreground py-20 lg:py-32">
+        <section className="relative h-[calc(100vh-80px)] min-h-120 flex items-center overflow-hidden bg-foreground py-20 lg:py-32">
             {/* Background Image with Overlay */}
             <motion.div
                 initial={{ scale: 1.1, opacity: 0 }}

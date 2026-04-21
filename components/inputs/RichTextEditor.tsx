@@ -313,7 +313,7 @@ export default function RichTextEditor({
           <RichTextPlugin
             contentEditable={
               <ContentEditable className={cn(
-                "min-h-40 p-4 outline-none text-sm relative z-10",
+                "min-h-40 p-4 outline-none text-sm font-normal relative z-10",
                 disabled && "pointer-events-none opacity-60",
                 !hasInitialized && "opacity-0"
               )} />

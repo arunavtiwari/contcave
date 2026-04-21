@@ -3,14 +3,26 @@ import { IconType } from "react-icons";
 
 import { cn } from "@/lib/utils";
 
-export type PillVariant = "subtle" | "glass";
-export type PillColor = "default" | "secondary" | "destructive" | "success" | "warning" | "neutral";
+export type PillVariant =
+    | "solid"
+    | "subtle"
+    | "glass"
+    | "secondary"
+    | "neutral"
+    | "destructive"
+    | "success"
+    | "warning"
+    | "info"
+    | "card-feature"
+    | "card-category"
+    | "card-rating"
+    | "card-muted";
+
 export type PillSize = "xs" | "sm" | "md";
 
 interface PillProps {
     label: string | React.ReactNode;
     variant?: PillVariant;
-    color?: PillColor;
     size?: PillSize;
     icon?: IconType;
     className?: string;
@@ -20,7 +32,6 @@ interface PillProps {
 const Pill: React.FC<PillProps> = ({
     label,
     variant = "subtle",
-    color = "default",
     size = "sm",
     icon: Icon,
     className,
@@ -34,26 +45,23 @@ const Pill: React.FC<PillProps> = ({
         md: "px-3 h-9 text-sm",
     };
 
-    const variantClasses: Record<PillVariant, Record<PillColor, string>> = {
-        subtle: {
-            default: "bg-foreground/10 text-foreground",
-            secondary: "bg-foreground/2 text-foreground/80",
-            destructive: "bg-destructive/10 text-destructive",
-            success: "bg-success/10 text-success",
-            warning: "bg-warning/10 text-warning",
-            neutral: "bg-muted text-muted-foreground",
-        },
-        glass: {
-            default: "bg-background/80 backdrop-blur-md text-foreground",
-            secondary: "bg-background/5 backdrop-blur-md text-background",
-            destructive: "bg-destructive/20 backdrop-blur-md border border-destructive/20 text-destructive",
-            success: "bg-success/20 backdrop-blur-md border border-success/20 text-success",
-            warning: "bg-warning/20 backdrop-blur-md border border-warning/20 text-warning",
-            neutral: "bg-background/40 backdrop-blur-md border border-border/10 text-foreground",
-        },
+    const variantClasses: Record<PillVariant, string> = {
+        solid: "bg-foreground text-background",
+        subtle: "bg-foreground/10 text-foreground",
+        glass: "bg-background/80 backdrop-blur-md text-foreground",
+        secondary: "bg-neutral-100 text-neutral-900",
+        neutral: "bg-neutral-50 text-neutral-600",
+        destructive: "bg-destructive text-destructive-foreground",
+        success: "bg-success/10 text-success",
+        warning: "bg-warning/10 text-warning",
+        info: "bg-info/10 text-info",
+        "card-feature": "bg-muted text-muted-foreground",
+        "card-category": "bg-neutral-100 text-neutral-900",
+        "card-rating": "bg-neutral-50 text-neutral-600",
+        "card-muted": "bg-neutral-100/50 text-neutral-500",
     };
 
-    const colorScheme = variantClasses[variant][color] || variantClasses[variant].default;
+    const colorScheme = variantClasses[variant] || variantClasses.subtle;
 
     return (
         <div

@@ -109,11 +109,11 @@ const ProfileSettings = ({ profile }: Props) => {
 
       <Modal
         isOpen={showConfirmModal}
-        onClose={() => (isSubmitting ? null : setShowConfirmModal(false))}
-        onSubmit={handleDeleteRequest}
+        onCloseAction={() => (isSubmitting ? null : setShowConfirmModal(false))}
+        onSubmitAction={handleDeleteRequest}
         title="Confirm deletion"
         actionLabel={isSubmitting ? "Processing..." : "Yes, delete my account"}
-        secondaryAction={() => setShowConfirmModal(false)}
+        secondaryActionAction={() => setShowConfirmModal(false)}
         secondaryActionLabel="Cancel"
         disabled={isSubmitting}
         customHeight="h-fit"

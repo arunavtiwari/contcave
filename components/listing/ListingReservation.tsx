@@ -488,8 +488,7 @@ export default function ListingReservation({
 
         <Pill
           label={instantBooking ? "Instant Book" : "Request to Book"}
-          variant="subtle"
-          color={instantBooking ? "success" : "warning"}
+          variant={instantBooking ? "success" : "warning"}
           icon={instantBooking ? FaBolt : undefined}
           size="xs"
         />

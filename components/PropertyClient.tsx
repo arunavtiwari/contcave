@@ -344,6 +344,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         placeholder="Enter custom URL slug"
                         value={initialListing.slug ?? ""}
                         onChange={(e) => handleInputChange("slug", e.target.value)}
+                        customLeftContent="contcave.com/listing/"
                     />
 
 
@@ -405,7 +406,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                             : [...currentType, t];
                                         handleInputChange("type", newType);
                                     }}
-                                    color={(initialListing.type || []).includes(t) ? "default" : "secondary"}
+                                    variant={(initialListing.type || []).includes(t) ? "solid" : "secondary"}
                                 />
                             ))}
                         </div>

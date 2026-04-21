@@ -121,8 +121,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                                 reservationStatus === 0 ? "Pending" :
                                     reservationStatus === 2 ? "Rejected" : "Cancelled"
                         }
-                        variant="glass"
-                        color={
+                        variant={
                             reservationStatus === 1 ? "success" :
                                 reservationStatus === 0 ? "warning" : "destructive"
                         }

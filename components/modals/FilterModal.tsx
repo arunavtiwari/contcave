@@ -109,7 +109,7 @@ const FilterModalContent = () => {
         title="More Filters"
         body={body}
         actionLabel="Apply"
-        secondaryAction={handleResetFilters}
+        secondaryActionAction={handleResetFilters}
         secondaryActionLabel="Reset Filters"
         customWidth="w-full max-w-md"
       />

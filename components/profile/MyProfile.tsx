@@ -352,8 +352,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                                     key={t}
                                                     label={t}
                                                     onClick={() => handleTitleChange(t)}
-                                                    variant="subtle"
-                                                    color={userData.title === t ? "default" : "secondary"}
+                                                    variant={userData.title === t ? "solid" : "secondary"}
                                                     className="cursor-pointer min-w-14"
                                                 />
                                             ))}
@@ -499,8 +498,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                                                 handleLanguageToggle(language);
                                                             }
                                                         }}
-                                                        variant="subtle"
-                                                        color={isSelected ? "default" : "secondary"}
+                                                        variant={isSelected ? "solid" : "secondary"}
                                                         className={cn(
                                                             "cursor-pointer transition-all",
                                                             isDisabled && "opacity-30 cursor-not-allowed grayscale",
@@ -524,8 +522,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                                     <Pill
                                                         key={language}
                                                         label={language}
-                                                        variant="subtle"
-                                                        color="secondary"
+                                                        variant="secondary"
                                                     />
                                                 ))
                                             ) : (

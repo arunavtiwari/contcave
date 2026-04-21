@@ -57,9 +57,8 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
             <div className="flex items-center justify-between">
                 <Pill
                     label={category || "Creative Space"}
-                    variant="subtle"
+                    variant="card-category"
                     size="xs"
-                    color="secondary"
                 />
 
                 {ratingValue != null && showRating && (
@@ -75,9 +74,8 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
                             </span>
                         }
                         icon={AiFillStar}
-                        variant="subtle"
+                        variant="card-rating"
                         size="xs"
-                        color="secondary"
                     />
                 )}
             </div>

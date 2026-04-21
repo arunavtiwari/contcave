@@ -38,7 +38,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
                 {label && (
                     <label
                         htmlFor={props.id}
-                        className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer ${props.disabled ? "cursor-not-allowed" : ""}`}
+                        className={`text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer ${props.disabled ? "cursor-not-allowed" : ""}`}
                     >
                         {label}
                     </label>

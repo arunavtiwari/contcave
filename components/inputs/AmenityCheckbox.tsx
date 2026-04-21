@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 
 import Checkbox from './Checkbox';
 import Input from './Input';
+import Button from '../ui/Button';
+import Pill from '../ui/Pill';
+import { X } from 'lucide-react';
 
 export interface AmenitiesData {
   predefined: { [key: number | string]: boolean };
@@ -64,26 +67,31 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-4">
-        {amenities.map(({ id, name }) => (
-          <Checkbox
-            key={id}
-            label={name}
-            checked={!!checkedItems[id]}
-            onChange={() => handleCheckboxChange(id)}
-          />
-        ))}
+      <div className="flex flex-wrap gap-2">
+        {amenities.map(({ id, name }) => {
+          const isSelected = !!checkedItems[id];
+          return (
+            <Pill
+              key={id}
+              label={name}
+              variant={isSelected ? "solid" : "secondary"}
+              onClick={() => handleCheckboxChange(id)}
+              className="cursor-pointer transition-all hover:opacity-80"
+            />
+          );
+        })}
       </div>
 
+
       <div className="mt-8">
-        <label htmlFor="custom-amenity" className="block text-sm font-medium text-foreground mb-1">
+        <label htmlFor="custom-amenity" className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2 px-1">
           Custom Amenity
         </label>
-        <div className="flex gap-2 items-start">
+        <div className="flex gap-3 items-start">
           <div className="grow">
             <Input
               id="custom-amenity"
-              placeholder="Enter custom amenity"
+              placeholder="e.g. Infinity Pool"
               value={otherAmenity}
               onChange={(e) => setOtherAmenity(e.target.value)}
               onKeyDown={(e) => {
@@ -92,30 +100,30 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
                   handleAddAmenity();
                 }
               }}
+              size='sm'
             />
           </div>
-          <button
+          <Button
             type="button"
             onClick={handleAddAmenity}
-            className="bg-foreground hover:opacity-90 text-background px-8 h-11 rounded-xl flex items-center justify-center font-medium transition"
-          >
-            ADD
-          </button>
+            label="ADD"
+            fit
+            size='sm'
+          />
         </div>
       </div>
 
       {amenitiesList.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div className="flex flex-wrap gap-2 mt-4">
           {amenitiesList.map((amenity) => (
-            <span
+            <Pill
               key={amenity}
-              className="flex items-center gap-2 bg-foreground text-background text-xs px-4 py-1 rounded-full"
-            >
-              {amenity}
-              <button type="button" onClick={() => handleRemoveAmenity(amenity)} className="text-lg">
-                &times;
-              </button>
-            </span>
+              label={amenity}
+              variant="solid"
+              size="sm"
+              onClick={() => handleRemoveAmenity(amenity)}
+              icon={X}
+            />
           ))}
         </div>
       )}

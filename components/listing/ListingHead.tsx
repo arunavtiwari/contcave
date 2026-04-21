@@ -190,8 +190,8 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
 
       <Modal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={() => { }}
+        onCloseAction={() => setShowModal(false)}
+        onSubmitAction={() => { }}
         title="All Photos"
         body={modalContent}
         actionLabel=""

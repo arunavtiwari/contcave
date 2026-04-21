@@ -91,8 +91,7 @@ const Hero = () => {
       className="overflow-hidden"
     >
       <div
-        className="relative flex items-center"
-        style={{ height: "calc(100vh - 80px)", minHeight: 480 }}
+        className="relative flex items-center h-[calc(100vh-80px)] min-h-120"
       >
         <motion.div
           className="absolute inset-0 z-50 pointer-events-none bg-background"

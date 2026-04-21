@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 import FormField from "./FormField";
 import Input from "./Input";
+import Pill from "../ui/Pill";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 
 export type ListingDetails = {
@@ -124,24 +125,26 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                     className="flex-1"
                     options={dayOptions}
                     value={dayOptions.find((d) => d.value === details.operationalDays.start)}
-                    onChange={(sel) =>
+                    onChange={(newValue) => {
+                        const sel = newValue as SelectOption | null;
                         handleInputChange("operationalDays", {
                             ...details.operationalDays,
                             start: sel?.value || "",
-                        })
-                    }
+                        });
+                    }}
                     placeholder="Start Day"
                 />
                 <Select
                     className="flex-1"
                     options={dayOptions}
                     value={dayOptions.find((d) => d.value === details.operationalDays.end)}
-                    onChange={(sel) =>
+                    onChange={(newValue) => {
+                        const sel = newValue as SelectOption | null;
                         handleInputChange("operationalDays", {
                             ...details.operationalDays,
                             end: sel?.value || "",
-                        })
-                    }
+                        });
+                    }}
                     placeholder="End Day"
                 />
             </div>
@@ -170,7 +173,8 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                         className="flex-1"
                         options={startTimeOptions}
                         value={startTimeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
-                        onChange={(sel) => {
+                        onChange={(newValue) => {
+                            const sel = newValue as SelectOption | null;
                             const nextStart = sel?.value || "";
                             const nextStartIdx = staticTimeOptions.findIndex((t) => t.value === nextStart);
                             const currentEnd = details.operationalHours.end || "";
@@ -196,12 +200,13 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                             if (isOpenAllDay && t.value === "12:00 AM") return true;
                             return t.value === (details.operationalHours.end || "");
                         }) || null}
-                        onChange={(sel) =>
+                        onChange={(newValue) => {
+                            const sel = newValue as SelectOption | null;
                             handleInputChange("operationalHours", {
                                 ...details.operationalHours,
                                 end: sel?.value || "",
-                            })
-                        }
+                            });
+                        }}
                         placeholder="End Time"
                         isDisabled={isOpenAllDay}
                     />
@@ -255,20 +260,13 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
         >
             <div className="flex flex-wrap gap-2 w-full">
                 {Array.from(new Set([...spaceTypes, ...(details.type || [])])).map((t) => (
-                    <button
+                    <Pill
                         key={t}
-                        type="button"
+                        label={t}
                         onClick={() => handleTypeSelect(t)}
-                        className={`
-                                text-sm py-2 px-4 rounded-full border transition
-                                ${details.type.includes(t)
-                                ? "bg-foreground text-background border-foreground shadow-sm"
-                                : "bg-background text-muted-foreground border-border hover:border-foreground/50"
-                            }
-                            `}
-                    >
-                        {t}
-                    </button>
+                        variant={details.type.includes(t) ? "solid" : "secondary"}
+                        className="cursor-pointer transition-all hover:opacity-80"
+                    />
                 ))}
             </div>
         </FormField>

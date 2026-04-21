@@ -91,7 +91,7 @@ function Footer() {
       </Container>
       {/* Copyright */}
       <div className="bg-foreground text-background py-3 text-[10px] md:text-xs text-center">
-        Â© {new Date().getFullYear()} ContCave by Arkanet Ventures LLP. All rights reserved.
+        © {new Date().getFullYear()} ContCave by Arkanet Ventures LLP. All rights reserved.
       </div>
     </footer>
   );

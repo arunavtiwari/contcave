@@ -441,7 +441,7 @@ function ListingInfo({
             <Pill
               key={index}
               label={service}
-              variant="subtle"
+              variant="secondary"
               size="sm"
             />
           ))}

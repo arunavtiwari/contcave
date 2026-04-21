@@ -57,7 +57,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         id={id}
                         type={type}
                         className={cn(
-                            "w-full font-light bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed",
+                            "w-full font-normal bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed",
                             sizeClasses[size],
                             formatPrice ? (size === "sm" ? "pl-9" : "pl-12") : (customLeftContent ? "pl-41.25" : "pl-3"),
                             customRightContent ? (size === "sm" ? "pr-10" : "pr-12") : "pr-3",

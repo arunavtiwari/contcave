@@ -125,8 +125,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                             value: (
                                 <Pill
                                     label={transaction.status}
-                                    color={getStatusVariant(transaction.status)}
-                                    variant="subtle"
+                                    variant={getStatusVariant(transaction.status)}
                                     size="xs"
                                 />
                             )

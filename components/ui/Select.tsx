@@ -10,23 +10,31 @@ export interface SelectOption {
     [key: string]: any;
 }
 
-interface CustomSelectProps extends SelectProps<SelectOption, boolean, GroupBase<SelectOption>> {
+interface CustomSelectProps<
+    Option = SelectOption,
+    IsMulti extends boolean = false,
+    Group extends GroupBase<Option> = GroupBase<Option>
+> extends SelectProps<Option, IsMulti, Group> {
     variant?: "default" | "subtle";
     size?: "sm" | "md" | "lg";
     error?: string;
     className?: string;
 }
 
-const Select: React.FC<CustomSelectProps> = ({
+function Select<
+    Option = SelectOption,
+    IsMulti extends boolean = false,
+    Group extends GroupBase<Option> = GroupBase<Option>
+>({
     variant = "default",
     size = "md",
     error,
     className,
     isSearchable = false,
     ...props
-}) => {
+}: CustomSelectProps<Option, IsMulti, Group>) {
     const reactSelectId = React.useId();
-    const customStyles: StylesConfig<SelectOption, boolean, GroupBase<SelectOption>> = {
+    const customStyles: StylesConfig<Option, IsMulti, Group> = {
         control: (provided, state) => ({
             ...provided,
             backgroundColor: "var(--color-background)",
@@ -57,7 +65,7 @@ const Select: React.FC<CustomSelectProps> = ({
             margin: 0,
             padding: 0,
             color: "var(--color-foreground)",
-            fontWeight: 300,
+            fontWeight: 400,
         }),
         valueContainer: (provided) => ({
             ...provided,
@@ -67,13 +75,13 @@ const Select: React.FC<CustomSelectProps> = ({
             ...provided,
             margin: 0,
             fontSize: size === "sm" ? "0.75rem" : "0.875rem",
-            fontWeight: 300,
+            fontWeight: 400,
             color: "var(--color-foreground)",
         }),
         placeholder: (provided) => ({
             ...provided,
             fontSize: size === "sm" ? "0.75rem" : "0.875rem",
-            fontWeight: 300,
+            fontWeight: 400,
             color: "var(--color-muted-foreground)",
         }),
         option: (provided, state) => ({
@@ -136,6 +144,6 @@ const Select: React.FC<CustomSelectProps> = ({
             {error && <p className="text-xs text-destructive ml-1">{error}</p>}
         </div>
     );
-};
+}
 
 export default Select;
