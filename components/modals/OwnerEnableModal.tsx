@@ -174,4 +174,6 @@ const OwnerEnableModal: React.FC<Props> = ({
   );
 };
 
+export default OwnerEnableModal;
+
 
