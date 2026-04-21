@@ -30,9 +30,7 @@
 	--color-accent-foreground: var(--color-black);
 	--color-accent-subtle: var(--color-neutral-50);
 
-	--color-border: var(--color-neutral-100);
-	--color-input: var(--color-neutral-100);
-	--color-ring: var(--color-black);
+	--color-border: var(--color-neutral-200);
 
 	--color-success: #10B981;
 	--color-warning: #F59E0B;

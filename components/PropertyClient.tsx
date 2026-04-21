@@ -24,11 +24,14 @@ import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import { spaceTypes } from "@/constants/spaceTypes";
-import useIndianCities, { City } from "@/hooks/useCities";
 import { uploadToR2 } from "@/lib/storage/upload";
 import { Addon } from "@/types/addon";
+import Pill from "@/components/ui/Pill";
 import { FullListing } from "@/types/listing";
 import { Package as ListingPackage } from "@/types/package";
+
+import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
+import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
 
 type Props = {
     listing: FullListing;
@@ -75,17 +78,22 @@ import { TIME_SLOTS } from "@/constants/timeSlots";
 
 import FormField from "./inputs/FormField";
 import Input from "./inputs/Input";
+import Select, { SelectOption } from "@/components/ui/Select";
 
-const propertyFieldClassName =
-    "w-full rounded-xl border border-border bg-background px-4 h-11 text-sm text-foreground transition outline-none focus:border-foreground focus:ring-1 focus:ring-foreground/10 hover:border-border/80";
+const dayOptionsPrepared: SelectOption[] = dayOptions.map((d) => ({ value: d, label: d }));
+const timeOptionsPrepared: SelectOption[] = TIME_SLOTS.map((t) => ({ value: t, label: t }));
+const categoryOptionsPrepared: SelectOption[] = CATEGORY_OPTIONS.map((c) => ({ ...c, value: c.label }));
+const endOptionsPrepared = (startIdx: number): SelectOption[] => {
+    if (startIdx === -1) return timeOptionsPrepared.slice(1);
+    return timeOptionsPrepared.slice(startIdx + 1);
+};
+
 
 const propertyFieldSeparatorClassName =
     "flex items-center justify-center self-stretch px-1 text-sm font-medium leading-none text-muted-foreground";
 
 const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Props) => {
     const [selectedMenu] = useState("Edit Property");
-    const { getAll } = useIndianCities();
-    const indianCities = getAll();
     const [amenities] = useState(predefinedAmenities);
     const [addons, setAddons] = useState<Addon[]>(predefinedAddons);
     const [isCalendarConnected, setIsCalendarConnected] = useState(listing.user?.googleCalendarConnected);
@@ -329,28 +337,20 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         onChange={(e) => handleInputChange("title", e.target.value)}
                     />
 
-                    <FormField
+                    <Input
                         id="listingSlug"
-                        label="Custom URL"
+                        label="URL Slug"
                         variant="horizontal"
-                    >
-                        <div className="w-full flex items-center">
-                            <span className="text-muted-foreground mr-2 text-sm">contcave.com/listings/</span>
-                            <input
-                                type="text"
-                                id="listingSlug"
-                                className={propertyFieldClassName}
-                                placeholder="Enter custom URL slug"
-                                value={initialListing.slug ?? ""}
-                                onChange={(e) => handleInputChange("slug", e.target.value)}
-                            />
-                        </div>
-                    </FormField>
+                        placeholder="Enter custom URL slug"
+                        value={initialListing.slug ?? ""}
+                        onChange={(e) => handleInputChange("slug", e.target.value)}
+                    />
 
 
                     <FormField
                         label="Description"
                         variant="horizontal"
+                        align="start"
                     >
                         <RichTextEditor
                             value={initialListing.description ?? ""}
@@ -361,6 +361,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     <FormField
                         label="Terms & Conditions by Host"
                         variant="horizontal"
+                        align="start"
                     >
                         <RichTextEditor
                             value={initialListing.customTerms ?? ""}
@@ -373,18 +374,15 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         label="Category"
                         variant="horizontal"
                     >
-                        <select
-                            className={propertyFieldClassName}
-                            value={initialListing.category ?? ""}
-                            onChange={(e) => handleInputChange("category", e.target.value)}
-                        >
-                            <option value="" disabled hidden>Select Category</option>
-                            {CATEGORY_OPTIONS.map((item) => (
-                                <option key={item.label} value={item.label}>
-                                    {item.label}
-                                </option>
-                            ))}
-                        </select>
+                        <Select
+                            options={categoryOptionsPrepared}
+                            value={categoryOptionsPrepared.find((item) => item.label === initialListing.category) || null}
+                            onChange={(sel) => {
+                                const selected = sel as SelectOption | null;
+                                handleInputChange("category", selected?.value || "");
+                            }}
+                            placeholder="Select Category"
+                        />
                     </FormField>
 
 
@@ -392,12 +390,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         label="Listed Services"
                         description="Select all services available in this space"
                         variant="horizontal"
+                        align="start"
                     >
                         <div className="w-full flex flex-wrap gap-2">
                             {Array.from(new Set([...spaceTypes, ...(initialListing.type || [])])).map((t) => (
-                                <button
+                                <Pill
                                     key={t}
-                                    type="button"
+                                    label={t}
                                     onClick={() => {
                                         const currentType = initialListing.type || [];
                                         const exists = currentType.includes(t);
@@ -406,16 +405,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                             : [...currentType, t];
                                         handleInputChange("type", newType);
                                     }}
-                                    className={`
-                                            text-sm h-11 px-6 rounded-full border transition
-                                            ${(initialListing.type || []).includes(t)
-                                            ? "bg-foreground text-background border-foreground"
-                                            : "bg-background text-muted-foreground border-border hover:border-foreground"
-                                        }
-                                        `}
-                                >
-                                    {t}
-                                </button>
+                                    color={(initialListing.type || []).includes(t) ? "default" : "secondary"}
+                                />
                             ))}
                         </div>
                     </FormField>
@@ -432,29 +423,56 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         onChange={(e) => handleInputChange("price", Number(e.target.value))}
                     />
 
-
                     <FormField
                         label="Location"
                         variant="horizontal"
+                        align="start"
                     >
-                        <select
-                            className={propertyFieldClassName}
-                            value={initialListing.locationValue ?? ""}
-                            onChange={(e) => handleInputChange("locationValue", e.target.value)}
-                        >
-                            <option value="" disabled hidden>Select City</option>
-                            {indianCities.map((item: City, index: number) => (
-                                <option key={index} value={item.name}>
-                                    {item.name}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="flex flex-col gap-5 w-full">
+                            <div className="w-full">
+                                <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                                    City
+                                </label>
+                                <CitySelect
+                                    value={initialListing.actualLocation as CitySelectValue | undefined}
+                                    locationValue={initialListing.locationValue}
+                                    onChange={(v: CitySelectValue) => {
+                                        handleInputChange("actualLocation", {
+                                            ...(initialListing.actualLocation || {}),
+                                            ...v,
+                                        });
+                                        handleInputChange("locationValue", v.value || "");
+                                    }}
+                                />
+                            </div>
+
+                            <div className="w-full">
+                                <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                                    Detailed Address
+                                </label>
+                                <AutoComplete
+                                    value={(initialListing.actualLocation as any)?.display_name || ""}
+                                    onChange={(sel: AutoCompleteValue) => {
+                                        handleInputChange("actualLocation", {
+                                            ...(initialListing.actualLocation || {}),
+                                            display_name: sel.display_name,
+                                            latlng: sel.latlng,
+                                            address: sel.display_name,
+                                            lat: sel.latlng[0],
+                                            lng: sel.latlng[1],
+                                        });
+                                    }}
+                                    placeholder="Search for space address..."
+                                />
+                            </div>
+                        </div>
                     </FormField>
 
 
                     <FormField
                         label="Images / Videos"
                         variant="horizontal"
+                        align="start"
                     >
                         <div className="w-full">
                             <ImageReorderGrid
@@ -483,6 +501,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     <FormField
                         label="Amenities"
                         variant="horizontal"
+                        align="start"
                     >
                         <div className="flex w-full">
                             <AmenitiesCheckbox
@@ -498,6 +517,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     <FormField
                         label="Addons"
                         variant="horizontal"
+                        align="start"
                     >
                         <div className="flex flex-col w-full">
                             <AddonsSelection
@@ -518,6 +538,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     <FormField
                         label="Packages"
                         variant="horizontal"
+                        align="start"
                     >
                         <div className="flex flex-col w-full">
                             <PackagesForm
@@ -544,30 +565,26 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         label="Operational Days"
                         variant="horizontal"
                     >
-                        <div className="flex space-x-2 w-full">
-                            <select
-                                className={`${propertyFieldClassName} w-25 text-center px-0`}
-                                value={initialListing.operationalDays?.start ?? "Mon"}
-                                onChange={(e) => handleInputChange("operationalDays.start", e.target.value)}
-                            >
-                                {dayOptions.map((d) => (
-                                    <option key={`start-${d}`} value={d}>
-                                        {d}
-                                    </option>
-                                ))}
-                            </select>
+                        <div className="flex items-center gap-3 w-full">
+                            <Select
+                                className="flex-1"
+                                options={dayOptionsPrepared}
+                                value={dayOptionsPrepared.find(d => d.value === (initialListing.operationalDays?.start ?? "Mon"))}
+                                onChange={(sel) => {
+                                    const selected = sel as SelectOption | null;
+                                    handleInputChange("operationalDays.start", selected?.value || "Mon");
+                                }}
+                            />
                             <span className={propertyFieldSeparatorClassName} aria-hidden="true">-</span>
-                            <select
-                                className={`${propertyFieldClassName} w-25 text-center px-0`}
-                                value={initialListing.operationalDays?.end ?? "Sun"}
-                                onChange={(e) => handleInputChange("operationalDays.end", e.target.value)}
-                            >
-                                {dayOptions.map((d) => (
-                                    <option key={`end-${d}`} value={d}>
-                                        {d}
-                                    </option>
-                                ))}
-                            </select>
+                            <Select
+                                className="flex-1"
+                                options={dayOptionsPrepared}
+                                value={dayOptionsPrepared.find(d => d.value === (initialListing.operationalDays?.end ?? "Sun"))}
+                                onChange={(sel) => {
+                                    const selected = sel as SelectOption | null;
+                                    handleInputChange("operationalDays.end", selected?.value || "Sun");
+                                }}
+                            />
                         </div>
                     </FormField>
 
@@ -576,34 +593,30 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         label="Operational Hours"
                         variant="horizontal"
                     >
-                        <div className="flex space-x-2 w-full">
-                            <select
-                                className={`${propertyFieldClassName} w-36 text-center px-0`}
-                                value={startTime}
-                                onChange={(e) => onStartChange(e.target.value)}
-                            >
-                                <option value="" disabled hidden>Start</option>
-                                {TIME_SLOTS.map((t, idx) => (
-                                    <option key={`start-${t}-${idx}`} value={t}>
-                                        {t}
-                                    </option>
-                                ))}
-                            </select>
+                        <div className="flex items-center gap-3 w-full">
+                            <Select
+                                className="flex-1"
+                                placeholder="Start"
+                                options={timeOptionsPrepared}
+                                value={timeOptionsPrepared.find(t => t.value === startTime) || null}
+                                onChange={(sel) => {
+                                    const selected = sel as SelectOption | null;
+                                    onStartChange(selected?.value || "");
+                                }}
+                            />
 
                             <span className={propertyFieldSeparatorClassName} aria-hidden="true">-</span>
 
-                            <select
-                                className={`${propertyFieldClassName} w-36 text-center px-0`}
-                                value={endTime}
-                                onChange={(e) => onEndChange(e.target.value)}
-                            >
-                                <option value="" disabled hidden>End</option>
-                                {endOptions.map((t, idx) => (
-                                    <option key={`end-${t}-${idx}`} value={t}>
-                                        {t}
-                                    </option>
-                                ))}
-                            </select>
+                            <Select
+                                className="flex-1"
+                                placeholder="End"
+                                options={endOptionsPrepared(TIME_SLOTS.indexOf(startTime))}
+                                value={timeOptionsPrepared.find(t => t.value === endTime) || null}
+                                onChange={(sel) => {
+                                    const selected = sel as SelectOption | null;
+                                    onEndChange(selected?.value || "");
+                                }}
+                            />
                         </div>
                     </FormField>
 

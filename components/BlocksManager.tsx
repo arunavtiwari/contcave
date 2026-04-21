@@ -3,11 +3,12 @@
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import Select, { GroupBase, StylesConfig, Theme } from "react-select";
+import Select, { SelectOption } from "@/components/ui/Select";
 import { toast } from "sonner";
 
 import { createBlockAction, deleteBlockAction, getBlocksAction } from "@/app/actions/listingActions";
 import Button from "@/components/ui/Button";
+import Input from "@/components/inputs/Input";
 export interface ListingBlock {
     id: string;
     listingId: string;
@@ -20,48 +21,14 @@ export interface ListingBlock {
 }
 
 import { ListingSet } from "@/types/set";
+import { TIME_SLOTS } from "@/constants/timeSlots";
 
 interface BlocksManagerProps {
     listingId: string;
     sets: ListingSet[];
 }
 
-interface SelectOption {
-    value: string;
-    label: string;
-}
-
-const selectStyles: StylesConfig<SelectOption, true, GroupBase<SelectOption>> = {
-    control: (provided, state) => ({
-        ...provided,
-        backgroundColor: "var(--color-background)",
-        borderWidth: "1px",
-        borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",
-        borderRadius: "0.75rem",
-        padding: "0 4px",
-        boxShadow: state.isFocused ? "0 0 0 1px rgba(0,0,0,0.1)" : "none",
-        minHeight: "42px",
-        height: "42px",
-        fontSize: "0.875rem",
-        transition: "all 0.2s ease",
-        "&:hover": {
-            borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",
-        },
-    }),
-};
-
-const selectTheme = (theme: Theme): Theme => ({
-    ...theme,
-    borderRadius: 12,
-    colors: {
-        ...theme.colors,
-        primary: "var(--color-foreground)",
-        primary25: "rgba(0,0,0,0.1)",
-        primary50: "var(--color-border)"
-    },
-});
-
-import { TIME_SLOTS } from "@/constants/timeSlots";
+const timeOptionsPrepared: SelectOption[] = TIME_SLOTS.map((t) => ({ value: t, label: t }));
 
 export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
     const [blocks, setBlocks] = useState<ListingBlock[]>([]);
@@ -158,15 +125,13 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                        <label className="text-sm font-medium flex items-center gap-2">
-                            <CalendarIcon size={14} />
-                            Date
-                        </label>
-                        <input
+                        <Input
+                            id="blockDate"
+                            label="Date"
                             type="date"
                             value={newBlock.date}
                             onChange={(e) => setNewBlock({ ...newBlock, date: e.target.value })}
-                            className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-foreground/10"
+                            size="sm"
                         />
                     </div>
 
@@ -176,30 +141,24 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                                 <Clock size={14} />
                                 Start
                             </label>
-                            <select
-                                value={newBlock.startTime}
-                                onChange={(e) => setNewBlock({ ...newBlock, startTime: e.target.value })}
-                                className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-foreground/10"
-                            >
-                                {TIME_SLOTS.map((t, idx) => (
-                                    <option key={`start-${t}-${idx}`} value={t}>{t}</option>
-                                ))}
-                            </select>
+                            <Select
+                                value={timeOptionsPrepared.find(t => t.value === newBlock.startTime) || null}
+                                onChange={(sel) => setNewBlock({ ...newBlock, startTime: sel?.value || "" })}
+                                options={timeOptionsPrepared}
+                                size="sm"
+                            />
                         </div>
                         <div className="space-y-1">
                             <label className="text-sm font-medium flex items-center gap-2">
                                 <Clock size={14} />
                                 End
                             </label>
-                            <select
-                                value={newBlock.endTime}
-                                onChange={(e) => setNewBlock({ ...newBlock, endTime: e.target.value })}
-                                className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-foreground/10"
-                            >
-                                {TIME_SLOTS.map((t, idx) => (
-                                    <option key={`end-${t}-${idx}`} value={t}>{t}</option>
-                                ))}
-                            </select>
+                            <Select
+                                value={timeOptionsPrepared.find(t => t.value === newBlock.endTime) || null}
+                                onChange={(sel) => setNewBlock({ ...newBlock, endTime: sel?.value || "" })}
+                                options={timeOptionsPrepared}
+                                size="sm"
+                            />
                         </div>
                     </div>
 
@@ -212,24 +171,23 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             onChange={(selected) =>
                                 setNewBlock({
                                     ...newBlock,
-                                    setIds: selected ? selected.map((opt) => opt.value) : [],
+                                    setIds: selected ? (selected as SelectOption[]).map((opt) => opt.value) : [],
                                 })
                             }
                             placeholder="Block entire listing if none selected"
-                            theme={selectTheme}
-                            styles={selectStyles}
-                            className="text-sm"
+                            size="sm"
                         />
                     </div>
 
                     <div className="space-y-1 md:col-span-2">
-                        <label className="text-sm font-medium">Reason (Optional)</label>
-                        <input
+                        <Input
+                            id="blockReason"
+                            label="Reason (Optional)"
                             type="text"
                             value={newBlock.reason}
                             onChange={(e) => setNewBlock({ ...newBlock, reason: e.target.value })}
                             placeholder="e.g., Maintenance, Personal Use"
-                            className="w-full border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-foreground/10"
+                            size="sm"
                         />
                     </div>
                 </div>

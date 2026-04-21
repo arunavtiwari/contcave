@@ -199,6 +199,10 @@ export default function RentModal() {
       customTerms: "",
     },
   });
+  const category = watch("category");
+  const actualLocation = watch("actualLocation") as LocationValue | null;
+  const locationValue = watch("locationValue");
+  const imageSrc = watch("imageSrc");
   const descriptionValue = watch("description");
   const selectedAmenityIds = watch("amenities") as string[] | undefined;
   const selectedCustomAmenities = watch("otherAmenities") as string[] | undefined;
@@ -229,41 +233,6 @@ export default function RentModal() {
     type: Array.isArray(type) ? type : [],
     hasSets: Boolean(hasSets),
   }), [carpetArea, operationalDays, operationalHours, minimumBookingHours, maximumPax, instantBooking, type, hasSets]);
-
-
-  // Removed manual register useEffect. setValue automatically registers fields natively!
-
-  useEffect(() => {
-    const currentSets = Array.isArray(sets) ? sets : [];
-    if (setsHaveSamePrice && currentSets.length > 0) {
-      const nextPrice = unifiedSetPrice !== null && unifiedSetPrice !== undefined
-        ? unifiedSetPrice
-        : (currentSets[0].price || 0);
-
-      if (unifiedSetPrice !== nextPrice) {
-        setValue("unifiedSetPrice", nextPrice, { shouldDirty: true, shouldValidate: true });
-      }
-
-      const updatedSets = currentSets.map((set) => ({ ...set, price: nextPrice }));
-      const hasChanges = updatedSets.some((set, index) => set.price !== currentSets[index].price);
-      if (hasChanges) {
-        setValue("sets", updatedSets, { shouldDirty: true, shouldValidate: true });
-      }
-    } else {
-      const normalizedSets = currentSets.map((set) => ({
-        ...set,
-        price: set.price ?? 0,
-      }));
-      const hasPriceChanges = normalizedSets.some((set, index) => set.price !== currentSets[index].price);
-      if (hasPriceChanges) {
-        setValue("sets", normalizedSets, { shouldDirty: true, shouldValidate: true });
-      }
-    }
-  }, [sets, setsHaveSamePrice, unifiedSetPrice, setValue]);
-
-  const category = watch("category");
-  const actualLocation = watch("actualLocation");
-  const imageSrc = watch("imageSrc");
   const [categoryError, setCategoryError] = useState<string>("");
   const [cityError, setCityError] = useState<string>("");
   const [addressError, setAddressError] = useState<string>("");
@@ -591,6 +560,7 @@ export default function RentModal() {
               </label>
               <CitySelect
                 value={actualLocation as CitySelectValue | undefined}
+                locationValue={locationValue}
                 onChange={(v) => {
                   setCustomValue("actualLocation", {
                     ...actualLocation,

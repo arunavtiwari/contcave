@@ -10,6 +10,15 @@ import Modal from "@/components/modals/Modal";
 import ReservationDetailModal from "@/components/modals/ReservationDetailModal";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
+import Select, { SelectOption } from "@/components/ui/Select";
+
+const rejectReasonOptions: SelectOption[] = [
+  { value: "Studio unavailable for the selected date/time", label: "Studio unavailable for the selected date/time" },
+  { value: "Technical / maintenance issue", label: "Technical / maintenance issue" },
+  { value: "Booking details incomplete or unclear", label: "Booking details incomplete or unclear" },
+  { value: "Customer requested cancellation", label: "Customer requested cancellation" },
+  { value: "Other (please specify)", label: "Other (please specify)" },
+];
 
 type Props = {
   reservations: SafeReservation[];
@@ -215,19 +224,16 @@ function ReservationsClient({ reservations, currentUser }: Props) {
             modalAction === "reject" ? (
               <div className="space-y-4">
                 <p>Please select or specify a reason. This will be shared with the customer.</p>
-                <select
-                  className="w-full border rounded-md p-2"
-                  value={rejectReasonOption}
-                  onChange={(e) => setRejectReasonOption(e.target.value)}
-                  disabled={!!deletingId}
-                >
-                  <option value="" disabled hidden> Select a reason </option>
-                  <option value="Studio unavailable for the selected date/time"> Studio unavailable for the selected date/time </option>
-                  <option value="Technical / maintenance issue"> Technical / maintenance issue </option>
-                  <option value="Booking details incomplete or unclear"> Booking details incomplete or unclear </option>
-                  <option value="Customer requested cancellation"> Customer requested cancellation </option>
-                  <option value="Other (please specify)"> Other (please specify) </option>
-                </select>
+                <Select
+                  options={rejectReasonOptions}
+                  value={rejectReasonOptions.find(opt => opt.value === rejectReasonOption) || null}
+                  onChange={(sel) => {
+                    const selected = sel as SelectOption | null;
+                    setRejectReasonOption(selected?.value || "");
+                  }}
+                  isDisabled={!!deletingId}
+                  placeholder="Select a reason"
+                />
 
                 {rejectReasonOption === "Other (please specify)" && (
                   <textarea

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import Select, { GroupBase, StylesConfig } from "react-select";
+import Select, { SelectOption } from "@/components/ui/Select";
 
 import Switch from "@/components/inputs/Switch";
 import { spaceTypes } from "@/constants/spaceTypes";
@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 import FormField from "./FormField";
 import Input from "./Input";
+import { TIME_SLOTS } from "@/constants/timeSlots";
 
 export type ListingDetails = {
     carpetArea: string;
@@ -24,13 +25,7 @@ type Props = {
     data?: ListingDetails;
 };
 
-// Define OptionType for react-select
-interface OptionType {
-    value: string;
-    label: string;
-}
-
-const dayOptions: OptionType[] = [
+const dayOptions: SelectOption[] = [
     { value: "Mon", label: "Monday" },
     { value: "Tue", label: "Tuesday" },
     { value: "Wed", label: "Wednesday" },
@@ -40,77 +35,10 @@ const dayOptions: OptionType[] = [
     { value: "Sun", label: "Sunday" },
 ];
 
-import { TIME_SLOTS } from "@/constants/timeSlots";
-
-const staticTimeOptions: OptionType[] = TIME_SLOTS.map((t) => ({
+const staticTimeOptions: SelectOption[] = TIME_SLOTS.map((t) => ({
     value: t,
     label: t,
 }));
-
-const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
-    control: (provided, state) => ({
-        ...provided,
-        backgroundColor: "var(--color-background)",
-        borderWidth: "1px",
-        borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",
-        borderRadius: "0.75rem",
-        padding: "0 4px",
-        boxShadow: state.isFocused ? "0 0 0 1px rgba(0,0,0,0.1)" : "none",
-        minHeight: "42px",
-        height: "42px",
-        fontSize: "0.875rem",
-        transition: "all 0.2s ease",
-        "&:hover": {
-            borderColor: state.isFocused ? "var(--color-foreground)" : "var(--color-border)",
-        },
-    }),
-    input: (provided) => ({
-        ...provided,
-        fontSize: "0.875rem",
-        margin: 0,
-        padding: 0,
-        color: "var(--color-foreground)",
-    }),
-    valueContainer: (provided) => ({
-        ...provided,
-        padding: "0 8px",
-    }),
-    singleValue: (provided) => ({
-        ...provided,
-        margin: 0,
-        fontSize: "0.875rem",
-        fontWeight: 500,
-        color: "var(--color-foreground)",
-    }),
-    placeholder: (provided) => ({
-        ...provided,
-        fontSize: "0.875rem",
-        color: "var(--color-muted-foreground)",
-    }),
-    option: (provided, state) => ({
-        ...provided,
-        cursor: "pointer",
-        fontSize: "0.875rem",
-        padding: "10px 12px",
-        backgroundColor: state.isSelected ? "var(--color-foreground)" : state.isFocused ? "var(--color-muted)" : "var(--color-background)",
-        color: state.isSelected ? "var(--color-background)" : "var(--color-foreground)",
-        ":active": {
-            backgroundColor: state.isSelected ? "var(--color-foreground)" : "var(--color-muted)",
-        },
-    }),
-    menu: (provided) => ({
-        ...provided,
-        borderRadius: "0.75rem",
-        overflow: "hidden",
-        marginTop: "4px",
-        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-        border: "1px solid var(--color-border)",
-        zIndex: 999999,
-        width: "100%", // Explicitly wide but constrained
-        minWidth: "max-content", // Allow it to NOT shrink below content
-    }),
-    menuPortal: (base) => ({ ...base, zIndex: 9999999 }),
-};
 
 const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
     // Default values if data is undefined
@@ -193,6 +121,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
         >
             <div className="flex gap-4 w-full">
                 <Select
+                    className="flex-1"
                     options={dayOptions}
                     value={dayOptions.find((d) => d.value === details.operationalDays.start)}
                     onChange={(sel) =>
@@ -202,16 +131,9 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                         })
                     }
                     placeholder="Start Day"
-                    styles={customStyles}
-                    isSearchable={false}
-                    className="flex-1"
-                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                    menuPosition="fixed"
-                    menuPlacement="auto"
-                    maxMenuHeight={250}
-                    menuShouldScrollIntoView={false}
                 />
                 <Select
+                    className="flex-1"
                     options={dayOptions}
                     value={dayOptions.find((d) => d.value === details.operationalDays.end)}
                     onChange={(sel) =>
@@ -221,14 +143,6 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                         })
                     }
                     placeholder="End Day"
-                    styles={customStyles}
-                    isSearchable={false}
-                    className="flex-1"
-                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                    menuPosition="fixed"
-                    menuPlacement="auto"
-                    maxMenuHeight={250}
-                    menuShouldScrollIntoView={false}
                 />
             </div>
         </FormField>
@@ -253,6 +167,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 </div>
                 <div className="flex gap-4">
                     <Select
+                        className="flex-1"
                         options={startTimeOptions}
                         value={startTimeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
                         onChange={(sel) => {
@@ -272,26 +187,10 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                             });
                         }}
                         placeholder="Start Time"
-                        unstyled
-                        classNames={{
-                            control: (state) => cn(
-                                "py-0.5 rounded-xl transition-all duration-200 outline-none flex-1 border",
-                                state.isFocused
-                                    ? "border-foreground ring-1 ring-foreground/10"
-                                    : "border-border hover:border-border/80"
-                            ),
-                        }}
-                        styles={customStyles}
                         isDisabled={isOpenAllDay}
-                        className="flex-1"
-                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                        isSearchable={false}
-                        menuPosition="fixed"
-                        menuPlacement="auto"
-                        maxMenuHeight={250}
-                        menuShouldScrollIntoView={false}
                     />
                     <Select
+                        className="flex-1"
                         options={endTimeOptions}
                         value={endTimeOptions.find((t) => {
                             if (isOpenAllDay && t.value === "12:00 AM") return true;
@@ -304,24 +203,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                             })
                         }
                         placeholder="End Time"
-                        unstyled
-                        classNames={{
-                            control: (state) => cn(
-                                "py-0.5 rounded-xl transition-all duration-200 outline-none flex-1 border",
-                                state.isFocused
-                                    ? "border-foreground ring-1 ring-foreground/10"
-                                    : "border-border hover:border-border/80"
-                            ),
-                        }}
-                        styles={customStyles}
                         isDisabled={isOpenAllDay}
-                        className="flex-1"
-                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                        isSearchable={false}
-                        menuPosition="fixed"
-                        menuPlacement="auto"
-                        maxMenuHeight={250}
-                        menuShouldScrollIntoView={false}
                     />
                 </div>
             </div>

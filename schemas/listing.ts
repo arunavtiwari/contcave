@@ -86,7 +86,7 @@ export const packageSchema = z.object({
 
 export const listingSchema = z.object({
     category: z.string().min(1, "Category is required").max(100),
-    locationValue: z.string().min(1, "Country is required"),
+    locationValue: z.string().min(1, "Location is required"),
     actualLocation: locationSchema,
     imageSrc: z.array(imageSchema).min(1, "At least one image is required").max(30),
 

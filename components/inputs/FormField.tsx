@@ -11,6 +11,7 @@ interface FormFieldProps {
     error?: string;
     required?: boolean;
     variant?: "vertical" | "horizontal";
+    align?: "center" | "start";
     children: React.ReactNode;
     className?: string;
 }
@@ -22,6 +23,7 @@ const FormField = ({
     error,
     required,
     variant = "vertical",
+    align = "center",
     children,
     className,
 }: FormFieldProps) => {
@@ -30,7 +32,9 @@ const FormField = ({
     return (
         <div className={cn(
             "flex w-full gap-1",
-            isHorizontal ? "flex-col sm:flex-row sm:items-center sm:gap-10" : "flex-col gap-1.5",
+            isHorizontal
+                ? cn("flex-col sm:flex-row sm:gap-10", align === "center" ? "sm:items-center" : "sm:items-start")
+                : "flex-col gap-1.5",
             className
         )}>
             {label && (

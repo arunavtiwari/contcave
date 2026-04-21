@@ -15,18 +15,19 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "
     register?: UseFormRegisterReturn;
     id: string;
     errors?: FieldErrors;
+    customLeftContent?: React.ReactNode;
     customRightContent?: React.ReactNode;
     variant?: "vertical" | "horizontal";
     size?: "sm" | "md";
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-    ({ className, type = "text", label, description, formatPrice, register, id, required, errors, customRightContent, variant = "vertical", size = "md", ...props }, ref) => {
+    ({ className, type = "text", label, description, formatPrice, register, id, required, errors, customLeftContent, customRightContent, variant = "vertical", size = "md", ...props }, ref) => {
         const error = errors?.[id]?.message as string;
 
         const sizeClasses = {
-            sm: "h-10 px-3 text-xs",
-            md: "h-11 px-4 text-sm",
+            sm: "h-10 text-xs",
+            md: "h-11 text-sm",
         };
 
         return (
@@ -39,10 +40,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 variant={variant}
             >
                 <div className="relative group">
+                    {customLeftContent && (
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none text-muted-foreground text-sm select-none z-10">
+                            {customLeftContent}
+                        </div>
+                    )}
+
                     {formatPrice && (
                         <IndianRupee
                             size={size === "sm" ? 14 : 18}
-                            className="text-muted-foreground absolute top-1/2 -translate-y-1/2 left-4 pointer-events-none"
+                            className="text-muted-foreground absolute top-1/2 -translate-y-1/2 left-4 pointer-events-none z-10"
                         />
                     )}
 
@@ -52,8 +59,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         className={cn(
                             "w-full font-light bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed",
                             sizeClasses[size],
-                            formatPrice ? (size === "sm" ? "pl-9" : "pl-12") : (size === "sm" ? "pl-4" : "pl-5"),
-                            customRightContent ? (size === "sm" ? "pr-10" : "pr-12") : (size === "sm" ? "pr-4" : "pr-5"),
+                            formatPrice ? (size === "sm" ? "pl-9" : "pl-12") : (customLeftContent ? "pl-41.25" : "pl-3"),
+                            customRightContent ? (size === "sm" ? "pr-10" : "pr-12") : "pr-3",
                             error
                                 ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20"
                                 : "border-border hover:border-border/80 focus:border-foreground focus:ring-1 focus:ring-foreground/10",

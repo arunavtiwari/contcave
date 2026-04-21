@@ -162,7 +162,17 @@ export class ListingService {
         if (listingData.unifiedSetPrice != null) listingData.unifiedSetPrice = Math.round(Number(listingData.unifiedSetPrice));
         if (listingData.price != null) listingData.price = Math.round(Number(listingData.price));
 
-        // 3. Atomic Transaction
+        // 3. Normalized Location (Privacy Jitter)
+        if (listingData.actualLocation) {
+            const loc = listingData.actualLocation as Record<string, unknown>;
+            const privacySafeLatLng = jitterLatLng(loc.latlng);
+            listingData.actualLocation = {
+                ...loc,
+                latlng: privacySafeLatLng || [0, 0]
+            } as any;
+        }
+
+        // 4. Atomic Transaction
         return await prisma.$transaction(async (tx) => {
             // Update Main Listing
             if (Object.keys(listingData).length > 0) {

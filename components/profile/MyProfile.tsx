@@ -648,7 +648,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                 currentUser && (
                     <VerificationModal
                         isOpen={showVerificationModal}
-                        onClose={() => setShowVerificationModal(false)}
+                        onCloseAction={() => setShowVerificationModal(false)}
                         currentUser={currentUser}
                         onComplete={() => {
                             setValue("is_verified", true, { shouldValidate: true });
