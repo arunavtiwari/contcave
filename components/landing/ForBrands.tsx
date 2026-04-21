@@ -34,7 +34,7 @@ const ForBrands = () => {
 
         <SectionHeader
           badge="For Business"
-          title="Book spaces that convert."
+          title="Book spaces that convert"
         />
 
         <motion.div
@@ -75,7 +75,7 @@ const ForBrands = () => {
                 <Heading
                   title="Built for Speed"
                   variant="h3"
-                  className="mb-3 text-background!"
+                  className="text-background!"
                   subtitle="Find, book, and confirm in flat 2 minutes. No more back-and-forth on WhatsApp."
                   subtitleClassName="text-background/70!"
                 />

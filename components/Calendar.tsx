@@ -228,8 +228,8 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
 
             <Modal
                 isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                onSubmit={() => setModalOpen(false)}
+                onCloseAction={() => setModalOpen(false)}
+                onSubmitAction={() => setModalOpen(false)}
                 title="Event Details"
                 actionLabel="Close"
                 selfActionButton={true}
@@ -257,7 +257,7 @@ export default function Calendar({ operationalStart, operationalEnd, listingId, 
                                             timeZone: "Asia/Kolkata",
                                         })
                                         : "N/A"}{" "}
-                                    â€“{" "}
+                                    {" "}
                                     {modalData.end
                                         ? new Date(modalData.end).toLocaleTimeString("en-IN", {
                                             hour: "2-digit",

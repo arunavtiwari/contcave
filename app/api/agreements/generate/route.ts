@@ -22,7 +22,6 @@ export async function POST(request: Request) {
             return createErrorResponse("Missing listingId or signatureUrl", 400);
         }
 
-        // Resolve slug Ã¢â€ â€™ actual Mongo ObjectId
         const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
 
         let actualListingId = listingId;

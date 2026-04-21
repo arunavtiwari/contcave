@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { IoMdCloseCircle } from "react-icons/io";
+import Heading from "@/components/ui/Heading";
 
 import Button from "@/components/ui/Button";
 
@@ -120,16 +121,20 @@ function Modal({
 
           {/* Header */}
           <div className="flex items-center justify-between p-5 bg-background relative shrink-0">
-            <h2 id="modal-title" className="text-xl font-bold tracking-tight text-foreground">
-              {title}
-            </h2>
-            <button
-              className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground focus:outline-none"
+            <Heading
+              id="modal-title"
+              title={title}
+              variant="h5"
+              as="h2"
+            />
+            <IoMdCloseCircle
+              size={24}
+              className="opacity-80 hover:opacity-100 cursor-pointer transition-opacity"
               onClick={handleClose}
+              role="button"
               aria-label="Close modal"
-            >
-              <IoMdCloseCircle size={24} className="opacity-80 hover:opacity-100" />
-            </button>
+              title="Close modal"
+            />
           </div>
 
 

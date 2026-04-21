@@ -47,7 +47,7 @@ const BlogItem: React.FC<BlogItemProps> = ({ post }) => {
 
             <div className="p-4 flex flex-col flex-1 gap-3">
                 <p className="text-muted-foreground line-clamp-3 text-sm flex-1">
-                    {post.meta.description || "Explore insights and stories about studio booking and production workflowsâ€¦"}
+                    {post.meta.description || "Explore insights and stories about studio booking and production workflows..."}
                 </p>
                 <div className="mt-auto">
                     <Button label="Read Article" variant="outline" size="sm" fit rounded />

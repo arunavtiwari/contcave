@@ -18,7 +18,7 @@ const AboutStory = () => {
                 <p>
                     We started <strong className="text-foreground font-semibold">ContCave</strong> with one belief: no creative
                     idea should be left unrealized just because the right space wasn&apos;t
-                    accessible. Every cafÃƒÂ© corner, every studio, every underused nook
+                    accessible. Every cafe corner, every studio, every underused nook
                     deserves a chance to tell a story.
                 </p>
                 <p>

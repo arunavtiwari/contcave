@@ -10,14 +10,16 @@ type Props = {
 
 function ErrorState({ error }: Props) {
     useEffect(() => {
-        if (process.env.NODE_ENV === 'production') {
-            console.error('[Error Boundary]', {
+        const isProduction = process.env.NODE_ENV === "production";
+
+        if (isProduction) {
+            console.error("[Error Boundary]", {
                 message: error.message,
                 stack: error.stack,
                 name: error.name,
             });
         } else {
-            console.error("Ã°Å¸Å¡â‚¬ ~ file: error.tsx:12 ~ ErrorState ~ error:", error);
+            console.error("🚀 Error boundary caught an error:", error);
         }
     }, [error]);
 

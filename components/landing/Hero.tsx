@@ -161,7 +161,6 @@ const Hero = () => {
                     label={highlight}
                     variant="glass"
                     size="sm"
-                    color="secondary"
                   />
                 ))}
               </motion.div>

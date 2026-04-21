@@ -26,10 +26,6 @@
 	--color-muted: #F6F6F6;
 	--color-muted-foreground: var(--color-neutral-500);
 
-	--color-accent: #F6F6F6;
-	--color-accent-foreground: var(--color-black);
-	--color-accent-subtle: var(--color-neutral-50);
-
 	--color-border: var(--color-neutral-200);
 
 	--color-success: #10B981;
@@ -41,20 +37,15 @@
 	--color-info: #2563EB;
 	--color-info-foreground: var(--color-white);
 
-	--color-status-approved: #218C54;
-	--color-status-pending: #B98A30;
-	--color-status-rejected: #B53020;
-
-	--tracking-accent: 0.22em;
 	--tracking-wide: 0.1em;
 	--tracking-widest: 0.25em;
 
-	/* 4. Elevation (Semantic Shadows) */
+	/* 3. Elevation (Semantic Shadows) */
 	--shadow-subtle: 0px 2px 10px var(--color-foreground, rgba(0, 0, 0, 0.05));
 	--shadow-base: 0px 6px 90px var(--color-foreground, rgba(0, 0, 0, 0.04));
 	--shadow-elevated: 0px 12px 120px var(--color-foreground, rgba(0, 0, 0, 0.06));
 
-	/* 5. Layout & Spacing Tokens */
+	/* 4. Layout & Spacing Tokens */
 	--spacing-section: 7rem;
 	--spacing-card-p: 2rem;
 	--font-serif: Georgia, serif;

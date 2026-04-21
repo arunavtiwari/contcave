@@ -19,7 +19,7 @@ const AboutHero = () => {
             >
                 <Image
                     src="/images/blogs/studio.png"
-                    alt="ContCave â€” Creator infrastructure for India"
+                    alt="ContCave” Creator infrastructure for India"
                     fill
                     className="object-cover opacity-65"
                     priority
