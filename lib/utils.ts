@@ -105,3 +105,13 @@ export function formatISTTime(
         ...options,
     });
 }
+
+/**
+ * Parses a string input to a safe integer, removing all non-digit characters.
+ * Useful for standardized numeric inputs (carpetArea, price, etc.)
+ */
+export function parseNumericInput(value: string, defaultValue = 0): number {
+    const onlyDigits = value.replace(/\D/g, "");
+    const val = parseInt(onlyDigits, 10);
+    return isNaN(val) ? defaultValue : val;
+}

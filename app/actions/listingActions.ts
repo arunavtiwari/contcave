@@ -18,12 +18,7 @@ export type ActionResponse<T = any> = {
     error?: string;
 };
 
-/**
- * Create a listing
- */
-/**
- * Create a listing
- */
+// Create a listing
 export async function createListingAction(body: any): Promise<ActionResponse<FullListing>> {
     try {
         const currentUser = await getCurrentUser();
@@ -48,12 +43,7 @@ export async function createListingAction(body: any): Promise<ActionResponse<Ful
     }
 }
 
-/**
- * Update a listing
- */
-/**
- * Update a listing
- */
+// Update a listing
 export async function updateListingAction(listingId: string, body: any): Promise<ActionResponse<FullListing>> {
     try {
         const currentUser = await getCurrentUser();
@@ -78,9 +68,7 @@ export async function updateListingAction(listingId: string, body: any): Promise
     }
 }
 
-/**
- * Delete a listing
- */
+// Delete a listing
 export async function deleteListingAction(listingId: string): Promise<ActionResponse> {
     try {
         const currentUser = await getCurrentUser();
@@ -97,9 +85,7 @@ export async function deleteListingAction(listingId: string): Promise<ActionResp
     }
 }
 
-/**
- * Approve a listing (Admin)
- */
+// Approve a listing (Admin)
 export async function approveListingAction(listingId: string): Promise<ActionResponse> {
     try {
         const currentUser = await getCurrentUser();
@@ -116,9 +102,7 @@ export async function approveListingAction(listingId: string): Promise<ActionRes
     }
 }
 
-/**
- * Reject a listing (Admin)
- */
+// Reject a listing (Admin)
 export async function rejectListingAction(listingId: string): Promise<ActionResponse> {
     try {
         const currentUser = await getCurrentUser();
@@ -134,9 +118,7 @@ export async function rejectListingAction(listingId: string): Promise<ActionResp
     }
 }
 
-/**
- * Fetch pending listings (Admin)
- */
+// Fetch pending listings (Admin)
 export async function getPendingListings() {
     try {
         const currentUser = await getCurrentUser();
@@ -166,9 +148,7 @@ export async function getPendingListings() {
     }
 }
 
-/**
- * Fetch blocks for a listing
- */
+// Fetch blocks for a listing
 export async function getBlocksAction(listingId: string) {
     try {
         return await ListingService.getBlocks(listingId);
@@ -178,9 +158,7 @@ export async function getBlocksAction(listingId: string) {
     }
 }
 
-/**
- * Create a block for a listing
- */
+// Create a block for a listing
 export async function createBlockAction(listingId: string, data: any): Promise<ActionResponse> {
     try {
         const currentUser = await getCurrentUser();
@@ -195,9 +173,7 @@ export async function createBlockAction(listingId: string, data: any): Promise<A
     }
 }
 
-/**
- * Delete a block
- */
+// Delete a block
 export async function deleteBlockAction(listingId: string, blockId: string): Promise<ActionResponse> {
     try {
         const currentUser = await getCurrentUser();
@@ -212,9 +188,7 @@ export async function deleteBlockAction(listingId: string, blockId: string): Pro
     }
 }
 
-/**
- * Fetch day status for a listing
- */
+// Fetch day status for a listing
 export async function getDayStatusAction(listingId: string, date: string) {
     try {
         if (!listingId || !date) return null;
@@ -232,9 +206,7 @@ export async function getDayStatusAction(listingId: string, date: string) {
     }
 }
 
-/**
- * Update day status (availability/hours)
- */
+// Update day status (availability/hours)
 export async function updateDayStatusAction(data: {
     listingId: string;
     date: string;

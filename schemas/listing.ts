@@ -100,9 +100,9 @@ export const listingBaseSchema = z.object({
 
 
     price: z.coerce.number().min(1, "Price must be at least 1").max(10000000),
-    minimumBookingHours: z.string().optional().nullable(),
-    maximumPax: z.string().optional().nullable(),
-    carpetArea: z.string().optional().nullable(),
+    minimumBookingHours: z.coerce.number().min(1, "Minimum booking is 1 hour").max(168),
+    maximumPax: z.coerce.number().min(1, "Maximum capacity must be at least 1").max(10000),
+    carpetArea: z.coerce.number().min(1, "Carpet area must be at least 1").max(1000000),
 
 
     amenities: z.array(z.string()).max(50).optional(),

@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { FaExclamationCircle, FaInfoCircle } from "react-icons/fa";
 
 import Modal from "./Modal";
+import Input from "../inputs/Input";
 
 type Props = {
   isOpen: boolean;
@@ -116,21 +117,17 @@ const OwnerEnableModal: React.FC<Props> = ({
             <span className="px-4 py-3 bg-muted border border-border rounded-xl text-muted-foreground font-medium whitespace-nowrap">
               +91
             </span>
-            <input
-              type="tel"
+            <Input
+              id="owner-phone"
+              type="number"
               value={phone}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, "").slice(0, 10);
-                setPhone(value);
+              onNumberChange={(val) => {
+                setPhone(val.toString().slice(0, 10));
                 clearError("phone");
               }}
-              className={`flex-1 px-4 py-3 rounded-xl border transition-colors ${errors.phone
-                ? "border-destructive focus:border-destructive focus:ring-destructive/20"
-                : "border-border focus:border-foreground focus:ring-foreground/10"
-                } focus:outline-none focus:ring-1`}
               placeholder="10-digit mobile number"
               maxLength={10}
-
+              errors={{ phone: errors.phone }}
             />
           </div>
           {errors.phone && (

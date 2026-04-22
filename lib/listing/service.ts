@@ -21,7 +21,7 @@ type ListingWithRelations = Prisma.ListingGetPayload<{
 
 export class ListingService {
     /**
-     * Enterprise-grade Listing Creation
+     * Listing Creation
      * Handles validation, normalization, and atomic persistence.
      */
     static async createListing(userId: string, body: Record<string, unknown>): Promise<FullListing> {
@@ -61,11 +61,11 @@ export class ListingService {
                     amenities: sanitizeStringList(amenities),
                     otherAmenities: sanitizeStringList(otherAmenities),
                     addons: (addons as Prisma.InputJsonValue) || null,
-                    carpetArea: carpetArea ? String(carpetArea) : null,
+                    carpetArea: carpetArea,
                     operationalDays: (operationalDays as Prisma.InputJsonValue) || null,
                     operationalHours: (operationalHours as Prisma.InputJsonValue) || null,
-                    minimumBookingHours: minimumBookingHours ? String(minimumBookingHours) : null,
-                    maximumPax: maximumPax ? String(maximumPax) : null,
+                    minimumBookingHours: minimumBookingHours,
+                    maximumPax: maximumPax,
                     instantBooking: Boolean(instantBooking),
                     type: Array.isArray(type) ? type.map(t => String(t)) : [],
                     verifications: (verifications as Prisma.InputJsonValue) || null,
@@ -420,9 +420,9 @@ export class ListingService {
                 date: block.date.toISOString(),
                 createdAt: block.createdAt.toISOString(),
             })) || [],
-            carpetArea: l.carpetArea ? Number(l.carpetArea) : undefined,
-            maximumPax: l.maximumPax ? Number(l.maximumPax) : undefined,
-            minimumBookingHours: l.minimumBookingHours ? Number(l.minimumBookingHours) : undefined,
+            carpetArea: l.carpetArea,
+            maximumPax: l.maximumPax,
+            minimumBookingHours: l.minimumBookingHours,
             avgReviewRating: l.avgReviewRating ?? undefined,
             instantBooking: l.instantBooking ?? undefined,
             user: {

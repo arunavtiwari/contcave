@@ -5,6 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import CitySelect from "@/components/inputs/CitySelect";
 import { spaceTypes } from "@/constants/spaceTypes";
 import useIndianCities from "@/hooks/useCities";
+import Button from "../ui/Button";
 
 import Modal from "./Modal";
 
@@ -74,19 +75,16 @@ const FilterModalContent = () => {
         <label className="block text-sm font-medium mb-2">Type</label>
         <div className="flex flex-wrap gap-2">
           {spaceTypes.map((spaceType) => (
-            <button
+            <Button
               key={spaceType}
-              type="button"
               onClick={() =>
                 setSelectedType((prev) => (prev === spaceType ? null : spaceType))
               }
-              className={`px-4 py-2 rounded-xl border transition text-sm ${selectedType === spaceType
-                ? "bg-foreground text-background border-foreground shadow-sm"
-                : "border-border hover:bg-muted text-muted-foreground"
-                }`}
-            >
-              {spaceType}
-            </button>
+              variant={selectedType === spaceType ? "default" : "outline"}
+              label={spaceType}
+              size="sm"
+              fit
+            />
           ))}
         </div>
       </div>
@@ -95,12 +93,14 @@ const FilterModalContent = () => {
 
   return (
     <div className="shrink-0">
-      <button
+      <Button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-muted hover:bg-muted/80 transition-colors rounded-xl text-sm font-semibold whitespace-nowrap active:scale-95 border border-border"
-      >
-        More Filters
-      </button>
+        variant="ghost"
+        label="More Filters"
+        size="sm"
+        fit
+        classNames="bg-muted hover:bg-muted/80 border border-border"
+      />
 
       <Modal
         isOpen={isOpen}
@@ -121,9 +121,14 @@ const FilterModal = () => {
   return (
     <Suspense fallback={
       <div className="shrink-0">
-        <button className="px-4 py-2 bg-muted rounded-xl text-sm whitespace-nowrap">
-          More Filters
-        </button>
+        <Button
+          label="More Filters"
+          variant="ghost"
+          size="sm"
+          fit
+          classNames="bg-muted border border-border opacity-50"
+          disabled
+        />
       </div>
     }>
       <FilterModalContent />

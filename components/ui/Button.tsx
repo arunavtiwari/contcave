@@ -25,6 +25,7 @@ type Props = {
   href?: string;
   target?: "_blank" | "_self";
   type?: "button" | "submit" | "reset";
+  children?: React.ReactNode;
 };
 
 function Button({
@@ -43,19 +44,23 @@ function Button({
   href,
   target,
   type = "button",
+  children,
 }: Props) {
 
+  const isIconOnly = !label && !!Icon && !children;
   const sizeClasses = {
-    sm: "h-10 px-4 text-xs",
-    md: "h-11 px-6 text-sm",
-    lg: "h-12 px-8 text-sm",
-    xl: "h-14 px-10 text-base",
+    sm: isIconOnly ? "w-9 h-9" : "h-10 px-4 text-xs",
+    md: isIconOnly ? "w-11 h-11" : "h-11 px-6 text-sm",
+    lg: isIconOnly ? "w-12 h-12" : "h-12 px-8 text-sm",
+    xl: isIconOnly ? "w-14 h-14" : "h-14 px-10 text-base",
   };
 
-  const widthClass = fit ? "w-fit" : "w-full";
+  const widthClass = isIconOnly ? "" : fit ? "w-fit" : "w-full";
 
-  const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 transition active:scale-[0.98] flex justify-center items-center gap-2 border hover:opacity-90 ${sizeClasses[size]} ${widthClass}`;
-  const roundedClass = rounded ? "rounded-full" : "rounded-xl";
+  const activeScale = isIconOnly ? "active:scale-95" : "active:scale-[0.98]";
+  const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 transition ${activeScale} flex justify-center items-center gap-2 ${isIconOnly ? "" : "border"} hover:opacity-90 ${sizeClasses[size]} ${widthClass}`;
+
+  const roundedClass = rounded ? "rounded-full" : isIconOnly ? "rounded-lg" : "rounded-xl";
 
   const variantClasses = {
     default: {
@@ -71,7 +76,7 @@ function Button({
       outline: "bg-background border-destructive text-destructive",
     },
     ghost: {
-      solid: "bg-transparent border-transparent text-foreground",
+      solid: isIconOnly ? "hover:bg-foreground/5 text-foreground/70 hover:text-foreground border-transparent" : "bg-transparent border-transparent text-foreground",
       outline: "bg-transparent border-border text-foreground",
     },
     secondary: {
@@ -86,6 +91,13 @@ function Button({
 
   const finalClasses = `${baseClasses} ${roundedClass} ${variantClasses[variant][outline ? "outline" : "solid"]} ${classNames || ""}`;
 
+  const iconSize = {
+    sm: 16,
+    md: 20,
+    lg: 24,
+    xl: 28,
+  }[size];
+
   const content = (
     <>
       {loading && (
@@ -93,9 +105,10 @@ function Button({
           className={`animate-spin text-lg ${outline || variant === "ghost" ? "text-foreground" : "text-background"}`}
         />
       )}
-      {Icon && !loading && <Icon size={20} className={`${isColor && "text-info"}`} />}
+      {Icon && !loading && <Icon size={iconSize} className={`${isColor && "text-info"}`} />}
       {label && <span>{loading ? "Processing..." : label}</span>}
-      {!label && loading && <span className="sr-only">Processing...</span>}
+      {children && !loading && children}
+      {!label && !children && loading && <span className="sr-only">Processing...</span>}
     </>
   );
 

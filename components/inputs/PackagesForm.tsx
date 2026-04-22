@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
+import { parseNumericInput } from "@/lib/utils";
 
 interface PackagesFormProps {
   value: Package[];
@@ -96,7 +97,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 type="number"
                 placeholder="8"
                 value={pkg.durationHours}
-                onChange={(e) => updatePackage(idx, "durationHours", Number(e.target.value))}
+                onNumberChange={(val) => updatePackage(idx, "durationHours", val)}
                 required
                 description="Minimum duration is 1 hour"
               />
@@ -108,7 +109,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 formatPrice
                 placeholder="10000"
                 value={pkg.originalPrice}
-                onChange={(e) => updatePackage(idx, "originalPrice", Number(e.target.value))}
+                onNumberChange={(val) => updatePackage(idx, "originalPrice", val)}
                 required
                 description="Price before discount"
               />
@@ -120,7 +121,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 formatPrice
                 placeholder="8000"
                 value={pkg.offeredPrice}
-                onChange={(e) => updatePackage(idx, "offeredPrice", Number(e.target.value))}
+                onNumberChange={(val) => updatePackage(idx, "offeredPrice", val)}
                 required
                 description="Discounted price"
               />
@@ -163,7 +164,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                 }}
               />
             </div>
-            <p className="text-[11px] text-muted-foreground/60 px-1 italic">Press Enter to add each feature</p>
+            <p className="text-[11px] text-muted-foreground px-1 italic">Press Enter to add each feature</p>
           </div>
 
           {availableSets.length > 0 && (
@@ -197,7 +198,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
                     type="number"
                     placeholder="1"
                     value={pkg.requiredSetCount || 1}
-                    onChange={(e) => updatePackage(idx, "requiredSetCount", Math.max(1, parseInt(e.target.value) || 1))}
+                    onNumberChange={(val) => updatePackage(idx, "requiredSetCount", Math.max(1, val))}
                     required
                     description="How many sets are included in this package price"
                   />

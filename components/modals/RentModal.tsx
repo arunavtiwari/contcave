@@ -106,11 +106,11 @@ type RentModalFormValues = FieldValues & {
   amenities: string[];
   otherAmenities: string[];
   addons: Addon[];
-  carpetArea: string;
+  carpetArea: number;
   operationalDays: { start?: string; end?: string };
   operationalHours: { start?: string; end?: string };
-  minimumBookingHours: string;
-  maximumPax: string;
+  minimumBookingHours: number;
+  maximumPax: number;
   instantBooking: boolean;
   type: string[];
   hasSets: boolean;
@@ -188,11 +188,11 @@ export default function RentModal() {
       sets: [],
       additionalSetPricingType: null,
       packages: [],
-      carpetArea: "",
+      carpetArea: 0,
       operationalDays: { start: "Mon", end: "Sun" },
       operationalHours: { start: "9:00 AM", end: "9:00 PM" },
-      minimumBookingHours: "",
-      maximumPax: "",
+      minimumBookingHours: 0,
+      maximumPax: 0,
       verifications: null,
       terms: false,
       agreementSignature: null,
@@ -224,11 +224,11 @@ export default function RentModal() {
   const terms = watch("terms");
   const signature = watch("agreementSignature");
   const listingDetails = useMemo<ListingDetails>(() => ({
-    carpetArea: carpetArea || "",
+    carpetArea: carpetArea || 0,
     operationalDays: operationalDays || { start: "Mon", end: "Sun" },
     operationalHours: operationalHours || { start: "9:00 AM", end: "9:00 PM" },
-    minimumBookingHours: minimumBookingHours || "",
-    maximumPax: maximumPax || "",
+    minimumBookingHours: minimumBookingHours || 0,
+    maximumPax: maximumPax || 0,
     instantBooking: Boolean(instantBooking),
     type: Array.isArray(type) ? type : [],
     hasSets: Boolean(hasSets),
@@ -370,15 +370,15 @@ export default function RentModal() {
   }, [trigger]);
 
   const validateOtherDetailsStep = useCallback(async () => {
-    if (!listingDetails.carpetArea || listingDetails.carpetArea.trim() === "") {
+    if (!listingDetails.carpetArea || listingDetails.carpetArea <= 0) {
       toast.error("Please enter carpet area");
       return false;
     }
-    if (!listingDetails.minimumBookingHours || listingDetails.minimumBookingHours.trim() === "") {
+    if (!listingDetails.minimumBookingHours || listingDetails.minimumBookingHours <= 0) {
       toast.error("Please enter minimum booking hours");
       return false;
     }
-    if (!listingDetails.maximumPax || listingDetails.maximumPax.trim() === "") {
+    if (!listingDetails.maximumPax || listingDetails.maximumPax <= 0) {
       toast.error("Please enter maximum pax");
       return false;
     }
@@ -701,14 +701,14 @@ export default function RentModal() {
             <div className="w-full">
               <Input
                 id="price"
-                label="Price"
+                label="Price per Hour"
+                disabled={isLoading}
+                register={register("price", { required: true, valueAsNumber: true })}
+                errors={errors}
                 type="number"
                 formatPrice
-                placeholder="999"
-                disabled={isLoading}
-                register={register("price", { valueAsNumber: true })}
-                errors={errors}
                 required
+                onNumberChange={(val) => setValue("price", val, { shouldValidate: true })}
               />
             </div>
           </div>

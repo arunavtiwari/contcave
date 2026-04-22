@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 import FormField from "./FormField";
 
-interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange"> {
     label?: string;
     description?: string;
     formatPrice?: boolean;
@@ -19,16 +19,53 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "
     customRightContent?: React.ReactNode;
     variant?: "vertical" | "horizontal";
     size?: "sm" | "md";
+    onNumberChange?: (value: number) => void;
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-    ({ className, type = "text", label, description, formatPrice, register, id, required, errors, customLeftContent, customRightContent, variant = "vertical", size = "md", ...props }, ref) => {
+    ({
+        className,
+        type = "text",
+        label,
+        description,
+        formatPrice,
+        register,
+        id,
+        required,
+        errors,
+        customLeftContent,
+        customRightContent,
+        variant = "vertical",
+        size = "md",
+        onNumberChange,
+        onChange,
+        ...props
+    }, ref) => {
         const error = errors?.[id]?.message as string;
 
         const sizeClasses = {
             sm: "h-10 text-xs",
             md: "h-11 text-sm",
         };
+
+        const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const isNumeric = type === "number";
+
+            if (isNumeric) {
+                e.target.value = e.target.value.replace(/\D/g, "");
+
+                if (onNumberChange) {
+                    const val = parseInt(e.target.value, 10);
+                    onNumberChange(isNaN(val) ? 0 : val);
+                }
+            }
+
+            if (onChange) onChange(e);
+            if (register?.onChange) register.onChange(e);
+        };
+        const renderedType = type === "number" ? "text" : type;
+        const inputMode = type === "number" ? "numeric" : props.inputMode;
 
         return (
             <FormField
@@ -55,7 +92,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
                     <input
                         id={id}
-                        type={type}
+                        type={renderedType}
+                        inputMode={inputMode}
                         className={cn(
                             "w-full font-normal bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed",
                             sizeClasses[size],
@@ -69,6 +107,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         ref={ref}
                         required={required}
                         {...register}
+                        onChange={handleChange}
                         {...props}
                         onWheel={(e) => {
                             if (type === 'number') {

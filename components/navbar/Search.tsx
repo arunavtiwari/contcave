@@ -7,6 +7,7 @@ import { BiSearch } from "react-icons/bi";
 import useCountries from "@/hooks/useCities";
 import useUIStore from "@/hooks/useUIStore";
 import { formatISTDate } from "@/lib/utils";
+import Button from "../ui/Button";
 
 const SearchContent = memo(function SearchContent() {
   const uiStore = useUIStore();
@@ -39,12 +40,13 @@ const SearchContent = memo(function SearchContent() {
   }, [uiStore]);
 
   return (
-    <button
-      type="button"
+    <Button
       onClick={handleClick}
-      className="w-full md:w-auto p-2 rounded-full transition cursor-pointer active:scale-[0.98] bg-background/20 backdrop-blur-2xl shadow-sm border border-border/10"
+      variant="ghost"
+      rounded
+      classNames="w-full md:w-auto p-2 bg-background/20 backdrop-blur-2xl shadow-sm border border-border/10"
     >
-      <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-row items-center justify-between w-full">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>
         <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
           {dateLabel}
@@ -55,7 +57,7 @@ const SearchContent = memo(function SearchContent() {
           </div>
         </div>
       </div>
-    </button>
+    </Button>
   );
 });
 

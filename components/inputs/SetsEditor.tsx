@@ -8,6 +8,7 @@ import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/inputs/Input";
 import Textarea from "@/components/inputs/Textarea";
 import { AdditionalSetPricingType } from "@/types/set";
+import { parseNumericInput } from "@/lib/utils";
 
 interface SetEditorItem {
     id?: string;
@@ -120,8 +121,7 @@ export default function SetsEditor({
                         label={`${priceLabel} (?) - Applies to ALL sets`}
                         type="number"
                         value={uniformPrice || ""}
-                        onChange={(e) => {
-                            const val = Math.max(0, parseInt(e.target.value || "0", 10));
+                        onNumberChange={(val) => {
                             if (onUniformPriceChange) onUniformPriceChange(val);
                             const updated = sets.map(s => ({ ...s, price: val }));
                             onChange(updated);
@@ -220,8 +220,7 @@ export default function SetsEditor({
                                                 label={`${priceLabel} (?)`}
                                                 type="number"
                                                 value={set.price === null ? "" : set.price}
-                                                onChange={(e) => {
-                                                    const val = e.target.value === "" ? null : parseInt(e.target.value, 10);
+                                                onNumberChange={(val) => {
                                                     updateSet(index, {
                                                         price: val,
                                                     });

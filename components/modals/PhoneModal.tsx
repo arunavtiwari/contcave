@@ -1,3 +1,4 @@
+import Input from "../inputs/Input";
 import Modal from "./Modal";
 
 type PhoneModalProps = {
@@ -34,17 +35,15 @@ export default function PhoneModal({
                     <span className="px-4 py-2 bg-muted border border-border rounded-xl text-muted-foreground font-medium text-sm">
                         +91
                     </span>
-                    <input
-                        type="tel"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        autoFocus
-                        className="flex-1 rounded-xl border border-border px-3 py-2 outline-none focus:ring-1 focus:ring-foreground/10 transition-shadow text-sm"
+                    <Input
+                        id="phone-modal-input"
                         placeholder="10-digit number"
                         value={phoneInput}
-                        onChange={(e) => {
+                        type="number"
+                        autoFocus
+                        onNumberChange={(val) => {
                             setPhoneErrorAction(null);
-                            setPhoneInputAction(e.target.value.replace(/\D/g, "").slice(0, 10));
+                            setPhoneInputAction(val.toString().slice(0, 10));
                         }}
                         disabled={phoneSaving}
                     />

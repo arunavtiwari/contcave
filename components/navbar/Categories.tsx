@@ -13,6 +13,7 @@ import { MdCelebration, MdHomeWork, MdLocalCafe } from "react-icons/md";
 
 import CategoryBox from "@/components/CategoryBox";
 import FilterModal from "@/components/modals/FilterModal";
+import Button from "@/components/ui/Button";
 
 export const categories = [
   {
@@ -107,9 +108,14 @@ const Categories = memo(function Categories() {
           ))}
         </div>
         <div className="shrink-0">
-          <button className="px-4 py-2 bg-muted rounded-lg text-sm whitespace-nowrap">
-            More Filters
-          </button>
+          <Button
+            label="More Filters"
+            variant="ghost"
+            size="sm"
+            fit
+            classNames="bg-muted border border-border opacity-50"
+            disabled
+          />
         </div>
       </div>
     }>

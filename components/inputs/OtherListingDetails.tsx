@@ -3,7 +3,7 @@ import Select, { SelectOption } from "@/components/ui/Select";
 
 import Switch from "@/components/inputs/Switch";
 import { spaceTypes } from "@/constants/spaceTypes";
-import { cn } from "@/lib/utils";
+import { cn, parseNumericInput } from "@/lib/utils";
 
 import FormField from "./FormField";
 import Input from "./Input";
@@ -11,11 +11,11 @@ import Pill from "../ui/Pill";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 
 export type ListingDetails = {
-    carpetArea: string;
+    carpetArea: number;
     operationalDays: { start?: string; end?: string };
     operationalHours: { start?: string; end?: string };
-    minimumBookingHours: string;
-    maximumPax: string;
+    minimumBookingHours: number;
+    maximumPax: number;
     instantBooking: boolean;
     type: string[];
     hasSets: boolean;
@@ -44,11 +44,11 @@ const staticTimeOptions: SelectOption[] = TIME_SLOTS.map((t) => ({
 const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
     // Default values if data is undefined
     const details = useMemo(() => data || {
-        carpetArea: "",
+        carpetArea: 0,
         operationalDays: { start: "Mon", end: "Sun" },
         operationalHours: { start: "9:00 AM", end: "9:00 PM" },
-        minimumBookingHours: "",
-        maximumPax: "",
+        minimumBookingHours: 0,
+        maximumPax: 0,
         instantBooking: false,
         type: [],
         hasSets: false,
@@ -86,7 +86,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
         }
     }, [details, onChange]);
 
-    const handleInputChange = useCallback((field: keyof ListingDetails, value: string | boolean | string[] | { start?: string; end?: string }) => {
+    const handleInputChange = useCallback((field: keyof ListingDetails, value: string | number | boolean | string[] | { start?: string; end?: string }) => {
         onChange({ ...details, [field]: value });
     }, [details, onChange]);
 
@@ -103,10 +103,10 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             label="Carpet Area"
             description="Total floor area of the space"
             variant="horizontal"
-            type="text"
+            type="number"
             placeholder="e.g. 2500"
-            value={details.carpetArea}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("carpetArea", e.target.value)}
+            value={details.carpetArea || ""}
+            onNumberChange={(val) => handleInputChange("carpetArea", val)}
             customRightContent={<span className="text-muted-foreground text-sm font-medium">sq ft</span>}
             required
         />
@@ -222,13 +222,10 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 id="minimumBookingHours"
                 label="Min. Booking Hours"
                 variant="horizontal"
-                type="text"
+                type="number"
                 placeholder="e.g. 2"
-                value={details.minimumBookingHours}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const onlyDigits = e.target.value.replace(/\D/g, "");
-                    handleInputChange("minimumBookingHours", onlyDigits);
-                }}
+                value={details.minimumBookingHours || ""}
+                onNumberChange={(val) => handleInputChange("minimumBookingHours", val)}
                 customRightContent={<span className="text-muted-foreground text-sm font-medium">hrs</span>}
                 required
             />
@@ -237,13 +234,10 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 id="maximumPax"
                 label="Maximum Capacity"
                 variant="horizontal"
-                type="text"
+                type="number"
                 placeholder="e.g. 10"
-                value={details.maximumPax ?? ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const onlyDigits = e.target.value.replace(/\D/g, "");
-                    handleInputChange("maximumPax", onlyDigits);
-                }}
+                value={details.maximumPax || ""}
+                onNumberChange={(val) => handleInputChange("maximumPax", val)}
                 customRightContent={<span className="text-muted-foreground text-sm font-medium">pax</span>}
                 required
             />

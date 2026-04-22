@@ -28,9 +28,9 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
     packages: Package[];
     operationalDays?: { start?: string; end?: string };
     operationalHours?: { start?: string; end?: string };
-    carpetArea?: number;
-    maximumPax?: number;
-    minimumBookingHours?: number;
+    carpetArea: number;
+    maximumPax: number;
+    minimumBookingHours: number;
     type?: string[];
     avgReviewRating?: number;
     actualLocation?: ActualLocation | null;

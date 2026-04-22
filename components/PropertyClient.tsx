@@ -25,6 +25,7 @@ import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import { spaceTypes } from "@/constants/spaceTypes";
 import { uploadToR2 } from "@/lib/storage/upload";
+import { cn, parseNumericInput } from "@/lib/utils";
 import { Addon } from "@/types/addon";
 import Pill from "@/components/ui/Pill";
 import { FullListing } from "@/types/listing";
@@ -421,7 +422,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         formatPrice
                         placeholder="Price"
                         value={Number.isFinite(initialListing.price) ? initialListing.price : ""}
-                        onChange={(e) => handleInputChange("price", Number(e.target.value))}
+                        onNumberChange={(val) => handleInputChange("price", val)}
                     />
 
                     <FormField
@@ -553,12 +554,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                     <Input
                         id="carpetArea"
-                        label="Carpet Area"
+                        label="Carpet Area (sq ft)"
                         variant="horizontal"
                         type="number"
                         placeholder="Enter the carpet area"
-                        value={initialListing.carpetArea ?? ""}
-                        onChange={(e) => handleInputChange("carpetArea", e.target.value)}
+                        value={initialListing.carpetArea ?? 0}
+                        onNumberChange={(val) => handleInputChange("carpetArea", val)}
                     />
 
 
@@ -624,11 +625,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                     <Input
                         id="minBookingHours"
-                        label="Min. Booking Hours"
+                        label="Minimum Booking Hours"
                         variant="horizontal"
+                        type="number"
                         placeholder="Enter the minimum booking hours"
-                        value={initialListing.minimumBookingHours ?? ""}
-                        onChange={(e) => handleInputChange("minimumBookingHours", e.target.value)}
+                        value={initialListing.minimumBookingHours ?? 0}
+                        onNumberChange={(val) => handleInputChange("minimumBookingHours", val)}
                     />
 
 
@@ -636,9 +638,10 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         id="maxPax"
                         label="Max PAX"
                         variant="horizontal"
+                        type="number"
                         placeholder="Enter the maximum PAX"
-                        value={initialListing.maximumPax ?? ""}
-                        onChange={(e) => handleInputChange("maximumPax", e.target.value)}
+                        value={initialListing.maximumPax ?? 0}
+                        onNumberChange={(val) => handleInputChange("maximumPax", val)}
                     />
 
 
@@ -679,18 +682,20 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     variant="horizontal"
                                 >
                                     <div className="flex gap-4 w-full">
-                                        <button
+                                        <Button
                                             onClick={() => handleInputChange("additionalSetPricingType", "FIXED")}
-                                            className={`flex-1 h-11 px-4 rounded-xl border transition ${initialListing.additionalSetPricingType === "FIXED" ? "bg-foreground text-background border-foreground" : "bg-background text-foreground border-border hover:border-foreground"}`}
-                                        >
-                                            Fixed Add-on
-                                        </button>
-                                        <button
+                                            variant={initialListing.additionalSetPricingType === "FIXED" ? "default" : "outline"}
+                                            label="Fixed Add-on"
+                                            fit
+                                            classNames="flex-1"
+                                        />
+                                        <Button
                                             onClick={() => handleInputChange("additionalSetPricingType", "HOURLY")}
-                                            className={`flex-1 h-11 px-4 rounded-xl border transition ${initialListing.additionalSetPricingType === "HOURLY" ? "bg-foreground text-background border-foreground" : "bg-background text-foreground border-border hover:border-foreground"}`}
-                                        >
-                                            Hourly Add-on
-                                        </button>
+                                            variant={initialListing.additionalSetPricingType === "HOURLY" ? "default" : "outline"}
+                                            label="Hourly Add-on"
+                                            fit
+                                            classNames="flex-1"
+                                        />
                                     </div>
                                 </FormField>
 
@@ -753,13 +758,12 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     </div>
 
                     <div className="col-span-3 pt-5 flex justify-end">
-                        <button
-                            type="button"
-                            className="inline-flex h-11 px-8 border border-transparent text-sm font-medium rounded-xl hover:opacity-85 text-background bg-foreground items-center justify-center"
+                        <Button
+                            label="Save"
                             onClick={update}
-                        >
-                            Save
-                        </button>
+                            fit
+                            classNames="px-8"
+                        />
                     </div>
                 </div>
 
@@ -771,19 +775,22 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             subtitle="Sync offline and ContCave bookings to keep your availability up to date—automatically"
                         />
                         {!isCalendarConnected && (
-                            <button
-                                className="bg-foreground text-background px-15 h-fit py-2 rounded-xl hover:opacity-90 flex gap-4 justify-center items-center"
+                            <Button
                                 onClick={() => signIn("google-calendar")}
+                                fit
+                                classNames="px-15 h-fit py-2"
                             >
-                                <Image
-                                    src="/images/icons/google_calendar.png"
-                                    alt="Google Calendar"
-                                    width={30}
-                                    height={30}
-                                    className="bg-background rounded-xl"
-                                />
-                                Sync Google Calendar
-                            </button>
+                                <div className="flex gap-4 items-center">
+                                    <Image
+                                        src="/images/icons/google_calendar.png"
+                                        alt="Google Calendar"
+                                        width={30}
+                                        height={30}
+                                        className="bg-background rounded-xl"
+                                    />
+                                    Sync Google Calendar
+                                </div>
+                            </Button>
                         )}
                     </div>
 

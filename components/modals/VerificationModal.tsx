@@ -407,8 +407,9 @@ const VerificationModal: React.FC<Props> = ({
                 label="Phone"
                 placeholder="10-digit mobile number"
                 value={phoneState.phoneValue}
-                onChange={(e) => {
-                  setPhoneState(s => ({ ...s, phoneValue: e.target.value.replace(/\D/g, "").slice(0, 10), verified: false }));
+                type="number"
+                onNumberChange={(val) => {
+                  setPhoneState(s => ({ ...s, phoneValue: val.toString().slice(0, 10), verified: false }));
                   clearCustomError("phone");
                 }}
                 disabled={phoneState.verified}
@@ -453,8 +454,9 @@ const VerificationModal: React.FC<Props> = ({
                 id="aadhaar"
                 label="Aadhaar Number"
                 value={aadhaarState.aadhaarNumber}
-                onChange={(e) => {
-                  setAadhaarState(s => ({ ...s, aadhaarNumber: e.target.value.replace(/\D/g, "").slice(0, 12) }));
+                type="number"
+                onNumberChange={(val) => {
+                  setAadhaarState(s => ({ ...s, aadhaarNumber: val.toString().slice(0, 12) }));
                   clearCustomError("aadhaar");
                 }}
                 errors={{ aadhaar: getFieldError("aadhaar") }}
@@ -471,8 +473,9 @@ const VerificationModal: React.FC<Props> = ({
                 id="otp"
                 label="One Time Password"
                 value={aadhaarState.otp}
-                onChange={(e) => {
-                  setAadhaarState(s => ({ ...s, otp: e.target.value.replace(/\D/g, "").slice(0, 6) }));
+                type="number"
+                onNumberChange={(val) => {
+                  setAadhaarState(s => ({ ...s, otp: val.toString().slice(0, 6) }));
                   clearCustomError("otp");
                 }}
                 errors={{ otp: getFieldError("otp") }}
@@ -527,6 +530,7 @@ const VerificationModal: React.FC<Props> = ({
                 required
                 formatPrice={false}
                 type="number"
+                onNumberChange={(val) => setValue("accountNumber", val.toString(), { shouldValidate: true })}
               />
               <Input
                 id="ifscCode"

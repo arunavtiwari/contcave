@@ -127,13 +127,13 @@ function Modal({
               variant="h5"
               as="h2"
             />
-            <IoMdCloseCircle
-              size={24}
-              className="opacity-80 hover:opacity-100 cursor-pointer transition-opacity"
+            <Button
               onClick={handleClose}
-              role="button"
-              aria-label="Close modal"
-              title="Close modal"
+              icon={IoMdCloseCircle}
+              variant="ghost"
+              rounded
+              size="sm"
+              classNames="opacity-80 hover:opacity-100 p-0"
             />
           </div>
 

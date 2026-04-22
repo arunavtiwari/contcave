@@ -118,11 +118,11 @@ model Listing {
   amenities                String[]
   otherAmenities           String[]
   addons                   Json?
-  carpetArea               String?
+  carpetArea               Int
   operationalDays          Json?
   operationalHours         Json?
-  minimumBookingHours      String?
-  maximumPax               String?
+  minimumBookingHours      Int
+  maximumPax               Int
   instantBooking           Boolean?
   type                     String[]
   verifications            Json?

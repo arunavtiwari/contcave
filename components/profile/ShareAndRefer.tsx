@@ -119,12 +119,12 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
             <div className="bg-muted/30 rounded-2xl p-6 border border-foreground/20">
                 <Heading title="How It Works" variant="h5" className="mb-6" />
                 <ol className="space-y-4 text-muted-foreground">
-                    <li className="flex items-start">
-                        <span className="bg-foreground text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0 shadow-sm">1</span>
+                    <li className="flex items-center">
+                        <span className="bg-foreground text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3  shrink-0 shadow-sm">1</span>
                         <span className="font-medium">Share your unique referral link or code with friends.</span>
                     </li>
-                    <li className="flex items-start">
-                        <span className="bg-foreground text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 shrink-0 shadow-sm">2</span>
+                    <li className="flex items-center">
+                        <span className="bg-foreground text-background rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3  shrink-0 shadow-sm">2</span>
                         <span className="font-medium">When someone signs up and books their first space using your referral link, you both earn rewards!</span>
                     </li>
                 </ol>
@@ -147,7 +147,6 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                                 onClick={handleCopy}
                                 disabled={copied}
                                 icon={copied ? undefined : MdContentCopy}
-                                classNames="ml-4 shadow-sm"
                                 fit
                             />
                         </div>
@@ -189,27 +188,30 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                             Copy and share it with your friends now!
                         </p>
                         <div className="flex items-center gap-3">
-                            <button
+                            <Button
                                 onClick={() => handleSocialShare("messages")}
-                                className="w-12 h-12 bg-foreground/10 hover:bg-foreground/20 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-                                title="Share via Messages"
-                            >
-                                <MdMessage className="w-6 h-6 text-foreground" />
-                            </button>
-                            <button
+                                variant="ghost"
+                                icon={MdMessage}
+                                rounded
+                                size="lg"
+                                classNames="bg-foreground/10 hover:bg-foreground/20"
+                            />
+                            <Button
                                 onClick={() => handleSocialShare("instagram")}
-                                className="w-12 h-12 bg-pink-500/10 hover:bg-pink-500/20 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-                                title="Share on Instagram"
-                            >
-                                <FaInstagram className="w-6 h-6 text-pink-600" />
-                            </button>
-                            <button
+                                variant="ghost"
+                                icon={FaInstagram}
+                                rounded
+                                size="lg"
+                                classNames="bg-pink-500/10 hover:bg-pink-500/20 !text-pink-600"
+                            />
+                            <Button
                                 onClick={() => handleSocialShare("whatsapp")}
-                                className="w-12 h-12 bg-success/10 hover:bg-success/20 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-                                title="Share on WhatsApp"
-                            >
-                                <FaWhatsapp className="w-6 h-6 text-success" />
-                            </button>
+                                variant="ghost"
+                                icon={FaWhatsapp}
+                                rounded
+                                size="lg"
+                                classNames="bg-success/10 hover:bg-success/20 !text-success"
+                            />
                         </div>
                     </div>
                 </div>
@@ -217,33 +219,30 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
 
             <div className="border-t border-border"></div>
 
-            <div className="bg-info/5 rounded-2xl p-8 border border-info/20">
-                <Heading title="Promote and Earn" variant="h4" className="mb-4" />
-                <p className="text-base text-muted-foreground leading-relaxed mb-8 max-w-2xl">
-                    If you're an influencer or content creator with a following, you can promote ContCave
-                    while shooting at our properties and earn benefits/discounts.
-                </p>
+            <div className="bg-info/5 rounded-2xl p-6 border border-info/20 flex flex-col gap-6">
+                <Heading title="Promote and Earn" variant="h4" subtitle="If you're an influencer or content creator with a following, you can promote ContCave while shooting at our properties and earn benefits/discounts." />
 
-                <div className="grid md:grid-cols-2 gap-8">
-                    <div className="bg-background rounded-2xl p-6 border border-border shadow-sm">
-                        <Heading title="How It Works" variant="h5" className="mb-4" />
+                {/* Cards */}
+                <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-background rounded-2xl p-6 border border-border shadow-xs flex flex-col gap-4">
+                        <Heading title="How It Works" variant="h5" />
                         <ol className="space-y-3 text-muted-foreground">
-                            <li className="flex items-start">
-                                <span className="bg-info text-background rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 shrink-0 shadow-sm">1</span>
+                            <li className="flex items-center">
+                                <span className="bg-info text-background rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3  shrink-0 shadow-sm">1</span>
                                 <span className="text-sm font-medium">Shoot content at one of our featured properties and tag us in your posts or videos.</span>
                             </li>
-                            <li className="flex items-start">
-                                <span className="bg-info text-background rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 shrink-0 shadow-sm">2</span>
+                            <li className="flex items-center">
+                                <span className="bg-info text-background rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3  shrink-0 shadow-sm">2</span>
                                 <span className="text-sm font-medium">Share your content with your audience and mention your experience with us.</span>
                             </li>
-                            <li className="flex items-start">
-                                <span className="bg-info text-background rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5 shrink-0 shadow-sm">3</span>
+                            <li className="flex items-center">
+                                <span className="bg-info text-background rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3  shrink-0 shadow-sm">3</span>
                                 <span className="text-sm font-medium">Contact us with links to your posts or videos to claim your rewards!</span>
                             </li>
                         </ol>
                     </div>
 
-                    <div className="bg-background rounded-2xl p-6 border border-border shadow-sm">
+                    <div className="bg-background rounded-2xl p-6 border border-border shadow-xs flex flex-col gap-4">
                         <Heading title="Benefits for Influencers" variant="h5" className="mb-4" />
                         <ul className="list-disc marker:text-success pl-5 space-y-3 text-sm text-muted-foreground leading-6 font-medium">
                             <li>Exclusive discounts on future bookings.</li>
@@ -253,20 +252,20 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                     </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-info/20 flex items-center justify-between flex-wrap gap-4">
-                    <p className="text-lg font-bold text-foreground">
-                        Follow and Tag Us Now!
-                    </p>
+                {/* Follow Us */}
+                <div className="mt-2 pt-2 border-t border-info/20 flex items-center justify-between flex-wrap gap-4">
+                    <Heading
+                        title="Follow and Tag Us Now!"
+                        variant="h5"
+                    />
                     <div className="flex items-center gap-3">
-                        <a
+                        <Button
                             href="https://instagram.com/contcave"
                             target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-12 h-12 bg-foreground text-background hover:opacity-90 rounded-full flex items-center justify-center transition-all duration-200 transform hover:scale-110 shadow-lg"
-                            title="Follow us on Instagram"
-                        >
-                            <FaInstagram className="w-6 h-6" />
-                        </a>
+                            icon={FaInstagram}
+                            rounded
+                            size="lg"
+                        />
                     </div>
                 </div>
             </div>

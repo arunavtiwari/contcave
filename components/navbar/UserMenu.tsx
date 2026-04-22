@@ -18,6 +18,7 @@ import { MdApartment } from "react-icons/md";
 
 import MenuItem from "@/components/navbar/MenuItem";
 import Avatar from "@/components/ui/Avatar";
+import Button from "@/components/ui/Button";
 import useUIStore from "@/hooks/useUIStore";
 import { SafeUser } from "@/types/user";
 
@@ -84,10 +85,11 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
   return (
     <div className="relative">
       <div className="flex">
-        <button
-          type="button"
+        <Button
           onClick={toggleOpen}
-          className="ai-outline-menu p-4 md:py-1 md:px-2 border-2 flex flex-row items-center gap-3 rounded-full cursor-pointer transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring bg-background"
+          variant="ghost"
+          rounded
+          classNames="ai-outline-menu p-4 md:py-1 md:px-2 border-2 flex flex-row items-center gap-3 bg-background"
         >
           <AiOutlineMenu />
           <div className="hidden md:block">
@@ -103,12 +105,12 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
               />
             )}
           </div>
-        </button>
+        </Button>
       </div>
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute rounded-xl min-w-60 bg-background overflow-hidden right-0 top-[3.2rem] text-sm p-3 border border-border shadow-sm"
+          className="absolute rounded-xl min-w-60 bg-background/80 backdrop-blur-md overflow-hidden right-0 top-[3.2rem] text-sm p-3 border border-border shadow-xs"
         >
           <div className="flex flex-col">
             {currentUser ? (
