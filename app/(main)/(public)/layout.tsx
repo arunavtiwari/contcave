@@ -7,7 +7,7 @@ export default function PublicLayout({
 }) {
   return (
     <>
-      <div className="min-h-screen pt-21">{children}</div>
+      <div className="min-h-screen pt-20">{children}</div>
       <Footer />
     </>
   );

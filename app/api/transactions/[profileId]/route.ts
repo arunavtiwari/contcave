@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getTransactions from "@/app/actions/getTransactions";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { isOwner } from "@/lib/user/permissions";
 
 export async function GET(
     request: NextRequest,
@@ -25,7 +26,7 @@ export async function GET(
         }
 
         const transactions = await getTransactions(profileId, {
-            ownerView: currentUser.is_owner === true,
+            ownerView: isOwner(currentUser.role),
         });
 
         return createSuccessResponse({ transactions });

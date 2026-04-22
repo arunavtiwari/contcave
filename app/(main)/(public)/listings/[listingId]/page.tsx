@@ -4,8 +4,8 @@ import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListingById from "@/app/actions/getListingById";
-import { getReservations } from "@/app/actions/reservationActions";
 import getReviewCount from "@/app/actions/getReviewCount";
+import { getReservations } from "@/app/actions/reservationActions";
 import EmptyState from "@/components/EmptyState";
 import ListingSkeleton from "@/components/listing/ListingSkeleton";
 import ListingClient from "@/components/ListingClient";

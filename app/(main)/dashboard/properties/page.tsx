@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import PropertiesClient from "@/app/(main)/dashboard/properties/PropertiesClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings from "@/app/actions/getListings";
 import EmptyState from "@/components/EmptyState";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
 import { safeListing } from "@/types/listing";
-
-import PropertiesClient from "./PropertiesClient";
 
 export const metadata: Metadata = {
   title: "My Properties",

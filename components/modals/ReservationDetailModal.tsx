@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import Modal from "@/components/modals/Modal";
+
 import BookingBreakdown from "@/components/listing/BookingBreakdown";
+import Modal from "@/components/modals/Modal";
 import { SafeReservation } from "@/types/reservation";
 
 interface ReservationDetailModalProps {

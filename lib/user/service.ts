@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 import db from "@/lib/prismadb";
 import { UserUpdateSchema, userUpdateSchema } from "@/schemas/user";
-import { RegisterData,SafeUser } from "@/types/user";
+import { RegisterData, SafeUser } from "@/types/user";
 
 
 
@@ -51,7 +51,7 @@ export class UserService {
     }
 
     static async register(data: RegisterData) {
-        const { email, name, password, phone, is_owner } = data;
+        const { email, name, password, phone, role } = data;
         const hashedPassword = await bcrypt.hash(password, 12);
 
         return await db.user.create({
@@ -60,7 +60,7 @@ export class UserService {
                 name,
                 hashedPassword,
                 phone: phone || undefined,
-                is_owner: !!is_owner
+                role: role || "CUSTOMER"
             }
         });
     }
@@ -147,7 +147,10 @@ export class UserService {
             createdAt: user.createdAt.toISOString(),
             updatedAt: user.updatedAt.toISOString(),
             emailVerified: user.emailVerified?.toISOString() || null,
+            verified_at: user.verified_at?.toISOString() || null,
             markedForDeletionAt: user.markedForDeletionAt?.toISOString() || null,
-        } as SafeUser;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            role: user.role as any, // Cast to local UserRole which is compatible
+        };
     }
 }

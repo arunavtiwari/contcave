@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+
 import useFavorite from "@/hooks/useFavorite";
 import { SafeUser } from "@/types/user";
 

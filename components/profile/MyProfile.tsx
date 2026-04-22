@@ -31,13 +31,28 @@ import Pill from "@/components/ui/Pill";
 import { PROFILE_LANGUAGE_OPTIONS, PROFILE_TITLE_OPTIONS } from "@/constants/user";
 import useRentModal from "@/hooks/useRentModal";
 import { uploadToR2 } from "@/lib/storage/upload";
+import { isOwner } from "@/lib/user/permissions";
 import { cn } from "@/lib/utils";
-import { UserDataBoundaryPayload, UserDataSchema, userUpdateSchema } from "@/schemas/user";
-import { SafeUser } from "@/types/user";
+import { UserDataSchema, userUpdateSchema } from "@/schemas/user";
+import { SafeUser, UserRole } from "@/types/user";
 
 interface ProfileClientProps {
     profile: SafeUser | null;
 }
+
+type FormValues = {
+    name: string;
+    description: string;
+    location: string;
+    languages: string[];
+    title: string;
+    email: string;
+    phone: string;
+    profileImage: string | null;
+    role: UserRole;
+    is_verified: boolean;
+    createdAt: string;
+};
 
 const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
@@ -49,8 +64,9 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
     const rentModel = useRentModal();
     const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
-    const form = useForm<z.input<typeof UserDataSchema>, unknown, UserDataBoundaryPayload>({
-        resolver: zodResolver(UserDataSchema),
+    const form = useForm<FormValues>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        resolver: zodResolver(UserDataSchema) as any,
         defaultValues: (() => {
             if (!profile) return {
                 name: "",
@@ -60,13 +76,14 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                 title: "",
                 email: "",
                 phone: "",
-                profileImage: "",
-                is_owner: false,
+                profileImage: null,
+                role: UserRole.CUSTOMER,
                 is_verified: false,
-                joinYear: "",
-            };
+                createdAt: new Date().toISOString(),
+            } as unknown as FormValues;
             try {
-                return UserDataSchema.parse(profile);
+                return {
+                } as unknown as FormValues;
             } catch (_e) {
                 return {
                     name: profile.name || "",
@@ -76,11 +93,11 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                     title: profile.title || "",
                     email: profile.email || "",
                     phone: profile.phone || "",
-                    profileImage: profile.image || "",
-                    is_owner: profile.is_owner || false,
+                    profileImage: profile.image || null,
+                    role: profile.role || UserRole.CUSTOMER,
                     is_verified: profile.is_verified || false,
-                    joinYear: profile.createdAt ? new Date(profile.createdAt).getFullYear().toString() : "",
-                };
+                    createdAt: profile.createdAt ? new Date(profile.createdAt).toISOString() : new Date().toISOString(),
+                } as unknown as FormValues;
             }
         })()
     });
@@ -98,7 +115,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
             setCurrentUser(user);
             try {
                 const parsedData = UserDataSchema.parse(user);
-                form.reset(parsedData);
+                form.reset(parsedData as unknown as FormValues);
                 setIsVerified(parsedData.is_verified);
             } catch (_e) {
                 // Ignore parse errors on update
@@ -117,12 +134,15 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
             title: (userData.title ?? undefined) || undefined,
             profileImage: (userData.profileImage ?? undefined) || undefined,
             phone: (newPhone ?? userData.phone ?? undefined) || undefined,
-            is_owner: true,
+            role: UserRole.OWNER,
         };
 
         try {
             const updatedUser = await updateUser(payload);
-            const safeData = UserDataSchema.parse(updatedUser);
+            const safeData = {
+                ...UserDataSchema.parse(updatedUser),
+                createdAt: updatedUser.createdAt ? new Date(updatedUser.createdAt).toISOString() : new Date().toISOString()
+            } as FormValues;
 
             form.reset(safeData);
             setIsVerified(safeData.is_verified);
@@ -141,7 +161,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
     const handleLanguageToggle = (language: string) => {
         const currentLanguages = getValues("languages") || [];
         const newLanguages = currentLanguages.includes(language)
-            ? currentLanguages.filter(lang => lang !== language)
+            ? currentLanguages.filter((lang: string) => lang !== language)
             : currentLanguages.length < 2
                 ? [...currentLanguages, language]
                 : currentLanguages;
@@ -152,7 +172,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
         setValue("title", title, { shouldDirty: true, shouldValidate: true });
     };
 
-    const onSubmit = async (data: UserDataBoundaryPayload) => {
+    const onSubmit = async (data: FormValues) => {
         try {
             let finalProfileImage = data.profileImage;
             if (finalProfileImage && finalProfileImage.startsWith("blob:")) {
@@ -538,7 +558,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
 
                 <div className="space-y-6">
-                    {!userData.is_owner ? (
+                    {!isOwner(userData.role) ? (
 
                         <div className="bg-foreground/5 border border-foreground/20 rounded-2xl p-6">
                             <div className="text-center space-y-4">
@@ -638,30 +658,27 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                         <p className="text-xl font-semibold text-background">Starting Verification...</p>
                     </div>
                 </div>
-            )
-            }
+            )}
 
-            {
-                currentUser && (
-                    <VerificationModal
-                        isOpen={showVerificationModal}
-                        onCloseAction={() => setShowVerificationModal(false)}
-                        currentUser={currentUser}
-                        onComplete={() => {
-                            setValue("is_verified", true, { shouldValidate: true });
-                            setIsVerified(true);
+            {currentUser && (
+                <VerificationModal
+                    isOpen={showVerificationModal}
+                    onCloseAction={() => setShowVerificationModal(false)}
+                    currentUser={currentUser}
+                    onComplete={() => {
+                        setValue("is_verified", true, { shouldValidate: true });
+                        setIsVerified(true);
 
-                            setCurrentUser((u: SafeUser | null) => u ? { ...u, is_verified: true } : null);
-                        }}
-                    />
-                )
-            }
-        </div >
+                        setCurrentUser((u: SafeUser | null) => u ? { ...u, is_verified: true } : null);
+                    }}
+                />
+            )}
+        </div>
     );
-
 };
 
 export default MyProfile;
+
 
 
 

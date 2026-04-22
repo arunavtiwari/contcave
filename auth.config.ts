@@ -1,5 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 
+import { UserRole } from "@/types/user";
+
 async function refreshCalendarAccessToken(token: Record<string, unknown>) {
     try {
         const url = "https://oauth2.googleapis.com/token";
@@ -121,8 +123,8 @@ export const authConfig = {
             if (account && user) {
                 token.id = user.id;
 
-                if ('is_owner' in user) {
-                    token.is_owner = user.is_owner;
+                if ('role' in user) {
+                    token.role = user.role;
                 }
                 if ('phone' in user) {
                     token.phone = user.phone;
@@ -169,8 +171,8 @@ export const authConfig = {
                 | string
                 | undefined;
 
-            if (token.is_owner !== undefined) {
-                session.user.is_owner = token.is_owner as boolean;
+            if (token.role !== undefined) {
+                session.user.role = token.role as UserRole;
             }
             if (token.phone !== undefined) {
                 session.user.phone = token.phone as string | null;

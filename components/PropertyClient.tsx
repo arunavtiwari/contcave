@@ -12,6 +12,8 @@ import BlocksManager from "@/components/BlocksManager";
 import Calendar from "@/components/Calendar";
 import AddonsSelection from "@/components/inputs/AddonsSelection";
 import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
+import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
+import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import ImageReorderGrid from "@/components/inputs/ImageReorderGrid";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import PackagesForm from "@/components/inputs/PackagesForm";
@@ -23,16 +25,12 @@ import DeletePropertyModal from "@/components/modals/DeletePropertyModal";
 import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import Pill from "@/components/ui/Pill";
 import { spaceTypes } from "@/constants/spaceTypes";
 import { uploadToR2 } from "@/lib/storage/upload";
-import { cn, parseNumericInput } from "@/lib/utils";
 import { Addon } from "@/types/addon";
-import Pill from "@/components/ui/Pill";
 import { FullListing } from "@/types/listing";
 import { Package as ListingPackage } from "@/types/package";
-
-import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
-import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
 
 type Props = {
     listing: FullListing;
@@ -74,16 +72,15 @@ function setDeep<T extends object>(obj: T, path: string, value: unknown): T {
 
 
 type TimeLabel = string;
+import FormField from "@/components/inputs/FormField";
+import Input from "@/components/inputs/Input";
 import RichTextEditor from "@/components/inputs/RichTextEditor";
+import Select, { SelectOption } from "@/components/ui/Select";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 
-import FormField from "./inputs/FormField";
-import Input from "./inputs/Input";
-import Select, { SelectOption } from "@/components/ui/Select";
-
+const categoryOptionsPrepared: SelectOption[] = CATEGORY_OPTIONS.map((c) => ({ ...c, value: c.label }));
 const dayOptionsPrepared: SelectOption[] = dayOptions.map((d) => ({ value: d, label: d }));
 const timeOptionsPrepared: SelectOption[] = TIME_SLOTS.map((t) => ({ value: t, label: t }));
-const categoryOptionsPrepared: SelectOption[] = CATEGORY_OPTIONS.map((c) => ({ ...c, value: c.label }));
 const endOptionsPrepared = (startIdx: number): SelectOption[] => {
     if (startIdx === -1) return timeOptionsPrepared.slice(1);
     return timeOptionsPrepared.slice(startIdx + 1);
@@ -157,6 +154,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 : [],
             durationHours: Number(pkg.durationHours ?? 0),
             requiredSetCount: pkg.requiredSetCount ? Number(pkg.requiredSetCount) : null,
+            isActive: pkg.isActive ?? true,
         }));
 
         const packagesWithData = normalizedPackages.filter((pkg: NormalizedPackage) =>
@@ -300,9 +298,10 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     const endTime: TimeLabel = initialListing.operationalHours?.end ?? "";
 
     const startIdx = useMemo(() => TIME_SLOTS.indexOf(startTime), [startTime]);
-    const endOptions = useMemo(() => {
+    const _calculatedEndOptions = useMemo(() => {
         if (startIdx === -1) return TIME_SLOTS;
-        return TIME_SLOTS.slice(startIdx);
+        const _endOptions = TIME_SLOTS.slice(startIdx + 1);
+        return _endOptions;
     }, [startIdx]);
 
     const onStartChange = (val: TimeLabel) => {
@@ -453,7 +452,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     Detailed Address
                                 </label>
                                 <AutoComplete
-                                    value={(initialListing.actualLocation as any)?.display_name || ""}
+                                    value={(initialListing.actualLocation as any)?.display_name || ""} // eslint-disable-line @typescript-eslint/no-explicit-any
                                     onChange={(sel: AutoCompleteValue) => {
                                         handleInputChange("actualLocation", {
                                             ...(initialListing.actualLocation || {}),

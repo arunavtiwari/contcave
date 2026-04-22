@@ -165,11 +165,11 @@ export class ListingService {
         // 3. Normalized Location (Privacy Jitter)
         if (listingData.actualLocation) {
             const loc = listingData.actualLocation as Record<string, unknown>;
-            const privacySafeLatLng = jitterLatLng(loc.latlng);
+            const privacySafeLatLng = jitterLatLng(loc.latlng as [number, number]);
             listingData.actualLocation = {
                 ...loc,
                 latlng: privacySafeLatLng || [0, 0]
-            } as any;
+            } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
         }
 
         // 4. Atomic Transaction
@@ -432,6 +432,8 @@ export class ListingService {
                 emailVerified: l.user.emailVerified?.toISOString() || null,
                 verified_at: l.user.verified_at ? l.user.verified_at.toISOString() : null,
                 markedForDeletionAt: l.user.markedForDeletionAt ? l.user.markedForDeletionAt.toISOString() : null,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                role: (l.user as any).role,
             },
         };
     }

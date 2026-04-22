@@ -1,38 +1,38 @@
 "use client";
 
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
+import { $isListNode, INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND, ListItemNode, ListNode, REMOVE_LIST_COMMAND } from "@lexical/list";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { ListPlugin } from "@lexical/react/LexicalListPlugin";
+import { mergeRegister } from "@lexical/utils";
 import {
-  $getSelection,
-  $isRangeSelection,
   $createParagraphNode,
   $getRoot,
+  $getSelection,
+  $isRangeSelection,
   EditorState,
-  type LexicalEditor,
   FORMAT_TEXT_COMMAND,
+  type LexicalEditor,
+  REDO_COMMAND,
   SELECTION_CHANGE_COMMAND,
   UNDO_COMMAND,
-  REDO_COMMAND,
 } from "lexical";
-import { $isListNode, ListNode, ListItemNode, INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND, REMOVE_LIST_COMMAND } from "@lexical/list";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  FaArrowRotateLeft,
+  FaArrowRotateRight,
   FaBold,
   FaItalic,
-  FaUnderline,
-  FaListUl,
   FaListOl,
-  FaArrowRotateLeft,
-  FaArrowRotateRight
+  FaListUl,
+  FaUnderline
 } from "react-icons/fa6";
-import { mergeRegister } from "@lexical/utils";
 
 import { cn } from "@/lib/utils";
 
@@ -147,7 +147,7 @@ function ToolbarPlugin() {
     );
   }, [editor, updateToolbar]);
 
-  const onFormat = (command: any, payload?: any) => {
+  const onFormat = (command: any, payload?: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     editor.dispatchCommand(command, payload);
   };
 
@@ -287,7 +287,7 @@ export default function RichTextEditor({
   disabled = false,
 }: Props) {
   const [hasInitialized, setHasInitialized] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [_isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);

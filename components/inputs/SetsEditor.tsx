@@ -8,7 +8,6 @@ import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/inputs/Input";
 import Textarea from "@/components/inputs/Textarea";
 import { AdditionalSetPricingType } from "@/types/set";
-import { parseNumericInput } from "@/lib/utils";
 
 interface SetEditorItem {
     id?: string;

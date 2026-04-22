@@ -3,7 +3,12 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import React, { useMemo } from "react";
 
+import ListingCardActions from "@/components/listing/ListingCardActions";
+import ListingCardContent from "@/components/listing/ListingCardContent";
+import ListingCardMedia from "@/components/listing/ListingCardMedia";
+import ListingCardSkeleton from "@/components/listing/ListingCardSkeleton";
 import useCities from "@/hooks/useCities";
+import { formatISTDate } from "@/lib/utils";
 import {
   formatPrice,
   getDisplayTitle,
@@ -11,14 +16,8 @@ import {
   getLocationLabel,
   normalizeImages,
 } from "@/lib/utils/listing-client";
-import { formatISTDate } from "@/lib/utils";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
-
-import ListingCardActions from "@/components/listing/ListingCardActions";
-import ListingCardContent from "@/components/listing/ListingCardContent";
-import ListingCardMedia from "@/components/listing/ListingCardMedia";
-import ListingCardSkeleton from "@/components/listing/ListingCardSkeleton";
 
 export interface ListingCardData {
   id: string | number;
@@ -181,7 +180,6 @@ const ListingCard: React.FC<ListingCardProps> = ({
           showRating={showRating}
           reservationDate={reservationDate}
           reservationTime={reservationTime}
-          reservation={reservation}
         />
 
         {!hideActions && (

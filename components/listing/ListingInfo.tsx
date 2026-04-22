@@ -7,11 +7,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { IconType } from "react-icons";
 
-import { checkBookingAction } from "@/app/actions/reservationActions";
 import createReview from "@/app/actions/createReview";
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import getReviews from "@/app/actions/getReviews";
+import { checkBookingAction } from "@/app/actions/reservationActions";
 import Textarea from "@/components/inputs/Textarea";
 import AddonsList from "@/components/listing/AddonList";
 import ListingCategory from "@/components/listing/ListingCategory";

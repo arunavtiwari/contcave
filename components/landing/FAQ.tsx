@@ -4,11 +4,10 @@ import { useState } from "react";
 import { HiArrowRight } from "react-icons/hi";
 
 import Container from "@/components/Container";
+import faqData from "@/components/landing/faqData";
+import FAQItem from "@/components/landing/FAQItem";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
-
-import faqData from "./faqData";
-import FAQItem from "./FAQItem";
 
 const FAQ = () => {
   const [activeFaq, setActiveFaq] = useState(1);

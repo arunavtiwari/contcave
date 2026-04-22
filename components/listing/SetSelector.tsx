@@ -11,11 +11,10 @@ import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import Checkbox from "@/components/inputs/Checkbox";
+import SetDetailModal from "@/components/listing/SetDetailModal";
 import Heading from "@/components/ui/Heading";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
-
-import SetDetailModal from "./SetDetailModal";
 
 interface SetSelectorProps {
     sets: ListingSet[];

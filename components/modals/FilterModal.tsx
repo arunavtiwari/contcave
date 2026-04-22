@@ -3,11 +3,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
 import CitySelect from "@/components/inputs/CitySelect";
+import Modal from "@/components/modals/Modal";
+import Button from "@/components/ui/Button";
 import { spaceTypes } from "@/constants/spaceTypes";
 import useIndianCities from "@/hooks/useCities";
-import Button from "../ui/Button";
-
-import Modal from "./Modal";
 
 const FilterModalContent = () => {
   const router = useRouter();

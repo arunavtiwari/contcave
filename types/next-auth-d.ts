@@ -1,5 +1,7 @@
 import { DefaultSession } from "next-auth";
 
+import { UserRole } from "@/types/user";
+
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
@@ -7,7 +9,7 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       image?: string | null;
-      is_owner?: boolean;
+      role?: UserRole;
       phone?: string | null;
       is_verified?: boolean;
     } & DefaultSession["user"];
@@ -20,7 +22,7 @@ declare module "next-auth" {
 
   interface User {
     id: string;
-    is_owner?: boolean;
+    role?: UserRole;
     phone?: string | null;
     is_verified?: boolean;
   }

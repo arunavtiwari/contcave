@@ -1,6 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { isOwner } from "@/lib/user/permissions";
 
 interface IParams {
   amenityId?: string;
@@ -15,7 +16,7 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
       return createErrorResponse("Unauthorized", 401);
     }
 
-    if (!currentUser.is_owner && !currentUser.is_verified) {
+    if (!isOwner(currentUser.role) && !currentUser.is_verified) {
       return createErrorResponse("Only verified owners can delete amenities", 403);
     }
 

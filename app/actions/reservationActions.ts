@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { ReservationService } from "@/lib/reservation/service";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ActionResponse<T = any> = {
     success: boolean;
     data?: T;

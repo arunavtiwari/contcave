@@ -9,7 +9,6 @@ import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
-import { parseNumericInput } from "@/lib/utils";
 
 interface PackagesFormProps {
   value: Package[];

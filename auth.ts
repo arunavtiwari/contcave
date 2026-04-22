@@ -1,4 +1,5 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
@@ -41,7 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials) {
+            async authorize(credentials: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error("Invalid credentials");
                 }
@@ -65,7 +66,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 if (!isCorrectPassword) {
                     throw new Error("Invalid credentials");
                 }
-                return user;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return user as any;
             },
         }),
     ],
@@ -76,7 +78,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     await prisma.user.update({
                         where: { id: message.user.id },
                         data: {
-                            is_owner: true,
+
+                            role: "OWNER" as UserRole,
                             googleCalendarConnected: true,
                         },
                     });

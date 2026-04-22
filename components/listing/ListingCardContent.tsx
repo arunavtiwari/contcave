@@ -6,7 +6,6 @@ import { AiFillStar } from "react-icons/ai";
 
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
-import { SafeReservation } from "@/types/reservation";
 
 interface ListingCardContentProps {
     displayTitle: string;
@@ -18,7 +17,6 @@ interface ListingCardContentProps {
     showRating?: boolean;
     reservationDate?: string;
     reservationTime?: string;
-    reservation?: SafeReservation;
 }
 
 const ListingCardContent: React.FC<ListingCardContentProps> = ({
@@ -31,7 +29,6 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
     showRating,
     reservationDate,
     reservationTime,
-    reservation,
 }) => {
     return (
         <div>

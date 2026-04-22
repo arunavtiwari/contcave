@@ -2,12 +2,13 @@
 
 import React from "react";
 import ReactSelect, { GroupBase, Props as SelectProps, StylesConfig } from "react-select";
+
 import { cn } from "@/lib/utils";
 
 export interface SelectOption {
     value: string;
     label: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 interface CustomSelectProps<
@@ -26,7 +27,7 @@ function Select<
     IsMulti extends boolean = false,
     Group extends GroupBase<Option> = GroupBase<Option>
 >({
-    variant = "default",
+    variant: _variant = "default",
     size = "md",
     error,
     className,

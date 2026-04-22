@@ -4,10 +4,10 @@ import { useSearchParams } from "next/navigation";
 import { memo, Suspense, useCallback, useMemo } from "react";
 import { BiSearch } from "react-icons/bi";
 
+import Button from "@/components/ui/Button";
 import useCountries from "@/hooks/useCities";
 import useUIStore from "@/hooks/useUIStore";
 import { formatISTDate } from "@/lib/utils";
-import Button from "../ui/Button";
 
 const SearchContent = memo(function SearchContent() {
   const uiStore = useUIStore();
@@ -44,7 +44,9 @@ const SearchContent = memo(function SearchContent() {
       onClick={handleClick}
       variant="ghost"
       rounded
-      classNames="w-full md:w-auto p-2 bg-background/20 backdrop-blur-2xl shadow-sm border border-border/10"
+      outline
+      fit
+      classNames="p-2! bg-background/20 backdrop-blur-md"
     >
       <div className="flex flex-row items-center justify-between w-full">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>

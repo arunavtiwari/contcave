@@ -2,9 +2,9 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { IoMdCloseCircle } from "react-icons/io";
-import Heading from "@/components/ui/Heading";
 
 import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
 
 type Props = {
   isOpen?: boolean;

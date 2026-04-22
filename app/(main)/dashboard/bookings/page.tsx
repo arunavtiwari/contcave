@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import BookingClient from "@/app/(main)/dashboard/bookings/BookingClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getReservations } from "@/app/actions/reservationActions";
 import EmptyState from "@/components/EmptyState";
 import BookingGridSkeleton from "@/components/listing/BookingGridSkeleton";
-
-import BookingClient from "./BookingClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {

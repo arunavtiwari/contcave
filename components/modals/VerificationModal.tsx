@@ -95,6 +95,7 @@ const VerificationModal: React.FC<Props> = ({
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors: bankErrors },
     reset: resetBankForm,
   } = useForm<BankSchema>({

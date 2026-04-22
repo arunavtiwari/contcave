@@ -3,11 +3,10 @@
 import React, { useEffect, useState } from "react";
 
 import getBlogData from "@/app/actions/getBlogData";
+import BlogItem from "@/components/blog/BlogItem";
 import Container from "@/components/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { BlogPost } from "@/types/blog";
-
-import BlogItem from "./BlogItem";
 
 const Blog = () => {
     const [blogs, setBlogs] = useState<BlogPost[]>([]);

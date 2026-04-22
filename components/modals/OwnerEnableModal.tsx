@@ -2,8 +2,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FaExclamationCircle, FaInfoCircle } from "react-icons/fa";
 
-import Modal from "./Modal";
-import Input from "../inputs/Input";
+import Input from "@/components/inputs/Input";
+import Modal from "@/components/modals/Modal";
 
 type Props = {
   isOpen: boolean;
@@ -28,7 +28,7 @@ const OwnerEnableModal: React.FC<Props> = ({
   const [email, setEmail] = useState(initialEmail);
   const [phone, setPhone] = useState(initialPhone);
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, { message: string }>>({});
 
 
   useEffect(() => {
@@ -47,22 +47,22 @@ const OwnerEnableModal: React.FC<Props> = ({
     });
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     setErrors({});
 
 
-    const newErrors: Record<string, string> = {};
+    const newErrors: Record<string, { message: string }> = {};
 
     if (!email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = { message: "Email is required" };
     } else if (!isValidEmail(email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = { message: "Please enter a valid email address" };
     }
 
     if (!phone.trim()) {
-      newErrors.phone = "Phone number is required";
+      newErrors.phone = { message: "Phone number is required" };
     } else if (!isValidPhone(phone)) {
-      newErrors.phone = "Please enter a valid 10-digit phone number";
+      newErrors.phone = { message: "Please enter a 10-digit phone number" };
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -104,7 +104,7 @@ const OwnerEnableModal: React.FC<Props> = ({
           {errors.email && (
             <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
               <FaExclamationCircle className="w-3 h-3" />
-              {errors.email}
+              {errors.email.message}
             </p>
           )}
         </div>
@@ -127,13 +127,13 @@ const OwnerEnableModal: React.FC<Props> = ({
               }}
               placeholder="10-digit mobile number"
               maxLength={10}
-              errors={{ phone: errors.phone }}
+              errors={errors as any} // eslint-disable-line @typescript-eslint/no-explicit-any
             />
           </div>
           {errors.phone && (
             <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
               <FaExclamationCircle className="w-3 h-3" />
-              {errors.phone}
+              {errors.phone.message}
             </p>
           )}
         </div>
@@ -151,7 +151,7 @@ const OwnerEnableModal: React.FC<Props> = ({
         {errors.submit && (
           <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 flex items-center gap-2">
             <FaExclamationCircle className="w-4 h-4 text-destructive shrink-0" />
-            <p className="text-sm text-destructive">{errors.submit}</p>
+            <p className="text-sm text-destructive">{errors.submit.message}</p>
           </div>
         )}
       </div>

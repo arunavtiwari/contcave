@@ -3,6 +3,7 @@ import Link from "next/link";
 import React from "react";
 
 import TransactionHistory from "@/components/profile/ManagePayments/TransactionHistory";
+import { isOwner } from "@/lib/user/permissions";
 import { Transaction } from "@/types/transaction";
 import { SafeUser } from "@/types/user";
 
@@ -14,7 +15,7 @@ interface TransactionClientProps {
 const TransactionClient: React.FC<TransactionClientProps> = ({ currentUser, transactions = [] }) => {
   return (
     <div className="flex flex-col w-full gap-8">
-      {currentUser?.is_owner && (
+      {currentUser && isOwner(currentUser.role) && (
         <div className="flex justify-end">
           <Link
             href="/dashboard/payments"

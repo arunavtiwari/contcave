@@ -63,7 +63,7 @@ export interface PricingSnapshot {
     total: number;
 }
 
-import { Package } from "./package";
+import { Package } from "@/types/package";
 
 export interface SetPricingParams {
     baseHourlyRate: number;

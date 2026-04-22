@@ -3,12 +3,12 @@
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import Select, { SelectOption } from "@/components/ui/Select";
 import { toast } from "sonner";
 
 import { createBlockAction, deleteBlockAction, getBlocksAction } from "@/app/actions/listingActions";
-import Button from "@/components/ui/Button";
 import Input from "@/components/inputs/Input";
+import Button from "@/components/ui/Button";
+import Select, { SelectOption } from "@/components/ui/Select";
 export interface ListingBlock {
     id: string;
     listingId: string;
@@ -20,8 +20,8 @@ export interface ListingBlock {
     createdAt?: Date;
 }
 
-import { ListingSet } from "@/types/set";
 import { TIME_SLOTS } from "@/constants/timeSlots";
+import { ListingSet } from "@/types/set";
 
 interface BlocksManagerProps {
     listingId: string;
@@ -87,7 +87,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
             } else {
                 toast.error(res.error || "Failed to create block");
             }
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
             toast.error("Failed to create block");
         } finally {
             setIsCreating(false);

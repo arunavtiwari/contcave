@@ -11,13 +11,13 @@ import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
 import Input from "@/components/inputs/Input";
+import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import useUIStore from "@/hooks/useUIStore";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { type OwnerRegisterSchema, ownerRegisterSchema } from "@/schemas/auth";
-
-import Modal from "./Modal";
+import { UserRole } from "@/types/user";
 
 function OwnerRegisterModal() {
     const uiStore = useUIStore();
@@ -43,7 +43,7 @@ function OwnerRegisterModal() {
         setIsLoading(true);
 
         try {
-            await axios.post("/api/register", { ...data, is_owner: true });
+            await axios.post("/api/register", { ...data, role: UserRole.OWNER });
 
             const callback = await signIn("credentials", {
                 email: data.email,

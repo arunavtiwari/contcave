@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import FavoritesClient from "@/app/(main)/dashboard/favorites/FavoritesClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getFavoriteListings from "@/app/actions/getFavoriteListings";
 import EmptyState from "@/components/EmptyState";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
 import { safeListing } from "@/types/listing";
-
-import FavoritesClient from "./FavoritesClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {

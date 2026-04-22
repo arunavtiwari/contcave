@@ -1,8 +1,7 @@
 import Container from "@/components/Container";
-
-import ListingHeadSkeleton from "./ListingHeadSkeleton";
-import ListingInfoSkeleton from "./ListingInfoSkeleton";
-import ListingReservationSkeleton from "./ListingReservationSkeleton";
+import ListingHeadSkeleton from "@/components/listing/ListingHeadSkeleton";
+import ListingInfoSkeleton from "@/components/listing/ListingInfoSkeleton";
+import ListingReservationSkeleton from "@/components/listing/ListingReservationSkeleton";
 
 export default function ListingSkeleton() {
     return (

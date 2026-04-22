@@ -26,6 +26,12 @@ enum ListingStatus {
   REJECTED
 }
 
+enum UserRole {
+  CUSTOMER
+  OWNER
+  ADMIN
+}
+
 enum AdditionalSetPricingType {
   FIXED
   HOURLY
@@ -60,8 +66,7 @@ model User {
   Review                  Review[]
   paymentDetails          PaymentDetails?   @relation("UserPaymentDetails")
   paymentDetailsId        String?           @db.ObjectId
-  is_owner                Boolean           @default(false)
-  isAdmin                 Boolean           @default(false)
+  role                    UserRole          @default(CUSTOMER)
   is_verified             Boolean           @default(false)
   transactions            Transaction[]
   googleCalendarConnected Boolean           @default(false)

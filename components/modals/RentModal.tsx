@@ -981,8 +981,9 @@ export default function RentModal() {
       setValue,
       signature,
       terms,
-      unifiedSetPrice,
+      locationValue,
       validateCategoryStep,
+      unifiedSetPrice,
       validateLocationStep,
       validateImagesStep,
       validateDescriptionStep,
@@ -1094,7 +1095,7 @@ export default function RentModal() {
         actualLocation: data.actualLocation ? {
           ...data.actualLocation,
           latlng: data.actualLocation.latlng as [number, number]
-        } : undefined,
+        } : undefined as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         price: Number(data.price),
         amenities: Array.isArray(data.amenities) ? data.amenities : [],
         otherAmenities: Array.isArray(data.otherAmenities) ? data.otherAmenities : [],
@@ -1108,8 +1109,8 @@ export default function RentModal() {
           start: String(data.operationalDays.start),
           end: String(data.operationalDays.end)
         } : undefined,
-        minimumBookingHours: data.minimumBookingHours || undefined,
-        maximumPax: data.maximumPax || undefined,
+        minimumBookingHours: Number(data.minimumBookingHours || 1),
+        maximumPax: Number(data.maximumPax || 1),
         instantBooking: data.instantBooking ?? false,
         type: data.type ?? [],
         packages: Array.isArray(data.packages) ? (data.packages as Package[]).map(p => ({

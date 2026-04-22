@@ -1,5 +1,6 @@
 import React from "react";
-import ListingCard from "./ListingCard";
+
+import ListingCard from "@/components/listing/ListingCard";
 
 interface BookingGridSkeletonProps {
     count?: number;

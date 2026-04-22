@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { isOwner } from "@/lib/user/permissions";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    if (!currentUser.is_owner && !currentUser.is_verified) {
+    if (!isOwner(currentUser.role) && !currentUser.is_verified) {
       return createErrorResponse("Only verified owners can create amenities", 403);
     }
 

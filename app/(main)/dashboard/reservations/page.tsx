@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 
+import ReservationsClient from "@/app/(main)/dashboard/reservations/ReservationsClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getReservations } from "@/app/actions/reservationActions";
 import EmptyState from "@/components/EmptyState";
-
-import ReservationsClient from "./ReservationsClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Guest Reservations",
+  title: "Customer Reservations",
   description: "Track and manage upcoming reservations across your ContCave listings.",
   robots: {
     index: false,
@@ -25,7 +24,7 @@ import Heading from "@/components/ui/Heading";
 const ReservationsPage = () => {
   return (
     <div className="space-y-8">
-      <Heading title="Guest Reservations" subtitle="Bookings on your properties" />
+      <Heading title="Customer Reservations" subtitle="Bookings on your properties" />
       <Suspense fallback={<BookingGridSkeleton count={6} />}>
         <ReservationsContent />
       </Suspense>

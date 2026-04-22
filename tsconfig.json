@@ -28,7 +28,11 @@
         "name": "next"
       }
     ],
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": [
+      "react",
+      "react-dom"
+    ]
   },
   "include": [
     "next-env.d.ts",

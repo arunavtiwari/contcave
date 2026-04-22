@@ -3,9 +3,8 @@
 import * as React from "react";
 import { FieldErrors } from "react-hook-form";
 
+import FormField from "@/components/inputs/FormField";
 import { cn } from "@/lib/utils";
-
-import FormField from "./FormField";
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
     label?: string;

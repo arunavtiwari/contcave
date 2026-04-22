@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import React from "react";
 import { FiSearch } from "react-icons/fi";
 
-import Button from "./ui/Button";
-import Heading from "./ui/Heading";
+import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
 
 type Props = {
   title?: string;

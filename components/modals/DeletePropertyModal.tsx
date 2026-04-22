@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { IoWarningOutline } from "react-icons/io5";
 
-import Modal from "./Modal";
+import Modal from "@/components/modals/Modal";
 
 type Props = {
     isOpen: boolean;

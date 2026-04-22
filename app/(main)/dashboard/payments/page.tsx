@@ -5,6 +5,7 @@ import getTransactions from "@/app/actions/getTransactions";
 import EmptyState from "@/components/EmptyState";
 import ManagePayments from "@/components/profile/ManagePayments/ManagePayments";
 import { getPaymentDetailsSafe } from "@/lib/payment-details";
+import { isOwner } from "@/lib/user/permissions";
 import { PaymentProfile } from "@/types/payment";
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ const PaymentsPage = async () => {
         return <EmptyState title="Unauthorized" subtitle="Please login" />;
     }
 
-    if (!currentUser.is_owner) {
+    if (!isOwner(currentUser.role)) {
         return <EmptyState title="Access Denied" subtitle="Only owners can manage payments" />;
     }
 

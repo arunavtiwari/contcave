@@ -1,9 +1,9 @@
 "use client";
 
-import AboutCTA from "./AboutCTA";
-import AboutStory from "./AboutStory";
-import AboutValues from "./AboutValues";
-import AboutVision from "./AboutVision";
+import AboutCTA from "@/components/about/AboutCTA";
+import AboutStory from "@/components/about/AboutStory";
+import AboutValues from "@/components/about/AboutValues";
+import AboutVision from "@/components/about/AboutVision";
 
 const AboutContent = () => {
     return (

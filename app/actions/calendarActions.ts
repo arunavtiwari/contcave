@@ -65,8 +65,10 @@ export async function getCalendarEventsAction(listingId?: string) {
 
             if (!listing || !listing.user) return [];
 
-            const owner = listing.user as any;
-            googleAccount = owner.accounts.find(
+            const owner = listing.user;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            googleAccount = (owner as any).accounts.find(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (account: any) => account.provider === "google-calendar"
             );
 
@@ -110,6 +112,7 @@ export async function getCalendarEventsAction(listingId?: string) {
 
             return response.data.items || [];
         } catch (error: unknown) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const err = error as any;
             const isInvalidCredentials =
                 err.code === 401 ||
@@ -143,13 +146,16 @@ export async function getCalendarEventsAction(listingId?: string) {
                     singleEvents: true,
                     orderBy: "startTime",
                 });
-
                 return retryResponse.data.items || [];
             }
             throw error;
         }
     } catch (error: unknown) {
-        console.error('[getCalendarEventsAction] Error:', error);
+        if (error instanceof Error) {
+            console.error('[getCalendarEventsAction] Error:', error.message);
+        } else {
+            console.error('[getCalendarEventsAction] Unknown Error:', error);
+        }
         return [];
     }
 }

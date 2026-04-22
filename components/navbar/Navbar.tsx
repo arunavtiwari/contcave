@@ -14,7 +14,7 @@ type Props = {
 
 const Navbar = memo(function Navbar({ currentUser }: Props) {
   return (
-    <div className="fixed w-full bg-background/70 backdrop-blur-md z-30 border-b border-border">
+    <div className="fixed w-full bg-background/70 backdrop-blur-md z-30 border-b border-border min-h-16 md:min-h-20">
       <div className="py-4">
         <Container>
           <div className="flex flex-row items-center justify-between gap-3 md:gap-0">

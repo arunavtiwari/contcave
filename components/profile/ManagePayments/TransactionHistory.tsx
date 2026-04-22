@@ -54,7 +54,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     };
 
     const getCustomerName = (transaction: Transaction): string => {
-        return transaction.guestName || transaction.customerName || 'N/A';
+        return transaction.customerName || 'N/A';
     };
 
 
@@ -113,7 +113,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                     const businessName = getBusinessName(transaction);
                     const customerName = getCustomerName(transaction);
                     const details = [
-                        { label: "Guest", value: customerName },
+                        { label: "Customer", value: customerName },
                         {
                             label: "Booking ID",
                             value: transaction.bookingId ? `#${transaction.bookingId}` : "N/A",

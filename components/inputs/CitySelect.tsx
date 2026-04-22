@@ -1,8 +1,9 @@
 "use client";
 
 import Flag from "react-world-flags";
-import useIndianCities from "@/hooks/useCities";
+
 import Select from "@/components/ui/Select";
+import useIndianCities from "@/hooks/useCities";
 
 export type CitySelectValue = {
   value: string;

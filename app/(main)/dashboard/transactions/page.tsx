@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
+import TransactionClient from "@/app/(main)/dashboard/transactions/TransactionClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getTransactions from "@/app/actions/getTransactions";
 import EmptyState from "@/components/EmptyState";
-
-import TransactionClient from "./TransactionClient";
+import { isOwner } from "@/lib/user/permissions";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -41,7 +41,7 @@ async function TransactionContent() {
     );
   }
 
-  if (!currentUser.is_owner) {
+  if (!isOwner(currentUser.role)) {
     return (
       <EmptyState title="Owners only" subtitle="Transaction history is available for owner accounts." />
     );

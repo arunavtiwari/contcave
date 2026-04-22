@@ -8,9 +8,9 @@ import { deleteReservation, updateReservation } from "@/app/actions/reservationA
 import ListingCard from "@/components/listing/ListingCard";
 import Modal from "@/components/modals/Modal";
 import ReservationDetailModal from "@/components/modals/ReservationDetailModal";
+import Select, { SelectOption } from "@/components/ui/Select";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
-import Select, { SelectOption } from "@/components/ui/Select";
 
 const rejectReasonOptions: SelectOption[] = [
   { value: "Studio unavailable for the selected date/time", label: "Studio unavailable for the selected date/time" },
@@ -85,7 +85,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
         } else {
           toast.error(res.error || "Something went wrong approving the reservation.", { id: "Reservation_Error_3" });
         }
-      } catch (error: unknown) {
+      } catch (_error: unknown) {
         toast.error("Something went wrong", { id: "Reservation_Error_3" });
       } finally {
         setDeletingId("");

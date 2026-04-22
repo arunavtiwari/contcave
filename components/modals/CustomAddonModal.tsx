@@ -9,10 +9,9 @@ import { z } from "zod";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/inputs/Input";
+import Modal from "@/components/modals/Modal";
 import useUIStore from "@/hooks/useUIStore";
 import { uploadToR2 } from "@/lib/storage/upload";
-
-import Modal from "./Modal";
 
 const customAddonSchema = z.object({
   name: z.string().min(1, "Name is required"),

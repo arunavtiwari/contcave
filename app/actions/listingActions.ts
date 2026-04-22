@@ -5,13 +5,15 @@ import { revalidatePath } from "next/cache";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { ListingService } from "@/lib/listing/service";
 import prisma from "@/lib/prismadb";
-import { dayStatusSchema } from "../../schemas/dayStatus";
-import { listingSchema, listingBaseSchema } from "../../schemas/listing";
+import { isAdmin, isOwner } from "@/lib/user/permissions";
+import { dayStatusSchema } from "@/schemas/dayStatus";
+import { listingBaseSchema, ListingSchema, listingSchema } from "@/schemas/listing";
 import type { FullListing } from "@/types/listing";
 
 /**
  * Standardized Action Response
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ActionResponse<T = any> = {
     success: boolean;
     data?: T;
@@ -19,12 +21,12 @@ export type ActionResponse<T = any> = {
 };
 
 // Create a listing
-export async function createListingAction(body: any): Promise<ActionResponse<FullListing>> {
+export async function createListingAction(body: ListingSchema): Promise<ActionResponse<FullListing>> {
     try {
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) return { success: false, error: "Unauthorized" };
 
-        if (!currentUser.is_owner) {
+        if (!isOwner(currentUser.role)) {
             return { success: false, error: "Only owners can create listings" };
         }
 
@@ -44,7 +46,7 @@ export async function createListingAction(body: any): Promise<ActionResponse<Ful
 }
 
 // Update a listing
-export async function updateListingAction(listingId: string, body: any): Promise<ActionResponse<FullListing>> {
+export async function updateListingAction(listingId: string, body: Partial<ListingSchema>): Promise<ActionResponse<FullListing>> {
     try {
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) return { success: false, error: "Unauthorized" };
@@ -89,7 +91,7 @@ export async function deleteListingAction(listingId: string): Promise<ActionResp
 export async function approveListingAction(listingId: string): Promise<ActionResponse> {
     try {
         const currentUser = await getCurrentUser();
-        if (!currentUser?.id || !currentUser.isAdmin) return { success: false, error: "Unauthorized" };
+        if (!currentUser?.id || !isAdmin(currentUser.role)) return { success: false, error: "Unauthorized" };
 
         await ListingService.updateStatus(listingId, "VERIFIED", true);
 
@@ -106,7 +108,7 @@ export async function approveListingAction(listingId: string): Promise<ActionRes
 export async function rejectListingAction(listingId: string): Promise<ActionResponse> {
     try {
         const currentUser = await getCurrentUser();
-        if (!currentUser?.id || !currentUser.isAdmin) return { success: false, error: "Unauthorized" };
+        if (!currentUser?.id || !isAdmin(currentUser.role)) return { success: false, error: "Unauthorized" };
 
         await ListingService.updateStatus(listingId, "REJECTED", false);
 
@@ -122,7 +124,7 @@ export async function rejectListingAction(listingId: string): Promise<ActionResp
 export async function getPendingListings() {
     try {
         const currentUser = await getCurrentUser();
-        if (!currentUser?.isAdmin) return [];
+        if (!isAdmin(currentUser?.role)) return [];
 
         const pendingListings = await prisma.listing.findMany({
             where: { status: 'PENDING' },
@@ -159,6 +161,7 @@ export async function getBlocksAction(listingId: string) {
 }
 
 // Create a block for a listing
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function createBlockAction(listingId: string, data: any): Promise<ActionResponse> {
     try {
         const currentUser = await getCurrentUser();

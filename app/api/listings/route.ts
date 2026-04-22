@@ -1,6 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { ListingService } from "@/lib/listing/service";
+import { isOwner } from "@/lib/user/permissions";
 
 /**
  * Enterprise-grade POST /api/listings
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
       return createErrorResponse("Authentication required", 401);
     }
 
-    if (!currentUser.is_owner) {
+    if (!isOwner(currentUser.role)) {
       return createErrorResponse("Only owners can create listings", 403);
     }
 

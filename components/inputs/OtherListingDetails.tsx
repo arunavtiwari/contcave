@@ -1,13 +1,11 @@
 import React, { useCallback, useMemo } from "react";
-import Select, { SelectOption } from "@/components/ui/Select";
 
+import FormField from "@/components/inputs/FormField";
+import Input from "@/components/inputs/Input";
 import Switch from "@/components/inputs/Switch";
+import Pill from "@/components/ui/Pill";
+import Select, { SelectOption } from "@/components/ui/Select";
 import { spaceTypes } from "@/constants/spaceTypes";
-import { cn, parseNumericInput } from "@/lib/utils";
-
-import FormField from "./FormField";
-import Input from "./Input";
-import Pill from "../ui/Pill";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 
 export type ListingDetails = {
@@ -271,7 +269,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
         <div className="space-y-6">
             <FormField
                 label="Instant Booking"
-                description="Allow guests to book without waiting for approval"
+                description="Allow customers to book without waiting for approval"
                 variant="horizontal"
             >
                 <div className="flex items-center w-full">

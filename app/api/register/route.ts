@@ -5,6 +5,7 @@ import { normalizePhone } from "@/lib/phone";
 import prisma from "@/lib/prismadb";
 import { UserService } from "@/lib/user/service";
 import { ownerRegisterSchema, registerSchema } from "@/schemas/auth";
+import { UserRole } from "@/types/user";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,9 +14,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { email, name, password, phone, is_owner = false } = body;
+    const { email, name, password, phone, role = UserRole.CUSTOMER } = body;
 
-    const isOwner = Boolean(is_owner);
+    const isOwner = role === UserRole.OWNER || role === UserRole.ADMIN;
 
 
     const schema = isOwner ? ownerRegisterSchema : registerSchema;
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
         name: trimmedName,
         password: validData.password,
         phone: normalizedPhone || undefined,
-        is_owner: isOwner
+        role: isOwner ? UserRole.OWNER : UserRole.CUSTOMER
       });
 
       return createSuccessResponse(user, 201, "User registered successfully");

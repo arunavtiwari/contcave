@@ -4,9 +4,8 @@ import { IndianRupee } from "lucide-react";
 import * as React from "react";
 import { FieldErrors, UseFormRegisterReturn } from "react-hook-form";
 
+import FormField from "@/components/inputs/FormField";
 import { cn } from "@/lib/utils";
-
-import FormField from "./FormField";
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange"> {
     label?: string;
