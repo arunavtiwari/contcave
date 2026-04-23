@@ -9,7 +9,7 @@ import FAQItem from "@/components/landing/FAQItem";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
 
-const FAQ = () => {
+const FAQ = ({ nonce }: { nonce?: string }) => {
   const [activeFaq, setActiveFaq] = useState(1);
 
   const handleFaqToggle = (id: number) => {
@@ -33,6 +33,7 @@ const FAQ = () => {
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c"),
         }}
@@ -69,7 +70,7 @@ const FAQ = () => {
                 variant="ghost"
                 rounded
                 fit
-                classNames="mt-2"
+                className="mt-2"
                 icon={HiArrowRight}
 
               />

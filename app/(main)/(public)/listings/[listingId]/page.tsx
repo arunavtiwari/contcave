@@ -1,5 +1,6 @@
 import DOMPurify from "isomorphic-dompurify";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
@@ -107,19 +108,27 @@ export async function generateMetadata({
 
 const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
   const params = await props.params;
+  const headerList = await headers();
+  const nonce = headerList.get("x-nonce") || "";
+
   const listing = await getListingById(params);
 
   if (!listing) {
     return <EmptyState />;
   }
 
-  const reservations = await getReservations({ listingId: listing.id });
-  const currentUser = await getCurrentUser();
-
-  const shouldFetchCalendarEvents = Boolean(listing.user?.googleCalendarConnected);
-  const googleCalendarEvents = shouldFetchCalendarEvents
-    ? await fetchListingCalendarEvents(listing.id)
-    : [];
+  // Parallelize secondary fetches with individual catches for robustness in staging
+  const [reservations, currentUser, googleCalendarEvents, reviewCount] = await Promise.all([
+    getReservations({ listingId: listing.id }).catch(() => []),
+    getCurrentUser().catch(() => null),
+    listing.user?.googleCalendarConnected
+      ? Promise.race([
+        fetchListingCalendarEvents(listing.id),
+        new Promise<[]>((resolve) => setTimeout(() => resolve([]), 5000))
+      ]).catch(() => [])
+      : Promise.resolve([]),
+    getReviewCount(listing.id).catch(() => 0)
+  ]);
 
   const imageCandidates =
     Array.isArray(listing.imageSrc) && listing.imageSrc.length > 0
@@ -248,9 +257,6 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
 
   const url = absoluteUrl(`/listings/${listing.slug ?? listing.id}`);
 
-
-  const reviewCount = await getReviewCount(listing.id);
-
   // Pre-sanitize and process rich text on the server for zero-glitch rendering
   const processedDescription = DOMPurify.sanitize(listing.description);
   const processedTerms = listing.customTerms ? DOMPurify.sanitize(listing.customTerms) : null;
@@ -327,14 +333,18 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
     ],
   };
 
+  const scriptNonce = nonce ? { nonce } : {};
+
   return (
     <>
       <script
         type="application/ld+json"
+        {...scriptNonce}
         dangerouslySetInnerHTML={{ __html: safeJsonLd(eventVenueJsonLd) }}
       />
       <script
         type="application/ld+json"
+        {...scriptNonce}
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <ListingClient

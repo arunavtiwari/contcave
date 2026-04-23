@@ -6,7 +6,11 @@ import { useEffect, useState } from "react";
 
 import { META_PIXEL_ID } from "@/constants/metaPixel";
 
-export default function MetaPixelScript() {
+/**
+ * Meta Pixel Script with Content Security Policy (CSP) Support.
+ * Accepts a 'nonce' to allow the inline script to execute under strict policies.
+ */
+export default function MetaPixelScript({ nonce }: { nonce?: string }) {
     const [hasConsent, setHasConsent] = useState(false);
 
     useEffect(() => {
@@ -41,6 +45,7 @@ export default function MetaPixelScript() {
             <Script
                 id="meta-pixel-base"
                 strategy="afterInteractive"
+                nonce={nonce}
                 dangerouslySetInnerHTML={{
                     __html: `
 !function(f,b,e,v,n,t,s){

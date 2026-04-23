@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 
 import ClientOnly from "@/components/ClientOnly";
@@ -208,18 +209,19 @@ export default async function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
+    const headerList = await headers();
+    const nonce = headerList.get("x-nonce") || "";
 
     return (
         <html lang="en">
             <head>
                 <script
                     type="application/ld+json"
+                    nonce={nonce}
                     dangerouslySetInnerHTML={{
                         __html: safeJsonLd([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]),
                     }}
                 />
-
-
             </head>
             <body className={GeistSans.className}>
                 <GlobalProviders>
@@ -227,7 +229,7 @@ export default async function RootLayout({
                     <NavbarWrapper />
                     {process.env.NODE_ENV === "production" && (
                         <>
-                            <MetaPixelScript />
+                            <MetaPixelScript nonce={nonce} />
                             <Suspense fallback={null}>
                                 <MetaPixelTracker />
                             </Suspense>

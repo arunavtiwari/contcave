@@ -25,6 +25,11 @@ async function refreshCalendarAccessToken(account: {
 }
 
 export async function fetchListingCalendarEvents(listingId: string) {
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        console.warn("[fetchListingCalendarEvents] Google API secrets missing. Skipping sync.");
+        return [];
+    }
+
     const listing = await prisma.listing.findUnique({
         where: { id: listingId },
         include: {

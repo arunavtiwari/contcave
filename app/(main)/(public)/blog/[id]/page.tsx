@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Image from "next/image";
 
 import Container from "@/components/Container";
@@ -90,6 +91,8 @@ import Heading from "@/components/ui/Heading";
 
 export default async function PostPage(props: { params: Promise<RouteParams> }) {
   const { id } = await props.params;
+  const headerList = await headers();
+  const nonce = headerList.get("x-nonce") || "";
   const post = await getPostData(id);
   const description =
     asciiClean(post.meta?.description) ??
@@ -120,6 +123,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
     <main className="bg-background min-h-screen">
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: safeJsonLd(articleJsonLd) }}
       />
 
