@@ -210,13 +210,17 @@ export default async function RootLayout({
     children: React.ReactNode;
 }) {
     const headerList = await headers();
-    const nonce = headerList.get("x-nonce") || "";
+    const nonce = headerList.get("x-nonce") ?? undefined;
 
     return (
-        <html lang="en">
+        // Next.js 16: the `nonce` prop on <html> is forwarded to every
+        // framework-generated <script> tag (bootstrap, chunk preloads, etc.),
+        // allowing strict-dynamic to propagate trust to all chunk scripts.
+        <html lang="en" nonce={nonce}>
             <head>
                 <script
                     type="application/ld+json"
+                    nonce={nonce}
                     dangerouslySetInnerHTML={{
                         __html: safeJsonLd([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]),
                     }}

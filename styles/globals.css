@@ -101,46 +101,6 @@ select,
 	border-radius: 10px;
 }
 
-/* 6. FullCalendar */
-
-/* Calendar */
-.fc-button {
-	padding: 0.4rem 1.5rem !important;
-	text-transform: capitalize !important;
-}
-
-.fc-button-primary {
-	background-color: var(--color-primary) !important;
-	border-radius: 9999px !important;
-}
-
-.fc-next-button,
-.fc-timeGridDay-button {
-	border-top-left-radius: 0 !important;
-	border-bottom-left-radius: 0 !important;
-	border-top-right-radius: 9999px !important;
-	border-bottom-right-radius: 9999px !important;
-}
-
-.fc-prev-button,
-.fc-dayGridMonth-button {
-	border-top-left-radius: 12px !important;
-	border-bottom-left-radius: 12px !important;
-	border-top-right-radius: 0 !important;
-	border-bottom-right-radius: 0 !important;
-}
-
-.fc-next-button,
-.fc-timeGridDay-button {
-	border-top-right-radius: 12px !important;
-	border-bottom-right-radius: 12px !important;
-	border-top-left-radius: 0 !important;
-	border-bottom-left-radius: 0 !important;
-}
-
-.fc-button-group .fc-button:not(:first-child):not(:last-child) {
-	border-radius: 0 !important;
-}
 
 /* ============================================================
    react-date-range — brand-aligned overrides
@@ -196,7 +156,7 @@ span.rdrWeekDay {
 	opacity: 0.3 !important;
 }
 
-/* 6. Highlight geometry — selected & range previews (relative to .rdrDay) */
+/* 6. Highlight geometry */
 .rdrSelected,
 .rdrInRange,
 .rdrStartEdge,
@@ -231,8 +191,7 @@ span.rdrWeekDay {
 	background-color: rgba(0, 0, 0, 0.06) !important;
 }
 
-/* 8. Hover highlight — ::after is relative to .rdrDayNumber (top/bottom: 5px from .rdrDay).
-   To match the 2px inset above: 2px − 5px = −3px */
+/* 8. Hover highlight */
 .rdrCalendarWrapper:not(.rdrDateRangeWrapper) .rdrDayHovered .rdrDayNumber:after {
 	content: '' !important;
 	position: absolute !important;
@@ -267,7 +226,45 @@ span.rdrWeekDay {
 	border-color: transparent var(--color-foreground) transparent transparent !important;
 }
 
-/* FullCalendar (Event Grid) Beautification */
+/* FullCalendar */
+.fc-button {
+	padding: 0.4rem 1.5rem !important;
+	text-transform: capitalize !important;
+}
+
+.fc-button-primary {
+	background-color: var(--color-primary) !important;
+	border-radius: 9999px !important;
+}
+
+.fc-next-button,
+.fc-timeGridDay-button {
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+	border-top-right-radius: 9999px !important;
+	border-bottom-right-radius: 9999px !important;
+}
+
+.fc-prev-button,
+.fc-dayGridMonth-button {
+	border-top-left-radius: 12px !important;
+	border-bottom-left-radius: 12px !important;
+	border-top-right-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+}
+
+.fc-next-button,
+.fc-timeGridDay-button {
+	border-top-right-radius: 12px !important;
+	border-bottom-right-radius: 12px !important;
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+}
+
+.fc-button-group .fc-button:not(:first-child):not(:last-child) {
+	border-radius: 0 !important;
+}
+
 .fc {
 	font-family: inherit;
 	--fc-border-color: var(--color-border);

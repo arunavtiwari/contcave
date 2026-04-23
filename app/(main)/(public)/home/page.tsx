@@ -134,6 +134,7 @@ async function HomeContent(props: HomeProps) {
       {listing.length > 0 && (
         <script
           type="application/ld+json"
+          nonce={nonce || undefined}
           dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
       )}

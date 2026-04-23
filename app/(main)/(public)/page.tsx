@@ -93,6 +93,7 @@ export default async function Home() {
     <main>
       <script
         type="application/ld+json"
+        nonce={nonce || undefined}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd).replace(/</g, "\\u003c") }}
       />
 

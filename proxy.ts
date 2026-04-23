@@ -160,14 +160,19 @@ function buildCSP(nonce: string): string {
 
         'frame-src': ["'self'", 'https://www.google.com', 'https://sdk.cashfree.com', 'https://sandbox.cashfree.com', 'https://cashfree.com', 'https://vercel.live', 'https://www.facebook.com'],
 
+        // CSP3 spec: when nonce + strict-dynamic are present,
+        // 'unsafe-inline', 'unsafe-eval', and host allowlists (https:) are
+        // silently ignored by the browser. Only the nonce and scripts
+        // dynamically created by a nonced script (strict-dynamic) are trusted.
+        // We keep 'wasm-unsafe-eval' for WebAssembly (framer-motion etc).
+        // 'unsafe-inline' is listed last as a legacy fallback for browsers
+        // that do NOT support strict-dynamic (CSP2-only). It is inert in CSP3.
         'script-src': [
             "'self'",
             `'nonce-${nonce}'`,
             "'strict-dynamic'",
-            'https:',
-            "'unsafe-inline'",
-            "'unsafe-eval'",
-            "'wasm-unsafe-eval'"
+            "'wasm-unsafe-eval'",
+            "'unsafe-inline'" // CSP2 fallback — ignored by CSP3 browsers
         ]
     }
 

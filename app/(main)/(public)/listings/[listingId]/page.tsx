@@ -333,16 +333,17 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
     ],
   };
 
-  const scriptNonce = nonce ? { nonce } : {};
 
   return (
     <>
       <script
         type="application/ld+json"
+        nonce={nonce || undefined}
         dangerouslySetInnerHTML={{ __html: safeJsonLd(eventVenueJsonLd) }}
       />
       <script
         type="application/ld+json"
+        nonce={nonce || undefined}
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <ListingClient

@@ -33,6 +33,7 @@ const FAQ = ({ nonce }: { nonce?: string }) => {
     <>
       <script
         type="application/ld+json"
+        nonce={nonce || undefined}
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c"),
         }}
