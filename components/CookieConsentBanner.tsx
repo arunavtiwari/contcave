@@ -6,6 +6,7 @@ import { IconType } from "react-icons";
 import { IoMdClose } from "react-icons/io";
 import { LuCheck, LuCookie, LuSettings, LuShieldCheck } from "react-icons/lu";
 
+import Switch from "@/components/inputs/Switch";
 import { useConsent } from "@/components/providers/ConsentProvider";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
@@ -62,12 +63,12 @@ const CookieConsentBanner = () => {
                     animate={{ y: 0, opacity: 1, scale: 1 }}
                     exit={{ y: 100, opacity: 0, scale: 0.95 }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:max-w-md z-9999"
+                    className="fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:max-w-120 z-9999"
                 >
-                    <div className="relative overflow-hidden bg-background/70 backdrop-blur-md border border-border/50 rounded-2xl shadow-sm p-4 md:p-5">
+                    <div className="relative overflow-hidden bg-background/70 backdrop-blur-md border border-border/50 rounded-2xl shadow-sm p-4">
                         <div className="relative z-10">
                             <div className="flex items-center gap-4 mb-6">
-                                <div className="p-2 bg-foreground/5 rounded-xl text-foreground ring-1 ring-foreground/20">
+                                <div className="p-2 bg-foreground/5 rounded-lg text-foreground ring-1 ring-foreground/20">
                                     <LuCookie size={24} className="animate-pulse" />
                                 </div>
                                 <div className="w-full">
@@ -80,44 +81,41 @@ const CookieConsentBanner = () => {
                                 </div>
                                 <Button
                                     icon={IoMdClose}
-                                    isIconOnly
                                     variant="ghost"
                                     rounded
                                     onClick={() => setIsVisible(false)}
                                     size="sm"
+                                    fit
+                                    className="h-fit! mb-3!"
                                 />
                             </div>
 
                             {!isManaging ? (
                                 <>
-                                    <p className="text-foreground/60 text-sm leading-relaxed mb-8">
+                                    <p className="text-foreground/60 text-sm leading-relaxed mb-8 text-center">
                                         We use premium cookies to enhance your journey, serve personalized experiences, and analyze our traffic. Your data security is our priority.
                                     </p>
-                                    <div className="flex flex-col gap-3">
+                                    <div className="flex flex-col gap-5">
                                         <div className="grid grid-cols-2 gap-3">
                                             <Button
                                                 label="Accept All"
-                                                variant="default"
-                                                rounded
-                                                size="lg"
                                                 onClick={handleAcceptAll}
-                                                className="shadow-lg shadow-foreground/10"
                                             />
                                             <Button
                                                 label="Manage"
                                                 variant="outline"
-                                                rounded
-                                                size="lg"
                                                 icon={LuSettings}
                                                 onClick={() => setIsManaging(true)}
                                             />
                                         </div>
-                                        <button
+                                        <Button
+                                            label="Decline non-essential"
+                                            variant="ghost"
+                                            size="sm"
+                                            fit
                                             onClick={handleDeclineAll}
-                                            className="py-2 text-muted-foreground hover:text-foreground text-xs font-semibold underline underline-offset-4 transition-all"
-                                        >
-                                            Decline non-essential
-                                        </button>
+                                            className="text-muted-foreground hover:text-foreground text-xs font-semibold underline underline-offset-4 mx-auto h-fit!"
+                                        />
                                     </div>
                                 </>
                             ) : (
@@ -153,18 +151,11 @@ const CookieConsentBanner = () => {
                                     <div className="flex gap-3 pt-4">
                                         <Button
                                             label="Save Preferences"
-                                            variant="default"
-                                            rounded
-                                            size="lg"
-                                            fit
-                                            className="flex-1"
                                             onClick={handleSaveSettings}
                                         />
                                         <Button
                                             label="Back"
                                             variant="outline"
-                                            rounded
-                                            size="lg"
                                             onClick={() => setIsManaging(false)}
                                         />
                                     </div>
@@ -205,7 +196,7 @@ const ConsentToggle = ({
         <div className="flex items-center gap-3">
             <div className={cn(
                 "p-2 rounded-xl transition-colors",
-                checked ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+                checked ? "bg-foreground/20 text-foreground" : "bg-muted text-muted-foreground"
             )}>
                 <Icon size={18} />
             </div>
@@ -213,23 +204,16 @@ const ConsentToggle = ({
                 <Heading
                     title={title}
                     variant="h6"
-                    className="font-sans! text-sm!"
+                    className="text-sm!"
                 />
                 <p className="text-[10px] text-muted-foreground leading-tight max-w-40">{description}</p>
             </div>
         </div>
-        <div
-            className={cn(
-                "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-all focus:outline-none ring-offset-background",
-                checked ? "bg-primary" : "bg-muted",
-                disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
-            )}
-        >
-            <span
-                className={cn(
-                    "inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ease-in-out shadow-sm",
-                    checked ? "translate-x-6" : "translate-x-1"
-                )}
+        <div className="pointer-events-none">
+            <Switch
+                checked={checked}
+                onChange={() => { }}
+                disabled={disabled}
             />
         </div>
     </Button>

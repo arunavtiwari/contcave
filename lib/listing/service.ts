@@ -53,7 +53,7 @@ export class ListingService {
                     locationValue: String(locationValue || "").trim(),
                     actualLocation: finalActualLocation as Prisma.InputJsonValue,
                     price: priceValue,
-                    userId,
+                    user: { connect: { id: userId } },
                     amenities: sanitizeStringList(amenities),
                     otherAmenities: sanitizeStringList(otherAmenities),
                     addons: (addons as Prisma.InputJsonValue) || null,
@@ -74,7 +74,7 @@ export class ListingService {
                     additionalSetPricingType: additionalSetPricingType as AdditionalSetPricingType || null,
                     customTerms: isRichTextEmpty(customTerms as string) ? null : String(customTerms).trim(),
                     videoSrc: (body.videoSrc as string) || null,
-                } as Prisma.ListingCreateInput,
+                },
             });
 
             // Handle Sets

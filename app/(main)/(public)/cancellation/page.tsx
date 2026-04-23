@@ -140,7 +140,7 @@ const CancellationPolicy = () => {
                 If you have questions or concerns about cancellations or refunds, please contact our support team at:
               </Clause>
               <div className="bg-muted rounded-lg p-4 text-sm text-foreground space-y-1 border border-border">
-                <p><strong>Email:</strong> <EmailShield email="info@contcave.com" className="text-primary hover:underline" /></p>
+                <p><strong>Email:</strong> <EmailShield email="info@contcave.com" className="text-foreground hover:underline" /></p>
               </div>
             </div>
 

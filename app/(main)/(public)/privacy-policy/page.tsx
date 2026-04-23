@@ -141,7 +141,7 @@ const PrivacyPolicy = () => {
                 If you have questions or comments about this policy, you may email us at:
               </Clause>
               <div className="bg-muted rounded-lg p-4 text-sm text-foreground space-y-1 border border-border">
-                <p><strong>Email:</strong> <a href="mailto:info@contcave.com" className="text-primary hover:underline">info@contcave.com</a></p>
+                <p><strong>Email:</strong> <a href="mailto:info@contcave.com" className="text-foreground hover:underline">info@contcave.com</a></p>
               </div>
             </div>
 

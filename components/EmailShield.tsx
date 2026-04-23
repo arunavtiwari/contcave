@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -42,7 +42,7 @@ const EmailShield: React.FC<EmailShieldProps> = ({
             href={mounted ? `mailto:${email}` : "#"}
             onClick={handleAction}
             className={cn(
-                "cursor-pointer transition-colors hover:text-primary",
+                "cursor-pointer transition-colors hover:text-foreground",
                 className
             )}
             title={mounted ? "Click to send an email" : "Protecting email..."}
