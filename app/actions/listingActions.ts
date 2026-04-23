@@ -29,6 +29,7 @@ export async function getPendingListings() {
                 id: true,
                 title: true,
                 imageSrc: true,
+                videoSrc: true,
                 locationValue: true,
                 category: true,
                 price: true,

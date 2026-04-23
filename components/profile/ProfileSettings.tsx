@@ -102,7 +102,7 @@ const ProfileSettings = ({ profile }: Props) => {
             disabled={isSubmitting}
             variant="destructive"
             outline
-            classNames="w-fit! mt-6"
+            className="w-fit! mt-6"
           />
         </div>
       </div>

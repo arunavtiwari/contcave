@@ -25,6 +25,7 @@ import Input from "@/components/inputs/Input";
 import Textarea from "@/components/inputs/Textarea";
 import OwnerEnableModal from "@/components/modals/OwnerEnableModal";
 import VerificationModal from "@/components/modals/VerificationModal";
+import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
@@ -221,12 +222,10 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                                 deferUpload
                                             />
                                         ) : (
-                                            <Image
-                                                src={userData.profileImage || "/assets/default-profile.svg"}
-                                                width={128}
-                                                height={128}
-                                                alt="Profile"
-                                                className="w-full h-full object-cover"
+                                            <Avatar
+                                                src={userData.profileImage}
+                                                size={128}
+                                                className="w-full h-full"
                                             />
                                         )}
                                     </div>
@@ -569,7 +568,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 <Button
                                     label="Register as Owner"
                                     onClick={() => setShowOwnerModal(true)}
-                                    classNames="shadow-sm mx-auto"
+                                    className="shadow-sm mx-auto"
                                     fit
                                 />
                             </div>
@@ -596,7 +595,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                 <Button
                                     label="Start Verification"
                                     onClick={() => setShowVerificationModal(true)}
-                                    classNames="shadow-sm mx-auto"
+                                    className="shadow-sm mx-auto"
                                     fit
                                 />
                             </div>
@@ -619,7 +618,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         label="List Your Space"
                                         onClick={onRent}
                                         icon={FaHome}
-                                        classNames="shadow-sm"
+                                        className="shadow-sm"
                                     />
                                     <Button
                                         label="Payment Details"

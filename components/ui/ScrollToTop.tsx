@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 
+import { cn } from "@/lib/utils";
+
 export default function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -34,7 +36,10 @@ export default function ScrollToTop() {
         <div
           onClick={scrollToTop}
           aria-label="scroll to top"
-          className="hover: flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-foreground text-background  transition duration-300 ease-in-out hover:opacity-90"
+          className={cn(
+            "flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-foreground text-background transition duration-300 ease-in-out hover:opacity-90",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+          )}
         >
           <span className="mt-1.5 h-3 w-3 rotate-45 border-l-2 border-t-2 border-background"></span>
           <span className="sr-only">scroll to top</span>

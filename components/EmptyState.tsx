@@ -41,7 +41,7 @@ function EmptyState({
           <Button
             label="Clear all filters"
             onClick={() => window.location.href = '/home'}
-            classNames="px-8"
+            className="px-8"
             rounded
           />
         </div>

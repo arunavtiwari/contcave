@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Image from "next/image";
+import Script from "next/script";
 
 import Container from "@/components/Container";
 import PageBanner from "@/components/ui/PageBanner";
@@ -121,9 +122,10 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
 
   return (
     <main className="bg-background min-h-screen">
-      <script
+      <Script
+        id={`blog-article-${id}`}
         type="application/ld+json"
-        nonce={nonce || undefined}
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: safeJsonLd(articleJsonLd) }}
       />
 

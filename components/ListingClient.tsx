@@ -617,6 +617,7 @@ function ListingClient({
             <ListingHead
               title={listing.title}
               imageSrc={listing.imageSrc}
+              videoSrc={listing.videoSrc}
               locationValue={listing.locationValue}
               id={listing.id}
               currentUser={currentUser}

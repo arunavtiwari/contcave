@@ -73,7 +73,7 @@ export default function PackagesForm({ value, onChange, availableSets = [] }: Pa
               size="sm"
               rounded
               onClick={() => removePackage(idx)}
-              classNames="bg-background border-border text-destructive hover:bg-destructive hover:text-background w-10 h-10 p-0 shadow-sm"
+              className="bg-background border-border text-destructive hover:bg-destructive hover:text-background w-10 h-10 p-0 shadow-sm"
               icon={Trash2}
             />
           </div>

@@ -20,10 +20,6 @@ type ListingWithRelations = Prisma.ListingGetPayload<{
 }>;
 
 export class ListingService {
-    /**
-     * Listing Creation
-     * Handles validation, normalization, and atomic persistence.
-     */
     static async createListing(userId: string, body: Record<string, unknown>): Promise<FullListing> {
         const validated = listingSchema.parse(body);
 
@@ -77,7 +73,8 @@ export class ListingService {
                     unifiedSetPrice: setsHaveSamePrice ? Math.round(Number(unifiedSetPrice)) : null,
                     additionalSetPricingType: additionalSetPricingType as AdditionalSetPricingType || null,
                     customTerms: isRichTextEmpty(customTerms as string) ? null : String(customTerms).trim(),
-                },
+                    videoSrc: (body.videoSrc as string) || null,
+                } as Prisma.ListingCreateInput,
             });
 
             // Handle Sets
@@ -141,10 +138,6 @@ export class ListingService {
         });
     }
 
-    /**
-     * Enterprise-grade Listing Update
-     * Resolves logic duplication and ensures relational safety.
-     */
     static async updateListing(userId: string, listingId: string, body: Record<string, unknown>): Promise<FullListing> {
         const validated = listingSchema.partial().parse(body);
         const { packages, sets, ...listingData } = validated;
@@ -178,7 +171,10 @@ export class ListingService {
             if (Object.keys(listingData).length > 0) {
                 await tx.listing.update({
                     where: { id: listingId },
-                    data: listingData as Prisma.ListingUpdateInput,
+                    data: {
+                        ...listingData,
+                        videoSrc: body.videoSrc !== undefined ? (body.videoSrc as string | null) : undefined,
+                    } as Prisma.ListingUpdateInput,
                 });
             }
 
@@ -429,6 +425,7 @@ export class ListingService {
             minimumBookingHours: l.minimumBookingHours,
             avgReviewRating: l.avgReviewRating ?? undefined,
             instantBooking: l.instantBooking ?? undefined,
+            videoSrc: l.videoSrc,
             user: {
                 ...l.user,
                 createdAt: l.user.createdAt.toISOString(),

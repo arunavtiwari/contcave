@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import Script from "next/script";
 
 import CTA from "@/components/landing/CTA";
 import FAQ from "@/components/landing/FAQ";
@@ -91,9 +92,10 @@ export default async function Home() {
 
   return (
     <main>
-      <script
+      <Script
+        id="home-jsonld"
         type="application/ld+json"
-        nonce={nonce || undefined}
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd).replace(/</g, "\\u003c") }}
       />
 

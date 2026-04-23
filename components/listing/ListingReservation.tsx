@@ -559,7 +559,7 @@ export default function ListingReservation({
           disabled={!ready}
           loading={isPaying}
           rounded
-          classNames="font-bold text-base py-4"
+          className="font-bold text-base py-4"
         />
         {!!err && (
           <p className="mt-4 text-sm text-destructive font-medium bg-destructive/5 p-3 rounded-lg border border-destructive/10" role="alert">

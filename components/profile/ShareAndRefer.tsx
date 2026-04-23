@@ -194,7 +194,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                                 icon={MdMessage}
                                 rounded
                                 size="lg"
-                                classNames="bg-foreground/10 hover:bg-foreground/20"
+                                className="bg-foreground/10 hover:bg-foreground/20"
                             />
                             <Button
                                 onClick={() => handleSocialShare("instagram")}
@@ -202,7 +202,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                                 icon={FaInstagram}
                                 rounded
                                 size="lg"
-                                classNames="bg-pink-500/10 hover:bg-pink-500/20 !text-pink-600"
+                                className="bg-pink-500/10 hover:bg-pink-500/20 text-pink-600!"
                             />
                             <Button
                                 onClick={() => handleSocialShare("whatsapp")}
@@ -210,7 +210,7 @@ const ShareAndRefer: React.FC<Props> = ({ profile }) => {
                                 icon={FaWhatsapp}
                                 rounded
                                 size="lg"
-                                classNames="bg-success/10 hover:bg-success/20 !text-success"
+                                className="bg-success/10 hover:bg-success/20 text-success!"
                             />
                         </div>
                     </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import Script from "next/script";
 import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
@@ -334,14 +335,16 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
 
   return (
     <>
-      <script
+      <Script
+        id={`listing-venue-${listing.id}`}
         type="application/ld+json"
-        nonce={nonce || undefined}
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: safeJsonLd(eventVenueJsonLd) }}
       />
-      <script
+      <Script
+        id={`listing-breadcrumb-${listing.id}`}
         type="application/ld+json"
-        nonce={nonce || undefined}
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <ListingClient

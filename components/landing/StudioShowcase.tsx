@@ -66,7 +66,7 @@ const StudioShowcase = () => {
             variant="outline"
             rounded
             fit
-            classNames="hidden md:flex"
+            className="hidden md:flex"
             icon={FiChevronRight}
           />
         </div>

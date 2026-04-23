@@ -3,6 +3,7 @@
 import React from "react";
 
 import { CategoryProvider } from "./CategoryProvider";
+import { ConsentProvider } from "./ConsentProvider";
 import NextAuthProvider from "./NextAuthProvider";
 
 interface GlobalProvidersProps {
@@ -12,9 +13,11 @@ interface GlobalProvidersProps {
 export default function GlobalProviders({ children }: GlobalProvidersProps) {
     return (
         <NextAuthProvider>
-            <CategoryProvider>
-                {children}
-            </CategoryProvider>
+            <ConsentProvider>
+                <CategoryProvider>
+                    {children}
+                </CategoryProvider>
+            </ConsentProvider>
         </NextAuthProvider>
     );
 }

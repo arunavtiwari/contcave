@@ -73,7 +73,7 @@ const AboutHero = () => {
                             rounded
                             fit
                             size="lg"
-                            classNames="px-10"
+                            className="px-10"
                         />
                     </motion.div>
                 </div>

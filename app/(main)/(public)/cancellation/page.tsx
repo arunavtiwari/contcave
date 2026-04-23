@@ -3,6 +3,7 @@ import Image from "next/image";
 import React from "react";
 
 import Container from "@/components/Container";
+import EmailShield from "@/components/EmailShield";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 const DESCRIPTION =
@@ -139,7 +140,7 @@ const CancellationPolicy = () => {
                 If you have questions or concerns about cancellations or refunds, please contact our support team at:
               </Clause>
               <div className="bg-muted rounded-lg p-4 text-sm text-foreground space-y-1 border border-border">
-                <p><strong>Email:</strong> <a href="mailto:info@contcave.com" className="text-primary hover:underline">info@contcave.com</a></p>
+                <p><strong>Email:</strong> <EmailShield email="info@contcave.com" className="text-primary hover:underline" /></p>
               </div>
             </div>
 

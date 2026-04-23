@@ -127,6 +127,7 @@ export const listingBaseSchema = z.object({
     addons: z.unknown().optional(),
     verifications: z.unknown().optional().nullable(),
     agreementSignature: z.unknown().optional().nullable(),
+    videoSrc: z.string().url("Invalid video URL").optional().nullable(),
 });
 
 export const listingSchema = listingBaseSchema.refine((data) => {

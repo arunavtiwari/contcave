@@ -98,7 +98,7 @@ const FilterModalContent = () => {
         label="More Filters"
         size="sm"
         fit
-        classNames="bg-muted hover:bg-muted/80 border border-border"
+        className="bg-muted hover:bg-muted/80 border border-border"
       />
 
       <Modal
@@ -125,7 +125,7 @@ const FilterModal = () => {
           variant="ghost"
           size="sm"
           fit
-          classNames="bg-muted border border-border opacity-50"
+          className="bg-muted border border-border opacity-50"
           disabled
         />
       </div>

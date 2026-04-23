@@ -12,6 +12,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 
 import HeartButton from "@/components/HeartButton";
 import Modal from "@/components/modals/Modal";
+import VideoTourModal from "@/components/modals/VideoTourModal";
 import Heading from "@/components/ui/Heading";
 import useCities from "@/hooks/useCities";
 import { SafeUser } from "@/types/user";
@@ -20,14 +21,16 @@ type Props = {
   title: string;
   locationValue: string;
   imageSrc: string[];
+  videoSrc?: string | null;
   id: string;
   currentUser?: SafeUser | null;
 };
 
-function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props) {
+function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser }: Props) {
   const { getByValue } = useCities();
   const location = getByValue(locationValue);
   const [showModal, setShowModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
   const [loaded, setLoaded] = useState<boolean[]>(new Array(imageSrc.length).fill(false));
@@ -177,12 +180,22 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
                     className={`object-cover rounded-br-lg hover:brightness-90 ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
                     onClick={() => handleImageClick(4)}
                   />
-                  <button
-                    className="absolute bottom-4 right-4 bg-background/70 backdrop-blur-md text-foreground px-6 py-2 rounded-xl hover:bg-background/90 transition-all font-semibold shadow-premium text-sm uppercase tracking-wide"
-                    onClick={handleShowAllPhotos}
-                  >
-                    Show all photos
-                  </button>
+                  <div className="absolute bottom-4 right-4 flex gap-2">
+                    {videoSrc && (
+                      <button
+                        className="bg-foreground/70 backdrop-blur-md text-background px-6 py-2 rounded-xl hover:bg-foreground/90 transition-all font-semibold shadow-premium text-sm uppercase tracking-wide border border-white/20"
+                        onClick={() => setShowVideoModal(true)}
+                      >
+                        Video Tour
+                      </button>
+                    )}
+                    <button
+                      className="bg-background/70 backdrop-blur-md text-foreground px-6 py-2 rounded-xl hover:bg-background/90 transition-all font-semibold shadow-premium text-sm uppercase tracking-wide"
+                      onClick={handleShowAllPhotos}
+                    >
+                      Show all photos
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -204,6 +217,15 @@ function ListingHead({ title, locationValue, imageSrc, id, currentUser }: Props)
         selfActionButton={true}
         customWidth="w-full md:w-5/6 lg:w-4/6 xl:w-3/5"
       />
+
+      {videoSrc && (
+        <VideoTourModal
+          isOpen={showVideoModal}
+          onClose={() => setShowVideoModal(false)}
+          videoSrc={videoSrc}
+          title={title}
+        />
+      )}
 
       {isLightboxOpen && (
         <div className="fixed inset-0 z-9999 bg-foreground flex flex-col items-center justify-center">

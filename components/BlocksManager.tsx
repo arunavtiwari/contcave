@@ -197,7 +197,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                     disabled={isCreating}
                     loading={isCreating}
                     rounded
-                    classNames="mt-6 w-full font-bold text-base py-4"
+                    className="mt-6 w-full font-bold text-base py-4"
                 />
             </div>
 

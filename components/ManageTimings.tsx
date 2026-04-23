@@ -195,7 +195,7 @@ export default function CalendarComponent({
                     onClick={handleSave}
                     variant="default"
                     size="lg"
-                    classNames="w-full rounded-xl text-sm font-bold shadow-lg shadow-foreground/10"
+                    className="w-full rounded-xl text-sm font-bold shadow-lg shadow-foreground/10"
                 />
             </div>
         </div>

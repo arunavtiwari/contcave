@@ -1,7 +1,7 @@
-"use client";
-
 import React from "react";
 import { FaRegStar, FaStar, FaStarHalfStroke } from "react-icons/fa6";
+
+import { cn } from "@/lib/utils";
 
 interface StarRatingProps {
     rating: number;
@@ -43,15 +43,18 @@ const StarRating: React.FC<StarRatingProps> = ({
                 onClick={() => interactive && onRate?.(i)}
                 onMouseEnter={() => interactive && setHoverRating(i)}
                 onMouseLeave={() => interactive && setHoverRating(null)}
-                className={`${interactive ? "cursor-pointer transition-transform hover:scale-110" : "cursor-default"} focus:outline-none`}
+                className={cn(
+                    interactive ? "cursor-pointer transition-transform hover:scale-110" : "cursor-default",
+                    "focus:outline-none"
+                )}
                 aria-label={`Rate ${i} out of ${maxRating}`}
             >
                 {isFull ? (
-                    <FaStar size={size} className={`${activeColor} ${className}`} />
+                    <FaStar size={size} className={cn(activeColor, className)} />
                 ) : isHalf ? (
-                    <FaStarHalfStroke size={size} className={`${activeColor} ${className}`} />
+                    <FaStarHalfStroke size={size} className={cn(activeColor, className)} />
                 ) : (
-                    <FaRegStar size={size} className={`${inactiveColor} ${className}`} />
+                    <FaRegStar size={size} className={cn(inactiveColor, className)} />
                 )}
             </button>
         );

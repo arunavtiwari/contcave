@@ -13,6 +13,7 @@ export type safeListing = Omit<Listing, "createdAt" | "addons" | "packages" | "o
     operationalHours?: unknown;
     actualLocation?: unknown;
     avgReviewRating?: number;
+    videoSrc?: string | null;
 };
 
 export type ActualLocation = {
@@ -58,6 +59,7 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
 
     sets?: ListingSet[];
     blocks?: ListingBlock[];
+    videoSrc?: string | null;
 };
 
 export type ListingBlockData = {

@@ -147,6 +147,7 @@ model Listing {
   additionalSetPricingType AdditionalSetPricingType?
 
   sets                     ListingSet[]
+  videoSrc                 String?
 
   blocks                   ListingBlock[]
 

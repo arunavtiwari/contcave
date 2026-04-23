@@ -46,7 +46,7 @@ const SearchContent = memo(function SearchContent() {
       rounded
       outline
       fit
-      classNames="p-2! bg-background/20 backdrop-blur-md"
+      className="p-2! bg-background/20 backdrop-blur-md"
     >
       <div className="flex flex-row items-center justify-between w-full">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>
@@ -68,14 +68,14 @@ SearchContent.displayName = "SearchContent";
 const Search = memo(function Search() {
   return (
     <Suspense fallback={
-      <div className="md:w-auto p-2 rounded-full bg-background/20 backdrop-blur-2xl shadow-sm border border-border/10">
-        <div className="flex flex-row items-center justify-between">
-          <div className="text-sm font-semibold px-6">City</div>
-          <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
+      <div className="md:w-auto p-px rounded-full bg-background border border-foreground/20 backdrop-blur-md opacity-50">
+        <div className="p-2 flex flex-row items-center justify-between w-full min-w-75 md:min-w-100">
+          <div className="text-sm font-semibold px-6 text-muted-foreground">City</div>
+          <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center text-muted-foreground">
             Date
           </div>
-          <div className="text-muted-foreground flex flex-row items-center gap-3">
-            <div className="p-2 bg-foreground rounded-full text-background">
+          <div className="flex flex-row items-center gap-3">
+            <div className="p-2 bg-foreground/20 rounded-full text-background">
               <BiSearch size={16} />
             </div>
           </div>

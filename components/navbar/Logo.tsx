@@ -10,21 +10,19 @@ const Logo = memo(function Logo() {
       <div className="w-full max-w-50">
         <Image
           alt="logo-large"
-          height={100}
-          width={200}
+          height={40}
+          width={160}
           src="/assets/logo.png"
-          className="hidden sm:block cursor-pointer"
+          className="hidden sm:block cursor-pointer h-8 w-auto"
           priority
-          style={{ width: 'auto', height: 'auto' }}
         />
         <Image
           alt="logo-small"
-          height={50}
-          width={50}
+          height={32}
+          width={32}
           src="/assets/logo_small.png"
-          className="block sm:hidden cursor-pointer"
+          className="block sm:hidden cursor-pointer h-8 w-auto"
           priority
-          style={{ width: 'auto', height: 'auto' }}
         />
       </div>
     </Link>

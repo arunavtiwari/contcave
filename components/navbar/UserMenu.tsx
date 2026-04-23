@@ -1,7 +1,6 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
 import { signOut } from "next-auth/react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -113,21 +112,11 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
           variant="ghost"
           outline
           rounded
-          classNames="ai-outline-menu p-4 md:py-1 md:px-2 flex items-center gap-3 transition-all duration-300 border bg-background/80!"
+          className="ai-outline-menu h-12 w-auto md:h-12 md:px-3 flex items-center gap-3 transition-all duration-300 border bg-background/80! hover:bg-background/90"
         >
-          <AiOutlineMenu className="text-foreground" />
-          <div className="hidden md:block">
-            {currentUser ? (
-              <Avatar src={currentUser?.image!} />
-            ) : (
-              <Image
-                className="rounded-full"
-                height="30"
-                width="30"
-                alt="Avatar"
-                src="/assets/avatar.png"
-              />
-            )}
+          <AiOutlineMenu className="text-foreground shrink-0" />
+          <div className="hidden md:block shrink-0">
+            <Avatar src={currentUser?.image} />
           </div>
         </Button>
       </div>

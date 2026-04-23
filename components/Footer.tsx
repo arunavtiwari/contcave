@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Container from "@/components/Container";
+import EmailShield from "@/components/EmailShield";
 import Logo from "@/components/navbar/Logo"
 
 function Footer() {
@@ -40,9 +41,7 @@ function Footer() {
             <div className="flex flex-col space-x-4 justify-center text-center md:text-left">
               <p className="text-base text-muted-foreground">
                 Have a question? Feel free to reach out to us at{" "}
-                <a href="mailto:info@contcave.com" className="text-foreground font-semibold underline">
-                  info@contcave.com
-                </a>
+                <EmailShield email="info@contcave.com" className="text-foreground font-semibold underline" />
               </p>
             </div>
           </div>
@@ -61,7 +60,7 @@ function Footer() {
               <p className="text-lg font-bold text-foreground">Support</p>
               <Link href="/about" className="text-muted-foreground hover:text-foreground transition-all text-sm">Help Center</Link>
               <Link href="/cancellation" className="text-muted-foreground hover:text-foreground transition-all text-sm">Cancellation Policy</Link>
-              <a href="mailto:info@contcave.com" className="text-muted-foreground hover:text-foreground transition-all text-sm">Contact Us</a>
+              <EmailShield email="info@contcave.com" className="text-muted-foreground hover:text-foreground transition-all text-sm">Contact Us</EmailShield>
             </div>
 
             <div className="flex flex-col space-y-3">

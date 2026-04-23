@@ -2,43 +2,15 @@
 
 import Image from "next/image";
 import Script from "next/script";
-import { useEffect, useState } from "react";
+import React from "react";
 
+import { useConsent } from "@/components/providers/ConsentProvider";
 import { META_PIXEL_ID } from "@/constants/metaPixel";
 
-/**
- * Meta Pixel Script with Content Security Policy (CSP) Support.
- * Accepts a 'nonce' to allow the inline script to execute under strict policies.
- */
 export default function MetaPixelScript({ nonce }: { nonce?: string }) {
-    const [hasConsent, setHasConsent] = useState(false);
+    const { consent, isInitialized } = useConsent();
 
-    useEffect(() => {
-        const check = () => {
-            try {
-                const value = document.cookie
-                    .split("; ")
-                    .find((row) => row.startsWith("ContcavCookieConsent="))
-                    ?.split("=")[1];
-
-                return value === "true";
-            } catch {
-                return false;
-            }
-        };
-
-        setHasConsent(check());
-
-        const interval = setInterval(() => {
-            if (check() !== hasConsent) {
-                setHasConsent(check());
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [hasConsent]);
-
-    if (!META_PIXEL_ID || !hasConsent) return null;
+    if (!isInitialized || !META_PIXEL_ID || !consent.marketing) return null;
 
     return (
         <>

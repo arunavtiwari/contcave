@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SessionProvider, signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { IoMdClose } from "react-icons/io";
 import { toast } from "sonner";
 
 import { deleteListingAction, updateListingAction } from "@/app/actions/listingActions";
@@ -116,6 +117,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             type: Array.isArray(listing.type) ? listing.type : [],
             amenities: Array.isArray(listing.amenities) ? listing.amenities : [],
             otherAmenities: Array.isArray(listing.otherAmenities) ? listing.otherAmenities : [],
+            videoSrc: listing.videoSrc ?? null,
         };
     });
 
@@ -227,6 +229,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 unifiedSetPrice: setsHaveSamePrice ? Number(unifiedSetPrice) : null,
                 additionalSetPricingType: initialListing.hasSets ? initialListing.additionalSetPricingType : null,
                 sets: finalSets,
+                videoSrc: initialListing.videoSrc,
             };
 
             const res = await updateListingAction({ id: initialListing.id, ...payload });
@@ -494,6 +497,37 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     </div>
                                 )}
                             </div>
+                            <div className="mt-8 border-t pt-8">
+                                <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                                    Video Tour (Optional)
+                                </label>
+                                <div className="mt-2 text-foreground">
+                                    <ImageUpload
+                                        uid="property-video-upload"
+                                        label="Upload Video Tour"
+                                        onChange={(v) => handleInputChange("videoSrc", v[0] || null)}
+                                        values={initialListing.videoSrc ? [initialListing.videoSrc] : []}
+                                        allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
+                                        maxSize={100 * 1024 * 1024}
+                                        className="w-full h-48 p-4 border border-border rounded-xl"
+                                    />
+                                </div>
+                                {initialListing.videoSrc && (
+                                    <div className="mt-4 relative group w-full max-w-md">
+                                        <video
+                                            src={initialListing.videoSrc}
+                                            controls
+                                            className="w-full h-48 rounded-xl object-cover border border-border"
+                                        />
+                                        <button
+                                            onClick={() => handleInputChange("videoSrc", null)}
+                                            className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
+                                        >
+                                            <IoMdClose size={18} />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </FormField>
 
@@ -686,14 +720,14 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                             variant={initialListing.additionalSetPricingType === "FIXED" ? "default" : "outline"}
                                             label="Fixed Add-on"
                                             fit
-                                            classNames="flex-1"
+                                            className="flex-1"
                                         />
                                         <Button
                                             onClick={() => handleInputChange("additionalSetPricingType", "HOURLY")}
                                             variant={initialListing.additionalSetPricingType === "HOURLY" ? "default" : "outline"}
                                             label="Hourly Add-on"
                                             fit
-                                            classNames="flex-1"
+                                            className="flex-1"
                                         />
                                     </div>
                                 </FormField>
@@ -761,7 +795,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             label="Save"
                             onClick={update}
                             fit
-                            classNames="px-8"
+                            className="px-8"
                         />
                     </div>
                 </div>
@@ -777,7 +811,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <Button
                                 onClick={() => signIn("google-calendar")}
                                 fit
-                                classNames="px-15 h-fit py-2"
+                                className="px-15 h-fit py-2"
                             >
                                 <div className="flex gap-4 items-center">
                                     <Image
@@ -830,7 +864,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                 onClick={() => setIsDeleteModalOpen(true)}
                                 outline
                                 rounded
-                                classNames="px-6 border-2 border-destructive text-destructive hover:bg-destructive hover:text-background"
+                                className="px-6 border-2 border-destructive text-destructive hover:bg-destructive hover:text-background"
                             />
                         </div>
                     </div>

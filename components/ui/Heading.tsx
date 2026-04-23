@@ -1,5 +1,7 @@
 import React from "react";
 
+import { cn } from "@/lib/utils";
+
 type HeadingVariant = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
 interface HeadingProps extends Omit<React.HTMLAttributes<HTMLHeadingElement>, "title"> {
@@ -14,11 +16,11 @@ interface HeadingProps extends Omit<React.HTMLAttributes<HTMLHeadingElement>, "t
 const Heading: React.FC<HeadingProps> = ({
     title,
     subtitle,
-    subtitleClassName = "",
+    subtitleClassName,
     center,
     as,
     variant = "h3",
-    className = "",
+    className,
     ...props
 }) => {
     const Component = as || variant || "h2";
@@ -46,15 +48,15 @@ const Heading: React.FC<HeadingProps> = ({
     const textColorClass = "text-foreground";
 
     return (
-        <div className={`${center ? "text-center" : "text-start"}`}>
+        <div className={cn(center ? "text-center" : "text-start")}>
             <Component
-                className={`${fontClass} ${sizeClass} ${textColorClass} ${className}`}
+                className={cn(fontClass, sizeClass, textColorClass, className)}
                 {...props}
             >
                 {title}
             </Component>
             {subtitle && (
-                <p className={`text-muted-foreground ${subtitleSizes[variant]} ${subtitleClassName}`}>
+                <p className={cn("text-muted-foreground", subtitleSizes[variant], subtitleClassName)}>
                     {subtitle}
                 </p>
             )}

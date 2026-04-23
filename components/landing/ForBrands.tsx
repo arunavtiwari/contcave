@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FiBriefcase, FiZap } from "react-icons/fi";
 
 import Container from "@/components/Container";
+import EmailShield from "@/components/EmailShield";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -82,13 +83,12 @@ const ForBrands = () => {
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button
-                  label="Share your brief"
-                  href="mailto:info@contcave.com"
-                  variant="outline"
-                  rounded
-                  fit
-                />
+                <EmailShield
+                  email="info@contcave.com"
+                  className="bg-background border-foreground/20 text-foreground h-11 px-6 text-sm rounded-full w-fit flex justify-center items-center font-medium transition active:scale-[0.98]"
+                >
+                  Share your brief
+                </EmailShield>
                 <Button
                   label="WhatsApp us"
                   href={`https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}`}

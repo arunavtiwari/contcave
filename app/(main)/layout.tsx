@@ -1,17 +1,14 @@
 import "../../styles/globals.css";
 
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Suspense } from "react";
+import Script from "next/script";
 
 import ClientOnly from "@/components/ClientOnly";
+import ConsentAwareTracking from "@/components/ConsentAwareTracking";
 import CookieConsent from "@/components/CookieConsentBanner";
 import GlobalScrollFix from "@/components/GlobalScrollFix";
-import MetaPixelScript from "@/components/MetaPixelScript";
-import MetaPixelTracker from "@/components/MetaPixelTracker";
 import LoginModal from "@/components/modals/LoginModal";
 import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
@@ -213,12 +210,11 @@ export default async function RootLayout({
     const nonce = headerList.get("x-nonce") ?? undefined;
 
     return (
-        // Next.js 16: the `nonce` prop on <html> is forwarded to every
-        // framework-generated <script> tag (bootstrap, chunk preloads, etc.),
-        // allowing strict-dynamic to propagate trust to all chunk scripts.
-        <html lang="en" nonce={nonce}>
+
+        <html lang="en">
             <head>
-                <script
+                <Script
+                    id="organization-jsonld"
                     type="application/ld+json"
                     nonce={nonce}
                     dangerouslySetInnerHTML={{
@@ -230,14 +226,7 @@ export default async function RootLayout({
                 <GlobalProviders>
                     <GlobalScrollFix />
                     <NavbarWrapper />
-                    {process.env.NODE_ENV === "production" && (
-                        <>
-                            <MetaPixelScript nonce={nonce} />
-                            <Suspense fallback={null}>
-                                <MetaPixelTracker />
-                            </Suspense>
-                        </>
-                    )}
+                    <ConsentAwareTracking nonce={nonce} />
                     <ClientOnly>
                         <ToastContainerBar />
                         <SearchModal />
@@ -249,8 +238,6 @@ export default async function RootLayout({
                     </ClientOnly>
                     {children}
                     <ScrollToTop />
-                    <Analytics />
-                    <SpeedInsights />
                 </GlobalProviders>
             </body>
         </html>

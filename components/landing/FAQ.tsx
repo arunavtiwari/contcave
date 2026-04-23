@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import Script from "next/script";
 import { useState } from "react";
 import { HiArrowRight } from "react-icons/hi";
 
@@ -31,9 +32,10 @@ const FAQ = ({ nonce }: { nonce?: string }) => {
 
   return (
     <>
-      <script
+      <Script
+        id="faq-jsonld"
         type="application/ld+json"
-        nonce={nonce || undefined}
+        nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c"),
         }}
@@ -70,7 +72,7 @@ const FAQ = ({ nonce }: { nonce?: string }) => {
                 variant="ghost"
                 rounded
                 fit
-                classNames="mt-2"
+                className="mt-2"
                 icon={HiArrowRight}
 
               />

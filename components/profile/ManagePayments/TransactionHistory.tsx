@@ -82,7 +82,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                                 label="Retry"
                                 rounded
                                 onClick={onRetry}
-                                classNames="w-auto px-4"
+                                className="w-auto px-4"
                             />
                         </div>
                     )}

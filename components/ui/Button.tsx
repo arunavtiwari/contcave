@@ -61,14 +61,14 @@ const buttonVariants = cva(
   }
 );
 
-interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
+interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement | HTMLAnchorElement>, VariantProps<typeof buttonVariants> {
   label?: string;
   loading?: boolean;
   icon?: IconType;
   isColor?: boolean;
   href?: string;
   target?: "_blank" | "_self";
-  classNames?: string;
+  className?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
@@ -87,7 +87,6 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
       size,
       fit,
       className,
-      classNames,
       children,
       disabled,
       onClick,
@@ -98,7 +97,8 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
     const isIconOnly = !label && !!Icon && !children;
 
     const finalClasses = cn(
-      buttonVariants({ variant, size, outline, rounded, fit, isIconOnly, className: cn(className, classNames) })
+      buttonVariants({ variant, size, outline, rounded, fit, isIconOnly }),
+      className
     );
 
     const iconSize = {

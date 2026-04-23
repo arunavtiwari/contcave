@@ -113,7 +113,7 @@ const Categories = memo(function Categories() {
             variant="ghost"
             size="sm"
             fit
-            classNames="bg-muted border border-border opacity-50"
+            className="bg-muted border border-border opacity-50"
             disabled
           />
         </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import Script from "next/script";
 import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
@@ -132,9 +133,10 @@ async function HomeContent(props: HomeProps) {
   return (
     <>
       {listing.length > 0 && (
-        <script
+        <Script
+          id="home-listings-jsonld"
           type="application/ld+json"
-          nonce={nonce || undefined}
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
       )}

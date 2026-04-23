@@ -133,7 +133,7 @@ function Modal({
               variant="ghost"
               rounded
               size="sm"
-              classNames="opacity-80 hover:opacity-100 p-0"
+              className="opacity-80 hover:opacity-100 p-0"
             />
           </div>
 

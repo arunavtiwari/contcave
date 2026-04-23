@@ -1,12 +1,14 @@
 import React from "react";
 
+import { cn } from "@/lib/utils";
+
 export default function Skeleton({
-    className = "",
+    className,
     ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
     return (
         <div
-            className={`animate-pulse bg-gray-200 rounded-md ${className}`}
+            className={cn("animate-pulse bg-foreground/10 rounded-xl", className)}
             {...props}
         />
     );

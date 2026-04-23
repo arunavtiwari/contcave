@@ -50,7 +50,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                     onClick={(e) => { e?.stopPropagation(); onShowInfo(reservation); }}
                     disabled={disabled}
                     size="sm"
-                    classNames="w-fit shrink-0"
+                    className="w-fit shrink-0"
                 />
             )}
             <div className="flex gap-2 flex-1">
@@ -85,7 +85,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                             onClick={(e) => { e?.stopPropagation(); onApprove?.(String(reservation?.id)); }}
                             disabled={disabled}
                             size="sm"
-                            classNames="flex-1"
+                            className="flex-1"
                         />
                         <Button
                             label="Decline"
@@ -94,7 +94,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                             onClick={(e) => { e?.stopPropagation(); onReject?.(String(reservation?.id)); }}
                             disabled={disabled}
                             size="sm"
-                            classNames="flex-1"
+                            className="flex-1"
                         />
                     </div>
                 )}
@@ -108,7 +108,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                                 onClick={(e) => { e?.stopPropagation(); onChat(String(reservation?.id)); }}
                                 disabled={reservation.isApproved !== 1 || disabled}
                                 size="sm"
-                                classNames="flex-1 whitespace-nowrap"
+                                className="flex-1 whitespace-nowrap"
                             />
                         )}
                         {onCancel && (reservation.isApproved === 1 || reservation.isApproved === 0) && (
@@ -118,7 +118,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                                 onClick={(e) => { e?.stopPropagation(); onCancel(String(reservation.id)); }}
                                 disabled={disabled}
                                 size="sm"
-                                classNames="flex-1"
+                                className="flex-1"
                             />
                         )}
                         {(reservation.isApproved === 2 || reservation.isApproved === 3) && onDelete && (
@@ -128,7 +128,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                                 onClick={(e) => { e?.stopPropagation(); onDelete(String(reservation.id)); }}
                                 disabled={disabled}
                                 size="sm"
-                                classNames="flex-1"
+                                className="flex-1"
                             />
                         )}
                     </div>
