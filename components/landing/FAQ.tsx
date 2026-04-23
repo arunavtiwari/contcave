@@ -70,7 +70,7 @@ const FAQ = ({ nonce }: { nonce?: string }) => {
                 variant="ghost"
                 rounded
                 fit
-                className="mt-2"
+                classNames="mt-2"
                 icon={HiArrowRight}
 
               />
