@@ -144,3 +144,30 @@ export const listingSchema = listingBaseSchema.refine((data) => {
 export type ListingSchema = z.infer<typeof listingSchema>;
 export type ListingSetSchema = z.infer<typeof listingSetSchema>;
 export type PackageSchema = z.infer<typeof packageSchema>;
+
+// Administrative & Utility Schemas
+export const approveListingSchema = z.object({
+    listingId: z.string().min(1, "Listing ID is required"),
+});
+
+export const rejectListingSchema = z.object({
+    listingId: z.string().min(1, "Listing ID is required"),
+});
+
+export const deleteListingSchema = z.object({
+    listingId: z.string().min(1, "Listing ID is required"),
+});
+
+export const listingBlockSchema = z.object({
+    listingId: z.string().min(1, "Listing ID is required"),
+    date: z.string().min(1, "Date is required"),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
+    setIds: z.array(z.string()).optional().default([]),
+    reason: z.string().max(500, "Reason too long").optional().nullable(),
+});
+
+export const deleteBlockSchema = z.object({
+    listingId: z.string().min(1, "Listing ID is required"),
+    blockId: z.string().min(1, "Block ID is required"),
+});
