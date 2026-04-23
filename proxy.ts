@@ -163,6 +163,7 @@ function buildCSP(nonce: string): string {
         'script-src': [
             "'self'",
             `'nonce-${nonce}'`,
+            "'strict-dynamic'",
             'https:',
             "'unsafe-inline'",
             "'unsafe-eval'",

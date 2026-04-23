@@ -88,13 +88,17 @@ export default function Calendar({
   };
 
   return (
-    <ReactDateRangeCalendar
-      date={value ?? undefined}
-      onChange={handleChange}
-      showDateDisplay={false}
-      minDate={minDate ?? new Date()}
-      disabledDates={disabledDates}
-      disabledDay={isDayDisabled}
-    />
+    <div className="w-full">
+      <ReactDateRangeCalendar
+        date={value ?? undefined}
+        onChange={handleChange}
+        showDateDisplay={false}
+        showMonthAndYearPickers={false}
+        minDate={minDate ?? new Date()}
+        disabledDates={disabledDates}
+        disabledDay={isDayDisabled}
+        color="#000000"
+      />
+    </div>
   );
 }

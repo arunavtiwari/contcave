@@ -493,7 +493,6 @@ export default function ListingReservation({
           label={instantBooking ? "Instant Book" : "Request to Book"}
           variant={instantBooking ? "success" : "warning"}
           icon={instantBooking ? FaBolt : undefined}
-          size="xs"
         />
       </div>
 

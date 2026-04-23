@@ -142,39 +142,129 @@ select,
 	border-radius: 0 !important;
 }
 
-/* FullCalendar Button Gap Fix moved to main section */
+/* ============================================================
+   react-date-range — brand-aligned overrides
+   ============================================================ */
 
-/* react-date-range fixes */
-.rdrSelected,
-.rdrInRange,
-.rdrStartEdge,
-.rdrEndEdge {
-	background-color: var(--color-foreground) !important;
-	border-color: var(--color-foreground) !important;
+/* 1. Layout: stretch grid to container width */
+.rdrCalendarWrapper,
+.rdrMonth,
+.rdrMonthAndYearWrapper,
+.rdrDays,
+.rdrWeekDays {
+	width: 100% !important;
+	max-width: 100% !important;
 }
 
-.rdrDayStartPreview {
-	border-color: transparent !important;
-	background-color: rgba(128, 128, 128, 0.1) !important;
+.rdrDay,
+span.rdrWeekDay {
+	width: 14.28% !important;
 }
 
+/* 2. Base: font, color, no border */
+.rdrCalendarWrapper {
+	font-family: inherit;
+	font-size: 14px !important;
+	color: var(--color-foreground);
+}
+
+/* 3. Day cells */
 .rdrDay {
 	color: var(--color-foreground) !important;
-	height: 42px !important;
+	border: none !important;
+	height: 48px !important;
+	position: relative !important;
+}
+
+.rdrDay:hover,
+.rdrDayHovered {
+	border: none !important;
 }
 
 .rdrDayNumber span {
 	font-weight: 500 !important;
 }
 
+/* 4. Today indicator */
+.rdrDayToday .rdrDayNumber span:after {
+	background: var(--color-foreground) !important;
+}
+
+/* 5. Disabled days */
 .rdrDayDisabled {
 	background-color: transparent !important;
 	opacity: 0.3 !important;
 }
 
-.rdrCalendarWrapper {
-	font-family: inherit;
-	color: var(--color-foreground);
+/* 6. Highlight geometry — selected & range previews (relative to .rdrDay) */
+.rdrSelected,
+.rdrInRange,
+.rdrStartEdge,
+.rdrEndEdge,
+.rdrDayStartPreview,
+.rdrDayInPreview,
+.rdrDayEndPreview {
+	position: absolute !important;
+	top: 2px !important;
+	left: 2px !important;
+	right: 2px !important;
+	bottom: 2px !important;
+	width: auto !important;
+	height: auto !important;
+	margin: 0 !important;
+	transform: none !important;
+	border: none !important;
+	border-radius: 12px !important;
+}
+
+/* 7. Highlight colors */
+.rdrSelected,
+.rdrInRange,
+.rdrStartEdge,
+.rdrEndEdge {
+	background-color: var(--color-foreground) !important;
+}
+
+.rdrDayStartPreview,
+.rdrDayInPreview,
+.rdrDayEndPreview {
+	background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* 8. Hover highlight — ::after is relative to .rdrDayNumber (top/bottom: 5px from .rdrDay).
+   To match the 2px inset above: 2px − 5px = −3px */
+.rdrCalendarWrapper:not(.rdrDateRangeWrapper) .rdrDayHovered .rdrDayNumber:after {
+	content: '' !important;
+	position: absolute !important;
+	top: -3px !important;
+	left: 2px !important;
+	right: 2px !important;
+	bottom: -3px !important;
+	width: auto !important;
+	height: auto !important;
+	margin: 0 !important;
+	transform: none !important;
+	border: none !important;
+	border-radius: 12px !important;
+	z-index: 1 !important;
+}
+
+/* 8. Navigation buttons */
+.rdrNextPrevButton {
+	background-color: var(--color-muted) !important;
+	border-radius: 8px !important;
+}
+
+.rdrNextPrevButton:hover {
+	background-color: var(--color-neutral-200) !important;
+}
+
+.rdrNextButton i {
+	border-color: transparent transparent transparent var(--color-foreground) !important;
+}
+
+.rdrPprevButton i {
+	border-color: transparent var(--color-foreground) transparent transparent !important;
 }
 
 /* FullCalendar (Event Grid) Beautification */
@@ -230,7 +320,6 @@ select,
 	padding: 0 !important;
 }
 
-/* Fix event grid overflow and aesthetic */
 .fc-daygrid-day-number {
 	font-size: 0.875rem;
 	font-weight: 500;
