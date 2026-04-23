@@ -17,7 +17,7 @@ import RegisterModal from "@/components/modals/RegisterModal";
 import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
-import NextAuthProvider from "@/components/providers/NextAuthProvider";
+import GlobalProviders from "@/components/providers/GlobalProviders";
 import ToastContainerBar from "@/components/ToastContainerBar";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { safeJsonLd } from "@/lib/safeJsonLd";
@@ -222,7 +222,7 @@ export default async function RootLayout({
 
             </head>
             <body className={GeistSans.className}>
-                <NextAuthProvider>
+                <GlobalProviders>
                     <GlobalScrollFix />
                     <NavbarWrapper />
                     {process.env.NODE_ENV === "production" && (
@@ -246,7 +246,7 @@ export default async function RootLayout({
                     <ScrollToTop />
                     <Analytics />
                     <SpeedInsights />
-                </NextAuthProvider>
+                </GlobalProviders>
             </body>
         </html>
     );

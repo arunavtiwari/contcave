@@ -19,7 +19,7 @@ import PhoneModal from "@/components/modals/PhoneModal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
-import useLoginModal from "@/hooks/useLoginModal";
+import useUIStore from "@/hooks/useUIStore";
 import { normalizePhone } from "@/lib/phone";
 import { Package } from "@/types/package";
 import {
@@ -169,7 +169,7 @@ export default function ListingReservation({
   setSelectionError = null,
 
 }: Props) {
-  const loginModel = useLoginModal();
+  const uiStore = useUIStore();
 
   const [localTimes, setLocalTimes] = useState<LocalTimes>({
     start: selectedTime?.[0] ?? null,
@@ -371,6 +371,9 @@ export default function ListingReservation({
         selectedAddons: Addon[];
         instantBooking: boolean;
         gstDetails?: GSTDetails;
+        setIds?: string[];
+        setPackageId?: string | null;
+        pricingSnapshot?: unknown;
         selectedPackage?: {
           title: string;
           offeredPrice: number;
@@ -398,9 +401,9 @@ export default function ListingReservation({
       }
 
       if (hasSets && pricingResult) {
-        (payload as PaymentPayload & { setIds?: string[]; setPackageId?: string | null; pricingSnapshot?: unknown }).setIds = selectedSetIds;
-        (payload as PaymentPayload & { setIds?: string[]; setPackageId?: string | null; pricingSnapshot?: unknown }).setPackageId = selectedPackageId;
-        (payload as PaymentPayload & { setIds?: string[]; setPackageId?: string | null; pricingSnapshot?: unknown }).pricingSnapshot = pricingResult.breakdown;
+        payload.setIds = selectedSetIds;
+        payload.setPackageId = selectedPackageId;
+        payload.pricingSnapshot = pricingResult.breakdown;
       }
 
       const res = await fetch("/api/payments/cashfree/process", {
@@ -448,13 +451,13 @@ export default function ListingReservation({
   const handleReserve = useCallback(() => {
     if (!ready) return;
     if (!isAuthenticated) {
-      loginModel.onOpen();
+      uiStore.onOpen("login");
       return;
     }
     if (!ensurePhone()) return;
 
     setShowSummaryModal(true);
-  }, [ready, isAuthenticated, loginModel, ensurePhone]);
+  }, [ready, isAuthenticated, uiStore, ensurePhone]);
 
   const handleConfirmModal = useCallback(() => {
     setShowSummaryModal(false);

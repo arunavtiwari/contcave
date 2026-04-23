@@ -4,8 +4,7 @@ import { format } from "date-fns";
 import { checkSetConflicts } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund } from "@/lib/cashfree/cashfree";
-import { sendReservationCustomerEmail } from "@/lib/email/reservationCustomer";
-import { sendReservationOwnerEmail } from "@/lib/email/reservationOwner";
+import { sendReservationConfirmationCustomer, sendReservationConfirmationOwner } from "@/lib/email/templates";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
 import prisma from "@/lib/prismadb";
 import { generateBookingId } from "@/lib/utils";
@@ -141,33 +140,34 @@ export class ReservationService {
 
             // 1. Customer Email
             if (resv.user.email) {
-                await sendReservationCustomerEmail({
+                await sendReservationConfirmationCustomer({
                     toEmail: resv.user.email,
                     toName: resv.user.name || "Valued Customer",
                     studioName,
-                    bookingId: resv.bookingId,
+                    bookingId: resv.bookingId || "",
                     startDate: dateStr,
                     startTime: resv.startTime,
                     endTime: resv.endTime,
                     totalPrice: resv.totalPrice,
-                    studioLocation: location,
                     addons,
+                    studioLocation: location,
                     attachments: invoiceAttachment ? [invoiceAttachment] : [],
                 });
             }
 
             // 2. Owner Email
             if (listing.user.email) {
-                await sendReservationOwnerEmail({
+                await sendReservationConfirmationOwner({
                     toEmail: listing.user.email,
                     toName: listing.user.name || "Studio Owner",
                     customerName: resv.user.name || "Customer",
                     studioName,
-                    bookingId: resv.bookingId,
+                    bookingId: resv.bookingId || "",
                     startDate: dateStr,
                     startTime: resv.startTime,
                     endTime: resv.endTime,
                     totalPrice: resv.totalPrice,
+                    addons,
                 });
             }
 

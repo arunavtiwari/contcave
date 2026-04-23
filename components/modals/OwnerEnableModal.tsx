@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
+import { FieldErrors } from "react-hook-form";
 import { FaExclamationCircle, FaInfoCircle } from "react-icons/fa";
 
 import Input from "@/components/inputs/Input";
@@ -127,7 +128,7 @@ const OwnerEnableModal: React.FC<Props> = ({
               }}
               placeholder="10-digit mobile number"
               maxLength={10}
-              errors={errors as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+              errors={errors as FieldErrors}
             />
           </div>
           {errors.phone && (

@@ -2,11 +2,14 @@
 import axios from "axios";
 
 import { cfSplitBaseURL } from "@/lib/cashfree/cashfree";
+import { sendEmail } from "@/lib/email/mailer";
+import { getHostOnboardingTemplate } from "@/lib/email/templates";
 import { getFixieProxyAgent } from "@/lib/fixie-proxy";
 import { upsertPaymentDetailsSafe } from "@/lib/payment-details";
 import { normalizePhone } from "@/lib/phone";
 import prisma from "@/lib/prismadb";
 import { aadhaarSchema, emailVerificationSchema, otpSchema } from "@/schemas/verification";
+import { UserRole } from "@/types/user";
 
 const httpsAgent = getFixieProxyAgent();
 
@@ -51,6 +54,7 @@ export class VerificationService {
                 bank_verified: true,
                 is_verified: true,
                 verification_stage: true,
+                role: true,
             }
         });
 
@@ -62,12 +66,24 @@ export class VerificationService {
             });
         }
 
-        // Auto-certification
+        // Auto-certification (Legacy verifyUserStep)
         if (user.phone_verified && user.email_verified && user.aadhaar_verified && user.bank_verified && !user.is_verified) {
-            return await prisma.user.update({
+            const finalUser = await prisma.user.update({
                 where: { id: userId },
                 data: { is_verified: true, verified_at: new Date() }
             });
+
+            // Send onboarding email ONLY to hosts after full verification
+            if (finalUser.role === UserRole.OWNER || finalUser.role === UserRole.ADMIN) {
+                sendEmail({
+                    toEmail: finalUser.email || "",
+                    toName: finalUser.name || "Host",
+                    subject: "Welcome to ContCave!",
+                    html: getHostOnboardingTemplate(finalUser.name || "Host")
+                }).catch(err => console.error("[Verification] Failed to send onboarding email:", err));
+            }
+
+            return finalUser;
         }
 
         return user;
@@ -233,15 +249,28 @@ export class VerificationService {
                 aadhaar_last4: true,
                 phone: true,
                 email: true,
+                role: true,
             }
         });
 
         // Atomic completion check
         if (updated.phone_verified && updated.email_verified && updated.aadhaar_verified && updated.bank_verified && !updated.is_verified) {
-            return await prisma.user.update({
+            const finalUser = await prisma.user.update({
                 where: { id: userId },
                 data: { is_verified: true, verified_at: new Date() }
             });
+
+            // Send onboarding email ONLY to hosts after full verification
+            if (finalUser.role === UserRole.OWNER || finalUser.role === UserRole.ADMIN) {
+                sendEmail({
+                    toEmail: finalUser.email || "",
+                    toName: finalUser.name || "Host",
+                    subject: "Welcome to ContCave!",
+                    html: getHostOnboardingTemplate(finalUser.name || "Host")
+                }).catch(err => console.error("[Verification] Failed to send onboarding email:", err));
+            }
+
+            return finalUser;
         }
 
         return updated;

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 import db from "@/lib/prismadb";
 import { UserUpdateSchema, userUpdateSchema } from "@/schemas/user";
-import { RegisterData, SafeUser } from "@/types/user";
+import { RegisterData, SafeUser} from "@/types/user";
 
 
 
@@ -149,8 +149,7 @@ export class UserService {
             emailVerified: user.emailVerified?.toISOString() || null,
             verified_at: user.verified_at?.toISOString() || null,
             markedForDeletionAt: user.markedForDeletionAt?.toISOString() || null,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            role: user.role as any, // Cast to local UserRole which is compatible
+            role: user.role,
         };
     }
 }

@@ -29,7 +29,7 @@ import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import { PROFILE_LANGUAGE_OPTIONS, PROFILE_TITLE_OPTIONS } from "@/constants/user";
-import useRentModal from "@/hooks/useRentModal";
+import useUIStore from "@/hooks/useUIStore";
 import { uploadToR2 } from "@/lib/storage/upload";
 import { isOwner } from "@/lib/user/permissions";
 import { cn } from "@/lib/utils";
@@ -40,19 +40,7 @@ interface ProfileClientProps {
     profile: SafeUser | null;
 }
 
-type FormValues = {
-    name: string;
-    description: string;
-    location: string;
-    languages: string[];
-    title: string;
-    email: string;
-    phone: string;
-    profileImage: string | null;
-    role: UserRole;
-    is_verified: boolean;
-    createdAt: string;
-};
+type FormValues = z.input<typeof UserDataSchema>;
 
 const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
@@ -61,12 +49,11 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
     const [editMode, setEditMode] = useState(false);
     const [showOwnerModal, setShowOwnerModal] = useState(false);
     const [showVerificationModal, setShowVerificationModal] = useState(false);
-    const rentModel = useRentModal();
+    const uiStore = useUIStore();
     const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
     const form = useForm<FormValues>({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolver: zodResolver(UserDataSchema) as any,
+        resolver: zodResolver(UserDataSchema),
         defaultValues: (() => {
             if (!profile) return {
                 name: "",
@@ -106,7 +93,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
     const userData = watch();
 
     const onRent = () => {
-        rentModel.onOpen();
+        uiStore.onOpen("rent");
     };
 
     useEffect(() => {
@@ -139,13 +126,14 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
         try {
             const updatedUser = await updateUser(payload);
-            const safeData = {
-                ...UserDataSchema.parse(updatedUser),
+            const parsed = UserDataSchema.parse(updatedUser);
+            const safeData: FormValues = {
+                ...parsed,
                 createdAt: updatedUser.createdAt ? new Date(updatedUser.createdAt).toISOString() : new Date().toISOString()
-            } as FormValues;
+            };
 
             form.reset(safeData);
-            setIsVerified(safeData.is_verified);
+            setIsVerified(!!safeData.is_verified);
             setCurrentUser(updatedUser);
 
             setShowLoadingOverlay(false);
@@ -179,9 +167,16 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                 const [uploadedUrl] = await uploadToR2([finalProfileImage], "profiles");
                 finalProfileImage = uploadedUrl;
             }
-            const { name, description, location, languages, title, phone } = data;
+            const validatedData = UserDataSchema.parse(data);
+            const { name, description, location, languages, title, phone } = validatedData;
+
             await updateUser({
-                name, description, location, languages, title, phone,
+                name: name || undefined,
+                description: description || undefined,
+                location: location || undefined,
+                languages: languages || undefined,
+                title: title || undefined,
+                phone: phone || undefined,
                 profileImage: finalProfileImage || null,
             });
             setValue("profileImage", finalProfileImage as string);

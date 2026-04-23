@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { SafeUser } from "@/types/user";
 
-import useLoginModel from "./useLoginModal";
+import useUIStore from "./useUIStore";
 
 type Props = {
   listingId: string;
@@ -14,7 +14,7 @@ type Props = {
 
 function useFavorite({ listingId, currentUser }: Props) {
   const router = useRouter();
-  const loginModel = useLoginModel();
+  const uiStore = useUIStore();
 
   const hasFavorite = useMemo(() => {
     const list = currentUser?.favoriteIds || [];
@@ -27,7 +27,7 @@ function useFavorite({ listingId, currentUser }: Props) {
       e.stopPropagation();
 
       if (!currentUser) {
-        return loginModel.onOpen();
+        return uiStore.onOpen("login");
       }
 
       try {
@@ -50,7 +50,7 @@ function useFavorite({ listingId, currentUser }: Props) {
         });
       }
     },
-    [currentUser, hasFavorite, listingId, loginModel, router]
+    [currentUser, hasFavorite, listingId, uiStore, router]
   );
 
   return {

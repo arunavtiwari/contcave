@@ -33,11 +33,14 @@ export const UserDataSchema = z.object({
     title: z.string().nullish().transform(val => val || ""),
     email: z.string().nullish().transform(val => val || ""),
     phone: z.string().nullish().transform(val => val || ""),
-    profileImage: z.string().nullish(),
-    image: z.string().nullish(),
-    role: z.enum(["CUSTOMER", "OWNER", "ADMIN"]).nullish().transform(val => val || UserRole.CUSTOMER),
+    profileImage: z.string().nullish().transform(val => val || null),
+    image: z.string().nullish().transform(val => val || null),
+    role: z.nativeEnum(UserRole).nullish().transform(val => val || UserRole.CUSTOMER),
     is_verified: z.boolean().nullish().transform(val => !!val),
-    createdAt: z.union([z.string(), z.number(), z.date()]).nullish(),
+    createdAt: z.union([z.string(), z.number(), z.date()]).nullish().transform(val => {
+        if (!val) return new Date().toISOString();
+        return new Date(val).toISOString();
+    }),
 });
 
 export type UserDataBoundaryPayload = z.infer<typeof UserDataSchema>;

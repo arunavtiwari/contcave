@@ -10,11 +10,11 @@ import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import { HERO_HIGHLIGHTS } from "@/constants/landing";
 import useCities from "@/hooks/useCities";
-import useSearchModal from "@/hooks/useSearchModal";
+import useUIStore from "@/hooks/useUIStore";
 import { formatISTDate } from "@/lib/utils";
 
 const HeroSearch = () => {
-  const searchModal = useSearchModal();
+  const uiStore = useUIStore();
   const params = useSearchParams();
   const { getByValue } = useCities();
 
@@ -41,7 +41,7 @@ const HeroSearch = () => {
   return (
     <button
       type="button"
-      onClick={searchModal.onOpen}
+      onClick={() => uiStore.onOpen("search")}
       aria-label="Open studio search"
       className="group flex w-full max-w-lg flex-row items-center rounded-full border border-background/20 bg-background/10 backdrop-blur-2xl p-1 text-left shadow-sm transition-all active:scale-[0.98] md:max-w-xl lg:max-w-2xl"
     >

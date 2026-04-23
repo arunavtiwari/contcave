@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { sendEmail } from "@/lib/email/mailer";
+import { getCustomerOnboardingTemplate } from "@/lib/email/templates";
 import { normalizePhone } from "@/lib/phone";
 import prisma from "@/lib/prismadb";
 import { UserService } from "@/lib/user/service";
@@ -59,6 +61,14 @@ export async function POST(request: NextRequest) {
         phone: normalizedPhone || undefined,
         role: isOwner ? UserRole.OWNER : UserRole.CUSTOMER
       });
+
+      if (!isOwner) {
+        sendEmail({
+          toEmail: user.email!,
+          subject: "Welcome to ContCave!",
+          html: getCustomerOnboardingTemplate(user.name || "there"),
+        }).catch(err => console.error("[RegistrationEmail] Failed:", err));
+      }
 
       return createSuccessResponse(user, 201, "User registered successfully");
     } catch (error) {

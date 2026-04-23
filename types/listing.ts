@@ -18,7 +18,14 @@ export type safeListing = Omit<Listing, "createdAt" | "addons" | "packages" | "o
 export type ActualLocation = {
     lat: number;
     lng: number;
+    latlng: [number, number];
     address: string;
+    label?: string;
+    region?: string;
+    value?: string;
+    flag?: string;
+    country?: string;
+    display_name?: string;
     additionalInfo?: string;
     [key: string]: unknown;
 };
@@ -51,5 +58,13 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
 
     sets?: ListingSet[];
     blocks?: ListingBlock[];
+};
+
+export type ListingBlockData = {
+    date: string;
+    startTime: string;
+    endTime: string;
+    setIds: string[];
+    reason?: string | null;
 };
 

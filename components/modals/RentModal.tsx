@@ -1092,10 +1092,10 @@ export default function RentModal() {
         imageSrc: finalImageUrls,
         category: data.category,
         locationValue,
-        actualLocation: data.actualLocation ? {
+        actualLocation: {
           ...data.actualLocation,
           latlng: data.actualLocation.latlng as [number, number]
-        } : undefined as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        },
         price: Number(data.price),
         amenities: Array.isArray(data.amenities) ? data.amenities : [],
         otherAmenities: Array.isArray(data.otherAmenities) ? data.otherAmenities : [],

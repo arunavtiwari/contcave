@@ -22,7 +22,7 @@ import MenuItem from "@/components/navbar/MenuItem";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import useUIStore from "@/hooks/useUIStore";
-import { SafeUser } from "@/types/user";
+import { SafeUser, UserRole } from "@/types/user";
 
 type Props = {
   currentUser?: SafeUser | null;
@@ -152,7 +152,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
                   <>
                     <MenuItem onClick={closeMenu} href="/dashboard/bookings" label="My Bookings" icon={FiCalendar} />
                     <MenuItem onClick={closeMenu} href="/dashboard/favorites" label="My Favorites" icon={FiHeart} />
-                    {(currentUser?.role === "OWNER" || currentUser?.role === "ADMIN") && (
+                    {(currentUser?.role === UserRole.OWNER || currentUser?.role === UserRole.ADMIN) && (
                       <>
                         <MenuItem onClick={closeMenu} href="/dashboard/reservations" label="Guest Reservations" icon={FiUserCheck} />
                         <MenuItem onClick={closeMenu} href="/dashboard/properties" label="My Properties" icon={MdApartment} />

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import useAddonModal from '@/hooks/useAddonModal';
+import useUIStore from '@/hooks/useUIStore';
 import { Addon } from "@/types/addon";
 
 import ImageCheckbox from './ImageCheckbox';
@@ -19,7 +19,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
     rentModal = false,
 }) => {
     const [selectedAddons, setSelectedAddons] = useState<Addon[]>(initialSelectedAddons);
-    const addonModal = useAddonModal();
+    const uiStore = useUIStore();
 
     useEffect(() => {
         const uniqueSelected = Array.from(new Map(initialSelectedAddons.map(item => [item.name, item])).values());
@@ -29,8 +29,8 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
 
 
     const handleCreateCustomAddon = useCallback(() => {
-        addonModal.onOpen();
-    }, [addonModal]);
+        uiStore.onOpen("addon");
+    }, [uiStore]);
 
     const handleAddonChange = (
         addonName: string,

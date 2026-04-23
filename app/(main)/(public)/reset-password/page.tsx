@@ -10,14 +10,14 @@ import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Skeleton from "@/components/ui/Skeleton";
-import useLoginModal from "@/hooks/useLoginModal";
+import useUIStore from "@/hooks/useUIStore";
 
 const ResetPasswordContent = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams?.get("token");
     const [isLoading, setIsLoading] = useState(false);
-    const loginModal = useLoginModal();
+    const uiStore = useUIStore();
 
     const {
         register,
@@ -52,7 +52,7 @@ const ResetPasswordContent = () => {
             })
             .then(() => {
                 toast.success("Password reset successfully");
-                loginModal.onOpen();
+                uiStore.onOpen("login");
                 router.push("/");
             })
             .catch((error) => {

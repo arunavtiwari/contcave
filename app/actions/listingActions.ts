@@ -8,13 +8,12 @@ import prisma from "@/lib/prismadb";
 import { isAdmin, isOwner } from "@/lib/user/permissions";
 import { dayStatusSchema } from "@/schemas/dayStatus";
 import { listingBaseSchema, ListingSchema, listingSchema } from "@/schemas/listing";
-import type { FullListing } from "@/types/listing";
+import type { FullListing, ListingBlockData } from "@/types/listing";
 
 /**
  * Standardized Action Response
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ActionResponse<T = any> = {
+export type ActionResponse<T = unknown> = {
     success: boolean;
     data?: T;
     error?: string;
@@ -150,7 +149,6 @@ export async function getPendingListings() {
     }
 }
 
-// Fetch blocks for a listing
 export async function getBlocksAction(listingId: string) {
     try {
         return await ListingService.getBlocks(listingId);
@@ -160,9 +158,7 @@ export async function getBlocksAction(listingId: string) {
     }
 }
 
-// Create a block for a listing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function createBlockAction(listingId: string, data: any): Promise<ActionResponse> {
+export async function createBlockAction(listingId: string, data: ListingBlockData): Promise<ActionResponse> {
     try {
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) return { success: false, error: "Unauthorized" };

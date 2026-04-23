@@ -2,8 +2,8 @@ import crypto from "crypto";
 import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
-import { resetPasswordEmail } from "@/lib/email/email";
 import { sendEmail } from "@/lib/email/mailer";
+import { getResetPasswordTemplate } from "@/lib/email/templates";
 import { UserService } from "@/lib/user/service";
 import { emailVerificationSchema } from "@/schemas/verification";
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
         const resetUrl = `${nextAuthUrl}/reset-password?token=${resetToken}`;
 
         try {
-            const html = resetPasswordEmail(user.name || "User", resetUrl);
+            const html = getResetPasswordTemplate(user.name || "User", resetUrl);
             await sendEmail({
                 toEmail: user.email,
                 toName: user.name || "User",

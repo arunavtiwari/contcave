@@ -42,13 +42,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+            async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error("Invalid credentials");
                 }
 
                 const user = await prisma.user.findUnique({
-                    where: { email: credentials.email as string },
+                    where: { email: String(credentials?.email || "") },
                 });
 
                 if (!user || !user.hashedPassword) {
@@ -60,14 +60,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 }
 
                 const isCorrectPassword = await bcrypt.compare(
-                    credentials.password as string,
+                    String(credentials?.password || ""),
                     user.hashedPassword
                 );
                 if (!isCorrectPassword) {
                     throw new Error("Invalid credentials");
                 }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                return user as any;
+                return user;
             },
         }),
     ],

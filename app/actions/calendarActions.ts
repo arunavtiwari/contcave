@@ -66,10 +66,8 @@ export async function getCalendarEventsAction(listingId?: string) {
             if (!listing || !listing.user) return [];
 
             const owner = listing.user;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            googleAccount = (owner as any).accounts.find(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (account: any) => account.provider === "google-calendar"
+            googleAccount = owner.accounts.find(
+                (account) => account.provider === "google-calendar"
             );
 
             if (!googleAccount || !googleAccount.access_token) return [];
@@ -112,8 +110,7 @@ export async function getCalendarEventsAction(listingId?: string) {
 
             return response.data.items || [];
         } catch (error: unknown) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const err = error as any;
+            const err = error as { code?: number; status?: number; message?: string };
             const isInvalidCredentials =
                 err.code === 401 ||
                 err.status === 401 ||

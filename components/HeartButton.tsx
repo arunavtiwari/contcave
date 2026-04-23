@@ -30,6 +30,7 @@ function HeartButton({ listingId, currentUser }: Props) {
         alt="Heart Icon"
         width={22}
         height={22}
+        style={{ height: "auto" }}
         className="object-contain transition contrast-150"
       />
     </div>

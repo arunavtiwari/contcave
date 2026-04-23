@@ -6,7 +6,7 @@ import { generateUniqueSlug } from "@/lib/slug";
 import { sanitizeStringList } from "@/lib/strings/sanitizeStringList";
 import { listingSchema } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
-import { ActualLocation, FullListing } from "@/types/listing";
+import { ActualLocation, FullListing, ListingBlockData } from "@/types/listing";
 
 import { jitterLatLng } from "./utils";
 
@@ -163,13 +163,13 @@ export class ListingService {
         if (listingData.price != null) listingData.price = Math.round(Number(listingData.price));
 
         // 3. Normalized Location (Privacy Jitter)
-        if (listingData.actualLocation) {
-            const loc = listingData.actualLocation as Record<string, unknown>;
-            const privacySafeLatLng = jitterLatLng(loc.latlng as [number, number]);
+        const loc = listingData.actualLocation;
+        if (loc) {
+            const privacySafeLatLng = jitterLatLng(loc.latlng);
             listingData.actualLocation = {
                 ...loc,
                 latlng: privacySafeLatLng || [0, 0]
-            } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+            } as typeof loc;
         }
 
         // 4. Atomic Transaction
@@ -281,7 +281,7 @@ export class ListingService {
     }
 
 
-    static async createBlock(userId: string, listingId: string, data: Record<string, unknown>) {
+    static async createBlock(userId: string, listingId: string, data: ListingBlockData) {
         const listing = await prisma.listing.findUnique({
             where: { id: listingId },
             select: { userId: true },
@@ -398,6 +398,10 @@ export class ListingService {
         };
 
         const normalizedTypes = Array.from(new Set(((l.type as string[]) || []).map(t => legacyTypeMap[t] || t)));
+        if (!l.user) {
+            console.error(`[ListingService] Data integrity violation: Listing ${l.id} missing owner.`);
+            return null as unknown as FullListing;
+        }
 
         return {
             ...l,
@@ -432,8 +436,7 @@ export class ListingService {
                 emailVerified: l.user.emailVerified?.toISOString() || null,
                 verified_at: l.user.verified_at ? l.user.verified_at.toISOString() : null,
                 markedForDeletionAt: l.user.markedForDeletionAt ? l.user.markedForDeletionAt.toISOString() : null,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                role: (l.user as any).role,
+                role: l.user.role,
             },
         };
     }

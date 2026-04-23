@@ -18,6 +18,7 @@ import {
   $isRangeSelection,
   EditorState,
   FORMAT_TEXT_COMMAND,
+  type LexicalCommand,
   type LexicalEditor,
   REDO_COMMAND,
   SELECTION_CHANGE_COMMAND,
@@ -147,7 +148,7 @@ function ToolbarPlugin() {
     );
   }, [editor, updateToolbar]);
 
-  const onFormat = (command: any, payload?: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const onFormat = <T,>(command: LexicalCommand<T>, payload: T) => {
     editor.dispatchCommand(command, payload);
   };
 

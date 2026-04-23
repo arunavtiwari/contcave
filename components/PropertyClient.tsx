@@ -452,7 +452,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     Detailed Address
                                 </label>
                                 <AutoComplete
-                                    value={(initialListing.actualLocation as any)?.display_name || ""} // eslint-disable-line @typescript-eslint/no-explicit-any
+                                    value={initialListing.actualLocation?.display_name || ""}
                                     onChange={(sel: AutoCompleteValue) => {
                                         handleInputChange("actualLocation", {
                                             ...(initialListing.actualLocation || {}),
