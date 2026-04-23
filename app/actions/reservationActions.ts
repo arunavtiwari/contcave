@@ -1,18 +1,16 @@
-"use server";
-
 import { revalidatePath } from "next/cache";
 
-import getCurrentUser from "@/app/actions/getCurrentUser";
+import { createAction } from "@/lib/actions-utils";
 import { ReservationService } from "@/lib/reservation/service";
-
-export type ActionResponse<T = unknown> = {
-    success: boolean;
-    data?: T;
-    error?: string;
-};
+import {
+    cancelReservationSchema,
+    checkBookingSchema,
+    deleteReservationSchema,
+    updateReservationSchema
+} from "@/schemas/reservation";
 
 /**
- * Fetch reservations
+ * Fetch reservations (Read-only, no wrapper needed but keeping logic clean)
  */
 export async function getReservations(params: { listingId?: string; userId?: string; authorId?: string }) {
     try {
@@ -26,68 +24,55 @@ export async function getReservations(params: { listingId?: string; userId?: str
 /**
  * Cancel a reservation
  */
-export async function cancelReservation(reservationId: string): Promise<ActionResponse> {
-    try {
-        const user = await getCurrentUser();
-        if (!user?.id) return { success: false, error: "Unauthorized" };
-
-        await ReservationService.updateStatus(reservationId, user.id, 3);
+export const cancelReservationAction = createAction(
+    cancelReservationSchema,
+    { requireAuth: true },
+    async (data, { user }) => {
+        await ReservationService.updateStatus(data.reservationId, user!.id, 3);
         revalidatePath("/dashboard/reservations");
         revalidatePath("/dashboard/trips");
         return { success: true };
-    } catch (error) {
-        console.error("[cancelReservation] Error:", error);
-        return { success: false, error: "Failed to cancel reservation" };
     }
-}
+);
 
 /**
  * Update reservation status (Approve/Reject)
  */
-export async function updateReservation(reservationId: string, data: { isApproved: number; rejectReason?: string }): Promise<ActionResponse> {
-    try {
-        const user = await getCurrentUser();
-        if (!user?.id) return { success: false, error: "Unauthorized" };
-
-        await ReservationService.updateStatus(reservationId, user.id, data.isApproved, data.rejectReason);
+export const updateReservationAction = createAction(
+    updateReservationSchema,
+    { requireAuth: true },
+    async (data, { user }) => {
+        await ReservationService.updateStatus(data.reservationId, user!.id, data.isApproved, data.rejectReason);
         revalidatePath("/dashboard/reservations");
         return { success: true };
-    } catch (error) {
-        console.error("[updateReservation] Error:", error);
-        return { success: false, error: "Failed to update reservation" };
     }
-}
+);
 
 /**
  * Delete a reservation
  */
-export async function deleteReservation(reservationId: string): Promise<ActionResponse> {
-    try {
-        const user = await getCurrentUser();
-        if (!user?.id) return { success: false, error: "Unauthorized" };
-
-        await ReservationService.delete(reservationId, user.id);
+export const deleteReservationAction = createAction(
+    deleteReservationSchema,
+    { requireAuth: true },
+    async (data, { user }) => {
+        await ReservationService.delete(data.reservationId, user!.id);
         revalidatePath("/dashboard/reservations");
         revalidatePath("/dashboard/trips");
         return { success: true };
-    } catch (error) {
-        console.error("[deleteReservation] Error:", error);
-        return { success: false, error: "Failed to delete reservation" };
     }
-}
+);
 
 /**
  * Check if the current user has an active booking for a listing
  */
-export async function checkBookingAction(listingId: string): Promise<ActionResponse<{ id: string; canReview: boolean; status: string; endAt: string } | null>> {
-    try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser?.id || !listingId) return { success: true, data: null };
-
-        const res = await ReservationService.checkUserBooking(currentUser.id, listingId);
-        return { success: true, data: res };
-    } catch (error) {
-        console.error("[checkBookingAction] Error:", error);
-        return { success: false, error: "Failed to check booking status" };
+export const checkBookingAction = createAction(
+    checkBookingSchema,
+    { requireAuth: false },
+    async (data, { user }) => {
+        if (!user?.id) return null;
+        return await ReservationService.checkUserBooking(user.id, data.listingId);
     }
-}
+);
+// Compatibility Aliases for Legacy Components
+export const deleteReservation = deleteReservationAction;
+export const updateReservation = updateReservationAction;

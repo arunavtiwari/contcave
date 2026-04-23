@@ -123,7 +123,6 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
     <main className="bg-background min-h-screen">
       <script
         type="application/ld+json"
-        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: safeJsonLd(articleJsonLd) }}
       />
 

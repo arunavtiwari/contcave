@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
@@ -91,6 +92,9 @@ export default function Home(props: HomeProps) {
 
 async function HomeContent(props: HomeProps) {
   const searchParams = await props.searchParams;
+  const headerList = await headers();
+  const nonce = headerList.get("x-nonce") || "";
+
   const [listing, currentUser] = await Promise.all([
     getListings(searchParams),
     getCurrentUser(),

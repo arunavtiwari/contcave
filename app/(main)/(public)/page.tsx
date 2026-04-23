@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 import CTA from "@/components/landing/CTA";
 import FAQ from "@/components/landing/FAQ";
@@ -84,7 +85,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const headerList = await headers();
+  const nonce = headerList.get("x-nonce") || "";
+
   return (
     <main>
       <script
@@ -108,7 +112,7 @@ export default function Home() {
       <SocialProof />
 
       {/* 6. FAQ */}
-      <FAQ />
+      <FAQ nonce={nonce} />
 
       {/* 7. For Studio Owners —  CTA */}
       <CTA />

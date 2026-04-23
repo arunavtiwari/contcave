@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
@@ -10,6 +9,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
+import { registerOwnerAction } from "@/app/actions/authActions";
 import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
@@ -17,7 +17,6 @@ import Heading from "@/components/ui/Heading";
 import useUIStore from "@/hooks/useUIStore";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { type OwnerRegisterSchema, ownerRegisterSchema } from "@/schemas/auth";
-import { UserRole } from "@/types/user";
 
 function OwnerRegisterModal() {
     const uiStore = useUIStore();
@@ -26,7 +25,7 @@ function OwnerRegisterModal() {
     const [showPassword, setShowPassword] = useState(false);
 
     const {
-        register,
+        register: formRegister,
         handleSubmit,
         formState: { errors },
     } = useForm<OwnerRegisterSchema>({
@@ -43,7 +42,14 @@ function OwnerRegisterModal() {
         setIsLoading(true);
 
         try {
-            await axios.post("/api/register", { ...data, role: UserRole.OWNER });
+            const response = await registerOwnerAction(data);
+
+            if (!response.success) {
+                toast.error(response.error || "Registration failed", {
+                    id: "Owner_Error_Action"
+                });
+                return;
+            }
 
             const callback = await signIn("credentials", {
                 email: data.email,
@@ -62,13 +68,9 @@ function OwnerRegisterModal() {
                 router.refresh();
                 uiStore.onClose("ownerRegister");
             }
-        } catch (err: unknown) {
-            let errorMsg = "Something went wrong during registration.";
-            if (axios.isAxiosError(err)) {
-                errorMsg = err.response?.data?.error || err.response?.data || errorMsg;
-            }
-            toast.error(errorMsg, {
-                id: "Owner_Error_1"
+        } catch (_err: unknown) {
+            toast.error("Something went wrong during registration.", {
+                id: "Owner_Error_Unknown"
             });
         } finally {
             setIsLoading(false);
@@ -93,7 +95,7 @@ function OwnerRegisterModal() {
                         label="Email Address"
                         placeholder="Enter your email"
                         disabled={isLoading}
-                        register={register("email")}
+                        register={formRegister("email")}
                         errors={errors}
                     />
 
@@ -103,7 +105,7 @@ function OwnerRegisterModal() {
                         label="Full Name"
                         placeholder="Enter your full name"
                         disabled={isLoading}
-                        register={register("name")}
+                        register={formRegister("name")}
                         errors={errors}
                     />
 
@@ -114,7 +116,7 @@ function OwnerRegisterModal() {
                         placeholder="Enter your phone number"
                         type="tel"
                         disabled={isLoading}
-                        register={register("phone")}
+                        register={formRegister("phone")}
                         errors={errors}
                     />
 
@@ -124,7 +126,7 @@ function OwnerRegisterModal() {
                         label="Password"
                         placeholder="Create a password"
                         disabled={isLoading}
-                        register={register("password")}
+                        register={formRegister("password")}
                         type={showPassword ? "text" : "password"}
                         errors={errors}
                         customRightContent={

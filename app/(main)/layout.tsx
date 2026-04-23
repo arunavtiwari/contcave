@@ -217,7 +217,6 @@ export default async function RootLayout({
             <head>
                 <script
                     type="application/ld+json"
-                    nonce={nonce}
                     dangerouslySetInnerHTML={{
                         __html: safeJsonLd([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]),
                     }}

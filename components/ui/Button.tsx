@@ -1,124 +1,125 @@
-"use client";
-
+import { cva, type VariantProps } from "class-variance-authority";
 import Link from "next/link";
 import React from "react";
 import { IconType } from "react-icons";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
-type ButtonVariant = "default" | "outline" | "success" | "destructive" | "ghost" | "secondary";
+import { cn } from "@/lib/utils";
 
-type ButtonSize = "sm" | "md" | "lg" | "xl";
+const buttonVariants = cva(
+  "relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 transition active:scale-[0.98] flex justify-center items-center gap-2 border",
+  {
+    variants: {
+      variant: {
+        default: "bg-foreground border-foreground text-background",
+        success: "bg-success border-success text-background",
+        destructive: "bg-destructive border-destructive text-destructive-foreground",
+        ghost: "bg-transparent border-transparent text-foreground",
+        secondary: "bg-background/10 border-background/20 text-background",
+        outline: "bg-background border-foreground/20 text-foreground",
+      },
+      size: {
+        sm: "h-10 px-4 text-xs",
+        md: "h-11 px-6 text-sm",
+        lg: "h-12 px-8 text-sm",
+        xl: "h-14 px-10 text-base",
+      },
+      outline: {
+        true: "",
+      },
+      rounded: {
+        true: "rounded-full",
+        false: "rounded-xl",
+      },
+      fit: {
+        true: "w-fit",
+        false: "w-full",
+      },
+      isIconOnly: {
+        true: "",
+      },
+    },
+    compoundVariants: [
+      { variant: "default", outline: true, className: "bg-background border-foreground text-foreground" },
+      { variant: "success", outline: true, className: "bg-background border-success text-success" },
+      { variant: "destructive", outline: true, className: "bg-background border-destructive text-destructive" },
+      { variant: "ghost", outline: true, className: "bg-transparent border-border text-foreground" },
+      { variant: "secondary", outline: true, className: "border-background/20 text-background" },
+      // Icon only sizes
+      { isIconOnly: true, size: "sm", className: "w-9 h-9 p-0" },
+      { isIconOnly: true, size: "md", className: "w-11 h-11 p-0" },
+      { isIconOnly: true, size: "lg", className: "w-12 h-12 p-0" },
+      { isIconOnly: true, size: "xl", className: "w-14 h-14 p-0" },
+      { isIconOnly: true, className: "rounded-lg border-none active:scale-95" },
+    ],
+    defaultVariants: {
+      variant: "default",
+      size: "md",
+      rounded: false,
+      fit: false,
+    },
+  }
+);
 
-type Props = {
+interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   label?: string;
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  disabled?: boolean;
   loading?: boolean;
-  outline?: boolean;
-  rounded?: boolean;
   icon?: IconType;
   isColor?: boolean;
-  classNames?: string;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  fit?: boolean;
   href?: string;
   target?: "_blank" | "_self";
-  type?: "button" | "submit" | "reset";
-  children?: React.ReactNode;
-};
+  classNames?: string;
+}
 
 const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
   (
     {
       label,
-      onClick,
-      disabled,
       loading,
       outline,
       rounded,
       icon: Icon,
       isColor,
-      classNames,
-      variant = "default",
-      size = "md",
-      fit,
       href,
       target,
       type = "button",
+      variant,
+      size,
+      fit,
+      className,
+      classNames,
       children,
+      disabled,
+      onClick,
+      ...props
     },
     ref
   ) => {
     const isIconOnly = !label && !!Icon && !children;
-    const sizeClasses = {
-      sm: isIconOnly ? "w-9 h-9" : "h-10 px-4 text-xs",
-      md: isIconOnly ? "w-11 h-11" : "h-11 px-6 text-sm",
-      lg: isIconOnly ? "w-12 h-12" : "h-12 px-8 text-sm",
-      xl: isIconOnly ? "w-14 h-14" : "h-14 px-10 text-base",
-    };
 
-    const widthClass = isIconOnly ? "" : fit ? "w-fit" : "w-full";
-
-    const activeScale = isIconOnly ? "active:scale-95" : "active:scale-[0.98]";
-    const baseClasses = `relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 transition ${activeScale} flex justify-center items-center gap-2 ${isIconOnly ? "" : "border"
-      } hover:opacity-90 ${sizeClasses[size]} ${widthClass}`;
-
-    const roundedClass = rounded
-      ? "rounded-full"
-      : isIconOnly
-        ? "rounded-lg"
-        : "rounded-xl";
-
-    const variantClasses = {
-      default: {
-        solid: "bg-foreground border-foreground text-background",
-        outline: "bg-background border-foreground text-foreground",
-      },
-      success: {
-        solid: "bg-success border-success text-background",
-        outline: "bg-background border-success text-success",
-      },
-      destructive: {
-        solid: "bg-destructive border-destructive text-destructive-foreground",
-        outline: "bg-background border-destructive text-destructive",
-      },
-      ghost: {
-        solid: isIconOnly
-          ? "hover:bg-foreground/5 text-foreground/70 hover:text-foreground border-transparent"
-          : "bg-transparent border-transparent text-foreground",
-        outline: "bg-transparent border-border text-foreground",
-      },
-      secondary: {
-        solid: "bg-background/10 border-background/20 text-background",
-        outline: "border-background/20 text-background",
-      },
-      outline: {
-        solid: "bg-background border-foreground/20 text-foreground",
-        outline: "bg-background border-foreground/20 text-foreground",
-      },
-    } as const;
-
-    const finalClasses = `${baseClasses} ${roundedClass} ${variantClasses[variant][outline ? "outline" : "solid"]
-      } ${classNames || ""}`;
+    const finalClasses = cn(
+      buttonVariants({ variant, size, outline, rounded, fit, isIconOnly, className: cn(className, classNames) })
+    );
 
     const iconSize = {
       sm: 16,
       md: 20,
       lg: 24,
       xl: 28,
-    }[size];
+    }[size || "md"];
 
     const content = (
       <>
         {loading && (
           <AiOutlineLoading3Quarters
-            className={`animate-spin text-lg ${outline || variant === "ghost" ? "text-foreground" : "text-background"
-              }`}
+            className={cn(
+              "animate-spin text-lg",
+              outline || variant === "ghost" ? "text-foreground" : "text-background"
+            )}
           />
         )}
         {Icon && !loading && (
-          <Icon size={iconSize} className={`${isColor && "text-info"}`} />
+          <Icon size={iconSize} className={cn(isColor && "text-info")} />
         )}
         {label && <span>{loading ? "Processing..." : label}</span>}
         {children && !loading && children}
@@ -142,17 +143,20 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
 
     return (
       <button
-        type={type}
+        type={type as "button" | "submit" | "reset"}
         disabled={disabled || loading}
         onClick={onClick}
         className={finalClasses}
         ref={ref as React.Ref<HTMLButtonElement>}
+        {...props}
       >
         {content}
       </button>
     );
   }
 );
+
+Button.displayName = "Button";
 
 export default Button;
 

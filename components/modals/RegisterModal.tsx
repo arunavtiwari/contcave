@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useCallback, useState } from "react";
@@ -10,6 +9,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
+import { registerUserAction } from "@/app/actions/authActions";
 import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
@@ -25,7 +25,7 @@ function RegisterModal() {
   const [showPassword, setShowPassword] = useState(false);
 
   const {
-    register,
+    register: formRegister,
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterSchema>({
@@ -41,7 +41,15 @@ function RegisterModal() {
     setIsLoading(true);
 
     try {
-      await axios.post("/api/register", data);
+      const response = await registerUserAction(data);
+
+      if (!response.success) {
+        toast.error(response.error || "Registration failed", {
+          id: "Registration_Error_Action"
+        });
+        return;
+      }
+
       const callback = await signIn("credentials", {
         email: data.email,
         password: data.password,
@@ -59,20 +67,10 @@ function RegisterModal() {
         router.refresh();
         uiStore.onClose("register");
       }
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.data?.error) {
-        toast.error(err.response.data.error, {
-          id: "Registration_Error_Specific"
-        });
-      } else if (axios.isAxiosError(err) && typeof err.response?.data === "string") {
-        toast.error(err.response.data, {
-          id: "Registration_Error_String"
-        });
-      } else {
-        toast.error("Something went wrong during registration.", {
-          id: "Registration_Error_1"
-        });
-      }
+    } catch (_err: unknown) {
+      toast.error("Something went wrong during registration.", {
+        id: "Registration_Error_Unknown"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +104,7 @@ function RegisterModal() {
             label="Email"
             placeholder="Enter your email"
             disabled={isLoading}
-            register={register("email")}
+            register={formRegister("email")}
             errors={errors}
           />
 
@@ -116,7 +114,7 @@ function RegisterModal() {
             label="User Name"
             placeholder="Enter your name"
             disabled={isLoading}
-            register={register("name")}
+            register={formRegister("name")}
             errors={errors}
           />
 
@@ -127,7 +125,7 @@ function RegisterModal() {
             placeholder="Create a password"
             type={showPassword ? "text" : "password"}
             disabled={isLoading}
-            register={register("password")}
+            register={formRegister("password")}
             errors={errors}
             customRightContent={
               <button

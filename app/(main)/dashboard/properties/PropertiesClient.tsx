@@ -25,7 +25,7 @@ function PropertiesClient({ listings, currentUser }: Props) {
   const onEdit = useCallback(
     (_id: string) => {
       startTransition(async () => {
-        const res = await updateListingAction(_id, {}); // Basic update triggers revalidation
+        const res = await updateListingAction({ id: _id }); // Basic update triggers revalidation
         if (res.success) {
           toast.success("Listing updated");
           router.refresh();
@@ -49,7 +49,7 @@ function PropertiesClient({ listings, currentUser }: Props) {
     setIsModalOpen(false);
 
     startTransition(async () => {
-      const res = await deleteListingAction(selectedId);
+      const res = await deleteListingAction({ listingId: selectedId });
       if (res.success) {
         toast.success("Listing deleted");
         router.refresh();

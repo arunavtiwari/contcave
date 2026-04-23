@@ -1,5 +1,4 @@
-"use client";
-
+import { cva, type VariantProps } from "class-variance-authority";
 import { IndianRupee } from "lucide-react";
 import * as React from "react";
 import { FieldErrors, UseFormRegisterReturn } from "react-hook-form";
@@ -7,17 +6,48 @@ import { FieldErrors, UseFormRegisterReturn } from "react-hook-form";
 import FormField from "@/components/inputs/FormField";
 import { cn } from "@/lib/utils";
 
-interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange"> {
+const inputVariants = cva(
+    "w-full font-normal bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed pr-3",
+    {
+        variants: {
+            size: {
+                sm: "h-10 text-xs",
+                md: "h-11 text-sm",
+            },
+            error: {
+                true: "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20",
+                false: "border-border hover:border-border/80 focus:border-foreground focus:ring-1 focus:ring-foreground/10",
+            },
+            formatPrice: {
+                true: "",
+                false: "",
+            },
+            hasLeftContent: {
+                true: "",
+                false: "pl-3",
+            }
+        },
+        compoundVariants: [
+            { formatPrice: true, size: "sm", className: "pl-9" },
+            { formatPrice: true, size: "md", className: "pl-12" },
+            { hasLeftContent: true, formatPrice: false, className: "pl-11" },
+        ],
+        defaultVariants: {
+            size: "md",
+            error: false,
+        },
+    }
+);
+
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange">, VariantProps<typeof inputVariants> {
     label?: string;
     description?: string;
-    formatPrice?: boolean;
     register?: UseFormRegisterReturn;
     id: string;
     errors?: FieldErrors;
     customLeftContent?: React.ReactNode;
     customRightContent?: React.ReactNode;
     variant?: "vertical" | "horizontal";
-    size?: "sm" | "md";
     onNumberChange?: (value: number) => void;
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -36,33 +66,26 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         customLeftContent,
         customRightContent,
         variant = "vertical",
-        size = "md",
+        size,
         onNumberChange,
         onChange,
         ...props
     }, ref) => {
-        const error = errors?.[id]?.message as string;
-
-        const sizeClasses = {
-            sm: "h-10 text-xs",
-            md: "h-11 text-sm",
-        };
+        const errorMsg = errors?.[id]?.message as string;
+        const hasError = !!errorMsg;
 
         const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const isNumeric = type === "number";
-
-            if (isNumeric) {
+            if (type === "number") {
                 e.target.value = e.target.value.replace(/\D/g, "");
-
                 if (onNumberChange) {
                     const val = parseInt(e.target.value, 10);
                     onNumberChange(isNaN(val) ? 0 : val);
                 }
             }
-
             if (onChange) onChange(e);
             if (register?.onChange) register.onChange(e);
         };
+
         const renderedType = type === "number" ? "text" : type;
         const inputMode = type === "number" ? "numeric" : props.inputMode;
 
@@ -71,7 +94,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 id={id}
                 label={label}
                 description={description}
-                error={error}
+                error={errorMsg}
                 required={required}
                 variant={variant}
             >
@@ -94,14 +117,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         type={renderedType}
                         inputMode={inputMode}
                         className={cn(
-                            "w-full font-normal bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed",
-                            sizeClasses[size],
-                            formatPrice ? (size === "sm" ? "pl-9" : "pl-12") : (customLeftContent ? "pl-41.25" : "pl-3"),
-                            customRightContent ? (size === "sm" ? "pr-10" : "pr-12") : "pr-3",
-                            error
-                                ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20"
-                                : "border-border hover:border-border/80 focus:border-foreground focus:ring-1 focus:ring-foreground/10",
-                            className
+                            inputVariants({
+                                size,
+                                error: hasError,
+                                formatPrice: !!formatPrice,
+                                hasLeftContent: !!customLeftContent,
+                                className
+                            })
                         )}
                         ref={ref}
                         required={required}

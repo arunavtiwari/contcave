@@ -75,7 +75,7 @@ function BookingClient({ reservations, currentUser }: Props) {
 
     if (modalAction === "cancel") {
       setDeletingId(selectedId);
-      updateReservation(selectedId, { isApproved: 3 })
+      updateReservation({ reservationId: selectedId, isApproved: 3 })
         .then(() => {
           toast.success("Reservation cancelled", { id: "Reservation_Cancelled" });
           setRefundReservationId(selectedId);
@@ -92,7 +92,7 @@ function BookingClient({ reservations, currentUser }: Props) {
         });
     } else if (modalAction === "delete") {
       setDeletingId(selectedId);
-      deleteReservation(selectedId)
+      deleteReservation({ reservationId: selectedId })
         .then(() => {
           toast.info("Reservation deleted", { id: "Reservation_Deleted" });
           router.refresh();

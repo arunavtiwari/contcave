@@ -73,7 +73,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
     const handleCreateBlock = async () => {
         try {
             setIsCreating(true);
-            const res = await createBlockAction(listingId, newBlock);
+            const res = await createBlockAction({ listingId, ...newBlock });
             if (res.success) {
                 toast.success("Block created successfully");
                 setNewBlock({
@@ -96,7 +96,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
 
     const handleDeleteBlock = async (blockId: string) => {
         try {
-            const res = await deleteBlockAction(listingId, blockId);
+            const res = await deleteBlockAction({ listingId, blockId });
             if (res.success) {
                 toast.success("Block removed");
                 fetchBlocks();

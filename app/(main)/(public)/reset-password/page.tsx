@@ -1,11 +1,11 @@
 "use client";
 
-import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { resetPasswordAction } from "@/app/actions/authActions";
 import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
@@ -37,7 +37,7 @@ const ResetPasswordContent = () => {
         }
     }, [token, router]);
 
-    const onSubmit: SubmitHandler<FieldValues> = (data) => {
+    const onSubmit: SubmitHandler<FieldValues> = async (data) => {
         if (data.password !== data.confirmPassword) {
             toast.error("Passwords do not match");
             return;
@@ -45,22 +45,24 @@ const ResetPasswordContent = () => {
 
         setIsLoading(true);
 
-        axios
-            .post("/api/auth/reset-password", {
-                token,
+        try {
+            const response = await resetPasswordAction({
+                token: token as string,
                 password: data.password,
-            })
-            .then(() => {
+            });
+
+            if (response.success) {
                 toast.success("Password reset successfully");
                 uiStore.onOpen("login");
                 router.push("/");
-            })
-            .catch((error) => {
-                toast.error(error?.response?.data?.error || "Something went wrong");
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
+            } else {
+                toast.error(response.error || "Something went wrong");
+            }
+        } catch (_error) {
+            toast.error("Something went wrong");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     if (!token) return null;

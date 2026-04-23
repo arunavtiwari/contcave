@@ -78,7 +78,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
     async (id: string) => {
       setDeletingId(id);
       try {
-        const res = await updateReservation(id, { isApproved: 1 });
+        const res = await updateReservation({ reservationId: id, isApproved: 1 });
         if (res.success) {
           toast.success("Reservation approved", { id: "Reservation_Approved" });
           router.refresh();
@@ -109,8 +109,8 @@ function ReservationsClient({ reservations, currentUser }: Props) {
 
     if (modalAction === "cancel") {
       setDeletingId(selectedId);
-      updateReservation(selectedId, { isApproved: 3 })
-        .then((res) => {
+      updateReservation({ reservationId: selectedId, isApproved: 3 })
+        .then((res: { success?: boolean; error?: string }) => {
           if (res.success) {
             toast.success("Reservation cancelled", { id: "Reservation_Cancelled" });
             router.refresh();
@@ -125,8 +125,8 @@ function ReservationsClient({ reservations, currentUser }: Props) {
 
     } else if (modalAction === "delete") {
       setDeletingId(selectedId);
-      deleteReservation(selectedId)
-        .then((res) => {
+      deleteReservation({ reservationId: selectedId })
+        .then((res: { success?: boolean; error?: string }) => {
           if (res.success) {
             toast.info("Reservation deleted", { id: "Reservation_Deleted" });
             router.refresh();
@@ -151,11 +151,12 @@ function ReservationsClient({ reservations, currentUser }: Props) {
       }
 
       setDeletingId(selectedId);
-      updateReservation(selectedId, {
+      updateReservation({
+        reservationId: selectedId,
         isApproved: 2,
         rejectReason: finalReason,
       })
-        .then((res) => {
+        .then((res: { success?: boolean; error?: string }) => {
           if (res.success) {
             toast.info("Reservation rejected", { id: "Reservation_Rejected" });
             router.refresh();

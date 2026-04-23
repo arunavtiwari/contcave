@@ -229,7 +229,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                 sets: finalSets,
             };
 
-            const res = await updateListingAction(initialListing.id, payload);
+            const res = await updateListingAction({ id: initialListing.id, ...payload });
             if (res.error) throw new Error(res.error);
             toast.info("Listing has been successfully updated", { id: "Listing_Updated" });
             router.refresh();

@@ -45,7 +45,7 @@ function Select<
                 : state.isFocused
                     ? "var(--color-foreground)"
                     : "var(--color-border)",
-            borderRadius: "0.75rem",
+            borderRadius: "0.75rem", // rounded-xl consistency
             padding: "0",
             boxShadow: state.isFocused ? "0 0 0 1px rgba(0,0,0,0.1)" : "none",
             minHeight: size === "sm" ? "40px" : size === "lg" ? "48px" : "44px",
@@ -57,7 +57,7 @@ function Select<
                     ? "var(--color-destructive)"
                     : state.isFocused
                         ? "var(--color-foreground)"
-                        : "var(--color-border/80)",
+                        : "var(--color-border)",
             },
         }),
         input: (provided) => ({
@@ -106,7 +106,7 @@ function Select<
         }),
         menu: (provided) => ({
             ...provided,
-            borderRadius: "0.75rem",
+            borderRadius: "0.75rem", // rounded-xl consistency
             overflow: "hidden",
             marginTop: "6px",
             boxShadow: "var(--shadow-lg)",

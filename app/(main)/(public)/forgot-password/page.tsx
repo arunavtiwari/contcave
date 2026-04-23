@@ -1,10 +1,10 @@
 "use client";
 
-import axios from "axios";
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { requestPasswordResetAction } from "@/app/actions/authActions";
 import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
@@ -22,20 +22,21 @@ const ForgotPasswordPage = () => {
         },
     });
 
-    const onSubmit: SubmitHandler<FieldValues> = (data) => {
+    const onSubmit: SubmitHandler<FieldValues> = async (data) => {
         setIsLoading(true);
 
-        axios
-            .post("/api/auth/request-reset", data)
-            .then(() => {
-                toast.success("If an account exists, a reset email has been sent.");
-            })
-            .catch(() => {
-                toast.error("Something went wrong.");
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
+        try {
+            const response = await requestPasswordResetAction({ email: data.email });
+            if (response.success) {
+                toast.success(response.data?.message || "If an account exists, a reset email has been sent.");
+            } else {
+                toast.error(response.error || "Something went wrong.");
+            }
+        } catch (_error) {
+            toast.error("Something went wrong.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

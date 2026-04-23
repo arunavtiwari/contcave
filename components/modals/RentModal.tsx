@@ -1202,7 +1202,8 @@ export default function RentModal() {
 
       if (uploadedVerificationDocs.length > 0 || (data.agreementSignature && data.terms)) {
         try {
-          await updateListingAction(listingId, {
+          await updateListingAction({
+            id: listingId,
             verifications: finalVerifications,
           });
         } catch (updateError) {
