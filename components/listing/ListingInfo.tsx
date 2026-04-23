@@ -328,7 +328,6 @@ function ListingInfo({
       <div className="text-base font-normal">
         <SafeHtml
           html={processedDescription || description || ""}
-          sanitize={!processedDescription}
           className={!isExpanded ? "max-h-40 overflow-hidden relative" : ""}
         />
 
@@ -539,7 +538,6 @@ function ListingInfo({
             <Heading title="Terms & Conditions by Host" variant="h5" />
             <SafeHtml
               html={processedTerms || fullListing.customTerms || ""}
-              sanitize={!processedTerms}
             />
           </div>
           <hr />

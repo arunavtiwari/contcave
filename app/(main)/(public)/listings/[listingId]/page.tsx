@@ -1,4 +1,3 @@
-import DOMPurify from "isomorphic-dompurify";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Suspense } from "react";
@@ -257,9 +256,8 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
 
   const url = absoluteUrl(`/listings/${listing.slug ?? listing.id}`);
 
-  // Pre-sanitize and process rich text on the server for zero-glitch rendering
-  const processedDescription = DOMPurify.sanitize(listing.description);
-  const processedTerms = listing.customTerms ? DOMPurify.sanitize(listing.customTerms) : null;
+  const processedDescription = listing.description;
+  const processedTerms = listing.customTerms ?? null;
   const descriptionShouldTruncate = getPlainTextFromHTML(listing.description, 0).length > 250;
 
 
