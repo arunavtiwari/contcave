@@ -132,8 +132,9 @@ function Modal({
               icon={IoMdCloseCircle}
               variant="ghost"
               rounded
-              size="sm"
-              className="opacity-80 hover:opacity-100 p-0"
+              fit
+              size="lg"
+              className="opacity-80 hover:opacity-100 p-0! h-fit!"
             />
           </div>
 
