@@ -43,10 +43,11 @@ const SearchContent = memo(function SearchContent() {
     <Button
       onClick={handleClick}
       variant="ghost"
+      size="md"
       rounded
       outline
       fit
-      className="p-2! bg-background/20 backdrop-blur-md"
+      className="bg-background/20 backdrop-blur-md px-2!"
     >
       <div className="flex flex-row items-center justify-between w-full">
         <div className="text-sm font-semibold px-6">{locationLabel}</div>

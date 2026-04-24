@@ -110,9 +110,10 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
           ref={triggerRef}
           onClick={toggleOpen}
           variant="ghost"
+          size="md"
           outline
           rounded
-          className="ai-outline-menu h-12 w-auto md:h-12 md:px-3 flex items-center gap-3 transition-all duration-300 border bg-background/80! hover:bg-background/90"
+          className="w-auto px-2 flex items-center gap-3 transition-all duration-300 border bg-background/80! hover:bg-background/90"
         >
           <AiOutlineMenu className="text-foreground shrink-0" />
           <div className="hidden md:block shrink-0">
