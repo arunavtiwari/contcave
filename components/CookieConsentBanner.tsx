@@ -92,7 +92,7 @@ const CookieConsentBanner = () => {
 
                             {!isManaging ? (
                                 <>
-                                    <p className="text-foreground/60 text-sm leading-relaxed mb-8 text-center">
+                                    <p className="text-foreground/60 text-sm leading-relaxed mb-6 text-center">
                                         We use premium cookies to enhance your journey, serve personalized experiences, and analyze our traffic. Your data security is our priority.
                                     </p>
                                     <div className="flex flex-col gap-5">
@@ -124,7 +124,7 @@ const CookieConsentBanner = () => {
                                     animate={{ opacity: 1, x: 0 }}
                                     className="space-y-4"
                                 >
-                                    <div className="bg-secondary/30 rounded-3xl p-2 space-y-1">
+                                    <div className="flex flex-col gap-2">
                                         <ConsentToggle
                                             icon={LuShieldCheck}
                                             title="Strictly Necessary"
@@ -195,8 +195,8 @@ const ConsentToggle = ({
     >
         <div className="flex items-center gap-3">
             <div className={cn(
-                "p-2 rounded-xl transition-colors",
-                checked ? "bg-foreground/20 text-foreground" : "bg-muted text-muted-foreground"
+                "p-2 rounded-lg transition-all",
+                checked ? "bg-background text-foreground" : " bg-foreground/5"
             )}>
                 <Icon size={18} />
             </div>
@@ -205,8 +205,9 @@ const ConsentToggle = ({
                     title={title}
                     variant="h6"
                     className="text-sm!"
+                    subtitle={description}
+                    subtitleClassName="text-foreground/60!"
                 />
-                <p className="text-[10px] text-muted-foreground leading-tight max-w-40">{description}</p>
             </div>
         </div>
         <div className="pointer-events-none">
@@ -214,6 +215,7 @@ const ConsentToggle = ({
                 checked={checked}
                 onChange={() => { }}
                 disabled={disabled}
+                size="sm"
             />
         </div>
     </Button>
