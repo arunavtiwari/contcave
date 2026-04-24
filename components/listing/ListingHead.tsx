@@ -73,7 +73,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
         fill
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         priority={index === 0}
-        onLoadingComplete={() => handleImageLoad(index)}
+        onLoad={() => handleImageLoad(index)}
         className={`object-cover hover:brightness-90 ${extraClasses} ${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
       />
     </div>
@@ -94,7 +94,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               alt={`image-${index}`}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              onLoadingComplete={() => handleImageLoad(index)}
+              onLoad={() => handleImageLoad(index)}
               className={`object-cover rounded-lg group-hover:brightness-90 ${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
             />
           </div>
@@ -119,7 +119,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
         {imageSrc.map((url, index) => (
           <SwiperSlide key={index}>
             <div className="w-full h-full relative cursor-pointer" onClick={() => handleImageClick(index)}>
-              <Image src={url} alt={`image-${index}`} fill sizes="100vw" priority={index === 0} className="object-cover w-full" />
+              <Image src={url} alt={`image-${index}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" priority={index === 0} className="object-cover w-full" />
             </div>
           </SwiperSlide>
         ))}
@@ -159,7 +159,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   priority
-                  onLoadingComplete={() => handleImageLoad(0)}
+                  onLoad={() => handleImageLoad(0)}
                   className={`object-cover rounded-l-lg hover:brightness-90 ${loaded[0] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
                 />
               )}
@@ -176,7 +176,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                     alt="image-4"
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
-                    onLoadingComplete={() => handleImageLoad(4)}
+                    onLoad={() => handleImageLoad(4)}
                     className={`object-cover rounded-br-lg hover:brightness-90 ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
                     onClick={() => handleImageClick(4)}
                   />

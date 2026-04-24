@@ -4,22 +4,23 @@ import "leaflet/dist/leaflet.css";
 
 import L from "leaflet";
 import { useEffect } from "react";
-import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
-import Flag from "react-world-flags";
+import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 
 const customIcon = L.icon({
   iconUrl: "/images/icons/marker.png",
   iconRetinaUrl: "/images/icons/marker.png",
   iconSize: [38, 38],
   iconAnchor: [19, 38],
-  popupAnchor: [0, -38],
   shadowUrl: "",
 });
 
 function FlyToMarker({ center }: { center: L.LatLngExpression }) {
   const map = useMap();
   useEffect(() => {
-    map.flyTo(center, 10);
+    map.flyTo(center, 14, {
+      animate: true,
+      duration: 1.5,
+    });
   }, [center, map]);
   return null;
 }
@@ -29,7 +30,7 @@ type Props = {
   locationValue?: string;
 };
 
-function Map({ center, locationValue }: Props) {
+function Map({ center }: Props) {
   const isValidCenter =
     Array.isArray(center) &&
     center.length >= 2 &&
@@ -43,9 +44,10 @@ function Map({ center, locationValue }: Props) {
   return (
     <MapContainer
       center={mapCenter}
-      zoom={isValidCenter ? 10 : 4}
+      zoom={isValidCenter ? 14 : 4}
       scrollWheelZoom={false}
       attributionControl={false}
+      preferCanvas={true}
       className="h-[35vh] w-full rounded-xl z-0"
     >
       <TileLayer
@@ -55,15 +57,7 @@ function Map({ center, locationValue }: Props) {
       {isValidCenter && (
         <>
           <FlyToMarker center={mapCenter} />
-          <Marker position={mapCenter} icon={customIcon}>
-            {locationValue && (
-              <Popup>
-                <div className="flex justify-center items-center animate-bounce">
-                  <Flag code={locationValue} className="w-10" />
-                </div>
-              </Popup>
-            )}
-          </Marker>
+          <Marker position={mapCenter} icon={customIcon} />
         </>
       )}
     </MapContainer>
