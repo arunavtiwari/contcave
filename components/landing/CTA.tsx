@@ -1,16 +1,32 @@
 "use client";
-
 import { motion } from "framer-motion";
+import { useCallback } from "react";
 
 import Container from "@/components/Container";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import useUIStore from "@/hooks/useUIStore";
+import { SafeUser } from "@/types/user";
 
-const CTA = () => {
+interface CTAProps {
+  currentUser?: SafeUser | null;
+}
+
+const CTA: React.FC<CTAProps> = ({ currentUser }) => {
+  const uiStore = useUIStore();
+
+  const handleListStudio = useCallback(() => {
+    if (currentUser) {
+      uiStore.onOpen("rent");
+    } else {
+      uiStore.onOpen("login");
+    }
+  }, [currentUser, uiStore]);
+
   return (
     <section className="py-section">
       <Container>
-        <div className="relative rounded-3xl overflow-hidden bg-background border-l-8 border-l-foreground shadow-sm">
+        <div className="relative rounded-3xl overflow-hidden bg-background border-l-8 border-l-foreground shadow-sm group">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <motion.div
               className="absolute -inset-14 bg-[radial-gradient(circle,var(--color-foreground)_1.5px,transparent_1.5px)] opacity-[0.08] bg-size-[28px_28px]"
@@ -41,13 +57,13 @@ const CTA = () => {
 
               <Button
                 label="List your studio"
-                href="/home"
+                onClick={handleListStudio}
                 size="lg"
                 rounded
                 fit
               />
 
-              <p className="mt-4 text-xs text-muted-foreground/60">
+              <p className="mt-4 text-xs text-muted-foreground/60 italic">
                 No listing fee. Commission only on confirmed bookings.
               </p>
             </motion.div>
@@ -84,13 +100,13 @@ const CTA = () => {
               ].map((item, i) => (
                 <div
                   key={item.num}
-                  className={`flex gap-5 py-5 border-border ${i === 0 ? "border-t" : ""} border-b`}
+                  className={`flex gap-5 py-5 border-border ${i === 0 ? "border-t" : ""} border-b transition-all duration-300 hover:bg-foreground/3 px-4 -mx-4 group/item`}
                 >
-                  <span className="w-6 shrink-0 text-sm font-bold text-foreground mt-0.5">
+                  <span className="w-6 shrink-0 text-sm font-bold text-foreground mt-0.5 group-hover/item:scale-110 transition-transform">
                     {item.num}
                   </span>
                   <div>
-                    <p className="mb-1 text-sm font-medium text-foreground">
+                    <p className="mb-1 text-sm font-semibold text-foreground group-hover/item:translate-x-1 transition-transform">
                       {item.title}
                     </p>
                     <p className="text-sm leading-relaxed text-muted-foreground">

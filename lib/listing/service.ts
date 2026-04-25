@@ -353,6 +353,49 @@ export class ListingService {
     }
 
     /**
+     * Data Retrieval: Fetches a random set of active listings.
+     * Uses a multi-step approach for better randomization without raw SQL.
+     */
+    static async getRandomListings(limit: number = 3): Promise<FullListing[]> {
+        const count = await prisma.listing.count({ where: { active: true } });
+
+        if (count === 0) return [];
+
+        // If count is less than or equal to limit, return all active listings shuffled
+        if (count <= limit) {
+            const listings = await prisma.listing.findMany({
+                where: { active: true },
+                include: { packages: true, sets: { orderBy: { position: "asc" } }, user: true },
+            });
+            return listings
+                .sort(() => Math.random() - 0.5)
+                .map(l => this.normalizeListingWithRelations(l as ListingWithRelations));
+        }
+
+        // Otherwise, fetch all active IDs and pick random ones
+        const allIds = await prisma.listing.findMany({
+            where: { active: true },
+            select: { id: true }
+        });
+
+        const shuffledIds = allIds
+            .map(item => item.id)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, limit);
+
+        const listings = await prisma.listing.findMany({
+            where: { id: { in: shuffledIds } },
+            include: { packages: true, sets: { orderBy: { position: "asc" } }, user: true },
+        });
+
+        // Maintain the random order from shuffledIds
+        return shuffledIds
+            .map(id => listings.find(l => l.id === id))
+            .filter((l): l is NonNullable<typeof l> => !!l)
+            .map(l => this.normalizeListingWithRelations(l as ListingWithRelations));
+    }
+
+    /**
      * Data Retrieval: Fetches a single listing by ID or Slug.
      */
     static async findById(listingId: string): Promise<FullListing | null> {

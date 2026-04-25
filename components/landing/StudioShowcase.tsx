@@ -1,52 +1,65 @@
 "use client";
 import { motion, useScroll, useTransform } from "framer-motion";
-import Link from "next/link";
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import { FiChevronRight } from "react-icons/fi";
 
 import Container from "@/components/Container";
 import ListingCard from "@/components/listing/ListingCard";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
-import { studios } from "@/constants/studios";
+import { FullListing } from "@/types/listing";
 
-const StudioCard = ({ studio, index }: { studio: (typeof studios)[number]; index: number }) => {
+interface StudioShowcaseProps {
+  listings: FullListing[];
+}
+
+const StudioCard = memo(({ studio, index }: { studio: FullListing; index: number }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 + index * 36 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-      viewport={{ once: true }}
+      transition={{
+        duration: 0.8,
+        delay: index * 0.15,
+        ease: [0.21, 0.45, 0.32, 0.9]
+      }}
+      viewport={{ once: true, margin: "-50px" }}
+      className="h-full"
     >
-      <ListingCard data={studio} showHeart={false} useTilt={true} />
+      <ListingCard data={studio} showHeart={false} useTilt={true} allowScale={true} />
     </motion.div>
   );
-};
+});
 
-const StudioShowcase = () => {
+StudioCard.displayName = "StudioCard";
+
+const StudioShowcase: React.FC<StudioShowcaseProps> = ({ listings }) => {
   const sectionRef = useRef<HTMLElement>(null);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"],
   });
-  const decoY = useTransform(scrollYProgress, [0, 1], [0, -80]);
+  const decoY = useTransform(scrollYProgress, [0, 1], [0, -100]);
+
+  if (!listings || listings.length === 0) return null;
 
   return (
     <section ref={sectionRef} id="features" className="relative overflow-hidden py-section">
       <motion.p
         aria-hidden="true"
         style={{ y: decoY }}
-        className="pointer-events-none absolute right-[-2%] top-6 select-none font-foreground leading-none"
+        className="pointer-events-none absolute right-[-2%] top-12 select-none font-foreground leading-none"
       >
         <span
           className="text-transparent opacity-5"
           style={{
-            fontSize: "clamp(80px, 14vw, 160px)",
-            letterSpacing: "-0.04em",
-            fontFamily: "Georgia, serif",
+            fontSize: "clamp(100px, 16vw, 200px)",
+            letterSpacing: "-0.06em",
+            fontFamily: "var(--font-geist-sans), sans-serif",
+            fontWeight: 800,
             lineHeight: 1,
-            WebkitTextStroke: "1.5px var(--color-foreground)",
+            WebkitTextStroke: "2px var(--color-foreground)",
           }}
         >
           STUDIOS
@@ -54,42 +67,46 @@ const StudioShowcase = () => {
       </motion.p>
 
       <Container>
-        <div className="mb-8 flex items-end justify-between">
+        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <SectionHeader
-            badge="Explore spaces"
+            badge="Exclusive Collection"
             title="Studios on ContCave"
             className="mb-0!"
           />
           <Button
-            label="View all studios"
+            label="Explore all studios"
             href="/home"
             variant="outline"
+            outline
             rounded
             fit
-            className="hidden md:flex"
+            className="hidden md:flex group"
             icon={FiChevronRight}
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-          {studios.map((studio, i) => (
+        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          {listings.slice(0, 3).map((studio, i) => (
             <StudioCard key={studio.id} studio={studio} index={i} />
           ))}
         </div>
 
-        <div className="mt-10 text-center md:hidden">
-          <Link
+        <div className="mt-12 text-center md:hidden">
+          <Button
+            label="View all studios"
             href="/home"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-foreground transition-opacity hover:opacity-75"
-          >
-            Explore all spaces
-            <FiChevronRight size={16} />
-          </Link>
+            variant="outline"
+            outline
+            rounded
+            fit
+            className="mx-auto"
+            icon={FiChevronRight}
+          />
         </div>
       </Container>
     </section>
   );
 };
 
-export default StudioShowcase;
+export default memo(StudioShowcase);
 

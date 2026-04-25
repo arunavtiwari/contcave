@@ -216,6 +216,14 @@ model Reservation {
   totalPriceInt       Int?
   reminderSent        Boolean         @default(false)
 
+  unreadCountOwner Int @default(0)
+  unreadCountGuest Int @default(0)
+
+  lastMessageText String?
+  lastMessageAt   DateTime?
+
+  updatedAt DateTime @updatedAt
+
   @@index([userId])
   @@index([listingId])
   @@index([billingDetailId])

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Script from "next/script";
 
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getRandomListings from "@/app/actions/getRandomListings";
 import CTA from "@/components/landing/CTA";
 import FAQ from "@/components/landing/FAQ";
 import ForBrands from "@/components/landing/ForBrands";
@@ -87,7 +89,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const headerList = await headers();
+  const [headerList, currentUser, listings] = await Promise.all([
+    headers(),
+    getCurrentUser(),
+    getRandomListings(3),
+  ]);
   const nonce = headerList.get("x-nonce") || "";
 
   return (
@@ -102,8 +108,8 @@ export default async function Home() {
       {/* 1. Hero —  full-viewport, city search */}
       <Hero />
 
-      {/* 2. Studio Showcase —  6-card grid */}
-      <StudioShowcase />
+      {/* 2. Studio Showcase —  3-card grid with live data */}
+      <StudioShowcase listings={listings} />
 
       {/* 3. For Brands & Agencies —  two-path layout */}
       <ForBrands />
@@ -118,7 +124,7 @@ export default async function Home() {
       <FAQ nonce={nonce} />
 
       {/* 7. For Studio Owners —  CTA */}
-      <CTA />
+      <CTA currentUser={currentUser} />
     </main>
   );
 }

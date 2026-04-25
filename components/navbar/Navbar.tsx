@@ -4,6 +4,7 @@ import { memo } from "react";
 
 import Container from "@/components/Container";
 import Logo from "@/components/navbar/Logo";
+import NotificationMenu from "@/components/navbar/NotificationMenu";
 import Search from "@/components/navbar/Search";
 import UserMenu from "@/components/navbar/UserMenu";
 import { SafeUser } from "@/types/user";
@@ -20,7 +21,10 @@ const Navbar = memo(function Navbar({ currentUser }: Props) {
           <div className="flex flex-row items-center justify-between gap-3 md:gap-0">
             <Logo />
             <Search />
-            <UserMenu currentUser={currentUser} />
+            <div className="flex items-center gap-3">
+              <NotificationMenu currentUser={currentUser} />
+              <UserMenu currentUser={currentUser} />
+            </div>
           </div>
         </Container>
       </div>

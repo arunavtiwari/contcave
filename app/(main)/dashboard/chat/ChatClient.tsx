@@ -6,6 +6,7 @@ import Image from "next/image";
 import { FC, useEffect, useRef, useState } from "react";
 
 import Heading from "@/components/ui/Heading";
+import { incrementUnreadCount,markAsRead } from "@/lib/chat/actions";
 import {
   calculateDurationHours,
   formatBookingDate,
@@ -110,7 +111,10 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (reservationId) {
+      void markAsRead(reservationId);
+    }
+  }, [messages, reservationId]);
 
   useEffect(() => {
     if (!reservationId || !userId || !userEmail) {
@@ -256,6 +260,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
         name: userName,
         timestamp: new Date().toISOString(),
       });
+      void incrementUnreadCount(reservationId, trimmedMessage);
     } catch (err) {
       console.error("[ChatClient] Send message error:", err);
       setNewMessage(trimmedMessage);
