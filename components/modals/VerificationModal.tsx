@@ -18,8 +18,8 @@ import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import {
-  type UnifiedVerificationValues,
-  unifiedVerificationSchema
+  unifiedVerificationSchema,
+  type UnifiedVerificationValues
 } from "@/schemas/verification";
 import { SafeUser } from "@/types/user";
 
@@ -154,7 +154,7 @@ const VerificationModal: React.FC<Props> = ({
         } else {
           toast.error(resp.error || "Failed to send OTP");
         }
-      } catch (err: unknown) {
+      } catch (_err: unknown) {
         toast.error("Failed to connect to verification server");
       }
     });
