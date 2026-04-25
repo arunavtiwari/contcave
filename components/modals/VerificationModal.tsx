@@ -1,11 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { FaCheckCircle, FaShieldAlt } from "react-icons/fa";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import {
   createVendorAction,
@@ -19,11 +18,8 @@ import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import {
-  aadhaarSchema,
-  BankSchema,
-  bankSchema,
-  otpSchema,
-  phoneVerificationSchema,
+  type UnifiedVerificationValues,
+  unifiedVerificationSchema
 } from "@/schemas/verification";
 import { SafeUser } from "@/types/user";
 
@@ -59,309 +55,197 @@ const VerificationModal: React.FC<Props> = ({
 }) => {
   const [userState, setUserState] = useState<SafeUser | null>(currentUser);
   const [step, setStep] = useState(getInitialStep(currentUser));
-  const [loading, setLoading] = useState(false);
-
-
-  const [customErrors, setCustomErrors] = useState<Record<string, string>>({});
-
-
-
-
-  const [phoneState, setPhoneState] = useState({
-    phoneValue: currentUser?.phone || "",
-    verified: !!currentUser?.phone_verified,
-    checking: false,
-  });
-
-  const [emailState, setEmailState] = useState({
-    value: currentUser?.email || "",
-    verified: !!currentUser?.email_verified,
-    checking: false,
-  });
-
-
-
-
-  const [aadhaarState, setAadhaarState] = useState({
-    aadhaarNumber: currentUser?.aadhaar_last4 ? "********" + currentUser.aadhaar_last4 : "",
-    refId: null as string | null,
-    otp: "",
-    verified: !!currentUser?.aadhaar_verified,
-  });
-
-
-
+  const [isPending, startTransition] = useTransition();
+  const [aadhaarRefId, setAadhaarRefId] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     setValue,
-    formState: { errors: bankErrors },
-    reset: resetBankForm,
-  } = useForm<BankSchema>({
-    resolver: zodResolver(bankSchema),
+    watch,
+    reset,
+    formState: { errors }
+  } = useForm<UnifiedVerificationValues>({
+    resolver: zodResolver(unifiedVerificationSchema),
     defaultValues: {
+      email: currentUser?.email || "",
+      phone: currentUser?.phone || "",
+      aadhaarNumber: currentUser?.aadhaar_last4 ? "********" + currentUser.aadhaar_last4 : "",
+      otp: "",
       accountHolderName: currentUser?.bank_verified_name || "",
       accountNumber: "",
       bankName: "",
       ifscCode: "",
       gstNumber: "",
     },
+    mode: "onBlur"
   });
 
+  const emailValue = watch("email");
+  const phoneValue = watch("phone");
+  const aadhaarNumber = watch("aadhaarNumber");
+  const otpValue = watch("otp");
 
   useEffect(() => {
     if (isOpen && currentUser) {
       setUserState(currentUser);
       setStep(getInitialStep(currentUser));
-      setPhoneState({
-        phoneValue: currentUser?.phone || "",
-        verified: !!currentUser?.phone_verified,
-        checking: false,
-      });
-      setEmailState({
-        value: currentUser?.email || "",
-        verified: !!currentUser?.email_verified,
-        checking: false,
-      });
-      setAadhaarState({
-        aadhaarNumber: currentUser?.aadhaar_last4 ? "********" + currentUser.aadhaar_last4 : "",
-        refId: null,
+      setAadhaarRefId(null);
+      reset({
+        email: currentUser.email || "",
+        phone: currentUser.phone || "",
+        aadhaarNumber: currentUser.aadhaar_last4 ? "********" + currentUser.aadhaar_last4 : "",
         otp: "",
-        verified: !!currentUser?.aadhaar_verified,
-      });
-
-      resetBankForm({
-        accountHolderName: currentUser?.bank_verified_name || "",
+        accountHolderName: currentUser.bank_verified_name || "",
         accountNumber: "",
-        ifscCode: "",
         bankName: "",
+        ifscCode: "",
         gstNumber: "",
       });
-      setCustomErrors({});
     }
-  }, [isOpen, currentUser, resetBankForm]);
+  }, [isOpen, currentUser, reset]);
 
+  const verifyEmail = async () => {
+    startTransition(async () => {
+      try {
+        const resp = await verifyEmailAction(emailValue);
+        if (resp?.data?.result === "undeliverable") {
+          toast.error("Email address is not deliverable");
+          return;
+        }
 
-  const getFieldError = (fieldName: string) => {
-    return customErrors[fieldName]
-      ? { type: "manual", message: customErrors[fieldName] }
-      : undefined;
-  };
-
-  const clearCustomError = (field: string) => {
-    setCustomErrors(prev => {
-      const newErr = { ...prev };
-      delete newErr[field];
-      return newErr;
+        const updatedUser = await updateVerificationStepAction({ step: "email" });
+        setUserState(updatedUser as SafeUser);
+        toast.success("Email verified successfully");
+      } catch (_err: unknown) {
+        toast.error("Email verification failed");
+      }
     });
   };
 
-
-
-
-  const verifyEmail = async () => {
-    const emailCheck = z.string().email("Invalid email").safeParse(emailState.value);
-    if (!emailCheck.success) {
-      setCustomErrors({ email: emailCheck.error.issues[0].message });
-      return;
-    }
-
-    clearCustomError("email");
-    setEmailState((s) => ({ ...s, checking: true }));
-
-    try {
-      const resp = await verifyEmailAction(emailState.value);
-      if (resp?.data?.result === "undeliverable") {
-        setEmailState((s) => ({ ...s, verified: false, checking: false }));
-        setCustomErrors({ email: "Email address is not deliverable" });
-        return;
-      }
-
-      const updatedUser = await updateVerificationStepAction({ step: "email" });
-      setUserState(updatedUser as SafeUser);
-      setEmailState((s) => ({ ...s, verified: true, checking: false }));
-      toast.success("Email verified successfully");
-    } catch (err: unknown) {
-      console.error("Email verify error:", err);
-      setEmailState((s) => ({ ...s, verified: false, checking: false }));
-      const message = err instanceof Error ? err.message : "Email verification failed";
-      setCustomErrors({ email: message });
-    }
-  };
-
   const verifyPhone = async () => {
-    const phoneCheck = phoneVerificationSchema.safeParse({ phone: phoneState.phoneValue });
-    if (!phoneCheck.success) {
-      setCustomErrors({ phone: phoneCheck.error.issues[0].message });
-      return;
-    }
-
-    clearCustomError("phone");
-    setPhoneState((s) => ({ ...s, checking: true }));
-
-    try {
-      const updatedUser = await updateVerificationStepAction({
-        step: "phone",
-        phone: phoneState.phoneValue,
-      });
-      setUserState(updatedUser as SafeUser);
-      setPhoneState((s) => ({
-        ...s,
-        verified: true,
-        checking: false,
-        phoneValue: (updatedUser as SafeUser).phone || phoneState.phoneValue,
-      }));
-      toast.success("Phone verified");
-    } catch (err: unknown) {
-      setPhoneState((s) => ({ ...s, verified: false, checking: false }));
-      const message = err instanceof Error ? err.message : "Phone verification failed";
-      setCustomErrors({ phone: message });
-    }
+    startTransition(async () => {
+      try {
+        const updatedUser = await updateVerificationStepAction({
+          step: "phone",
+          phone: phoneValue,
+        });
+        setUserState(updatedUser as SafeUser);
+        toast.success("Phone verified successfully");
+      } catch (_err: unknown) {
+        toast.error("Phone verification failed");
+      }
+    });
   };
-
-
-
 
   const handleGenerateOtp = async () => {
-    const cleaned = aadhaarState.aadhaarNumber.replace(/\s/g, "");
-    const check = aadhaarSchema.pick({ aadhaarNumber: true }).safeParse({ aadhaarNumber: cleaned });
-
-    if (!check.success) {
-      setCustomErrors({ aadhaar: check.error.issues[0].message });
+    const cleaned = (aadhaarNumber || "").replace(/\s/g, "");
+    if (!/^\d{12}$/.test(cleaned)) {
+      toast.error("Please enter a valid 12-digit Aadhaar number");
       return;
     }
 
-    setLoading(true);
-    try {
-      const resp = await generateAadhaarOtpAction(cleaned);
-      if (resp.success) {
-        setAadhaarState((s) => ({ ...s, refId: resp.data.ref_id }));
-        toast.success("OTP sent");
-      } else {
-        setCustomErrors({ aadhaar: resp.error || "Failed to send OTP" });
+    startTransition(async () => {
+      try {
+        const resp = await generateAadhaarOtpAction(cleaned);
+        if (resp.success) {
+          setAadhaarRefId(resp.data.ref_id);
+          toast.success("OTP sent to your linked mobile number");
+        } else {
+          toast.error(resp.error || "Failed to send OTP");
+        }
+      } catch (err: unknown) {
+        toast.error("Failed to connect to verification server");
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to send OTP";
-      setCustomErrors({ aadhaar: message });
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const handleVerifyOtp = async () => {
-    if (!aadhaarState.refId) return;
-    const check = otpSchema.safeParse({ otp: aadhaarState.otp, refId: aadhaarState.refId });
-    if (!check.success) {
-      const otpError = check.error.issues.find((e) => e.path[0] === 'otp');
-      setCustomErrors({ otp: otpError?.message || "Invalid OTP" });
+    if (!aadhaarRefId) return;
+    if (!/^\d{6}$/.test(otpValue || "")) {
+      toast.error("Please enter a valid 6-digit OTP");
       return;
     }
 
-    setLoading(true);
-    try {
-      const verifyResp = await verifyAadhaarOtpAction(aadhaarState.refId, aadhaarState.otp);
-
-      if (verifyResp.success) {
-        const updatedUser = await updateVerificationStepAction({
-          step: "aadhaar",
-          aadhaarRefId: aadhaarState.refId,
-          aadhaarLast4: aadhaarState.aadhaarNumber.slice(-4),
-        });
-        setUserState(updatedUser as SafeUser);
-        setAadhaarState((s) => ({ ...s, verified: true }));
-        toast.success("Aadhaar Verified");
-        setStep(3);
-      } else {
-        setCustomErrors({ otp: verifyResp.error || "Verification failed" });
+    startTransition(async () => {
+      try {
+        const verifyResp = await verifyAadhaarOtpAction(aadhaarRefId, otpValue!);
+        if (verifyResp.success) {
+          const updatedUser = await updateVerificationStepAction({
+            step: "aadhaar",
+            aadhaarRefId: aadhaarRefId,
+            aadhaarLast4: aadhaarNumber!.slice(-4),
+          });
+          setUserState(updatedUser as SafeUser);
+          toast.success("Aadhaar identity confirmed");
+          setStep(3);
+        } else {
+          toast.error(verifyResp.error || "OTP verification failed");
+        }
+      } catch (_err: unknown) {
+        toast.error("Verification server error");
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Verification failed";
-      setCustomErrors({ otp: message });
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
+  const onFinalSubmit = async (data: UnifiedVerificationValues) => {
+    startTransition(async () => {
+      try {
+        const vendorId = generateVendorId();
+        await createVendorAction({
+          vendor_id: vendorId,
+          display_name: userState?.name || data.accountHolderName,
+          email: userState?.email,
+          phone: String(data.phone),
+          bank: {
+            account_holder: data.accountHolderName,
+            account_number: data.accountNumber,
+            ifsc: data.ifscCode,
+          },
+          kyc_details: {
+            account_type: "BUSINESS",
+            business_type: "B2B",
+            ...(data.gstNumber && { gst: data.gstNumber }),
+          },
+        });
 
-  const onBankSubmit = async (data: BankSchema) => {
-    setLoading(true);
-    try {
-      const vendorPayload = {
-        vendor_id: generateVendorId(),
-        display_name: userState?.name || data.accountHolderName,
-        email: userState?.email,
-        phone: String(phoneState.phoneValue),
-        bank: {
-          account_holder: data.accountHolderName,
-          account_number: data.accountNumber,
-          ifsc: data.ifscCode,
-        },
-        kyc_details: {
-          account_type: "BUSINESS",
-          business_type: "B2B",
-          ...(data.gstNumber && { gst: data.gstNumber }),
-        },
-      };
+        const updatedUser = await updateVerificationStepAction({
+          step: "bank",
+          bankVerifiedName: data.accountHolderName,
+          vendorId: vendorId,
+          accountNumber: String(data.accountNumber),
+          ifscCode: data.ifscCode.toUpperCase(),
+          bankName: data.bankName,
+          gstin: data.gstNumber || undefined,
+        });
 
-      await createVendorAction(vendorPayload);
-
-      const updatedUser = await updateVerificationStepAction({
-        step: "bank",
-        bankVerifiedName: data.accountHolderName,
-        vendorId: vendorPayload.vendor_id,
-        accountNumber: String(data.accountNumber),
-        ifscCode: data.ifscCode.toUpperCase(),
-        bankName: data.bankName,
-        gstin: data.gstNumber || undefined,
-      });
-
-      setUserState(updatedUser as SafeUser);
-      toast.success("Bank Verified!");
-      onComplete?.();
-      onCloseAction();
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Bank verification failed";
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
+        setUserState(updatedUser as SafeUser);
+        toast.success("Bank verification complete! Profile fully verified.");
+        onComplete?.();
+        onCloseAction();
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "Bank verification failed");
+      }
+    });
   };
-
-
-
 
   const handleNextClick = () => {
-    setCustomErrors({});
     if (step === 1) {
-      if (!emailState.verified) {
-        setCustomErrors({ email: "Please verify email first" });
-        return;
-      }
-      if (!phoneState.verified) {
-        setCustomErrors({ phone: "Please verify phone first" });
-        return;
-      }
+      if (!userState?.email_verified) return toast.error("Please verify email first");
+      if (!userState?.phone_verified) return toast.error("Please verify phone first");
       setStep(2);
     } else if (step === 2) {
-      if (aadhaarState.verified || userState?.aadhaar_verified) {
+      if (userState?.aadhaar_verified) {
         setStep(3);
+      } else if (!aadhaarRefId) {
+        handleGenerateOtp();
       } else {
-        if (!aadhaarState.refId) {
-          handleGenerateOtp();
-        } else {
-          handleVerifyOtp();
-        }
+        handleVerifyOtp();
       }
     } else if (step === 3) {
-
-      handleSubmit(onBankSubmit)();
+      handleSubmit(onFinalSubmit)();
     }
   };
-
-
-
-
 
   const renderStep = () => {
     if (step === 1) {
@@ -372,60 +256,51 @@ const VerificationModal: React.FC<Props> = ({
             <p className="text-sm text-muted-foreground">Verify email and phone to continue.</p>
           </div>
 
-
           <div className="flex gap-3 items-end">
             <div className="flex-1">
               <Input
                 id="email"
                 label="Email"
-                placeholder="you@example.com"
-                value={emailState.value}
-                onChange={(e) => {
-                  setEmailState(s => ({ ...s, value: e.target.value, verified: false }));
-                  clearCustomError("email");
-                }}
-                disabled={emailState.verified}
-                errors={{ email: getFieldError("email") }}
-                className={emailState.verified ? "border-success bg-success/10 text-success-900" : ""}
+                type="email"
+                required
+                register={register("email")}
+                errors={errors}
+                disabled={!!userState?.email_verified || isPending}
+                className={userState?.email_verified ? "border-success bg-success/10 text-success-900" : ""}
               />
             </div>
             <div className="min-w-30">
               <Button
-                label={emailState.verified ? "Verified" : "Verify"}
-                variant={emailState.verified ? "success" : "default"}
+                label={userState?.email_verified ? "Verified" : "Verify"}
+                variant={userState?.email_verified ? "success" : "default"}
                 onClick={verifyEmail}
-                loading={emailState.checking}
-                disabled={emailState.verified || !emailState.value}
+                loading={isPending}
+                disabled={!!userState?.email_verified || !emailValue}
               />
             </div>
           </div>
-
 
           <div className="flex gap-3 items-end">
             <div className="flex-1">
               <Input
                 id="phone"
                 label="Phone"
-                placeholder="10-digit mobile number"
-                value={phoneState.phoneValue}
                 type="number"
-                onNumberChange={(val) => {
-                  setPhoneState(s => ({ ...s, phoneValue: val.toString().slice(0, 10), verified: false }));
-                  clearCustomError("phone");
-                }}
-                disabled={phoneState.verified}
-                errors={{ phone: getFieldError("phone") }}
-                maxLength={10}
-                className={phoneState.verified ? "border-success bg-success/10 text-success-900" : ""}
+                required
+                onNumberChange={(val) => setValue("phone", val.toString().slice(0, 10))}
+                register={register("phone")}
+                errors={errors}
+                disabled={!!userState?.phone_verified || isPending}
+                className={userState?.phone_verified ? "border-success bg-success/10 text-success-900" : ""}
               />
             </div>
             <div className="min-w-30">
               <Button
-                label={phoneState.verified ? "Verified" : "Verify"}
-                variant={phoneState.verified ? "success" : "default"}
+                label={userState?.phone_verified ? "Verified" : "Verify"}
+                variant={userState?.phone_verified ? "success" : "default"}
                 onClick={verifyPhone}
-                loading={phoneState.checking}
-                disabled={phoneState.verified || !phoneState.phoneValue}
+                loading={isPending}
+                disabled={!!userState?.phone_verified || !phoneValue}
               />
             </div>
           </div>
@@ -441,7 +316,7 @@ const VerificationModal: React.FC<Props> = ({
             <p className="text-sm text-muted-foreground">Secure identity verification.</p>
           </div>
 
-          {aadhaarState.verified || userState?.aadhaar_verified ? (
+          {userState?.aadhaar_verified ? (
             <div className="bg-success/10 border border-success/20 rounded-2xl p-6 flex items-center gap-4">
               <FaCheckCircle className="text-success text-2xl" />
               <div>
@@ -449,19 +324,17 @@ const VerificationModal: React.FC<Props> = ({
                 <p className="text-sm text-success-700 font-medium">Identity confirmed securely.</p>
               </div>
             </div>
-          ) : !aadhaarState.refId ? (
+          ) : !aadhaarRefId ? (
             <div>
               <Input
                 id="aadhaar"
                 label="Aadhaar Number"
-                value={aadhaarState.aadhaarNumber}
                 type="number"
-                onNumberChange={(val) => {
-                  setAadhaarState(s => ({ ...s, aadhaarNumber: val.toString().slice(0, 12) }));
-                  clearCustomError("aadhaar");
-                }}
-                errors={{ aadhaar: getFieldError("aadhaar") }}
-                maxLength={12}
+                required
+                onNumberChange={(val) => setValue("aadhaarNumber", val.toString().slice(0, 12))}
+                register={register("aadhaarNumber")}
+                errors={errors}
+                disabled={isPending}
                 placeholder="12-digit number"
               />
               <p className="mt-2 text-xs text-muted-foreground/60 flex items-center gap-1">
@@ -473,20 +346,28 @@ const VerificationModal: React.FC<Props> = ({
               <Input
                 id="otp"
                 label="One Time Password"
-                value={aadhaarState.otp}
                 type="number"
-                onNumberChange={(val) => {
-                  setAadhaarState(s => ({ ...s, otp: val.toString().slice(0, 6) }));
-                  clearCustomError("otp");
-                }}
-                errors={{ otp: getFieldError("otp") }}
-                maxLength={6}
+                required
+                onNumberChange={(val) => setValue("otp", val.toString().slice(0, 6))}
+                register={register("otp")}
+                errors={errors}
+                disabled={isPending}
                 className="text-center text-lg tracking-widest font-mono"
                 placeholder="xxxxxx"
               />
               <div className="mt-2 flex justify-between">
                 <span className="text-xs text-muted-foreground">Sent to linked mobile</span>
-                <button onClick={() => setAadhaarState(s => ({ ...s, refId: null, otp: "" }))} className="text-xs text-foreground font-semibold underline">Change Number</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAadhaarRefId(null);
+                    setValue("otp", "");
+                  }}
+                  className="text-xs text-foreground font-semibold underline disabled:opacity-50"
+                  disabled={isPending}
+                >
+                  Change Number
+                </button>
               </div>
             </div>
           )}
@@ -517,46 +398,49 @@ const VerificationModal: React.FC<Props> = ({
                   id="accountHolderName"
                   label="Account Holder"
                   placeholder="As per bank records"
-                  register={register("accountHolderName")}
-                  errors={bankErrors}
                   required
+                  register={register("accountHolderName")}
+                  errors={errors}
+                  disabled={isPending}
                 />
               </div>
               <Input
                 id="accountNumber"
                 label="Account Number"
-                placeholder="Your Bank Account Number"
-                register={register("accountNumber")}
-                errors={bankErrors}
-                required
-                formatPrice={false}
                 type="number"
-                onNumberChange={(val) => setValue("accountNumber", val.toString(), { shouldValidate: true })}
+                required
+                onNumberChange={(val) => setValue("accountNumber", val.toString())}
+                register={register("accountNumber")}
+                errors={errors}
+                disabled={isPending}
+                placeholder="Your Bank Account Number"
               />
               <Input
                 id="ifscCode"
                 label="IFSC Code"
-                placeholder="BANK0000001"
-                register={register("ifscCode")}
-                errors={bankErrors}
                 required
+                register={register("ifscCode")}
+                errors={errors}
+                disabled={isPending}
+                placeholder="BANK0000001"
                 className="uppercase"
               />
               <Input
                 id="bankName"
                 label="Bank Name"
-                placeholder="e.g. HDFC Bank"
-                register={register("bankName")}
-                errors={bankErrors}
                 required
+                register={register("bankName")}
+                errors={errors}
+                disabled={isPending}
+                placeholder="e.g. HDFC Bank"
               />
               <Input
                 id="gstNumber"
                 label="GST Number"
-                placeholder="11XXXXXXXXXX1Z0"
                 register={register("gstNumber")}
-                errors={bankErrors}
-
+                errors={errors}
+                disabled={isPending}
+                placeholder="11XXXXXXXXXX1Z0"
               />
             </div>
           )}
@@ -577,10 +461,8 @@ const VerificationModal: React.FC<Props> = ({
 
   const renderStepProgress = () => (
     <div className="mb-8 px-4 flex justify-between relative">
-
       <div className="absolute top-1/2 left-0 w-full h-0.5 bg-muted -z-10 -translate-y-1/2" />
-
-      {steps.map((s, _idx) => {
+      {steps.map((s) => {
         const isComplete = step > s.id;
         const isActive = step === s.id;
         return (
@@ -603,8 +485,8 @@ const VerificationModal: React.FC<Props> = ({
       title="Verification Center"
       actionLabel={step === 3 ? "Complete" : step === 4 ? "Close" : "Continue"}
       onSubmitAction={step === 4 ? onCloseAction : handleNextClick}
-      disabled={loading}
-      isLoading={loading}
+      disabled={isPending}
+      isLoading={isPending}
       body={
         <div className="pt-2">
           {renderStepProgress()}
@@ -616,5 +498,6 @@ const VerificationModal: React.FC<Props> = ({
 };
 
 export default VerificationModal;
+
 
 

@@ -132,23 +132,22 @@ function Modal({
               icon={IoMdCloseCircle}
               variant="ghost"
               rounded
-              fit
               size="lg"
-              className="opacity-80 hover:opacity-100 p-0! h-fit!"
+              className="opacity-80 hover:opacity-100 p-0! w-fit! h-fit!"
             />
           </div>
 
 
           <div
             ref={bodyRef}
-            className="flex-1 px-6 pb-6 pt-2 overflow-y-auto text-[15px] leading-relaxed text-muted-foreground"
+            className="flex-1 px-5 pb-5 pt-2 overflow-y-auto"
           >
             {body}
           </div>
 
 
           {!selfActionButton && (
-            <div className="px-6 py-4 flex flex-col md:flex-row gap-3 justify-end items-center bg-muted/10 shrink-0 border-t border-border/40">
+            <div className="px-5 py-4 flex flex-col md:flex-row gap-3 justify-end items-center bg-muted/10 shrink-0 border-t border-border/40">
               {secondaryActionAction && secondaryActionLabel && (
                 <Button
                   outline

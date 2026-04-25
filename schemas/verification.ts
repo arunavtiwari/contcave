@@ -23,7 +23,7 @@ export const bankSchema = z.object({
   accountNumber: z.string().min(9, "Account number too short").max(20, "Account number too long").regex(/^\d+$/, "Account number must actally be a number"),
   ifscCode: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC Code format"),
   bankName: z.string().min(2, "Bank name is required"),
-  gstNumber: z.string().trim().toUpperCase().refine((val: string) =>val === "" || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(val),"Invalid GSTIN format").optional(),
+  gstNumber: z.string().trim().toUpperCase().refine((val: string) => val === "" || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(val), "Invalid GSTIN format").optional(),
 });
 
 export type PhoneVerificationSchema = z.infer<typeof phoneVerificationSchema>;
@@ -31,3 +31,18 @@ export type EmailVerificationSchema = z.infer<typeof emailVerificationSchema>;
 export type OtpSchema = z.infer<typeof otpSchema>;
 export type AadhaarSchema = z.infer<typeof aadhaarSchema>;
 export type BankSchema = z.infer<typeof bankSchema>;
+
+export const unifiedVerificationSchema = z.object({
+  email: z.string().email("Invalid email"),
+  phone: z.string().regex(/^\d{10}$/, "Enter a valid 10-digit mobile number"),
+  aadhaarNumber: z.string().optional(),
+  otp: z.string().optional(),
+  // Bank Details
+  accountHolderName: z.string().min(1, "Account holder name is required"),
+  accountNumber: z.string().min(1, "Account number is required"),
+  bankName: z.string().min(1, "Bank name is required"),
+  ifscCode: z.string().min(1, "IFSC code is required"),
+  gstNumber: z.string().optional(),
+});
+
+export type UnifiedVerificationValues = z.infer<typeof unifiedVerificationSchema>;

@@ -25,6 +25,13 @@ export const phoneUpdateSchema = z.object({
 export type UserUpdateSchema = z.infer<typeof userUpdateSchema>;
 export type PhoneUpdateSchema = z.infer<typeof phoneUpdateSchema>;
 
+export const ownerEnableSchema = z.object({
+    email: z.string().email("Please enter a valid email address").min(1, "Email is required"),
+    phone: z.string().regex(/^\d{10}$/, "Please enter a valid 10-digit mobile number").min(1, "Phone number is required"),
+});
+
+export type OwnerEnableSchema = z.infer<typeof ownerEnableSchema>;
+
 export const UserDataSchema = z.object({
     name: z.string().nullish().transform(val => val || ""),
     description: z.string().nullish().transform(val => val || ""),

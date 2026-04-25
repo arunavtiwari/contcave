@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "mai
     }, [menuType, isOwner]);
 
     return (
-        <div className="flex fixed flex-col sm:sticky top-22.5 sm:top-21.25 pr-4 pl-0 py-1.5 sm:py-6 min-w-62.5 bg-foreground/30 sm:bg-background h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
+        <div className="flex fixed flex-col sm:sticky top-22.5 sm:top-21.25 pr-4 pl-0 py-1.5 sm:py-6 min-w-56 bg-foreground/30 sm:bg-background h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
             <nav>
                 <ul className="flex sm:flex-col sm:gap-2 gap-2">
                     {itemsToDisplay.map((item, index) => {

@@ -36,7 +36,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                 <textarea
                     id={id}
                     className={cn(
-                        "w-full font-normal bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed",
+                        "w-full font-normal bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed text-foreground",
                         sizeClasses[size],
                         error
                             ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20"

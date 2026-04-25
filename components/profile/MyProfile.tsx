@@ -12,6 +12,7 @@ import {
     FaHome,
     FaMapMarkerAlt,
     FaPhone,
+    FaShieldAlt,
     FaSpinner,
     FaUser
 } from "react-icons/fa";
@@ -34,7 +35,7 @@ import useUIStore from "@/hooks/useUIStore";
 import { uploadToR2 } from "@/lib/storage/upload";
 import { isOwner } from "@/lib/user/permissions";
 import { cn } from "@/lib/utils";
-import { UserDataSchema, userUpdateSchema } from "@/schemas/user";
+import { UserDataSchema } from "@/schemas/user";
 import { SafeUser, UserRole } from "@/types/user";
 
 interface ProfileClientProps {
@@ -113,20 +114,8 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 
 
 
-    const handleOwnerSuccess = async (newPhone?: string) => {
-        const payload: z.infer<typeof userUpdateSchema> = {
-            name: (userData.name ?? undefined) || undefined,
-            description: (userData.description ?? undefined) || undefined,
-            location: (userData.location ?? undefined) || undefined,
-            languages: (userData.languages ?? undefined) || undefined,
-            title: (userData.title ?? undefined) || undefined,
-            profileImage: (userData.profileImage ?? undefined) || undefined,
-            phone: (newPhone ?? userData.phone ?? undefined) || undefined,
-            role: UserRole.OWNER,
-        };
-
+    const handleOwnerSuccess = async (updatedUser: SafeUser) => {
         try {
-            const updatedUser = await updateUser(payload);
             const parsed = UserDataSchema.parse(updatedUser);
             const safeData: FormValues = {
                 ...parsed,
@@ -140,10 +129,9 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
             setShowLoadingOverlay(false);
             setShowVerificationModal(true);
         } catch (err: unknown) {
-            console.error("Failed to update owner status:", err);
+            console.error("Failed to process owner registration data:", err);
             setShowLoadingOverlay(false);
-            const message = err instanceof Error ? err.message : "Failed to update owner status";
-            toast.error(message);
+            toast.error("An error occurred while finalizing your registration.");
         }
     };
 
@@ -224,7 +212,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                                         ) : (
                                             <Avatar
                                                 src={userData.profileImage}
-                                                size={128}
+                                                size={88}
                                                 className="w-full h-full"
                                             />
                                         )}
@@ -550,59 +538,55 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                     </div>
                 </div>
 
-
+                {/* Verification Status Card */}
                 <div className="space-y-6">
                     {!isOwner(userData.role) ? (
-
-                        <div className="bg-foreground/5 border border-foreground/20 rounded-2xl p-6">
+                        <div className="bg-muted/30 border border-foreground/10 rounded-2xl p-4">
                             <div className="text-center space-y-4">
-                                <div className="w-16 h-16 bg-foreground/10 rounded-full flex items-center justify-center mx-auto">
-                                    <FaUser className="w-8 h-8 text-foreground" />
-                                </div>
-                                <div>
-                                    <Heading title="Become an Owner" variant="h6" className="text-foreground" />
-                                    <p className="text-muted-foreground text-sm mt-2">
-                                        Register yourself as a space owner to start hosting and get verified.
-                                    </p>
-                                </div>
+                                <FaUser className="w-12 h-12 text-foreground mx-auto" />
+                                <Heading
+                                    title="Become an Owner"
+                                    variant="h5"
+                                    subtitle="Register yourself as a space owner to start hosting and get verified."
+                                    center
+                                />
                                 <Button
                                     label="Register as Owner"
                                     onClick={() => setShowOwnerModal(true)}
-                                    className="shadow-sm mx-auto"
-                                    fit
+                                    icon={FaUser}
                                 />
                             </div>
                         </div>
                     ) : !isVerified ? (
 
-                        <div className="bg-warning/5 border border-warning/20 rounded-2xl p-6">
+                        <div className="bg-warning/5 border border-warning/20 rounded-2xl p-4">
                             <div className="text-center space-y-4">
-                                <div className="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto overflow-hidden">
-                                    <Image
-                                        src="/images/icons/shield.png"
-                                        width={32}
-                                        height={32}
-                                        alt="Verification"
-                                        className="object-contain"
+                                <Image
+                                    src="/images/icons/shield.png"
+                                    width={48}
+                                    height={48}
+                                    alt="Verification"
+                                    className="mx-auto object-contain"
+                                />
+                                <Heading
+                                    title="Verification Pending"
+                                    variant="h5"
+                                    subtitle="Verify your details to unlock space owner features and start hosting."
+                                    center
+                                />
+                                <div className="space-y-3">
+                                    <Button
+                                        label="Start Verification"
+                                        onClick={() => setShowVerificationModal(true)}
+                                        icon={FaShieldAlt}
+                                        className="shadow-sm"
                                     />
                                 </div>
-                                <div>
-                                    <Heading title="Verification Pending" variant="h6" className="text-warning-900" />
-                                    <p className="text-muted-foreground text-sm mt-2">
-                                        Verify your details to unlock space owner features and start hosting.
-                                    </p>
-                                </div>
-                                <Button
-                                    label="Start Verification"
-                                    onClick={() => setShowVerificationModal(true)}
-                                    className="shadow-sm mx-auto"
-                                    fit
-                                />
                             </div>
                         </div>
                     ) : (
 
-                        <div className="bg-success/5 border border-success/20 rounded-2xl p-6">
+                        <div className="bg-success/5 border border-success/20 rounded-2xl p-4">
                             <div className="text-center space-y-4">
                                 <Image
                                     src="/images/icons/shield.png"
@@ -631,14 +615,11 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                         </div>
                     )}
                 </div>
-
-
             </div>
 
             <OwnerEnableModal
                 isOpen={showOwnerModal}
                 onClose={() => setShowOwnerModal(false)}
-                onLoadingStart={() => setShowLoadingOverlay(true)}
                 onSuccess={handleOwnerSuccess}
                 initialEmail={userData.email || undefined}
                 initialPhone={userData.phone || undefined}

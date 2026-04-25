@@ -7,7 +7,7 @@ import FormField from "@/components/inputs/FormField";
 import { cn } from "@/lib/utils";
 
 const inputVariants = cva(
-    "w-full font-normal bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed pr-3",
+    "w-full font-normal bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed pr-3 text-foreground",
     {
         variants: {
             size: {
