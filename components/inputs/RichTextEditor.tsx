@@ -169,7 +169,7 @@ function ToolbarPlugin() {
   };
 
   return (
-    <div className="flex items-center gap-1.5 p-2 border-b bg-background/80 backdrop-blur-md sticky top-0 z-20">
+    <div className="flex items-center gap-1.5 p-2 border-b bg-background/80 backdrop-blur-md sticky top-0 z-20 rounded-t-2xl">
       <ToolbarButton
         onClick={() => onFormat(FORMAT_TEXT_COMMAND, "bold")}
         active={isBold}

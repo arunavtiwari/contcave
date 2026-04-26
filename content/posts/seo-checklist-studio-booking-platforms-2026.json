@@ -173,7 +173,7 @@
             "blockType": "list",
             "items": [
                 "Use Next.js Image component with proper width, height, and lazy loading",
-                "Serve images in WebP or AVIF format via a CDN like Cloudinary",
+                "Serve images in WebP or AVIF format via a CDN like Cloudfare",
                 "Remove force-dynamic from static content pages (About, Privacy, Terms) to enable build-time rendering",
                 "Add loading.tsx files in key route segments for instant skeleton screens",
                 "Implement a web app manifest for better Lighthouse scores and PWA support",

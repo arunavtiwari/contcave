@@ -3,7 +3,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import useUIStore from '@/hooks/useUIStore';
 import { Addon } from "@/types/addon";
 
-import ImageCheckbox from './ImageCheckbox';
+import ImageCheckbox from '@/components/inputs/ImageCheckbox';
+import Heading from '@/components/ui/Heading';
 
 interface AddonsCheckboxProps {
     addons: Addon[];
@@ -25,8 +26,6 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
         const uniqueSelected = Array.from(new Map(initialSelectedAddons.map(item => [item.name, item])).values());
         setSelectedAddons(uniqueSelected);
     }, [initialSelectedAddons]);
-
-
 
     const handleCreateCustomAddon = useCallback(() => {
         uiStore.onOpen("addon");
@@ -67,13 +66,9 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
             newSelected = selectedAddons.filter((a) => a.name !== addonName);
         }
 
-        // 1. Update internal state
         setSelectedAddons(newSelected);
-        // 2. Notify parent (now safe because it's after/outside functional update calculations)
         onSelectedAddonsChange(newSelected);
     };
-
-    // Deduplicate addons based on name
     const uniqueAddons = Array.from(new Map(addons.map(item => [item.name, item])).values());
     const availableAddons = uniqueAddons.filter(
         (addon) => !selectedAddons.some((selected) => selected.name === addon.name)
@@ -85,7 +80,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
             {selectedAddons.length > 0 && (
                 <div className='flex justify-start'>
                     <div>
-                        <h2 className="text-lg font-semibold mb-5">Selected Addons</h2>
+                        <Heading title="Selected Addons" variant="h6" className="mb-5" />
                         <div className={`grid ${rentModal ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6`}>
                             {selectedAddons.map((addon) => (
                                 <div
@@ -126,7 +121,7 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                 {availableAddons.length > 0 && (
                     <div>
                         {!rentModal && (
-                            <h2 className="text-lg font-semibold mb-5">Available Addons</h2>
+                            <Heading title="Available Addons" variant="h6" className="mb-5" />
                         )}
                         <div className={`grid ${rentModal ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6`}>
                             {availableAddons.map((addon) => (

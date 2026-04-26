@@ -628,6 +628,7 @@ export default function RentModal() {
                     onChange={(v) => setCustomValue("imageSrc", v)}
                     values={imageSrc}
                     deferUpload
+                    folder="listing_main"
                     className="w-full h-full p-4 border border-border rounded-xl"
                   />
                 </div>
@@ -668,6 +669,8 @@ export default function RentModal() {
                   values={videoSrc ? [videoSrc] : []}
                   allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
                   maxSize={100 * 1024 * 1024} // 100MB for video tour
+                  deferUpload
+                  folder="listing_videos"
                   className="w-full h-48 p-4 border border-border rounded-xl"
                 />
               </div>
@@ -1115,6 +1118,12 @@ export default function RentModal() {
     try {
       const finalImageUrls = await uploadToR2(remoteImages, "listing_main");
 
+      let finalVideoUrl = data.videoSrc;
+      if (data.videoSrc && data.videoSrc.startsWith('blob:')) {
+        const uploadedVideos = await uploadToR2([data.videoSrc], "listing_videos");
+        finalVideoUrl = uploadedVideos[0];
+      }
+
       if (finalImageUrls.length === 0) {
         setIsLoading(false);
         setIsSubmitting(false);
@@ -1125,6 +1134,7 @@ export default function RentModal() {
         title: data.title,
         description: data.description,
         imageSrc: finalImageUrls,
+        videoSrc: finalVideoUrl,
         category: data.category,
         locationValue,
         actualLocation: {

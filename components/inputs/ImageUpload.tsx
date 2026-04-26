@@ -18,6 +18,7 @@ type Props = {
   maxSize?: number;
   label?: string;
   icon?: IconType;
+  folder?: string;
 };
 
 function ImageUpload({
@@ -36,9 +37,10 @@ function ImageUpload({
     "video/webm",
     "video/quicktime",
   ],
-  maxSize = 50 * 1024 * 1024, // 50MB default (better for videos)
+  maxSize = 50 * 1024 * 1024,
   label = "Upload Image",
   icon: Icon = TbPhotoPlus,
+  folder,
   className,
 }: Props & { className?: string }) {
   const [uploading, setUploading] = useState(false);
@@ -90,7 +92,7 @@ function ImageUpload({
         const presignRes = await fetch("/api/upload/presign", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ filename: file.name, contentType: file.type }),
+          body: JSON.stringify({ filename: file.name, contentType: file.type, folder }),
         });
 
         if (!presignRes.ok) {

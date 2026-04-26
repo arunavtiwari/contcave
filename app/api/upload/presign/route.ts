@@ -14,9 +14,9 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { filename, contentType, folder } = body;
-        if (!filename || !contentType || !folder) {
-            return new NextResponse("Missing filename, contentType or folder", { status: 400 });
+        const { filename, contentType, folder = "uploads" } = body;
+        if (!filename || !contentType) {
+            return new NextResponse("Missing filename or contentType", { status: 400 });
         }
 
         const ext = filename.split(".").pop() || "bin";

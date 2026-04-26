@@ -8,6 +8,9 @@ import { createPortal } from "react-dom";
 import { FiBell, FiMessageSquare } from "react-icons/fi";
 
 import Avatar from "@/components/ui/Avatar";
+import Heading from "@/components/ui/Heading";
+import Pill from "@/components/ui/Pill";
+import Skeleton from "@/components/ui/Skeleton";
 import { useNotifications } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
 import { SafeUser } from "@/types/user";
@@ -81,16 +84,19 @@ const NotificationMenu = memo(function NotificationMenu({ currentUser }: Props) 
                 ref={triggerRef}
                 onClick={toggleOpen}
                 className={cn(
-                    "relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 hover:bg-foreground/5 active:scale-95",
+                    "relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 hover:bg-muted active:scale-95 cursor-pointer",
                     isOpen && "bg-foreground/5"
                 )}
                 aria-label="Notifications"
             >
                 <FiBell size={20} className="text-foreground" />
                 {totalUnreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground ring-2 ring-background">
-                        {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
-                    </span>
+                    <Pill
+                        label={totalUnreadCount > 99 ? "99+" : totalUnreadCount}
+                        variant="destructive"
+                        size="xs"
+                        className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center ring-2 ring-background p-0 rounded-full"
+                    />
                 )}
             </button>
 
@@ -103,26 +109,36 @@ const NotificationMenu = memo(function NotificationMenu({ currentUser }: Props) 
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: -10 }}
                             transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="fixed rounded-2xl min-w-[320px] max-w-100 bg-background/80 backdrop-blur-xl overflow-hidden text-sm border border-border z-100001 shadow-2xl"
+                            className="fixed rounded-2xl min-w-[320px] max-w-100 bg-background/80 backdrop-blur-xl overflow-hidden text-sm border border-border z-100001"
                             style={{
                                 top: coords.top,
                                 right: coords.right,
                             }}
                         >
-                            <div className="p-4 border-b border-border flex items-center justify-between">
-                                <h3 className="font-bold text-lg">Notifications</h3>
+                            <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                                <Heading title="Notifications" variant="h5" />
                                 {totalUnreadCount > 0 && (
-                                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                                        {totalUnreadCount} new
-                                    </span>
+                                    <Pill label={`${totalUnreadCount} new`} variant="secondary" size="xs" />
                                 )}
                             </div>
 
                             <div className="max-h-112.5 overflow-y-auto">
                                 {loading ? (
-                                    <div className="p-10 text-center text-muted-foreground">
-                                        <div className="animate-spin inline-block w-6 h-6 border-2 border-current border-t-transparent rounded-full mb-2" />
-                                        <p>Loading...</p>
+                                    <div className="divide-y divide-border/50">
+                                        {[...Array(4)].map((_, i) => (
+                                            <div key={i} className="flex items-start gap-4 p-4">
+                                                <Skeleton className="w-10 h-10 rounded-full shrink-0" />
+                                                <div className="flex-1 space-y-2 py-1">
+                                                    <div className="flex justify-between items-center">
+                                                        <Skeleton className="h-4 w-24" />
+                                                        <Skeleton className="h-3 w-12" />
+                                                    </div>
+                                                    <Skeleton className="h-4 w-full" />
+                                                    <Skeleton className="h-3 w-3/4" />
+                                                    <Skeleton className="h-5 w-16 rounded-full" />
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 ) : notifications.length === 0 ? (
                                     <div className="p-10 text-center flex flex-col items-center gap-3">
@@ -165,9 +181,7 @@ const NotificationMenu = memo(function NotificationMenu({ currentUser }: Props) 
                                                         {notification.lastMessageText}
                                                     </p>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="flex h-5 px-1.5 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
-                                                            {notification.unreadCount} new
-                                                        </span>
+                                                        <Pill label={`${notification.unreadCount} new`} variant="solid" size="xs" />
                                                         <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
                                                             View chat →
                                                         </span>
