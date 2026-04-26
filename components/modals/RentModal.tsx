@@ -531,7 +531,7 @@ export default function RentModal() {
         render: () => (
           <div className="flex flex-col gap-4">
             <Heading title="Choose your space type" subtitle="Pick a category" variant="h5" />
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {categories.map((item) => (
                 <CategoryInput
                   key={item.label}

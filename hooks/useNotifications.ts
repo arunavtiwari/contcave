@@ -1,8 +1,8 @@
 "use client";
 
-import Ably from "ably";
 import { useCallback, useEffect, useState } from "react";
 
+import { getAblyClient } from "@/lib/ably";
 import { getUnreadNotifications } from "@/lib/chat/actions";
 
 export interface ChatNotification {
@@ -38,11 +38,9 @@ export const useNotifications = (userId: string | undefined) => {
         }
 
         fetchNotifications();
-        const ably = new Ably.Realtime({
-            authUrl: "/api/notifications/token",
-            authMethod: "POST",
-            clientId: userId,
-        });
+
+        const ably = getAblyClient(userId);
+        if (!ably) return;
 
         const channel = ably.channels.get(`notifications:${userId}`);
 
@@ -54,10 +52,8 @@ export const useNotifications = (userId: string | undefined) => {
         channel.subscribe("mark_as_read", handleUpdate);
 
         return () => {
-            channel.unsubscribe();
-            if (ably.connection.state !== "closed" && ably.connection.state !== "closing") {
-                ably.close();
-            }
+            channel.unsubscribe("new_message", handleUpdate);
+            channel.unsubscribe("mark_as_read", handleUpdate);
         };
     }, [userId, fetchNotifications]);
 
