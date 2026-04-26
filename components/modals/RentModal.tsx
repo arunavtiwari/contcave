@@ -1311,7 +1311,7 @@ export default function RentModal() {
 
         body={
           <>
-            <div className="flex items-center justify-between text-xs text-muted-foreground mb-3 px-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
               <span>Step {currentStepIndex + 1} of {activeSteps.length}</span>
               <div className="flex-1 mx-2 bg-muted rounded-full h-2">
                 <div

@@ -1,9 +1,11 @@
 'use client';
 
-import { Libraries, StandaloneSearchBox, useLoadScript } from '@react-google-maps/api';
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Libraries, useLoadScript } from '@react-google-maps/api';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FiMapPin } from 'react-icons/fi';
 
-import Input from '@/components/inputs/Input';
+import Select, { SelectOption } from '@/components/ui/Select';
+import { cn } from '@/lib/utils';
 
 const LIBRARIES: Libraries = ['places'];
 
@@ -20,6 +22,13 @@ interface AutoCompleteProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  error?: string;
+}
+
+interface PlaceOption extends SelectOption {
+  place_id: string;
+  main_text: string;
+  secondary_text: string;
 }
 
 export default function AutoComplete({
@@ -28,12 +37,13 @@ export default function AutoComplete({
   placeholder = 'Search for a location',
   disabled = false,
   className = '',
+  error,
 }: AutoCompleteProps) {
-  const inputId = useId();
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API || '';
+  const [currentValue, setCurrentValue] = useState<PlaceOption | null>(null);
 
-  const [query, setQuery] = useState(value ?? '');
-  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null);
+  const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
+  const placesService = useRef<google.maps.places.PlacesService | null>(null);
 
   const libraries = useMemo(() => LIBRARIES, []);
 
@@ -43,86 +53,131 @@ export default function AutoComplete({
   });
 
   useEffect(() => {
-    if (typeof value === 'string') setQuery(value);
-  }, [value]);
+    if (isLoaded && !autocompleteService.current) {
+      autocompleteService.current = new google.maps.places.AutocompleteService();
+    }
+  }, [isLoaded]);
 
-  const handleLoad = useCallback((ref: google.maps.places.SearchBox) => {
-    searchBoxRef.current = ref;
+  // Handle external value changes (initial load or reset)
+  useEffect(() => {
+    if (value && (!currentValue || currentValue.value !== value)) {
+      setCurrentValue({
+        value: value,
+        label: value,
+        place_id: '',
+        main_text: value,
+        secondary_text: ''
+      });
+    } else if (!value) {
+      setCurrentValue(null);
+    }
+  }, [value, currentValue]);
+
+  const loadOptions = useCallback((inputValue: string, callback: (options: PlaceOption[]) => void) => {
+    if (!inputValue || inputValue.length < 3 || !autocompleteService.current) {
+      callback([]);
+      return;
+    }
+
+    autocompleteService.current.getPlacePredictions(
+      {
+        input: inputValue,
+        types: ['geocode', 'establishment'],
+        componentRestrictions: { country: 'in' }
+      },
+      (results) => {
+        const options: PlaceOption[] = (results || []).map(r => ({
+          value: r.description,
+          label: r.description,
+          place_id: r.place_id,
+          main_text: r.structured_formatting.main_text,
+          secondary_text: r.structured_formatting.secondary_text
+        }));
+        callback(options);
+      }
+    );
   }, []);
 
-  const handleUnmount = useCallback(() => {
-    searchBoxRef.current = null;
-  }, []);
+  const handleSelect = useCallback((option: unknown) => {
+    const placeOption = option as PlaceOption | null;
+    setCurrentValue(placeOption);
+    if (!placeOption) return;
 
-  const handlePlacesChanged = useCallback(() => {
-    const places = searchBoxRef.current?.getPlaces();
-    if (!places || places.length === 0) return;
+    const div = document.createElement('div');
+    if (!placesService.current) {
+      placesService.current = new google.maps.places.PlacesService(div);
+    }
 
-    const place = places[0];
-    const loc = place.geometry?.location;
-    if (!loc) return;
-
-    const display =
-      place.formatted_address?.trim() ||
-      place.name?.trim() ||
-      '';
-
-    if (!display) return;
-
-    const next: AutoCompleteValue = {
-      display_name: display,
-      latlng: [loc.lat(), loc.lng()],
-    };
-
-    setQuery(display);
-    onChange(next);
+    placesService.current.getDetails(
+      { placeId: placeOption.place_id, fields: ['geometry', 'formatted_address', 'name'] },
+      (place, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+          const loc = place.geometry.location;
+          onChange({
+            display_name: place.formatted_address || place.name || placeOption.value,
+            latlng: [loc.lat(), loc.lng()],
+          });
+        }
+      }
+    );
   }, [onChange]);
 
-  if (!apiKey) {
-    return (
-      <div className="text-sm text-destructive">
-        Missing NEXT_PUBLIC_GOOGLE_MAPS_API.
-      </div>
-    );
-  }
-
-  if (loadError) {
-    return (
-      <div className="text-sm text-destructive">
-        Google Maps failed to load. Check CSP and API key restrictions.
-      </div>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <div className={`relative ${className}`}>
-        <Input
-          id={inputId}
-          value={query}
-          placeholder={placeholder}
-          disabled
-        />
-      </div>
-    );
-  }
+  if (!apiKey) return <div className="text-sm text-destructive">Missing NEXT_PUBLIC_GOOGLE_MAPS_API.</div>;
+  if (loadError) return <div className="text-sm text-destructive">Google Maps failed to load.</div>;
 
   return (
-    <div className={`relative ${className}`}>
-      <StandaloneSearchBox
-        onLoad={handleLoad}
-        onUnmount={handleUnmount}
-        onPlacesChanged={handlePlacesChanged}
-      >
-        <Input
-          id={inputId}
-          placeholder={placeholder}
-          value={query}
-          disabled={disabled}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </StandaloneSearchBox>
+    <div className={cn("w-full", className)}>
+      <Select<PlaceOption>
+        isAsync
+        cacheOptions
+        defaultOptions
+        loadOptions={loadOptions}
+        value={currentValue}
+        onChange={handleSelect}
+        placeholder={placeholder}
+        isDisabled={disabled || !isLoaded}
+        error={error}
+        isSearchable={true}
+        components={{
+          DropdownIndicator: () => null,
+          IndicatorSeparator: () => null,
+          Option: (props) => {
+            const { innerProps, isFocused, isSelected, data } = props;
+            return (
+              <div
+                {...innerProps}
+                className={cn(
+                  "px-4 py-3 cursor-pointer flex items-start gap-3 transition-colors",
+                  isFocused ? "bg-muted" : "transparent",
+                  isSelected && "bg-foreground text-background"
+                )}
+              >
+                <div className={cn(
+                  "mt-0.5 shrink-0 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors",
+                  isFocused && "bg-foreground text-background"
+                )}>
+                  <FiMapPin size={14} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold truncate">
+                    {data.main_text}
+                  </div>
+                  <div className={cn(
+                    "text-[11px] truncate italic",
+                    isSelected ? "text-background/70" : "text-muted-foreground"
+                  )}>
+                    {data.secondary_text}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+        }}
+        noOptionsMessage={({ inputValue }) =>
+          inputValue.length >= 3 ? "No premium locations found" : "Type at least 3 characters to search"
+        }
+        loadingMessage={() => "Searching premium locations..."}
+      />
     </div>
   );
 }
-

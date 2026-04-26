@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import useUIStore from '@/hooks/useUIStore';
-import { Addon } from "@/types/addon";
-
 import ImageCheckbox from '@/components/inputs/ImageCheckbox';
 import Heading from '@/components/ui/Heading';
+import useUIStore from '@/hooks/useUIStore';
+import { Addon } from "@/types/addon";
 
 interface AddonsCheckboxProps {
     addons: Addon[];

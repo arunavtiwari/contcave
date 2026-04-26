@@ -2,9 +2,9 @@ import { Amenities } from '@prisma/client';
 import { X } from 'lucide-react';
 import React, { useState } from 'react';
 
+import Input from '@/components/inputs/Input';
 import Button from '@/components/ui/Button';
 import Pill from '@/components/ui/Pill';
-import Input from '@/components/inputs/Input';
 
 export interface AmenitiesData {
   predefined: { [key: number | string]: boolean };
