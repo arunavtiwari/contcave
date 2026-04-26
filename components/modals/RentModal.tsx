@@ -530,7 +530,7 @@ export default function RentModal() {
         validate: validateCategoryStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Choose your space type" subtitle="Pick a category" variant="h3" />
+            <Heading title="Choose your space type" subtitle="Pick a category" variant="h5" />
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-2">
               {categories.map((item) => (
                 <CategoryInput
@@ -556,7 +556,7 @@ export default function RentModal() {
         validate: validateLocationStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Where is your space?" subtitle="Help creators find you" variant="h3" />
+            <Heading title="Where is your space?" subtitle="Help creators find you" variant="h5" />
             <div className="w-full">
               <label className="block text-sm font-medium text-foreground mb-1">
                 City <span className="text-destructive ml-1">*</span>
@@ -619,7 +619,7 @@ export default function RentModal() {
         validate: validateImagesStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Add photos" subtitle="Show what your space looks like (Max 30 images)" variant="h3" />
+            <Heading title="Add photos" subtitle="Show what your space looks like (Max 30 images)" variant="h5" />
             {imageSrc.length < 30 && (
               <div className="w-full">
                 <div className={`h-40 ${imageError ? "border-destructive" : ""}`}>
@@ -659,7 +659,7 @@ export default function RentModal() {
             )}
 
             <div className="mt-8 border-t pt-8">
-              <Heading title="Property Video Tour" subtitle="Add a short video tour of your space (Optional)" variant="h3" />
+              <Heading title="Property Video Tour" subtitle="Add a short video tour of your space (Optional)" variant="h5" />
               <div className="mt-4">
                 <ImageUpload
                   uid="rent-video-upload"
@@ -698,7 +698,7 @@ export default function RentModal() {
         validate: validateDescriptionStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Describe your space" subtitle="Add title, description & price" variant="h3" />
+            <Heading title="Describe your space" subtitle="Add title, description & price" variant="h5" />
             <div className="w-full">
               <Input
                 id="title"
@@ -755,7 +755,7 @@ export default function RentModal() {
         validate: validateAmenitiesStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Amenities" subtitle="Select all available amenities" variant="h3" />
+            <Heading title="Amenities" subtitle="Select all available amenities" variant="h5" />
             <AmenitiesCheckbox
               amenities={amenities}
               checked={Array.isArray(selectedAmenityIds) ? selectedAmenityIds : []}
@@ -772,7 +772,7 @@ export default function RentModal() {
         validate: validateAddonsStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Add-ons" subtitle="Additional chargeable facilities" variant="h3" />
+            <Heading title="Add-ons" subtitle="Additional chargeable facilities" variant="h5" />
             <div className="flex flex-col items-center w-full gap-4">
               <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons ?? []} onSelectedAddonsChange={handleAddonChange} rentModal />
               <CustomAddonModal save={(v: unknown) => setAddons([...addons, v as Addon])} />
@@ -787,7 +787,7 @@ export default function RentModal() {
         validate: validateOtherDetailsStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Other Details" variant="h3" />
+            <Heading title="Other Details" variant="h5" />
             <OtherListingDetails onChange={handleDetailsChange} data={listingDetails} />
           </div>
         ),
@@ -799,7 +799,7 @@ export default function RentModal() {
         validate: validateSetsStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Multiple Sets" subtitle="Configure your bookable sets" variant="h3" />
+            <Heading title="Multiple Sets" subtitle="Configure your bookable sets" variant="h5" />
             <div>
               <label className="block text-sm font-medium mb-2">Additional Set Pricing Type *</label>
               <div className="flex gap-4">
@@ -899,7 +899,7 @@ export default function RentModal() {
         validate: validateCustomTermsStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Custom Terms and Conditions" subtitle="Add your own rules and policies for the space" variant="h3" />
+            <Heading title="Custom Terms and Conditions" subtitle="Add your own rules and policies for the space" variant="h5" />
             <div className="w-full">
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium">Terms and Conditions</label>
@@ -926,7 +926,7 @@ export default function RentModal() {
         validate: validatePackagesStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Custom Packages" subtitle="Bundle your offerings" variant="h3" />
+            <Heading title="Custom Packages" subtitle="Bundle your offerings" variant="h5" />
             <PackagesForm
               value={packages ?? []}
               onChange={(updatedPackages) => setValue("packages", updatedPackages, { shouldDirty: true, shouldValidate: true })}
@@ -952,7 +952,7 @@ export default function RentModal() {
         validate: validateVerificationStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Space Verification" subtitle="Upload verification documents" variant="h3" />
+            <Heading title="Space Verification" subtitle="Upload verification documents" variant="h5" />
             <SpaceVerification
               onVerification={handleVerificationChange}
               initialDocuments={verifications?.documents || []}
@@ -1328,7 +1328,7 @@ export default function RentModal() {
               <div className="absolute inset-0 rounded-full border-4 border-t-foreground animate-spin" />
             </div>
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-foreground">Creating your listing</h3>
+              <h5 className="text-xl font-semibold text-foreground">Creating your listing</h5>
               <p className="text-sm text-muted-foreground mt-2">Uploading images and setting up your space...</p>
             </div>
           </div>
