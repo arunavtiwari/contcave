@@ -4,7 +4,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
 import { Navigation } from "swiper/modules";
@@ -138,7 +138,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
   return (
     <>
       <div className="flex gap-2">
-        <Heading title={title} subtitle={`${location?.label}, India`} />
+        <Heading variant="h4" as="h1" title={title} subtitle={`${location?.label}, India`} />
         <div className="pt-1.5">
           <HeartButton listingId={id} currentUser={currentUser} />
         </div>
