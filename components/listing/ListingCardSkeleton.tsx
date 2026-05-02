@@ -17,7 +17,7 @@ const ListingCardSkeleton: React.FC<ListingCardSkeletonProps> = ({
 }) => (
     <div className="flex flex-col w-full">
         {/* Media shell matches rounded-2xl aspect-video */}
-        <div className="relative mb-4 overflow-hidden rounded-2xl aspect-video bg-gray-200 border border-foreground/5">
+        <div className="relative mb-4 overflow-hidden rounded-2xl aspect-video border border-foreground/3">
             <Skeleton className="w-full h-full rounded-none" />
 
             {/* Status Pill Skeleton (Reservation) */}

@@ -40,6 +40,7 @@ type Props = {
   processedDescription?: string | null;
   processedTerms?: string | null;
   descriptionShouldTruncate?: boolean;
+  initialSelectedSetIds?: string[];
 };
 
 interface GoogleCalendarEvent {
@@ -93,7 +94,8 @@ function ListingClient({
   googleCalendarEvents = [],
   processedDescription,
   processedTerms,
-  descriptionShouldTruncate
+  descriptionShouldTruncate,
+  initialSelectedSetIds = []
 }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>([null, null]);
@@ -101,18 +103,22 @@ function ListingClient({
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
 
-  const [selectedSetIds, setSelectedSetIds] = useState<string[]>([]);
+  const [selectedSetIds, setSelectedSetIds] = useState<string[]>(initialSelectedSetIds);
   const [isEntireStudioBooked, setIsEntireStudioBooked] = useState(false);
   const [isPackageSetModalOpen, setIsPackageSetModalOpen] = useState(false);
 
   const lastSigRef = useRef("");
 
 
+  const defaultSetId = useMemo(() => {
+    return listing.sets?.[0]?.id || null;
+  }, [listing.sets]);
+
   useEffect(() => {
-    if (listing.hasSets && listing.sets && listing.sets.length > 0 && selectedSetIds.length === 0 && !selectedPackage) {
-      setSelectedSetIds([listing.sets[0].id]);
+    if (listing.hasSets && defaultSetId && selectedSetIds.length === 0 && !selectedPackage && initialSelectedSetIds.length === 0) {
+      setSelectedSetIds([defaultSetId]);
     }
-  }, [listing.hasSets, listing.sets, selectedPackage, selectedSetIds.length]);
+  }, [listing.hasSets, defaultSetId, selectedPackage, selectedSetIds.length, initialSelectedSetIds.length]);
 
   useEffect(() => {
     if (!selectedDate || !selectedPackage || !selectedTimeSlot[0]) return;
@@ -562,7 +568,7 @@ function ListingClient({
 
     if (isEntireStudioBooked) {
       setIsEntireStudioBooked(false);
-      setSelectedSetIds([listing.sets[0].id]);
+      if (defaultSetId) setSelectedSetIds([defaultSetId]);
     } else {
       setIsEntireStudioBooked(true);
       setSelectedSetIds(listing.sets.map(s => s.id));
@@ -581,8 +587,8 @@ function ListingClient({
     } else {
       setIsPackageSetModalOpen(false);
       setIsEntireStudioBooked(false);
-      if (listing.sets && listing.sets.length > 0) {
-        setSelectedSetIds([listing.sets[0].id]);
+      if (defaultSetId) {
+        setSelectedSetIds([defaultSetId]);
       } else {
         setSelectedSetIds([]);
       }

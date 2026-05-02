@@ -355,6 +355,11 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
         processedDescription={processedDescription}
         processedTerms={processedTerms}
         descriptionShouldTruncate={descriptionShouldTruncate}
+        initialSelectedSetIds={
+          listing.hasSets && listing.sets && listing.sets.length > 0
+            ? [listing.sets[0].id]
+            : []
+        }
       />
     </>
   );

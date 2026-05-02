@@ -223,7 +223,7 @@ export async function proxy(request: NextRequest) {
 
     const isAdminDomain = hostname.startsWith('admin.') || hostname.includes('.admin.')
     if (isAdminDomain) {
-        if (!pathname.startsWith('/admin') && !pathname.startsWith('/api') && !pathname.startsWith('/_next')) {
+        if (!pathname.startsWith('/admin') && !pathname.startsWith('/api') && !pathname.startsWith('/_next') && !pathname.startsWith('/dashboard')) {
             const url = new URL(request.nextUrl)
             url.pathname = `/admin${pathname === '/' ? '' : pathname}`
             return NextResponse.rewrite(url)

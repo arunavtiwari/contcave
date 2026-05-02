@@ -133,7 +133,7 @@ export class ListingService {
 
             return await tx.listing.findUnique({
                 where: { id: listing.id },
-                include: { packages: true, sets: { orderBy: { position: "asc" } }, user: true },
+                include: { packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, user: true },
             }) as unknown as FullListing;
         });
     }
@@ -232,7 +232,7 @@ export class ListingService {
 
             return await tx.listing.findUnique({
                 where: { id: listingId },
-                include: { packages: true, sets: { orderBy: { position: "asc" } }, user: true },
+                include: { packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, user: true },
             }) as unknown as FullListing;
         });
     }
@@ -346,7 +346,7 @@ export class ListingService {
         const listings = await prisma.listing.findMany({
             where: query,
             orderBy: { createdAt: "desc" },
-            include: { packages: true, sets: { orderBy: { position: "asc" } }, user: true },
+            include: { packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, user: true },
         });
 
         return listings.map(l => this.normalizeListingWithRelations(l as ListingWithRelations));
@@ -365,7 +365,7 @@ export class ListingService {
         if (count <= limit) {
             const listings = await prisma.listing.findMany({
                 where: { active: true },
-                include: { packages: true, sets: { orderBy: { position: "asc" } }, user: true },
+                include: { packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, user: true },
             });
             return listings
                 .sort(() => Math.random() - 0.5)
@@ -385,7 +385,7 @@ export class ListingService {
 
         const listings = await prisma.listing.findMany({
             where: { id: { in: shuffledIds } },
-            include: { packages: true, sets: { orderBy: { position: "asc" } }, user: true },
+            include: { packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, user: true },
         });
 
         // Maintain the random order from shuffledIds
@@ -404,11 +404,11 @@ export class ListingService {
         const listing = isObjectId
             ? await prisma.listing.findFirst({
                 where: { id: listingId },
-                include: { user: true, packages: true, sets: { orderBy: { position: "asc" } }, blocks: true }
+                include: { user: true, packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, blocks: true }
             })
             : await prisma.listing.findFirst({
                 where: { slug: listingId },
-                include: { user: true, packages: true, sets: { orderBy: { position: "asc" } }, blocks: true }
+                include: { user: true, packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, blocks: true }
             });
 
         if (!listing) return null;

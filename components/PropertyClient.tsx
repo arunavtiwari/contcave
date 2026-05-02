@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Amenities } from "@prisma/client";
 import Image from "next/image";
@@ -134,7 +134,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             const res = await deleteListingAction(initialListing.id);
             if (res.error) throw new Error(res.error);
             toast.info("Property deleted successfully", { id: "Listing_Deleted" });
-            router.push("/properties");
+            router.push("/dashboard/properties");
             router.refresh();
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Failed to delete property";
@@ -251,9 +251,13 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
         });
     }, []);
 
+    const minSetPrice = useMemo(() => {
+        return initialListing.sets?.[0]?.price || 0;
+    }, [initialListing.sets]);
+
     useEffect(() => {
         if (setsHaveSamePrice && initialListing.sets && initialListing.sets.length > 0) {
-            const newPrice = unifiedSetPrice !== null ? unifiedSetPrice : (initialListing.sets[0].price || 0);
+            const newPrice = unifiedSetPrice !== null ? unifiedSetPrice : minSetPrice;
             if (unifiedSetPrice !== newPrice) {
                 setUnifiedSetPrice(newPrice);
             }
