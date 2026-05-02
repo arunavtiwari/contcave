@@ -100,6 +100,7 @@ function CustomAddonModal({ save }: Props) {
 
               <ImageUpload
                 uid="addon-image-upload"
+                label="Add-on Image"
                 onChange={(value) => setImage(value.slice(-1))}
                 values={[]}
                 deferUpload

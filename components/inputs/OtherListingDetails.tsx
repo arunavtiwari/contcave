@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 
+import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import FormField from "@/components/inputs/FormField";
 import Input from "@/components/inputs/Input";
 import Switch from "@/components/inputs/Switch";
@@ -111,61 +112,45 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
 
         <hr className="border-border" />
 
-        {/* Operational Days */}
-        <FormField
+        <Select
             label="Operational Days"
             description="Days when the space is open"
             variant="horizontal"
             required
-        >
-            <div className="flex gap-4 w-full">
-                <Select
-                    className="flex-1"
-                    options={dayOptions}
-                    value={dayOptions.find((d) => d.value === details.operationalDays.start)}
-                    onChange={(newValue) => {
-                        const sel = newValue as SelectOption | null;
-                        handleInputChange("operationalDays", {
-                            ...details.operationalDays,
-                            start: sel?.value || "",
-                        });
-                    }}
-                    placeholder="Start Day"
-                />
-                <Select
-                    className="flex-1"
-                    options={dayOptions}
-                    value={dayOptions.find((d) => d.value === details.operationalDays.end)}
-                    onChange={(newValue) => {
-                        const sel = newValue as SelectOption | null;
-                        handleInputChange("operationalDays", {
-                            ...details.operationalDays,
-                            end: sel?.value || "",
-                        });
-                    }}
-                    placeholder="End Day"
-                />
-            </div>
-        </FormField>
+            className="w-full"
+            options={dayOptions}
+            value={dayOptions.find((d) => d.value === details.operationalDays.start)}
+            onChange={(newValue) => {
+                const sel = newValue as SelectOption | null;
+                handleInputChange("operationalDays", {
+                    ...details.operationalDays,
+                    start: sel?.value || "",
+                });
+            }}
+            placeholder="Start Day"
+        />
 
-        {/* Operational Hours */}
-        <FormField
-            label="Opening Hours"
-            description="Daily operating hours"
-            variant="horizontal"
-            required
-        >
-            <div className="flex flex-col gap-4 w-full">
-                <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                        <span className="text-sm font-medium">Open all day</span>
-                        <span className="text-xs text-muted-foreground">Enable if your space is open 24 hours</span>
-                    </div>
-                    <Switch
-                        checked={isOpenAllDay}
-                        onChange={handleOpenAllDayToggle}
-                    />
-                </div>
+        <Select
+            className="w-full"
+            options={dayOptions}
+            value={dayOptions.find((d) => d.value === details.operationalDays.end)}
+            onChange={(newValue) => {
+                const sel = newValue as SelectOption | null;
+                handleInputChange("operationalDays", {
+                    ...details.operationalDays,
+                    end: sel?.value || "",
+                });
+            }}
+            placeholder="End Day"
+        />
+
+                <Switch
+                    label="Open all day"
+                    description="Enable if your space is open 24 hours"
+                    variant="horizontal"
+                    checked={isOpenAllDay}
+                    onChange={handleOpenAllDayToggle}
+                />
                 <div className="flex gap-4">
                     <Select
                         className="flex-1"
@@ -209,8 +194,6 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                         isDisabled={isOpenAllDay}
                     />
                 </div>
-            </div>
-        </FormField>
 
         <hr className="border-border" />
 
@@ -243,56 +226,36 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
 
         <hr className="border-border" />
 
-        {/* Space Type */}
-        <FormField
+        <AmenitiesCheckbox
             label="Space Type"
             description="Select all that apply"
             variant="horizontal"
             required
-        >
-            <div className="flex flex-wrap gap-2 w-full">
-                {Array.from(new Set([...spaceTypes, ...(details.type || [])])).map((t) => (
-                    <Pill
-                        key={t}
-                        label={t}
-                        onClick={() => handleTypeSelect(t)}
-                        variant={details.type.includes(t) ? "solid" : "secondary"}
-                        className="cursor-pointer transition-all hover:opacity-80"
-                    />
-                ))}
-            </div>
-        </FormField>
+            amenities={spaceTypes.map(t => ({ id: t, name: t, category: "" })) as any}
+            checked={details.type || []}
+            onChange={(updated: { predefined: { [key: string]: boolean }; custom: string[] }) => handleInputChange("type", Object.keys(updated.predefined).filter(k => updated.predefined[k]))}
+        />
 
         <hr className="border-border" />
 
         {/* Toggles */}
         <div className="space-y-6">
-            <FormField
+            <Switch
                 label="Instant Booking"
                 description="Allow customers to book without waiting for approval"
                 variant="horizontal"
-            >
-                <div className="flex items-center w-full">
-                    <Switch
-                        checked={details.instantBooking}
-                        onChange={(checked) => handleInputChange("instantBooking", !!checked)}
-                        variant="bolt"
-                    />
-                </div>
-            </FormField>
+                checked={details.instantBooking}
+                onChange={(checked) => handleInputChange("instantBooking", !!checked)}
+                styleVariant="bolt"
+            />
 
-            <FormField
+            <Switch
                 label="Multiple Sets"
                 description="Does this space have multiple sub-units?"
                 variant="horizontal"
-            >
-                <div className="flex items-center w-full">
-                    <Switch
-                        checked={details.hasSets}
-                        onChange={(checked) => handleInputChange("hasSets", !!checked)}
-                    />
-                </div>
-            </FormField>
+                checked={details.hasSets}
+                onChange={(checked) => handleInputChange("hasSets", !!checked)}
+            />
         </div>
     </div >
     );

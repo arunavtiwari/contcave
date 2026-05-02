@@ -3,8 +3,9 @@ import { AdditionalSetPricingType, Prisma } from "@prisma/client";
 import prisma from "@/lib/prismadb";
 import { isRichTextEmpty } from "@/lib/richText";
 import { generateUniqueSlug } from "@/lib/slug";
+import { slugify } from "@/lib/strings";
 import { sanitizeStringList } from "@/lib/strings/sanitizeStringList";
-import { listingSchema } from "@/schemas/listing";
+import { listingBaseSchema, listingSchema } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData } from "@/types/listing";
 
@@ -29,7 +30,7 @@ export class ListingService {
             operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
             verifications, customTerms, packages,
             hasSets, setsHaveSamePrice, unifiedSetPrice, additionalSetPricingType, sets,
-            terms
+            terms, slug
         } = validated;
 
         const trimmedTitle = title.trim();
@@ -39,7 +40,7 @@ export class ListingService {
         const priceValue = Math.round(Number(price) || 0);
         const privacySafeLatLng = jitterLatLng((actualLocation as { latlng?: unknown })?.latlng);
         const finalActualLocation = { ...(actualLocation as Record<string, unknown>), latlng: privacySafeLatLng || [0, 0] };
-        const newSlug = await generateUniqueSlug(trimmedTitle);
+        const newSlug = await generateUniqueSlug(slug || trimmedTitle);
 
         // 3. Atomic Transaction
         return await prisma.$transaction(async (tx) => {
@@ -139,7 +140,7 @@ export class ListingService {
     }
 
     static async updateListing(userId: string, listingId: string, body: Record<string, unknown>): Promise<FullListing> {
-        const validated = listingSchema.partial().parse(body);
+        const validated = listingBaseSchema.partial().parse(body);
         const { packages, sets, ...listingData } = validated;
 
         // 1. Permission Check
@@ -154,6 +155,7 @@ export class ListingService {
 
         if (listingData.unifiedSetPrice != null) listingData.unifiedSetPrice = Math.round(Number(listingData.unifiedSetPrice));
         if (listingData.price != null) listingData.price = Math.round(Number(listingData.price));
+        if (listingData.slug) listingData.slug = slugify(listingData.slug);
 
         // 3. Normalized Location (Privacy Jitter)
         const loc = listingData.actualLocation;

@@ -17,7 +17,7 @@ function CategoryInput({ icon: Icon, label, selected, onClick }: Props) {
       className={`rounded-xl px-4 py-6 flex flex-col items-center transition cursor-pointer gap-2 focus:outline-none border border-neutral-200 ${selected ? "text-background bg-foreground" : "hover:bg-neutral-50"}`}
     >
       <Icon size={30} />
-      <div className="font-semibold text-center whitespace-nowrap text-sm">{label}</div>
+      <div className="font-medium text-center whitespace-nowrap text-sm">{label}</div>
     </button>
   );
 }

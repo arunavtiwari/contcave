@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { SessionProvider, signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { IoMdClose } from "react-icons/io";
+import { TbVideoPlus } from "react-icons/tb";
 import { toast } from "sonner";
 
 import { deleteListingAction, updateListingAction } from "@/app/actions/listingActions";
@@ -29,6 +30,7 @@ import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import { spaceTypes } from "@/constants/spaceTypes";
 import { uploadToR2 } from "@/lib/storage/upload";
+import { slugify } from "@/lib/strings";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
 import { Package as ListingPackage } from "@/types/package";
@@ -244,10 +246,24 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
     const handleInputChange = useCallback((field: string, value: unknown) => {
         setListing((prev: FullListing) => {
+            let updated = prev;
             if (field === "locationValue" || field === "actualLocation") {
-                return { ...prev, [field]: value };
+                updated = { ...prev, [field]: value };
+            } else {
+                updated = setDeep(prev, field, value);
             }
-            return setDeep(prev, field, value);
+
+            if (field === "title") {
+                const newTitle = value as string;
+                const currentSlug = prev.slug;
+                const expectedSlugFromOldTitle = slugify(prev.title || "");
+                
+                if (!currentSlug || currentSlug === expectedSlugFromOldTitle) {
+                    updated = { ...updated, slug: slugify(newTitle) };
+                }
+            }
+
+            return updated;
         });
     }, []);
 
@@ -333,8 +349,6 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
                 <div className={selectedMenu === "Edit Property" ? "flex flex-col gap-5 sm:gap-8" : "hidden"}>
                     <Heading title="Edit Property" />
-
-
                     <Input
                         id="listingName"
                         label="Name"
@@ -350,48 +364,37 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         variant="horizontal"
                         placeholder="Enter custom URL slug"
                         value={initialListing.slug ?? ""}
-                        onChange={(e) => handleInputChange("slug", e.target.value)}
+                        onChange={(e) => handleInputChange("slug", slugify(e.target.value))}
                         customLeftContent="contcave.com/listing/"
                     />
 
 
-                    <FormField
+                    <RichTextEditor
                         label="Description"
                         variant="horizontal"
-                        align="start"
-                    >
-                        <RichTextEditor
-                            value={initialListing.description ?? ""}
-                            onChange={(html) => handleInputChange("description", html)}
-                        />
-                    </FormField>
+                        value={initialListing.description || ""}
+                        onChange={(html) => handleInputChange("description", html)}
+                    />
 
-                    <FormField
+                    <RichTextEditor
                         label="Terms & Conditions by Host"
                         variant="horizontal"
-                        align="start"
-                    >
-                        <RichTextEditor
-                            value={initialListing.customTerms ?? ""}
-                            onChange={(html) => handleInputChange("customTerms", html)}
-                        />
-                    </FormField>
+                        value={initialListing.customTerms ?? ""}
+                        onChange={(html) => handleInputChange("customTerms", html)}
+                    />
 
 
-                    <FormField
+                    <Select
                         label="Category"
                         variant="horizontal"
-                    >
-                        <Select
-                            options={categoryOptionsPrepared}
-                            value={categoryOptionsPrepared.find((item) => item.label === initialListing.category) || null}
-                            onChange={(sel) => {
-                                const selected = sel as SelectOption | null;
-                                handleInputChange("category", selected?.value || "");
-                            }}
-                            placeholder="Select Category"
-                        />
-                    </FormField>
+                        options={categoryOptionsPrepared}
+                        value={categoryOptionsPrepared.find((item) => item.label === initialListing.category) || null}
+                        onChange={(sel) => {
+                            const selected = sel as SelectOption | null;
+                            handleInputChange("category", selected?.value || "");
+                        }}
+                        placeholder="Select Category"
+                    />
 
 
                     <FormField
@@ -431,54 +434,41 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                         onNumberChange={(val) => handleInputChange("price", val)}
                     />
 
-                    <FormField
-                        label="Location"
+                    <CitySelect
+                        label="City"
                         variant="horizontal"
-                        align="start"
-                    >
-                        <div className="flex flex-col gap-5 w-full">
-                            <div className="w-full">
-                                <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                                    City
-                                </label>
-                                <CitySelect
-                                    value={initialListing.actualLocation as CitySelectValue | undefined}
-                                    locationValue={initialListing.locationValue}
-                                    onChange={(v: CitySelectValue) => {
-                                        handleInputChange("actualLocation", {
-                                            ...(initialListing.actualLocation || {}),
-                                            ...v,
-                                        });
-                                        handleInputChange("locationValue", v.value || "");
-                                    }}
-                                />
-                            </div>
+                        value={initialListing.actualLocation as CitySelectValue | undefined}
+                        locationValue={initialListing.locationValue}
+                        onChange={(v: CitySelectValue) => {
+                            handleInputChange("actualLocation", {
+                                ...(initialListing.actualLocation || {}),
+                                ...v,
+                            });
+                            handleInputChange("locationValue", v.value || "");
+                        }}
+                    />
 
-                            <div className="w-full">
-                                <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                                    Detailed Address
-                                </label>
-                                <AutoComplete
-                                    value={initialListing.actualLocation?.display_name || ""}
-                                    onChange={(sel: AutoCompleteValue) => {
-                                        handleInputChange("actualLocation", {
-                                            ...(initialListing.actualLocation || {}),
-                                            display_name: sel.display_name,
-                                            latlng: sel.latlng,
-                                            address: sel.display_name,
-                                            lat: sel.latlng[0],
-                                            lng: sel.latlng[1],
-                                        });
-                                    }}
-                                    placeholder="Search for space address..."
-                                />
-                            </div>
-                        </div>
-                    </FormField>
+                    <AutoComplete
+                        label="Detailed address"
+                        variant="horizontal"
+                        value={initialListing.actualLocation?.display_name || ""}
+                        onChange={(sel: AutoCompleteValue) => {
+                            handleInputChange("actualLocation", {
+                                ...(initialListing.actualLocation || {}),
+                                display_name: sel.display_name,
+                                latlng: sel.latlng,
+                                address: sel.display_name,
+                                lat: sel.latlng[0],
+                                lng: sel.latlng[1],
+                            });
+                        }}
+                        placeholder="Search for space address..."
+                    />
 
 
                     <FormField
-                        label="Images / Videos"
+                        label="Images"
+                        description="(Max 30)"
                         variant="horizontal"
                         align="start"
                     >
@@ -501,92 +491,78 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     </div>
                                 )}
                             </div>
-                            <div className="mt-8 border-t pt-8">
-                                <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                                    Video Tour (Optional)
-                                </label>
-                                <div className="mt-2 text-foreground">
-                                    <ImageUpload
-                                        uid="property-video-upload"
-                                        label="Upload Video Tour"
-                                        onChange={(v) => handleInputChange("videoSrc", v[0] || null)}
-                                        values={initialListing.videoSrc ? [initialListing.videoSrc] : []}
-                                        allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
-                                        maxSize={100 * 1024 * 1024}
-                                        className="w-full h-48 p-4 border border-border rounded-xl"
+                        </div>
+                    </FormField>
+
+                    <FormField
+                        label="Video tour (Optional)"
+                        variant="horizontal"
+                        align="start"
+                    >
+                        <div className="w-full">
+                            <ImageUpload
+                                uid="property-video-upload"
+                                uploadLabel="Upload Video Tour"
+                                onChange={(v) => handleInputChange("videoSrc", v[0] || null)}
+                                values={initialListing.videoSrc ? [initialListing.videoSrc] : []}
+                                allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
+                                maxSize={100 * 1024 * 1024}
+                                icon={TbVideoPlus}
+                                className="w-full h-48 p-4 border border-border rounded-xl"
+                            />
+                            {initialListing.videoSrc && (
+                                <div className="mt-4 relative group w-full max-w-md">
+                                    <video
+                                        src={initialListing.videoSrc}
+                                        controls
+                                        className="w-full h-48 rounded-xl object-cover border border-border"
                                     />
+                                    <button
+                                        onClick={() => handleInputChange("videoSrc", null)}
+                                        className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
+                                    >
+                                        <IoMdClose size={18} />
+                                    </button>
                                 </div>
-                                {initialListing.videoSrc && (
-                                    <div className="mt-4 relative group w-full max-w-md">
-                                        <video
-                                            src={initialListing.videoSrc}
-                                            controls
-                                            className="w-full h-48 rounded-xl object-cover border border-border"
-                                        />
-                                        <button
-                                            onClick={() => handleInputChange("videoSrc", null)}
-                                            className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
-                                        >
-                                            <IoMdClose size={18} />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                            )}
                         </div>
                     </FormField>
 
 
 
-                    <FormField
+                    <AmenitiesCheckbox
                         label="Amenities"
                         variant="horizontal"
-                        align="start"
-                    >
-                        <div className="flex w-full">
-                            <AmenitiesCheckbox
-                                checked={Array.isArray(initialListing.amenities) ? initialListing.amenities : []}
-                                amenities={amenities}
-                                onChange={handleAmenitiesChange}
-                                customAmenities={initialListing.otherAmenities}
-                            />
-                        </div>
-                    </FormField>
+                        checked={Array.isArray(initialListing.amenities) ? initialListing.amenities : []}
+                        amenities={amenities}
+                        onChange={handleAmenitiesChange}
+                        customAmenities={initialListing.otherAmenities}
+                    />
 
-
-                    <FormField
+                    <AddonsSelection
                         label="Addons"
                         variant="horizontal"
-                        align="start"
-                    >
-                        <div className="flex flex-col w-full">
-                            <AddonsSelection
-                                initialSelectedAddons={initialListing.addons}
-                                addons={addons}
-                                onSelectedAddonsChange={handleAddonChange}
-                            />
-                            <CustomAddonModal
-                                save={(value) => {
-                                    const updated = [...addons, { ...value, price: 0, qty: 0, imageUrl: value.imageUrl ?? "" }];
-                                    setAddons(updated);
-                                }}
-                            />
-                        </div>
-                    </FormField>
+                        initialSelectedAddons={initialListing.addons}
+                        addons={addons}
+                        onSelectedAddonsChange={handleAddonChange}
+                    />
+                    <div className="flex justify-end -mt-8">
+                        <CustomAddonModal
+                            save={(value) => {
+                                const updated = [...addons, { ...value, price: 0, qty: 0, imageUrl: value.imageUrl ?? "" }];
+                                setAddons(updated);
+                            }}
+                        />
+                    </div>
 
 
-                    <FormField
+                    <PackagesForm
                         label="Packages"
                         variant="horizontal"
-                        align="start"
-                    >
-                        <div className="flex flex-col w-full">
-                            <PackagesForm
-                                value={initialListing.packages ?? []}
-                                onChange={handlePackagesChange}
-                                availableSets={initialListing.hasSets ? (initialListing.sets ?? []) : []}
-                            />
-                        </div>
-                    </FormField>
+                        value={initialListing.packages ?? []}
+                        onChange={handlePackagesChange}
+                        availableSets={initialListing.hasSets ? (initialListing.sets ?? []) : []}
+                    />
 
 
                     <Input
@@ -690,7 +666,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                             <Switch
                                 checked={Boolean(initialListing.instantBooking)}
                                 onChange={(checked) => handleInputChange("instantBooking", checked)}
-                                variant="bolt"
+                                styleVariant="bolt"
+                                variant="horizontal"
                             />
                         </div>
                     </FormField>
@@ -776,19 +753,16 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                                     </div>
                                 </FormField>
 
-                                <FormField
+                                <SetsEditor
                                     label="Manage Sets"
                                     variant="horizontal"
-                                >
-                                    <SetsEditor
-                                        sets={initialListing.sets ?? []}
-                                        onChange={(updated) => handleInputChange("sets", updated)}
-                                        pricingType={initialListing.additionalSetPricingType || null}
-                                        isPricingUniform={setsHaveSamePrice ?? undefined}
-                                        uniformPrice={unifiedSetPrice}
-                                        onUniformPriceChange={setUnifiedSetPrice}
-                                    />
-                                </FormField>
+                                    sets={initialListing.sets ?? []}
+                                    onChange={(updated) => handleInputChange("sets", updated)}
+                                    pricingType={initialListing.additionalSetPricingType || null}
+                                    isPricingUniform={setsHaveSamePrice ?? undefined}
+                                    uniformPrice={unifiedSetPrice}
+                                    onUniformPriceChange={setUnifiedSetPrice}
+                                />
 
                             </div>
                         )}

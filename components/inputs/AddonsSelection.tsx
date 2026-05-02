@@ -6,14 +6,22 @@ import { FiPlus } from 'react-icons/fi';
 import ImageCheckbox from '@/components/inputs/ImageCheckbox';
 import Heading from '@/components/ui/Heading';
 import useUIStore from '@/hooks/useUIStore';
-import { Addon } from "@/types/addon";
 import { cn } from '@/lib/utils';
+import { Addon } from "@/types/addon";
+
+import FormField from './FormField';
 
 interface AddonsCheckboxProps {
     addons: Addon[];
     initialSelectedAddons: Addon[];
     onSelectedAddonsChange: (selectedAddons: Addon[]) => void;
     rentModal?: boolean;
+    label?: string;
+    description?: string;
+    required?: boolean;
+    variant?: "vertical" | "horizontal";
+    error?: string;
+    id?: string;
 }
 
 const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
@@ -21,6 +29,12 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
     initialSelectedAddons,
     onSelectedAddonsChange,
     rentModal = false,
+    label,
+    description,
+    required,
+    variant = "vertical",
+    error,
+    id = "addons-selection",
 }) => {
     const [selectedAddons, setSelectedAddons] = useState<Addon[]>(initialSelectedAddons);
     const uiStore = useUIStore();
@@ -96,77 +110,87 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
     );
 
     return (
-        <div className="space-y-12">
-            {selectedAddons.length > 0 && (
-                <div className="space-y-6">
-                    <Heading title="Selected Addons" variant="h6" />
-                    <div className={cn(
-                        "grid gap-6",
-                        rentModal ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
-                    )}>
-                        {selectedAddons.map((addon) => (
-                            <ImageCheckbox
-                                key={addon.name}
-                                addon={addon}
-                                imageUrl={addon.imageUrl}
-                                label={addon.name}
-                                onChange={(item) =>
-                                    handleAddonChange(addon.name, item.price, item.qty, item.checked)
-                                }
-                                checked={true}
-                            />
-                        ))}
-                        {availableAddons.length === 0 && renderCustomAddonCard()}
+        <FormField
+            id={id}
+            label={label}
+            description={description}
+            required={required}
+            error={error}
+            variant={variant}
+            align='start'
+        >
+            <div className="space-y-12 w-full">
+                {selectedAddons.length > 0 && (
+                    <div className="space-y-6">
+                        <Heading title="Selected Addons" variant="h6" />
+                        <div className={cn(
+                            "grid gap-6",
+                            rentModal ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
+                        )}>
+                            {selectedAddons.map((addon) => (
+                                <ImageCheckbox
+                                    key={addon.name}
+                                    addon={addon}
+                                    imageUrl={addon.imageUrl}
+                                    label={addon.name}
+                                    onChange={(item) =>
+                                        handleAddonChange(addon.name, item.price, item.qty, item.checked)
+                                    }
+                                    checked={true}
+                                />
+                            ))}
+                            {availableAddons.length === 0 && renderCustomAddonCard()}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {rentModal && selectedAddons.length > 0 && availableAddons.length > 0 && <hr className="border-border/50" />}
+                {rentModal && selectedAddons.length > 0 && availableAddons.length > 0 && <hr className="border-border/50" />}
 
-            {availableAddons.length > 0 && (
-                <div className="space-y-6">
-                    {!rentModal && (
-                        <Heading title="Available Addons" variant="h6" />
-                    )}
-                    <div className={cn(
-                        "grid gap-6",
-                        rentModal ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
-                    )}>
-                        {availableAddons.map((addon) => (
-                            <ImageCheckbox
-                                key={addon.name}
-                                addon={addon}
-                                imageUrl={addon.imageUrl}
-                                label={addon.name}
-                                onChange={(item) =>
-                                    handleAddonChange(addon.name, item.price, item.qty, item.checked)
-                                }
-                                checked={false}
-                            />
-                        ))}
-                        {renderCustomAddonCard()}
+                {availableAddons.length > 0 && (
+                    <div className="space-y-6">
+                        {!rentModal && (
+                            <Heading title="Available Addons" variant="h6" />
+                        )}
+                        <div className={cn(
+                            "grid gap-6",
+                            rentModal ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
+                        )}>
+                            {availableAddons.map((addon) => (
+                                <ImageCheckbox
+                                    key={addon.name}
+                                    addon={addon}
+                                    imageUrl={addon.imageUrl}
+                                    label={addon.name}
+                                    onChange={(item) =>
+                                        handleAddonChange(addon.name, item.price, item.qty, item.checked)
+                                    }
+                                    checked={false}
+                                />
+                            ))}
+                            {renderCustomAddonCard()}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {selectedAddons.length === 0 && availableAddons.length === 0 && (
-                <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-border rounded-2xl bg-muted/5 gap-4">
-                    <div className="p-4 rounded-full bg-muted">
-                        <FiPlus size={32} className="text-muted-foreground" />
+                {selectedAddons.length === 0 && availableAddons.length === 0 && (
+                    <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-border rounded-2xl bg-muted/5 gap-4">
+                        <div className="p-4 rounded-full bg-muted">
+                            <FiPlus size={32} className="text-muted-foreground" />
+                        </div>
+                        <div className="text-center">
+                            <p className="text-sm font-bold">No Addons Available</p>
+                            <p className="text-xs text-muted-foreground">Start by creating your own custom addons</p>
+                        </div>
+                        <button
+                            onClick={handleCreateCustomAddon}
+                            className="mt-2 text-xs font-bold uppercase tracking-widest px-6 py-2 bg-foreground text-background rounded-full hover:opacity-90 transition-all"
+                        >
+                            Create Custom Addon
+                        </button>
                     </div>
-                    <div className="text-center">
-                        <p className="text-sm font-bold">No Addons Available</p>
-                        <p className="text-xs text-muted-foreground">Start by creating your own custom addons</p>
-                    </div>
-                    <button
-                        onClick={handleCreateCustomAddon}
-                        className="mt-2 text-xs font-bold uppercase tracking-widest px-6 py-2 bg-foreground text-background rounded-full hover:opacity-90 transition-all"
-                    >
-                        Create Custom Addon
-                    </button>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        </FormField>
     );
 };
 

@@ -4,17 +4,40 @@ import React from "react";
 import { FaBolt } from "react-icons/fa";
 import ReactSwitch, { ReactSwitchProps } from "react-switch";
 
+import FormField from "./FormField";
+
 interface SwitchProps extends Partial<ReactSwitchProps> {
-    variant?: "default" | "bolt";
+    styleVariant?: "default" | "bolt";
     size?: "default" | "sm";
+    label?: string;
+    description?: string;
+    required?: boolean;
+    variant?: "vertical" | "horizontal";
+    error?: string;
 }
 
-const Switch: React.FC<SwitchProps> = ({ variant = "default", size = "default", ...props }) => {
-    const isBolt = variant === "bolt";
+const Switch: React.FC<SwitchProps> = ({
+    styleVariant = "default",
+    size = "default",
+    label,
+    description,
+    required,
+    variant = "vertical",
+    error,
+    ...props
+}) => {
+    const isBolt = styleVariant === "bolt";
     const isSmall = size === "sm";
 
     return (
-        <ReactSwitch
+        <FormField
+            label={label}
+            description={description}
+            required={required}
+            variant={variant}
+            error={error}
+        >
+            <ReactSwitch
             onChange={props.onChange ?? (() => { })}
             checked={props.checked ?? false}
             offColor="#D4D4D4"
@@ -36,6 +59,7 @@ const Switch: React.FC<SwitchProps> = ({ variant = "default", size = "default", 
             }
             {...props}
         />
+        </FormField>
     );
 };
 

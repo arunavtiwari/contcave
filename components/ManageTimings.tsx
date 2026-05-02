@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { getDayStatusAction, updateDayStatusAction } from "@/app/actions/listingActions";
+import Input from "@/components/inputs/Input";
 import Switch from "@/components/inputs/Switch";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
@@ -122,7 +123,7 @@ export default function CalendarComponent({
     }
 
     return (
-        <div className="flex items-center p-8 gap-12 bg-background justify-center rounded-2xl border border-border shadow-sm">
+        <div className="flex items-center p-8 gap-12 bg-background justify-center rounded-2xl border border-border">
             <div className="border border-border rounded-xl w-fit overflow-hidden">
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DateCalendar
@@ -149,7 +150,8 @@ export default function CalendarComponent({
                         onChange={setIsListingActive}
                         onColor="#10B981"
                         offColor="#D4D4D4"
-                        variant="bolt"
+                        styleVariant="bolt"
+                        variant="horizontal"
                     />
                 </div>
 
@@ -168,34 +170,32 @@ export default function CalendarComponent({
                         </div>
                     ) : (
                         <div className="flex space-x-4 mt-2">
-                            <div className="flex flex-col w-1/2 gap-2">
-                                <label className="text-foreground text-sm font-medium">Start Time</label>
-                                <input
-                                    type="time"
-                                    value={startTime}
-                                    onChange={(e) => setStartTime(e.target.value)}
-                                    className="border border-foreground rounded-xl px-4 h-11 text-sm font-medium text-foreground focus:border-foreground focus:ring-1 focus:ring-foreground hover:border-foreground appearance-none"
-                                />
-                            </div>
-                            <div className="flex flex-col w-1/2 gap-2">
-                                <label className="text-foreground text-sm font-medium">End Time</label>
-                                <input
-                                    type="time"
-                                    value={endTime}
-                                    onChange={(e) => setEndTime(e.target.value)}
-                                    className="border border-foreground rounded-xl px-4 h-11 text-sm font-medium text-foreground focus:border-foreground focus:ring-1 focus:ring-foreground hover:border-foreground appearance-none"
-                                />
-                            </div>
+                            <Input
+                                id="startTime"
+                                label="Start Time"
+                                type="time"
+                                value={startTime}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStartTime(e.target.value)}
+                                className="flex-1"
+                            />
+                            <Input
+                                id="endTime"
+                                label="End Time"
+                                type="time"
+                                value={endTime}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndTime(e.target.value)}
+                                className="flex-1"
+                            />
                         </div>
                     )}
                 </div>
 
                 <Button
-                    label="SAVE TIMINGS"
+                    label="Save timings"
                     onClick={handleSave}
                     variant="default"
                     size="lg"
-                    className="w-full rounded-xl text-sm font-bold shadow-lg shadow-foreground/10"
+                    className="w-full rounded-xl text-sm font-bold"
                 />
             </div>
         </div>

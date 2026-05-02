@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { IconType } from "react-icons";
 import { TbPhotoPlus } from "react-icons/tb";
 
-
+import FormField from "./FormField";
 
 type Props = {
   onChange: (value: string[]) => void;
@@ -16,7 +16,12 @@ type Props = {
   uid?: string;
   allowedTypes?: string[];
   maxSize?: number;
+  uploadLabel?: string;
   label?: string;
+  description?: string;
+  required?: boolean;
+  variant?: "vertical" | "horizontal";
+  error?: string;
   icon?: IconType;
   folder?: string;
 };
@@ -38,7 +43,12 @@ function ImageUpload({
     "video/quicktime",
   ],
   maxSize = 50 * 1024 * 1024,
-  label = "Upload Image",
+  uploadLabel,
+  label,
+  description,
+  required,
+  variant = "vertical",
+  error,
   icon: Icon = TbPhotoPlus,
   folder,
   className,
@@ -127,76 +137,85 @@ function ImageUpload({
   };
 
   return (
-    <label
-      htmlFor={uid}
-      className={`relative cursor-pointer hover:bg-muted transition border-dashed flex flex-col justify-center items-center text-muted-foreground ${circle ? "rounded-full" : "rounded-xl"
-        } ${circle
-          ? "w-full h-full"
-          : className || "w-32 h-32 p-4 border border-border"
-        }`}
+    <FormField
+      id={uid}
+      label={label}
+      description={description}
+      required={required}
+      error={error}
+      variant={variant}
     >
-      {uploading ? (
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-sm font-medium">Uploading...</span>
-        </div>
-      ) : circle ? (
-        values && values.length > 0 ? (
-          isVideo(values[0]) ? (
-            <video
-              src={values[0]}
-              className="w-full h-full object-cover rounded-full"
-              controls
-            />
+      <label
+        htmlFor={uid}
+        className={`relative cursor-pointer hover:bg-muted transition border-dashed flex flex-col justify-center items-center text-muted-foreground ${circle ? "rounded-full" : "rounded-xl"
+          } ${circle
+            ? "w-full h-full"
+            : className || "w-32 h-32 p-4 border border-border"
+          }`}
+      >
+        {uploading ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-sm font-medium">Uploading...</span>
+          </div>
+        ) : circle ? (
+          values && values.length > 0 ? (
+            isVideo(values[0]) ? (
+              <video
+                src={values[0]}
+                className="w-full h-full object-cover rounded-full"
+                controls
+              />
+            ) : (
+              <Image
+                src={values[0]}
+                alt="Preview"
+                width={128}
+                height={128}
+                className="w-full h-full object-cover rounded-full"
+                unoptimized
+              />
+            )
           ) : (
-            <Image
-              src={values[0]}
-              alt="Preview"
-              width={128}
-              height={128}
-              className="w-full h-full object-cover rounded-full"
-              unoptimized
-            />
+            <Icon size={30} className="text-muted-foreground" />
           )
         ) : (
-          <Icon size={30} className="text-muted-foreground" />
-        )
-      ) : (
-        <div className="flex flex-col items-center gap-2 text-center">
-          {className ? (
-            <>
-              <div className="p-3 bg-muted rounded-full">
-                <Icon size={28} className="text-muted-foreground" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-semibold text-sm text-foreground">
-                  {label}
-                </span>
-                <span className="text-xs text-muted-foreground mt-1">
-                  Drag & drop or click to browse
-                </span>
-              </div>
-            </>
-          ) : (
-            <>
-              <Icon size={30} className="text-muted-foreground" />
-              <div className="font-semibold mt-1 text-xs text-muted-foreground">
-                {label === "Upload Image" ? "Upload" : label}
-              </div>
-            </>
-          )}
-        </div>
-      )}
+          <div className="flex flex-col items-center gap-2 text-center">
+            {className ? (
+              <>
+                <div className="p-3 bg-muted rounded-full">
+                  <Icon size={28} className="text-muted-foreground" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-sm text-foreground">
+                    {uploadLabel || "Upload Image"}
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    Drag & drop or click to browse
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <Icon size={30} className="text-muted-foreground" />
+                <div className="font-semibold mt-1 text-xs text-muted-foreground">
+                  {uploadLabel || "Upload"}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
-      <input
-        id={uid}
-        type="file"
-        multiple
-        onChange={handleUpload}
-        className="hidden"
-        accept={allowedTypes.join(",")}
-      />
-    </label>
+        <input
+          id={uid}
+          type="file"
+          multiple
+          onChange={handleUpload}
+          className="hidden"
+          accept={allowedTypes.join(",")}
+        />
+      </label>
+    </FormField>
   );
 }
 

@@ -7,7 +7,23 @@ import { IoAdd, IoClose, IoTrash } from "react-icons/io5";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/inputs/Input";
 import Textarea from "@/components/inputs/Textarea";
+import Button from "@/components/ui/Button";
 import { AdditionalSetPricingType } from "@/types/set";
+
+import FormField from "./FormField";
+
+interface SetsEditorProps {
+    sets: SetEditorItem[];
+    onChange: (sets: SetEditorItem[]) => void;
+    pricingType: AdditionalSetPricingType | null;
+    disabled?: boolean;
+    label?: string;
+    description?: string;
+    required?: boolean;
+    variant?: "vertical" | "horizontal";
+    error?: string;
+    id?: string;
+}
 
 interface SetEditorItem {
     id?: string;
@@ -17,13 +33,6 @@ interface SetEditorItem {
     images: string[];
     price: number | null;
     position: number;
-}
-
-interface SetsEditorProps {
-    sets: SetEditorItem[];
-    onChange: (sets: SetEditorItem[]) => void;
-    pricingType: AdditionalSetPricingType | null;
-    disabled?: boolean;
 }
 
 const INR = new Intl.NumberFormat("en-IN", {
@@ -41,6 +50,12 @@ export default function SetsEditor({
     isPricingUniform = false,
     uniformPrice,
     onUniformPriceChange,
+    label,
+    description,
+    required,
+    variant = "vertical",
+    error,
+    id = "sets-editor",
 }: SetsEditorProps & {
     deferUpload?: boolean;
     isPricingUniform?: boolean;
@@ -111,156 +126,160 @@ export default function SetsEditor({
             : "Additional set price";
 
     return (
-        <div className="space-y-4">
+        <FormField
+            id={id}
+            label={label}
+            description={description}
+            required={required}
+            error={error}
+            variant={variant}
+        >
+            <div className="space-y-4 w-full">
 
-            {isPricingUniform && (
-                <div className="bg-muted p-4 rounded-xl border border-border">
-                    <Input
-                        id="uniform-price"
-                        label={`${priceLabel} (?) - Applies to ALL sets`}
-                        type="number"
-                        value={uniformPrice || ""}
-                        onNumberChange={(val) => {
-                            if (onUniformPriceChange) onUniformPriceChange(val);
-                            const updated = sets.map(s => ({ ...s, price: val }));
-                            onChange(updated);
-                        }}
-                        disabled={disabled}
-                        min={0}
-                        placeholder="0"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                        This price will be used for every set you add.
-                    </p>
-                </div>
-            )}
+                {isPricingUniform && (
+                    <div className="bg-muted p-4 rounded-xl border border-border">
+                        <Input
+                            id="uniform-price"
+                            label={`${priceLabel} (?) - Applies to ALL sets`}
+                            type="number"
+                            value={uniformPrice || ""}
+                            onNumberChange={(val) => {
+                                if (onUniformPriceChange) onUniformPriceChange(val);
+                                const updated = sets.map(s => ({ ...s, price: val }));
+                                onChange(updated);
+                            }}
+                            disabled={disabled}
+                            min={0}
+                            placeholder="0"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                            This price will be used for every set you add.
+                        </p>
+                    </div>
+                )}
 
-            {sets.length > 0 && (
-                <div className="space-y-3">
-                    {sets.map((set, index) => (
-                        <div
-                            key={set.id || set.tempId || `new-${index}`}
-                            className="border border-border rounded-xl overflow-hidden bg-background"
-                        >
+                {sets.length > 0 && (
+                    <div className="space-y-3">
+                        {sets.map((set, index) => (
                             <div
-                                className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted transition"
-                                onClick={() =>
-                                    setExpandedIndex(expandedIndex === index ? null : index)
-                                }
+                                key={set.id || set.tempId || `new-${index}`}
+                                className="border border-border rounded-xl overflow-hidden bg-background"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                                        {index + 1}
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">
-                                            {set.name || `Set ${index + 1}`}
-                                        </p>
+                                <div
+                                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted transition"
+                                    onClick={() =>
+                                        setExpandedIndex(expandedIndex === index ? null : index)
+                                    }
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
+                                            {index + 1}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">
+                                                {set.name || `Set ${index + 1}`}
+                                            </p>
 
-                                        <p className="text-sm text-muted-foreground">
-                                            {INR.format(set.price || 0)}
-                                            {pricingType === "HOURLY" ? "/hr" : ""}
-                                        </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {INR.format(set.price || 0)}
+                                                {pricingType === "HOURLY" ? "/hr" : ""}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removeSet(index);
+                                            }}
+                                            disabled={disabled}
+                                            className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition disabled:opacity-50"
+                                            aria-label="Remove set"
+                                        >
+                                            <IoTrash size={18} />
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            removeSet(index);
-                                        }}
-                                        disabled={disabled}
-                                        className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition disabled:opacity-50"
-                                        aria-label="Remove set"
-                                    >
-                                        <IoTrash size={18} />
-                                    </button>
-                                </div>
-                            </div>
 
-                            {expandedIndex === index && (
-                                <div className="border-t border-border p-4 space-y-4">
-                                    <div>
-                                        <Input
-                                            id={`set-name-${index}`}
-                                            label="Set Name *"
-                                            type="text"
-                                            value={set.name}
-                                            onChange={(e) =>
-                                                updateSet(index, { name: e.target.value })
-                                            }
-                                            disabled={disabled}
-                                            placeholder="e.g., Studio A, Main Hall"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Textarea
-                                            id={`set-desc-${index}`}
-                                            label="Description"
-                                            value={set.description || ""}
-                                            onChange={(e) =>
-                                                updateSet(index, { description: e.target.value })
-                                            }
-                                            disabled={disabled}
-                                            rows={3}
-                                            className="resize-none"
-                                            placeholder="Describe what's included in this set..."
-                                        />
-                                    </div>
-
-
-                                    {!isPricingUniform && (
-
+                                {expandedIndex === index && (
+                                    <div className="border-t border-border p-4 space-y-4">
                                         <div>
                                             <Input
-                                                id={`set-price-${index}`}
-                                                label={`${priceLabel} (?)`}
-                                                type="number"
-                                                value={set.price === null ? "" : set.price}
-                                                onNumberChange={(val) => {
-                                                    updateSet(index, {
-                                                        price: val,
-                                                    });
-                                                }}
+                                                id={`set-name-${index}`}
+                                                label="Set Name *"
+                                                type="text"
+                                                value={set.name}
+                                                onChange={(e) =>
+                                                    updateSet(index, { name: e.target.value })
+                                                }
                                                 disabled={disabled}
-                                                min={0}
-                                                placeholder="0"
+                                                placeholder="e.g., Studio A, Main Hall"
                                             />
                                         </div>
-                                    )}
 
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">
-                                            Images
-                                        </label>
-                                        <div className="flex flex-wrap gap-2 mb-2">
-                                            {set.images.map((img, imgIndex) => (
-                                                <div
-                                                    key={imgIndex}
-                                                    className="relative w-20 h-20 rounded-lg overflow-hidden group"
-                                                >
-                                                    <Image
-                                                        src={img}
-                                                        alt={`Set ${index + 1} image ${imgIndex + 1}`}
-                                                        fill
-                                                        className="object-cover"
-                                                        unoptimized
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeImage(index, imgIndex)}
-                                                        disabled={disabled}
-                                                        className="absolute top-1 right-1 p-1 bg-foreground/50 text-background rounded-full opacity-0 group-hover:opacity-100 transition"
-                                                    >
-                                                        <IoClose size={14} />
-                                                    </button>
-                                                </div>
-                                            ))}
+                                        <div>
+                                            <Textarea
+                                                id={`set-desc-${index}`}
+                                                label="Description"
+                                                value={set.description || ""}
+                                                onChange={(e) =>
+                                                    updateSet(index, { description: e.target.value })
+                                                }
+                                                disabled={disabled}
+                                                rows={3}
+                                                className="resize-none"
+                                                placeholder="Describe what's included in this set..."
+                                            />
                                         </div>
-                                        {set.images.length < 30 && (
+
+
+                                        {!isPricingUniform && (
+
+                                            <div>
+                                                <Input
+                                                    id={`set-price-${index}`}
+                                                    label={`${priceLabel} (?)`}
+                                                    type="number"
+                                                    value={set.price === null ? "" : set.price}
+                                                    onNumberChange={(val) => {
+                                                        updateSet(index, {
+                                                            price: val,
+                                                        });
+                                                    }}
+                                                    disabled={disabled}
+                                                    min={0}
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                        )}
+
+                                            <div className="flex flex-wrap gap-2 mb-2">
+                                                {set.images.map((img, imgIndex) => (
+                                                    <div
+                                                        key={imgIndex}
+                                                        className="relative w-20 h-20 rounded-lg overflow-hidden group"
+                                                    >
+                                                        <Image
+                                                            src={img}
+                                                            alt={`Set ${index + 1} image ${imgIndex + 1}`}
+                                                            fill
+                                                            className="object-cover"
+                                                            unoptimized
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeImage(index, imgIndex)}
+                                                            disabled={disabled}
+                                                            className="absolute top-1 right-1 p-1 bg-foreground/50 text-background rounded-full opacity-0 group-hover:opacity-100 transition"
+                                                        >
+                                                            <IoClose size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
                                             <ImageUpload
+                                                label="Set Images"
                                                 uid={`set-upload-${index}`}
                                                 onChange={(newUrls) => {
                                                     updateSet(index, { images: newUrls });
@@ -268,30 +287,29 @@ export default function SetsEditor({
                                                 values={set.images}
                                                 deferUpload={deferUpload}
                                             />
-                                        )}
+
                                     </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
 
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
+                <Button
+                    type="button"
+                    onClick={addSet}
+                    disabled={disabled || sets.length >= 50}
+                    variant="outline"
+                    label="Add Set"
+                    icon={IoAdd}
+                    className="w-full border-dashed"
+                />
 
-            <button
-                type="button"
-                onClick={addSet}
-                disabled={disabled || sets.length >= 50}
-                className="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-border rounded-xl text-muted-foreground hover:border-foreground/40 hover:text-foreground transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                <IoAdd size={20} />
-                Add Set
-            </button>
-
-            {sets.length >= 50 && (
-                <p className="text-sm text-warning">Maximum 50 sets allowed</p>
-            )}
-        </div>
+                {sets.length >= 50 && (
+                    <p className="text-sm text-warning">Maximum 50 sets allowed</p>
+                )}
+            </div>
+        </FormField>
     );
 }
 

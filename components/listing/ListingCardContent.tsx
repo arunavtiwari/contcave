@@ -45,7 +45,7 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
                         {reservationDate} {reservationTime && `• ${reservationTime}`}
                     </p>
                 ) : (
-                    <p className="shrink-0 text-xs font-semibold text-muted-foreground/80 uppercase">
+                    <p className="shrink-0 text-xs font-medium text-muted-foreground/80 uppercase">
                         {locationLabel}
                     </p>
                 )}

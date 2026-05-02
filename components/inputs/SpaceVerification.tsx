@@ -105,7 +105,7 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
 
                     <div className="flex flex-col gap-4">
                         <div>
-                            <h4 className="font-semibold text-foreground mb-2">Required Documents</h4>
+                            <h4 className="font-medium text-foreground mb-2">Required Documents</h4>
                             <p className="text-sm text-muted-foreground leading-relaxed">
                                 To verify your ownership or authority to rent this space, please upload
                                 <span className="font-medium text-foreground"> at least one </span>
@@ -139,12 +139,13 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
                     <div className="flex flex-col gap-4 h-full">
                         <div className="flex-1 min-h-50">
                             <ImageUpload
+                                label="Verification Document"
                                 onChange={() => { }}
                                 values={[]}
                                 deferUpload
                                 onFilesChange={handleFilesChange}
                                 allowedTypes={['application/pdf']}
-                                label="Click to upload PDF"
+                                uploadLabel="Click to upload PDF"
                                 icon={BsFileEarmarkPdf}
                                 className="w-full h-full min-h-50 p-4 border border-border"
                             />

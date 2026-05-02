@@ -22,6 +22,10 @@ interface AutoCompleteProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  label?: string;
+  description?: string;
+  required?: boolean;
+  variant?: "vertical" | "horizontal";
   error?: string;
 }
 
@@ -31,12 +35,18 @@ interface PlaceOption extends SelectOption {
   secondary_text: string;
 }
 
+import FormField from './FormField';
+
 export default function AutoComplete({
   value,
   onChange,
   placeholder = 'Search for a location',
   disabled = false,
   className = '',
+  label,
+  description,
+  required,
+  variant = "vertical",
   error,
 }: AutoCompleteProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API || '';
@@ -126,58 +136,67 @@ export default function AutoComplete({
   if (loadError) return <div className="text-sm text-destructive">Google Maps failed to load.</div>;
 
   return (
-    <div className={cn("w-full", className)}>
-      <Select<PlaceOption>
-        isAsync
-        cacheOptions
-        defaultOptions
-        loadOptions={loadOptions}
-        value={currentValue}
-        onChange={handleSelect}
-        placeholder={placeholder}
-        isDisabled={disabled || !isLoaded}
-        error={error}
-        isSearchable={true}
-        components={{
-          DropdownIndicator: () => null,
-          IndicatorSeparator: () => null,
-          Option: (props) => {
-            const { innerProps, isFocused, isSelected, data } = props;
-            return (
-              <div
-                {...innerProps}
-                className={cn(
-                  "px-4 py-3 cursor-pointer flex items-start gap-3 transition-colors",
-                  isFocused ? "bg-muted" : "transparent",
-                  isSelected && "bg-foreground text-background"
-                )}
-              >
-                <div className={cn(
-                  "mt-0.5 shrink-0 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors",
-                  isFocused && "bg-foreground text-background"
-                )}>
-                  <FiMapPin size={14} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold truncate">
-                    {data.main_text}
-                  </div>
+    <FormField
+      id="autocomplete-input"
+      label={label}
+      description={description}
+      required={required}
+      error={error}
+      variant={variant}
+    >
+      <div className={cn("w-full", className)}>
+        <Select<PlaceOption>
+          isAsync
+          cacheOptions
+          defaultOptions
+          loadOptions={loadOptions}
+          value={currentValue}
+          onChange={handleSelect}
+          placeholder={placeholder}
+          isDisabled={disabled || !isLoaded}
+          error={error}
+          isSearchable={true}
+          components={{
+            DropdownIndicator: () => null,
+            IndicatorSeparator: () => null,
+            Option: (props) => {
+              const { innerProps, isFocused, isSelected, data } = props;
+              return (
+                <div
+                  {...innerProps}
+                  className={cn(
+                    "px-4 py-3 cursor-pointer flex items-start gap-3 transition-colors",
+                    isFocused ? "bg-muted" : "transparent",
+                    isSelected && "bg-foreground text-background"
+                  )}
+                >
                   <div className={cn(
-                    "text-[11px] truncate italic",
-                    isSelected ? "text-background/70" : "text-muted-foreground"
+                    "mt-0.5 shrink-0 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors",
+                    isFocused && "bg-foreground text-background"
                   )}>
-                    {data.secondary_text}
+                    <FiMapPin size={14} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">
+                      {data.main_text}
+                    </div>
+                    <div className={cn(
+                      "text-sm truncate italic",
+                      isSelected ? "text-background/70" : "text-muted-foreground"
+                    )}>
+                      {data.secondary_text}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
+              );
+            }
+          }}
+          noOptionsMessage={({ inputValue }) =>
+            inputValue.length >= 3 ? "No locations found" : "Type at least 3 characters to search"
           }
-        }}
-        noOptionsMessage={({ inputValue }) =>
-          inputValue.length >= 3 ? "No premium locations found" : "Type at least 3 characters to search"
-        }
-        loadingMessage={() => "Searching premium locations..."}
-      />
-    </div>
+          loadingMessage={() => "Searching locations..."}
+        />
+      </div>
+    </FormField>
   );
 }

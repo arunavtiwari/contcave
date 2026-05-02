@@ -274,11 +274,19 @@ function LoadInitialValue({ value, onInitialized }: { value?: string; onInitiali
 
 /* ---------------- MAIN EDITOR ---------------- */
 
+import FormField from "./FormField";
+
 interface Props {
   value?: string;
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  label?: string;
+  description?: string;
+  required?: boolean;
+  error?: string;
+  id?: string;
+  variant?: "vertical" | "horizontal";
 }
 
 export default function RichTextEditor({
@@ -286,6 +294,12 @@ export default function RichTextEditor({
   onChange,
   placeholder = "Write something amazing about your space",
   disabled = false,
+  label,
+  description,
+  required,
+  error,
+  id = "rich-text-editor",
+  variant = "vertical",
 }: Props) {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [_isMounted, setIsMounted] = useState(false);
@@ -295,58 +309,69 @@ export default function RichTextEditor({
   }, []);
 
   return (
-    <LexicalComposer initialConfig={editorConfig}>
-      <div className={cn(
-        "relative border rounded-2xl bg-background transition-all duration-300 overflow-hidden",
-        "border-border"
-      )}>
-        <ToolbarPlugin />
+    <FormField
+      id={id}
+      label={label}
+      description={description}
+      required={required}
+      error={error}
+      align="center"
+      variant={variant}
+    >
+      <LexicalComposer initialConfig={editorConfig}>
+        <div className={cn(
+          "relative border rounded-2xl bg-background transition-all duration-300 overflow-hidden",
+          "border-border",
+          error && "border-destructive"
+        )}>
+          <ToolbarPlugin />
 
-        <div className="relative min-h-40">
-          {/* SSR & Initial Loading Preview */}
-          {(!hasInitialized) && value && (
-            <div
-              className="absolute inset-0 p-4 prose prose-sm dark:prose-invert max-w-none z-0 pointer-events-none opacity-40"
-              dangerouslySetInnerHTML={{ __html: value }}
+          <div className="relative min-h-40">
+            {/* SSR & Initial Loading Preview */}
+            {(!hasInitialized) && value && (
+              <div
+                className="absolute inset-0 p-4 prose prose-sm dark:prose-invert max-w-none z-0 pointer-events-none opacity-40"
+                dangerouslySetInnerHTML={{ __html: value }}
+              />
+            )}
+
+            <RichTextPlugin
+              contentEditable={
+                <ContentEditable className={cn(
+                  "min-h-40 p-4 outline-none text-sm font-normal relative z-10",
+                  disabled && "pointer-events-none opacity-60",
+                  !hasInitialized && "opacity-0"
+                )} />
+              }
+              placeholder={
+                (!hasInitialized && value) ? null : (
+                  <div className="pointer-events-none absolute top-4 left-4 text-muted-foreground/30 text-sm italic z-10">
+                    {(!hasInitialized && !value) ? "Loading editor..." : placeholder}
+                  </div>
+                )
+              }
+              ErrorBoundary={LexicalErrorBoundary}
             />
-          )}
+          </div>
 
-          <RichTextPlugin
-            contentEditable={
-              <ContentEditable className={cn(
-                "min-h-40 p-4 outline-none text-sm font-normal relative z-10",
-                disabled && "pointer-events-none opacity-60",
-                !hasInitialized && "opacity-0"
-              )} />
-            }
-            placeholder={
-              (!hasInitialized && value) ? null : (
-                <div className="pointer-events-none absolute top-4 left-4 text-muted-foreground/30 text-sm italic z-10">
-                  {(!hasInitialized && !value) ? "Loading editor..." : placeholder}
-                </div>
-              )
-            }
-            ErrorBoundary={LexicalErrorBoundary}
+          <ListPlugin />
+          <HistoryPlugin />
+
+          <OnChangePlugin
+            onChange={(editorState: EditorState, editor: LexicalEditor) => {
+              editorState.read(() => {
+                const html = $generateHtmlFromNodes(editor);
+                onChange(html);
+              });
+            }}
+          />
+
+          <LoadInitialValue
+            value={value}
+            onInitialized={() => setHasInitialized(true)}
           />
         </div>
-
-        <ListPlugin />
-        <HistoryPlugin />
-
-        <OnChangePlugin
-          onChange={(editorState: EditorState, editor: LexicalEditor) => {
-            editorState.read(() => {
-              const html = $generateHtmlFromNodes(editor);
-              onChange(html);
-            });
-          }}
-        />
-
-        <LoadInitialValue
-          value={value}
-          onInitialized={() => setHasInitialized(true)}
-        />
-      </div>
-    </LexicalComposer>
+      </LexicalComposer>
+    </FormField>
   );
 }

@@ -7,33 +7,20 @@ import FormField from "@/components/inputs/FormField";
 import { cn } from "@/lib/utils";
 
 const inputVariants = cva(
-    "w-full font-normal bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed pr-3 text-foreground",
+    "flex items-center w-full bg-background border rounded-xl transition disabled:opacity-70 disabled:cursor-not-allowed text-foreground group",
     {
         variants: {
             size: {
-                sm: "h-10 text-xs",
+                sm: "h-10 text-sm",
                 md: "h-11 text-sm",
             },
             error: {
-                true: "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20",
-                false: "border-border hover:border-border/80 focus:border-foreground focus:ring-1 focus:ring-foreground/10",
+                true: "border-destructive focus-within:border-destructive",
+                false: "border-border hover:border-border/80 focus-within:border-foreground",
             },
-            formatPrice: {
-                true: "",
-                false: "",
-            },
-            hasLeftContent: {
-                true: "",
-                false: "pl-3",
-            }
         },
-        compoundVariants: [
-            { formatPrice: true, size: "sm", className: "pl-9" },
-            { formatPrice: true, size: "md", className: "pl-12" },
-            { hasLeftContent: true, formatPrice: false, className: "pl-11" },
-        ],
         defaultVariants: {
-            size: "md",
+            size: "sm",
             error: false,
         },
     }
@@ -50,6 +37,7 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "
     variant?: "vertical" | "horizontal";
     onNumberChange?: (value: number) => void;
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    formatPrice?: boolean;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -98,18 +86,23 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 required={required}
                 variant={variant}
             >
-                <div className="relative group">
+                <div className={cn(
+                    inputVariants({
+                        size,
+                        error: hasError,
+                    }),
+                    className
+                )}>
                     {customLeftContent && (
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none text-muted-foreground text-sm select-none z-10">
+                        <div className="pl-4 pr-1 flex items-center justify-center pointer-events-none text-muted-foreground text-sm select-none shrink-0">
                             {customLeftContent}
                         </div>
                     )}
 
                     {formatPrice && (
-                        <IndianRupee
-                            size={size === "sm" ? 14 : 18}
-                            className="text-muted-foreground absolute top-1/2 -translate-y-1/2 left-4 pointer-events-none z-10"
-                        />
+                        <div className="pl-4 pr-1 flex items-center justify-center pointer-events-none text-muted-foreground shrink-0">
+                            <IndianRupee size={size === "sm" ? 14 : 18} />
+                        </div>
                     )}
 
                     <input
@@ -117,13 +110,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         type={renderedType}
                         inputMode={inputMode}
                         className={cn(
-                            inputVariants({
-                                size,
-                                error: hasError,
-                                formatPrice: !!formatPrice,
-                                hasLeftContent: !!customLeftContent,
-                                className
-                            })
+                            "flex-1 bg-transparent border-none focus:ring-0 outline-none h-full w-full pr-4 min-w-0 text-sm",
+                            (!customLeftContent && !formatPrice) && "pl-4"
                         )}
                         ref={ref}
                         required={required}
@@ -138,7 +126,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     />
 
                     {customRightContent && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                        <div className="pr-3 flex items-center justify-center shrink-0">
                             {customRightContent}
                         </div>
                     )}

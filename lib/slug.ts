@@ -1,13 +1,5 @@
 import prisma from "@/lib/prismadb";
-
-export function slugify(text: string) {
-    return text
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/--+/g, "-");
-}
+import { slugify } from "@/lib/strings";
 
 export async function generateUniqueSlug(title: string): Promise<string> {
     const baseSlug = slugify(title);

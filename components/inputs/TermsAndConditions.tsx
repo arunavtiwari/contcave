@@ -1,6 +1,9 @@
 import Image from 'next/image';
 import React, { ChangeEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
+import Checkbox from '@/components/inputs/Checkbox';
+import Button from '@/components/ui/Button';
+
 export type TermsRef = { generateAndUploadPdf: (listingId: string) => Promise<{ url: string; pdfUrl: string }> };
 
 export interface SignatureMeta {
@@ -40,10 +43,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
         onSignature?.(meta);
     };
 
-    const handleAgreeChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setAgree(event.target.checked);
-        onChange(event.target.checked);
-    };
+
 
     const generateAndUploadPdf = async (listingId: string) => {
         try {
@@ -77,7 +77,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
     useImperativeHandle(ref, () => ({ generateAndUploadPdf }));
 
     const S = ({ children }: { children: React.ReactNode }) => (
-        <strong className="block mt-5 mb-2 text-sm">{children}</strong>
+        <strong className="block mt-5 mb-2 text-sm font-medium">{children}</strong>
     );
 
     const C = ({ children }: { children: React.ReactNode }) => (
@@ -267,23 +267,27 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                         </p>
 
                         <div className="mb-3 mt-4">
-                            <div className="font-semibold text-sm mb-1">Host Signature</div>
+                            <div className="font-medium text-sm mb-2">Host Signature</div>
                             {!signature ? (
-                                <label
-                                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-border rounded-md shadow-sm text-sm font-medium transition text-muted-foreground bg-background"
-                                >
-                                    <span>Upload Signature Image</span>
+                                <>
                                     <input
                                         type="file"
+                                        id="signature-upload"
                                         accept="image/png,image/jpeg,image/webp"
                                         onChange={(e) => {
                                             const f = e.target.files?.[0];
                                             if (f) handleSignatureFile(f);
                                         }}
                                         className="hidden"
-                                        style={{ display: "none" }}
                                     />
-                                </label>
+                                    <Button
+                                        label="Upload Signature Image"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => document.getElementById('signature-upload')?.click()}
+                                        fit
+                                    />
+                                </>
                             ) : (
                                 <div className="flex items-center gap-3">
                                     <Image
@@ -292,27 +296,37 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                                         width={120}
                                         height={60}
                                         unoptimized
-                                        className="rounded border border-border bg-background object-contain"
+                                        className="rounded-xl border border-border bg-background object-contain"
+                                    />
+                                    <Button
+                                        label="Remove"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            setSignature(null);
+                                            onSignature?.({ url: "" });
+                                        }}
+                                        className="text-destructive hover:bg-destructive/5"
+                                        fit
                                     />
                                 </div>
                             )}
                         </div>
 
-                        <p className="font-semibold">Company: Arkanet Ventures LLP</p>
-                        <p className="text-xs text-gray-500 mt-1">Date: {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                        <p className="font-medium">Company: Arkanet Ventures LLP</p>
+                        <p className="text-xs text-muted-foreground mt-1">Date: {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                     </div>
 
                     <div className="flex items-center mb-4">
-                        <input
+                        <Checkbox
                             id="agreeCheckbox"
-                            type="checkbox"
                             checked={agree}
-                            onChange={handleAgreeChange}
-                            className="h-4 w-4 accent-foreground bg-muted border-border rounded-full focus:outline-none focus:ring-transparent cursor-pointer checked:bg-foreground checked:border-foreground transition duration-150 ease-in-out"
+                            onCheckedChange={(checked) => {
+                                setAgree(checked);
+                                onChange(checked);
+                            }}
+                            label="I AGREE TO ALL TERMS AND CONDITIONS"
                         />
-                        <label htmlFor="agreeCheckbox" className="ml-2 block text-sm leading-5 text-foreground">
-                            I AGREE TO ALL TERMS AND CONDITIONS
-                        </label>
                     </div>
                 </div>
             </div>

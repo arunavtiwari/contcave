@@ -7,7 +7,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 transition active:scale-[0.98] flex justify-center items-center gap-2 border",
+  "relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none transition active:scale-[0.98] flex justify-center items-center gap-2 border",
   {
     variants: {
       variant: {
@@ -19,7 +19,7 @@ const buttonVariants = cva(
         outline: "bg-background border-foreground/20 text-foreground",
       },
       size: {
-        sm: "h-10 px-4 text-xs",
+        sm: "h-10 px-4 text-sm",
         md: "h-11 px-6 text-sm",
         lg: "h-12 px-8 text-sm",
         xl: "h-14 px-10 text-base",
@@ -54,7 +54,7 @@ const buttonVariants = cva(
     ],
     defaultVariants: {
       variant: "default",
-      size: "md",
+      size: "sm",
       rounded: false,
       fit: false,
     },

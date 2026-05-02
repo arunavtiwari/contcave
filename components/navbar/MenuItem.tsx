@@ -19,19 +19,19 @@ const MenuItem = memo(function MenuItem({ onClick, label, icon: Icon, href }: Pr
         onClick={onClick}
         className="block w-full"
       >
-        <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted transition font-semibold rounded-xl cursor-pointer">
+        <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted transition font-medium rounded-xl cursor-pointer">
           {Icon && <Icon className="text-lg" />}
           <span>{label}</span>
         </div>
       </Link>
     );
   }
-
+  
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted transition font-semibold rounded-xl cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted transition font-medium rounded-xl cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {Icon && <Icon className="text-lg" />}
       <span>{label}</span>

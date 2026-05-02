@@ -1,13 +1,15 @@
-﻿'use client';
+'use client';
 
+import { AnimatePresence,motion } from 'framer-motion';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { IconType } from 'react-icons';
-
-import { Addon } from "@/types/addon";
+import { FiCheck } from 'react-icons/fi';
 
 import { cn } from '@/lib/utils';
+import { Addon } from "@/types/addon";
 
+import Checkbox from './Checkbox';
 import Input from './Input';
 
 type Props = {
@@ -51,37 +53,40 @@ const ImageCheckbox = ({
   const handleCheckboxChange = () => {
     const newCheckedState = !isChecked;
     setIsChecked(newCheckedState);
-    onChange({ checked: newCheckedState, price: price !== '' ? price : undefined, qty: qty !== '' ? qty : undefined });
+    onChange({
+      checked: newCheckedState,
+      price: price !== '' ? price : undefined,
+      qty: qty !== '' ? qty : undefined
+    });
   };
 
   const renderVisual = () => {
     if (Icon) {
       return (
         <div
-          onClick={onClickChange}
           className={cn(
-            "rounded-2xl w-20 h-20 mt-6 mb-2 flex items-center justify-center transition-all duration-300",
-            isChecked ? "bg-foreground text-background scale-105 shadow-xl" : "bg-muted text-muted-foreground hover:bg-muted/80",
-            hideCheckbox && "cursor-pointer"
+            "rounded-xl w-14 h-14 flex items-center justify-center transition-colors duration-500 shrink-0",
+            isChecked
+              ? "bg-foreground text-background"
+              : "bg-muted text-muted-foreground group-hover:bg-muted-foreground/10"
           )}
         >
-          <Icon size={32} />
+          <Icon size={24} />
         </div>
       );
     }
 
     if (imageUrl && imageUrl.trim() !== '') {
       return (
-        <div className="relative w-20 h-20 mt-6 mb-2 overflow-hidden rounded-2xl group">
+        <div className="relative w-14 h-14 overflow-hidden rounded-xl bg-muted/30 shrink-0 border border-border/40">
           <Image
             src={imageUrl}
             alt={label || "image"}
             fill
             className={cn(
-              "object-cover transition-transform duration-500 group-hover:scale-110",
-              isChecked ? "brightness-110" : "brightness-90 hover:brightness-100"
+              "object-contain p-2 transition-transform duration-700",
+              isChecked ? "scale-110" : "group-hover:scale-110"
             )}
-            onClick={onClickChange}
           />
         </div>
       );
@@ -89,82 +94,102 @@ const ImageCheckbox = ({
 
     return (
       <div
-        onClick={onClickChange}
-        className="rounded-2xl w-20 h-20 mt-6 mb-2 bg-muted/50 border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground/40 text-[10px] uppercase tracking-tighter text-center p-2"
+        className="rounded-xl w-14 h-14 bg-muted/20 border border-dashed border-border/40 flex items-center justify-center text-muted-foreground/20 text-[8px] font-black shrink-0"
       >
-        <span className="font-bold">No Preview</span>
+        <span>N/A</span>
       </div>
     );
   };
 
   return (
-    <div className={cn(
-      "w-full flex flex-col items-center p-4 rounded-2xl border transition-all duration-300",
-      isChecked ? "bg-muted/30 border-foreground/20 shadow-lg" : "bg-transparent border-border hover:border-foreground/10 hover:bg-muted/10",
-      className
-    )}>
-      <label className="w-full cursor-pointer flex flex-col items-center">
-        {!hideCheckbox && (
-          <input
-            type="checkbox"
-            checked={isChecked}
-            onChange={handleCheckboxChange}
-            className="w-5 h-5 accent-foreground bg-muted border-foreground border rounded-full focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer"
-          />
-        )}
-
+    <motion.div
+      initial={false}
+      animate={{
+        backgroundColor: isChecked ? 'rgba(0, 0, 0, 0.02)' : 'var(--color-background)',
+      }}
+      className={cn(
+        "group relative w-full flex flex-col p-4 rounded-2xl border transition-all duration-500",
+        isChecked
+          ? "border-foreground/20"
+          : "bg-background border-border hover:border-foreground/10 hover:bg-muted/5",
+        className
+      )}
+    >
+      <div
+        onClick={onClickChange || handleCheckboxChange}
+        className="flex items-center gap-4 cursor-pointer"
+      >
         {renderVisual()}
 
-        <div className="w-full flex flex-col items-center gap-4">
-          <span className={cn(
-            "text-sm font-bold truncate transition-colors duration-300",
-            isChecked ? "text-foreground" : "text-muted-foreground"
+        <div className="flex-1 min-w-0">
+          <h4 className={cn(
+            "text-sm font-medium tracking-tight transition-colors duration-500 truncate",
+            isChecked ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
           )}>
             {label}
-          </span>
-
-          {!hideInputFields && (
-            <div className="w-full space-y-3 mt-2">
-              <div className='flex items-center gap-3 w-full justify-between'>
-                <label className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground shrink-0 leading-none">Price</label>
-                <Input
-                  id={`addon-price-${label}`}
-                  value={price}
-                  type="number"
-                  onNumberChange={(val) => {
-                    setPrice(val);
-                    if (isChecked) {
-                      onChange({ checked: true, price: val, qty: qty !== '' ? qty : undefined });
-                    }
-                  }}
-                  placeholder="0"
-                  disabled={!isChecked}
-                  className="w-24 text-center h-8 text-xs rounded-lg"
-                />
-              </div>
-
-              <div className='flex items-center gap-3 w-full justify-between'>
-                <label className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground shrink-0 leading-none">Quantity</label>
-                <Input
-                  id={`addon-qty-${label}`}
-                  value={qty}
-                  type="number"
-                  onNumberChange={(val) => {
-                    setQty(val);
-                    if (isChecked) {
-                      onChange({ checked: true, price: price !== '' ? price : undefined, qty: val });
-                    }
-                  }}
-                  placeholder="0"
-                  disabled={!isChecked}
-                  className="w-24 text-center h-8 text-xs rounded-lg"
-                />
-              </div>
-            </div>
+          </h4>
+          {isChecked && (
+            <p className="text-sm text-foreground/40 font-medium mt-0.5">
+              Active selection
+            </p>
           )}
         </div>
-      </label>
-    </div>
+
+        {/* Selection Control */}
+        {!hideCheckbox && (
+          <div onClick={(e) => e.stopPropagation()}>
+            <Checkbox
+              checked={isChecked}
+              onCheckedChange={onClickChange || handleCheckboxChange}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Input Fields Area (Expandable) */}
+      {!hideInputFields && (
+        <AnimatePresence>
+          {isChecked && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-4 mt-4 border-t border-muted/5 grid grid-cols-2 gap-4">
+                <div className='w-full'>
+                  <Input
+                    id={`addon-price-${label}`}
+                    label="Price"
+                    value={price}
+                    type="number"
+                    onNumberChange={(val) => {
+                      setPrice(val);
+                      onChange({ checked: true, price: val, qty: qty !== '' ? qty : undefined });
+                    }}
+                    placeholder="0"
+                  />
+                </div>
+
+                <div className='w-full'>
+                  <Input
+                    id={`addon-qty-${label}`}
+                    label="Quantity"
+                    value={qty}
+                    type="number"
+                    onNumberChange={(val) => {
+                      setQty(val);
+                      onChange({ checked: true, price: price !== '' ? price : undefined, qty: val });
+                    }}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
+    </motion.div>
   );
 };
 

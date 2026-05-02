@@ -30,7 +30,7 @@ const SearchContent = memo(function SearchContent() {
         month: "short",
         day: "numeric",
       });
-      return <span style={{ fontSize: '14px' }}>{formattedDate}</span>;
+      return <span className="text-sm">{formattedDate}</span>;
     }
     return "Date";
   }, [startDate]);
@@ -50,8 +50,8 @@ const SearchContent = memo(function SearchContent() {
       className="bg-background/20 backdrop-blur-md px-2!"
     >
       <div className="flex flex-row items-center justify-between w-full">
-        <div className="text-sm font-semibold px-6">{locationLabel}</div>
-        <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
+        <div className="text-sm font-medium px-6">{locationLabel}</div>
+        <div className="hidden sm:block text-sm font-medium px-6 border-s flex-1 text-center">
           {dateLabel}
         </div>
         <div className="text-muted-foreground flex flex-row items-center gap-3">
@@ -78,8 +78,8 @@ const Search = memo(function Search() {
         disabled
       >
         <div className="flex flex-row items-center justify-between w-full">
-          <div className="text-sm font-semibold px-6">City</div>
-          <div className="hidden sm:block text-sm font-semibold px-6 border-s flex-1 text-center">
+          <div className="text-sm font-medium px-6">City</div>
+          <div className="hidden sm:block text-sm font-medium px-6 border-s flex-1 text-center">
             Date
           </div>
           <div className="text-muted-foreground flex flex-row items-center gap-3">

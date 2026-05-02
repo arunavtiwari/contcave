@@ -13,6 +13,7 @@ import React, {
 } from "react";
 import { FieldPath, FieldValues, Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { IoMdClose } from "react-icons/io";
+import { TbVideoPlus } from "react-icons/tb";
 import { toast } from "sonner";
 
 import getAddons from "@/app/actions/getAddons";
@@ -23,6 +24,7 @@ import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
 import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
 import CategoryInput from "@/components/inputs/CategoryInput";
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
+import FormField from "@/components/inputs/FormField";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/inputs/Input";
 import OtherListingDetails, { ListingDetails } from "@/components/inputs/OtherListingDetails";
@@ -54,6 +56,7 @@ enum STEPS {
   CATEGORY = 0,
   LOCATION,
   IMAGES,
+  VIDEO,
   DESCRIPTION,
   AMENITIES,
   ADDONS,
@@ -71,6 +74,7 @@ const getActiveSteps = (hasSets: boolean) =>
       STEPS.CATEGORY,
       STEPS.LOCATION,
       STEPS.IMAGES,
+      STEPS.VIDEO,
       STEPS.DESCRIPTION,
       STEPS.AMENITIES,
       STEPS.ADDONS,
@@ -85,6 +89,7 @@ const getActiveSteps = (hasSets: boolean) =>
       STEPS.CATEGORY,
       STEPS.LOCATION,
       STEPS.IMAGES,
+      STEPS.VIDEO,
       STEPS.DESCRIPTION,
       STEPS.AMENITIES,
       STEPS.ADDONS,
@@ -344,6 +349,10 @@ export default function RentModal() {
     return trigger("imageSrc");
   }, [imageSrc, trigger]);
 
+  const validateVideoStep = useCallback(async () => {
+    return true;
+  }, []);
+
   const validateDescriptionStep = useCallback(async () => {
     const isValid = await trigger(["title", "description", "price"]);
     if (!isValid) return false;
@@ -557,40 +566,34 @@ export default function RentModal() {
         render: () => (
           <div className="flex flex-col gap-4">
             <Heading title="Where is your space?" subtitle="Help creators find you" variant="h5" />
-            <div className="w-full">
-              <label className="block text-sm font-medium text-foreground mb-1">
-                City <span className="text-destructive ml-1">*</span>
-              </label>
-              <CitySelect
-                value={actualLocation as CitySelectValue | undefined}
-                locationValue={locationValue}
-                onChange={(v) => {
-                  setCustomValue("actualLocation", {
-                    ...actualLocation,
-                    ...v,
-                  });
-                  setCityError("");
-                }}
-              />
-              {cityError && <p className="text-destructive text-sm mt-1">{cityError}</p>}
-            </div>
-            <div className="w-full">
-              <label className="block text-sm font-medium text-foreground mb-1">
-                Address <span className="text-destructive ml-1">*</span>
-              </label>
-              <AutoComplete
-                value={actualLocation?.display_name || ""}
-                onChange={(sel: AutoCompleteValue) => {
-                  setCustomValue("actualLocation", {
-                    ...actualLocation,
-                    display_name: sel.display_name,
-                    latlng: sel.latlng,
-                  });
-                  setAddressError("");
-                }}
-              />
-              {addressError && <p className="text-destructive text-sm mt-1">{addressError}</p>}
-            </div>
+            <CitySelect
+              label="City"
+              required
+              value={actualLocation as CitySelectValue | undefined}
+              locationValue={locationValue}
+              onChange={(v) => {
+                setCustomValue("actualLocation", {
+                  ...actualLocation,
+                  ...v,
+                });
+                setCityError("");
+              }}
+            />
+            {cityError && <p className="text-destructive text-sm mt-1">{cityError}</p>}
+            <AutoComplete
+              label="Address"
+              required
+              value={actualLocation?.display_name || ""}
+              onChange={(sel: AutoCompleteValue) => {
+                setCustomValue("actualLocation", {
+                  ...actualLocation,
+                  display_name: sel.display_name,
+                  latlng: sel.latlng,
+                });
+                setAddressError("");
+              }}
+            />
+            {addressError && <p className="text-destructive text-sm mt-1">{addressError}</p>}
             <div className="w-full">
               <Input
                 id="additionalInfo"
@@ -658,39 +661,47 @@ export default function RentModal() {
                 ))}
               </div>
             )}
-
-            <div className="mt-8 border-t pt-8">
-              <Heading title="Property Video Tour" subtitle="Add a short video tour of your space (Optional)" variant="h5" />
-              <div className="mt-4">
-                <ImageUpload
-                  uid="rent-video-upload"
-                  label="Upload Video Tour"
-                  onChange={(v) => setCustomValue("videoSrc", v[0] || null)}
-                  values={videoSrc ? [videoSrc] : []}
-                  allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
-                  maxSize={100 * 1024 * 1024} // 100MB for video tour
-                  deferUpload
-                  folder="listing_videos"
-                  className="w-full h-48 p-4 border border-border rounded-xl"
-                />
-              </div>
-              {videoSrc && (
-                <div className="mt-4 relative group w-full max-w-md mx-auto sm:mx-0">
-                  <video
-                    src={videoSrc}
-                    controls
-                    className="w-full h-48 rounded-xl object-cover border border-border"
-                  />
-                  <button
-                    onClick={() => setCustomValue("videoSrc", null)}
-                    className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
-                    aria-label="Remove video"
-                  >
-                    <IoMdClose size={18} />
-                  </button>
-                </div>
-              )}
+          </div>
+        ),
+      },
+      [STEPS.VIDEO]: {
+        id: STEPS.VIDEO,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateVideoStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading title="Property Video Tour" subtitle="Add a short video tour of your space (Optional)" variant="h5" />
+            <div className="mt-4">
+              <ImageUpload
+                uid="rent-video-upload"
+                uploadLabel="Upload Video Tour"
+                onChange={(v) => setCustomValue("videoSrc", v[0] || null)}
+                values={videoSrc ? [videoSrc] : []}
+                allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
+                maxSize={100 * 1024 * 1024} // 100MB for video tour
+                deferUpload
+                icon={TbVideoPlus}
+                folder="listing_videos"
+                className="w-full h-48 p-4 border border-border rounded-xl"
+              />
             </div>
+            {videoSrc && (
+              <div className="mt-4 relative group w-full max-w-md mx-auto sm:mx-0">
+                <video
+                  src={videoSrc}
+                  controls
+                  className="w-full h-48 rounded-xl object-cover border border-border"
+                />
+                <button
+                  onClick={() => setCustomValue("videoSrc", null)}
+                  className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
+                  aria-label="Remove video"
+                >
+                  <IoMdClose size={18} />
+                </button>
+              </div>
+            )}
           </div>
         ),
       },
@@ -714,26 +725,20 @@ export default function RentModal() {
               />
             </div>
             <div className="w-full">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">
-                  Description
-                  <span className="text-destructive ml-1">*</span>
-                </label>
-                <LexicalEditor
-                  value={descriptionValue}
-                  onChange={(html) =>
-                    setValue("description", html, {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                    })
-                  }
-                  placeholder="Tell creators what makes your space special..."
-                  disabled={isLoading}
-                />
-                {errors.description && (
-                  <span className="text-sm text-destructive">{errors.description.message as string}</span>
-                )}
-              </div>
+              <LexicalEditor
+                label="Description"
+                required
+                value={descriptionValue}
+                onChange={(html) =>
+                  setValue("description", html, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+                placeholder="Tell creators what makes your space special..."
+                disabled={isLoading}
+                error={errors.description?.message as string}
+              />
             </div>
             <div className="w-full">
               <Input
@@ -758,8 +763,9 @@ export default function RentModal() {
         validate: validateAmenitiesStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Amenities" subtitle="Select all available amenities" variant="h5" />
             <AmenitiesCheckbox
+              label="Amenities"
+              description="Select all available amenities"
               amenities={amenities}
               checked={Array.isArray(selectedAmenityIds) ? selectedAmenityIds : []}
               customAmenities={Array.isArray(selectedCustomAmenities) ? selectedCustomAmenities : []}
@@ -774,13 +780,17 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validateAddonsStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <Heading title="Add-ons" subtitle="Additional chargeable facilities" variant="h5" />
             <div className="flex flex-col items-center w-full gap-4">
-              <AddonsSelection addons={addons} initialSelectedAddons={selectedAddons ?? []} onSelectedAddonsChange={handleAddonChange} rentModal />
+              <AddonsSelection
+                label="Add-ons"
+                description="Additional chargeable facilities"
+                addons={addons}
+                initialSelectedAddons={selectedAddons ?? []}
+                onSelectedAddonsChange={handleAddonChange}
+                rentModal
+              />
               <CustomAddonModal save={(v: unknown) => setAddons([...addons, v as Addon])} />
             </div>
-          </div>
         ),
       },
       [STEPS.OTHERDETAILS]: {
@@ -803,8 +813,10 @@ export default function RentModal() {
         render: () => (
           <div className="flex flex-col gap-4">
             <Heading title="Multiple Sets" subtitle="Configure your bookable sets" variant="h5" />
-            <div>
-              <label className="block text-sm font-medium mb-2">Additional Set Pricing Type *</label>
+            <FormField
+              label="Additional Set Pricing Type"
+              required
+            >
               <div className="flex gap-4">
                 <label
                   className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "FIXED"
@@ -841,9 +853,10 @@ export default function RentModal() {
                   <div className="text-sm text-muted-foreground mt-1">Each additional set adds per-hour charges</div>
                 </label>
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Will all sets have the same price?</label>
+            </FormField>
+            <FormField
+              label="Will all sets have the same price?"
+            >
               <div className="flex gap-4">
                 <label
                   className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
@@ -876,20 +889,18 @@ export default function RentModal() {
                   <div className="font-medium text-center">No, different prices</div>
                 </label>
               </div>
-            </div>
+            </FormField>
             {setsHaveSamePrice !== null && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Your Sets</label>
-                <SetsEditor
-                  sets={sets ?? []}
-                  onChange={(updatedSets) => setValue("sets", updatedSets, { shouldDirty: true, shouldValidate: true })}
-                  pricingType={additionalSetPricingType}
-                  disabled={isLoading}
-                  isPricingUniform={Boolean(setsHaveSamePrice)}
-                  uniformPrice={unifiedSetPrice}
-                  onUniformPriceChange={(price) => setValue("unifiedSetPrice", price, { shouldDirty: true, shouldValidate: true })}
-                />
-              </div>
+              <SetsEditor
+                label="Your Sets"
+                sets={sets ?? []}
+                onChange={(updatedSets) => setValue("sets", updatedSets, { shouldDirty: true, shouldValidate: true })}
+                pricingType={additionalSetPricingType}
+                disabled={isLoading}
+                isPricingUniform={Boolean(setsHaveSamePrice)}
+                uniformPrice={unifiedSetPrice}
+                onUniformPriceChange={(price) => setValue("unifiedSetPrice", price, { shouldDirty: true, shouldValidate: true })}
+              />
             )}
             {setsError && <p className="text-destructive text-sm -mt-2">{setsError}</p>}
           </div>
@@ -904,20 +915,18 @@ export default function RentModal() {
           <div className="flex flex-col gap-4">
             <Heading title="Custom Terms and Conditions" subtitle="Add your own rules and policies for the space" variant="h5" />
             <div className="w-full">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">Terms and Conditions</label>
-                <LexicalEditor
-                  value={watch("customTerms") || ""}
-                  onChange={(html) =>
-                    setValue("customTerms", html, {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                    })
-                  }
-                  placeholder="Enter custom terms and conditions for booking this space..."
-                  disabled={isLoading}
-                />
-              </div>
+              <LexicalEditor
+                label="Terms and Conditions"
+                value={watch("customTerms") || ""}
+                onChange={(html) =>
+                  setValue("customTerms", html, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+                placeholder="Enter custom terms and conditions for booking this space..."
+                disabled={isLoading}
+              />
             </div>
           </div>
         ),
@@ -929,8 +938,9 @@ export default function RentModal() {
         validate: validatePackagesStep,
         render: () => (
           <div className="flex flex-col gap-4">
-            <Heading title="Custom Packages" subtitle="Bundle your offerings" variant="h5" />
             <PackagesForm
+              label="Custom Packages"
+              description="Bundle your offerings"
               value={packages ?? []}
               onChange={(updatedPackages) => setValue("packages", updatedPackages, { shouldDirty: true, shouldValidate: true })}
               availableSets={hasSets ? (sets ?? []).map((s, i) => ({

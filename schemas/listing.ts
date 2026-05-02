@@ -96,6 +96,7 @@ export const listingBaseSchema = z.object({
 
 
     title: z.string().min(5, "Title must be at least 5 characters").max(200),
+    slug: z.string().min(3, "Slug too short").max(200).optional().nullable(),
     description: z.string().min(50, "Description must be at least 50 characters").max(5000),
 
 
@@ -111,7 +112,7 @@ export const listingBaseSchema = z.object({
 
 
     instantBooking: z.boolean().default(false),
-    terms: z.boolean().refine(val => val === true, "You must accept the terms"),
+    terms: z.boolean().optional(),
     customTerms: z.string().optional().nullable(),
     operationalHours: operationalHoursSchema,
     operationalDays: operationalDaysSchema,
@@ -140,6 +141,11 @@ export const listingSchema = listingBaseSchema.refine((data) => {
 }, {
     message: "Multi-set listings must have at least 2 sets",
     path: ["sets"],
+}).refine((data) => {
+    return data.terms === true;
+}, {
+    message: "You must accept the terms",
+    path: ["terms"],
 });
 
 export type ListingSchema = z.infer<typeof listingSchema>;

@@ -4,6 +4,7 @@ import React from "react";
 import ReactSelect, { GroupBase, Props as SelectProps, StylesConfig } from "react-select";
 import AsyncSelect from "react-select/async";
 
+import FormField from "@/components/inputs/FormField";
 import { cn } from "@/lib/utils";
 
 export interface SelectOption {
@@ -17,7 +18,7 @@ export interface CustomSelectProps<
     IsMulti extends boolean = false,
     Group extends GroupBase<Option> = GroupBase<Option>
 > extends SelectProps<Option, IsMulti, Group> {
-    variant?: "default" | "subtle";
+    variant?: "vertical" | "horizontal";
     size?: "sm" | "md" | "lg";
     error?: string;
     className?: string;
@@ -32,7 +33,7 @@ export const getSelectStyles = <
     IsMulti extends boolean = false,
     Group extends GroupBase<Option> = GroupBase<Option>
 >(
-    size: "sm" | "md" | "lg" = "md",
+    size: "sm" | "md" | "lg" = "sm",
     error?: string
 ): StylesConfig<Option, IsMulti, Group> => ({
     control: (provided, state) => ({
@@ -46,10 +47,10 @@ export const getSelectStyles = <
                 : "var(--color-border)",
         borderRadius: "0.75rem",
         padding: "0",
-        boxShadow: state.isFocused ? "0 0 0 1px rgba(0,0,0,0.1)" : "none",
+        boxShadow: "none",
         minHeight: size === "sm" ? "40px" : size === "lg" ? "48px" : "44px",
         height: size === "sm" ? "40px" : size === "lg" ? "48px" : "44px",
-        fontSize: size === "sm" ? "0.75rem" : "0.875rem",
+        fontSize: size === "sm" ? "0.875rem" : "0.875rem",
         transition: "all 0.2s ease",
         "&:hover": {
             borderColor: error
@@ -61,7 +62,7 @@ export const getSelectStyles = <
     }),
     input: (provided) => ({
         ...provided,
-        fontSize: size === "sm" ? "0.75rem" : "0.875rem",
+        fontSize: size === "sm" ? "0.875rem" : "0.875rem",
         margin: 0,
         padding: 0,
         color: "var(--color-foreground)",
@@ -74,20 +75,20 @@ export const getSelectStyles = <
     singleValue: (provided) => ({
         ...provided,
         margin: 0,
-        fontSize: size === "sm" ? "0.75rem" : "0.875rem",
+        fontSize: size === "sm" ? "0.875rem" : "0.875rem",
         fontWeight: 400,
         color: "var(--color-foreground)",
     }),
     placeholder: (provided) => ({
         ...provided,
-        fontSize: size === "sm" ? "0.75rem" : "0.875rem",
+        fontSize: size === "sm" ? "0.875rem" : "0.875rem",
         fontWeight: 400,
         color: "var(--color-muted-foreground)",
     }),
     option: (provided, state) => ({
         ...provided,
         cursor: "pointer",
-        fontSize: size === "sm" ? "0.75rem" : "0.875rem",
+        fontSize: size === "sm" ? "0.875rem" : "0.875rem",
         padding: "10px 12px",
         backgroundColor: state.isSelected
             ? "var(--color-foreground)"
@@ -108,7 +109,7 @@ export const getSelectStyles = <
         borderRadius: "0.75rem",
         overflow: "hidden",
         marginTop: "6px",
-        boxShadow: "var(--shadow-sm)",
+        boxShadow: "none",
         border: "1px solid var(--color-border)",
         backgroundColor: "var(--color-background)",
         zIndex: 9999,
@@ -134,8 +135,11 @@ function Select<
     IsMulti extends boolean = false,
     Group extends GroupBase<Option> = GroupBase<Option>
 >({
-    variant: _variant = "default",
-    size = "md",
+    variant = "vertical",
+    size = "sm",
+    label,
+    description,
+    required,
     error,
     className,
     isSearchable = false,
@@ -145,40 +149,48 @@ function Select<
     defaultOptions,
     maxMenuHeight = 300,
     ...props
-}: CustomSelectProps<Option, IsMulti, Group>) {
+}: CustomSelectProps<Option, IsMulti, Group> & { label?: string; description?: string; required?: boolean }) {
     const reactSelectId = React.useId();
     const customStyles = getSelectStyles<Option, IsMulti, Group>(size, error);
 
     return (
-        <div className={cn("w-full flex flex-col gap-1", className)}>
-            {isAsync ? (
-                <AsyncSelect
-                    instanceId={reactSelectId}
-                    styles={customStyles}
-                    isSearchable={isSearchable}
-                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                    menuPosition="fixed"
-                    menuPlacement="auto"
-                    maxMenuHeight={maxMenuHeight}
-                    loadOptions={loadOptions}
-                    cacheOptions={cacheOptions}
-                    defaultOptions={defaultOptions}
-                    {...props}
-                />
-            ) : (
-                <ReactSelect
-                    instanceId={reactSelectId}
-                    styles={customStyles}
-                    isSearchable={isSearchable}
-                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                    menuPosition="fixed"
-                    menuPlacement="auto"
-                    maxMenuHeight={maxMenuHeight}
-                    {...props}
-                />
-            )}
-            {error && <p className="text-xs text-destructive ml-1">{error}</p>}
-        </div>
+        <FormField
+            id={reactSelectId}
+            label={label}
+            description={description}
+            error={error}
+            required={required}
+            variant={variant}
+        >
+            <div className={cn("w-full", className)}>
+                {isAsync ? (
+                    <AsyncSelect
+                        instanceId={reactSelectId}
+                        styles={customStyles}
+                        isSearchable={isSearchable}
+                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                        menuPosition="fixed"
+                        menuPlacement="auto"
+                        maxMenuHeight={maxMenuHeight}
+                        loadOptions={loadOptions}
+                        cacheOptions={cacheOptions}
+                        defaultOptions={defaultOptions}
+                        {...props}
+                    />
+                ) : (
+                    <ReactSelect
+                        instanceId={reactSelectId}
+                        styles={customStyles}
+                        isSearchable={isSearchable}
+                        menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                        menuPosition="fixed"
+                        menuPlacement="auto"
+                        maxMenuHeight={maxMenuHeight}
+                        {...props}
+                    />
+                )}
+            </div>
+        </FormField>
     );
 }
 

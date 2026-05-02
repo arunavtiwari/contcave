@@ -11,11 +11,19 @@ export interface AmenitiesData {
   custom: string[];
 }
 
+import FormField from './FormField';
+
 interface AmenitiesCheckboxProps {
   amenities: Amenities[];
   checked?: string[];
   customAmenities?: string[];
   onChange: (updatedAmenities: AmenitiesData) => void;
+  label?: string;
+  description?: string;
+  required?: boolean;
+  variant?: "vertical" | "horizontal";
+  error?: string;
+  id?: string;
 }
 
 const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
@@ -23,6 +31,12 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
   checked = [],
   customAmenities = [],
   onChange,
+  label,
+  description,
+  required,
+  variant = "vertical",
+  error,
+  id = "amenities-checkbox",
 }) => {
   const [otherAmenity, setOtherAmenity] = useState('');
   const checkedItems = checked.reduce<{ [key: number | string]: boolean }>((acc, id) => {
@@ -65,68 +79,74 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
   };
 
   return (
-    <div>
-      <div className="flex flex-wrap gap-2">
-        {amenities.map(({ id, name }) => {
-          const isSelected = !!checkedItems[id];
-          return (
-            <Pill
-              key={id}
-              label={name}
-              variant={isSelected ? "solid" : "secondary"}
-              onClick={() => handleCheckboxChange(id)}
-              className="cursor-pointer transition-all hover:opacity-80"
-            />
-          );
-        })}
-      </div>
+    <FormField
+      id={id}
+      label={label}
+      description={description}
+      required={required}
+      error={error}
+      variant={variant}
+      align='start'
+    >
+      <div>
+        <div className="flex flex-wrap gap-2">
+          {amenities.map(({ id, name }) => {
+            const isSelected = !!checkedItems[id];
+            return (
+              <Pill
+                key={id}
+                label={name}
+                variant={isSelected ? "solid" : "secondary"}
+                onClick={() => handleCheckboxChange(id)}
+                className="cursor-pointer transition-all hover:opacity-80"
+              />
+            );
+          })}
+        </div>
 
 
-      <div className="mt-8">
-        <label htmlFor="custom-amenity" className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2 px-1">
-          Custom Amenity
-        </label>
-        <div className="flex gap-3 items-start">
-          <div className="grow">
-            <Input
-              id="custom-amenity"
-              placeholder="e.g. Infinity Pool"
-              value={otherAmenity}
-              onChange={(e) => setOtherAmenity(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddAmenity();
-                }
-              }}
-              size='sm'
+        <div className="mt-8">
+          <div className="flex gap-3 items-end">
+            <div className="grow">
+              <Input
+                id="custom-amenity"
+                label="Custom amenity"
+                placeholder="e.g. Infinity Pool"
+                value={otherAmenity}
+                onChange={(e) => setOtherAmenity(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddAmenity();
+                  }
+                }}
+              />
+            </div>
+            <Button
+              type="button"
+              onClick={handleAddAmenity}
+              label="Add"
+              fit
             />
           </div>
-          <Button
-            type="button"
-            onClick={handleAddAmenity}
-            label="ADD"
-            fit
-            size='sm'
-          />
         </div>
-      </div>
 
-      {amenitiesList.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-4">
-          {amenitiesList.map((amenity) => (
-            <Pill
-              key={amenity}
-              label={amenity}
-              variant="solid"
-              size="sm"
-              onClick={() => handleRemoveAmenity(amenity)}
-              icon={X}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+        {amenitiesList.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {amenitiesList.map((amenity) => (
+              <Pill
+                key={amenity}
+                label={amenity}
+                variant="solid"
+                size="sm"
+                onClick={() => handleRemoveAmenity(amenity)}
+                icon={X}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </FormField>
   );
 };
 
