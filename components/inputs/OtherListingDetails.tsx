@@ -1,10 +1,9 @@
 import React, { useCallback, useMemo } from "react";
 
-import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
-import FormField from "@/components/inputs/FormField";
+import AmenitiesCheckbox from "@/components/inputs/AmenitySelection";
 import Input from "@/components/inputs/Input";
 import Switch from "@/components/inputs/Switch";
-import Pill from "@/components/ui/Pill";
+import Divider from "@/components/ui/Divider";
 import Select, { SelectOption } from "@/components/ui/Select";
 import { spaceTypes } from "@/constants/spaceTypes";
 import { TIME_SLOTS } from "@/constants/timeSlots";
@@ -89,11 +88,6 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
         onChange({ ...details, [field]: value });
     }, [details, onChange]);
 
-    const handleTypeSelect = (t: string) => {
-        const exists = details.type.includes(t);
-        const newType = exists ? details.type.filter((x) => x !== t) : [...details.type, t];
-        onChange({ ...details, type: newType });
-    };
 
     return (<div className="flex flex-col gap-8">
         {/* Carpet Area */}
@@ -110,7 +104,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             required
         />
 
-        <hr className="border-border" />
+        <Divider />
 
         <Select
             label="Operational Days"
@@ -144,56 +138,56 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             placeholder="End Day"
         />
 
-                <Switch
-                    label="Open all day"
-                    description="Enable if your space is open 24 hours"
-                    variant="horizontal"
-                    checked={isOpenAllDay}
-                    onChange={handleOpenAllDayToggle}
-                />
-                <div className="flex gap-4">
-                    <Select
-                        className="flex-1"
-                        options={startTimeOptions}
-                        value={startTimeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
-                        onChange={(newValue) => {
-                            const sel = newValue as SelectOption | null;
-                            const nextStart = sel?.value || "";
-                            const nextStartIdx = staticTimeOptions.findIndex((t) => t.value === nextStart);
-                            const currentEnd = details.operationalHours.end || "";
-                            const currentEndIdx = staticTimeOptions.findLastIndex((t) => t.value === currentEnd);
-                            const nextEnd =
-                                nextStartIdx !== -1 && (currentEndIdx === -1 || currentEndIdx <= nextStartIdx)
-                                    ? staticTimeOptions[nextStartIdx + 1]?.value || currentEnd
-                                    : currentEnd;
+        <Switch
+            label="Open all day"
+            description="Enable if your space is open 24 hours"
+            variant="horizontal"
+            checked={isOpenAllDay}
+            onChange={handleOpenAllDayToggle}
+        />
+        <div className="flex gap-4">
+            <Select
+                className="flex-1"
+                options={startTimeOptions}
+                value={startTimeOptions.find((t) => t.value === (details.operationalHours.start || "")) || null}
+                onChange={(newValue) => {
+                    const sel = newValue as SelectOption | null;
+                    const nextStart = sel?.value || "";
+                    const nextStartIdx = staticTimeOptions.findIndex((t) => t.value === nextStart);
+                    const currentEnd = details.operationalHours.end || "";
+                    const currentEndIdx = staticTimeOptions.findLastIndex((t) => t.value === currentEnd);
+                    const nextEnd =
+                        nextStartIdx !== -1 && (currentEndIdx === -1 || currentEndIdx <= nextStartIdx)
+                            ? staticTimeOptions[nextStartIdx + 1]?.value || currentEnd
+                            : currentEnd;
 
-                            handleInputChange("operationalHours", {
-                                ...details.operationalHours,
-                                start: nextStart,
-                                end: nextEnd,
-                            });
-                        }}
-                        placeholder="Start Time"
-                        isDisabled={isOpenAllDay}
-                    />
-                    <Select
-                        className="flex-1"
-                        options={endTimeOptions}
-                        value={endTimeOptions.find((t) => {
-                            if (isOpenAllDay && t.value === "12:00 AM") return true;
-                            return t.value === (details.operationalHours.end || "");
-                        }) || null}
-                        onChange={(newValue) => {
-                            const sel = newValue as SelectOption | null;
-                            handleInputChange("operationalHours", {
-                                ...details.operationalHours,
-                                end: sel?.value || "",
-                            });
-                        }}
-                        placeholder="End Time"
-                        isDisabled={isOpenAllDay}
-                    />
-                </div>
+                    handleInputChange("operationalHours", {
+                        ...details.operationalHours,
+                        start: nextStart,
+                        end: nextEnd,
+                    });
+                }}
+                placeholder="Start Time"
+                isDisabled={isOpenAllDay}
+            />
+            <Select
+                className="flex-1"
+                options={endTimeOptions}
+                value={endTimeOptions.find((t) => {
+                    if (isOpenAllDay && t.value === "12:00 AM") return true;
+                    return t.value === (details.operationalHours.end || "");
+                }) || null}
+                onChange={(newValue) => {
+                    const sel = newValue as SelectOption | null;
+                    handleInputChange("operationalHours", {
+                        ...details.operationalHours,
+                        end: sel?.value || "",
+                    });
+                }}
+                placeholder="End Time"
+                isDisabled={isOpenAllDay}
+            />
+        </div>
 
         <hr className="border-border" />
 
@@ -231,7 +225,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             description="Select all that apply"
             variant="horizontal"
             required
-            amenities={spaceTypes.map(t => ({ id: t, name: t, category: "" })) as any}
+            amenities={spaceTypes.map(t => ({ id: t, name: t, createdAt: new Date(), icon: null }))}
             checked={details.type || []}
             onChange={(updated: { predefined: { [key: string]: boolean }; custom: string[] }) => handleInputChange("type", Object.keys(updated.predefined).filter(k => updated.predefined[k]))}
         />

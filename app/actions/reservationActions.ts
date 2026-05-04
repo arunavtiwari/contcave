@@ -75,6 +75,4 @@ export const checkBookingAction = createAction(
         return await ReservationService.checkUserBooking(user.id, data.listingId);
     }
 );
-// Compatibility Aliases for Legacy Components
-export const deleteReservation = deleteReservationAction;
-export const updateReservation = updateReservationAction;
+

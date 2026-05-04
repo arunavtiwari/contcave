@@ -3,9 +3,7 @@
 import { motion } from "framer-motion";
 
 
-type Props = {};
-
-function Loader({ }: Props) {
+function Loader() {
   return (
     <motion.div
       initial={{ opacity: 0 }}

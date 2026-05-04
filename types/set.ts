@@ -8,21 +8,19 @@ export interface ListingSet {
     images: string[];
     price: number;
     position: number;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: string | Date;
+    updatedAt: string | Date;
 }
-
-
 
 export interface ListingBlock {
     id: string;
     listingId: string;
-    date: string;
+    date: string | Date;
     startTime: string;
     endTime: string;
     setIds: string[];
     reason?: string | null;
-    createdAt: string;
+    createdAt: string | Date;
 }
 
 export interface PricingBreakdown {

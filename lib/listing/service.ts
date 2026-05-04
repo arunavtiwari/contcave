@@ -4,7 +4,7 @@ import prisma from "@/lib/prismadb";
 import { isRichTextEmpty } from "@/lib/richText";
 import { generateUniqueSlug } from "@/lib/slug";
 import { slugify } from "@/lib/strings";
-import { sanitizeStringList } from "@/lib/strings/sanitizeStringList";
+import { sanitizeStringList } from "@/lib/strings";
 import { listingBaseSchema, listingSchema } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData } from "@/types/listing";

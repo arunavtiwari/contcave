@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -13,6 +13,7 @@ import { registerUserAction } from "@/app/actions/authActions";
 import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
+import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
 import useUIStore from "@/hooks/useUIStore";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
@@ -141,7 +142,7 @@ function RegisterModal() {
       }
       footer={
         <div className="flex flex-col gap-4 mt-6">
-          <hr className="border-border" />
+          <Divider />
           <Button
             outline
             rounded

@@ -32,7 +32,7 @@ interface SetEditorItem {
     description?: string | null;
     images: string[];
     price: number | null;
-    position: number;
+    position?: number;
 }
 
 const INR = new Intl.NumberFormat("en-IN", {

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import React, { ChangeEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 import Checkbox from '@/components/inputs/Checkbox';
 import Button from '@/components/ui/Button';

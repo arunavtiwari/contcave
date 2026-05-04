@@ -12,14 +12,13 @@ import { toast } from "sonner";
 import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
+import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
 import useUIStore from "@/hooks/useUIStore";
 import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { type LoginSchema, loginSchema } from "@/schemas/auth";
 
-type Props = {};
-
-function LoginModal({ }: Props) {
+function LoginModal() {
   const router = useRouter();
   const uiStore = useUIStore();
   const [isLoading, setIsLoading] = useState(false);
@@ -124,7 +123,7 @@ function LoginModal({ }: Props) {
       }
       footer={
         <div className="flex flex-col gap-4 mt-3">
-          <hr />
+          <Divider />
           <Button
             outline
             rounded

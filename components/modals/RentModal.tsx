@@ -2,8 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Amenities } from "@prisma/client";
-import dynamic from "next/dynamic";
-import Image from "next/image";
 import React, {
   useCallback,
   useEffect,
@@ -11,46 +9,42 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { FieldPath, FieldValues, Resolver, SubmitHandler, useForm } from "react-hook-form";
-import { IoMdClose } from "react-icons/io";
-import { TbVideoPlus } from "react-icons/tb";
+import { FieldPath, Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import getAddons from "@/app/actions/getAddons";
-import getAmenities from "@/app/actions/getAmenities";
 import { createListingAction, updateListingAction } from "@/app/actions/listingActions";
-import AddonsSelection from "@/components/inputs/AddonsSelection";
-import AmenitiesCheckbox from "@/components/inputs/AmenityCheckbox";
-import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
-import CategoryInput from "@/components/inputs/CategoryInput";
-import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
-import FormField from "@/components/inputs/FormField";
-import ImageUpload from "@/components/inputs/ImageUpload";
-import Input from "@/components/inputs/Input";
-import OtherListingDetails, { ListingDetails } from "@/components/inputs/OtherListingDetails";
-import PackagesForm from "@/components/inputs/PackagesForm";
-import LexicalEditor from "@/components/inputs/RichTextEditor"
-import SetsEditor, { SetEditorItem } from "@/components/inputs/SetsEditor";
-import SpaceVerification, { VerificationDocument, VerificationPayload } from "@/components/inputs/SpaceVerification";
-import TermsAndConditionsModal, { SignatureMeta, TermsRef } from "@/components/inputs/TermsAndConditions";
-import { categories } from "@/components/navbar/Categories";
-import Heading from "@/components/ui/Heading";
+import { ListingDetails } from "@/components/inputs/OtherListingDetails";
+import { SetEditorItem } from "@/components/inputs/SetsEditor";
+import { VerificationDocument, VerificationPayload } from "@/components/inputs/SpaceVerification";
+import { SignatureMeta, TermsRef } from "@/components/inputs/TermsAndConditions";
+import Modal from "@/components/modals/Modal";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useUIStore from "@/hooks/useUIStore";
 import { isRichTextEmpty } from "@/lib/richText";
 import { uploadToR2 } from "@/lib/storage/upload";
-import { listingSchema } from "@/schemas/listing";
+import {
+  ListingSchema,
+  listingSchema,
+  LocationSchema,
+} from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
-import { AdditionalSetPricingType } from "@/types/set";
 
-type LocationValue = CitySelectValue & {
-  display_name?: string;
-  additionalInfo?: string;
-};
+import AddonsStep from "./rent-steps/AddonsStep";
+import AmenitiesStep from "./rent-steps/AmenitiesStep";
+import CategoryStep from "./rent-steps/CategoryStep";
+import CustomTermsStep from "./rent-steps/CustomTermsStep";
+import DescriptionStep from "./rent-steps/DescriptionStep";
+import ImagesStep from "./rent-steps/ImagesStep";
+import LocationStep from "./rent-steps/LocationStep";
+import OtherDetailsStep from "./rent-steps/OtherDetailsStep";
+import PackagesStep from "./rent-steps/PackagesStep";
+import SetsStep from "./rent-steps/SetsStep";
+import TermsStep from "./rent-steps/TermsStep";
+import VerificationStep from "./rent-steps/VerificationStep";
+import VideoStep from "./rent-steps/VideoStep";
 
-import CustomAddonModal from "@/components/modals/CustomAddonModal";
-import Modal from "@/components/modals/Modal";
+// removed unused LocationValue type
 
 enum STEPS {
   CATEGORY = 0,
@@ -100,36 +94,7 @@ const getActiveSteps = (hasSets: boolean) =>
       STEPS.TERMS,
     ];
 
-type RentModalFormValues = FieldValues & {
-  category: string;
-  locationValue: string;
-  actualLocation: LocationValue | null;
-  imageSrc: string[];
-  videoSrc: string | null;
-  title: string;
-  description: string;
-  price: number;
-  amenities: string[];
-  otherAmenities: string[];
-  addons: Addon[];
-  carpetArea: number;
-  operationalDays: { start?: string; end?: string };
-  operationalHours: { start?: string; end?: string };
-  minimumBookingHours: number;
-  maximumPax: number;
-  instantBooking: boolean;
-  type: string[];
-  hasSets: boolean;
-  setsHaveSamePrice: boolean | null;
-  unifiedSetPrice: number | null;
-  sets: SetEditorItem[];
-  additionalSetPricingType: AdditionalSetPricingType | null;
-  packages: Package[];
-  verifications: VerificationPayload | null;
-  terms: boolean;
-  agreementSignature: SignatureMeta | null;
-  customTerms: string;
-};
+type RentModalFormValues = ListingSchema;
 
 type StepDefinition = {
   id: STEPS;
@@ -139,14 +104,17 @@ type StepDefinition = {
   render: () => React.ReactNode;
 };
 
-export default function RentModal() {
+interface RentModalProps {
+  predefinedAmenities?: Amenities[];
+  predefinedAddons?: Addon[];
+}
+
+export default function RentModal({ predefinedAmenities = [], predefinedAddons = [] }: RentModalProps) {
   const uiStore = useUIStore();
 
   const [step, setStep] = useState(STEPS.CATEGORY);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [amenities, setAmenities] = useState<Amenities[]>([]);
-  const [addons, setAddons] = useState<Addon[]>([]);
   const [, setAgreementPdf] = useState<unknown>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -161,7 +129,6 @@ export default function RentModal() {
 
 
   const termsRef = useRef<TermsRef>(null);
-  const Map = useMemo(() => dynamic(() => import("../Map"), { ssr: false }), []);
 
   const {
     register,
@@ -178,7 +145,7 @@ export default function RentModal() {
     defaultValues: {
       category: "",
       locationValue: "",
-      actualLocation: null as LocationValue | null,
+      actualLocation: null as LocationSchema | null,
       imageSrc: [],
       videoSrc: null,
       title: "",
@@ -207,13 +174,11 @@ export default function RentModal() {
     },
   });
   const category = watch("category");
-  const actualLocation = watch("actualLocation") as LocationValue | null;
+  const actualLocation = watch("actualLocation") as LocationSchema | null;
   const locationValue = watch("locationValue");
   const imageSrc = watch("imageSrc");
   const videoSrc = watch("videoSrc");
-  const descriptionValue = watch("description");
   const selectedAmenityIds = watch("amenities") as string[] | undefined;
-  const selectedCustomAmenities = watch("otherAmenities") as string[] | undefined;
   const selectedAddons = watch("addons") as Addon[] | undefined;
   const carpetArea = watch("carpetArea");
   const operationalDays = watch("operationalDays");
@@ -228,9 +193,11 @@ export default function RentModal() {
   const unifiedSetPrice = watch("unifiedSetPrice");
   const additionalSetPricingType = watch("additionalSetPricingType");
   const packages = watch("packages") as Package[] | undefined;
-  const verifications = watch("verifications");
+  const verifications = watch("verifications") as VerificationPayload | null | undefined;
   const terms = watch("terms");
   const signature = watch("agreementSignature");
+  const otherAmenities = watch("otherAmenities");
+  const customTerms = watch("customTerms");
   const listingDetails = useMemo<ListingDetails>(() => ({
     carpetArea: carpetArea || 0,
     operationalDays: operationalDays || { start: "Mon", end: "Sun" },
@@ -249,20 +216,7 @@ export default function RentModal() {
   const [verificationError, setVerificationError] = useState<string>("");
 
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [amenitiesData, addonsData] = await Promise.all([
-          getAmenities(),
-          getAddons(),
-        ]);
-        setAmenities(amenitiesData);
-        setAddons(addonsData);
-      } catch {
-        toast.error("Failed to load resources.");
-      }
-    })();
-  }, []);
+
 
 
   useEffect(() => {
@@ -272,8 +226,8 @@ export default function RentModal() {
   }, [actualLocation, setValue]);
 
   const setCustomValue = useCallback(
-    (id: FieldPath<RentModalFormValues>, value: unknown) => {
-      setValue(id, value as never, { shouldValidate: true, shouldDirty: true });
+    (id: string, value: unknown) => {
+      setValue(id as FieldPath<RentModalFormValues>, value as never, { shouldValidate: true, shouldDirty: true });
     },
     [setValue]
   );
@@ -469,19 +423,15 @@ export default function RentModal() {
     return trigger(["verifications"]);
   }, [verifications, trigger]);
 
-  const removeImage = useCallback((idx: number) => {
-    setCustomValue(
-      "imageSrc",
-      imageSrc.filter((_: unknown, i: number) => i !== idx)
-    );
-  }, [imageSrc, setCustomValue]);
-
   const handleTermsAndConditions = useCallback((accept: boolean) => {
     setValue("terms", accept, { shouldDirty: true, shouldValidate: true });
   }, [setValue]);
 
   const handleSignature = useCallback((sig: SignatureMeta) => {
-    setValue("agreementSignature", sig, { shouldDirty: true });
+    setValue("agreementSignature", {
+      url: sig.url,
+      thumbnail: sig.thumbnail
+    } as RentModalFormValues["agreementSignature"], { shouldDirty: true });
   }, [setValue]);
 
   const handleVerificationChange = useCallback((v: VerificationPayload) => {
@@ -496,7 +446,10 @@ export default function RentModal() {
     setValue("instantBooking", details.instantBooking, { shouldDirty: true });
     setValue("type", details.type, { shouldDirty: true, shouldValidate: true });
     setValue("hasSets", details.hasSets, { shouldDirty: true });
-    setValue("operationalDays", details.operationalDays, { shouldDirty: true, shouldValidate: true });
+    setValue("operationalDays", {
+      start: details.operationalDays.start || "Mon",
+      end: details.operationalDays.end || "Sun"
+    }, { shouldDirty: true, shouldValidate: true });
 
     if (!details.hasSets) {
       setValue("sets", [], { shouldDirty: true, shouldValidate: true });
@@ -506,7 +459,10 @@ export default function RentModal() {
     }
 
     if (details.operationalHours?.start && details.operationalHours?.end) {
-      setValue("operationalHours", details.operationalHours, { shouldDirty: true, shouldValidate: true });
+      setValue("operationalHours", {
+        start: details.operationalHours.start,
+        end: details.operationalHours.end
+      }, { shouldDirty: true, shouldValidate: true });
     }
   }, [setValue]);
 
@@ -538,24 +494,12 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validateCategoryStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <Heading title="Choose your space type" subtitle="Pick a category" variant="h5" />
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {categories.map((item) => (
-                <CategoryInput
-                  key={item.label}
-                  onClick={(c) => {
-                    setCustomValue("category", c);
-                    setCategoryError("");
-                  }}
-                  selected={category === item.label}
-                  label={item.label}
-                  icon={item.icon}
-                />
-              ))}
-            </div>
-            {categoryError && <p className="text-destructive text-sm">{categoryError}</p>}
-          </div>
+          <CategoryStep
+            category={category}
+            setCustomValue={setCustomValue}
+            categoryError={categoryError}
+            setCategoryError={setCategoryError}
+          />
         ),
       },
       [STEPS.LOCATION]: {
@@ -564,55 +508,16 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validateLocationStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <Heading title="Where is your space?" subtitle="Help creators find you" variant="h5" />
-            <CitySelect
-              label="City"
-              required
-              value={actualLocation as CitySelectValue | undefined}
-              locationValue={locationValue}
-              onChange={(v) => {
-                setCustomValue("actualLocation", {
-                  ...actualLocation,
-                  ...v,
-                });
-                setCityError("");
-              }}
-            />
-            {cityError && <p className="text-destructive text-sm mt-1">{cityError}</p>}
-            <AutoComplete
-              label="Address"
-              required
-              value={actualLocation?.display_name || ""}
-              onChange={(sel: AutoCompleteValue) => {
-                setCustomValue("actualLocation", {
-                  ...actualLocation,
-                  display_name: sel.display_name,
-                  latlng: sel.latlng,
-                });
-                setAddressError("");
-              }}
-            />
-            {addressError && <p className="text-destructive text-sm mt-1">{addressError}</p>}
-            <div className="w-full">
-              <Input
-                id="additionalInfo"
-                label="Additional Info"
-                type="text"
-                disabled={isLoading}
-                placeholder="Apartment, suite, unit, building, floor, etc."
-                value={actualLocation?.additionalInfo || ""}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setCustomValue("actualLocation", {
-                    ...actualLocation,
-                    additionalInfo: value,
-                  });
-                }}
-              />
-            </div>
-            <Map center={actualLocation?.latlng as [number, number] | undefined} />
-          </div>
+          <LocationStep
+            actualLocation={actualLocation}
+            locationValue={locationValue}
+            setCustomValue={setCustomValue}
+            cityError={cityError}
+            setCityError={setCityError}
+            addressError={addressError}
+            setAddressError={setAddressError}
+            isLoading={isLoading}
+          />
         ),
       },
       [STEPS.IMAGES]: {
@@ -621,47 +526,12 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validateImagesStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <Heading title="Add photos" subtitle="Show what your space looks like (Max 30 images)" variant="h5" />
-            {imageSrc.length < 30 && (
-              <div className="w-full">
-                <div className={`h-40 ${imageError ? "border-destructive" : ""}`}>
-                  <ImageUpload
-                    uid="rent-main-upload"
-                    onChange={(v) => setCustomValue("imageSrc", v)}
-                    values={imageSrc}
-                    deferUpload
-                    folder="listing_main"
-                    className="w-full h-full p-4 border border-border rounded-xl"
-                  />
-                </div>
-              </div>
-            )}
-            {imageError && <p className="text-destructive text-sm mt-1">{imageError}</p>}
-            {imageSrc.length > 0 && (
-              <div className="flex flex-wrap gap-4 justify-center sm:justify-start mt-2">
-                {imageSrc.map((item: string, index: number) => (
-                  <div key={index} className="relative group">
-                    <Image
-                      src={item}
-                      alt={`Image ${index}`}
-                      width={128}
-                      height={128}
-                      className="h-32 w-32 rounded-xl object-cover border border-border "
-                      unoptimized
-                    />
-                    <button
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
-                      aria-label="Remove image"
-                    >
-                      <IoMdClose size={18} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ImagesStep
+            imageSrc={imageSrc}
+            setCustomValue={setCustomValue}
+            imageError={imageError}
+            setImageError={setImageError}
+          />
         ),
       },
       [STEPS.VIDEO]: {
@@ -669,41 +539,7 @@ export default function RentModal() {
         modalTitle: "List Your Space",
         actionLabel: "Next",
         validate: validateVideoStep,
-        render: () => (
-          <div className="flex flex-col gap-4">
-            <Heading title="Property Video Tour" subtitle="Add a short video tour of your space (Optional)" variant="h5" />
-            <div className="mt-4">
-              <ImageUpload
-                uid="rent-video-upload"
-                uploadLabel="Upload Video Tour"
-                onChange={(v) => setCustomValue("videoSrc", v[0] || null)}
-                values={videoSrc ? [videoSrc] : []}
-                allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
-                maxSize={100 * 1024 * 1024} // 100MB for video tour
-                deferUpload
-                icon={TbVideoPlus}
-                folder="listing_videos"
-                className="w-full h-48 p-4 border border-border rounded-xl"
-              />
-            </div>
-            {videoSrc && (
-              <div className="mt-4 relative group w-full max-w-md mx-auto sm:mx-0">
-                <video
-                  src={videoSrc}
-                  controls
-                  className="w-full h-48 rounded-xl object-cover border border-border"
-                />
-                <button
-                  onClick={() => setCustomValue("videoSrc", null)}
-                  className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
-                  aria-label="Remove video"
-                >
-                  <IoMdClose size={18} />
-                </button>
-              </div>
-            )}
-          </div>
-        ),
+        render: () => <VideoStep videoSrc={videoSrc ?? null} setCustomValue={setCustomValue} />,
       },
       [STEPS.DESCRIPTION]: {
         id: STEPS.DESCRIPTION,
@@ -711,49 +547,13 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validateDescriptionStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <Heading title="Describe your space" subtitle="Add title, description & price" variant="h5" />
-            <div className="w-full">
-              <Input
-                id="title"
-                label="Title"
-                placeholder="e.g. Modern Photo Studio"
-                disabled={isLoading}
-                register={register("title")}
-                errors={errors}
-                required
-              />
-            </div>
-            <div className="w-full">
-              <LexicalEditor
-                label="Description"
-                required
-                value={descriptionValue}
-                onChange={(html) =>
-                  setValue("description", html, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-                placeholder="Tell creators what makes your space special..."
-                disabled={isLoading}
-                error={errors.description?.message as string}
-              />
-            </div>
-            <div className="w-full">
-              <Input
-                id="price"
-                label="Price per Hour"
-                disabled={isLoading}
-                register={register("price", { required: true, valueAsNumber: true })}
-                errors={errors}
-                type="number"
-                formatPrice
-                required
-                onNumberChange={(val) => setValue("price", val, { shouldValidate: true })}
-              />
-            </div>
-          </div>
+          <DescriptionStep
+            register={register}
+            errors={errors}
+            isLoading={isLoading}
+            watch={watch}
+            setValue={setValue as never}
+          />
         ),
       },
       [STEPS.AMENITIES]: {
@@ -762,16 +562,12 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validateAmenitiesStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <AmenitiesCheckbox
-              label="Amenities"
-              description="Select all available amenities"
-              amenities={amenities}
-              checked={Array.isArray(selectedAmenityIds) ? selectedAmenityIds : []}
-              customAmenities={Array.isArray(selectedCustomAmenities) ? selectedCustomAmenities : []}
-              onChange={handleAmenitiesChange}
-            />
-          </div>
+          <AmenitiesStep
+            amenities={selectedAmenityIds || []}
+            amenitiesData={predefinedAmenities}
+            otherAmenities={otherAmenities || []}
+            handleAmenitiesChange={handleAmenitiesChange}
+          />
         ),
       },
       [STEPS.ADDONS]: {
@@ -780,17 +576,12 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validateAddonsStep,
         render: () => (
-            <div className="flex flex-col items-center w-full gap-4">
-              <AddonsSelection
-                label="Add-ons"
-                description="Additional chargeable facilities"
-                addons={addons}
-                initialSelectedAddons={selectedAddons ?? []}
-                onSelectedAddonsChange={handleAddonChange}
-                rentModal
-              />
-              <CustomAddonModal save={(v: unknown) => setAddons([...addons, v as Addon])} />
-            </div>
+          <AddonsStep
+            selectedAddons={selectedAddons || []}
+            addonsData={predefinedAddons}
+            handleAddonChange={handleAddonChange}
+            setValue={setValue as never}
+          />
         ),
       },
       [STEPS.OTHERDETAILS]: {
@@ -799,10 +590,10 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validateOtherDetailsStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <Heading title="Other Details" variant="h5" />
-            <OtherListingDetails onChange={handleDetailsChange} data={listingDetails} />
-          </div>
+          <OtherDetailsStep
+            listingDetails={listingDetails}
+            handleDetailsChange={handleDetailsChange}
+          />
         ),
       },
       [STEPS.SETS]: {
@@ -811,99 +602,16 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validateSetsStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <Heading title="Multiple Sets" subtitle="Configure your bookable sets" variant="h5" />
-            <FormField
-              label="Additional Set Pricing Type"
-              required
-            >
-              <div className="flex gap-4">
-                <label
-                  className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "FIXED"
-                    ? "border-foreground bg-muted ring-1 ring-foreground"
-                    : "border-border hover:border-border/80"
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="pricingType"
-                    value="FIXED"
-                    checked={additionalSetPricingType === "FIXED"}
-                    onChange={() => setValue("additionalSetPricingType", "FIXED", { shouldDirty: true, shouldValidate: true })}
-                    className="hidden"
-                  />
-                  <div className="font-medium">Fixed Add-on</div>
-                  <div className="text-sm text-muted-foreground mt-1">Each additional set adds a flat fee</div>
-                </label>
-                <label
-                  className={`flex-1 p-4 border rounded-xl cursor-pointer transition ${additionalSetPricingType === "HOURLY"
-                    ? "border-foreground bg-muted ring-1 ring-foreground"
-                    : "border-border hover:border-border/80"
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="pricingType"
-                    value="HOURLY"
-                    checked={additionalSetPricingType === "HOURLY"}
-                    onChange={() => setValue("additionalSetPricingType", "HOURLY", { shouldDirty: true, shouldValidate: true })}
-                    className="hidden"
-                  />
-                  <div className="font-medium">Hourly Add-on</div>
-                  <div className="text-sm text-muted-foreground mt-1">Each additional set adds per-hour charges</div>
-                </label>
-              </div>
-            </FormField>
-            <FormField
-              label="Will all sets have the same price?"
-            >
-              <div className="flex gap-4">
-                <label
-                  className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === true
-                    ? "border-foreground bg-muted ring-1 ring-foreground"
-                    : "border-border hover:border-border/80"
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="priceConsistency"
-                    checked={setsHaveSamePrice === true}
-                    onChange={() => setValue("setsHaveSamePrice", true, { shouldDirty: true, shouldValidate: true })}
-                    className="hidden"
-                  />
-                  <div className="font-medium text-center">Yes, same price</div>
-                </label>
-                <label
-                  className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${setsHaveSamePrice === false
-                    ? "border-foreground bg-muted ring-1 ring-foreground"
-                    : "border-border hover:border-border/80"
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="priceConsistency"
-                    checked={setsHaveSamePrice === false}
-                    onChange={() => setValue("setsHaveSamePrice", false, { shouldDirty: true, shouldValidate: true })}
-                    className="hidden"
-                  />
-                  <div className="font-medium text-center">No, different prices</div>
-                </label>
-              </div>
-            </FormField>
-            {setsHaveSamePrice !== null && (
-              <SetsEditor
-                label="Your Sets"
-                sets={sets ?? []}
-                onChange={(updatedSets) => setValue("sets", updatedSets, { shouldDirty: true, shouldValidate: true })}
-                pricingType={additionalSetPricingType}
-                disabled={isLoading}
-                isPricingUniform={Boolean(setsHaveSamePrice)}
-                uniformPrice={unifiedSetPrice}
-                onUniformPriceChange={(price) => setValue("unifiedSetPrice", price, { shouldDirty: true, shouldValidate: true })}
-              />
-            )}
-            {setsError && <p className="text-destructive text-sm -mt-2">{setsError}</p>}
-          </div>
+          <SetsStep
+            hasSets={hasSets}
+            sets={sets as SetEditorItem[]}
+            additionalSetPricingType={additionalSetPricingType ?? null}
+            setsHaveSamePrice={Boolean(setsHaveSamePrice)}
+            unifiedSetPrice={unifiedSetPrice ?? null}
+            setsError={setsError}
+            setCustomValue={setCustomValue}
+            setSetsError={setSetsError}
+          />
         ),
       },
       [STEPS.CUSTOMTERMS]: {
@@ -912,23 +620,10 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validateCustomTermsStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <Heading title="Custom Terms and Conditions" subtitle="Add your own rules and policies for the space" variant="h5" />
-            <div className="w-full">
-              <LexicalEditor
-                label="Terms and Conditions"
-                value={watch("customTerms") || ""}
-                onChange={(html) =>
-                  setValue("customTerms", html, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-                placeholder="Enter custom terms and conditions for booking this space..."
-                disabled={isLoading}
-              />
-            </div>
-          </div>
+          <CustomTermsStep
+            customTerms={customTerms || ""}
+            setValue={setValue as never}
+          />
         ),
       },
       [STEPS.PACKAGES]: {
@@ -937,72 +632,52 @@ export default function RentModal() {
         actionLabel: "Next",
         validate: validatePackagesStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <PackagesForm
-              label="Custom Packages"
-              description="Bundle your offerings"
-              value={packages ?? []}
-              onChange={(updatedPackages) => setValue("packages", updatedPackages, { shouldDirty: true, shouldValidate: true })}
-              availableSets={hasSets ? (sets ?? []).map((s, i) => ({
-                id: s.id || `temp-${i}`,
-                name: s.name,
-                description: s.description,
-                images: s.images,
-                price: s.price || 0,
-                position: i,
-                listingId: "",
-                createdAt: "",
-                updatedAt: ""
-              })) : []}
-            />
-          </div>
+          <PackagesStep
+            packages={packages || []}
+            hasSets={hasSets}
+            sets={sets as SetEditorItem[]}
+            setValue={setValue as never}
+          />
         ),
       },
       [STEPS.VERIFICATION]: {
         id: STEPS.VERIFICATION,
-        modalTitle: "Space Verification",
+        modalTitle: "List Your Space",
         actionLabel: "Next",
         validate: validateVerificationStep,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <Heading title="Space Verification" subtitle="Upload verification documents" variant="h5" />
-            <SpaceVerification
-              onVerification={handleVerificationChange}
-              initialDocuments={verifications?.documents || []}
-            />
-            {verificationError && <p className="text-destructive text-sm -mt-2">{verificationError}</p>}
-          </div>
+          <VerificationStep
+            verifications={verifications || { documents: [] } as VerificationPayload}
+            verificationError={verificationError}
+            handleVerificationChange={handleVerificationChange}
+          />
         ),
       },
       [STEPS.TERMS]: {
         id: STEPS.TERMS,
-        modalTitle: "Host Agreement",
-        actionLabel: "Complete Listing",
+        modalTitle: "List Your Space",
+        actionLabel: "Create Listing",
+        validate: async () => true,
         render: () => (
-          <div className="flex flex-col gap-4">
-            <TermsAndConditionsModal
-              ref={termsRef}
-              onChange={handleTermsAndConditions}
-              onSignature={handleSignature}
-              onAgreementPdf={setAgreementPdf}
-              value={signature}
-              checked={Boolean(terms)}
-            />
-          </div>
+          <TermsStep
+            terms={Boolean(terms)}
+            agreementSignature={signature ?? null}
+            termsRef={termsRef}
+            handleTermsAndConditions={handleTermsAndConditions}
+            handleSignature={handleSignature}
+          />
         ),
       },
     }),
     [
-      Map,
       actualLocation,
       additionalSetPricingType,
       addressError,
-      addons,
-      amenities,
+      predefinedAddons,
+      predefinedAmenities,
       category,
       categoryError,
       cityError,
-      descriptionValue,
       errors,
       handleAddonChange,
       handleAmenitiesChange,
@@ -1017,10 +692,8 @@ export default function RentModal() {
       listingDetails,
       packages,
       register,
-      removeImage,
       selectedAddons,
       selectedAmenityIds,
-      selectedCustomAmenities,
       sets,
       setsError,
       setsHaveSamePrice,
@@ -1045,6 +718,9 @@ export default function RentModal() {
       verifications,
       videoSrc,
       watch,
+      customTerms,
+      otherAmenities,
+      validateVideoStep,
     ]
   );
 
@@ -1148,8 +824,8 @@ export default function RentModal() {
         category: data.category,
         locationValue,
         actualLocation: {
-          ...data.actualLocation,
-          latlng: data.actualLocation.latlng as [number, number]
+          ...data.actualLocation!,
+          latlng: data.actualLocation!.latlng as [number, number]
         },
         price: Number(data.price),
         amenities: Array.isArray(data.amenities) ? data.amenities : [],
@@ -1221,11 +897,11 @@ export default function RentModal() {
               const doc = docsWithFiles[i];
               if (uploadedUrls[i]) {
                 uploadedVerificationDocs.push({
-                  original_filename: doc.original_filename,
+                  original_filename: doc.original_filename || "",
                   bytes: doc.bytes || 0,
                   format: 'pdf',
                   resource_type: 'raw',
-                  public_id: `verifications/${listingId}/${doc.original_filename}`,
+                  public_id: `verifications/${listingId}/${doc.original_filename || "doc"}`,
                   version: 1,
                   url: uploadedUrls[i],
                 });

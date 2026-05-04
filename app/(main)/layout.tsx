@@ -5,6 +5,8 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import Script from "next/script";
 
+import getAddons from "@/app/actions/getAddons";
+import getAmenities from "@/app/actions/getAmenities";
 import ClientOnly from "@/components/ClientOnly";
 import ConsentAwareTracking from "@/components/ConsentAwareTracking";
 import CookieConsent from "@/components/CookieConsentBanner";
@@ -209,6 +211,11 @@ export default async function RootLayout({
     const headerList = await headers();
     const nonce = headerList.get("x-nonce") ?? undefined;
 
+    const [amenitiesData, addonsData] = await Promise.all([
+        getAmenities(),
+        getAddons(),
+    ]);
+
     return (
 
         <html lang="en">
@@ -233,7 +240,7 @@ export default async function RootLayout({
                         <RegisterModal />
                         <LoginModal />
                         <OwnerRegisterModal />
-                        <RentModal />
+                        <RentModal predefinedAmenities={amenitiesData} predefinedAddons={addonsData} />
                         <CookieConsent />
                     </ClientOnly>
                     {children}

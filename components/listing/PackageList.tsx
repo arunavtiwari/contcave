@@ -47,8 +47,8 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
             className={`
               relative border rounded-xl p-4 transition cursor-pointer
               ${selectedPackageId === pkg.id
-                ? "border-foreground bg-muted/20 ring-1 ring-foreground shadow-md"
-                : "border-border/50 hover:border-border bg-background shadow-sm hover:shadow-md"
+                ? "border-foreground bg-muted/20"
+                : "border-border/50 hover:border-border"
               }
             `}
           >

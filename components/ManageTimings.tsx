@@ -1,9 +1,9 @@
 "use client";
 
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import dayjs, { Dayjs } from "dayjs";
+import { format, getDay, isBefore, isSameDay, startOfDay } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -49,16 +49,16 @@ export default function CalendarComponent({
     const startKey = useMemo(() => normalizeDayKey(defaultStartDay), [defaultStartDay]);
     const endKey = useMemo(() => normalizeDayKey(defaultEndDay), [defaultEndDay]);
 
-    const isDayEnabled = (date: Dayjs) => {
+    const isDayEnabled = (date: Date) => {
         if (!startKey || !endKey) return true;
-        const dayIndex = date.day();
+        const dayIndex = getDay(date);
         const startIndex = dayNameToIndex[startKey];
         const endIndex = dayNameToIndex[endKey];
         if (startIndex <= endIndex) return dayIndex >= startIndex && dayIndex <= endIndex;
         return dayIndex >= startIndex || dayIndex <= endIndex;
     };
 
-    const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [isListingActive, setIsListingActive] = useState(true);
     const [startTime, setStartTime] = useState<string>(formatTime(defaultStartTime, "AM"));
     const [endTime, setEndTime] = useState<string>(formatTime(defaultEndTime, "PM"));
@@ -72,7 +72,7 @@ export default function CalendarComponent({
 
     useEffect(() => {
         const fetchData = async () => {
-            const formattedDate = selectedDate.format("YYYY-MM-DD");
+            const formattedDate = format(selectedDate, "yyyy-MM-dd");
             if (lastFetchedDate.current === formattedDate) return;
             lastFetchedDate.current = formattedDate;
             setLoading(true);
@@ -81,10 +81,8 @@ export default function CalendarComponent({
                 setIsListingActive(data?.listingActive ?? true);
                 setStartTime(formatTime(data?.startTime ?? defaultStartTime, "AM"));
                 setEndTime(formatTime(data?.endTime ?? defaultEndTime, "PM"));
-            } catch {
-                setIsListingActive(true);
-                setStartTime(formatTime(defaultStartTime, "AM"));
-                setEndTime(formatTime(defaultEndTime, "PM"));
+            } catch (e) {
+                console.error("[ManageTimings] Failed to fetch day status", e);
             } finally {
                 setLoading(false);
             }
@@ -92,15 +90,15 @@ export default function CalendarComponent({
         fetchData();
     }, [selectedDate, listingId, defaultStartTime, defaultEndTime]);
 
-    const handleDateChange = (newDate: Dayjs | null) => {
-        if (!newDate || selectedDate.isSame(newDate, "day")) return;
+    const handleDateChange = (newDate: Date | null) => {
+        if (!newDate || isSameDay(selectedDate, newDate)) return;
         setSelectedDate(newDate);
     };
 
     const handleSave = async () => {
         const payload = {
             listingId,
-            date: selectedDate.format("YYYY-MM-DD"),
+            date: format(selectedDate, "yyyy-MM-dd"),
             listingActive: isListingActive,
             startTime,
             endTime,
@@ -112,7 +110,8 @@ export default function CalendarComponent({
             } else {
                 toast.error(res.error || "Error saving day status");
             }
-        } catch {
+        } catch (e) {
+            console.error("[ManageTimings] Failed to save day status", e);
             toast.error("Error saving day status");
         }
     };
@@ -125,12 +124,12 @@ export default function CalendarComponent({
     return (
         <div className="flex items-center p-8 gap-12 bg-background justify-center rounded-2xl border border-border">
             <div className="border border-border rounded-xl w-fit overflow-hidden">
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
                     <DateCalendar
                         value={selectedDate}
                         onChange={handleDateChange}
                         shouldDisableDate={(date) => {
-                            if (date.isBefore(dayjs().startOf("day"), "day")) return true;
+                            if (isBefore(date, startOfDay(new Date()))) return true;
                             return !isDayEnabled(date);
                         }}
                         sx={{

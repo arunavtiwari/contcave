@@ -191,8 +191,3 @@ export const updateDayStatusAction = createAction(
         return { success: true };
     }
 );
-// Compatibility Aliases
-export const updateListing = updateListingAction;
-export const deleteListing = deleteListingAction;
-export const createBlock = createBlockAction;
-export const deleteBlock = deleteBlockAction;

@@ -83,11 +83,15 @@ const ForBrands = () => {
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3">
+                <Button
+                  label="Share your brief"
+                  variant="secondary"
+                  rounded
+                  fit
+                />
                 <EmailShield
                   email="info@contcave.com"
-                  className="bg-background border-foreground/20 text-foreground h-11 px-6 text-sm rounded-full w-fit flex justify-center items-center font-medium transition active:scale-[0.98]"
                 >
-                  Share your brief
                 </EmailShield>
                 <Button
                   label="WhatsApp us"

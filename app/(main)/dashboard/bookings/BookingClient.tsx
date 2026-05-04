@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import { toast } from "sonner";
 
-import { deleteReservation, updateReservation } from "@/app/actions/reservationActions";
+import { deleteReservationAction, updateReservationAction } from "@/app/actions/reservationActions";
 import ListingCard from "@/components/listing/ListingCard";
 import Modal from "@/components/modals/Modal";
 import ReservationDetailModal from "@/components/modals/ReservationDetailModal";
@@ -75,7 +75,7 @@ function BookingClient({ reservations, currentUser }: Props) {
 
     if (modalAction === "cancel") {
       setDeletingId(selectedId);
-      updateReservation({ reservationId: selectedId, isApproved: 3 })
+      updateReservationAction({ reservationId: selectedId, isApproved: 3 })
         .then(() => {
           toast.success("Reservation cancelled", { id: "Reservation_Cancelled" });
           setRefundReservationId(selectedId);
@@ -92,7 +92,7 @@ function BookingClient({ reservations, currentUser }: Props) {
         });
     } else if (modalAction === "delete") {
       setDeletingId(selectedId);
-      deleteReservation({ reservationId: selectedId })
+      deleteReservationAction({ reservationId: selectedId })
         .then(() => {
           toast.info("Reservation deleted", { id: "Reservation_Deleted" });
           router.refresh();

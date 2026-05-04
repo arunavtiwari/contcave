@@ -19,6 +19,7 @@ import PackageList from "@/components/listing/PackageList";
 import SetSelector from "@/components/listing/SetSelector";
 import Offers from "@/components/Offers";
 import Avatar from "@/components/ui/Avatar";
+import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
@@ -214,7 +215,7 @@ function ListingInfo({
           raw = JSON.parse(trimmed);
         }
       }
-    } catch { }
+    } catch (e) { console.error("[ListingInfo] Failed to parse amenities JSON", e); }
     const out: string[] = [];
     const pushKey = (k: unknown) => {
       if (k == null) return;
@@ -313,7 +314,7 @@ function ListingInfo({
             availableSetIds={availableSetIds}
             isEntireStudioBooked={isEntireStudioBooked}
           />
-          <hr />
+          <Divider />
         </>
       )}
 
@@ -342,7 +343,7 @@ function ListingInfo({
         )}
       </div>
 
-      <hr />
+      <Divider />
 
       {(selectedAmenityKeys.length > 0 || (fullListing.otherAmenities?.length ?? 0) > 0) && (
         <>
@@ -351,14 +352,14 @@ function ListingInfo({
             definedAmenities={transformedAmenityDefs}
             customAmenities={fullListing.otherAmenities ?? []}
           />
-          <hr />
+          <Divider />
         </>
       )}
 
       {Array.isArray(fullListing.addons) && fullListing.addons.length > 0 && (
         <>
           <AddonsList addons={fullListing.addons} onChange={relayAddons} addonList={addonList} />
-          <hr />
+          <Divider />
         </>
       )}
 
@@ -372,7 +373,7 @@ function ListingInfo({
             selectedPackageId={selectedPackage?.id}
             isMultiSets={fullListing.hasSets}
           />
-          <hr />
+          <Divider />
         </>
       )}
 
@@ -381,7 +382,7 @@ function ListingInfo({
         <Map center={getValidCenter() as [number, number] | undefined} />
       </div>
 
-      <hr />
+      <Divider />
 
       <div className="flex flex-col gap-4">
         <Heading title="Operational Timings" variant="h5" />
@@ -401,7 +402,7 @@ function ListingInfo({
         </div>
       </div>
 
-      <hr />
+      <Divider />
 
       <div className="flex flex-col gap-4">
         <Heading title="Additional Information" variant="h5" />
@@ -431,7 +432,7 @@ function ListingInfo({
         )}
       </div>
 
-      <hr />
+      <Divider />
 
       <div className="flex flex-col gap-4">
         <Heading title="Listed Services" variant="h5" />
@@ -450,7 +451,7 @@ function ListingInfo({
         </div>
       </div>
 
-      <hr />
+      <Divider />
 
       {(reviews.length > 0 || canReview) && (
         <div className="flex flex-col gap-8">
@@ -488,7 +489,7 @@ function ListingInfo({
                   </div>
                 ))}
               </div>
-              <hr />
+              <Divider />
             </>
           )}
 
@@ -526,7 +527,7 @@ function ListingInfo({
                   Submit
                 </button>
               </div>
-              <hr />
+              <Divider />
             </>
           )}
         </div>
@@ -540,7 +541,7 @@ function ListingInfo({
               html={processedTerms || fullListing.customTerms || ""}
             />
           </div>
-          <hr />
+          <Divider />
         </>
       )}
 

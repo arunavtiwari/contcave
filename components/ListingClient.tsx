@@ -573,7 +573,7 @@ function ListingClient({
       setIsEntireStudioBooked(true);
       setSelectedSetIds(listing.sets.map(s => s.id));
     }
-  }, [listing.sets, isEntireStudioBooked]);
+  }, [listing.sets, isEntireStudioBooked, defaultSetId]);
 
   const handlePackageSelect = useCallback((pkg: Package | null) => {
     setSelectedPackage(pkg);
@@ -593,7 +593,7 @@ function ListingClient({
         setSelectedSetIds([]);
       }
     }
-  }, [listing.sets, listing.hasSets]);
+  }, [listing.hasSets, defaultSetId]);
 
   const handlePackageSetConfirm = useCallback((setIds: string[]) => {
     setSelectedSetIds(setIds);

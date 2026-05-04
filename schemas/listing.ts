@@ -11,6 +11,7 @@ export const locationSchema = z.object({
     flag: z.string().optional(),
     country: z.string().optional(),
     display_name: z.string().optional(),
+    state: z.string().optional(),
     additionalInfo: z.string().max(200, "Additional info too long").optional(),
 });
 
@@ -88,10 +89,37 @@ export const packageSchema = packageBaseSchema.refine((data) => {
 });
 
 
+export const addonSchema = z.object({
+    name: z.string(),
+    price: z.number().min(0),
+    qty: z.number().min(0),
+    imageUrl: z.string().optional(),
+});
+
+export const verificationSchema = z.object({
+    documents: z.array(z.object({
+        url: z.string().url().optional(),
+        name: z.string().optional(),
+        type: z.string().optional(),
+        file: z.any().optional(), // File object for client-side
+        original_filename: z.string().optional(),
+        bytes: z.number().optional(),
+    })).optional(),
+});
+
+export const signatureSchema = z.object({
+    name: z.string().optional(),
+    signedAt: z.string().optional(),
+    ip: z.string().optional(),
+    url: z.string(),
+    thumbnail: z.string().optional(),
+});
+
+
 export const listingBaseSchema = z.object({
     category: z.string().min(1, "Category is required").max(100),
     locationValue: z.string().min(1, "Location is required"),
-    actualLocation: locationSchema,
+    actualLocation: locationSchema.nullable(),
     imageSrc: z.array(imageSchema).min(1, "At least one image is required").max(30),
 
 
@@ -125,9 +153,9 @@ export const listingBaseSchema = z.object({
     additionalSetPricingType: z.enum(["FIXED", "HOURLY"]).nullable().optional(),
     packages: z.array(packageSchema).optional(),
 
-    addons: z.unknown().optional(),
-    verifications: z.unknown().optional().nullable(),
-    agreementSignature: z.unknown().optional().nullable(),
+    addons: z.array(addonSchema).optional(),
+    verifications: verificationSchema.optional().nullable(),
+    agreementSignature: signatureSchema.optional().nullable(),
     videoSrc: z.string().url("Invalid video URL").optional().nullable(),
 });
 
@@ -151,6 +179,10 @@ export const listingSchema = listingBaseSchema.refine((data) => {
 export type ListingSchema = z.infer<typeof listingSchema>;
 export type ListingSetSchema = z.infer<typeof listingSetSchema>;
 export type PackageSchema = z.infer<typeof packageSchema>;
+export type AddonSchema = z.infer<typeof addonSchema>;
+export type VerificationSchema = z.infer<typeof verificationSchema>;
+export type SignatureSchema = z.infer<typeof signatureSchema>;
+export type LocationSchema = z.infer<typeof locationSchema>;
 
 // Administrative & Utility Schemas
 export const approveListingSchema = z.object({
