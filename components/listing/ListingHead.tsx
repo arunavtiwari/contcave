@@ -139,7 +139,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
     <>
       <div className="flex gap-2">
         <Heading variant="h4" as="h1" title={title} subtitle={`${location?.label}, India`} />
-        <div className="pt-1.5">
+        <div className="pt-1">
           <HeartButton listingId={id} currentUser={currentUser} />
         </div>
       </div>

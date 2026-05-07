@@ -146,7 +146,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
             />
 
             {!onEdit && showHeart && (
-                <div className={`absolute top-2.5 right-3 z-30 transition-transform ${allowScale ? "group-hover:scale-110" : ""}`}>
+                <div className="absolute top-2.5 right-3 z-30">
                     <HeartButton listingId={listingId} currentUser={currentUser} />
                 </div>
             )}

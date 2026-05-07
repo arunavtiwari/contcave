@@ -1,5 +1,5 @@
+import React, { useCallback, useMemo, useOptimistic } from "react";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useOptimistic } from "react";
 import { toast } from "sonner";
 
 import { toggleFavoriteAction } from "@/app/actions/favoriteActions";
@@ -12,11 +12,6 @@ type Props = {
   currentUser?: SafeUser | null;
 };
 
-/**
- * Custom hook for managing favorite state with optimistic UI.
- * Uses React 19's `useOptimistic` for instant visual feedback
- * before the server action completes.
- */
 function useFavorite({ listingId, currentUser }: Props) {
   const router = useRouter();
   const uiStore = useUIStore();
@@ -26,7 +21,6 @@ function useFavorite({ listingId, currentUser }: Props) {
     return list.includes(listingId);
   }, [currentUser, listingId]);
 
-  // React 19: useOptimistic for instant heart toggle
   const [optimisticFavorite, setOptimisticFavorite] = useOptimistic(
     serverFavorite,
     (_current: boolean, next: boolean) => next
@@ -40,8 +34,9 @@ function useFavorite({ listingId, currentUser }: Props) {
         return uiStore.onOpen("login");
       }
 
-      // Optimistically toggle immediately
-      setOptimisticFavorite(!optimisticFavorite);
+      React.startTransition(() => {
+        setOptimisticFavorite(!optimisticFavorite);
+      });
 
       try {
         const response = await toggleFavoriteAction({ listingId });

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 
 import useFavorite from "@/hooks/useFavorite";
 import { SafeUser } from "@/types/user";
@@ -23,15 +23,15 @@ function HeartButton({ listingId, currentUser }: Props) {
         e.preventDefault();
         toggleFavorite(e);
       }}
-      className="relative hover:opacity-90 transition cursor-pointer flex items-center justify-center p-1 bg-foreground/20 backdrop-blur-md rounded-full"
+      className=" relative hover:opacity-80 transition cursor-pointer"
     >
-      <Image
-        src={hasFavorite ? "/images/icons/heart-red.png" : "/images/icons/heart-white.png"}
-        alt="Heart Icon"
-        width={22}
-        height={22}
-        style={{ width: "auto", height: "auto" }}
-        className="object-contain transition contrast-150"
+      <AiOutlineHeart
+        size={28}
+        className="fill-white absolute -top-0.5 -right-0.5"
+      />
+      <AiFillHeart
+        size={24}
+        className={hasFavorite ? "fill-rose-500" : "fill-neutral-500/70"}
       />
     </div>
   );
