@@ -21,7 +21,7 @@ const AddonsStep: React.FC<AddonsStepProps> = ({
   setValue,
 }) => {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
         <Heading title="Addons" subtitle="Optional services creators can book" variant="h5" />
         <CustomAddonModal

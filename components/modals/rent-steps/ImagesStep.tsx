@@ -22,7 +22,7 @@ const ImagesStep: React.FC<ImagesStepProps> = ({
   setImageError,
 }) => {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <Heading title="Add some photos of your space" subtitle="Show creators what your space looks like!" variant="h5" />
       <FormField label="Images" description="(Max 30)" align="start">
         <div className="w-full flex flex-col gap-4">
@@ -34,6 +34,7 @@ const ImagesStep: React.FC<ImagesStepProps> = ({
             }}
             values={imageSrc || []}
             deferUpload={true}
+            className="w-full h-48 p-4 border border-border"
           />
           {imageSrc && imageSrc.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">

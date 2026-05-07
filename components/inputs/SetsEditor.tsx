@@ -133,6 +133,7 @@ export default function SetsEditor({
             required={required}
             error={error}
             variant={variant}
+            align="start"
         >
             <div className="space-y-4 w-full">
 

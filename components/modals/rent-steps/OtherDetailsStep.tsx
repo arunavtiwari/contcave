@@ -15,7 +15,7 @@ const OtherDetailsStep: React.FC<OtherDetailsStepProps> = ({
   handleDetailsChange,
 }) => {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <Heading title="A few more details" subtitle="Help creators understand your space better" variant="h5" />
       <OtherListingDetails
         data={listingDetails}

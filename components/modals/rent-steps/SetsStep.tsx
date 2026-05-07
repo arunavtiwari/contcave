@@ -33,7 +33,7 @@ const SetsStep: React.FC<SetsStepProps> = ({
   if (!hasSets) return null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <Heading title="Manage Sets" subtitle="Configure individual rooms or areas" variant="h5" />
       
       <FormField label="Pricing Type" variant="horizontal">

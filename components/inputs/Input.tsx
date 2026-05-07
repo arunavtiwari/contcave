@@ -7,7 +7,7 @@ import FormField from "@/components/inputs/FormField";
 import { cn } from "@/lib/utils";
 
 const inputVariants = cva(
-    "flex items-center w-full bg-background border rounded-xl transition disabled:opacity-70 disabled:cursor-not-allowed text-foreground group",
+    "flex items-center w-full bg-background border border-border rounded-xl transition overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed text-foreground group",
     {
         variants: {
             size: {
@@ -16,7 +16,7 @@ const inputVariants = cva(
             },
             error: {
                 true: "border-destructive focus-within:border-destructive",
-                false: "border-border hover:border-border/80 focus-within:border-foreground",
+                false: "border-border focus-within:border-foreground",
             },
         },
         defaultVariants: {

@@ -17,7 +17,7 @@ const VerificationStep: React.FC<VerificationStepProps> = ({
   handleVerificationChange,
 }) => {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <Heading title="Verify your space" subtitle="Upload documents to verify your space ownership" variant="h5" />
       <SpaceVerification
         onVerification={handleVerificationChange}

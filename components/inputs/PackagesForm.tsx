@@ -88,7 +88,7 @@ export default function PackagesForm({
       variant={variant}
       align="start"
     >
-      <div className="flex flex-col gap-8 w-full">
+      <div className="flex flex-col gap-4 w-full">
         {packages.map((pkg, idx) => (
           <div
             key={idx}

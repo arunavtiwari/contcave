@@ -20,7 +20,7 @@ const AmenitiesStep: React.FC<AmenitiesStepProps> = ({
   handleAmenitiesChange,
 }) => {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <Heading title="What does your space offer?" subtitle="Select all that apply" variant="h5" />
       <AmenitiesCheckbox
         amenities={amenitiesData}

@@ -15,7 +15,7 @@ interface VideoStepProps {
 
 const VideoStep: React.FC<VideoStepProps> = ({ videoSrc, setCustomValue }) => {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <Heading title="Add a video tour (Optional)" subtitle="Give creators a better feel for your space" variant="h5" />
       <FormField label="Video tour" align="start">
         <div className="w-full">

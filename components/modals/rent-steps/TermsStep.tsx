@@ -21,7 +21,7 @@ const TermsStep: React.FC<TermsStepProps> = ({
   handleSignature,
 }) => {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <Heading title="Review and accept terms" subtitle="Finalize your listing" variant="h5" />
       <TermsAndConditionsModal
         ref={termsRef}

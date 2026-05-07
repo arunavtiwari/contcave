@@ -14,6 +14,8 @@ interface FormFieldProps {
     align?: "center" | "start";
     children: React.ReactNode;
     className?: string;
+    labelWidth?: string;
+    childWidth?: "full" | "auto";
 }
 
 const FormField = ({
@@ -26,6 +28,8 @@ const FormField = ({
     align = "center",
     children,
     className,
+    labelWidth = "sm:w-1/3",
+    childWidth = "full",
 }: FormFieldProps) => {
     const isHorizontal = variant === "horizontal";
 
@@ -33,7 +37,10 @@ const FormField = ({
         <div className={cn(
             "flex w-full gap-1",
             isHorizontal
-                ? cn("flex-col sm:flex-row sm:gap-10", align === "center" ? "sm:items-center" : "sm:items-start")
+                ? cn("flex-col sm:flex-row sm:gap-10", 
+                    childWidth === "auto" && "sm:justify-between",
+                    align === "center" ? "sm:items-center" : "sm:items-start"
+                )
                 : "flex-col gap-1.5",
             className
         )}>
@@ -42,21 +49,26 @@ const FormField = ({
                     htmlFor={id}
                     className={cn(
                         "text-sm font-medium transition-colors",
-                        isHorizontal ? "sm:w-1/3 text-muted-foreground" : "text-foreground",
+                        isHorizontal ? cn(labelWidth, "text-foreground") : "text-foreground",
                         error ? "text-destructive" : ""
                     )}
                 >
                     {label}
                     {required && <span className="text-destructive ml-1">*</span>}
                     {isHorizontal && description && (
-                        <p className="text-xs font-normal text-muted-foreground mt-1">
+                        <p className="text-xs font-normal text-muted-foreground mt-1 leading-normal">
                             {description}
                         </p>
                     )}
                 </label>
             )}
 
-            <div className={cn("flex-1 w-full", isHorizontal ? "" : "")}>
+            <div className={cn(
+                "flex items-center",
+                isHorizontal
+                    ? (childWidth === "auto" ? "sm:w-auto shrink-0 sm:justify-end" : "flex-1 w-full")
+                    : "flex-1 w-full"
+            )}>
                 {!isHorizontal && description && (
                     <p className="text-xs text-muted-foreground mb-1.5">{description}</p>
                 )}

@@ -26,7 +26,7 @@ const DescriptionStep: React.FC<DescriptionStepProps> = ({
   setValue,
 }) => {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <Heading title="How would you describe your space?" subtitle="Short and sweet works best!" variant="h5" />
       <Input
         id="title"
@@ -34,6 +34,7 @@ const DescriptionStep: React.FC<DescriptionStepProps> = ({
         disabled={isLoading}
         register={register("title")}
         errors={errors}
+        placeholder="e.g. Beautiful Photography Studio in Downtown"
         required
       />
       <LexicalEditor

@@ -265,7 +265,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         onNumberChange={(val) => handleInputChange("carpetArea", val)}
       />
 
-      <FormField label="Operational Days" variant="horizontal">
+      <FormField label="Operational Days" variant="horizontal" align="start">
         <div className="flex items-center gap-3 w-full">
           <Select
             className="w-full"
@@ -285,7 +285,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         </div>
       </FormField>
 
-      <FormField label="Operational Hours" variant="horizontal">
+      <FormField label="Operational Hours" variant="horizontal" align="start">
         <div className="flex items-center gap-3 w-full">
           <Select
             className="w-full"
@@ -345,7 +345,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
 
         {initialListing.hasSets && (
           <div className="flex flex-col gap-6 pl-4">
-            <FormField label="Pricing Type" variant="horizontal">
+            <FormField label="Pricing Type" variant="horizontal" align="start">
               <div className="flex gap-4 w-full">
                 <Button
                   onClick={() => handleInputChange("additionalSetPricingType", "FIXED")}
@@ -364,7 +364,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
               </div>
             </FormField>
 
-            <FormField label="Will all sets have the same price?" variant="horizontal">
+            <FormField label="Will all sets have the same price?" variant="horizontal" align="start">
               <div className="flex gap-4 w-full">
                 <label
                   className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${

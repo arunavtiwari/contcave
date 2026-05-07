@@ -14,6 +14,8 @@ interface SwitchProps extends Partial<ReactSwitchProps> {
     required?: boolean;
     variant?: "vertical" | "horizontal";
     error?: string;
+    labelWidth?: string;
+    childWidth?: "full" | "auto";
 }
 
 const Switch: React.FC<SwitchProps> = ({
@@ -24,6 +26,8 @@ const Switch: React.FC<SwitchProps> = ({
     required,
     variant = "vertical",
     error,
+    labelWidth,
+    childWidth,
     ...props
 }) => {
     const isBolt = styleVariant === "bolt";
@@ -36,6 +40,8 @@ const Switch: React.FC<SwitchProps> = ({
             required={required}
             variant={variant}
             error={error}
+            labelWidth={labelWidth}
+            childWidth={childWidth}
         >
             <ReactSwitch
             onChange={props.onChange ?? (() => { })}

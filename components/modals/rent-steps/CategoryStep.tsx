@@ -22,7 +22,7 @@ const CategoryStep: React.FC<CategoryStepProps> = ({
   return (
     <div className="flex flex-col gap-4">
       <Heading title="Choose your space type" subtitle="Pick a category" variant="h5" />
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {categories.map((item) => (
           <CategoryInput
             key={item.label}

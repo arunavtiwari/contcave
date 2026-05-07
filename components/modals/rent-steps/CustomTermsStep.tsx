@@ -15,7 +15,7 @@ const CustomTermsStep: React.FC<CustomTermsStepProps> = ({
   setValue,
 }) => {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <Heading title="Custom Terms & Conditions" subtitle="Add your own rules for the space (Optional)" variant="h5" />
       <LexicalEditor
         label="T&C by Host"

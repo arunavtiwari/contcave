@@ -46,6 +46,7 @@ export const getSelectStyles = <
                 ? "var(--color-foreground)"
                 : "var(--color-border)",
         borderRadius: "0.75rem",
+        overflow: "hidden",
         padding: "0",
         boxShadow: "none",
         minHeight: size === "sm" ? "40px" : size === "lg" ? "48px" : "44px",

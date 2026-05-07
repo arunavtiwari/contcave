@@ -21,7 +21,7 @@ const PackagesStep: React.FC<PackagesStepProps> = ({
   setValue,
 }) => {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <Heading title="Create Packages" subtitle="Offer bundles at a discounted price" variant="h5" />
       <PackagesForm
         value={packages || []}

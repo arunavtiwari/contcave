@@ -287,6 +287,7 @@ interface Props {
   error?: string;
   id?: string;
   variant?: "vertical" | "horizontal";
+  align?: "center" | "start";
 }
 
 export default function RichTextEditor({
@@ -300,6 +301,7 @@ export default function RichTextEditor({
   error,
   id = "rich-text-editor",
   variant = "vertical",
+  align = "start",
 }: Props) {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [_isMounted, setIsMounted] = useState(false);
@@ -315,14 +317,14 @@ export default function RichTextEditor({
       description={description}
       required={required}
       error={error}
-      align="center"
+      align={align}
       variant={variant}
     >
       <LexicalComposer initialConfig={editorConfig}>
         <div className={cn(
-          "relative border rounded-2xl bg-background transition-all duration-300 overflow-hidden",
-          "border-border",
-          error && "border-destructive"
+          "relative border rounded-2xl bg-background transition-all duration-300 overflow-hidden w-full",
+          "border-border focus-within:border-foreground",
+          error && "border-destructive focus-within:border-destructive"
         )}>
           <ToolbarPlugin />
 
@@ -345,7 +347,7 @@ export default function RichTextEditor({
               }
               placeholder={
                 (!hasInitialized && value) ? null : (
-                  <div className="pointer-events-none absolute top-4 left-4 text-muted-foreground/30 text-sm italic z-10">
+                  <div className="pointer-events-none absolute top-4 left-4 text-muted-foreground text-sm z-10">
                     {(!hasInitialized && !value) ? "Loading editor..." : placeholder}
                   </div>
                 )
