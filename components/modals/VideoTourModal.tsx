@@ -4,6 +4,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 import { IoMdClose } from "react-icons/io";
 
+import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
+
 interface VideoTourModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -29,7 +32,7 @@ const VideoTourModal: React.FC<VideoTourModalProps> = ({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-foreground/90 backdrop-blur-md"
+                        className="absolute inset-0 bg-foreground/60 backdrop-blur-sm"
                     />
 
                     {/* Modal Content */}
@@ -38,19 +41,21 @@ const VideoTourModal: React.FC<VideoTourModalProps> = ({
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-                        className="relative w-full max-w-5xl aspect-video bg-background rounded-3xl overflow-hidden shadow-2xl border border-white/10"
+                        className="relative w-full max-w-5xl aspect-video bg-background rounded-2xl overflow-hidden"
                     >
                         {/* Header */}
-                        <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-50 bg-linear-to-b from-black/60 to-transparent pointer-events-none">
-                            <h3 className="text-white text-xl md:text-2xl font-bold tracking-tight">
-                                Video Tour: {title}
-                            </h3>
-                            <button
+                        <div className="absolute top-0 left-0 right-0 px-6 py-4 flex justify-between items-center z-50 bg-linear-to-b from-black/60 to-transparent pointer-events-none">
+                            <Heading 
+                                title={`Video Tour: ${title}`}
+                                variant="h5"
+                                className="text-white m-0"
+                            />
+                            <Button
+                                isIconOnly
+                                icon={IoMdClose}
                                 onClick={onClose}
-                                className="pointer-events-auto p-2 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 rounded-full text-white transition-all hover:scale-110 active:scale-95"
-                            >
-                                <IoMdClose size={24} />
-                            </button>
+                                className="pointer-events-auto"
+                            />
                         </div>
 
                         {/* Video Player */}
@@ -60,17 +65,10 @@ const VideoTourModal: React.FC<VideoTourModalProps> = ({
                                 controls
                                 autoPlay
                                 className="w-full h-full object-contain"
-                                poster="/video-placeholder.jpg" // You can add a poster if needed
+                                poster="/video-placeholder.jpg"
                             >
                                 Your browser does not support the video tag.
                             </video>
-                        </div>
-
-                        {/* Footer Overlay - Premium Touch */}
-                        <div className="absolute bottom-0 left-0 right-0 p-8 flex justify-center z-50 bg-linear-to-t from-black/40 to-transparent pointer-events-none">
-                            <span className="text-white/60 text-sm font-medium tracking-widest uppercase">
-                                ContCave Exclusive Tour
-                            </span>
                         </div>
                     </motion.div>
                 </div>

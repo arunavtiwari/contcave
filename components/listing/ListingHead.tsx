@@ -13,6 +13,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import HeartButton from "@/components/HeartButton";
 import Modal from "@/components/modals/Modal";
 import VideoTourModal from "@/components/modals/VideoTourModal";
+import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import useCities from "@/hooks/useCities";
 import { SafeUser } from "@/types/user";
@@ -182,19 +183,18 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                   />
                   <div className="absolute bottom-4 right-4 flex gap-2">
                     {videoSrc && (
-                      <button
-                        className="bg-foreground/70 backdrop-blur-md text-background px-6 py-2 rounded-xl hover:bg-foreground/90 transition-all font-semibold shadow-premium text-sm uppercase tracking-wide border border-white/20"
+                      <Button
+                        label="Video Tour"
                         onClick={() => setShowVideoModal(true)}
-                      >
-                        Video Tour
-                      </button>
+                        fit
+                      />
                     )}
-                    <button
-                      className="bg-background/70 backdrop-blur-md text-foreground px-6 py-2 rounded-xl hover:bg-background/90 transition-all font-semibold shadow-premium text-sm uppercase tracking-wide"
+                    <Button
+                      label="Show all photos"
                       onClick={handleShowAllPhotos}
-                    >
-                      Show all photos
-                    </button>
+                      variant="outline"
+                      fit
+                    />
                   </div>
                 </div>
               )}

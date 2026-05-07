@@ -86,6 +86,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
       variant,
       size,
       fit,
+      isIconOnly,
       className,
       children,
       disabled,
@@ -94,10 +95,10 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
     },
     ref
   ) => {
-    const isIconOnly = !label && !!Icon && !children;
+    const computedIsIconOnly = isIconOnly !== undefined ? isIconOnly : (!label && !!Icon && !children);
 
     const finalClasses = cn(
-      buttonVariants({ variant, size, outline, rounded, fit, isIconOnly }),
+      buttonVariants({ variant, size, outline, rounded, fit, isIconOnly: computedIsIconOnly }),
       className
     );
 
