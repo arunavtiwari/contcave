@@ -17,7 +17,7 @@ const VideoStep: React.FC<VideoStepProps> = ({ videoSrc, setCustomValue }) => {
   return (
     <div className="flex flex-col gap-8">
       <Heading title="Add a video tour (Optional)" subtitle="Give creators a better feel for your space" variant="h5" />
-      <FormField label="Video tour" variant="horizontal" align="start">
+      <FormField label="Video tour" align="start">
         <div className="w-full">
           <ImageUpload
             uid="rent-modal-video-upload"
@@ -28,6 +28,7 @@ const VideoStep: React.FC<VideoStepProps> = ({ videoSrc, setCustomValue }) => {
             maxSize={100 * 1024 * 1024}
             icon={TbVideoPlus}
             className="w-full h-48 p-4 border border-border rounded-xl"
+            deferUpload={true}
           />
           {videoSrc && (
             <div className="mt-4 relative group w-full max-w-md">

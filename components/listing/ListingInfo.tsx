@@ -151,10 +151,18 @@ function ListingInfo({
   const [isExpanded, setIsExpanded] = useState(false);
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
+  const [isTermsExpanded, setIsTermsExpanded] = useState(false);
+  const toggleTermsExpand = () => setIsTermsExpanded((prev) => !prev);
+
   const shouldTruncate = useMemo(() => {
     if (descriptionShouldTruncate !== undefined) return descriptionShouldTruncate;
     return getPlainTextFromHTML(description, 0).length > 250;
   }, [description, descriptionShouldTruncate]);
+
+  const shouldTruncateTerms = useMemo(() => {
+    if (!fullListing.customTerms) return false;
+    return getPlainTextFromHTML(fullListing.customTerms, 0).length > 250;
+  }, [fullListing.customTerms]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -537,9 +545,21 @@ function ListingInfo({
         <>
           <div className="flex flex-col gap-4">
             <Heading title="Terms & Conditions by Host" variant="h5" />
-            <SafeHtml
-              html={processedTerms || fullListing.customTerms || ""}
-            />
+            <div className="text-base font-normal">
+              <SafeHtml
+                html={processedTerms || fullListing.customTerms || ""}
+                className={!isTermsExpanded ? "max-h-40 overflow-hidden relative" : ""}
+              />
+              {shouldTruncateTerms && (
+                <button
+                  onClick={toggleTermsExpand}
+                  className="underline font-medium text-sm mt-1 cursor-pointer"
+                  type="button"
+                >
+                  {isTermsExpanded ? "See less" : "See more"}
+                </button>
+              )}
+            </div>
           </div>
           <Divider />
         </>

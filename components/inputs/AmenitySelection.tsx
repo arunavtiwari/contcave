@@ -24,6 +24,7 @@ interface AmenitiesCheckboxProps {
   variant?: "vertical" | "horizontal";
   error?: string;
   id?: string;
+  disableCustom?: boolean;
 }
 
 const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
@@ -37,6 +38,7 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
   variant = "vertical",
   error,
   id = "amenities-checkbox",
+  disableCustom = false,
 }) => {
   const [otherAmenity, setOtherAmenity] = useState('');
   const checkedItems = checked.reduce<{ [key: number | string]: boolean }>((acc, id) => {
@@ -104,34 +106,35 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
           })}
         </div>
 
-
-        <div className="mt-8">
-          <div className="flex gap-3 items-end">
-            <div className="grow">
-              <Input
-                id="custom-amenity"
-                label="Custom amenity"
-                placeholder="e.g. Infinity Pool"
-                value={otherAmenity}
-                onChange={(e) => setOtherAmenity(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddAmenity();
-                  }
-                }}
+        {!disableCustom && (
+          <div className="mt-8">
+            <div className="flex gap-3 items-end">
+              <div className="grow">
+                <Input
+                  id="custom-amenity"
+                  label="Custom amenity"
+                  placeholder="e.g. Infinity Pool"
+                  value={otherAmenity}
+                  onChange={(e) => setOtherAmenity(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddAmenity();
+                    }
+                  }}
+                />
+              </div>
+              <Button
+                type="button"
+                onClick={handleAddAmenity}
+                label="Add"
+                fit
               />
             </div>
-            <Button
-              type="button"
-              onClick={handleAddAmenity}
-              label="Add"
-              fit
-            />
           </div>
-        </div>
+        )}
 
-        {amenitiesList.length > 0 && (
+        {!disableCustom && amenitiesList.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
             {amenitiesList.map((amenity) => (
               <Pill

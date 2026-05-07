@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 
 import AmenitiesCheckbox from "@/components/inputs/AmenitySelection";
+import FormField from "@/components/inputs/FormField";
 import Input from "@/components/inputs/Input";
 import Switch from "@/components/inputs/Switch";
 import Divider from "@/components/ui/Divider";
@@ -106,37 +107,36 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
 
         <Divider />
 
-        <Select
-            label="Operational Days"
-            description="Days when the space is open"
-            variant="horizontal"
-            required
-            className="w-full"
-            options={dayOptions}
-            value={dayOptions.find((d) => d.value === details.operationalDays.start)}
-            onChange={(newValue) => {
-                const sel = newValue as SelectOption | null;
-                handleInputChange("operationalDays", {
-                    ...details.operationalDays,
-                    start: sel?.value || "",
-                });
-            }}
-            placeholder="Start Day"
-        />
-
-        <Select
-            className="w-full"
-            options={dayOptions}
-            value={dayOptions.find((d) => d.value === details.operationalDays.end)}
-            onChange={(newValue) => {
-                const sel = newValue as SelectOption | null;
-                handleInputChange("operationalDays", {
-                    ...details.operationalDays,
-                    end: sel?.value || "",
-                });
-            }}
-            placeholder="End Day"
-        />
+        <FormField label="Operational Days" description="Days when the space is open" required variant="horizontal">
+            <div className="flex gap-4 w-full">
+                <Select
+                    className="flex-1"
+                    options={dayOptions}
+                    value={dayOptions.find((d) => d.value === details.operationalDays.start)}
+                    onChange={(newValue) => {
+                        const sel = newValue as SelectOption | null;
+                        handleInputChange("operationalDays", {
+                            ...details.operationalDays,
+                            start: sel?.value || "",
+                        });
+                    }}
+                    placeholder="Start Day"
+                />
+                <Select
+                    className="flex-1"
+                    options={dayOptions}
+                    value={dayOptions.find((d) => d.value === details.operationalDays.end)}
+                    onChange={(newValue) => {
+                        const sel = newValue as SelectOption | null;
+                        handleInputChange("operationalDays", {
+                            ...details.operationalDays,
+                            end: sel?.value || "",
+                        });
+                    }}
+                    placeholder="End Day"
+                />
+            </div>
+        </FormField>
 
         <Switch
             label="Open all day"
@@ -225,6 +225,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
             description="Select all that apply"
             variant="horizontal"
             required
+            disableCustom
             amenities={spaceTypes.map(t => ({ id: t, name: t, createdAt: new Date(), icon: null }))}
             checked={details.type || []}
             onChange={(updated: { predefined: { [key: string]: boolean }; custom: string[] }) => handleInputChange("type", Object.keys(updated.predefined).filter(k => updated.predefined[k]))}
