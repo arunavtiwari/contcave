@@ -18,7 +18,6 @@ const CustomTermsStep: React.FC<CustomTermsStepProps> = ({
     <div className="flex flex-col gap-4">
       <Heading title="Custom Terms & Conditions" subtitle="Add your own rules for the space (Optional)" variant="h5" />
       <LexicalEditor
-        label="T&C by Host"
         value={customTerms || ""}
         onChange={(html) => setValue("customTerms", html, { shouldDirty: true, shouldValidate: true })}
         placeholder="e.g. No smoking, No pets, etc."
