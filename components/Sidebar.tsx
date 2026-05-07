@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
 import { FaArrowUpRightDots } from "react-icons/fa6";
 
@@ -16,6 +16,8 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "main", isOwner }) => {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const currentTab = searchParams.get("tab") || "Edit Property";
 
     const itemsToDisplay = React.useMemo(() => {
         return (menuType === "main" ? MAIN_SIDEBAR_ITEMS : PROFILE_SIDEBAR_ITEMS).filter(
@@ -28,12 +30,21 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "mai
             <nav>
                 <ul className="flex sm:flex-col sm:gap-2 gap-2">
                     {itemsToDisplay.map((item, index) => {
-                        const isActive = pathname === item.href;
+                        let isActive = false;
+                        let href = item.href || "#";
+
+                        if (menuType === "main") {
+                            isActive = currentTab === item.name;
+                            href = `?tab=${encodeURIComponent(item.name)}`;
+                        } else {
+                            isActive = pathname === item.href;
+                        }
 
                         return (
                             <li key={index}>
                                 <Link
-                                    href={item.href || "#"}
+                                    href={href}
+                                    scroll={false}
                                     className={`px-4 py-3 flex items-center gap-3 sm:hover:bg-muted rounded-full cursor-pointer group transition-colors ${isActive ? "bg-muted text-foreground font-semibold" : "text-muted-foreground hover:text-foreground font-medium"
                                         }`}
                                 >

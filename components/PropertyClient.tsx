@@ -132,27 +132,8 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
 
     return (
         <SessionProvider>
-            <div className="flex flex-col w-full gap-5">
-                <div className="flex w-full overflow-x-auto gap-2 pb-2 scrollbar-hide border-b border-border/40">
-                    {MAIN_SIDEBAR_ITEMS.map((item) => (
-                        <button
-                            key={item.name}
-                            onClick={() => router.push(`?tab=${encodeURIComponent(item.name)}`, { scroll: false })}
-                            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
-                                selectedMenu === item.name
-                                    ? "bg-foreground text-background"
-                                    : "text-muted-foreground hover:bg-muted"
-                            }`}
-                        >
-                            {item.icon}
-                            {item.name}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="mt-4">
-                    {renderContent()}
-                </div>
+            <div className="flex flex-col w-full">
+                {renderContent()}
 
                 <DeletePropertyModal
                     isOpen={isDeleteModalOpen}

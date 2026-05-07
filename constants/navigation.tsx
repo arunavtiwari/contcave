@@ -46,23 +46,6 @@ export const PROFILE_SIDEBAR_ITEMS: NavigationItem[] = [
         href: "/dashboard/profile"
     },
     {
-        name: "My Bookings",
-        icon: <FaTicket size={20} />,
-        href: "/dashboard/bookings"
-    },
-    {
-        name: "My Properties",
-        icon: <FaHouse size={20} />,
-        href: "/dashboard/properties",
-        ownerOnly: true
-    },
-    {
-        name: "Guest Reservations",
-        icon: <FaCalendarDays size={20} />,
-        href: "/dashboard/reservations",
-        ownerOnly: true
-    },
-    {
         name: "Manage Payments",
         icon: <FaCreditCard size={20} />,
         href: "/dashboard/payments",
