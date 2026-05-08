@@ -5,7 +5,7 @@ import "swiper/css/navigation";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
+import { HiOutlineChevronLeft, HiOutlineChevronRight, HiOutlineVideoCamera } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -182,13 +182,6 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                     onClick={() => handleImageClick(4)}
                   />
                   <div className="absolute bottom-4 right-4 flex gap-2">
-                    {videoSrc && (
-                      <Button
-                        label="Video Tour"
-                        onClick={() => setShowVideoModal(true)}
-                        fit
-                      />
-                    )}
                     <Button
                       label="Show all photos"
                       onClick={handleShowAllPhotos}
@@ -219,12 +212,26 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
       />
 
       {videoSrc && (
-        <VideoTourModal
-          isOpen={showVideoModal}
-          onClose={() => setShowVideoModal(false)}
-          videoSrc={videoSrc}
-          title={title}
-        />
+        <>
+          <Button
+            onClick={() => setShowVideoModal(true)}
+            aria-label="video tour"
+            rounded
+            className="fixed bottom-18 right-4 z-99 group px-2.5! group-hover:px-5! transition-all duration-300"
+            fit
+          >
+            <HiOutlineVideoCamera size={20} className="shrink-0" />
+            <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out -ml-2 group-hover:max-w-37.5 group-hover:opacity-100 group-hover:ml-0">
+              Video Tour
+            </span>
+          </Button>
+          <VideoTourModal
+            isOpen={showVideoModal}
+            onClose={() => setShowVideoModal(false)}
+            videoSrc={videoSrc}
+            title={title}
+          />
+        </>
       )}
 
       {isLightboxOpen && (
