@@ -100,6 +100,10 @@ function ListingClient({
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>([null, null]);
   const [selectedAddons, setSelectedAddons] = useState<AddonItem[]>([]);
+
+  useEffect(() => {
+    setSelectedTimeSlot([null, null]);
+  }, [selectedDate]);
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
 
@@ -233,10 +237,27 @@ function ListingClient({
       if (!sISO || !eISO) return;
       const sDate = new Date(sISO);
       const eDate = new Date(eISO);
-      if (istToDateOnly(sDate).toDateString() !== dayStr) return;
-      const s = toHHMM(sDate);
-      const e = toHHMM(eDate);
-      if (s && e) listingWideBusy.push({ s, e });
+
+      const dayStart = new Date(day);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(day);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      if (sDate > dayEnd || eDate < dayStart) return;
+
+      let sHM: TimeHM = "00:00" as TimeHM;
+      if (istSameDay(sDate, day)) {
+        sHM = toHHMM(sDate) ?? ("00:00" as TimeHM);
+      }
+
+      let eHM: TimeHM = "23:59" as TimeHM;
+      if (istSameDay(eDate, day)) {
+        const hhmm = toHHMM(eDate);
+        if (hhmm === "00:00") return;
+        eHM = hhmm ?? ("23:59" as TimeHM);
+      }
+
+      if (sHM && eHM) listingWideBusy.push({ s: sHM, e: eHM });
     });
 
     if (istSameDay(day, new Date())) {

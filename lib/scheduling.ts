@@ -88,9 +88,8 @@ export const getRoundedNowIST_HHMM = (): TimeHM => {
 export const toHHMM = (input: unknown): TimeHM | null => {
     const fromDate = (d: Date): TimeHM | null => {
         if (!(d instanceof Date) || Number.isNaN(d.getTime())) return null;
-        const hh = String(d.getHours()).padStart(2, "0");
-        const mm = String(d.getMinutes()).padStart(2, "0");
-        return `${hh}:${mm}` as TimeHM;
+        const { hh, mm } = toISTDateParts(d);
+        return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}` as TimeHM;
     };
     if (input instanceof Date) return fromDate(input);
     if (typeof input === "string") {

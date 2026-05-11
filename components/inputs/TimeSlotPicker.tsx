@@ -132,28 +132,29 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
         [startIdx, endIdx]
     );
 
-    const isReserved = useCallback(
+    const isSlotDisabled = useCallback(
         (label: TimeLabel): boolean => {
             const m = toMinutes(label);
             if (Number.isNaN(m)) return false;
-            return disabledIntervals.some(({ s, e }) => m >= s && m < e);
+
+            if (activeSegment === "start") {
+                return disabledIntervals.some(({ s, e }) => m >= s && m < e);
+            } else {
+                const startM = toMinutes(to12hLabel(selectedStart));
+                if (Number.isNaN(startM)) return false;
+
+                const endM = asEndOfDayMinutes(m);
+                if (endM < startM + Math.max(0, minBookingMinutes)) return true;
+
+                return disabledIntervals.some(({ s, e }) => Math.max(startM, s) < Math.min(endM, e));
+            }
         },
-        [disabledIntervals]
+        [activeSegment, disabledIntervals, selectedStart, minBookingMinutes]
     );
 
     const normStart = to12hLabel(selectedStart);
     const normEnd = to12hLabel(selectedEnd);
 
-    const violatesEndRequirement = useCallback(
-        (label: TimeLabel): boolean => {
-            if (activeSegment !== "end" || !normStart) return false;
-            const endM = asEndOfDayMinutes(toMinutes(label));
-            const startM = toMinutes(normStart);
-            if (Number.isNaN(endM) || Number.isNaN(startM)) return false;
-            return endM < startM + Math.max(0, minBookingMinutes);
-        },
-        [activeSegment, normStart, minBookingMinutes]
-    );
 
     const handleClick = useCallback(
         (label: TimeLabel) => {
@@ -170,11 +171,11 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                 onTimeSelect(normalized, "start");
                 setActiveSegment("end");
             } else {
-                if (violatesEndRequirement(normalized)) return;
+                if (isSlotDisabled(normalized)) return;
                 onTimeSelect(normalized, "end");
             }
         },
-        [activeSegment, normEnd, minBookingMinutes, onTimeSelect, violatesEndRequirement]
+        [activeSegment, normEnd, minBookingMinutes, onTimeSelect, isSlotDisabled]
     );
 
     const noDatePicked = !selectedDate;
@@ -222,9 +223,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
                     <div className="gap-4 grid grid-cols-3 h-[30vh] pr-1 overflow-y-auto pb-4">
                         {visible.map((label) => {
-                            const reserved = isReserved(label);
-                            const tooShort = violatesEndRequirement(label);
-                            const disabled = reserved || (activeSegment === "end" && tooShort);
+                            const disabled = isSlotDisabled(label);
                             const selected =
                                 (activeSegment === "start" && to12hLabel(label) === normStart) ||
                                 (activeSegment === "end" && to12hLabel(label) === normEnd);
