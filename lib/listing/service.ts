@@ -20,6 +20,72 @@ type ListingWithRelations = Prisma.ListingGetPayload<{
     };
 }>;
 
+const JSON_FIELD_KEYS = new Set([
+    "actualLocation",
+    "addons",
+    "operationalDays",
+    "operationalHours",
+    "verifications",
+]);
+
+function isFileLike(value: object): boolean {
+    const candidate = value as {
+        name?: unknown;
+        size?: unknown;
+        slice?: unknown;
+        arrayBuffer?: unknown;
+    };
+
+    return (
+        typeof candidate.name === "string" &&
+        typeof candidate.size === "number" &&
+        (typeof candidate.slice === "function" || typeof candidate.arrayBuffer === "function")
+    );
+}
+
+function toJsonCompatible(value: unknown): unknown {
+    if (value == null || typeof value === "string" || typeof value === "boolean") return value;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (value instanceof Date) return value.toISOString();
+    if (typeof value === "function" || typeof value === "symbol" || typeof value === "bigint" || typeof value === "undefined") {
+        return undefined;
+    }
+    if (Array.isArray(value)) {
+        return value.map((item) => {
+            const next = toJsonCompatible(item);
+            return typeof next === "undefined" ? null : next;
+        });
+    }
+    if (typeof value === "object") {
+        if (isFileLike(value)) return undefined;
+
+        return Object.entries(value).reduce<Record<string, unknown>>((acc, [key, item]) => {
+            const next = toJsonCompatible(item);
+            if (typeof next !== "undefined") acc[key] = next;
+            return acc;
+        }, {});
+    }
+
+    return undefined;
+}
+
+function toNullableJson(value: unknown): Prisma.InputJsonValue | null {
+    const next = toJsonCompatible(value);
+    return typeof next === "undefined" ? null : next as Prisma.InputJsonValue;
+}
+
+function sanitizeListingJsonFields<T extends Record<string, unknown>>(data: T): T {
+    const sanitized = { ...data };
+
+    for (const key of JSON_FIELD_KEYS) {
+        if (key in sanitized) {
+            sanitized[key as keyof T] = toNullableJson(sanitized[key as keyof T]) as T[keyof T];
+        }
+    }
+
+    return sanitized;
+}
+
 export class ListingService {
     static async createListing(userId: string, body: Record<string, unknown>): Promise<FullListing> {
         const validated = listingSchema.parse(body);
@@ -41,6 +107,10 @@ export class ListingService {
         const privacySafeLatLng = jitterLatLng((actualLocation as { latlng?: unknown })?.latlng);
         const finalActualLocation = { ...(actualLocation as Record<string, unknown>), latlng: privacySafeLatLng || [0, 0] };
         const newSlug = await generateUniqueSlug(slug || trimmedTitle);
+        const finalAddons = toNullableJson(addons);
+        const finalOperationalDays = toNullableJson(operationalDays);
+        const finalOperationalHours = toNullableJson(operationalHours);
+        const finalVerifications = toNullableJson(verifications);
 
         // 3. Atomic Transaction
         return await prisma.$transaction(async (tx) => {
@@ -52,20 +122,20 @@ export class ListingService {
                     imageSrc: Array.isArray(imageSrc) ? imageSrc.map((img: unknown) => String(img).trim()) : [],
                     category: String(category || "").trim(),
                     locationValue: String(locationValue || "").trim(),
-                    actualLocation: finalActualLocation as Prisma.InputJsonValue,
+                    actualLocation: toNullableJson(finalActualLocation),
                     price: priceValue,
                     user: { connect: { id: userId } },
                     amenities: sanitizeStringList(amenities),
                     otherAmenities: sanitizeStringList(otherAmenities),
-                    addons: (addons as Prisma.InputJsonValue) || null,
+                    addons: finalAddons,
                     carpetArea: carpetArea,
-                    operationalDays: (operationalDays as Prisma.InputJsonValue) || null,
-                    operationalHours: (operationalHours as Prisma.InputJsonValue) || null,
+                    operationalDays: finalOperationalDays,
+                    operationalHours: finalOperationalHours,
                     minimumBookingHours: minimumBookingHours,
                     maximumPax: maximumPax,
                     instantBooking: Boolean(instantBooking),
                     type: Array.isArray(type) ? type.map(t => String(t)) : [],
-                    verifications: (verifications as Prisma.InputJsonValue) || null,
+                    verifications: finalVerifications,
                     terms: Boolean(terms),
                     status: "PENDING",
                     active: false,
@@ -166,15 +236,16 @@ export class ListingService {
                 latlng: privacySafeLatLng || [0, 0]
             } as typeof loc;
         }
+        const sanitizedListingData = sanitizeListingJsonFields(listingData as Record<string, unknown>);
 
         // 4. Atomic Transaction
         return await prisma.$transaction(async (tx) => {
             // Update Main Listing
-            if (Object.keys(listingData).length > 0) {
+            if (Object.keys(sanitizedListingData).length > 0) {
                 await tx.listing.update({
                     where: { id: listingId },
                     data: {
-                        ...listingData,
+                        ...sanitizedListingData,
                         videoSrc: body.videoSrc !== undefined ? (body.videoSrc as string | null) : undefined,
                     } as Prisma.ListingUpdateInput,
                 });

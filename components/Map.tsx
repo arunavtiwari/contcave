@@ -3,8 +3,8 @@
 import "leaflet/dist/leaflet.css";
 
 import L from "leaflet";
-import { useMemo } from "react";
-import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import { useEffect, useMemo } from "react";
+import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 
 type Props = {
   center?: [number, number];
@@ -14,6 +14,29 @@ const INDIA_CENTER: [number, number] = [20.5937, 78.9629];
 
 const TILE_URL =
   "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
+function MapViewportController({
+  center,
+  zoom,
+  shouldFocus,
+}: {
+  center: [number, number];
+  zoom: number;
+  shouldFocus: boolean;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!shouldFocus) {
+      map.flyTo(INDIA_CENTER, 4, { duration: 0.8, easeLinearity: 0.25 });
+      return;
+    }
+
+    map.flyTo(center, zoom, { duration: 1.2, easeLinearity: 0.25 });
+  }, [center, map, shouldFocus, zoom]);
+
+  return null;
+}
 
 function Map({ center }: Props) {
   const isValidCenter = useMemo(() => {
@@ -51,6 +74,11 @@ function Map({ center }: Props) {
       preferCanvas
       className="z-0 h-[35vh] w-full rounded-xl"
     >
+      <MapViewportController
+        center={mapCenter}
+        zoom={isValidCenter ? 15 : 4}
+        shouldFocus={isValidCenter}
+      />
       <TileLayer
         url={TILE_URL}
         maxZoom={19}

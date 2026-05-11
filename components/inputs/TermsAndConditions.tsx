@@ -86,7 +86,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
 
     return (
         <div className="flex justify-center items-center">
-            <div className="bg-background w-full max-w-xl mx-auto rounded-lg">
+            <div className="bg-background w-full mx-auto rounded-lg">
                 <div className="px-4">
                     <div ref={containerRef} className="my-4 text-sm text-foreground bg-background">
 

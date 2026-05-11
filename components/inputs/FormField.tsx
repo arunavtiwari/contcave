@@ -53,8 +53,15 @@ const FormField = ({
                         error ? "text-destructive" : ""
                     )}
                 >
-                    {label}
-                    {required && <span className="text-destructive ml-1">*</span>}
+                    <span>
+                        {label}
+                        {required && <span className="text-destructive ml-1">*</span>}
+                    </span>
+                    {!isHorizontal && description && (
+                        <span className="text-xs font-normal text-muted-foreground ml-2">
+                            {description}
+                        </span>
+                    )}
                     {isHorizontal && description && (
                         <p className="text-xs font-normal text-muted-foreground mt-1 leading-normal">
                             {description}
@@ -64,15 +71,11 @@ const FormField = ({
             )}
 
             <div className={cn(
-                "flex items-center",
+                "flex",
                 isHorizontal
-                    ? (childWidth === "auto" ? "sm:w-auto shrink-0 sm:justify-end" : "flex-1 w-full")
-                    : "flex-1 w-full"
+                    ? cn("items-center", childWidth === "auto" ? "sm:w-auto shrink-0 sm:justify-end" : "flex-1 w-full")
+                    : "flex-1 w-full flex-col items-stretch"
             )}>
-                {!isHorizontal && description && (
-                    <p className="text-xs text-muted-foreground mb-1.5">{description}</p>
-                )}
-
                 {children}
 
                 {error && (

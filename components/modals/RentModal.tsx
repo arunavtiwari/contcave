@@ -95,6 +95,38 @@ const getActiveSteps = (hasSets: boolean) =>
     ];
 
 type RentModalFormValues = ListingSchema;
+type VerificationDocumentInput = Partial<VerificationDocument> & {
+  name?: string;
+  type?: string;
+};
+type VerificationPayloadInput = {
+  documents?: VerificationDocumentInput[];
+  code?: string;
+} | null | undefined;
+
+const toStoredVerificationDocument = (document: VerificationDocumentInput): VerificationDocument => ({
+  original_filename: document.original_filename || "",
+  bytes: Number(document.bytes || 0),
+  format: document.format || "pdf",
+  resource_type: document.resource_type || "raw",
+  ...(document.public_id ? { public_id: document.public_id } : {}),
+  ...(document.version != null ? { version: document.version } : {}),
+  ...(document.thumbnail ? { thumbnail: document.thumbnail } : {}),
+  ...(document.url ? { url: document.url } : {}),
+});
+
+const toStoredVerificationPayload = (
+  verifications: VerificationPayloadInput
+): VerificationPayload | undefined => {
+  if (!verifications) return undefined;
+
+  return {
+    ...verifications,
+    documents: Array.isArray(verifications.documents)
+      ? verifications.documents.map(toStoredVerificationDocument)
+      : [],
+  };
+};
 
 type StepDefinition = {
   id: STEPS;
@@ -816,6 +848,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         return toast.error("Please upload at least one image");
       }
 
+      const storedVerifications = toStoredVerificationPayload(data.verifications);
+
       const payload = {
         title: data.title,
         description: data.description,
@@ -848,7 +882,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
           ...p,
           isActive: p.isActive !== false,
         })) : [],
-        verifications: data.verifications || undefined,
+        verifications: storedVerifications,
         agreementSignature: data.agreementSignature || undefined,
         terms: data.terms,
         customTerms: isRichTextEmpty(data.customTerms) ? undefined : String(data.customTerms).trim(),
@@ -878,6 +912,10 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       payload.sets = finalSets;
 
       const createdListing = await createListingAction(payload);
+      if (!createdListing.success) {
+        throw new Error(createdListing.error || "Listing creation failed");
+      }
+
       const listingId = createdListing?.data?.id;
 
       if (!listingId) {
@@ -915,8 +953,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       }
 
       const finalVerifications: Record<string, unknown> = {
-        ...(data.verifications || {}),
-        documents: uploadedVerificationDocs.length > 0 ? uploadedVerificationDocs : data.verifications?.documents || [],
+        ...(storedVerifications || {}),
+        documents: uploadedVerificationDocs.length > 0 ? uploadedVerificationDocs : storedVerifications?.documents || [],
       };
 
       if (data.agreementSignature && data.terms && generatePdf) {
