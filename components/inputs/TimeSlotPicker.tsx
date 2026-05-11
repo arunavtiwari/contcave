@@ -90,7 +90,6 @@ function resolveOperationalRange(ops?: ReservationOperationalTimings) {
     let startIdx = 0;
     while (startIdx < labelMinutes.length && labelMinutes[startIdx] < startMin) startIdx++;
     let endIdx = labelMinutes.length - 1;
-    // For endIdx boundary, we need to compare against the 'end-of-day' version of labelMinutes
     while (endIdx >= 0 && asEndOfDayMinutes(labelMinutes[endIdx]) > endMin) endIdx--;
 
     if (endIdx < startIdx) {
@@ -111,6 +110,14 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     minBookingMinutes = 60,
 }) => {
     const [activeSegment, setActiveSegment] = useState<"start" | "end">("start");
+    const [prevStart, setPrevStart] = useState(selectedStart);
+
+    if (selectedStart !== prevStart) {
+        setPrevStart(selectedStart);
+        if (!selectedStart) {
+            setActiveSegment("start");
+        }
+    }
 
     const disabledIntervals = useMemo(() => {
         const n = Math.min(disabledStartTimes.length, disabledEndTimes.length);
