@@ -249,10 +249,17 @@ export async function completeCashfreeCheckout(page: Page) {
   if (/payments\/cashfree\/return/i.test(page.url())) return;
 
   if (method.type === "upi") {
-    await page.getByText(/upi/i).first().click({ timeout: 30_000 });
-    const input = page.getByPlaceholder(/upi|vpa/i).or(page.getByLabel(/upi|vpa/i)).first();
+    await page.getByRole("link", { name: /pay by upi id/i }).click({ timeout: 30_000 });
+    await page.waitForURL(/payment-method\/upi/i, { timeout: 30_000 });
+    let input = page.getByRole("textbox", { name: /upi id|phone number/i }).first();
+    if (!(await input.isVisible({ timeout: 5_000 }).catch(() => false))) {
+      input = page.getByPlaceholder(/upi|vpa|phone/i).or(page.getByLabel(/upi|vpa|phone/i)).first();
+    }
+    await expect(input).toBeVisible({ timeout: 30_000 });
     await input.fill(method.vpa);
-    await page.getByRole("button", { name: /pay|verify|continue/i }).first().click();
+    const proceed = page.getByRole("button", { name: /^proceed to pay$/i });
+    await expect(proceed).toBeEnabled({ timeout: 30_000 });
+    await proceed.click();
   } else {
     await page.getByText(/card/i).first().click({ timeout: 30_000 });
     await page.getByLabel(/card number/i).fill(method.number);
