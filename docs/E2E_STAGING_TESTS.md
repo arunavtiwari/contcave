@@ -9,7 +9,6 @@ The staging E2E suite uses Playwright against a deployed staging URL and writes 
 - `E2E_ALLOW_STAGING_WRITES=true`: explicit write guard.
 - `E2E_ALLOWED_DATABASE_NAMES`: comma-separated exact database names that are allowed when the database name does not contain `staging`, `stage`, `test`, `qa`, or `e2e`. The local project is configured with `contcave` because that is the staging database.
 - `E2E_EMAIL_DOMAIN`: deliverable domain for generated QA user emails.
-- `E2E_ENABLE_CASHFREE_OCR=true`: opt in to the real Aadhaar Smart OCR happy-path. Leave unset/false in CI until Smart OCR is enabled on the Cashfree Secure ID account.
 - `E2E_BANK_ACCOUNT_NUMBER`, `E2E_BANK_IFSC`, `E2E_BANK_NAME`, `E2E_BANK_HOLDER`: Cashfree sandbox bank values, for example `026291800001191`, `YESB0000262`, `YES Bank`, and `John Doe`.
 - `E2E_CASHFREE_PAYMENT_METHOD`: JSON payment method, for example `{"type":"upi","vpa":"testsuccess@gocash"}`.
 
@@ -42,6 +41,6 @@ To enable it:
 3. Enable Smart OCR for Aadhaar on the sandbox account first, then production after validation.
 4. Confirm the app uses the Secure ID credentials in `CASHFREE_CLIENT_ID` and `CASHFREE_CLIENT_SECRET`.
 5. Keep `CASHFREE_ENV=SANDBOX` for staging.
-6. Set `E2E_ENABLE_CASHFREE_OCR=true` in GitHub staging secrets only after sandbox OCR is active.
+6. Rerun staging E2E after sandbox OCR is active.
 
 The app does not store raw Aadhaar uploads. It sends the file to Cashfree from the server action and stores only the Cashfree reference id and Aadhaar last four digits when OCR returns a valid Aadhaar result.

@@ -28,7 +28,6 @@ jobs:
       E2E_ALLOW_STAGING_WRITES: "true"
       E2E_ALLOWED_DATABASE_NAMES: contcave
       E2E_EMAIL_DOMAIN: ${{ inputs.email_domain || secrets.E2E_EMAIL_DOMAIN }}
-      E2E_ENABLE_CASHFREE_OCR: ${{ secrets.E2E_ENABLE_CASHFREE_OCR || 'false' }}
       E2E_BANK_ACCOUNT_NUMBER: ${{ secrets.E2E_BANK_ACCOUNT_NUMBER }}
       E2E_BANK_IFSC: ${{ secrets.E2E_BANK_IFSC }}
       E2E_BANK_NAME: ${{ secrets.E2E_BANK_NAME }}
