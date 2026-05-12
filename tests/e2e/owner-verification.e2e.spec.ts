@@ -5,8 +5,15 @@ import { completeOwnerVerification, loginViaUi, registerOwnerViaUi } from "./sup
 
 test.describe.configure({ mode: "serial" });
 
+const cashfreeAadhaarOcrEnabled = process.env.E2E_ENABLE_CASHFREE_OCR === "true";
+
 test.describe("owner verification staging flow", () => {
-  test("registers a fresh owner and completes email, phone, Aadhaar, and bank verification", async ({ page }) => {
+  test("registers a fresh owner and completes email, phone, Aadhaar OCR, and bank verification", async ({ page }) => {
+    test.skip(
+      !cashfreeAadhaarOcrEnabled,
+      "Cashfree Smart OCR must be enabled on the Secure ID account for the Aadhaar OCR happy path."
+    );
+
     const owner = qaAccount("owner", "provider");
 
     await registerOwnerViaUi(page, owner);

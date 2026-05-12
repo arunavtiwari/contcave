@@ -3,7 +3,6 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { VerificationService } from "@/lib/verification/service";
 
-// 1. Email Verification (MSG91)
 export async function verifyEmailAction(email: string) {
     try {
         return await VerificationService.validateEmail(email);
@@ -13,39 +12,25 @@ export async function verifyEmailAction(email: string) {
     }
 }
 
-// 2. Aadhaar OTP Generation (Cashfree)
-export async function generateAadhaarOtpAction(aadhaarNumber: string) {
+export async function verifyAadhaarOcrAction(formData: FormData) {
     try {
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) throw new Error("Unauthorized");
-        const data = await VerificationService.generateAadhaarOtp(currentUser.id, aadhaarNumber);
+
+        const file = formData.get("aadhaarDocument");
+        if (!(file instanceof File)) throw new Error("Aadhaar document is required");
+
+        const data = await VerificationService.verifyAadhaarOcr(currentUser.id, file);
         return { success: true, data };
     } catch (error) {
-        console.error("[generateAadhaarOtpAction] Error:", error);
+        console.error("[verifyAadhaarOcrAction] Error:", error);
         return {
             success: false,
-            error: error instanceof Error ? error.message : "Failed to generate Aadhaar OTP",
+            error: error instanceof Error ? error.message : "Failed to verify Aadhaar document",
         };
     }
 }
 
-// 3. Aadhaar OTP Verification (Cashfree)
-export async function verifyAadhaarOtpAction(refId: string, otp: string) {
-    try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser?.id) throw new Error("Unauthorized");
-        const data = await VerificationService.verifyAadhaarOtp(currentUser.id, refId, otp);
-        return { success: true, data };
-    } catch (error) {
-        console.error("[verifyAadhaarOtpAction] Error:", error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "Failed to verify Aadhaar OTP",
-        };
-    }
-}
-
-// 4. Create Cashfree Vendor
 export async function createVendorAction(payload: Record<string, unknown>) {
     try {
         const currentUser = await getCurrentUser();
@@ -57,12 +42,9 @@ export async function createVendorAction(payload: Record<string, unknown>) {
     }
 }
 
-// 5. Unified Verification Step Update (Prisma)
 export async function updateVerificationStepAction(data: {
-    step: "email" | "phone" | "aadhaar" | "bank";
+    step: "email" | "phone" | "bank";
     phone?: string;
-    aadhaarRefId?: string;
-    aadhaarLast4?: string;
     bankVerifiedName?: string;
     vendorId?: string;
     accountNumber?: string;

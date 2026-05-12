@@ -24,7 +24,6 @@ const rateLimitStore = new Map<string, RateRecord>()
 const PUBLIC_PATH_PREFIXES = [
     '/api/auth',
     '/api/register',
-    '/api/generate_otp',
     '/api/verify_email',
     '/api/payments/cashfree/webhook',
     '/api/whatsapp/webhook',

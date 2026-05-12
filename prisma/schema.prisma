@@ -82,7 +82,7 @@ model User {
   bank_verified_name String?
   phone_verified     Boolean   @default(false)
   email_verified     Boolean   @default(false)
-  verified_via       String[]  @default([]) // ["aadhaar_okyc", "phone_otp"]
+  verified_via       String[]  @default([])
   verified_at        DateTime?
   aadhaar_last4      String?
 }

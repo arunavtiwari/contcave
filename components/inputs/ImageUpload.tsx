@@ -24,6 +24,7 @@ type Props = {
   error?: string;
   icon?: IconType;
   folder?: string;
+  multiple?: boolean;
 };
 
 function ImageUpload({
@@ -51,6 +52,7 @@ function ImageUpload({
   error,
   icon: Icon = TbPhotoPlus,
   folder,
+  multiple = true,
   className,
 }: Props & { className?: string }) {
   const [uploading, setUploading] = useState(false);
@@ -209,7 +211,7 @@ function ImageUpload({
         <input
           id={uid}
           type="file"
-          multiple
+          multiple={multiple}
           onChange={handleUpload}
           className="hidden"
           accept={allowedTypes.join(",")}

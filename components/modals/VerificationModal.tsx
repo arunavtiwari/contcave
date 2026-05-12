@@ -8,11 +8,11 @@ import { toast } from "sonner";
 
 import {
   createVendorAction,
-  generateAadhaarOtpAction,
   updateVerificationStepAction,
-  verifyAadhaarOtpAction,
+  verifyAadhaarOcrAction,
   verifyEmailAction
 } from "@/app/actions/verificationActions";
+import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
@@ -56,7 +56,8 @@ const VerificationModal: React.FC<Props> = ({
   const [userState, setUserState] = useState<SafeUser | null>(currentUser);
   const [step, setStep] = useState(getInitialStep(currentUser));
   const [isPending, startTransition] = useTransition();
-  const [aadhaarRefId, setAadhaarRefId] = useState<string | null>(null);
+  const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
+  const [aadhaarPreview, setAadhaarPreview] = useState<string[]>([]);
 
   const {
     register,
@@ -70,8 +71,6 @@ const VerificationModal: React.FC<Props> = ({
     defaultValues: {
       email: currentUser?.email || "",
       phone: currentUser?.phone || "",
-      aadhaarNumber: currentUser?.aadhaar_last4 ? "********" + currentUser.aadhaar_last4 : "",
-      otp: "",
       accountHolderName: currentUser?.bank_verified_name || "",
       accountNumber: "",
       bankName: "",
@@ -83,19 +82,16 @@ const VerificationModal: React.FC<Props> = ({
 
   const emailValue = watch("email");
   const phoneValue = watch("phone");
-  const aadhaarNumber = watch("aadhaarNumber");
-  const otpValue = watch("otp");
 
   useEffect(() => {
     if (isOpen && currentUser) {
       setUserState(currentUser);
       setStep(getInitialStep(currentUser));
-      setAadhaarRefId(null);
+      setAadhaarFile(null);
+      setAadhaarPreview([]);
       reset({
         email: currentUser.email || "",
         phone: currentUser.phone || "",
-        aadhaarNumber: currentUser.aadhaar_last4 ? "********" + currentUser.aadhaar_last4 : "",
-        otp: "",
         accountHolderName: currentUser.bank_verified_name || "",
         accountNumber: "",
         bankName: "",
@@ -138,52 +134,28 @@ const VerificationModal: React.FC<Props> = ({
     });
   };
 
-  const handleGenerateOtp = async () => {
-    const cleaned = (aadhaarNumber || "").replace(/\s/g, "");
-    if (!/^\d{12}$/.test(cleaned)) {
-      toast.error("Please enter a valid 12-digit Aadhaar number");
+  const handleVerifyAadhaarDocument = async () => {
+    if (!aadhaarFile) {
+      toast.error("Please upload your Aadhaar document");
       return;
     }
 
     startTransition(async () => {
       try {
-        const resp = await generateAadhaarOtpAction(cleaned);
-        if (resp.success) {
-          setAadhaarRefId(resp.data.ref_id);
-          toast.success("OTP sent to your linked mobile number");
-        } else {
-          toast.error(resp.error || "Failed to send OTP");
-        }
-      } catch (_err: unknown) {
-        toast.error("Failed to connect to verification server");
-      }
-    });
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!aadhaarRefId) return;
-    if (!/^\d{6}$/.test(otpValue || "")) {
-      toast.error("Please enter a valid 6-digit OTP");
-      return;
-    }
-
-    startTransition(async () => {
-      try {
-        const verifyResp = await verifyAadhaarOtpAction(aadhaarRefId, otpValue!);
-        if (verifyResp.success) {
-          const updatedUser = await updateVerificationStepAction({
-            step: "aadhaar",
-            aadhaarRefId: aadhaarRefId,
-            aadhaarLast4: aadhaarNumber!.slice(-4),
-          });
-          setUserState(updatedUser as SafeUser);
+        const formData = new FormData();
+        formData.append("aadhaarDocument", aadhaarFile);
+        const resp = await verifyAadhaarOcrAction(formData);
+        if (resp.success && resp.data) {
+          setUserState(resp.data.user as SafeUser);
+          setAadhaarFile(null);
+          setAadhaarPreview([]);
           toast.success("Aadhaar identity confirmed");
           setStep(3);
         } else {
-          toast.error(verifyResp.error || "OTP verification failed");
+          toast.error(resp.error || "Aadhaar verification failed");
         }
       } catch (_err: unknown) {
-        toast.error("Verification server error");
+        toast.error("Failed to connect to verification server");
       }
     });
   };
@@ -237,10 +209,8 @@ const VerificationModal: React.FC<Props> = ({
     } else if (step === 2) {
       if (userState?.aadhaar_verified) {
         setStep(3);
-      } else if (!aadhaarRefId) {
-        handleGenerateOtp();
       } else {
-        handleVerifyOtp();
+        handleVerifyAadhaarDocument();
       }
     } else if (step === 3) {
       handleSubmit(onFinalSubmit)();
@@ -324,51 +294,31 @@ const VerificationModal: React.FC<Props> = ({
                 <p className="text-sm text-success-700 font-medium">Identity confirmed securely.</p>
               </div>
             </div>
-          ) : !aadhaarRefId ? (
-            <div>
-              <Input
-                id="aadhaar"
-                label="Aadhaar Number"
-                type="number"
-                required
-                onNumberChange={(val) => setValue("aadhaarNumber", val.toString().slice(0, 12))}
-                register={register("aadhaarNumber")}
-                errors={errors}
-                disabled={isPending}
-                placeholder="12-digit number"
-              />
-              <p className="mt-2 text-xs text-muted-foreground/60 flex items-center gap-1">
-                <FaShieldAlt /> TLS Encrypted Connection
-              </p>
-            </div>
           ) : (
-            <div>
-              <Input
-                id="otp"
-                label="One Time Password"
-                type="number"
+            <div className="space-y-3">
+              <ImageUpload
+                uid="aadhaar-ocr-upload"
+                label="Aadhaar Document"
+                description="Upload JPG, PNG, or PDF"
                 required
-                onNumberChange={(val) => setValue("otp", val.toString().slice(0, 6))}
-                register={register("otp")}
-                errors={errors}
-                disabled={isPending}
-                className="text-center text-lg tracking-widest font-mono"
-                placeholder="xxxxxx"
+                values={aadhaarPreview}
+                onChange={(values) => setAadhaarPreview(values.slice(-1))}
+                onFilesChange={(files) => setAadhaarFile(files.at(-1) || null)}
+                deferUpload
+                multiple={false}
+                allowedTypes={["image/jpeg", "image/jpg", "image/png", "application/pdf"]}
+                maxSize={5 * 1024 * 1024}
+                uploadLabel="Upload Aadhaar"
+                className="w-full min-h-40 p-6 border border-border"
               />
-              <div className="mt-2 flex justify-between">
-                <span className="text-xs text-muted-foreground">Sent to linked mobile</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAadhaarRefId(null);
-                    setValue("otp", "");
-                  }}
-                  className="text-xs text-foreground font-semibold underline disabled:opacity-50"
-                  disabled={isPending}
-                >
-                  Change Number
-                </button>
-              </div>
+              {aadhaarFile ? (
+                <p className="text-xs font-medium text-foreground">
+                  Selected: {aadhaarFile.name}
+                </p>
+              ) : null}
+              <p className="mt-2 text-xs text-muted-foreground/60 flex items-center gap-1">
+                <FaShieldAlt /> We verify the document securely and store only masked Aadhaar metadata.
+              </p>
             </div>
           )}
         </div>
@@ -484,7 +434,7 @@ const VerificationModal: React.FC<Props> = ({
       testId="verification-modal"
       onCloseAction={onCloseAction}
       title="Verification Center"
-      actionLabel={step === 3 ? "Complete" : step === 4 ? "Close" : "Continue"}
+      actionLabel={step === 3 ? "Complete" : step === 4 ? "Close" : step === 2 && !userState?.aadhaar_verified ? "Verify Document" : "Continue"}
       onSubmitAction={step === 4 ? onCloseAction : handleNextClick}
       disabled={isPending}
       isLoading={isPending}

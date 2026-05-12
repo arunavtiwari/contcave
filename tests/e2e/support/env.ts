@@ -18,8 +18,6 @@ export type E2EEnv = {
   databaseUrl: string;
   runId: string;
   emailDomain: string;
-  aadhaarNumber: string;
-  aadhaarOtp: string;
   bankAccountNumber: string;
   bankIfsc: string;
   bankName: string;
@@ -163,8 +161,6 @@ export function getE2EEnv(): E2EEnv {
 
   cachedEnv = {
     ...connectionEnv,
-    aadhaarNumber: required("E2E_AADHAAR_NUMBER"),
-    aadhaarOtp: required("E2E_AADHAAR_OTP"),
     bankAccountNumber: required("E2E_BANK_ACCOUNT_NUMBER"),
     bankIfsc: required("E2E_BANK_IFSC").toUpperCase(),
     bankName: required("E2E_BANK_NAME"),

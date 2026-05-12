@@ -56,7 +56,6 @@ const PROTECTED_ROUTES = [
 const PUBLIC_API_ROUTES = [
     '/api/auth',
     '/api/register',
-    '/api/generate_otp',
     '/api/verify_email',
     '/api/payments/cashfree/webhook',
 ] as const;

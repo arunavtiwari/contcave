@@ -142,8 +142,6 @@ export async function fillRichText(page: Page, testId: string, value: string) {
 }
 
 export async function completeOwnerVerification(page: Page, account: QAAccount) {
-  const env = getE2EEnv();
-
   await seedCookieConsent(page);
   await page.goto("/dashboard/profile");
   await dismissCookieBanner(page);
@@ -163,13 +161,11 @@ export async function completeOwnerVerification(page: Page, account: QAAccount) 
   await modal.getByTestId("verification-modal-primary-action").click();
   await expect(page.getByTestId("verification-step-2")).toBeVisible();
 
-  await modal.locator("#aadhaar").fill(env.aadhaarNumber);
-  await modal.getByTestId("verification-modal-primary-action").click();
-  await expect(modal.locator("#otp")).toBeVisible({ timeout: 60_000 });
-  await modal.locator("#otp").fill(env.aadhaarOtp);
+  await modal.locator("#aadhaar-ocr-upload").setInputFiles([sampleImage("qa-aadhaar.png")]);
   await modal.getByTestId("verification-modal-primary-action").click();
   await expect(page.getByTestId("verification-step-3")).toBeVisible({ timeout: 60_000 });
 
+  const env = getE2EEnv();
   await modal.locator("#accountHolderName").fill(env.bankHolder);
   await modal.locator("#accountNumber").fill(env.bankAccountNumber);
   await modal.locator("#ifscCode").fill(env.bankIfsc);
