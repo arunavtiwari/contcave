@@ -36,8 +36,8 @@ const steps = [
   { id: 3, title: "Bank Details", description: "Add payment information" },
 ];
 
-const generateVendorId = (): string =>
-  `vendor_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+const digitsOnly = (value: string, maxLength: number) =>
+  value.replace(/\D/g, "").slice(0, maxLength);
 
 const getInitialStep = (user: SafeUser | null): number => {
   if (!user) return 1;
@@ -163,30 +163,27 @@ const VerificationModal: React.FC<Props> = ({
   const onFinalSubmit = async (data: UnifiedVerificationValues) => {
     startTransition(async () => {
       try {
-        const vendorId = generateVendorId();
-        await createVendorAction({
-          vendor_id: vendorId,
+        const accountNumber = digitsOnly(data.accountNumber, 20);
+        const ifscCode = data.ifscCode.trim().toUpperCase();
+
+        const vendor = await createVendorAction({
           display_name: userState?.name || data.accountHolderName,
-          email: userState?.email,
-          phone: String(data.phone),
-          bank: {
-            account_holder: data.accountHolderName,
-            account_number: data.accountNumber,
-            ifsc: data.ifscCode,
-          },
-          kyc_details: {
-            account_type: "BUSINESS",
-            business_type: "B2B",
-            ...(data.gstNumber && { gst: data.gstNumber }),
-          },
+          email: userState?.email || data.email,
+          phone: data.phone,
+          account_holder: data.accountHolderName,
+          account_number: accountNumber,
+          ifsc: ifscCode,
+          gstin: data.gstNumber || undefined,
         });
+        const vendorId = typeof vendor?.vendor_id === "string" ? vendor.vendor_id : "";
+        if (!vendorId) throw new Error("Cashfree vendor creation failed");
 
         const updatedUser = await updateVerificationStepAction({
           step: "bank",
           bankVerifiedName: data.accountHolderName,
           vendorId: vendorId,
-          accountNumber: String(data.accountNumber),
-          ifscCode: data.ifscCode.toUpperCase(),
+          accountNumber,
+          ifscCode,
           bankName: data.bankName,
           gstin: data.gstNumber || undefined,
         });
@@ -357,9 +354,13 @@ const VerificationModal: React.FC<Props> = ({
               <Input
                 id="accountNumber"
                 label="Account Number"
-                type="number"
+                type="text"
+                inputMode="numeric"
+                maxLength={20}
                 required
-                onNumberChange={(val) => setValue("accountNumber", val.toString())}
+                onChange={(event) => {
+                  event.target.value = digitsOnly(event.target.value, 20);
+                }}
                 register={register("accountNumber")}
                 errors={errors}
                 disabled={isPending}
@@ -369,6 +370,10 @@ const VerificationModal: React.FC<Props> = ({
                 id="ifscCode"
                 label="IFSC Code"
                 required
+                maxLength={11}
+                onChange={(event) => {
+                  event.target.value = event.target.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 11);
+                }}
                 register={register("ifscCode")}
                 errors={errors}
                 disabled={isPending}

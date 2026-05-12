@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { getFixieProxyAgent } from "@/lib/fixie-proxy";
 
 type CFEnv = "SANDBOX" | "PRODUCTION";
+const CASHFREE_VENDOR_TIMEOUT_MS = 30_000;
 
 export function cfEnv(): CFEnv {
     const v = (process.env.CASHFREE_ENV || "SANDBOX").toUpperCase();
@@ -48,6 +49,30 @@ export function cfHeaders(): Record<string, string> {
         "x-api-version": version,
         "Content-Type": "application/json",
     };
+}
+
+function sanitizeVendorName(value: string, fallback: string) {
+    const cleaned = value
+        .trim()
+        .replace(/[^a-zA-Z0-9 ./&-]/g, " ")
+        .replace(/\s+/g, " ")
+        .slice(0, 100)
+        .trim();
+    return cleaned || fallback;
+}
+
+function vendorTimeoutController() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CASHFREE_VENDOR_TIMEOUT_MS);
+    return { controller, timeoutId };
+}
+
+function isAbortOrTimeout(error: unknown) {
+    return (
+        error instanceof Error && error.name === "AbortError"
+    ) || (
+        axios.isAxiosError(error) && (error.code === "ECONNABORTED" || error.code === "ERR_CANCELED")
+    );
 }
 
 
@@ -168,6 +193,16 @@ export async function cfEnsureVendor(payload: {
 }) {
     const url = `${cfSplitBaseURL()}/vendors`;
     const httpsAgent = getFixieProxyAgent();
+    const accountNumber = payload.account_number.replace(/\D/g, "");
+    const ifsc = payload.ifsc.trim().toUpperCase();
+    const email = payload.email?.trim().toLowerCase();
+    const phone = payload.phone?.replace(/\D/g, "").slice(-10);
+
+    if (!payload.vendor_id.trim()) throw new Error("Vendor ID is required");
+    if (!email) throw new Error("Vendor email is required");
+    if (!phone || phone.length !== 10) throw new Error("Vendor phone number must be a valid 10-digit number");
+    if (!/^\d{9,20}$/.test(accountNumber)) throw new Error("Vendor account number must be between 9 and 20 digits");
+    if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)) throw new Error("Vendor IFSC code is invalid");
 
     const kycDetails: Record<string, string> = {
         account_type: "BUSINESS",
@@ -177,23 +212,29 @@ export async function cfEnsureVendor(payload: {
         kycDetails.gst = payload.gstin.trim().toUpperCase();
     }
 
+    const { controller, timeoutId } = vendorTimeoutController();
+
     try {
         const res = await axios.post(url, {
-            vendor_id: payload.vendor_id,
-            display_name: payload.display_name,
-            email: payload.email,
-            phone: payload.phone,
-            settlements: { schedule_option: "ONDEMAND" },
+            vendor_id: payload.vendor_id.trim(),
+            name: sanitizeVendorName(payload.display_name, "Vendor"),
+            status: "ACTIVE",
+            email,
+            phone,
+            schedule_option: 1,
             bank: {
-                account_holder: payload.account_holder,
-                account_number: payload.account_number,
-                ifsc: payload.ifsc,
+                account_holder: sanitizeVendorName(payload.account_holder, "Account Holder"),
+                account_number: accountNumber,
+                ifsc,
             },
+            verify_account: true,
+            dashboard_access: false,
             kyc_details: kycDetails,
         }, {
             headers: cfHeaders(),
             httpsAgent,
-            timeout: 30000
+            signal: controller.signal,
+            timeout: CASHFREE_VENDOR_TIMEOUT_MS
         });
 
         const j = res.data;
@@ -202,6 +243,10 @@ export async function cfEnsureVendor(payload: {
         }
         return j.vendor_id as string;
     } catch (error: unknown) {
+        if (isAbortOrTimeout(error)) {
+            throw new Error("Cashfree vendor creation timed out. Please try again.");
+        }
+
         let errorMessage = "Failed to ensure vendor";
         if (axios.isAxiosError(error)) {
             const status = error.response?.status;
@@ -214,6 +259,8 @@ export async function cfEnsureVendor(payload: {
             errorMessage = error.message;
         }
         throw new Error(errorMessage);
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
 

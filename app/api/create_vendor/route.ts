@@ -1,10 +1,8 @@
-import axios from "axios";
 import { NextRequest } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
-import { cfSplitBaseURL } from "@/lib/cashfree/cashfree";
-import { getFixieProxyAgent } from "@/lib/fixie-proxy";
+import { VerificationService } from "@/lib/verification/service";
 
 
 export async function POST(req: NextRequest) {
@@ -64,83 +62,18 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("Invalid IFSC code format. Must be 11 characters (e.g., ABCD0123456)", 400);
     }
 
-    const appId = process.env.CASHFREE_APP_ID;
-    const secret = process.env.CASHFREE_SECRET_KEY;
+    const data = await VerificationService.createVendor(currentUser.id, {
+      vendor_id: vendor_id.trim(),
+      display_name: display_name.trim(),
+      email: body.email,
+      phone: body.phone,
+      account_holder: account_holder.trim(),
+      account_number: cleanedAccountNumber,
+      ifsc: upperIfsc,
+      gstin: body.gstin,
+    });
 
-    if (!appId || !secret || typeof appId !== "string" || typeof secret !== "string") {
-      return createErrorResponse("Server configuration error", 500);
-    }
-
-    const url = `${cfSplitBaseURL()}/vendors`;
-    const httpsAgent = getFixieProxyAgent();
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-    try {
-      const resp = await axios.post(
-        url,
-        {
-          vendor_id: vendor_id.trim(),
-          name: display_name.trim(),
-          status: 'ACTIVE',
-          email: body.email,
-          phone: body.phone,
-          bank: {
-            account_holder: String(account_holder.trim()),
-            account_number: String(cleanedAccountNumber),
-            ifsc: upperIfsc
-          },
-          verify_account: true,
-          dashboard_access: false,
-          kyc_details: body.kyc_details
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-client-id": appId,
-            "x-client-secret": secret,
-            "x-api-version": "2023-08-01",
-          },
-          httpsAgent,
-          signal: controller.signal,
-          timeout: 30000,
-        }
-      );
-
-      clearTimeout(timeoutId);
-      return createSuccessResponse(resp.data, resp.status);
-    } catch (fetchError) {
-      clearTimeout(timeoutId);
-      if (axios.isAxiosError(fetchError)) {
-        const status = fetchError.response?.status || 500;
-        const errorData = fetchError.response?.data || fetchError.message;
-
-        if (status === 401 || status === 403) {
-          console.error(`[Cashfree Vendor] Auth Error (${status}):`, JSON.stringify(errorData));
-          return createErrorResponse(
-            `Cashfree authentication failed (IP/Creds). Upstream: ${JSON.stringify(errorData)}`,
-            500
-          );
-        }
-
-        if (status === 409) {
-
-          return createErrorResponse(
-            typeof errorData === "object" ? (errorData as { message?: string }).message || "Vendor already exists" : String(errorData),
-            409
-          );
-        }
-
-        return createErrorResponse(
-          typeof errorData === "object" ? JSON.stringify(errorData) : String(errorData),
-          status
-        );
-      }
-      if (fetchError instanceof Error && fetchError.name === "AbortError") {
-        return createErrorResponse("Request timeout", 408);
-      }
-      throw fetchError;
-    }
+    return createSuccessResponse(data);
   } catch (err: unknown) {
     return handleRouteError(err, "POST /api/create_vendor");
   }

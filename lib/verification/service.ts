@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { cfSplitBaseURL, cfVerificationBaseURL } from "@/lib/cashfree/cashfree";
+import { cfEnsureVendor, cfVerificationBaseURL } from "@/lib/cashfree/cashfree";
 import { sendEmail } from "@/lib/email/mailer";
 import { getHostOnboardingTemplate } from "@/lib/email/templates";
 import { getFixieProxyAgent } from "@/lib/fixie-proxy";
@@ -15,6 +15,7 @@ const AADHAAR_OCR_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 const AADHAAR_OCR_PDF_MAX_BYTES = 1024 * 1024;
 const AADHAAR_OCR_ALLOWED_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "application/pdf"]);
 const CASHFREE_SMART_OCR_API_VERSION = "2024-12-01";
+const IFSC_PATTERN = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
 type SmartOcrResponse = {
     verification_id?: string;
@@ -101,6 +102,42 @@ function cashfreeOcrError(error: unknown) {
     return new Error(data?.message || "Aadhaar OCR verification failed");
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+    return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function trimmedString(value: unknown) {
+    return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeVendorPayload(userId: string, payload: Record<string, unknown>, user: {
+    name: string | null;
+    email: string | null;
+    phone: string | null;
+}) {
+    const bank = asRecord(payload.bank);
+    const accountHolder = trimmedString(bank.account_holder) || trimmedString(payload.account_holder);
+    const accountNumber = (trimmedString(bank.account_number) || trimmedString(payload.account_number)).replace(/\D/g, "");
+    const ifsc = (trimmedString(bank.ifsc) || trimmedString(payload.ifsc)).toUpperCase();
+    const gstin = trimmedString(payload.gstin) || trimmedString(asRecord(payload.kyc_details).gst);
+    const phone = normalizePhone(trimmedString(payload.phone) || user.phone || "");
+
+    if (!accountHolder) throw new Error("Account holder name is required");
+    if (!/^\d{9,20}$/.test(accountNumber)) throw new Error("Account number must be between 9 and 20 digits");
+    if (!IFSC_PATTERN.test(ifsc)) throw new Error("Invalid IFSC code");
+
+    return {
+        vendor_id: trimmedString(payload.vendor_id) || `v_${userId}`.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50),
+        display_name: trimmedString(payload.display_name) || trimmedString(payload.name) || user.name || accountHolder,
+        email: trimmedString(payload.email) || user.email || undefined,
+        phone: phone || undefined,
+        account_holder: accountHolder,
+        account_number: accountNumber,
+        ifsc,
+        gstin: gstin || undefined,
+    };
+}
+
 export class VerificationService {
     static async validateEmail(email: string) {
         const validation = emailVerificationSchema.safeParse({ email });
@@ -177,31 +214,16 @@ export class VerificationService {
     }
 
     static async createVendor(userId: string, payload: Record<string, unknown>) {
-        const appId = process.env.CASHFREE_APP_ID;
-        const secret = process.env.CASHFREE_SECRET_KEY;
-        if (!appId || !secret) throw new Error("Server configuration error (Cashfree Split)");
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true, email: true, phone: true },
+        });
+        if (!user) throw new Error("User not found");
 
-        const url = `${cfSplitBaseURL()}/vendors`;
-        const resp = await axios.post(
-            url,
-            {
-                ...payload,
-                status: "ACTIVE",
-                verify_account: true,
-                dashboard_access: false,
-            },
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-client-id": appId,
-                    "x-client-secret": secret,
-                    "x-api-version": "2023-08-01",
-                },
-                httpsAgent,
-                timeout: 30000,
-            }
-        );
-        return resp.data;
+        const normalized = normalizeVendorPayload(userId, payload, user);
+        const vendorId = await cfEnsureVendor(normalized);
+
+        return { vendor_id: vendorId };
     }
 
     private static async markAadhaarVerified(userId: string, referenceId: string, last4: string | null) {

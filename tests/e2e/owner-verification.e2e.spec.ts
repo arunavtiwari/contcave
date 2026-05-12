@@ -7,6 +7,8 @@ test.describe.configure({ mode: "serial" });
 
 test.describe("owner verification staging flow", () => {
   test("registers a fresh owner and completes email, phone, Aadhaar OCR, and bank verification", async ({ page }) => {
+    test.setTimeout(240_000);
+
     const owner = qaAccount("owner", "provider");
 
     await registerOwnerViaUi(page, owner);

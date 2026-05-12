@@ -23,11 +23,11 @@ export type BankSchema = z.infer<typeof bankSchema>;
 export const unifiedVerificationSchema = z.object({
   email: z.string().email("Invalid email"),
   phone: z.string().regex(/^\d{10}$/, "Enter a valid 10-digit mobile number"),
-  accountHolderName: z.string().min(1, "Account holder name is required"),
-  accountNumber: z.string().min(1, "Account number is required"),
-  bankName: z.string().min(1, "Bank name is required"),
-  ifscCode: z.string().min(1, "IFSC code is required"),
-  gstNumber: z.string().optional(),
+  accountHolderName: z.string().trim().min(2, "Account holder name is required").max(100, "Account holder name is too long"),
+  accountNumber: z.string().trim().regex(/^\d{9,20}$/, "Account number must be 9 to 20 digits"),
+  bankName: z.string().trim().min(2, "Bank name is required").max(100, "Bank name is too long"),
+  ifscCode: z.string().trim().toUpperCase().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC Code format"),
+  gstNumber: z.string().trim().toUpperCase().refine((val: string) => val === "" || /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(val), "Invalid GSTIN format").optional(),
 });
 
 export type UnifiedVerificationValues = z.infer<typeof unifiedVerificationSchema>;
