@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import React from "react";
 
 import Sidebar from "@/components/Sidebar";
@@ -13,7 +13,6 @@ export default function DashboardSidebarWrapper({
     isOwner: boolean;
 }) {
     const pathname = usePathname();
-    const params = useParams();
 
     let showSidebar = false;
     let menuType: "profile" | "main" = "profile";

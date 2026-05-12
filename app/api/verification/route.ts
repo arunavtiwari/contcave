@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { cfVerificationBaseURL } from "@/lib/cashfree/cashfree";
 import { getFixieProxyAgent, handleProxyError } from "@/lib/fixie-proxy";
 import { otpSchema } from "@/schemas/verification";
 
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
 
         try {
             const resp = await axios.post(
-                "https://api.cashfree.com/verification/offline-aadhaar/verify",
+                `${cfVerificationBaseURL()}/offline-aadhaar/verify`,
                 {
                     ref_id: refId.trim(),
                     otp: otp.trim(),

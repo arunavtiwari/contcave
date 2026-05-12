@@ -343,7 +343,10 @@ export default function RichTextEditor({
                   "min-h-40 p-4 outline-none text-sm font-normal relative z-10",
                   disabled && "pointer-events-none opacity-60",
                   !hasInitialized && "opacity-0"
-                )} />
+                )}
+                  aria-label={label || placeholder}
+                  data-testid={id}
+                />
               }
               placeholder={
                 (!hasInitialized && value) ? null : (

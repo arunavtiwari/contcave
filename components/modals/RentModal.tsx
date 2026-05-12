@@ -62,6 +62,22 @@ enum STEPS {
   TERMS,
 }
 
+const STEP_TEST_IDS: Record<STEPS, string> = {
+  [STEPS.CATEGORY]: "category",
+  [STEPS.LOCATION]: "location",
+  [STEPS.IMAGES]: "images",
+  [STEPS.VIDEO]: "video",
+  [STEPS.DESCRIPTION]: "description",
+  [STEPS.AMENITIES]: "amenities",
+  [STEPS.ADDONS]: "addons",
+  [STEPS.OTHERDETAILS]: "other-details",
+  [STEPS.CUSTOMTERMS]: "custom-terms",
+  [STEPS.SETS]: "sets",
+  [STEPS.PACKAGES]: "packages",
+  [STEPS.VERIFICATION]: "verification",
+  [STEPS.TERMS]: "terms",
+};
+
 const getActiveSteps = (hasSets: boolean) =>
   hasSets
     ? [
@@ -1011,6 +1027,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       <Modal
         disabled={isLoading}
         isOpen={uiStore.modals.rent}
+        testId="rent-modal"
         disableOverlayClose={true}
         title={currentStepDefinition.modalTitle}
         actionLabel={actionLabel}
@@ -1044,7 +1061,9 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
                 />
               </div>
             </div>
-            {bodyContent}
+            <div data-testid={`rent-modal-step-${STEP_TEST_IDS[step]}`}>
+              {bodyContent}
+            </div>
           </>
         }
 
@@ -1071,6 +1090,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
 
       <Modal
         isOpen={showSuccessModal}
+        testId="rent-modal-success"
         onCloseAction={() => { setShowSuccessModal(false); }}
         onSubmitAction={() => { setShowSuccessModal(false); }}
         title="Listing Submitted 🎉"

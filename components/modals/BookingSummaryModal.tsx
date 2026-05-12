@@ -192,6 +192,7 @@ export default function BookingSummaryModal({
   return (
     <Modal
       isOpen={isOpen}
+      testId="booking-summary-modal"
       onCloseAction={onCloseAction}
       onSubmitAction={handleConfirm}
       title="Booking Summary"

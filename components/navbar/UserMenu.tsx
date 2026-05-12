@@ -109,6 +109,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
         <Button
           ref={triggerRef}
           onClick={toggleOpen}
+          aria-label="Open user menu"
           variant="ghost"
           size="md"
           outline

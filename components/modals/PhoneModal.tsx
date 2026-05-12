@@ -56,6 +56,7 @@ export default function PhoneModal({
     return (
         <Modal
             isOpen={isOpen}
+            testId="phone-modal"
             onCloseAction={onCloseAction}
             onSubmitAction={onSubmitAction}
             title="Add your mobile number"

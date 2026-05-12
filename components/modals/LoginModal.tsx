@@ -71,6 +71,7 @@ function LoginModal() {
     <Modal
       disabled={isLoading}
       isOpen={uiStore.modals.login}
+      testId="login-modal"
       title="Login"
       actionLabel="Continue"
       onCloseAction={() => uiStore.onClose("login")}

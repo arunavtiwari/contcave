@@ -5,9 +5,9 @@ import FormField from "@/components/inputs/FormField";
 import Input from "@/components/inputs/Input";
 import Switch from "@/components/inputs/Switch";
 import Select, { SelectOption } from "@/components/ui/Select";
-import { cn } from "@/lib/utils";
 import { spaceTypes } from "@/constants/spaceTypes";
 import { TIME_SLOTS } from "@/constants/timeSlots";
+import { cn } from "@/lib/utils";
 
 export type ListingDetails = {
     carpetArea: number;

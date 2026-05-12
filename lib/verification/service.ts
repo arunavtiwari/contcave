@@ -1,7 +1,7 @@
 
 import axios from "axios";
 
-import { cfSplitBaseURL } from "@/lib/cashfree/cashfree";
+import { cfSplitBaseURL, cfVerificationBaseURL } from "@/lib/cashfree/cashfree";
 import { sendEmail } from "@/lib/email/mailer";
 import { getHostOnboardingTemplate } from "@/lib/email/templates";
 import { getFixieProxyAgent } from "@/lib/fixie-proxy";
@@ -120,7 +120,7 @@ export class VerificationService {
         if (!clientId || !clientSecret) throw new Error("Server configuration error (Cashfree)");
 
         const resp = await axios.post(
-            "https://api.cashfree.com/verification/offline-aadhaar/otp",
+            `${cfVerificationBaseURL()}/offline-aadhaar/otp`,
             { aadhaar_number: aadhaarNumber.replace(/\D/g, "") },
             {
                 headers: { "Content-Type": "application/json", "x-client-id": clientId, "x-client-secret": clientSecret },
@@ -143,7 +143,7 @@ export class VerificationService {
         if (!clientId || !clientSecret) throw new Error("Server configuration error (Cashfree)");
 
         const resp = await axios.post(
-            "https://api.cashfree.com/verification/offline-aadhaar/verify",
+            `${cfVerificationBaseURL()}/offline-aadhaar/verify`,
             { ref_id: refId.trim(), otp: otp.trim() },
             {
                 headers: { "Content-Type": "application/json", "x-client-id": clientId, "x-client-secret": clientSecret },

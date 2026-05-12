@@ -481,6 +481,7 @@ const VerificationModal: React.FC<Props> = ({
   return (
     <Modal
       isOpen={isOpen}
+      testId="verification-modal"
       onCloseAction={onCloseAction}
       title="Verification Center"
       actionLabel={step === 3 ? "Complete" : step === 4 ? "Close" : "Continue"}
@@ -490,7 +491,9 @@ const VerificationModal: React.FC<Props> = ({
       body={
         <div className="pt-2">
           {renderStepProgress()}
-          {renderStep()}
+          <div data-testid={`verification-step-${step}`}>
+            {renderStep()}
+          </div>
         </div>
       }
     />

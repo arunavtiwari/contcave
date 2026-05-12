@@ -91,6 +91,7 @@ function RegisterModal() {
     <Modal
       disabled={isLoading}
       isOpen={uiStore.modals.register}
+      testId="register-modal"
       title="Register"
       actionLabel="Continue"
       onCloseAction={() => uiStore.onClose("register")}

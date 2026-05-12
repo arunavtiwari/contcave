@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useOptimistic } from "react";
 import { useRouter } from "next/navigation";
+import React, { useCallback, useMemo, useOptimistic } from "react";
 import { toast } from "sonner";
 
 import { toggleFavoriteAction } from "@/app/actions/favoriteActions";

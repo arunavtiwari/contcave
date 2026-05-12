@@ -25,6 +25,7 @@ type Props = {
   disableOverlayClose?: boolean;
   primaryActionVariant?: "default" | "outline" | "success" | "destructive" | "ghost" | "secondary";
   actionDisabled?: boolean;
+  testId?: string;
 };
 
 function Modal({
@@ -47,6 +48,7 @@ function Modal({
   disableOverlayClose,
   primaryActionVariant = "default",
   actionDisabled,
+  testId,
 }: Props & { bodyRef?: React.RefObject<HTMLDivElement | null>; customHeight?: string }) {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -103,6 +105,7 @@ function Modal({
   return (
     <div
       onClick={handleBackdropClick}
+      data-testid={testId}
       className={`fixed inset-0 z-999 flex items-center justify-center backdrop-blur-sm px-4 transition-all duration-500 ${nestedModal ? "bg-foreground/20" : "bg-foreground/60"
         } ${isOpen ? "opacity-100" : "opacity-0"} ${nestedModal ? "" : isLoading ? "backdrop-blur-md" : "backdrop-blur-[2px]"
         }`}
@@ -155,6 +158,7 @@ function Modal({
                   label={secondaryActionLabel}
                   onClick={handleSecondAction}
                   rounded
+                  data-testid={testId ? `${testId}-secondary-action` : undefined}
                 />
               )}
 
@@ -165,6 +169,7 @@ function Modal({
                 loading={isLoading}
                 variant={primaryActionVariant}
                 rounded
+                data-testid={testId ? `${testId}-primary-action` : undefined}
               />
             </div>
           )}

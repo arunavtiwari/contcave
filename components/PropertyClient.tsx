@@ -10,7 +10,6 @@ import { deleteListingAction } from "@/app/actions/listingActions";
 import DeletePropertyModal from "@/components/modals/DeletePropertyModal";
 import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
 import { SelectOption } from "@/components/ui/Select";
-import { MAIN_SIDEBAR_ITEMS } from "@/constants/navigation";
 import { usePropertyEdit } from "@/hooks/usePropertyEdit";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";

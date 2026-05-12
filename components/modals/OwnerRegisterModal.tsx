@@ -81,6 +81,7 @@ function OwnerRegisterModal() {
         <Modal
             disabled={isLoading}
             isOpen={uiStore.modals.ownerRegister}
+            testId="owner-register-modal"
             title="Register as Owner"
             actionLabel="Register"
             onCloseAction={() => uiStore.onClose("ownerRegister")}

@@ -16,6 +16,12 @@ export function cfBaseURL() {
         : "https://sandbox.cashfree.com/pg";
 }
 
+export function cfVerificationBaseURL() {
+    return cfEnv() === "PRODUCTION"
+        ? "https://api.cashfree.com/verification"
+        : "https://sandbox.cashfree.com/verification";
+}
+
 export function cfSplitBaseURL() {
     return cfBaseURL() + "/easy-split";
 }

@@ -10,6 +10,9 @@
 		"lint:fix": "eslint . --fix",
 		"type-check": "tsc --noEmit",
 		"check": "npm run type-check && npm run lint",
+		"test:e2e": "playwright test",
+		"test:e2e:headed": "playwright test --headed",
+		"test:e2e:staging": "playwright test --project=staging-chromium",
 		"postinstall": "npx prisma generate"
 	},
 	"dependencies": {
@@ -76,6 +79,7 @@
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.3",
+		"@playwright/test": "^1.59.1",
 		"@tailwindcss/forms": "^0.5.11",
 		"@tailwindcss/postcss": "^4.1.18",
 		"@tailwindcss/typography": "^0.5.19",
