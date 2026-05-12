@@ -19,12 +19,14 @@ concurrency:
 jobs:
   staging-e2e:
     runs-on: ubuntu-latest
+    environment: staging
     timeout-minutes: 60
 
     env:
       E2E_BASE_URL: ${{ inputs.base_url || secrets.E2E_BASE_URL }}
       E2E_DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
       E2E_ALLOW_STAGING_WRITES: "true"
+      E2E_ALLOWED_DATABASE_NAMES: contcave
       E2E_EMAIL_DOMAIN: ${{ inputs.email_domain || secrets.E2E_EMAIL_DOMAIN }}
       E2E_AADHAAR_NUMBER: ${{ secrets.E2E_AADHAAR_NUMBER }}
       E2E_AADHAAR_OTP: ${{ secrets.E2E_AADHAAR_OTP }}
