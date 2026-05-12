@@ -63,7 +63,8 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
     const txn = await TransactionService.findByOrderId(orderId);
     if (!txn) return { statusCode: 200 };
 
-    if (txn.status !== status || txn.cfPaymentId !== cfPaymentId) {
+    if (status === "SUCCESS" && txn.userId && txn.listingId) {
+      const result = await ReservationService.createFromTransaction(txn.id);
       await TransactionService.updateStatus({
         txnId: txn.id,
         status,
@@ -71,13 +72,17 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
         webhookPayload: body,
         signature: headers.signature
       });
-    }
-
-    if (status === "SUCCESS" && txn.userId && txn.listingId) {
-      const result = await ReservationService.createFromTransaction(txn.id);
       if (result) {
         console.warn("[Webhook] Reservation processed via Service", { txnId: txn.id, reservationId: result.reservationId });
       }
+    } else if (txn.status !== status || txn.cfPaymentId !== cfPaymentId) {
+      await TransactionService.updateStatus({
+        txnId: txn.id,
+        status,
+        cfPaymentId,
+        webhookPayload: body,
+        signature: headers.signature
+      });
     }
 
     if (status === "FAILED" && txn.id) {

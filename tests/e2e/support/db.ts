@@ -94,7 +94,35 @@ export async function waitForReservation(params: {
     await new Promise((resolve) => setTimeout(resolve, 2_000));
   }
 
-  throw new Error(`Timed out waiting for reservation for listing ${params.listingId}`);
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      userId: params.userId,
+      listingId: params.listingId,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+    select: {
+      id: true,
+      status: true,
+      amount: true,
+      cfOrderId: true,
+      cfTxnRef: true,
+      reservationId: true,
+      bookingId: true,
+      description: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+  transactions.forEach((txn) => trackCreated("transaction", txn.id));
+
+  throw new Error(
+    `Timed out waiting for reservation for listing ${params.listingId}. Latest transactions: ${JSON.stringify(
+      transactions,
+      null,
+      2
+    )}`
+  );
 }
 
 export async function createUserFixture(params: {

@@ -31,6 +31,6 @@ export interface ReservationMetadata {
     startTime: string;
     endTime: string;
     setIds: string[];
-    selectedAddons?: string;
-    pricingSnapshot?: string;
+    selectedAddons?: Prisma.JsonValue | string;
+    pricingSnapshot?: Prisma.JsonValue | string;
 }

@@ -17,7 +17,12 @@ export default async function getReservation(params: IParams) {
     const reservation = await prisma.reservation.findFirst({
       where: {
         Transaction: {
-          some: { cfOrderId: tid },
+          some: {
+            OR: [
+              { cfOrderId: tid },
+              { cfTxnRef: tid },
+            ],
+          },
         },
         markedForDeletion: false,
       },

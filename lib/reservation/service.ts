@@ -23,13 +23,24 @@ type FullReservationPayload = Prisma.ReservationGetPayload<{
     };
 }>;
 
+function parseMetadataJson(value: unknown): Prisma.InputJsonValue | null {
+    if (value == null) return null;
+    if (typeof value !== "string") return value as Prisma.InputJsonValue;
+
+    try {
+        return JSON.parse(value) as Prisma.InputJsonValue;
+    } catch {
+        return null;
+    }
+}
+
 export class ReservationService {
     /**
      * Create a reservation from a successful Cashfree transaction.
      * Handles conflict resolution, atomicity, GST mapping, and initial notifications.
      */
     static async createFromTransaction(txnId: string): Promise<ReservationResult | null> {
-        return await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx) => {
             const txn = await tx.transaction.findUnique({
                 where: { id: txnId },
                 include: {
@@ -53,7 +64,10 @@ export class ReservationService {
 
             const md = (txn.metadata || {}) as unknown as ReservationMetadata;
             const startDate = md.startDate ? new Date(`${md.startDate}T00:00:00`) : new Date();
-            const { startTime, endTime, setIds = [] } = md;
+            const { startTime, endTime } = md;
+            const setIds = Array.isArray(md.setIds) ? md.setIds : [];
+            const selectedAddons = parseMetadataJson(md.selectedAddons);
+            const pricingSnapshot = parseMetadataJson(md.pricingSnapshot);
 
             // 1. Conflict Check & Auto-Refund
             const conflict = await checkSetConflicts({
@@ -88,8 +102,8 @@ export class ReservationService {
                     totalPrice: txn.amount,
                     totalPriceInt: Math.round(txn.amount),
                     setIds,
-                    selectedAddons: md.selectedAddons ? JSON.parse(md.selectedAddons) : null,
-                    pricingSnapshot: md.pricingSnapshot ? JSON.parse(md.pricingSnapshot) : null,
+                    selectedAddons,
+                    pricingSnapshot,
                     isApproved: txn.listing.instantBooking ? 1 : 0, // 1=Approved, 0=Pending
                 }
             });
@@ -104,25 +118,49 @@ export class ReservationService {
                 }
             });
 
-            // 5. Invoicing & Notifications (Background-safe)
-            const invoiceRes = await ensureInvoiceWithAttachment({
-                userId: txn.userId,
-                reservationId: reservation.id,
-                transactionId: txn.id
-            });
-            const fullResv = await tx.reservation.findUnique({
-                where: { id: reservation.id },
-                include: { user: true, listing: { include: { user: true } }, Transaction: true }
-            }) as FullReservationPayload;
-
-            this.triggerInitialNotifications(fullResv as FullReservationPayload, invoiceRes.attachment);
-
             return {
                 reservationId: reservation.id,
                 bookingId,
                 isInstant: !!txn.listing.instantBooking
             };
         });
+
+        if (result?.reservationId) {
+            void this.runPostReservationSideEffects(result.reservationId, txnId);
+        }
+
+        return result;
+    }
+
+    private static async runPostReservationSideEffects(reservationId: string, txnId: string) {
+        try {
+            const fullResv = await prisma.reservation.findUnique({
+                where: { id: reservationId },
+                include: {
+                    user: true,
+                    listing: { include: { user: true } },
+                    Transaction: { orderBy: { createdAt: "desc" } },
+                }
+            }) as FullReservationPayload | null;
+
+            if (!fullResv) return;
+
+            let invoiceAttachment: { filename: string; content: string } | undefined;
+            try {
+                const invoiceRes = await ensureInvoiceWithAttachment({
+                    userId: fullResv.userId,
+                    reservationId,
+                    transactionId: txnId
+                });
+                invoiceAttachment = invoiceRes.attachment;
+            } catch (error) {
+                console.error("[ReservationService] Invoice generation failed:", error);
+            }
+
+            await this.triggerInitialNotifications(fullResv, invoiceAttachment);
+        } catch (error) {
+            console.error("[ReservationService] Post-reservation side effects failed:", error);
+        }
     }
 
     private static async triggerInitialNotifications(resv: FullReservationPayload, invoiceAttachment: { filename: string; content: string } | undefined) {
@@ -294,6 +332,14 @@ export class ReservationService {
             const order = await cfFetchOrder(txn.cfOrderId);
             if (order?.order_status) {
                 const newStatus = cfMapStatus(order.order_status);
+                if (newStatus === "SUCCESS") {
+                    await this.createFromTransaction(txn.id);
+                    return await prisma.transaction.findUnique({
+                        where: { id: txn.id },
+                        include: { reservation: { include: { listing: true } }, listing: true, user: true }
+                    });
+                }
+
                 if (newStatus !== "PENDING") {
                     const updatedTxn = await prisma.transaction.update({
                         where: { id: txn.id },
@@ -301,9 +347,7 @@ export class ReservationService {
                         include: { reservation: { include: { listing: true } }, listing: true, user: true }
                     });
 
-                    if (newStatus === "SUCCESS") {
-                        await this.createFromTransaction(txn.id);
-                    } else if (newStatus === "FAILED") {
+                    if (newStatus === "FAILED") {
                         await this.handleFailedPayment(txn.id);
                     }
                     return updatedTxn;

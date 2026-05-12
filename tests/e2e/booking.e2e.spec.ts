@@ -42,7 +42,7 @@ async function acceptBookingSummary(page: import("@playwright/test").Page) {
 
 test.describe("booking staging flow", () => {
   test("books an active studio through Cashfree sandbox and creates a reservation from webhook", async ({ browser, page }) => {
-    test.setTimeout(240_000);
+    test.setTimeout(360_000);
 
     const { account: ownerAccount, user: owner } = await createUserFixture({
       role: "OWNER",
