@@ -70,7 +70,7 @@ function assertSmartOcrAccepted(response: SmartOcrResponse) {
     const documentType = String(response.document_type || "").toUpperCase();
     const fraudChecks = response.fraud_checks || {};
 
-    if (documentType && documentType !== "AADHAAR") {
+    if (documentType && documentType !== "AADHAAR" && !documentType.startsWith("AADHAAR_")) {
         throw new Error("Uploaded document is not an Aadhaar document");
     }
 
