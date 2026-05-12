@@ -20,9 +20,17 @@ function formatYmd(date: Date) {
 }
 
 async function selectFirstBookableSlot(page: import("@playwright/test").Page) {
-  await page.locator(".rdrDay:not(.rdrDayDisabled):not(.rdrDayPassive)").nth(1).click();
-  await page.getByRole("button", { name: /^9:00 AM$/i }).click();
+  const targetDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const targetDay = String(targetDate.getDate());
+  const day = page
+    .locator(".rdrDay:not(.rdrDayPassive)")
+    .filter({ has: page.getByText(targetDay, { exact: true }) })
+    .first();
+
+  await day.click();
+  await expect(page.getByRole("button", { name: /^11:00 AM$/i })).toBeEnabled();
   await page.getByRole("button", { name: /^11:00 AM$/i }).click();
+  await page.getByRole("button", { name: /^1:00 PM$/i }).click();
 }
 
 async function acceptBookingSummary(page: import("@playwright/test").Page) {

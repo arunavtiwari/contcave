@@ -4,10 +4,25 @@ import { QAAccount } from "./db";
 import { getE2EEnv } from "./env";
 import { sampleImage, samplePdf, sampleSignature } from "./files";
 
+async function seedCookieConsent(page: Page) {
+  const consent = { necessary: true, analytics: true, marketing: true };
+  await page.context().addCookies([
+    {
+      name: "CC_CONSENT",
+      value: encodeURIComponent(JSON.stringify(consent)),
+      url: getE2EEnv().baseUrl,
+    },
+  ]);
+  await page.addInitScript((state) => {
+    window.localStorage.setItem("CC_CONSENT", JSON.stringify(state));
+  }, consent);
+}
+
 async function dismissCookieBanner(page: Page) {
   const acceptAll = page.getByRole("button", { name: /accept all/i });
-  if (await acceptAll.isVisible({ timeout: 1_000 }).catch(() => false)) {
-    await acceptAll.click();
+  if (await acceptAll.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    await acceptAll.click({ force: true });
+    await expect(acceptAll).toBeHidden({ timeout: 5_000 }).catch(() => undefined);
   }
 }
 
@@ -45,6 +60,7 @@ export async function openUserMenu(page: Page) {
 }
 
 export async function loginViaUi(page: Page, account: Pick<QAAccount, "email" | "password">) {
+  await seedCookieConsent(page);
   await page.goto("/");
   await openUserMenu(page);
   await page.getByRole("button", { name: /login/i }).click();
@@ -56,6 +72,7 @@ export async function loginViaUi(page: Page, account: Pick<QAAccount, "email" | 
 }
 
 export async function registerOwnerViaUi(page: Page, account: QAAccount) {
+  await seedCookieConsent(page);
   await page.goto("/");
   await openUserMenu(page);
   await page.getByRole("button", { name: /sign up/i }).click();
@@ -73,6 +90,7 @@ export async function registerOwnerViaUi(page: Page, account: QAAccount) {
 }
 
 export async function registerCustomerViaUi(page: Page, account: QAAccount) {
+  await seedCookieConsent(page);
   await page.goto("/");
   await openUserMenu(page);
   await page.getByRole("button", { name: /sign up/i }).click();
@@ -86,9 +104,32 @@ export async function registerCustomerViaUi(page: Page, account: QAAccount) {
 
 export async function selectReactOption(page: Page, inputSelector: string, search: string, optionName = search) {
   const input = page.locator(inputSelector).first();
-  await input.click();
-  await input.fill(search);
+  const dialog = page.getByRole("dialog").filter({ has: input }).first();
+  const scope = (await dialog.isVisible({ timeout: 1_000 }).catch(() => false)) ? dialog : page;
+  const isReadonly = (await input.getAttribute("aria-readonly")) === "true";
+  const combobox = isReadonly ? input.locator("xpath=..") : scope.getByRole("combobox").first();
+
+  await combobox.click();
+  if (!isReadonly) {
+    await input.fill(search);
+  }
+
   const option = page.getByRole("option", { name: new RegExp(optionName, "i") }).first();
+  await expect(option).toBeVisible({ timeout: 20_000 });
+  await option.click();
+}
+
+export async function selectAddressOption(page: Page, search: string, optionName: RegExp | string = search) {
+  const rentModal = page.getByTestId("rent-modal");
+  const scope = (await rentModal.isVisible({ timeout: 1_000 }).catch(() => false)) ? rentModal : page;
+  const addressInput = scope.getByRole("combobox").nth(1);
+  const addressControl = addressInput.locator("xpath=..");
+
+  await addressControl.click();
+  await page.keyboard.type(search);
+
+  const optionPattern = optionName instanceof RegExp ? optionName : new RegExp(optionName, "i");
+  const option = page.getByRole("option", { name: optionPattern }).first();
   await expect(option).toBeVisible({ timeout: 20_000 });
   await option.click();
 }
@@ -103,7 +144,9 @@ export async function fillRichText(page: Page, testId: string, value: string) {
 export async function completeOwnerVerification(page: Page, account: QAAccount) {
   const env = getE2EEnv();
 
+  await seedCookieConsent(page);
   await page.goto("/dashboard/profile");
+  await dismissCookieBanner(page);
   await page.getByRole("button", { name: /start verification/i }).click();
   const modal = page.getByTestId("verification-modal");
   await expect(modal).toBeVisible();
@@ -112,6 +155,7 @@ export async function completeOwnerVerification(page: Page, account: QAAccount) 
   await modal.getByRole("button", { name: /^verify$/i }).nth(0).click();
   await expect(modal.getByRole("button", { name: /^verified$/i }).first()).toBeVisible({ timeout: 60_000 });
 
+  await dismissCookieBanner(page);
   await modal.locator("#phone").fill(account.phone);
   await modal.getByRole("button", { name: /^verify$/i }).click();
   await expect(modal.getByRole("button", { name: /^verified$/i }).nth(1)).toBeVisible({ timeout: 30_000 });
@@ -135,6 +179,7 @@ export async function completeOwnerVerification(page: Page, account: QAAccount) 
 }
 
 export async function createListingViaRentModal(page: Page, title: string) {
+  await seedCookieConsent(page);
   await page.goto("/");
   await openUserMenu(page);
   await page.getByText("List your space").click();
@@ -144,8 +189,7 @@ export async function createListingViaRentModal(page: Page, title: string) {
   await page.getByTestId("rent-modal-primary-action").click();
 
   await selectReactOption(page, "input#city-select", "Delhi", "Delhi");
-  await page.getByPlaceholder("Search for a location").fill("Connaught Place New Delhi");
-  await page.getByRole("option").first().click();
+  await selectAddressOption(page, "Connaught Place New Delhi", /connaught|new delhi|delhi/i);
   await page.getByTestId("rent-modal-primary-action").click();
 
   await page.locator("input#rent-modal-upload").setInputFiles([sampleImage()]);
@@ -169,11 +213,12 @@ export async function createListingViaRentModal(page: Page, title: string) {
   await page.locator('[id="addon-qty-Continuous LED Light"]').fill("1");
   await page.getByTestId("rent-modal-primary-action").click();
 
-  await page.locator("#carpetArea").fill("1200");
-  await page.locator("#maximumPax").fill("12");
-  await page.locator("#minimumBookingHours").fill("2");
-  await page.getByText("Fashion Shoot").click();
-  await page.getByText("Instant Booking").click();
+  const otherDetailsStep = page.getByTestId("rent-modal-step-other-details");
+  await otherDetailsStep.locator("#carpetArea").fill("1200");
+  await otherDetailsStep.locator("#maximumPax").fill("12");
+  await otherDetailsStep.locator("#minimumBookingHours").fill("2");
+  await otherDetailsStep.getByText("Fashion Shoot").click();
+  await otherDetailsStep.getByText("Instant Booking").click();
   await page.getByTestId("rent-modal-primary-action").click();
 
   await fillRichText(page, "rich-text-editor", "QA custom term: restore the space after the shoot.");

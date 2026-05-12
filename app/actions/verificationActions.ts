@@ -18,10 +18,14 @@ export async function generateAadhaarOtpAction(aadhaarNumber: string) {
     try {
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) throw new Error("Unauthorized");
-        return await VerificationService.generateAadhaarOtp(currentUser.id, aadhaarNumber);
+        const data = await VerificationService.generateAadhaarOtp(currentUser.id, aadhaarNumber);
+        return { success: true, data };
     } catch (error) {
         console.error("[generateAadhaarOtpAction] Error:", error);
-        throw error;
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to generate Aadhaar OTP",
+        };
     }
 }
 
@@ -30,10 +34,14 @@ export async function verifyAadhaarOtpAction(refId: string, otp: string) {
     try {
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) throw new Error("Unauthorized");
-        return await VerificationService.verifyAadhaarOtp(currentUser.id, refId, otp);
+        const data = await VerificationService.verifyAadhaarOtp(currentUser.id, refId, otp);
+        return { success: true, data };
     } catch (error) {
         console.error("[verifyAadhaarOtpAction] Error:", error);
-        throw error;
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to verify Aadhaar OTP",
+        };
     }
 }
 

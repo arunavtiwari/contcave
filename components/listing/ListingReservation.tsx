@@ -348,6 +348,7 @@ export default function ListingReservation({
       await updateUser({ phone: normalized });
       setCustomerPhone(normalized);
       setShowPhoneModal(false);
+      setShowSummaryModal(true);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Unable to save phone. Try again.";
       setPhoneError(msg);

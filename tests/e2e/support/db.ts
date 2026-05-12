@@ -21,11 +21,12 @@ export function qaAccount(role: "owner" | "customer", suffix = ""): QAAccount {
   const safeSuffix = suffix ? `-${suffix}` : "";
   const localPart = `${state.runId}-${role}${safeSuffix}`.replace(/[^a-zA-Z0-9._-]/g, "-");
   const digitSeed = `${Date.now()}`.slice(-8);
+  const displaySeed = state.runId.replace(/^qa-e2e-/, "").slice(-6);
 
   return {
     email: `${localPart}@${env.emailDomain}`,
     password: "QaPass12345",
-    name: `QA ${role} ${state.runId}${safeSuffix}`,
+    name: `QA ${role} ${displaySeed}`,
     phone: `9${role === "owner" ? "8" : "7"}${digitSeed}`.slice(0, 10),
   };
 }

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { createUserFixture, prisma, waitForListingByTitle } from "./support/db";
-import { createListingViaRentModal, loginViaUi, openUserMenu, selectReactOption } from "./support/ui";
+import { createListingViaRentModal, loginViaUi, openUserMenu, selectAddressOption, selectReactOption } from "./support/ui";
 
 test.describe.configure({ mode: "serial" });
 
@@ -61,8 +61,7 @@ test.describe("rent modal staging flow", () => {
     await page.getByTestId("rent-modal-primary-action").click();
     await expect(page.getByText(/please enter a complete address/i)).toBeVisible();
 
-    await page.getByPlaceholder("Search for a location").fill("Connaught Place New Delhi");
-    await page.getByRole("option").first().click();
+    await selectAddressOption(page, "Connaught Place New Delhi", /connaught|new delhi|delhi/i);
     await page.getByTestId("rent-modal-primary-action").click();
     await expect(page.getByTestId("rent-modal-step-images")).toBeVisible();
     await page.getByTestId("rent-modal-primary-action").click();
