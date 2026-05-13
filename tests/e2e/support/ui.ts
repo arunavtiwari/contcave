@@ -26,6 +26,11 @@ async function dismissCookieBanner(page: Page) {
   }
 }
 
+async function waitForAppToSettle(page: Page) {
+  await page.waitForLoadState("domcontentloaded", { timeout: 10_000 }).catch(() => undefined);
+  await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+}
+
 async function modalByTestIdOrDialog(page: Page, testId: string, name: RegExp) {
   const byTestId = page.getByTestId(testId);
   if (await byTestId.isVisible({ timeout: 3_000 }).catch(() => false)) {
@@ -75,6 +80,7 @@ export async function loginViaUi(page: Page, account: Pick<QAAccount, "email" | 
   await modal.getByLabel(/password/i).fill(account.password);
   await clickModalAction(modal, "login-modal-primary-action", /continue|login/i);
   await expect(modal).toBeHidden({ timeout: 30_000 });
+  await waitForAppToSettle(page);
 }
 
 export async function registerOwnerViaUi(page: Page, account: QAAccount) {
@@ -93,6 +99,7 @@ export async function registerOwnerViaUi(page: Page, account: QAAccount) {
   await ownerModal.getByLabel(/password/i).fill(account.password);
   await clickModalAction(ownerModal, "owner-register-modal-primary-action", /register/i);
   await expect(ownerModal).toBeHidden({ timeout: 45_000 });
+  await waitForAppToSettle(page);
 }
 
 export async function registerCustomerViaUi(page: Page, account: QAAccount) {
@@ -106,6 +113,7 @@ export async function registerCustomerViaUi(page: Page, account: QAAccount) {
   await modal.getByLabel(/password/i).fill(account.password);
   await clickModalAction(modal, "register-modal-primary-action", /continue/i);
   await expect(modal).toBeHidden({ timeout: 45_000 });
+  await waitForAppToSettle(page);
 }
 
 export async function selectReactOption(page: Page, inputSelector: string, search: string, optionName = search) {

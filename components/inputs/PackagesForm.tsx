@@ -92,14 +92,14 @@ export default function PackagesForm({
         {packages.map((pkg, idx) => (
           <div
             key={idx}
-            className="border border-border rounded-2xl p-5 sm:p-6 relative flex flex-col gap-5 bg-background shadow-sm transition-all duration-300 overflow-visible"
+            className="border border-border rounded-2xl p-5 sm:p-6 relative flex flex-col gap-5 bg-background transition-all duration-300 overflow-visible"
           >
             <div className="absolute -top-3 -right-3 z-10">
               <Button
                 variant="ghost"
                 rounded
                 onClick={() => removePackage(idx)}
-                className="h-9 w-9 rounded-full border border-border bg-background text-destructive shadow-sm hover:border-destructive/30 hover:bg-destructive/10"
+                className="h-9 w-9 bg-background text-destructive shadow-xs hover:shadow-sm"
                 icon={IoTrashOutline}
                 aria-label={`Remove package ${idx + 1}`}
                 title="Remove package"

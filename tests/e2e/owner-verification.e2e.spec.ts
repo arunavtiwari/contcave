@@ -6,10 +6,10 @@ import { completeOwnerVerification, loginViaUi, registerOwnerViaUi } from "./sup
 test.describe.configure({ mode: "serial" });
 
 test.describe("owner verification staging flow", () => {
-  test("registers a fresh owner and completes email, phone, Aadhaar OCR, and bank verification", async ({ page }) => {
+  test("registers a fresh owner and completes email, phone, Aadhaar OCR, and bank verification", async ({ page }, testInfo) => {
     test.setTimeout(240_000);
 
-    const owner = qaAccount("owner", "provider");
+    const owner = qaAccount("owner", `provider-r${testInfo.retry}`);
 
     await registerOwnerViaUi(page, owner);
     const user = await waitForUserByEmail(owner.email);
@@ -20,11 +20,11 @@ test.describe("owner verification staging flow", () => {
     await expect(page.getByText(/profile verified/i)).toBeVisible({ timeout: 30_000 });
   });
 
-  test("blocks incomplete verification progression and surfaces invalid input failures", async ({ page }) => {
+  test("blocks incomplete verification progression and surfaces invalid input failures", async ({ page }, testInfo) => {
     const { account } = await createUserFixture({
       role: "OWNER",
       verified: false,
-      suffix: "verification-negative",
+      suffix: `verification-negative-r${testInfo.retry}`,
     });
 
     await loginViaUi(page, account);
