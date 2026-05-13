@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { IndianRupee } from "lucide-react";
 import * as React from "react";
 import { FieldErrors, UseFormRegisterReturn } from "react-hook-form";
+import { FaIndianRupeeSign } from "react-icons/fa6";
 
 import FormField from "@/components/inputs/FormField";
 import { cn } from "@/lib/utils";
@@ -101,7 +101,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
                     {formatPrice && (
                         <div className="pl-4 pr-1 flex items-center justify-center pointer-events-none text-muted-foreground shrink-0">
-                            <IndianRupee size={size === "sm" ? 14 : 18} />
+                            <FaIndianRupeeSign size={size === "sm" ? 14 : 18} />
                         </div>
                     )}
 

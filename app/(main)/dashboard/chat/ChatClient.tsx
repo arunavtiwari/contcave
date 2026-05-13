@@ -1,9 +1,9 @@
 "use client";
 
 import Ably from "ably";
-import { SendHorizontal } from "lucide-react";
 import Image from "next/image";
 import { FC, useEffect, useRef, useState } from "react";
+import { IoSend } from "react-icons/io5";
 
 import Heading from "@/components/ui/Heading";
 import { incrementUnreadCount,markAsRead } from "@/lib/chat/actions";
@@ -355,7 +355,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                 disabled={!newMessage.trim() || isSending || !isChannelReady}
                 aria-label="Send message"
               >
-                <SendHorizontal size={18} />
+                <IoSend size={18} />
               </button>
             </div>
           </div>

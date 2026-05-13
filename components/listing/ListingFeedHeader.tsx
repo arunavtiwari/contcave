@@ -1,7 +1,7 @@
 "use client";
 
-import { LocateFixed, MapPin, X } from "lucide-react";
 import React from "react";
+import { IoClose, IoLocateOutline, IoLocationOutline } from "react-icons/io5";
 
 import AutoComplete from "@/components/inputs/AutoComplete";
 import Button from "@/components/ui/Button";
@@ -30,7 +30,7 @@ const ListingFeedHeader: React.FC = () => {
                             onClick={() => setShowSortOptions(true)}
                             variant="outline"
                             fit
-                            icon={MapPin}
+                            icon={IoLocationOutline}
                             label="Sort by distance"
                         />
                     </>
@@ -42,7 +42,7 @@ const ListingFeedHeader: React.FC = () => {
                             variant="default"
                             rounded
                             fit
-                            icon={LocateFixed}
+                            icon={IoLocateOutline}
                             label={isLocating ? "Locating..." : "Detect my location"}
                         />
                         <div className="hidden md:block text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">or</div>
@@ -56,7 +56,7 @@ const ListingFeedHeader: React.FC = () => {
                             onClick={() => setShowSortOptions(false)}
                             className="p-2 hover:bg-neutral-200/50 rounded-full transition-colors text-muted-foreground"
                         >
-                            <X size={20} />
+                            <IoClose size={20} />
                         </button>
                     </div>
                 )}

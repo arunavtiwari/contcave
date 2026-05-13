@@ -1,8 +1,8 @@
 "use client";
 
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Clock, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { IoAdd, IoCalendarOutline, IoTimeOutline, IoTrashOutline } from "react-icons/io5";
 import { toast } from "sonner";
 
 import { createBlockAction, deleteBlockAction, getBlocksAction } from "@/app/actions/listingActions";
@@ -120,7 +120,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
         <div className="space-y-8">
             <div className="bg-muted/30 p-6 rounded-2xl border border-border">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Plus size={20} />
+                    <IoAdd size={20} />
                     Create New Block
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -138,7 +138,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                     <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
                             <label className="text-sm font-medium flex items-center gap-2">
-                                <Clock size={14} />
+                                <IoTimeOutline size={14} />
                                 Start
                             </label>
                             <Select
@@ -150,7 +150,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                         </div>
                         <div className="space-y-1">
                             <label className="text-sm font-medium flex items-center gap-2">
-                                <Clock size={14} />
+                                <IoTimeOutline size={14} />
                                 End
                             </label>
                             <Select
@@ -218,11 +218,11 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                             >
                                 <div className="flex flex-col gap-1">
                                     <div className="font-medium flex items-center gap-2">
-                                        <CalendarIcon size={16} className="text-muted-foreground" />
+                                        <IoCalendarOutline size={16} className="text-muted-foreground" />
                                         {format(new Date(block.date), "PPP")}
                                     </div>
                                     <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                        <Clock size={14} />
+                                        <IoTimeOutline size={14} />
                                         {block.startTime} - {block.endTime}
                                     </div>
                                     {block.setIds && block.setIds.length > 0 && (
@@ -241,7 +241,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
                                     className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition"
                                     aria-label="Delete block"
                                 >
-                                    <Trash2 size={18} />
+                                    <IoTrashOutline size={18} />
                                 </button>
                             </div>
                         ))}

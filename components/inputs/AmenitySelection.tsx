@@ -1,6 +1,6 @@
 import { Amenities } from '@prisma/client';
-import { X } from 'lucide-react';
 import React, { useState } from 'react';
+import { IoClose } from 'react-icons/io5';
 
 import Input from '@/components/inputs/Input';
 import Button from '@/components/ui/Button';
@@ -143,7 +143,7 @@ const AmenitiesCheckbox: React.FC<AmenitiesCheckboxProps> = ({
                 variant="solid"
                 size="sm"
                 onClick={() => handleRemoveAmenity(amenity)}
-                icon={X}
+                icon={IoClose}
               />
             ))}
           </div>

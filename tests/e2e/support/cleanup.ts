@@ -37,15 +37,30 @@ async function deleteR2Keys(keys: string[]) {
 
   for (let i = 0; i < filtered.length; i += 1000) {
     const chunk = filtered.slice(i, i + 1000);
-    await r2.send(
-      new DeleteObjectsCommand({
-        Bucket: bucket,
-        Delete: {
-          Objects: chunk.map((Key) => ({ Key })),
-          Quiet: true,
-        },
-      })
-    );
+    const command = new DeleteObjectsCommand({
+      Bucket: bucket,
+      Delete: {
+        Objects: chunk.map((Key) => ({ Key })),
+        Quiet: true,
+      },
+    });
+
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        await r2.send(command);
+        break;
+      } catch (error) {
+        if (attempt === 3) {
+          console.warn("[e2e] R2 cleanup skipped after retries", {
+            count: chunk.length,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1_000));
+      }
+    }
   }
 }
 
@@ -146,6 +161,7 @@ export async function cleanupE2ERun(state: RunState) {
     },
   });
   await prisma.transaction.deleteMany({ where: { id: { in: transactionIds } } });
+  await prisma.reservationSlot.deleteMany({ where: { reservationId: { in: reservationIds } } });
   await prisma.reservation.deleteMany({ where: { id: { in: reservationIds } } });
   await prisma.billingDetails.deleteMany({
     where: {

@@ -1,7 +1,7 @@
 "use client";
 
-import { Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { IoAdd, IoClose, IoTrashOutline } from "react-icons/io5";
 
 import Checkbox from "@/components/inputs/Checkbox";
 import Input from "@/components/inputs/Input";
@@ -88,20 +88,21 @@ export default function PackagesForm({
       variant={variant}
       align="start"
     >
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-5 w-full overflow-visible pt-3 pr-3">
         {packages.map((pkg, idx) => (
           <div
             key={idx}
-            className="border border-border rounded-2xl p-6 relative flex flex-col gap-5 bg-background transition-all duration-300"
+            className="border border-border rounded-2xl p-5 sm:p-6 relative flex flex-col gap-5 bg-background shadow-sm transition-all duration-300 overflow-visible"
           >
             <div className="absolute -top-3 -right-3 z-10">
               <Button
                 variant="ghost"
-                size="sm"
                 rounded
                 onClick={() => removePackage(idx)}
-                className="bg-background border-border text-destructive hover:bg-destructive hover:text-background w-10 h-10 p-0"
-                icon={Trash2}
+                className="h-9 w-9 rounded-full border border-border bg-background text-destructive shadow-sm hover:border-destructive/30 hover:bg-destructive/10"
+                icon={IoTrashOutline}
+                aria-label={`Remove package ${idx + 1}`}
+                title="Remove package"
               />
             </div>
 
@@ -116,49 +117,46 @@ export default function PackagesForm({
               />
 
               {/* Duration, Original Price, Offered Price */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
                 <Input
                   id={`duration-${idx}`}
                   label="Duration (Hours)"
+                  description="Minimum duration is 1 hour"
                   type="number"
                   placeholder="8"
                   value={pkg.durationHours}
                   onNumberChange={(val) => updatePackage(idx, "durationHours", val)}
                   required
-                  description="Minimum duration is 1 hour"
                 />
 
                 <Input
                   id={`original-${idx}`}
                   label="Original Price"
+                  description="Price before discount"
                   type="number"
                   formatPrice
                   placeholder="10000"
                   value={pkg.originalPrice}
                   onNumberChange={(val) => updatePackage(idx, "originalPrice", val)}
                   required
-                  description="Price before discount"
                 />
 
                 <Input
                   id={`offered-${idx}`}
                   label="Offered Price"
+                  description="Discounted price"
                   type="number"
                   formatPrice
                   placeholder="8000"
                   value={pkg.offeredPrice}
                   onNumberChange={(val) => updatePackage(idx, "offeredPrice", val)}
                   required
-                  description="Discounted price"
                 />
               </div>
             </div>
 
-            <FormField
-              label="Features"
-              description="Press enter to add each feature"
-            >
-              <div className="flex flex-wrap gap-2 min-h-11 p-2 rounded-xl bg-muted/30 border border-dashed border-border/60">
+            <FormField label="Features" description="Press enter to add each feature">
+              <div className="flex flex-wrap items-center gap-2 min-h-19 p-3 rounded-xl bg-muted/30 border border-dashed border-border/60">
                 {pkg.features.map((f, i) => (
                   <Pill
                     key={i}
@@ -173,24 +171,27 @@ export default function PackagesForm({
                       )
                     }
                     className="group"
-                    icon={X}
+                    icon={IoClose}
                   />
                 ))}
-                <Input
-                  id={`new-feature-${idx}`}
-                  placeholder="Type and press Enter..."
-                  className="flex-1 min-w-37.5 bg-transparent border-none focus:ring-0 h-9 px-2 shadow-none"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && e.currentTarget.value.trim() !== "") {
-                      e.preventDefault();
-                      updatePackage(idx, "features", [
-                        ...pkg.features,
-                        e.currentTarget.value.trim(),
-                      ]);
-                      e.currentTarget.value = "";
-                    }
-                  }}
-                />
+                <div className="min-w-45 flex-1">
+                  <Input
+                    id={`new-feature-${idx}`}
+                    placeholder="Type and press Enter..."
+                    className="h-8 border-none bg-transparent shadow-none focus-within:border-transparent [&_input]:px-2"
+                    aria-label={`Add feature to package ${idx + 1}`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && e.currentTarget.value.trim() !== "") {
+                        e.preventDefault();
+                        updatePackage(idx, "features", [
+                          ...pkg.features,
+                          e.currentTarget.value.trim(),
+                        ]);
+                        e.currentTarget.value = "";
+                      }
+                    }}
+                  />
+                </div>
               </div>
             </FormField>
 
@@ -241,7 +242,7 @@ export default function PackagesForm({
           variant="outline"
           onClick={addPackage}
           label="Add New Package"
-          icon={Plus}
+          icon={IoAdd}
           fit
         />
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { Check } from "lucide-react";
 import * as React from "react";
+import { IoCheckmark } from "react-icons/io5";
 
 interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label?: string;
@@ -30,7 +30,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
                         ref={ref}
                         {...props}
                     />
-                    <Check
+                    <IoCheckmark
                         size={14}
                         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-background opacity-0 transition-opacity peer-checked:opacity-100"
                     />

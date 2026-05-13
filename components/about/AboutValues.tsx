@@ -1,24 +1,24 @@
 "use client";
 import { motion } from "framer-motion";
-import { Building2, Heart, Users } from "lucide-react";
 import React from "react";
+import { IoBusinessOutline, IoHeartOutline, IoPeopleOutline } from "react-icons/io5";
 
 import Heading from "@/components/ui/Heading";
 import SectionHeader from "@/components/ui/SectionHeader";
 
 const VALUES = [
     {
-        icon: Building2,
+        icon: IoBusinessOutline,
         title: "Space Utilisation",
         body: "No creative space should go to waste, whether it's a cafe, a studio, or a hidden corner. Every space can inspire art.",
     },
     {
-        icon: Heart,
+        icon: IoHeartOutline,
         title: "Human Creativity",
         body: "Technology may evolve, but human creativity is timeless. We exist to give it space, voice, and longevity.",
     },
     {
-        icon: Users,
+        icon: IoPeopleOutline,
         title: "Community First",
         body: "Our vision is to build a community where creators support each other, share spaces, and thrive together.",
     },
