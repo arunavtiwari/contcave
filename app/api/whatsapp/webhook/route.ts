@@ -138,9 +138,6 @@ export async function POST(request: Request) {
                                 timestamp: status.timestamp,
                                 errors: status.errors,
                             });
-
-                            // TODO: Update DB with delivery status if needed
-                            // e.g., mark message as delivered/read in a WhatsApp message log table
                         }
                     }
 
@@ -154,8 +151,6 @@ export async function POST(request: Request) {
                                 text: message.text?.body,
                                 timestamp: message.timestamp,
                             });
-
-                            // TODO: Forward to support queue or auto-responder
                         }
                     }
                 }

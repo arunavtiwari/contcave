@@ -165,28 +165,33 @@ const VerificationModal: React.FC<Props> = ({
       try {
         const accountNumber = digitsOnly(data.accountNumber, 20);
         const ifscCode = data.ifscCode.trim().toUpperCase();
+        const gstin = data.gstNumber?.trim().toUpperCase();
 
-        const vendor = await createVendorAction({
+        const vendorPayload: Record<string, unknown> = {
           display_name: userState?.name || data.accountHolderName,
           email: userState?.email || data.email,
           phone: data.phone,
           account_holder: data.accountHolderName,
           account_number: accountNumber,
           ifsc: ifscCode,
-          gstin: data.gstNumber || undefined,
-        });
+        };
+        if (gstin) vendorPayload.gstin = gstin;
+
+        const vendor = await createVendorAction(vendorPayload);
         const vendorId = typeof vendor?.vendor_id === "string" ? vendor.vendor_id : "";
         if (!vendorId) throw new Error("Cashfree vendor creation failed");
 
-        const updatedUser = await updateVerificationStepAction({
+        const verificationPayload: Parameters<typeof updateVerificationStepAction>[0] = {
           step: "bank",
           bankVerifiedName: data.accountHolderName,
           vendorId: vendorId,
           accountNumber,
           ifscCode,
           bankName: data.bankName,
-          gstin: data.gstNumber || undefined,
-        });
+        };
+        if (gstin) verificationPayload.gstin = gstin;
+
+        const updatedUser = await updateVerificationStepAction(verificationPayload);
 
         setUserState(updatedUser as SafeUser);
         toast.success("Bank verification complete! Profile fully verified.");

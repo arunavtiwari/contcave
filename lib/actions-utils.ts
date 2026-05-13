@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { UserFacingError } from "@/lib/errors";
 import { SafeUser, UserRole } from "@/types/user";
 
 /**
@@ -75,11 +76,13 @@ export function createAction<TInput, TOutput>(
                 data: result
             };
         } catch (error) {
-            console.error("[Action Pipeline Failure]", {
-                timestamp: new Date().toISOString(),
-                error: error instanceof Error ? error.message : "Identified failure",
-                stack: error instanceof Error ? error.stack : undefined
-            });
+            if (!(error instanceof UserFacingError)) {
+                console.error("[Action Pipeline Failure]", {
+                    timestamp: new Date().toISOString(),
+                    error: error instanceof Error ? error.message : "Identified failure",
+                    stack: error instanceof Error ? error.stack : undefined
+                });
+            }
 
             const message = error instanceof Error ? error.message : "An internal server error occurred.";
             return {

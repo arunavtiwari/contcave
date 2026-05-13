@@ -273,7 +273,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                                     <input
                                         type="file"
                                         id="signature-upload"
-                                        accept="image/png,image/jpeg,image/webp"
+                                        accept="image/png,image/jpeg"
                                         onChange={(e) => {
                                             const f = e.target.files?.[0];
                                             if (f) handleSignatureFile(f);

@@ -107,7 +107,9 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function trimmedString(value: unknown) {
-    return typeof value === "string" ? value.trim() : "";
+    if (typeof value !== "string") return "";
+    const trimmed = value.trim();
+    return trimmed === "$undefined" || trimmed === "$null" ? "" : trimmed;
 }
 
 function normalizeVendorPayload(userId: string, payload: Record<string, unknown>, user: {

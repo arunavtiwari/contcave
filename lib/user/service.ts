@@ -1,6 +1,7 @@
 import { Prisma, User } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+import { UserFacingError } from "@/lib/errors";
 import db from "@/lib/prismadb";
 import { UserUpdateSchema, userUpdateSchema } from "@/schemas/user";
 import { RegisterData, SafeUser } from "@/types/user";
@@ -39,17 +40,40 @@ export class UserService {
 
     static async register(data: RegisterData) {
         const { email, name, password, phone, role } = data;
+        const normalizedEmail = email.trim().toLowerCase();
+        const existingUser = await db.user.findUnique({
+            where: { email: normalizedEmail },
+            select: { id: true }
+        });
+
+        if (existingUser) {
+            throw new UserFacingError("An account with this email already exists.");
+        }
+
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        return await db.user.create({
-            data: {
-                email,
-                name,
-                hashedPassword,
-                phone: phone || undefined,
-                role: role || "CUSTOMER"
+        try {
+            return await db.user.create({
+                data: {
+                    email: normalizedEmail,
+                    name: name.trim(),
+                    hashedPassword,
+                    phone: phone?.trim() || undefined,
+                    role: role || "CUSTOMER"
+                }
+            });
+        } catch (error) {
+            if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === "P2002" &&
+                Array.isArray(error.meta?.target) &&
+                error.meta.target.includes("email")
+            ) {
+                throw new UserFacingError("An account with this email already exists.");
             }
-        });
+
+            throw error;
+        }
     }
 
     /**
