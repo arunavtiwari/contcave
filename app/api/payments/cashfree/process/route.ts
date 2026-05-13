@@ -1,11 +1,12 @@
 import { Prisma } from "@prisma/client";
+import crypto from "crypto";
 import { NextRequest } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
-import { calculateSetPricing } from "@/lib/pricing";
+import { calculateSetPricing, validateSetSelection } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
 import { TransactionService } from "@/lib/transaction/service";
 import { processPaymentSchema } from "@/schemas/cashfree";
@@ -15,6 +16,21 @@ import { AdditionalSetPricingType, ListingSet } from "@/types/set";
 type ListingWithSets = Prisma.ListingGetPayload<{
     include: { sets: true; packages: true };
 }>;
+
+function stableStringify(value: unknown): string {
+    if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+    if (value && typeof value === "object") {
+        return `{${Object.entries(value as Record<string, unknown>)
+            .sort(([left], [right]) => left.localeCompare(right))
+            .map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`)
+            .join(",")}}`;
+    }
+    return JSON.stringify(value);
+}
+
+function hashPaymentInput(input: Record<string, unknown>): string {
+    return crypto.createHash("sha256").update(stableStringify(input)).digest("hex");
+}
 
 function normalizePhone(phone?: string | null) {
     if (!phone) return null;
@@ -85,13 +101,32 @@ export async function POST(req: NextRequest) {
         }
 
 
-        const selectedSetIds = data.setIds || [];
+        const selectedSetIds = Array.from(new Set((data.setIds || []).map((id) => id.trim()).filter(Boolean)));
         const selectedPackage = data.setPackageId
             ? (listing as ListingWithSets).packages.find((p) => p.id === data.setPackageId && p.isActive)
             : null;
 
         if (data.setPackageId && !selectedPackage) {
             return createErrorResponse("Selected package is no longer available", 400);
+        }
+
+        if (listing.hasSets) {
+            if (selectedSetIds.length === 0) {
+                return createErrorResponse("Select at least one set for this listing", 400);
+            }
+
+            const validSetIds = new Set(listing.sets.map((set) => set.id));
+            const invalidSetIds = selectedSetIds.filter((id) => !validSetIds.has(id));
+            if (invalidSetIds.length > 0) {
+                return createErrorResponse("One or more selected sets are invalid for this listing", 400);
+            }
+
+            const selection = validateSetSelection(selectedSetIds, selectedPackage);
+            if (!selection.valid) {
+                return createErrorResponse(selection.error || "Invalid set selection", 400);
+            }
+        } else if (selectedSetIds.length > 0 || selectedPackage) {
+            return createErrorResponse("Sets and packages are not available for this listing", 400);
         }
 
 
@@ -203,8 +238,22 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Amount exceeds maximum limit", 400);
         }
 
-        const idempotencyKey = `${currentUser.id}:${data.listingId}:${startMin}:${endMin}:${amount}`;
-        const hash = require("crypto").createHash("sha256").update(idempotencyKey).digest("hex");
+        const hash = hashPaymentInput({
+            userId: currentUser.id,
+            listingId: data.listingId,
+            startDate: data.startDate,
+            startTime: data.startTime,
+            endTime: data.endTime,
+            amount,
+            setIds: selectedSetIds.sort(),
+            setPackageId: data.setPackageId || null,
+            selectedAddons: cleanedAddons.map((addon) => ({
+                id: addon.id || null,
+                name: addon.name || null,
+                price: addon.price,
+                qty: addon.qty || 0,
+            })),
+        });
         const tId = "tid_" + hash.slice(0, 16);
 
         const existingTxn = await TransactionService.findByRef(tId);
@@ -237,7 +286,7 @@ export async function POST(req: NextRequest) {
                 endTime: data.endTime,
                 selectedAddons: cleanedAddons,
                 instantBooking: !!data.instantBooking,
-                setIds: Array.isArray(data.setIds) ? data.setIds : [],
+                setIds: selectedSetIds,
                 setPackageId: data.setPackageId || null,
                 pricingSnapshot: pricingBreakdown || data.pricingSnapshot || null,
             },

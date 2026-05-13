@@ -94,7 +94,7 @@ export const updateListingAction = createAction(
         const { id, ...updateData } = data;
         const listing = await ListingService.updateListing(user!.id, id, updateData);
 
-        revalidatePath(`/listing/${id}`);
+        revalidatePath(`/listings/${id}`);
         revalidatePath("/properties");
         revalidatePath("/dashboard/properties");
 

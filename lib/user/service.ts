@@ -3,9 +3,7 @@ import bcrypt from "bcryptjs";
 
 import db from "@/lib/prismadb";
 import { UserUpdateSchema, userUpdateSchema } from "@/schemas/user";
-import { RegisterData, SafeUser} from "@/types/user";
-
-
+import { RegisterData, SafeUser } from "@/types/user";
 
 export class UserService {
     static async findByEmail(email: string) {
@@ -21,17 +19,6 @@ export class UserService {
             where: {
                 resetToken: token,
                 resetTokenExpiry: { gt: new Date() }
-            }
-        });
-    }
-
-    static async updatePasswordByToken(token: string, passwordHash: string) {
-        return await db.user.updateMany({
-            where: { resetToken: token },
-            data: {
-                hashedPassword: passwordHash,
-                resetToken: null,
-                resetTokenExpiry: null
             }
         });
     }
@@ -93,11 +80,33 @@ export class UserService {
         return this.serializeUser(updatedUser);
     }
 
-    static async updatePassword(email: string, passwordHash: string) {
+    static async updatePassword(email: string, password: string) {
+        const hashedPassword = await bcrypt.hash(password, 12);
         return await db.user.update({
             where: { email },
-            data: { hashedPassword: passwordHash, resetToken: null, resetTokenExpiry: null }
+            data: { hashedPassword, resetToken: null, resetTokenExpiry: null }
         });
+    }
+
+    static async resetPasswordByToken(token: string, password: string) {
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const result = await db.user.updateMany({
+            where: {
+                resetToken: token,
+                resetTokenExpiry: { gt: new Date() }
+            },
+            data: {
+                hashedPassword,
+                resetToken: null,
+                resetTokenExpiry: null
+            }
+        });
+
+        if (result.count !== 1) {
+            throw new Error("Invalid or expired reset token.");
+        }
+
+        return { success: true };
     }
 
     static async toggleFavorite(userId: string, listingId: string) {

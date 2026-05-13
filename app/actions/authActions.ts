@@ -120,14 +120,6 @@ export const resetPasswordAction = createAction(
     async (data) => {
         const { token, password } = data;
 
-        const user = await UserService.findByResetToken(token);
-        if (!user || !user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
-            throw new Error("Invalid or expired reset token.");
-        }
-
-        await UserService.updatePassword(user.id, password);
-        await UserService.clearResetToken(user.id);
-
-        return { success: true };
+        return await UserService.resetPasswordByToken(token.trim(), password);
     }
 );

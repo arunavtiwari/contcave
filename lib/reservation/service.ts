@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { format } from "date-fns";
 
-import { checkSetConflicts } from "@/lib/availability";
+import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund } from "@/lib/cashfree/cashfree";
 import { sendReservationConfirmationCustomer, sendReservationConfirmationOwner } from "@/lib/email/templates";
@@ -10,10 +10,7 @@ import prisma from "@/lib/prismadb";
 import { generateBookingId } from "@/lib/utils";
 import { WhatsappService } from "@/lib/whatsapp/service";
 import { safeListing } from "@/types/listing";
-import { ReservationMetadata, ReservationResult } from "@/types/reservation";
-import { SafeReservation } from "@/types/reservation";
-
-
+import { ReservationMetadata, ReservationResult, SafeReservation } from "@/types/reservation";
 
 type FullReservationPayload = Prisma.ReservationGetPayload<{
     include: {
@@ -22,6 +19,43 @@ type FullReservationPayload = Prisma.ReservationGetPayload<{
         Transaction: { orderBy: { createdAt: "desc" } };
     };
 }>;
+
+const LISTING_WIDE_SLOT_ID = "__LISTING__";
+
+function buildReservationSlotRows(params: {
+    listingId: string;
+    reservationId: string;
+    startDate: Date;
+    startTime: string;
+    endTime: string;
+    setIds: string[];
+}) {
+    const start = parseTimeToMinutes(params.startTime);
+    let end = parseTimeToMinutes(params.endTime);
+    if (end <= start) end = start + 60;
+
+    const dateKey = format(params.startDate, "yyyy-MM-dd");
+    const slotSetIds = params.setIds.length > 0 ? Array.from(new Set(params.setIds)) : [LISTING_WIDE_SLOT_ID];
+    const rows: Prisma.ReservationSlotCreateManyInput[] = [];
+
+    for (let cursor = start; cursor < end; cursor += 30) {
+        const hour = String(Math.floor(cursor / 60)).padStart(2, "0");
+        const minute = String(cursor % 60).padStart(2, "0");
+        const slotKey = `${hour}:${minute}`;
+
+        for (const setId of slotSetIds) {
+            rows.push({
+                listingId: params.listingId,
+                reservationId: params.reservationId,
+                dateKey,
+                slotKey,
+                setId,
+            });
+        }
+    }
+
+    return rows;
+}
 
 function parseMetadataJson(value: unknown): Prisma.InputJsonValue | null {
     if (value == null) return null;
@@ -40,90 +74,123 @@ export class ReservationService {
      * Handles conflict resolution, atomicity, GST mapping, and initial notifications.
      */
     static async createFromTransaction(txnId: string): Promise<ReservationResult | null> {
-        const result = await prisma.$transaction(async (tx) => {
-            const txn = await tx.transaction.findUnique({
-                where: { id: txnId },
-                include: {
-                    listing: {
-                        include: {
-                            user: true,
-                        }
-                    },
-                    user: true
-                }
-            });
-
-            if (!txn || !txn.listing || !txn.userId) throw new Error("Transaction or listing not found");
-            if (txn.reservationId) {
-                return {
-                    reservationId: txn.reservationId,
-                    bookingId: txn.bookingId || "",
-                    isInstant: !!txn.listing.instantBooking
-                };
-            }
-
-            const md = (txn.metadata || {}) as unknown as ReservationMetadata;
-            const startDate = md.startDate ? new Date(`${md.startDate}T00:00:00`) : new Date();
-            const { startTime, endTime } = md;
-            const setIds = Array.isArray(md.setIds) ? md.setIds : [];
-            const selectedAddons = parseMetadataJson(md.selectedAddons);
-            const pricingSnapshot = parseMetadataJson(md.pricingSnapshot);
-
-            // 1. Conflict Check & Auto-Refund
-            const conflict = await checkSetConflicts({
-                listingId: txn.listingId!,
-                date: startDate,
-                startTime,
-                endTime,
-                setIds,
-            });
-
-            if (conflict.hasConflict) {
-                await cfCreateRefund({ order_id: txn.cfOrderId!, refund_amount: txn.amount, refund_id: `rf_auto_${txnId}`, refund_note: "Conflict resolution" });
-                await tx.transaction.update({
+        let result: ReservationResult | null;
+        try {
+            result = await prisma.$transaction(async (tx) => {
+                const txn = await tx.transaction.findUnique({
                     where: { id: txnId },
-                    data: { status: "FAILED", description: `Refunded: ${conflict.conflictDetails || "Slot taken"}` }
+                    include: {
+                        listing: {
+                            include: {
+                                user: true,
+                            }
+                        },
+                        user: true
+                    }
                 });
-                return null;
-            }
 
-            // 2. Booking ID
-            const bookingId = await generateBookingId();
+                if (!txn || !txn.listing || !txn.userId) throw new Error("Transaction or listing not found");
+                if (txn.reservationId) {
+                    return {
+                        reservationId: txn.reservationId,
+                        bookingId: txn.bookingId || "",
+                        isInstant: !!txn.listing.instantBooking
+                    };
+                }
 
-            // 3. Atomic Reservation Creation
-            const reservation = await tx.reservation.create({
-                data: {
-                    bookingId,
-                    userId: txn.userId,
+                const md = (txn.metadata || {}) as unknown as ReservationMetadata;
+                const startDate = md.startDate ? new Date(`${md.startDate}T00:00:00`) : new Date();
+                const { startTime, endTime } = md;
+                const setIds = Array.isArray(md.setIds) ? md.setIds : [];
+                const selectedAddons = parseMetadataJson(md.selectedAddons);
+                const pricingSnapshot = parseMetadataJson(md.pricingSnapshot);
+
+                const conflict = await checkSetConflicts({
                     listingId: txn.listingId!,
+                    date: startDate,
+                    startTime,
+                    endTime,
+                    setIds,
+                    tx,
+                });
+
+                if (conflict.hasConflict) {
+                    await cfCreateRefund({ order_id: txn.cfOrderId!, refund_amount: txn.amount, refund_id: `rf_auto_${txnId}`, refund_note: "Conflict resolution" });
+                    await tx.transaction.update({
+                        where: { id: txnId },
+                        data: { status: "FAILED", description: `Refunded: ${conflict.conflictDetails || "Slot taken"}` }
+                    });
+                    return null;
+                }
+
+                const bookingId = await generateBookingId();
+
+                const reservation = await tx.reservation.create({
+                    data: {
+                        bookingId,
+                        userId: txn.userId,
+                        listingId: txn.listingId!,
+                        startDate,
+                        startTime,
+                        endTime,
+                        totalPrice: txn.amount,
+                        totalPriceInt: Math.round(txn.amount),
+                        setIds,
+                        selectedAddons,
+                        pricingSnapshot,
+                        isApproved: txn.listing.instantBooking ? 1 : 0,
+                    }
+                });
+
+                const slotRows = buildReservationSlotRows({
+                    listingId: txn.listingId!,
+                    reservationId: reservation.id,
                     startDate,
                     startTime,
                     endTime,
-                    totalPrice: txn.amount,
-                    totalPriceInt: Math.round(txn.amount),
                     setIds,
-                    selectedAddons,
-                    pricingSnapshot,
-                    isApproved: txn.listing.instantBooking ? 1 : 0, // 1=Approved, 0=Pending
-                }
-            });
+                });
 
-            // 4. Update Transaction Ref
-            await tx.transaction.update({
-                where: { id: txnId },
-                data: {
+                if (slotRows.length > 0) {
+                    await tx.reservationSlot.createMany({ data: slotRows });
+                }
+
+                await tx.transaction.update({
+                    where: { id: txnId },
+                    data: {
+                        reservationId: reservation.id,
+                        bookingId,
+                        status: "SUCCESS"
+                    }
+                });
+
+                return {
                     reservationId: reservation.id,
                     bookingId,
-                    status: "SUCCESS"
-                }
+                    isInstant: !!txn.listing.instantBooking
+                };
             });
-
-            return {
-                reservationId: reservation.id,
-                bookingId,
-                isInstant: !!txn.listing.instantBooking
-            };
-        });
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+                const txn = await prisma.transaction.findUnique({ where: { id: txnId } });
+                if (txn?.cfOrderId && txn.status === "PENDING") {
+                    await cfCreateRefund({
+                        order_id: txn.cfOrderId,
+                        refund_amount: txn.amount,
+                        refund_id: `rf_auto_${txnId}`,
+                        refund_note: "Conflict resolution",
+                    }).catch((refundError) => {
+                        console.error("[ReservationService] Auto-refund failed after slot conflict:", refundError);
+                    });
+                    await prisma.transaction.update({
+                        where: { id: txnId },
+                        data: { status: "FAILED", description: "Refunded: slot was reserved by another booking" }
+                    });
+                }
+                return null;
+            }
+            throw error;
+        }
 
         if (result?.reservationId) {
             void this.runPostReservationSideEffects(result.reservationId, txnId);
@@ -284,6 +351,10 @@ export class ReservationService {
             data: { isApproved: status, rejectReason: reason || null }
         });
 
+        if (status === 3) {
+            await prisma.reservationSlot.deleteMany({ where: { reservationId } });
+        }
+
         // Trigger notifications for status change
         this.triggerStatusNotifications(resv as FullReservationPayload, status, reason);
     }
@@ -411,6 +482,7 @@ export class ReservationService {
                 markedForDeletionAt: new Date(),
             }
         });
+        await prisma.reservationSlot.deleteMany({ where: { reservationId } });
     }
 
     /**

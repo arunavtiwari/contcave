@@ -241,7 +241,7 @@ span.rdrWeekDay {
 }
 
 .fc-button-primary {
-	background-color: var(--color-primary) !important;
+	background-color: var(--color-foreground) !important;
 	border-radius: 9999px !important;
 }
 
@@ -346,7 +346,7 @@ span.rdrWeekDay {
 	font-size: 0.875rem !important;
 	padding: 8px 16px !important;
 	text-transform: capitalize !important;
-	transition: all 0.2s ease !important;
+	transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
 }
 
 .fc-button:hover {

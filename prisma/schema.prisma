@@ -230,6 +230,20 @@ model Reservation {
   @@index([startDate])
 }
 
+model ReservationSlot {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  listingId     String   @db.ObjectId
+  reservationId String   @db.ObjectId
+  dateKey       String
+  slotKey       String
+  setId         String
+  createdAt     DateTime @default(now())
+
+  @@unique([listingId, dateKey, slotKey, setId])
+  @@index([reservationId])
+  @@index([listingId, dateKey])
+}
+
 model Amenities {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String

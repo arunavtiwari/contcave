@@ -1,4 +1,3 @@
-import bcrypt from "bcryptjs";
 import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
@@ -18,11 +17,12 @@ export async function POST(request: NextRequest) {
         const { token, password } = validation.data;
         const trimmedToken = token.trim();
 
-        const user = await UserService.findByResetToken(trimmedToken);
-        if (!user) return createErrorResponse("Invalid or expired reset token", 400);
-
-        const hashedPassword = await bcrypt.hash(password, 12);
-        await UserService.updatePasswordByToken(trimmedToken, hashedPassword);
+        try {
+            await UserService.resetPasswordByToken(trimmedToken, password);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Invalid or expired reset token";
+            return createErrorResponse(message, 400);
+        }
 
         return createSuccessResponse({ message: "Password updated successfully" }, 200);
     } catch (error) {

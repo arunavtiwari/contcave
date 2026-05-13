@@ -4,6 +4,7 @@ import React from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { isAdmin } from "@/lib/user/permissions";
 
 export const metadata: Metadata = {
     title: "Admin Dashboard",
@@ -21,9 +22,7 @@ export default async function AdminLayout({
 }) {
     const currentUser = await getCurrentUser();
 
-    const isAdmin = (currentUser as unknown as { isAdmin?: boolean })?.isAdmin;
-
-    if (!currentUser || !isAdmin) {
+    if (!currentUser || !isAdmin(currentUser.role)) {
         redirect("/");
     }
 

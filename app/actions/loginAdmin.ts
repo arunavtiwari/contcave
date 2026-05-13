@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 
 import { signIn } from "@/auth";
+import { isAdmin } from "@/lib/user/permissions";
 
 export async function loginAdmin(prevState: unknown, formData: FormData) {
     const email = formData.get("email") as string;
@@ -23,7 +24,7 @@ export async function loginAdmin(prevState: unknown, formData: FormData) {
         const prisma = (await import("@/lib/prismadb")).default;
         const dbUser = await prisma.user.findUnique({ where: { email } });
 
-        if (!(dbUser as unknown as { isAdmin?: boolean })?.isAdmin) {
+        if (!isAdmin(dbUser?.role)) {
             return { error: "Unauthorized: Account lacks administrative privileges." };
         }
 
@@ -46,5 +47,5 @@ export async function loginAdmin(prevState: unknown, formData: FormData) {
         throw error;
     }
 
-    redirect("/dashboard/listings");
+    redirect("/admin/dashboard/listings");
 }
