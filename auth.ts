@@ -9,6 +9,9 @@ import prisma from "@/lib/prismadb";
 
 import { authConfig } from "./auth.config";
 
+delete process.env.AUTH_URL;
+delete process.env.NEXTAUTH_URL;
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma),
     ...authConfig,
@@ -47,8 +50,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     throw new Error("Invalid credentials");
                 }
 
+                const email = String(credentials.email).trim().toLowerCase();
                 const user = await prisma.user.findUnique({
-                    where: { email: String(credentials?.email || "") },
+                    where: { email },
                 });
 
                 if (!user || !user.hashedPassword) {

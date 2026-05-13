@@ -8,6 +8,7 @@ import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 
 type Props = {
   center?: [number, number];
+  animated?: boolean;
 };
 
 const INDIA_CENTER: [number, number] = [20.5937, 78.9629];
@@ -19,26 +20,36 @@ function MapViewportController({
   center,
   zoom,
   shouldFocus,
+  animated,
 }: {
   center: [number, number];
   zoom: number;
   shouldFocus: boolean;
+  animated: boolean;
 }) {
   const map = useMap();
 
   useEffect(() => {
+    const targetCenter = shouldFocus ? center : INDIA_CENTER;
+    const targetZoom = shouldFocus ? zoom : 4;
+
+    if (!animated) {
+      map.setView(targetCenter, targetZoom);
+      return;
+    }
+
     if (!shouldFocus) {
       map.flyTo(INDIA_CENTER, 4, { duration: 0.8, easeLinearity: 0.25 });
       return;
     }
 
     map.flyTo(center, zoom, { duration: 1.2, easeLinearity: 0.25 });
-  }, [center, map, shouldFocus, zoom]);
+  }, [animated, center, map, shouldFocus, zoom]);
 
   return null;
 }
 
-function Map({ center }: Props) {
+function Map({ center, animated = false }: Props) {
   const isValidCenter = useMemo(() => {
     return (
       Array.isArray(center) &&
@@ -78,6 +89,7 @@ function Map({ center }: Props) {
         center={mapCenter}
         zoom={isValidCenter ? 15 : 4}
         shouldFocus={isValidCenter}
+        animated={animated}
       />
       <TileLayer
         url={TILE_URL}

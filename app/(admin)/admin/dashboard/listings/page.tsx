@@ -3,11 +3,11 @@ import { FaClock, FaExclamationTriangle } from "react-icons/fa";
 
 import { getPendingListings } from "@/app/actions/listingActions";
 import ListingActions from "@/components/admin/ListingActions";
-import { formatINR, formatISTDate } from "@/lib/utils";
+import { formatINR, formatISTDate, getBaseUrl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const BASE_URL = (process.env.NEXTAUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const BASE_URL = getBaseUrl();
 
 export default async function PendingListingsPage() {
     const pendingListings = await getPendingListings();

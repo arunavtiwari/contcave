@@ -1,3 +1,5 @@
+import { getBaseUrl } from "@/lib/utils";
+
 import { AttachmentInput, sendTemplateEmail } from "./mailer";
 
 export function getResetPasswordTemplate(name: string, resetUrl: string): string {
@@ -38,7 +40,7 @@ export function getResetPasswordTemplate(name: string, resetUrl: string): string
 }
 
 export function getHostOnboardingTemplate(name: string): string {
-  const ctaUrl = `${process.env.NEXTAUTH_URL}/dashboard/properties`;
+  const ctaUrl = `${getBaseUrl()}/dashboard/properties`;
   return `
   <!DOCTYPE html>
   <html>
@@ -84,7 +86,7 @@ export function getHostOnboardingTemplate(name: string): string {
 }
 
 export function getCustomerOnboardingTemplate(name: string): string {
-  const ctaUrl = `${process.env.NEXTAUTH_URL}/home`;
+  const ctaUrl = `${getBaseUrl()}/home`;
   return `
   <!DOCTYPE html>
   <html>

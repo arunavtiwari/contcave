@@ -4,14 +4,24 @@ import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 
 import { signIn } from "@/auth";
+import prisma from "@/lib/prismadb";
 import { isAdmin } from "@/lib/user/permissions";
 
 export async function loginAdmin(prevState: unknown, formData: FormData) {
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const email = String(formData.get("email") ?? "").trim().toLowerCase();
+    const password = String(formData.get("password") ?? "");
 
     if (!email || !password) {
         return { error: "Email and password are required." };
+    }
+
+    const dbUser = await prisma.user.findUnique({
+        where: { email },
+        select: { role: true },
+    });
+
+    if (!isAdmin(dbUser?.role)) {
+        return { error: "Unauthorized: Account lacks administrative privileges." };
     }
 
     try {
@@ -20,14 +30,6 @@ export async function loginAdmin(prevState: unknown, formData: FormData) {
             password,
             redirect: false,
         });
-
-        const prisma = (await import("@/lib/prismadb")).default;
-        const dbUser = await prisma.user.findUnique({ where: { email } });
-
-        if (!isAdmin(dbUser?.role)) {
-            return { error: "Unauthorized: Account lacks administrative privileges." };
-        }
-
     } catch (error) {
         if (error instanceof AuthError) {
             const causeMessage =

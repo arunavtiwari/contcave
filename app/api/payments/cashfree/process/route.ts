@@ -9,6 +9,7 @@ import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { calculateSetPricing, validateSetSelection } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
 import { TransactionService } from "@/lib/transaction/service";
+import { getBaseUrl } from "@/lib/utils";
 import { processPaymentSchema } from "@/schemas/cashfree";
 import { AdditionalSetPricingType, ListingSet } from "@/types/set";
 
@@ -266,8 +267,8 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const appUrl = process.env.NEXTAUTH_URL;
-        if (!appUrl || typeof appUrl !== "string" || !appUrl.startsWith("http")) {
+        const appUrl = getBaseUrl();
+        if (!appUrl.startsWith("http")) {
             return createErrorResponse("Server configuration error", 500);
         }
 

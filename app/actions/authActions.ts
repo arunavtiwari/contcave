@@ -6,6 +6,7 @@ import { createAction } from "@/lib/actions-utils";
 import { sendEmail } from "@/lib/email/mailer";
 import { getCustomerOnboardingTemplate, getHostOnboardingTemplate, getResetPasswordTemplate } from "@/lib/email/templates";
 import { UserService } from "@/lib/user/service";
+import { getBaseUrl } from "@/lib/utils";
 import { ownerRegisterSchema, registerSchema, resetPasswordSchema } from "@/schemas/auth";
 import { emailVerificationSchema } from "@/schemas/verification";
 import { UserRole } from "@/types/user";
@@ -91,8 +92,7 @@ export const requestPasswordResetAction = createAction(
 
         await UserService.createResetToken(user.id, resetToken, resetTokenExpiry);
 
-        const nextAuthUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-        const resetUrl = `${nextAuthUrl}/reset-password?token=${resetToken}`;
+        const resetUrl = `${getBaseUrl()}/reset-password?token=${resetToken}`;
 
         try {
             const html = getResetPasswordTemplate(user.name || "User", resetUrl);

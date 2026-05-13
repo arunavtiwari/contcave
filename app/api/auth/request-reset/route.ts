@@ -5,6 +5,7 @@ import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/
 import { sendEmail } from "@/lib/email/mailer";
 import { getResetPasswordTemplate } from "@/lib/email/templates";
 import { UserService } from "@/lib/user/service";
+import { getBaseUrl } from "@/lib/utils";
 import { emailVerificationSchema } from "@/schemas/verification";
 
 export async function POST(request: NextRequest) {
@@ -30,12 +31,12 @@ export async function POST(request: NextRequest) {
 
         await UserService.createResetToken(user.id, resetToken, resetTokenExpiry);
 
-        const nextAuthUrl = process.env.NEXTAUTH_URL;
-        if (!nextAuthUrl || !nextAuthUrl.startsWith("http")) {
+        const appUrl = getBaseUrl();
+        if (!appUrl.startsWith("http")) {
             return createErrorResponse("Server configuration error", 500);
         }
 
-        const resetUrl = `${nextAuthUrl}/reset-password?token=${resetToken}`;
+        const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
 
         try {
             const html = getResetPasswordTemplate(user.name || "User", resetUrl);

@@ -44,6 +44,15 @@ function isPublicPath(pathname: string): boolean {
     return PUBLIC_PATH_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))
 }
 
+function isAdminDomainHost(hostname: string): boolean {
+    const host = hostname.split(':')[0]?.toLowerCase() ?? ''
+    return host === 'admin.contcave.com' || host === 'staging.admin.contcave.com' || host.startsWith('admin.') || host.includes('.admin.')
+}
+
+function isAuthApiPath(pathname: string): boolean {
+    return pathname === '/api/auth' || pathname.startsWith('/api/auth/')
+}
+
 function getClientIP(request: NextRequest): string {
     return (
         request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -217,25 +226,40 @@ function applyCors(req: NextRequest, res: NextResponse): void {
     res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
 }
 
-
+function finalizeResponse(
+    request: NextRequest,
+    response: NextResponse,
+    pathname: string,
+    nonce: string,
+    start: number
+): NextResponse {
+    applySecurityHeaders(response, pathname, nonce)
+    applyCors(request, response)
+    response.headers.set('X-Response-Time', `${Date.now() - start}ms`)
+    return response
+}
 
 export async function proxy(request: NextRequest) {
     const start = Date.now()
     const pathname = request.nextUrl.pathname
     const hostname = request.headers.get('host') || request.nextUrl.hostname
+    const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
 
-    const isAdminDomain = hostname.startsWith('admin.') || hostname.includes('.admin.')
+    const isAdminDomain = isAdminDomainHost(hostname)
     if (isAdminDomain) {
-        if (!pathname.startsWith('/admin') && !pathname.startsWith('/api') && !pathname.startsWith('/_next') && !pathname.startsWith('/dashboard')) {
+        if (pathname.startsWith('/api') && !isAuthApiPath(pathname)) {
+            return finalizeResponse(request, new NextResponse(null, { status: 404 }), pathname, nonce, start)
+        }
+
+        if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next') && !isAuthApiPath(pathname)) {
             const url = new URL(request.nextUrl)
             url.pathname = `/admin${pathname === '/' ? '' : pathname}`
-            return NextResponse.rewrite(url)
+            return finalizeResponse(request, NextResponse.rewrite(url), pathname, nonce, start)
         }
     } else if (pathname.startsWith('/admin')) {
-        return new NextResponse(null, { status: 404 })
+        return finalizeResponse(request, new NextResponse(null, { status: 404 }), pathname, nonce, start)
     }
 
-    const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
     const method = request.method
     const ip = getClientIP(request)
     const userAgent = request.headers.get('user-agent') || 'unknown'

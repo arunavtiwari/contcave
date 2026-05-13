@@ -81,7 +81,7 @@ const LocationStep: React.FC<LocationStepProps> = ({
           }}
         />
       </div>
-      <Map center={actualLocation?.latlng as [number, number] | undefined} />
+      <Map center={actualLocation?.latlng as [number, number] | undefined} animated />
     </div>
   );
 };
