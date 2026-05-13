@@ -45,6 +45,7 @@ export default function LoginForm() {
                             name="email"
                             label="Email Address"
                             type="email"
+                            autoComplete="email"
                             required
                             placeholder="admin@contcave.com"
                         />
@@ -54,12 +55,14 @@ export default function LoginForm() {
                             name="password"
                             label="Password"
                             type="password"
+                            autoComplete="current-password"
                             required
                             placeholder="••••••••"
                         />
 
                         <div className="pt-2">
                             <Button
+                                type="submit"
                                 label="Sign In"
                                 loading={isPending}
                             />
