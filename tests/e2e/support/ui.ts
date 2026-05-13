@@ -47,6 +47,12 @@ async function clickModalAction(modal: ReturnType<Page["locator"]>, testId: stri
   await modal.getByRole("button", { name }).last().click();
 }
 
+async function waitForRentStep(page: Page, step: string) {
+  const stepLocator = page.getByTestId(`rent-modal-step-${step}`);
+  await expect(stepLocator).toBeVisible({ timeout: 30_000 });
+  return stepLocator;
+}
+
 export async function openUserMenu(page: Page) {
   await dismissCookieBanner(page);
 
@@ -180,18 +186,23 @@ export async function createListingViaRentModal(page: Page, title: string) {
   await openUserMenu(page);
   await page.getByText("List your space").click();
   await expect(page.getByTestId("rent-modal")).toBeVisible();
+  await waitForRentStep(page, "category");
 
   await page.getByRole("button", { name: /indoor studio/i }).click();
   await page.getByTestId("rent-modal-primary-action").click();
+  await waitForRentStep(page, "location");
 
   await selectReactOption(page, "input#city-select", "Delhi", "Delhi");
   await selectAddressOption(page, "Connaught Place New Delhi", /connaught|new delhi|delhi/i);
   await page.getByTestId("rent-modal-primary-action").click();
+  const imagesStep = await waitForRentStep(page, "images");
 
-  await page.locator("input#rent-modal-upload").setInputFiles([sampleImage()]);
+  await imagesStep.locator("input#rent-modal-upload").setInputFiles([sampleImage()]);
   await page.getByTestId("rent-modal-primary-action").click();
+  await waitForRentStep(page, "video");
 
   await page.getByTestId("rent-modal-primary-action").click();
+  await waitForRentStep(page, "description");
 
   await page.locator("#title").fill(title);
   await fillRichText(
@@ -201,13 +212,16 @@ export async function createListingViaRentModal(page: Page, title: string) {
   );
   await page.locator("#price").fill("1500");
   await page.getByTestId("rent-modal-primary-action").click();
+  await waitForRentStep(page, "amenities");
 
   await page.getByTestId("rent-modal-primary-action").click();
+  await waitForRentStep(page, "addons");
 
   await page.getByText("Continuous LED Light").click();
   await page.locator('[id="addon-price-Continuous LED Light"]').fill("250");
   await page.locator('[id="addon-qty-Continuous LED Light"]').fill("1");
   await page.getByTestId("rent-modal-primary-action").click();
+  await waitForRentStep(page, "other-details");
 
   const otherDetailsStep = page.getByTestId("rent-modal-step-other-details");
   await otherDetailsStep.locator("#carpetArea").fill("1200");
@@ -216,9 +230,11 @@ export async function createListingViaRentModal(page: Page, title: string) {
   await otherDetailsStep.getByText("Fashion Shoot").click();
   await otherDetailsStep.getByText("Instant Booking").click();
   await page.getByTestId("rent-modal-primary-action").click();
+  await waitForRentStep(page, "custom-terms");
 
   await fillRichText(page, "rich-text-editor", "QA custom term: restore the space after the shoot.");
   await page.getByTestId("rent-modal-primary-action").click();
+  await waitForRentStep(page, "packages");
 
   await page.getByRole("button", { name: /add new package/i }).click();
   await page.locator("#title-0").fill("QA Basic Package");
@@ -228,9 +244,11 @@ export async function createListingViaRentModal(page: Page, title: string) {
   await page.locator("#new-feature-0").fill("Two hour shoot");
   await page.keyboard.press("Enter");
   await page.getByTestId("rent-modal-primary-action").click();
+  await waitForRentStep(page, "verification");
 
   await page.locator("input#file-upload").setInputFiles([samplePdf()]);
   await page.getByTestId("rent-modal-primary-action").click();
+  await waitForRentStep(page, "terms");
 
   await page.locator("input#signature-upload").setInputFiles([sampleSignature()]);
   await page.getByLabel(/i agree to all terms and conditions/i).check();
