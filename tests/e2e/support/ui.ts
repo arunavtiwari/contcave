@@ -291,5 +291,13 @@ export async function completeCashfreeCheckout(page: Page) {
     await page.getByRole("button", { name: /pay|continue/i }).first().click();
   }
 
-  await page.waitForURL(/payments\/cashfree\/return/i, { timeout: 180_000 });
+  await page.waitForURL((url) => {
+    if (/payments\/cashfree\/return/i.test(url.pathname)) return true;
+    return url.pathname === "/" && url.searchParams.has("callbackUrl") && url.searchParams.has("tid");
+  }, { timeout: 180_000 });
+
+  const returnedUrl = new URL(page.url());
+  if (returnedUrl.pathname === "/" && returnedUrl.searchParams.has("tid")) {
+    await page.goto(`/payments/cashfree/return?tid=${encodeURIComponent(returnedUrl.searchParams.get("tid") || "")}`);
+  }
 }

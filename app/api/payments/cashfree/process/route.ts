@@ -267,7 +267,7 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const appUrl = getBaseUrl();
+        const appUrl = new URL(req.url).origin || getBaseUrl();
         if (!appUrl.startsWith("http")) {
             return createErrorResponse("Server configuration error", 500);
         }
@@ -308,7 +308,7 @@ export async function POST(req: NextRequest) {
                 transaction_id: tId,
                 order_amount: amount,
                 customer_id: txn.userId,
-                return_url: `${appUrl}/dashboard/payments/cashfree/return?tid={transaction_id}`,
+                return_url: `${appUrl}/payments/cashfree/return?tid={transaction_id}`,
                 notify_url: `${appUrl}/api/payments/cashfree/webhook`,
                 customer_name: customerName,
                 customer_email: customerEmail || undefined,

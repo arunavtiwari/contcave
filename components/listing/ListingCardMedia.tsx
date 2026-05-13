@@ -137,7 +137,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                     <div className="flex gap-1 items-center font-medium">
                         {hasSets && !isReservation && <span className="text-[10px] opacity-70">From</span>}
                         <span className="text-xs">₹{(totalPrice ?? formattedPrice).toLocaleString("en-IN")}</span>
-                        {!isReservation && <span className="text-[10px] opacity-70">/ Hr</span>}
+                        {!isReservation && <span className="text-[10px] opacity-70">/ hr</span>}
                     </div>
                 }
                 variant="glass"

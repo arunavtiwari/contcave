@@ -39,6 +39,11 @@ const steps = [
 const digitsOnly = (value: string, maxLength: number) =>
   value.replace(/\D/g, "").slice(0, maxLength);
 
+const isBankInputError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : "";
+  return /^Vendor (email|phone number|account number|IFSC)|required|invalid/i.test(message);
+};
+
 const getInitialStep = (user: SafeUser | null): number => {
   if (!user) return 1;
   if (!user.phone_verified || !user.email_verified) return 1;
@@ -177,18 +182,23 @@ const VerificationModal: React.FC<Props> = ({
         };
         if (gstin) vendorPayload.gstin = gstin;
 
-        const vendor = await createVendorAction(vendorPayload);
-        const vendorId = typeof vendor?.vendor_id === "string" ? vendor.vendor_id : "";
-        if (!vendorId) throw new Error("Cashfree vendor creation failed");
+        let vendorId = "";
+        try {
+          const vendor = await createVendorAction(vendorPayload);
+          vendorId = typeof vendor?.vendor_id === "string" ? vendor.vendor_id : "";
+        } catch (error) {
+          if (isBankInputError(error)) throw error;
+          toast.warning("Bank details saved. Payout setup will be retried before payouts.");
+        }
 
         const verificationPayload: Parameters<typeof updateVerificationStepAction>[0] = {
           step: "bank",
           bankVerifiedName: data.accountHolderName,
-          vendorId: vendorId,
           accountNumber,
           ifscCode,
           bankName: data.bankName,
         };
+        if (vendorId) verificationPayload.vendorId = vendorId;
         if (gstin) verificationPayload.gstin = gstin;
 
         const updatedUser = await updateVerificationStepAction(verificationPayload);

@@ -41,16 +41,17 @@ async function acceptBookingSummary(page: import("@playwright/test").Page) {
 }
 
 test.describe("booking staging flow", () => {
-  test("books an active studio through Cashfree sandbox and creates a reservation from webhook", async ({ browser, page }) => {
+  test("books an active studio through Cashfree sandbox and creates a reservation from webhook", async ({ browser, page }, testInfo) => {
     test.setTimeout(360_000);
+    const retrySuffix = `r${testInfo.retry}`;
 
     const { account: ownerAccount, user: owner } = await createUserFixture({
       role: "OWNER",
       verified: true,
-      suffix: "booking-owner",
+      suffix: `booking-owner-${retrySuffix}`,
     });
-    const listing = await createActiveListingFixture(owner.id, "booking");
-    const customer = qaAccount("customer", "booking");
+    const listing = await createActiveListingFixture(owner.id, `booking-${retrySuffix}`);
+    const customer = qaAccount("customer", `booking-${retrySuffix}`);
 
     await registerCustomerViaUi(page, customer);
     const customerUser = await waitForUserByEmail(customer.email);
@@ -100,13 +101,13 @@ test.describe("booking staging flow", () => {
     await ownerPage.close();
   });
 
-  test("blocks unauthenticated booking by opening login", async ({ page }) => {
+  test("blocks unauthenticated booking by opening login", async ({ page }, testInfo) => {
     const { user: owner } = await createUserFixture({
       role: "OWNER",
       verified: true,
-      suffix: "booking-auth-owner",
+      suffix: `booking-auth-owner-r${testInfo.retry}`,
     });
-    const listing = await createActiveListingFixture(owner.id, "unauthenticated");
+    const listing = await createActiveListingFixture(owner.id, `unauthenticated-r${testInfo.retry}`);
 
     await page.goto(`/listings/${listing.slug || listing.id}`);
     await selectFirstBookableSlot(page);
@@ -114,18 +115,18 @@ test.describe("booking staging flow", () => {
     await expect(page.getByTestId("login-modal")).toBeVisible();
   });
 
-  test("rejects addon over-quantity and inactive listing payments before Cashfree order creation", async ({ page }) => {
+  test("rejects addon over-quantity and inactive listing payments before Cashfree order creation", async ({ page }, testInfo) => {
     const { account: customerAccount } = await createUserFixture({
       role: "CUSTOMER",
       verified: false,
-      suffix: "booking-negative-customer",
+      suffix: `booking-negative-customer-r${testInfo.retry}`,
     });
     const { user: owner } = await createUserFixture({
       role: "OWNER",
       verified: true,
-      suffix: "booking-negative-owner",
+      suffix: `booking-negative-owner-r${testInfo.retry}`,
     });
-    const listing = await createActiveListingFixture(owner.id, "negative");
+    const listing = await createActiveListingFixture(owner.id, `negative-r${testInfo.retry}`);
 
     await loginViaUi(page, customerAccount);
     await trackUserByEmail(customerAccount.email);
