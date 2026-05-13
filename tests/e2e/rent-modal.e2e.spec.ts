@@ -15,11 +15,11 @@ function hasPersistedFileObject(value: unknown): boolean {
 }
 
 test.describe("rent modal staging flow", () => {
-  test("creates a pending listing with uploads, addon, package, verification document, and JSON-safe metadata", async ({ page }) => {
+  test("creates a pending listing with uploads, addon, package, verification document, and JSON-safe metadata", async ({ page }, testInfo) => {
     const { account } = await createUserFixture({
       role: "OWNER",
       verified: true,
-      suffix: "rent-happy",
+      suffix: `rent-happy-r${testInfo.retry}`,
     });
     const listingTitle = `${account.name} Studio`;
 
@@ -39,11 +39,11 @@ test.describe("rent modal staging flow", () => {
     expect(packages.length).toBe(1);
   });
 
-  test("blocks invalid rent modal progression for missing category, address, and image", async ({ page }) => {
+  test("blocks invalid rent modal progression for missing category, address, and image", async ({ page }, testInfo) => {
     const { account } = await createUserFixture({
       role: "OWNER",
       verified: true,
-      suffix: "rent-negative",
+      suffix: `rent-negative-r${testInfo.retry}`,
     });
 
     await loginViaUi(page, account);

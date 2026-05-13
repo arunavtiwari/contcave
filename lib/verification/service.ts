@@ -285,6 +285,8 @@ export class VerificationService {
             updates.bank_verified = true;
             updates.bank_verified_name = (data.bankVerifiedName as string).trim();
             updates.verified_via = { push: "bank_verification" };
+            const gstin = trimmedString(data.gstin);
+            const companyName = trimmedString(data.companyName);
 
             const paymentResult = await upsertPaymentDetailsSafe({
                 userId,
@@ -292,8 +294,8 @@ export class VerificationService {
                 bankName: (data.bankName as string) || "Unknown",
                 accountNumber: (data.accountNumber as string).trim(),
                 ifscCode: (data.ifscCode as string).trim(),
-                companyName: data.companyName as string,
-                gstin: data.gstin as string,
+                companyName: companyName || undefined,
+                gstin: gstin || undefined,
                 cashfreeVendorId: data.vendorId as string,
             });
 
