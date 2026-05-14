@@ -1,5 +1,7 @@
 import Skeleton from "@/components/ui/Skeleton";
 
+const STATUS_TABS = ["All", "Pending", "Verified", "Rejected"];
+
 function MetricCardSkeleton() {
     return (
         <div className="flex items-center gap-4 rounded-xl border border-border bg-background p-4">
@@ -63,11 +65,19 @@ export default function TableSkeleton() {
                 ))}
             </div>
 
-            <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-background p-2">
-                <Skeleton className="h-9 w-16 rounded-xl" />
-                <Skeleton className="h-9 w-24 rounded-xl" />
-                <Skeleton className="h-9 w-24 rounded-xl" />
-                <Skeleton className="h-9 w-24 rounded-xl" />
+            <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-background p-2" role="tablist" aria-label="Listing status filters">
+                {STATUS_TABS.map((tab, index) => (
+                    <button
+                        key={tab}
+                        type="button"
+                        role="tab"
+                        aria-selected={index === 0}
+                        disabled
+                        className="h-9 rounded-xl px-4 text-sm font-medium text-muted-foreground"
+                    >
+                        {tab}
+                    </button>
+                ))}
             </div>
 
             <div className="overflow-hidden rounded-xl border border-border bg-background">

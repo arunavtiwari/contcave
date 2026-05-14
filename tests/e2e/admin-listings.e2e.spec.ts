@@ -53,7 +53,9 @@ test.describe("admin listing moderation", () => {
     await expect(page.getByRole("tab", { name: /verified/i })).toBeVisible();
     await expect(page.getByRole("tab", { name: /rejected/i })).toBeVisible();
 
-    await page.getByTestId(`review-listing-${listing.id}`).click();
+    const reviewButton = page.getByTestId(`review-listing-${listing.id}`);
+    await expect(reviewButton).toBeVisible({ timeout: 60_000 });
+    await reviewButton.click();
     const modal = page.getByTestId("admin-listing-review-modal");
     await expect(modal).toBeVisible();
     await expect(modal.getByText(listing.title)).toBeVisible();
