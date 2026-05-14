@@ -11,6 +11,8 @@ import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import Button from "@/components/ui/Button";
+import Heading from "@/components/ui/Heading";
+import Pill from "@/components/ui/Pill";
 import { ListingSet } from "@/types/set";
 
 interface SetDetailModalProps {
@@ -116,22 +118,26 @@ export default function SetDetailModal({
                 </div>
 
 
-                <div className="w-full md:w-2/5 p-8 flex flex-col overflow-y-auto bg-background">
-                    <div className="flex-1">
-                        <div className="flex items-start justify-between gap-4 mb-4">
-                            <h2 className="text-3xl font-bold text-foreground leading-tight">{set.name}</h2>
+                <div className="w-full md:w-2/5 p-8 flex flex-col overflow-y-auto bg-background gap-6">
+                    <div className="flex-1 flex flex-col gap-4">
+                        <div className="flex items-start justify-between gap-4">
+                            <Heading title={set.name} variant="h3" />
                         </div>
 
-                        <div className="inline-flex items-center px-4 py-2 bg-foreground text-background rounded-xl text-sm font-bold mb-6 shadow-lg shadow-foreground/10">
-                            {priceLabel}
+                        <div>
+                            <Pill
+                                label={priceLabel}
+                                variant="solid"
+                                size="md"
+                            />
                         </div>
 
-                        <div className="prose prose-neutral text-muted-foreground mb-8 leading-relaxed">
+                        <div className="prose prose-neutral text-muted-foreground leading-relaxed mt-2">
                             <p>{set.description || "No description available for this set."}</p>
                         </div>
                     </div>
 
-                    <div className="mt-auto pt-6 border-t border-neutral-100 space-y-4">
+                    <div className="mt-auto pt-6 border-t border-neutral-100 flex flex-col gap-4">
                         {!isAvailable && (
                             <div className="p-4 bg-destructive/10 text-destructive rounded-xl text-sm text-center font-medium border border-destructive/20">
                                 Not available for the selected time
