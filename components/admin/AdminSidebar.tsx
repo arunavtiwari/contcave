@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { FiShield } from "react-icons/fi";
 import { HiOutlineLogout } from "react-icons/hi";
 
 import { logoutAdmin } from "@/app/actions/logoutAdmin";
@@ -17,22 +18,25 @@ const AdminSidebar: React.FC = React.memo(() => {
     };
 
     return (
-        <div className="w-64 h-screen bg-neutral-950 flex flex-col border-r border-border shrink-0 sticky top-0 overflow-hidden">
+        <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col overflow-hidden border-r border-border bg-background">
             {/* Header */}
-            <div className="px-6 py-8">
-                <Link href="/dashboard/listings" className="flex items-center gap-3">
+            <div className="border-b border-border px-5 py-6">
+                <Link href="/admin/dashboard/listings" className="flex items-center gap-3 rounded-xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-neutral-50 text-foreground">
+                        <FiShield size={19} />
+                    </span>
                     <Image
                         src="/assets/logo.png"
                         alt="Contcave Logo"
                         width={120}
                         height={40}
-                        className="h-8 w-auto brightness-0 invert"
+                        className="h-8 w-auto"
                     />
                 </Link>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-3 overflow-y-auto">
+            <nav className="flex-1 overflow-y-auto px-3 py-4">
                 <ul className="space-y-1">
                     {NAV_ITEMS.map((item) => {
                         const Icon = item.icon;
@@ -43,14 +47,20 @@ const AdminSidebar: React.FC = React.memo(() => {
                                 <Link
                                     href={item.href}
                                     className={`
-                                        flex items-center gap-3 px-4 py-3 rounded-full text-sm transition-all
+                                        flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20
                                         ${isActive
-                                            ? "bg-muted text-foreground font-semibold"
+                                            ? "bg-neutral-50 text-foreground ring-1 ring-border font-semibold"
                                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                         }
                                     `}
                                 >
-                                    <Icon size={18} />
+                                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors ${isActive
+                                        ? "border-border bg-background text-foreground"
+                                        : "border-border bg-background text-muted-foreground"
+                                        }`}
+                                    >
+                                        <Icon size={18} />
+                                    </span>
                                     <span>{item.name}</span>
                                 </Link>
                             </li>
@@ -60,16 +70,18 @@ const AdminSidebar: React.FC = React.memo(() => {
             </nav>
 
             {/* Footer: Logout */}
-            <div className="px-3 py-4 border-t border-border">
+            <div className="border-t border-border px-3 py-4">
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-background/5 hover:text-background transition-all cursor-pointer"
+                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
                 >
-                    <HiOutlineLogout size={18} />
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground">
+                        <HiOutlineLogout size={18} />
+                    </span>
                     <span className="hidden sm:block">Logout</span>
                 </button>
             </div>
-        </div>
+        </aside>
     );
 });
 

@@ -92,14 +92,14 @@ export function usePropertyEdit(listing: FullListing, predefinedAddons: Addon[])
     setIsUpdating(true);
     try {
       const finalImageSrc = initialListing.imageSrc && initialListing.imageSrc.length > 0
-        ? await uploadToR2(initialListing.imageSrc, "listing_main")
+        ? await uploadToR2(initialListing.imageSrc, `listings/${initialListing.id}/media/main`)
         : [];
 
       const finalSets = initialListing.hasSets ? await Promise.all(
         (initialListing.sets ?? []).map(async (s, i) => ({
           ...s,
           images: s.images && s.images.length > 0
-            ? await uploadToR2(s.images, "listing_sets")
+            ? await uploadToR2(s.images, `listings/${initialListing.id}/media/sets/${s.id || `set-${i}`}`)
             : [],
           position: i,
         }))

@@ -24,6 +24,7 @@ export type ReservationResult = {
     reservationId: string;
     bookingId: string;
     isInstant: boolean;
+    created?: boolean;
 };
 
 export interface ReservationMetadata {

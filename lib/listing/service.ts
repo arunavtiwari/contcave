@@ -91,6 +91,7 @@ export class ListingService {
         const validated = listingSchema.parse(body);
 
         const {
+            id,
             title, description, imageSrc, category, locationValue, actualLocation,
             price, amenities, otherAmenities, addons, carpetArea, operationalDays,
             operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
@@ -116,6 +117,7 @@ export class ListingService {
         return await prisma.$transaction(async (tx) => {
             const listing = await tx.listing.create({
                 data: {
+                    ...(id ? { id } : {}),
                     slug: newSlug,
                     title: trimmedTitle,
                     description: trimmedDescription,
@@ -153,6 +155,7 @@ export class ListingService {
                 const setData = sets.map((s: unknown, index: number) => {
                     const set = s as { name?: string; description?: string; images?: string[]; price?: number; position?: number; id?: string };
                     return {
+                        ...(set.id ? { id: set.id } : {}),
                         name: String(set.name || "").trim(),
                         description: set.description ? String(set.description).trim().slice(0, 2000) : null,
                         images: Array.isArray(set.images) ? set.images.filter((img: unknown) => typeof img === "string" && !img.startsWith("blob:")) : [],
@@ -332,10 +335,21 @@ export class ListingService {
     /**
      * Administrative Status Update (Approve/Reject)
      */
-    static async updateStatus(listingId: string, status: "VERIFIED" | "REJECTED" | "PENDING", active: boolean): Promise<void> {
+    static async updateStatus(
+        listingId: string,
+        status: "VERIFIED" | "REJECTED" | "PENDING",
+        active: boolean,
+        review?: { reviewedById?: string; rejectionReason?: string | null }
+    ): Promise<void> {
         await prisma.listing.update({
             where: { id: listingId },
-            data: { status, active }
+            data: {
+                status,
+                active,
+                reviewedAt: new Date(),
+                reviewedById: review?.reviewedById,
+                rejectionReason: review?.rejectionReason ?? null,
+            }
         });
     }
 

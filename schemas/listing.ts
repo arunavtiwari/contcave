@@ -90,6 +90,7 @@ export const packageSchema = packageBaseSchema.refine((data) => {
 
 
 export const addonSchema = z.object({
+    id: z.string().optional(),
     name: z.string(),
     price: z.number().min(0),
     qty: z.number().min(0),
@@ -117,6 +118,7 @@ export const signatureSchema = z.object({
 
 
 export const listingBaseSchema = z.object({
+    id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid listing ID").optional(),
     category: z.string().min(1, "Category is required").max(100),
     locationValue: z.string().min(1, "Location is required"),
     actualLocation: locationSchema.nullable(),
@@ -191,6 +193,7 @@ export const approveListingSchema = z.object({
 
 export const rejectListingSchema = z.object({
     listingId: z.string().min(1, "Listing ID is required"),
+    reason: z.string().trim().min(10, "Rejection reason must be at least 10 characters").max(500, "Rejection reason is too long"),
 });
 
 export const deleteListingSchema = z.object({

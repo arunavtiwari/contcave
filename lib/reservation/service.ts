@@ -68,6 +68,28 @@ function parseMetadataJson(value: unknown): Prisma.InputJsonValue | null {
     }
 }
 
+function formatSelectedAddons(value: unknown): string | null {
+    const parsed = parseMetadataJson(value);
+    if (!Array.isArray(parsed)) return null;
+
+    const addons = parsed
+        .map((item) => {
+            if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+            const addon = item as Record<string, unknown>;
+            const name = typeof addon.name === "string" ? addon.name.trim() : "";
+            const qty = Number(addon.qty ?? 0);
+            if (!name || !Number.isFinite(qty) || qty <= 0) return null;
+            return qty > 1 ? `${name} x ${qty}` : name;
+        })
+        .filter((item): item is string => Boolean(item));
+
+    return addons.length > 0 ? addons.join(", ") : null;
+}
+
+function getListingLocation(listing: FullReservationPayload["listing"]) {
+    return (listing.actualLocation as Record<string, unknown> | null)?.display_name as string || "";
+}
+
 export class ReservationService {
     /**
      * Create a reservation from a successful Cashfree transaction.
@@ -94,7 +116,8 @@ export class ReservationService {
                     return {
                         reservationId: txn.reservationId,
                         bookingId: txn.bookingId || "",
-                        isInstant: !!txn.listing.instantBooking
+                        isInstant: !!txn.listing.instantBooking,
+                        created: false,
                     };
                 }
 
@@ -167,7 +190,8 @@ export class ReservationService {
                 return {
                     reservationId: reservation.id,
                     bookingId,
-                    isInstant: !!txn.listing.instantBooking
+                    isInstant: !!txn.listing.instantBooking,
+                    created: true,
                 };
             });
         } catch (error) {
@@ -192,7 +216,7 @@ export class ReservationService {
             throw error;
         }
 
-        if (result?.reservationId) {
+        if (result?.reservationId && result.created) {
             void this.runPostReservationSideEffects(result.reservationId, txnId);
         }
 
@@ -240,77 +264,132 @@ export class ReservationService {
 
 
             const studioName = listing.title;
-            const location = (listing.actualLocation as Record<string, unknown>)?.display_name as string || "";
-            const addons = md.selectedAddons ? JSON.stringify(md.selectedAddons) : "None";
+            const location = getListingLocation(listing);
+            const addons = formatSelectedAddons(md.selectedAddons);
 
-            // 1. Customer Email
-            if (resv.user.email) {
-                await sendReservationConfirmationCustomer({
-                    toEmail: resv.user.email,
-                    toName: resv.user.name || "Valued Customer",
-                    studioName,
-                    bookingId: resv.bookingId || "",
-                    startDate: dateStr,
-                    startTime: resv.startTime,
-                    endTime: resv.endTime,
-                    totalPrice: resv.totalPrice,
-                    addons,
-                    studioLocation: location,
-                    attachments: invoiceAttachment ? [invoiceAttachment] : [],
+            if (txn?.id && resv.user.email) {
+                const claim = await prisma.transaction.updateMany({
+                    where: { id: txn.id, emailSentCustomer: false },
+                    data: { emailSentCustomer: true },
                 });
-            }
 
-            // 2. Owner Email
-            if (listing.user.email) {
-                await sendReservationConfirmationOwner({
-                    toEmail: listing.user.email,
-                    toName: listing.user.name || "Studio Owner",
-                    customerName: resv.user.name || "Customer",
-                    studioName,
-                    bookingId: resv.bookingId || "",
-                    startDate: dateStr,
-                    startTime: resv.startTime,
-                    endTime: resv.endTime,
-                    totalPrice: resv.totalPrice,
-                    addons,
-                });
-            }
-
-            // 3. WhatsApp (Customer)
-            if (resv.user.phone) {
-                if (listing.instantBooking) {
-                    await WhatsappService.sendBookingConfirmedCustomer(resv.user.phone, {
-                        customerName: resv.user.name || "Customer",
-                        listingTitle: studioName,
-                        startDate: dateStr,
-                        startTime: resv.startTime,
-                        locationLink: location || "https://maps.google.com",
-                        idempotencyKey: `confirm_cust_${resv.id}`
-                    });
-                } else {
-                    await WhatsappService.sendBookingReceivedCustomer(resv.user.phone, {
-                        customerName: resv.user.name || "Customer",
-                        listingTitle: studioName,
-                        startDate: dateStr,
-                        startTime: resv.startTime,
-                        idempotencyKey: `receive_cust_${resv.id}`
-                    });
+                if (claim.count > 0) {
+                    try {
+                        await sendReservationConfirmationCustomer({
+                            toEmail: resv.user.email,
+                            toName: resv.user.name || "Valued Customer",
+                            studioName,
+                            bookingId: resv.bookingId || "",
+                            startDate: dateStr,
+                            startTime: resv.startTime,
+                            endTime: resv.endTime,
+                            totalPrice: resv.totalPrice,
+                            addons,
+                            studioLocation: location,
+                            attachments: invoiceAttachment ? [invoiceAttachment] : [],
+                        });
+                    } catch (error) {
+                        await prisma.transaction.update({
+                            where: { id: txn.id },
+                            data: { emailSentCustomer: false },
+                        });
+                        throw error;
+                    }
                 }
             }
 
-            // 4. WhatsApp (Host)
-            if (listing.user.phone) {
-                await WhatsappService.sendBookingReceivedHost(listing.user.phone, {
-                    hostName: listing.user.name || "Studio Owner",
-                    customerName: resv.user.name || "Customer",
-                    listingTitle: studioName,
-                    startDate: dateStr,
-                    startTime: resv.startTime,
-                    idempotencyKey: `notify_host_${resv.id}`
+            if (txn?.id && listing.user.email) {
+                const claim = await prisma.transaction.updateMany({
+                    where: { id: txn.id, emailSentOwner: false },
+                    data: { emailSentOwner: true },
                 });
+
+                if (claim.count > 0) {
+                    try {
+                        await sendReservationConfirmationOwner({
+                            toEmail: listing.user.email,
+                            toName: listing.user.name || "Studio Owner",
+                            customerName: resv.user.name || "Customer",
+                            studioName,
+                            bookingId: resv.bookingId || "",
+                            startDate: dateStr,
+                            startTime: resv.startTime,
+                            endTime: resv.endTime,
+                            totalPrice: resv.totalPrice,
+                            addons,
+                        });
+                    } catch (error) {
+                        await prisma.transaction.update({
+                            where: { id: txn.id },
+                            data: { emailSentOwner: false },
+                        });
+                        throw error;
+                    }
+                }
             }
 
-            // 5. Calendar Sync
+            if (txn?.id && resv.user.phone) {
+                const claim = await prisma.transaction.updateMany({
+                    where: { id: txn.id, whatsappSentCustomer: false },
+                    data: { whatsappSentCustomer: true },
+                });
+
+                if (claim.count > 0) {
+                    try {
+                        if (listing.instantBooking) {
+                            await WhatsappService.sendBookingConfirmedCustomer(resv.user.phone, {
+                                customerName: resv.user.name || "Customer",
+                                listingTitle: studioName,
+                                startDate: dateStr,
+                                startTime: resv.startTime,
+                                locationLink: location || "https://maps.google.com",
+                                idempotencyKey: `confirm_cust_${resv.id}`
+                            });
+                        } else {
+                            await WhatsappService.sendBookingReceivedCustomer(resv.user.phone, {
+                                customerName: resv.user.name || "Customer",
+                                listingTitle: studioName,
+                                startDate: dateStr,
+                                startTime: resv.startTime,
+                                idempotencyKey: `receive_cust_${resv.id}`
+                            });
+                        }
+                    } catch (error) {
+                        await prisma.transaction.update({
+                            where: { id: txn.id },
+                            data: { whatsappSentCustomer: false },
+                        });
+                        throw error;
+                    }
+                }
+            }
+
+            if (txn?.id && listing.user.phone) {
+                const claim = await prisma.transaction.updateMany({
+                    where: { id: txn.id, whatsappSentHost: false },
+                    data: { whatsappSentHost: true },
+                });
+
+                if (claim.count > 0) {
+                    try {
+                        await WhatsappService.sendBookingReceivedHost(listing.user.phone, {
+                            hostName: listing.user.name || "Studio Owner",
+                            customerName: resv.user.name || "Customer",
+                            listingTitle: studioName,
+                            startDate: dateStr,
+                            startTime: resv.startTime,
+                            idempotencyKey: `notify_host_${resv.id}`
+                        });
+                    } catch (error) {
+                        await prisma.transaction.update({
+                            where: { id: txn.id },
+                            data: { whatsappSentHost: false },
+                        });
+                        throw error;
+                    }
+                }
+            }
+
             await ensureCalendarEventForUser({
                 userId: resv.userId,
                 title: `Booking: ${studioName}`,

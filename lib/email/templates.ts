@@ -1,6 +1,85 @@
 import { getBaseUrl } from "@/lib/utils";
 
-import { AttachmentInput, sendTemplateEmail } from "./mailer";
+import { AttachmentInput, sendEmail } from "./mailer";
+
+function escapeHtml(value: string | number | null | undefined) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatInr(value: number) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function getReservationEmailHtml(input: {
+  greetingName: string;
+  intro: string;
+  studioName: string;
+  startDate: string;
+  startTime: string;
+  endTime: string;
+  totalPrice: number;
+  addons?: string | null;
+  studioLocation?: string;
+  nextSteps?: string[];
+}) {
+  const hasAddons = Boolean(input.addons?.trim());
+  const detailRows = [
+    ["Date", input.startDate],
+    ["Time", `${input.startTime} - ${input.endTime}`],
+    ["Total", formatInr(input.totalPrice)],
+    ...(hasAddons ? [["Add-ons", input.addons!]] : []),
+    ...(input.studioLocation ? [["Location", input.studioLocation]] : []),
+  ];
+
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head><meta charset="UTF-8" /><title>Booking Confirmation</title></head>
+  <body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#374151;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table width="100%" style="max-width:560px;background:#ffffff;border-radius:8px;padding:32px;">
+            <tr>
+              <td style="font-size:15px;line-height:1.6;">
+                <p>Hi ${escapeHtml(input.greetingName)},</p>
+                <p>${escapeHtml(input.intro)}</p>
+                <h2 style="font-size:18px;color:#111827;margin:24px 0 12px;">Booking Details</h2>
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                  ${detailRows.map(([label, value]) => `
+                    <tr>
+                      <td style="padding:8px 0;color:#6b7280;width:120px;">${escapeHtml(label)}</td>
+                      <td style="padding:8px 0;color:#111827;font-weight:600;">${escapeHtml(value)}</td>
+                    </tr>
+                  `).join("")}
+                </table>
+                ${input.nextSteps?.length ? `
+                  <h2 style="font-size:18px;color:#111827;margin:24px 0 12px;">Next Steps</h2>
+                  <ul style="padding-left:20px;margin:0;">
+                    ${input.nextSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
+                  </ul>
+                ` : ""}
+                <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
+                <p style="font-size:13px;color:#9ca3af;line-height:1.6;margin:0;">ContCave by Arkanet Ventures LLP.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>
+  `;
+}
 
 export function getResetPasswordTemplate(name: string, resetUrl: string): string {
   return `
@@ -131,7 +210,6 @@ export function getCustomerOnboardingTemplate(name: string): string {
   `;
 }
 
-// Reservation Confirmation Customer With Invoice
 export async function sendReservationConfirmationCustomer(input: {
   toEmail: string;
   toName?: string;
@@ -140,7 +218,7 @@ export async function sendReservationConfirmationCustomer(input: {
   startTime: string;
   endTime: string;
   totalPrice: number;
-  addons: string;
+  addons?: string | null;
   studioLocation: string;
   additionalInfo?: string;
   setNames?: string;
@@ -149,29 +227,29 @@ export async function sendReservationConfirmationCustomer(input: {
   bookingId?: string;
   attachments?: AttachmentInput[];
 }) {
-  await sendTemplateEmail({
+  await sendEmail({
     toEmail: input.toEmail,
     toName: input.toName || "",
-    templateId: input.templateId || process.env.MS_TPL_RESERVATION_CUSTOMER || "",
-    data: {
-      customer_name: input.toName || "",
-      studio_name: input.studioName,
-      bookingId: input.bookingId || "",
-      start_date: input.startDate,
-      start_time: input.startTime,
-      end_time: input.endTime,
-      total_price: Math.round(input.totalPrice),
+    subject: `Your ContCave booking is confirmed: ${input.studioName}`,
+    html: getReservationEmailHtml({
+      greetingName: input.toName || "there",
+      intro: `This email confirms your booking for ${input.studioName}.`,
+      studioName: input.studioName,
+      startDate: input.startDate,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      totalPrice: input.totalPrice,
       addons: input.addons,
-      studio_location: input.studioLocation,
-      additional_info: input.additionalInfo || "",
-      set_names: input.setNames || "",
-      package_title: input.packageTitle || "",
-    },
+      studioLocation: input.studioLocation,
+      nextSteps: [
+        "Review the studio's guidelines for parking, access, and equipment use.",
+        "Arrive at least 15 minutes before your booking time.",
+      ],
+    }),
     attachments: input.attachments,
   });
 }
 
-// Reservation Confirmation Owner With Invoice
 export async function sendReservationConfirmationOwner(input: {
   toEmail: string;
   toName?: string;
@@ -185,29 +263,27 @@ export async function sendReservationConfirmationOwner(input: {
   packageTitle?: string | null;
   templateId?: string;
   bookingId?: string;
-  addons?: string;
+  addons?: string | null;
   formattedStartDate?: string;
   formattedStartTime?: string;
   formattedEndTime?: string;
   attachments?: AttachmentInput[];
 }) {
-  await sendTemplateEmail({
+  await sendEmail({
     toEmail: input.toEmail,
     toName: input.toName || "",
-    templateId: input.templateId || process.env.MS_TPL_RESERVATION_OWNER || "",
-    data: {
-      studio_owner_name: input.toName || "",
-      customer_name: input.customerName || "",
-      studio_name: input.studioName,
-      bookingId: input.bookingId || "",
-      formattedStartDate: input.formattedStartDate || input.startDate,
-      formattedStartTime: input.formattedStartTime || input.startTime,
-      formattedEndTime: input.formattedEndTime || input.endTime,
-      totalPrice: Math.round(input.totalPrice),
-      selectedAddonsList: input.addons || "None",
-      set_names: input.setNames || "",
-      package_title: input.packageTitle || "",
-    },
+    subject: `New ContCave booking: ${input.studioName}`,
+    html: getReservationEmailHtml({
+      greetingName: input.toName || "there",
+      intro: `${input.customerName || "A customer"} booked ${input.studioName}.`,
+      studioName: input.studioName,
+      startDate: input.formattedStartDate || input.startDate,
+      startTime: input.formattedStartTime || input.startTime,
+      endTime: input.formattedEndTime || input.endTime,
+      totalPrice: input.totalPrice,
+      addons: input.addons,
+      nextSteps: ["Review the booking in your dashboard and prepare the studio for the scheduled slot."],
+    }),
     attachments: input.attachments,
   });
 }

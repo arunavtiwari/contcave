@@ -18,6 +18,21 @@ const getApproveCode = (reservation: { isApproved?: number | null; isApprove?: n
     return Number.isFinite(numeric) ? numeric : undefined;
 };
 
+const getPublicVenueLocation = (listing: { locationValue?: string | null; actualLocation?: unknown } | null | undefined) => {
+    if (!listing) return "";
+    if (listing.locationValue) return listing.locationValue;
+
+    const location = listing.actualLocation;
+    if (!location || typeof location !== "object") return "";
+
+    const value = location as Record<string, unknown>;
+    const parts = [value.city, value.town, value.village, value.state, value.country]
+        .map((part) => typeof part === "string" ? part.trim() : "")
+        .filter(Boolean);
+
+    return Array.from(new Set(parts)).join(", ");
+};
+
 export default async function CashfreeReturnStatus({ searchParams }: { searchParams: Search }) {
     const tid = pickFirst(searchParams.order_id ?? searchParams.tid);
 
@@ -74,12 +89,7 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
     const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 
     const venueTitle = reservation.listing?.title ?? "-";
-    const venueAddress =
-        reservation.listing?.actualLocation &&
-            typeof reservation.listing.actualLocation === "object" &&
-            (reservation.listing.actualLocation as { display_name?: string }).display_name
-            ? (reservation.listing.actualLocation as { display_name?: string }).display_name!
-            : "";
+    const venueLocation = getPublicVenueLocation(reservation.listing);
 
     const heading = isConfirmed
         ? "Your reservation has been confirmed!"
@@ -94,7 +104,7 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
             : undefined;
 
     const listingHref = listingId ? `/listings/${listingId}` : "/";
-    const primaryCtaHref = isFailed ? listingHref : "/bookings";
+    const primaryCtaHref = isFailed ? listingHref : "/dashboard/bookings";
     const primaryCtaLabel = isFailed ? "BACK TO STUDIO" : "GO TO MY BOOKINGS";
 
     const reservationBlock = (
@@ -105,7 +115,7 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
             <ul className="mt-3 list-disc pl-4 space-y-1 text-base">
                 <li>
                     <span className="font-medium">Venue:</span> {venueTitle}
-                    {venueAddress && <span> - {venueAddress}</span>}
+                    {venueLocation && <span> - {venueLocation}</span>}
                 </li>
                 <li>
                     <span className="font-medium">Date:</span>{" "}
@@ -122,8 +132,8 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
     );
 
     return (
-        <main className="max-w-3xl mx-auto p-6 flex items-center">
-            <div className="mx-auto rounded-xl border bg-background/90 backdrop-blur p-6">
+        <main className="min-h-[calc(100vh-5rem)] w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 sm:py-10">
+            <div className="mx-auto rounded-xl border bg-background/90 backdrop-blur p-5 sm:p-6">
                 <h1 className="text-2xl font-semibold text-center">{heading}</h1>
                 {(isConfirmed || isFailed) && (
                     <div className="flex justify-center my-6">

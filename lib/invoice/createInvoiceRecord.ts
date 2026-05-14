@@ -144,10 +144,9 @@ export async function ensureInvoiceWithAttachment(
     content: pdfBuffer.toString("base64"),
   };
 
-  const folder = `users/${user.id}/invoices`;
   const timestamp = Math.floor(Date.now() / 1000);
   const publicId = `reservation_${reservationId}_${timestamp}`;
-  const key = `${folder}/${publicId}.pdf`;
+  const key = `users/${user.id}/billing/invoices/${publicId}/invoice.pdf`;
 
   const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
   if (!bucket) throw new Error("Missing R2 bucket config");

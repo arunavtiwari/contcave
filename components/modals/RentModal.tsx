@@ -144,6 +144,18 @@ const toStoredVerificationPayload = (
   };
 };
 
+const storageKeyFromUrl = (url: string): string | undefined => {
+  const publicBase = process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL?.replace(/\/$/, "");
+  if (!publicBase || !url.startsWith(`${publicBase}/`)) return undefined;
+  return url.slice(publicBase.length + 1);
+};
+
+const createObjectId = () => {
+  const bytes = new Uint8Array(12);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
 type StepDefinition = {
   id: STEPS;
   modalTitle: string;
@@ -850,11 +862,12 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     uiStore.onClose("rent");
 
     try {
-      const finalImageUrls = await uploadToR2(remoteImages, "listing_main");
+      const listingId = createObjectId();
+      const finalImageUrls = await uploadToR2(remoteImages, `listings/${listingId}/media/main`);
 
       let finalVideoUrl = data.videoSrc;
       if (data.videoSrc && data.videoSrc.startsWith('blob:')) {
-        const uploadedVideos = await uploadToR2([data.videoSrc], "listing_videos");
+        const uploadedVideos = await uploadToR2([data.videoSrc], `listings/${listingId}/media/videos`);
         finalVideoUrl = uploadedVideos[0];
       }
 
@@ -864,9 +877,22 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         return toast.error("Please upload at least one image");
       }
 
+      const finalAddons = await Promise.all(
+        (Array.isArray(data.addons) ? data.addons : []).map(async (addon) => {
+          const addonId = addon.id || createObjectId();
+          let imageUrl = addon.imageUrl || "";
+          if (imageUrl.startsWith("blob:")) {
+            const [uploadedUrl] = await uploadToR2([imageUrl], `listings/${listingId}/addons/${addonId}`);
+            imageUrl = uploadedUrl;
+          }
+          return { ...addon, id: addonId, imageUrl };
+        })
+      );
+
       const storedVerifications = toStoredVerificationPayload(data.verifications);
 
       const payload = {
+        id: listingId,
         title: data.title,
         description: data.description,
         imageSrc: finalImageUrls,
@@ -880,7 +906,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         price: Number(data.price),
         amenities: Array.isArray(data.amenities) ? data.amenities : [],
         otherAmenities: Array.isArray(data.otherAmenities) ? data.otherAmenities : [],
-        addons: Array.isArray(data.addons) ? data.addons : [],
+        addons: finalAddons,
         carpetArea: data.carpetArea,
         operationalHours: (data.operationalHours?.start && data.operationalHours?.end) ? {
           start: String(data.operationalHours.start),
@@ -908,6 +934,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         additionalSetPricingType: data.hasSets ? data.additionalSetPricingType : null,
 
         sets: data.hasSets ? (data.sets ?? []).map((s, i) => ({
+          id: s.id && /^[0-9a-fA-F]{24}$/.test(s.id) ? s.id : createObjectId(),
           name: String(s.name).trim(),
           description: s.description ? String(s.description).trim() : null,
           images: Array.isArray(s.images) ? (s.images as string[]) : [],
@@ -921,7 +948,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         for (let i = 0; i < finalSets.length; i++) {
           const set = finalSets[i];
           if (set.images && set.images.length > 0) {
-            finalSets[i].images = await uploadToR2(set.images, "listing_sets");
+            finalSets[i].images = await uploadToR2(set.images, `listings/${listingId}/media/sets/${set.id}`);
           }
         }
       }
@@ -932,9 +959,9 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         throw new Error(createdListing.error || "Listing creation failed");
       }
 
-      const listingId = createdListing?.data?.id;
+      const createdListingId = createdListing?.data?.id;
 
-      if (!listingId) {
+      if (!createdListingId || createdListingId !== listingId) {
         throw new Error("Listing creation failed: No listing ID returned");
       }
 
@@ -945,7 +972,10 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         if (docsWithFiles.length > 0) {
           try {
             const filesToUpload = docsWithFiles.map(d => d.file as File);
-            const uploadedUrls = await uploadToR2(filesToUpload, `verifications/${listingId}`);
+            const uploadedUrls = await uploadToR2(
+              filesToUpload,
+              `listings/${listingId}/compliance/verification/general`
+            );
 
             for (let i = 0; i < docsWithFiles.length; i++) {
               const doc = docsWithFiles[i];
@@ -955,7 +985,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
                   bytes: doc.bytes || 0,
                   format: 'pdf',
                   resource_type: 'raw',
-                  public_id: `verifications/${listingId}/${doc.original_filename || "doc"}`,
+                  public_id: storageKeyFromUrl(uploadedUrls[i]) || `listings/${listingId}/compliance/verification/general/${doc.original_filename || "doc"}`,
                   version: 1,
                   url: uploadedUrls[i],
                 });

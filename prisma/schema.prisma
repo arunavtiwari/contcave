@@ -141,6 +141,9 @@ model Listing {
   packages                 Package[]
   status                   ListingStatus             @default(PENDING)
   active                   Boolean                   @default(false)
+  reviewedAt               DateTime?
+  reviewedById             String?                   @db.ObjectId
+  rejectionReason          String?
   hasSets                  Boolean                   @default(false)
   setsHaveSamePrice        Boolean                   @default(false)
   unifiedSetPrice          Int?

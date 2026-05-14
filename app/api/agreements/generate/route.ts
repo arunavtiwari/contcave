@@ -150,10 +150,10 @@ export async function POST(request: Request) {
         );
 
         // 2. Prepare R2 Upload
-        const folder = `users/${currentUser.id}/listings/${actualListingId}/agreements`;
+        const folder = `users/${currentUser.id}/listings/${actualListingId}/compliance/agreements`;
         const timestamp = Math.floor(Date.now() / 1000);
         const publicId = `agreement-${timestamp}`;
-        const key = `${folder}/${publicId}.pdf`;
+        const key = `${folder}/${publicId}/signed.pdf`;
 
         const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
         if (!bucket) throw new Error("Missing R2 bucket config");
@@ -180,7 +180,7 @@ export async function POST(request: Request) {
         return createSuccessResponse({
             url: secureUrl,
             pdfUrl: secureUrl,
-            public_id: publicId,
+            public_id: key,
         });
     } catch (error) {
         return handleRouteError(error, "POST /api/agreements/generate");

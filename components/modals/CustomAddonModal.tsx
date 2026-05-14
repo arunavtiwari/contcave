@@ -11,7 +11,6 @@ import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
 import useUIStore from "@/hooks/useUIStore";
-import { uploadToR2 } from "@/lib/storage/upload";
 
 const customAddonSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -28,7 +27,6 @@ function CustomAddonModal({ save }: Props) {
 
   const [image, setImage] = useState<string[]>([]);
   const [addonFile, setAddonFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
 
   const {
     register,
@@ -48,20 +46,11 @@ function CustomAddonModal({ save }: Props) {
       return;
     }
 
-    setIsUploading(true);
-    try {
-      const [uploadedUrl] = await uploadToR2([addonFile], "addons");
-      save({ name: data.name, imageUrl: uploadedUrl });
-      uiStore.onClose("addon");
-      reset();
-      setImage([]);
-      setAddonFile(null);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : "Upload failed";
-      toast.error(msg);
-    } finally {
-      setIsUploading(false);
-    }
+    save({ name: data.name, imageUrl: image[image.length - 1] });
+    uiStore.onClose("addon");
+    reset();
+    setImage([]);
+    setAddonFile(null);
   };
 
   return (
@@ -71,8 +60,7 @@ function CustomAddonModal({ save }: Props) {
       nestedModal={true}
       isOpen={uiStore.modals.addon}
       title="Create Add-On"
-      actionLabel={isUploading ? "Uploading..." : "Create"}
-      disabled={isUploading}
+      actionLabel="Create"
       onCloseAction={() => uiStore.onClose("addon")}
       onSubmitAction={handleSubmit(onSubmit)}
       body={

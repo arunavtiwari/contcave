@@ -206,6 +206,139 @@ export async function createActiveListingFixture(ownerId: string, suffix: string
   return listing;
 }
 
+export async function createAdminUserFixture(suffix: string) {
+  const account = qaAccount("owner", `admin-${suffix}`);
+  const hashedPassword = await bcrypt.hash(account.password, 12);
+
+  const user = await prisma.user.create({
+    data: {
+      email: account.email,
+      name: account.name,
+      phone: account.phone,
+      hashedPassword,
+      role: "ADMIN",
+      email_verified: true,
+      phone_verified: true,
+      aadhaar_verified: true,
+      bank_verified: true,
+      is_verified: true,
+      verification_stage: 3,
+      verified_at: new Date(),
+      bank_verified_name: account.name,
+      aadhaar_last4: "4321",
+      aadhaar_ref_id: `aadhaar-ref-${suffix}`,
+      verified_via: ["e2e_admin_fixture"],
+    },
+  });
+
+  trackCreated("user", user.id);
+  return { account, user };
+}
+
+export async function createReviewListingFixture(params: {
+  ownerId: string;
+  suffix: string;
+  status?: "PENDING" | "VERIFIED" | "REJECTED";
+}) {
+  const state = readRunState();
+  const status = params.status ?? "PENDING";
+  const title = `${state.runId} Review Studio ${params.suffix}`;
+  const paymentDetails = await prisma.paymentDetails.upsert({
+    where: { userId: params.ownerId },
+    update: {},
+    create: {
+      userId: params.ownerId,
+      accountHolderName: "QA Verified Host",
+      bankName: "QA Bank",
+      accountNumber: "123456789012",
+      ifscCode: "HDFC0001234",
+      companyName: "QA Studios LLP",
+      gstin: "29ABCDE1234F1Z5",
+      cashfreeVendorId: `qa_vendor_${params.suffix}`,
+    },
+  });
+  trackCreated("paymentDetails", paymentDetails.id);
+
+  const listing = await prisma.listing.create({
+    data: {
+      slug: `${state.runId}-review-studio-${params.suffix}`.toLowerCase(),
+      title,
+      description:
+        "<p>QA review studio with complete moderation details, verification documents, agreement PDF, amenities, add-ons, and package data.</p>",
+      imageSrc: ["https://assets.contcave.com/e2e/placeholder-studio.png"],
+      videoSrc: "https://assets.contcave.com/e2e/video-tour.mp4",
+      category: "Indoor Studio",
+      locationValue: "Delhi",
+      actualLocation: {
+        latlng: [28.62868, 77.21905],
+        label: "Delhi",
+        display_name: "Connaught Place, New Delhi, Delhi, India",
+      },
+      price: 2200,
+      userId: params.ownerId,
+      amenities: ["WiFi", "Changing Room"],
+      otherAmenities: ["QA cyclorama"],
+      addons: [{ name: "Continuous LED Light", price: 250, qty: 2 }],
+      carpetArea: 1400,
+      operationalDays: { start: "Mon", end: "Sat" },
+      operationalHours: { start: "9:00 AM", end: "9:00 PM" },
+      minimumBookingHours: 2,
+      maximumPax: 10,
+      instantBooking: false,
+      type: ["Fashion Shoot", "Product Shoot"],
+      verifications: {
+        documents: [
+          {
+            original_filename: "ownership-proof.pdf",
+            bytes: 2048,
+            format: "pdf",
+            url: "https://assets.contcave.com/e2e/ownership-proof.pdf",
+          },
+        ],
+        agreementPdf: {
+          url: "https://assets.contcave.com/e2e/agreement.pdf",
+          pdfUrl: "https://assets.contcave.com/e2e/agreement.pdf",
+          public_id: "agreement-fixture",
+        },
+      },
+      terms: true,
+      status,
+      active: status === "VERIFIED",
+      hasSets: true,
+      setsHaveSamePrice: false,
+      customTerms: "<p>QA custom moderation terms.</p>",
+    },
+  });
+
+  await prisma.listingSet.create({
+    data: {
+      listingId: listing.id,
+      name: "Main Set",
+      description: "Fixture set",
+      images: ["https://assets.contcave.com/e2e/set.png"],
+      price: 500,
+      position: 0,
+    },
+  });
+
+  await prisma.package.create({
+    data: {
+      listingId: listing.id,
+      title: "QA Review Package",
+      description: "Moderation package",
+      originalPrice: 4500,
+      offeredPrice: 3900,
+      features: ["Two hour shoot", "Basic lighting"],
+      durationHours: 2,
+      eligibleSetIds: [],
+      isActive: true,
+    },
+  });
+
+  trackCreated("listing", listing.id);
+  return listing;
+}
+
 export async function promoteListingForBooking(listingId: string) {
   const listing = await prisma.listing.update({
     where: { id: listingId },
