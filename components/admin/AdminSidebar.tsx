@@ -22,9 +22,6 @@ const AdminSidebar: React.FC = React.memo(() => {
             {/* Header */}
             <div className="border-b border-border px-5 py-6">
                 <Link href="/admin/dashboard/listings" className="flex items-center gap-3 rounded-xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-neutral-50 text-foreground">
-                        <FiShield size={19} />
-                    </span>
                     <Image
                         src="/assets/logo.png"
                         alt="Contcave Logo"
