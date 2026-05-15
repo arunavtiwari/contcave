@@ -92,22 +92,22 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: number; 
     );
 }
 
-function KycPill({ verified }: { verified: boolean }) {
+function KycPill({ verified, size }: { verified: boolean; size?: "xs" | "sm" | "md" }) {
     return (
         <Pill
             label={verified ? "KYC Verified" : "KYC Incomplete"}
             icon={FiShield}
             variant={verified ? "success" : "warning"}
-            size="xs"
+            size={size}
         />
-    );
+);
 }
 
 function Detail({ label, value }: { label: string; value: unknown }) {
     return (
         <div className="min-w-0 rounded-xl border border-border bg-muted/30 p-3">
             <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</dt>
-            <dd className="mt-1 whitespace-pre-wrap break-words text-sm font-medium text-foreground">{detailValue(value)}</dd>
+            <dd className="mt-1 whitespace-pre-wrap wrap-break-word text-sm font-medium text-foreground">{detailValue(value)}</dd>
         </div>
     );
 }
@@ -227,7 +227,7 @@ function ReviewModal({
                 <div className="space-y-8" data-testid="admin-listing-review-modal">
                     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.1fr_0.9fr]">
                         <div className="space-y-4">
-                            <div className="relative aspect-[16/9] overflow-hidden rounded-xl border border-border bg-muted">
+                            <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-muted">
                                 <Image
                                     src={listing.imageSrc[0] || "/assets/listing-image-default.png"}
                                     alt={listing.title}
@@ -289,9 +289,14 @@ function ReviewModal({
                                 <DocumentLink title="Verification documents" />
                             )}
                             <DocumentLink href={agreementUrl} title="Signed agreement PDF" meta={listing.verifications.agreementPdf?.public_id} />
-                            {listing.videoSrc && <DocumentLink href={listing.videoSrc} title="Uploaded video tour" />}
                         </div>
                     </Section>
+
+                    {listing.videoSrc && (
+                        <Section title="Video Tour">
+                            <video src={listing.videoSrc} controls className="w-full max-w-2xl rounded-xl border border-border" />
+                        </Section>
+                    )}
 
                     <Section title="Listing Details">
                         <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
@@ -306,41 +311,59 @@ function ReviewModal({
                         </div>
                     </Section>
 
-                    <Section title="Amenities & Add-ons">
-                        <div className="space-y-3">
-                            <div className="flex flex-wrap gap-2">
-                                {allAmenities.length > 0 ? allAmenities.map((item) => (
-                                    <Pill key={item} label={item} variant="subtle" size="xs" />
-                                )) : <span className="text-sm text-muted-foreground">No amenities provided.</span>}
-                            </div>
-                            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                                {addons.length > 0 ? addons.map((addon, index) => (
-                                    <Detail
-                                        key={`${addon.name || index}`}
-                                        label={String(addon.name || `Add-on ${index + 1}`)}
-                                        value={`${formatINR(Number(addon.price || 0))} • Qty ${Number(addon.qty || 0)}`}
-                                    />
-                                )) : <Detail label="Add-ons" value={null} />}
-                            </div>
+                    <Section title="Amenities">
+                        <div className="flex flex-wrap gap-2">
+                            {allAmenities.length > 0 ? allAmenities.map((item) => (
+                                <Pill key={item} label={item} variant="subtle" size="xs" />
+                            )) : <span className="text-sm text-muted-foreground">No amenities provided.</span>}
                         </div>
                     </Section>
 
-                    <Section title="Sets & Packages">
+                    <Section title="Add-ons">
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                            {addons.length > 0 ? addons.map((addon, index) => (
+                                <Detail
+                                    key={`${addon.name || index}`}
+                                    label={String(addon.name || `Add-on ${index + 1}`)}
+                                    value={`${formatINR(Number(addon.price || 0))} • Qty ${Number(addon.qty || 0)}`}
+                                />
+                            )) : <span className="text-sm text-muted-foreground">No add-ons defined.</span>}
+                        </div>
+                    </Section>
+
+                    <Section title="Sets">
+                        {listing.sets.length > 0 ? (
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                {listing.sets.map((set) => (
+                                    <div key={set.id} className="overflow-hidden rounded-xl border border-border bg-background">
+                                        <div className="relative aspect-video w-full bg-muted">
+                                            {set.images.length > 0 ? (
+                                                <Image src={set.images[0]} alt={set.name} fill className="object-cover" sizes="(max-width: 640px) 100vw, 33vw" />
+                                            ) : (
+                                                <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No Image</div>
+                                            )}
+                                        </div>
+                                        <div className="p-3">
+                                            <div className="font-semibold text-foreground">{set.name}</div>
+                                            <div className="mt-1 text-sm text-muted-foreground">{formatINR(set.price)} • {set.images.length} images</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <Detail label="Sets" value={listing.hasSets ? "No set data provided" : "Entire studio listing"} />
+                        )}
+                    </Section>
+
+                    <Section title="Packages">
                         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                            <div className="space-y-3">
-                                {listing.sets.length > 0 ? listing.sets.map((set) => (
-                                    <Detail key={set.id} label={set.name} value={`${formatINR(set.price)} • ${set.images.length} images`} />
-                                )) : <Detail label="Sets" value={listing.hasSets ? "No set data provided" : "Entire studio listing"} />}
-                            </div>
-                            <div className="space-y-3">
-                                {listing.packages.length > 0 ? listing.packages.map((pkg) => (
-                                    <Detail
-                                        key={pkg.id}
-                                        label={pkg.title}
-                                        value={`${formatINR(pkg.offeredPrice)} • ${pkg.durationHours} hr • ${pkg.features.join(", ") || "No features"}`}
-                                    />
-                                )) : <Detail label="Packages" value={null} />}
-                            </div>
+                            {listing.packages.length > 0 ? listing.packages.map((pkg) => (
+                                <Detail
+                                    key={pkg.id}
+                                    label={pkg.title}
+                                    value={`${formatINR(pkg.offeredPrice)} • ${pkg.durationHours} hr • ${pkg.features.join(", ") || "No features"}`}
+                                />
+                            )) : <Detail label="Packages" value="No packages defined" />}
                         </div>
                     </Section>
 
@@ -529,7 +552,7 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                                             <div className="min-w-52 space-y-1">
                                                 <div className="truncate text-sm font-medium text-foreground">{listing.user?.name || "Unknown host"}</div>
                                                 <div className="truncate text-xs text-muted-foreground">{listing.user?.email || "No email"}</div>
-                                                <KycPill verified={Boolean(listing.user?.is_verified)} />
+                                                <KycPill verified={Boolean(listing.user?.is_verified)} size="xs" />
                                             </div>
                                         </td>
                                         <td className="px-5 py-4">

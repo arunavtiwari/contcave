@@ -78,19 +78,26 @@ function maskReference(value: string | null | undefined, visible = 4) {
     return `${"•".repeat(Math.min(6, value.length - visible))}${value.slice(-visible)}`;
 }
 
+import getAmenities from "@/app/actions/getAmenities";
+
 export type AdminListingReview = Awaited<ReturnType<typeof getAdminListingReviews>>[number];
 
 export async function getAdminListingReviews(status?: AdminListingStatus) {
     try {
-        const listings = await prisma.listing.findMany({
-            where: status ? { status } : {},
-            include: {
-                packages: { orderBy: { createdAt: "asc" } },
-                sets: { orderBy: [{ position: "asc" }, { price: "asc" }] },
-                user: { include: { paymentDetails: true } },
-            },
-            orderBy: { createdAt: "desc" },
-        });
+        const [listings, allAmenities] = await Promise.all([
+            prisma.listing.findMany({
+                where: status ? { status } : {},
+                include: {
+                    packages: { orderBy: { createdAt: "asc" } },
+                    sets: { orderBy: [{ position: "asc" }, { price: "asc" }] },
+                    user: { include: { paymentDetails: true } },
+                },
+                orderBy: { createdAt: "desc" },
+            }),
+            getAmenities(),
+        ]);
+
+        const amenityMap = new Map(allAmenities.map(a => [String(a.id), a.name]));
 
         return listings.map((listing) => {
             const paymentDetails = listing.user?.paymentDetails
@@ -114,7 +121,7 @@ export async function getAdminListingReviews(status?: AdminListingStatus) {
                 createdAt: listing.createdAt.toISOString(),
                 reviewedAt: listing.reviewedAt?.toISOString() || null,
                 rejectionReason: listing.rejectionReason,
-                amenities: listing.amenities,
+                amenities: listing.amenities.map(id => amenityMap.get(String(id)) || id),
                 otherAmenities: listing.otherAmenities,
                 addons: listing.addons,
                 carpetArea: listing.carpetArea,

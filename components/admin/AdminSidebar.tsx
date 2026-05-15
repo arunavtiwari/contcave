@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
-import { FiShield } from "react-icons/fi";
 import { HiOutlineLogout } from "react-icons/hi";
 
 import { logoutAdmin } from "@/app/actions/logoutAdmin";
