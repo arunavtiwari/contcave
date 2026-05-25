@@ -20,7 +20,19 @@ function formatYmd(date: Date) {
 }
 
 async function selectFirstBookableSlot(page: import("@playwright/test").Page) {
-  const targetDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const now = new Date();
+  const targetDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  await page.locator(".rdrCalendarWrapper").waitFor({ state: "visible" });
+
+  if (targetDate.getMonth() !== now.getMonth()) {
+    const nextMonthBtn = page.locator(".rdrNextButton");
+    if (await nextMonthBtn.isVisible()) {
+      await nextMonthBtn.click();
+      await page.waitForTimeout(500);
+    }
+  }
+
   const targetDay = String(targetDate.getDate());
   const day = page
     .locator(".rdrDay:not(.rdrDayPassive)")

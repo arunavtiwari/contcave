@@ -146,6 +146,9 @@ export async function selectAddressOption(page: Page, search: string, optionName
   const option = page.getByRole("option", { name: optionPattern }).first();
   await expect(option).toBeVisible({ timeout: 20_000 });
   await option.click();
+
+  // Allow async Google Places details fetch and React/form state update to complete
+  await page.waitForTimeout(1500);
 }
 
 export async function fillRichText(page: Page, testId: string, value: string) {
