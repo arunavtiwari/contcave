@@ -170,14 +170,14 @@ function KycGrid({ listing }: { listing: AdminListingReview }) {
     return (
         <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
-                <KycPill verified={Boolean(user?.is_verified)} />
+                <KycPill verified={Boolean(user?.is_verified)} size="sm" />
                 {checks.map((check) => (
                     <Pill
                         key={check.label}
                         label={check.label}
                         icon={check.value ? FiCheck : FiX}
                         variant={check.value ? "success" : "neutral"}
-                        size="xs"
+                        size="sm"
                     />
                 ))}
             </div>
@@ -247,7 +247,7 @@ function ReviewModal({
                         <div className="space-y-4">
                             <div className="flex flex-wrap items-center gap-2">
                                 <Pill label={listing.status} variant={statusVariant(listing.status)} size="sm" />
-                                <KycPill verified={Boolean(listing.user?.is_verified)} />
+                                <KycPill verified={Boolean(listing.user?.is_verified)} size="sm" />
                                 <Pill label={listing.active ? "Active" : "Inactive"} variant={listing.active ? "success" : "neutral"} size="sm" />
                             </div>
                             <div>
@@ -393,21 +393,25 @@ function ReviewModal({
                         data-testid="admin-review-open-preview"
                     />
                     <div className="flex flex-col gap-3 sm:flex-row">
-                        <Button
-                            label="Reject"
-                            variant="destructive"
-                            outline
-                            disabled={isMutating || listing.status === "REJECTED"}
-                            onClick={() => onRequestAction("reject")}
-                            data-testid="admin-review-reject"
-                        />
-                        <Button
-                            label="Approve"
-                            variant="default"
-                            disabled={isMutating || listing.status === "VERIFIED"}
-                            onClick={() => onRequestAction("approve")}
-                            data-testid="admin-review-approve"
-                        />
+                        {listing.status !== "VERIFIED" && (
+                            <Button
+                                label="Reject"
+                                variant="destructive"
+                                outline
+                                disabled={isMutating || listing.status === "REJECTED"}
+                                onClick={() => onRequestAction("reject")}
+                                data-testid="admin-review-reject"
+                            />
+                        )}
+                        {listing.status !== "VERIFIED" && (
+                            <Button
+                                label="Approve"
+                                variant="default"
+                                disabled={isMutating}
+                                onClick={() => onRequestAction("approve")}
+                                data-testid="admin-review-approve"
+                            />
+                        )}
                     </div>
                 </div>
             }
