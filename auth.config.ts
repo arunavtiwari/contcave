@@ -51,10 +51,10 @@ const PROTECTED_ROUTES = [
     '/properties',
     '/reservations',
     '/profile-transaction',
-    '/admin',
+    '/admin/dashboard',
 ] as const;
 
-const ADMIN_ROUTES = ['/admin'] as const;
+const ADMIN_ROUTES = ['/admin/dashboard'] as const;
 
 const PUBLIC_API_ROUTES = [
     '/api/auth',
