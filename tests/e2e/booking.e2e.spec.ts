@@ -1,5 +1,3 @@
-import { expect, test } from "@playwright/test";
-
 import {
   createActiveListingFixture,
   createUserFixture,
@@ -9,6 +7,7 @@ import {
   waitForReservation,
   waitForUserByEmail,
 } from "./support/db";
+import { expect, test } from "./support/test";
 import { completeCashfreeCheckout, loginViaUi, registerCustomerViaUi } from "./support/ui";
 
 test.describe.configure({ mode: "serial" });

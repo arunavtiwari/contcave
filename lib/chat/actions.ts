@@ -89,7 +89,7 @@ export async function incrementUnreadCount(reservationId: string, text?: string)
 
         // Notify recipient via Ably
         if (recipientId) {
-            const ablyApiKey = process.env.NEXT_PUBLIC_ABLY_CHAT_API;
+            const ablyApiKey = process.env.ABLY_CHAT_API;
             if (ablyApiKey) {
                 const ably = new Ably.Rest({ key: ablyApiKey });
                 const channel = ably.channels.get(`notifications:${recipientId}`);

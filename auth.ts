@@ -1,5 +1,4 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
@@ -9,8 +8,9 @@ import prisma from "@/lib/prismadb";
 
 import { authConfig } from "./auth.config";
 
-delete process.env.AUTH_URL;
-delete process.env.NEXTAUTH_URL;
+// Note: AUTH_URL / NEXTAUTH_URL are intentionally not deleted here.
+// Removing env vars at module level mutates process.env globally and can
+// cause subtle bugs in other modules that read these values.
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma),
@@ -56,11 +56,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 });
 
                 if (!user || !user.hashedPassword) {
-                    if (!user) {
-                        throw new Error("User not found");
-                    } else {
-                        throw new Error("Invalid credentials");
-                    }
+                    // Use the same message regardless of whether the user exists
+                    // to prevent email enumeration attacks.
+                    throw new Error("Invalid credentials");
                 }
 
                 const isCorrectPassword = await bcrypt.compare(
@@ -78,16 +76,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         async signIn(message) {
             if (message.account?.provider === "google-calendar") {
                 try {
+                    // Only mark the calendar as connected — never touch role here.
+                    // Role promotion to OWNER must happen through the verified
+                    // onboarding flow, not automatically on calendar connection.
                     await prisma.user.update({
                         where: { id: message.user.id },
-                        data: {
-
-                            role: "OWNER" as UserRole,
-                            googleCalendarConnected: true,
-                        },
+                        data: { googleCalendarConnected: true },
                     });
                 } catch (error) {
-                    console.error("Error updating fields in signIn event:", error);
+                    console.error("Error updating googleCalendarConnected:", error);
                 }
             }
         },

@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+import { type Page } from "@playwright/test";
 
 import {
   createAdminUserFixture,
@@ -7,6 +7,7 @@ import {
   prisma,
 } from "./support/db";
 import { getE2EConnectionEnv } from "./support/env";
+import { expect, test } from "./support/test";
 
 function adminBaseUrl() {
   const base = new URL(getE2EConnectionEnv().baseUrl);

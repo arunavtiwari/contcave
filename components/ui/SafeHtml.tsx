@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 interface SafeHtmlProps {
     html: string;
     className?: string;
-    sanitize?: boolean;
 }
 
 /**
@@ -17,11 +16,10 @@ interface SafeHtmlProps {
 const SafeHtml: React.FC<SafeHtmlProps> = ({
     html,
     className,
-    sanitize = true
 }) => {
     const cleanHtml = React.useMemo(() => {
-        return sanitize ? DOMPurify.sanitize(html) : html;
-    }, [html, sanitize]);
+        return DOMPurify.sanitize(html);
+    }, [html]);
 
     if (!html) return null;
 

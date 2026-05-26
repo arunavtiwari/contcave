@@ -27,8 +27,7 @@ async function dismissCookieBanner(page: Page) {
 }
 
 async function waitForAppToSettle(page: Page) {
-  await page.waitForLoadState("domcontentloaded", { timeout: 10_000 }).catch(() => undefined);
-  await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+  await page.waitForLoadState("load", { timeout: 5_000 }).catch(() => undefined);
 }
 
 async function modalByTestIdOrDialog(page: Page, testId: string, name: RegExp) {

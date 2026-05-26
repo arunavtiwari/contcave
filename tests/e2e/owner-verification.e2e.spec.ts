@@ -1,6 +1,5 @@
-import { expect, test } from "@playwright/test";
-
 import { assertOwnerFullyVerified, createUserFixture, qaAccount, waitForUserByEmail } from "./support/db";
+import { expect, test } from "./support/test";
 import { completeOwnerVerification, loginViaUi, registerOwnerViaUi } from "./support/ui";
 
 test.describe.configure({ mode: "serial" });

@@ -11,6 +11,7 @@ import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { mergeRegister } from "@lexical/utils";
+import DOMPurify from "isomorphic-dompurify";
 import {
   $createParagraphNode,
   $getRoot,
@@ -333,7 +334,7 @@ export default function RichTextEditor({
             {(!hasInitialized) && value && (
               <div
                 className="absolute inset-0 p-4 prose prose-sm dark:prose-invert max-w-none z-0 pointer-events-none opacity-40"
-                dangerouslySetInnerHTML={{ __html: value }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(value) }}
               />
             )}
 

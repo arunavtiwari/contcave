@@ -50,8 +50,11 @@ const PROTECTED_ROUTES = [
     '/payments',
     '/properties',
     '/reservations',
-    '/profile-transaction'
+    '/profile-transaction',
+    '/admin',
 ] as const;
+
+const ADMIN_ROUTES = ['/admin'] as const;
 
 const PUBLIC_API_ROUTES = [
     '/api/auth',
@@ -65,14 +68,11 @@ function logSecurityEvent(
     context: { path: string; user?: string; ip?: string }
 ) {
     const timestamp = new Date().toISOString();
-    const logMessage = `[${timestamp}] Security Event: ${event} - Path: ${context.path}${context.user ? ` - User: ${context.user}` : ''
-        }`;
-
-    if (process.env.NODE_ENV === 'production') {
-        console.warn(logMessage);
-    } else {
-        console.warn(logMessage);
-    }
+    console.warn(
+        `[${timestamp}] Security Event: ${event} - Path: ${context.path}${
+            context.user ? ` - User: ${context.user}` : ''
+        }`
+    );
 }
 
 export const authConfig = {
@@ -104,8 +104,16 @@ export const authConfig = {
 
             if (isProtected) {
                 if (!isLoggedIn) {
+                    logSecurityEvent('unauthorized_access', { path: pathname });
+                    return false;
+                }
+
+                // Admin routes require the ADMIN role in addition to being logged in
+                const isAdminRoute = ADMIN_ROUTES.some(route => pathname.startsWith(route));
+                if (isAdminRoute && auth?.user?.role !== 'ADMIN') {
                     logSecurityEvent('unauthorized_access', {
                         path: pathname,
+                        user: auth.user?.email || auth.user?.id,
                     });
                     return false;
                 }

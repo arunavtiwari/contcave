@@ -51,7 +51,13 @@ export async function POST(req: NextRequest) {
         const sig = req.headers.get("x-webhook-signature") || 
                     req.headers.get("x-cf-signature") || 
                     "";
-        const strict = process.env.NODE_ENV === "production";
+        // Always enforce signature verification.
+        // The only bypass is CASHFREE_SKIP_WEBHOOK_SIG=true, which is
+        // explicitly blocked in production to prevent accidental misconfiguration.
+        const skipVerify =
+            process.env.CASHFREE_SKIP_WEBHOOK_SIG === "true" &&
+            process.env.NODE_ENV !== "production";
+        const strict = !skipVerify;
 
         if (strict && (!ts || !sig)) {
             return createErrorResponse("Missing required webhook headers", 400);

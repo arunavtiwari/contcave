@@ -19,7 +19,7 @@ class EncryptionService {
     private readonly keyLength = 32;
     private readonly ivLength = 16;
     private readonly saltLength = 16;
-    private readonly iterations = 10000;
+    private readonly iterations = 310_000;
     private readonly digest = 'sha256';
 
     constructor() {

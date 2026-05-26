@@ -1,8 +1,7 @@
-import { PaymentDetails, PrismaClient } from '@prisma/client';
+import { PaymentDetails } from '@prisma/client';
 
+import prisma from "@/lib/prismadb";
 import { encryptionService } from "@/lib/security/encryption";
-
-const prisma = new PrismaClient();
 
 export interface PaymentDetailsData {
     userId: string;

@@ -76,4 +76,10 @@ module.exports = [
       'no-var': 'error',
     },
   },
+  {
+    files: ['tests/e2e/**/*.{js,jsx,ts,tsx}'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+    },
+  },
 ];

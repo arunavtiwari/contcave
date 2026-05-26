@@ -1,6 +1,5 @@
-import { expect, test } from "@playwright/test";
-
 import { createUserFixture, prisma, waitForListingByTitle } from "./support/db";
+import { expect, test } from "./support/test";
 import { createListingViaRentModal, loginViaUi, openUserMenu, selectAddressOption, selectReactOption } from "./support/ui";
 
 test.describe.configure({ mode: "serial" });

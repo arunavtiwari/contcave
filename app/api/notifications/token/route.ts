@@ -13,7 +13,7 @@ export async function POST(_request: NextRequest) {
             return createErrorResponse("Unauthorized", 401);
         }
 
-        const ablyApiKey = process.env.NEXT_PUBLIC_ABLY_CHAT_API;
+        const ablyApiKey = process.env.ABLY_CHAT_API;
         if (!ablyApiKey) {
             return createErrorResponse("Server configuration error", 500);
         }
@@ -28,7 +28,7 @@ export async function POST(_request: NextRequest) {
         const tokenRequest = await client.auth.createTokenRequest({
             capability,
             clientId: currentUser.id,
-            ttl: 24 * 60 * 60 * 1000, // 24 hours
+            ttl: 4 * 60 * 60 * 1000, // 4 hours
         });
 
         return NextResponse.json(tokenRequest);

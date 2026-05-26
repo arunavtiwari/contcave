@@ -4,6 +4,7 @@ import { PaymentDetails } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createAction } from "@/lib/actions-utils";
 import { ListingService } from "@/lib/listing/service";
 import { decryptAndSanitizePaymentDetails } from "@/lib/payment-details";
@@ -84,6 +85,11 @@ export type AdminListingReview = Awaited<ReturnType<typeof getAdminListingReview
 
 export async function getAdminListingReviews(status?: AdminListingStatus) {
     try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser || currentUser.role !== "ADMIN") {
+            return [];
+        }
+
         const [listings, allAmenities] = await Promise.all([
             prisma.listing.findMany({
                 where: status ? { status } : {},
@@ -100,9 +106,14 @@ export async function getAdminListingReviews(status?: AdminListingStatus) {
         const amenityMap = new Map(allAmenities.map(a => [String(a.id), a.name]));
 
         return listings.map((listing) => {
-            const paymentDetails = listing.user?.paymentDetails
-                ? decryptAndSanitizePaymentDetails(listing.user.paymentDetails as PaymentDetails)
-                : null;
+            let paymentDetails = null;
+            if (listing.user?.paymentDetails) {
+                try {
+                    paymentDetails = decryptAndSanitizePaymentDetails(listing.user.paymentDetails as PaymentDetails);
+                } catch (error) {
+                    console.error(`[AdminListings] Failed to decrypt payment details for listing ${listing.id}:`, error);
+                }
+            }
             const verifications = normalizeVerifications(listing.verifications);
 
             return {

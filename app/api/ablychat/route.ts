@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse("Reservation not found or unauthorized", 404);
     }
 
-    const ablyApiKey = process.env.NEXT_PUBLIC_ABLY_CHAT_API;
+    const ablyApiKey = process.env.ABLY_CHAT_API;
     if (!ablyApiKey || typeof ablyApiKey !== "string") {
       return createErrorResponse("Server configuration error", 500);
     }
