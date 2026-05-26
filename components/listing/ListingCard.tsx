@@ -37,6 +37,8 @@ export interface ListingCardData {
   verified?: boolean;
   status?: string;
   hasSets?: boolean;
+  carpetArea?: number | null;
+  maximumPax?: number | null;
   slug?: string | null;
   href?: string;
 }
@@ -174,7 +176,8 @@ const ListingCard: React.FC<ListingCardProps> = ({
           displayTitle={displayTitle}
           cardHref={cardHref}
           locationLabel={locationLabel}
-          category={data?.category || (data?.tags && data.tags[0])}
+          carpetArea={data?.carpetArea ?? undefined}
+          maximumPax={data?.maximumPax ?? undefined}
           ratingValue={ratingValue}
           reviewCount={data?.reviewCount}
           showRating={showRating}
@@ -205,5 +208,3 @@ const ListingCard: React.FC<ListingCardProps> = ({
 };
 
 export default React.memo(ListingCard);
-
-

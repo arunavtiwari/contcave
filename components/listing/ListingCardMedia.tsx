@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useRef, useState } from "react";
-import { MdVerified } from "react-icons/md";
 
 import HeartButton from "@/components/HeartButton";
 import Pill from "@/components/ui/Pill";
@@ -63,7 +62,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
 
     return (
         <div
-            className="relative mb-3 overflow-hidden rounded-2xl aspect-video bg-neutral-100 border border-foreground/5"
+            className="relative mb-3 overflow-hidden rounded-xl aspect-[4/3] bg-neutral-100 border border-foreground/5"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
@@ -105,10 +104,15 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                 <div className="absolute inset-0 bg-linear-to-t from-foreground/20 via-transparent to-foreground/5 opacity-60 pointer-events-none z-10" />
             </Link>
 
-            {/* Verification Badge */}
-            {isVerified && (
-                <div className={`absolute left-3 top-3.5 z-20 rounded-full bg-foreground/20 backdrop-blur-md transition-transform ${allowScale ? "group-hover:scale-110" : ""}`}>
-                    <MdVerified className="text-white" size={20} />
+            {/* Verified Badge */}
+            {isVerified && !reservationStatus && (
+                <div className="absolute left-3 top-3 z-20">
+                    <Pill
+                        label="Verified"
+                        variant="glass"
+                        size="xs"
+                        className="text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-white/20"
+                    />
                 </div>
             )}
 

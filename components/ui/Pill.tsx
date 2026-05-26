@@ -22,6 +22,7 @@ const pillVariants = cva(
                 "card-category": "bg-neutral-100 text-neutral-900",
                 "card-rating": "bg-neutral-50 text-neutral-600",
                 "card-muted": "bg-neutral-100/50 text-neutral-500",
+                outline: "bg-white border-neutral-200 text-neutral-500 rounded-lg"
             },
             size: {
                 xs: "px-2 h-6 text-[10px]",
