@@ -11,7 +11,8 @@ interface ListingCardContentProps {
     displayTitle: string;
     cardHref: string;
     locationLabel: string;
-    category?: string;
+    carpetArea?: number;
+    maximumPax?: number;
     ratingValue?: number;
     reviewCount?: number;
     showRating?: boolean;
@@ -23,59 +24,73 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
     displayTitle,
     cardHref,
     locationLabel,
-    category,
+    carpetArea,
+    maximumPax,
     ratingValue,
     reviewCount,
     showRating,
     reservationDate,
     reservationTime,
 }) => {
+    const locationLine = reservationDate
+        ? `${reservationDate}${reservationTime ? ` • ${reservationTime}` : ""}`
+        : locationLabel;
+
+    const chips: { label: string; key: string }[] = [];
+    if (carpetArea && carpetArea > 0) chips.push({ key: "area", label: `${carpetArea.toLocaleString("en-IN")} sq ft` });
+    if (maximumPax && maximumPax > 0) chips.push({ key: "pax", label: `${maximumPax} pax` });
+
+    const hasChips = chips.length > 0 || (ratingValue != null && showRating);
+
     return (
-        <div>
-            <div className="mb-2 flex items-start justify-between gap-4">
-                <Link href={cardHref} className="min-w-0 flex-1">
-                    <Heading
-                        title={displayTitle}
-                        variant="h6"
-                        className="text-sm leading-tight truncate"
-                    />
-                </Link>
-                {reservationDate ? (
-                    <p className="shrink-0 text-[10px] font-bold text-muted-foreground/80 uppercase tracking-tight bg-neutral-50 px-2 py-0.5 rounded-md border border-neutral-100">
-                        {reservationDate} {reservationTime && `• ${reservationTime}`}
-                    </p>
-                ) : (
-                    <p className="shrink-0 text-xs font-medium text-muted-foreground/80 uppercase">
-                        {locationLabel}
-                    </p>
-                )}
-            </div>
+        <div className="px-1 pt-1 pb-1">
+            <div className="flex items-start justify-between gap-3">
 
-            <div className="flex items-center justify-between">
-                <Pill
-                    label={category || "Creative Space"}
-                    variant="card-category"
-                    size="xs"
+                    {hasChips && (
+                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                            {chips.map((chip) => (
+                                <Pill
+                                    key={chip.key}
+                                    label={chip.label}
+                                    variant="outline"
+                                    size="xs"
+                                />
+                            ))}
+
+                            {ratingValue != null && showRating && (
+                                <Pill
+                                    label={
+                                        <span className="text-[11px] font-extrabold flex items-center gap-1">
+                                            {ratingValue.toFixed(1)}
+
+                                            {reviewCount !== undefined && reviewCount > 0 && (
+                                                <span className="font-medium text-muted-foreground opacity-60 tracking-tighter">
+                                                    ({reviewCount})
+                                                </span>
+                                            )}
+                                        </span>
+                                    }
+                                    icon={AiFillStar}
+                                    variant="card-rating"
+                                    size="xs"
+                                />
+                            )}
+                        </div>
+                    )}
+
+                    <p className="mt-2 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider leading-none">
+                        {locationLine}
+                    </p>
+                </div>
+
+            <Link href={cardHref} className="block mt-2">
+                <Heading
+                    title={displayTitle}
+                    variant="h6"
+                    className="text-sm leading-snug line-clamp-2"
                 />
+            </Link>
 
-                {ratingValue != null && showRating && (
-                    <Pill
-                        label={
-                            <span className="text-[11px] font-extrabold flex items-center gap-1">
-                                {ratingValue.toFixed(1)}
-                                {reviewCount !== undefined && reviewCount > 0 && (
-                                    <span className="font-medium text-muted-foreground opacity-60 tracking-tighter">
-                                        ({reviewCount})
-                                    </span>
-                                )}
-                            </span>
-                        }
-                        icon={AiFillStar}
-                        variant="card-rating"
-                        size="xs"
-                    />
-                )}
-            </div>
         </div>
     );
 };
