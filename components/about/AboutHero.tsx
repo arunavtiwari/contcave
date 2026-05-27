@@ -34,7 +34,7 @@ const AboutHero = () => {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className="mb-4 text-xs font-medium uppercase tracking-accent text-background/55"
+                        className="mb-4 text-xs font-medium uppercase tracking-widest text-background/55"
                     >
                         Our story
                     </motion.p>

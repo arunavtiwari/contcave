@@ -122,7 +122,7 @@ export default function CashfreeReturnStatusClient({
       <main className="min-h-[calc(100vh-5rem)] w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 sm:py-10 flex items-center justify-center">
         <div className="w-full rounded-xl border border-border bg-card p-8 flex flex-col items-center space-y-6 text-center">
           <div className="relative w-16 h-16">
-            <div className="absolute inset-0 rounded-full border-4 border-muted border-t-primary animate-spin" />
+            <div className="absolute inset-0 rounded-full border-4 border-muted border-t-foreground animate-spin" />
           </div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Verifying your payment...</h2>
           <p className="text-muted-foreground max-w-md">
@@ -214,7 +214,7 @@ export default function CashfreeReturnStatusClient({
           )}
 
           <div className="pt-2">
-            <Button label="GO TO MY BOOKINGS" href="/dashboard/bookings" className="w-full" />
+            <Button label="BACK TO LISTING" href={listingHref} className="w-full" />
           </div>
         </motion.div>
       </main>

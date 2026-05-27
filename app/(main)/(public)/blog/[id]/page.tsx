@@ -160,7 +160,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
                   return (
                     <blockquote
                       key={block.id}
-                      className="border-l-4 border-primary pl-6 py-2 italic text-foreground bg-foreground/5 rounded-r-lg"
+                      className="border-l-4 border-foreground pl-6 py-2 italic text-foreground bg-foreground/5 rounded-r-lg"
                     >
                       {block.content}
                     </blockquote>

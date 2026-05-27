@@ -1,14 +1,13 @@
-import Skeleton from "@/components/ui/Skeleton";
+import React from "react";
+
+import BookingGridSkeleton from "@/components/listing/BookingGridSkeleton";
+import Heading from "@/components/ui/Heading";
 
 export default function BookingsLoading() {
-    return (
-        <div className="flex flex-col gap-6 w-full">
-            <Skeleton className="h-8 w-36" />
-            <div className="flex flex-col gap-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <Skeleton key={i} className="h-24 w-full rounded-xl" />
-                ))}
-            </div>
-        </div>
-    );
+  return (
+    <div className="space-y-8">
+      <Heading title="My Bookings" subtitle="Spaces booked by you" />
+      <BookingGridSkeleton count={6} />
+    </div>
+  );
 }

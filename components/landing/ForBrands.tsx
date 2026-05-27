@@ -70,7 +70,7 @@ const ForBrands = () => {
                 <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-background/10">
                   <FiBriefcase size={18} className="text-background" />
                 </div>
-                <p className="mb-3 text-xs font-semibold uppercase tracking-accent text-background/50">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-background/50">
                   Concierge service
                 </p>
                 <Heading
@@ -82,16 +82,14 @@ const ForBrands = () => {
                 />
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Button
-                  label="Share your brief"
-                  variant="secondary"
-                  rounded
-                  fit
-                />
-                <EmailShield
-                  email="info@contcave.com"
-                >
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <EmailShield email="info@contcave.com" className="hover:text-inherit">
+                  <Button
+                    label="Share your brief"
+                    variant="secondary"
+                    rounded
+                    fit
+                  />
                 </EmailShield>
                 <Button
                   label="WhatsApp us"
@@ -117,7 +115,7 @@ const ForBrands = () => {
                 <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-foreground/5 border border-foreground/5">
                   <FiZap size={18} className="text-foreground" />
                 </div>
-                <p className="mb-3 text-xs font-semibold uppercase tracking-accent text-muted-foreground">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                   Instant book
                 </p>
                 <Heading

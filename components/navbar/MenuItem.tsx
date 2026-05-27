@@ -17,12 +17,10 @@ const MenuItem = memo(function MenuItem({ onClick, label, icon: Icon, href }: Pr
       <Link
         href={href}
         onClick={onClick}
-        className="block w-full"
+        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted transition font-medium rounded-xl cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
       >
-        <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted transition font-medium rounded-xl cursor-pointer">
-          {Icon && <Icon className="text-lg" />}
-          <span>{label}</span>
-        </div>
+        {Icon && <Icon className="text-lg" />}
+        <span>{label}</span>
       </Link>
     );
   }
@@ -31,7 +29,7 @@ const MenuItem = memo(function MenuItem({ onClick, label, icon: Icon, href }: Pr
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted transition font-medium rounded-xl cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted transition font-medium rounded-xl cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
     >
       {Icon && <Icon className="text-lg" />}
       <span>{label}</span>

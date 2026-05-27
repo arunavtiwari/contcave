@@ -28,7 +28,7 @@ const AboutCTA = () => {
                             viewport={{ once: true }}
                             className="flex flex-col items-center gap-6"
                         >
-                            <p className="text-xs font-semibold uppercase tracking-accent text-foreground rounded-full border border-foreground/10 px-4 py-2 w-fit">
+                            <p className="text-xs font-semibold uppercase tracking-widest text-foreground rounded-full border border-foreground/10 px-4 py-2 w-fit">
                                 Take the plunge
                             </p>
 

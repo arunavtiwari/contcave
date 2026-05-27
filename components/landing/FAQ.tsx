@@ -59,7 +59,7 @@ const FAQ = ({ nonce }: { nonce?: string }) => {
             >
               <SectionHeader
                 badge="FAQ"
-                title={<>Questions? We have <span className="text-secondary italic">Answers</span></>}
+                title={<>Questions? We have <span className="text-muted-foreground italic">Answers</span></>}
                 description="Everything you need to know about booking, payments, and studio protocols."
                 className="mb-12"
                 badgeClassName="md:mx-0"
