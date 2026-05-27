@@ -131,7 +131,7 @@ const Hero = () => {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.55 }}
-                className="mb-2 text-xs font-medium uppercase tracking-accent text-muted/70"
+                className="mb-2 text-xs font-medium uppercase tracking-widest text-muted/70"
               >
                 For Agencies, Brands and Creators
               </motion.p>

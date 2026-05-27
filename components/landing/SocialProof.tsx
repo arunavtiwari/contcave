@@ -67,7 +67,7 @@ const SocialProof = () => {
               />
               <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-foreground/42 via-transparent to-foreground/78" />
               <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-center">
-                <span className="rounded-full px-3 py-2 text-[10px] font-semibold uppercase tracking-accent text-background backdrop-blur-md bg-background/10">
+                <span className="rounded-full px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-background backdrop-blur-md bg-background/10">
                   Shoots via ContCave
                 </span>
               </div>

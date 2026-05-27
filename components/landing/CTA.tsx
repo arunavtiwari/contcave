@@ -45,7 +45,7 @@ const CTA: React.FC<CTAProps> = ({ currentUser }) => {
               viewport={{ once: true }}
               className="lg:w-1/2 flex flex-col gap-4"
             >
-              <p className="text-xs font-semibold uppercase tracking-accent text-foreground rounded-full border border-foreground/10 px-4 py-2 w-fit">
+              <p className="text-xs font-semibold uppercase tracking-widest text-foreground rounded-full border border-foreground/10 px-4 py-2 w-fit">
                 For studio owners
               </p>
 
