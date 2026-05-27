@@ -129,11 +129,10 @@ const ListingCard: React.FC<ListingCardProps> = ({
   };
 
   if (isLoading) {
-    const hasRatingData = data ? (data.avgReviewRating != null || data.rating != null) : false;
     return (
       <ListingCardSkeleton
         hideActions={hideActions}
-        showRating={showRating && hasRatingData}
+        showRating={showRating}
         isReservation={!!reservation}
         isHost={isHost}
       />
