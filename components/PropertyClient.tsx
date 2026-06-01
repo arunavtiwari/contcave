@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 import { deleteListingAction } from "@/app/actions/listingActions";
 import DeletePropertyModal from "@/components/modals/DeletePropertyModal";
-import { categories as CATEGORY_OPTIONS } from "@/components/navbar/Categories";
+import { categories as CATEGORY_OPTIONS } from "@/components/navbar/categoriesData";
 import { SelectOption } from "@/components/ui/Select";
 import { usePropertyEdit } from "@/hooks/usePropertyEdit";
 import { Addon } from "@/types/addon";

@@ -71,6 +71,7 @@ function SortablePhotoItem({ id, url, index, onRemove }: SortablePhotoItemProps)
                     src={url}
                     alt={`Media ${index}`}
                     fill
+                    sizes="128px"
                     className="object-cover pointer-events-none"
                     unoptimized={url.startsWith("blob:")}
                 />
@@ -85,7 +86,6 @@ function SortablePhotoItem({ id, url, index, onRemove }: SortablePhotoItemProps)
                         onRemove(index);
                     }}
                     onPointerDown={(e) => {
-                        // Prevent dnd-kit from starting drag when clicking remove
                         e.stopPropagation();
                     }}
                     className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-20"
@@ -114,6 +114,7 @@ function DraggingPhotoOverlay({ url }: { url: string }) {
                     src={url}
                     alt="Dragging Media"
                     fill
+                    sizes="128px"
                     className="object-cover pointer-events-none"
                     unoptimized={url.startsWith("blob:")}
                 />

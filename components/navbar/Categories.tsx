@@ -2,68 +2,12 @@
 
 import { useSearchParams } from "next/navigation";
 import { memo, Suspense, useMemo } from "react";
-import { FaBuilding, FaPodcast } from "react-icons/fa";
-import {
-  GiCycle,
-  GiMusicalNotes,
-  GiPhotoCamera,
-} from "react-icons/gi";
-import { IoIosPartlySunny } from "react-icons/io";
-import { MdCelebration, MdHomeWork, MdLocalCafe } from "react-icons/md";
 
 import CategoryBox from "@/components/CategoryBox";
 import FilterModal from "@/components/modals/FilterModal";
 import Button from "@/components/ui/Button";
 
-export const categories = [
-  {
-    label: "Indoor Studio",
-    icon: GiPhotoCamera,
-    description: "Controlled environment with backdrops and lighting setups.",
-  },
-  {
-    label: "Outdoor Studio",
-    icon: IoIosPartlySunny,
-    description: "Natural lighting and outdoor scenery for dynamic shoots.",
-  },
-  {
-    label: "Podcast Studio",
-    icon: FaPodcast,
-    description: "Set up for audio/video podcast productions.",
-  },
-  {
-    label: "Cafe / Restaurant",
-    icon: MdLocalCafe,
-    description: "Stylish eateries perfect for cozy, lifestyle photos.",
-  },
-
-  {
-    label: "Cyclorama Studio",
-    icon: GiCycle,
-    description: "Infinity walls for seamless product and fashion shoots.",
-  },
-
-  {
-    label: "Recording Studio",
-    icon: GiMusicalNotes,
-    description: "Soundproof and acoustically treated spaces for music shoots.",
-  },
-  {
-    label: "Home-Style Setup",
-    icon: MdHomeWork,
-    description: "Designed like a cozy living space or apartment.",
-  },
-  {
-    label: "Event Space",
-    icon: MdCelebration,
-    description: "Versatile venues ideal for shoots with more space.",
-  },
-  {
-    label: "Co-working Space",
-    icon: FaBuilding,
-    description: "Modern collaborative spaces repurposed for shoots.",
-  },
-];
+import { categories } from "./categoriesData";
 
 
 const CategoriesContent = memo(function CategoriesContent() {

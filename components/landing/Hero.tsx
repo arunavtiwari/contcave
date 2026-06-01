@@ -45,7 +45,7 @@ const HeroSearch = () => {
       aria-label="Open studio search"
       className="group flex w-full max-w-lg flex-row items-center rounded-full border border-background/20 bg-background/10 backdrop-blur-2xl p-1 text-left shadow-sm transition-all active:scale-[0.98] md:max-w-xl lg:max-w-2xl"
     >
-      <div className="flex flex-1 flex-row items-center divide-x divide-border/50">
+      <div className="flex flex-1 flex-row items-center sm:divide-x sm:divide-border/50">
         <div className="flex flex-1 flex-col px-4 md:px-7">
           <span className="text-[10px] uppercase text-background/50">
             Location
