@@ -54,7 +54,7 @@ const ListingFeedHeader: React.FC = () => {
                             animate={{ opacity: 1, scale: 1, x: 0 }}
                             exit={{ opacity: 0, scale: 0.98, x: 15 }}
                             transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="flex-1 md:flex-initial md:w-[580px] flex items-center gap-2 sm:gap-3 bg-neutral-50 p-1.5 rounded-2xl border border-neutral-100 overflow-hidden"
+                            className="flex-1 md:flex-initial md:w-145 flex items-center gap-2 sm:gap-3 bg-neutral-50 p-1.5 rounded-2xl border border-neutral-100 overflow-hidden"
                         >
                             <Button
                                 onClick={handleDetectLocation}

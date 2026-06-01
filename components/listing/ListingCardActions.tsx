@@ -47,10 +47,11 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                 <Button
                     icon={IoInformationCircleOutline}
                     variant="outline"
+                    isIconOnly={false}
                     onClick={(e) => { e?.stopPropagation(); onShowInfo(reservation); }}
                     disabled={disabled}
                     size="sm"
-                    className="w-fit shrink-0"
+                    className="w-10 h-10 p-0 flex items-center justify-center shrink-0"
                 />
             )}
             <div className="flex gap-2 flex-1">

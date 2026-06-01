@@ -4,6 +4,8 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
 
+const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
+
 export async function POST(req: NextRequest) {
   try {
     if (!req.headers.get("content-type")?.includes("application/json")) {
@@ -18,20 +20,20 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const { userId, reservationId, transactionId, amount } = body;
 
-    if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
-      return createErrorResponse("userId is required and must be a non-empty string", 400);
+    if (typeof userId !== "string" || !OBJECT_ID_PATTERN.test(userId.trim())) {
+      return createErrorResponse("userId must be a valid id", 400);
     }
 
     if (userId !== currentUser.id) {
       return createErrorResponse("You can only generate invoices for your own account", 403);
     }
 
-    if (!reservationId || typeof reservationId !== "string" || reservationId.trim().length === 0) {
-      return createErrorResponse("reservationId is required and must be a non-empty string", 400);
+    if (typeof reservationId !== "string" || !OBJECT_ID_PATTERN.test(reservationId.trim())) {
+      return createErrorResponse("reservationId must be a valid id", 400);
     }
 
-    if (!transactionId || typeof transactionId !== "string" || transactionId.trim().length === 0) {
-      return createErrorResponse("transactionId is required and must be a non-empty string", 400);
+    if (typeof transactionId !== "string" || !OBJECT_ID_PATTERN.test(transactionId.trim())) {
+      return createErrorResponse("transactionId must be a valid id", 400);
     }
 
     if (amount !== undefined && amount !== null) {

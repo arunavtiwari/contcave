@@ -103,7 +103,7 @@ function Modal({
   isLoading,
   bodyRef,
   customHeight,
-  disableOverlayClose,
+  disableOverlayClose: _disableOverlayClose = true,
   primaryActionVariant = "default",
   actionDisabled,
   testId,
@@ -157,10 +157,10 @@ function Modal({
   }, [handleClose, disabled]);
 
 
-  const handleBackdropClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (disableOverlayClose) return;
-    if (e.target === e.currentTarget) handleClose();
-  }, [handleClose, disableOverlayClose]);
+  const handleBackdropClick = useCallback(() => {
+    // Dialogs should never close when clicked outside
+    return;
+  }, []);
 
   if (!isOpen && !showModal) return null;
 

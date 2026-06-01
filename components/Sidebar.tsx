@@ -16,6 +16,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "main", isOwner }) => {
     const pathname = usePathname();
+    const navRef = React.useRef<HTMLElement>(null);
     const searchParams = useSearchParams();
     const currentTab = searchParams.get("tab") || "Edit Property";
 
@@ -25,10 +26,21 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "mai
         );
     }, [menuType, isOwner]);
 
+    React.useEffect(() => {
+        const activeEl = navRef.current?.querySelector('[aria-current="page"]');
+        if (activeEl) {
+            activeEl.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+                inline: "center"
+            });
+        }
+    }, [pathname, currentTab]);
+
     return (
-        <div className="flex fixed flex-col sm:sticky top-22.5 sm:top-21.25 pr-4 pl-0 py-1.5 sm:py-6 min-w-56 bg-foreground/30 sm:bg-background h-fit rounded-full sm:rounded-none backdrop-blur-md z-1">
-            <nav>
-                <ul className="flex sm:flex-col sm:gap-2 gap-2">
+        <aside className="sticky top-20 z-20 -mx-4 bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/85 sm:z-auto sm:mx-0 sm:flex sm:h-fit sm:min-w-56 sm:flex-col sm:bg-background sm:px-0 sm:py-6 sm:pr-4 sm:backdrop-blur-none">
+            <nav ref={navRef} className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:overflow-visible">
+                <ul className="flex min-w-max gap-2 sm:min-w-0 sm:flex-col">
                     {itemsToDisplay.map((item, index) => {
                         let isActive = false;
                         let href = item.href || "#";
@@ -45,11 +57,12 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "mai
                                 <Link
                                     href={href}
                                     scroll={false}
-                                    className={`px-4 py-3 flex items-center gap-3 sm:hover:bg-muted rounded-full cursor-pointer group transition-colors ${isActive ? "bg-muted text-foreground font-semibold" : "text-muted-foreground hover:text-foreground font-medium"
+                                    aria-current={isActive ? "page" : undefined}
+                                    className={`flex h-11 items-center gap-2.5 rounded-full border px-4 text-sm transition-colors sm:h-auto sm:gap-3 sm:border-0 sm:px-4 sm:py-3 sm:hover:bg-muted ${isActive ? "border-foreground bg-foreground text-background shadow-sm sm:border-0 sm:bg-muted sm:text-foreground sm:shadow-none sm:font-semibold" : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground sm:bg-transparent sm:font-medium"
                                         }`}
                                 >
-                                    <span>{item.icon}</span>
-                                    <span className="hidden sm:block">{item.name}</span>
+                                    <span className="shrink-0 text-base sm:text-inherit">{item.icon}</span>
+                                    <span className="whitespace-nowrap">{item.name}</span>
                                 </Link>
                             </li>
                         );
@@ -59,7 +72,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "mai
 
             {menuType === "main" && (
                 <>
-                    <div className="mt-5">
+                    <div className="mt-5 hidden sm:block">
                         <Button
                             label="Check Bookings"
                             href="/dashboard/reservations"
@@ -70,7 +83,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "mai
                     </div>
 
                     {listingId && (
-                        <div className="mt-5">
+                        <div className="mt-5 hidden sm:block">
                             <Button
                                 label="Preview"
                                 href={`/listings/${listingId}`}
@@ -83,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "mai
                     )}
                 </>
             )}
-        </div>
+        </aside>
     );
 });
 

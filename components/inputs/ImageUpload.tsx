@@ -146,6 +146,7 @@ function ImageUpload({
       required={required}
       error={error}
       variant={variant}
+      className={circle ? "h-full" : undefined}
     >
       <label
         htmlFor={uid}

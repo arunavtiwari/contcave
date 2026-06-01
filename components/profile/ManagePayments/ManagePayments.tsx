@@ -180,8 +180,8 @@ const ManagePayments: React.FC<Props> = ({
     }, [updatePanelMinHeight]);
 
     const tabIndicatorStyles = useMemo(() => ({
-        left: selectedTab === "Transaction History" ? "0.25rem" : "52%",
-        right: selectedTab === "Transaction History" ? "48%" : "0.25rem",
+        left: selectedTab === "Transaction History" ? "0.25rem" : "50%",
+        right: selectedTab === "Transaction History" ? "50%" : "0.25rem",
     }), [selectedTab]);
 
     const getTabSlug = useCallback((tab: TabType) => tab.toLowerCase().replace(/\s+/g, '-'), []);
@@ -210,7 +210,7 @@ const ManagePayments: React.FC<Props> = ({
 
 
             <nav
-                className="relative inline-flex bg-muted rounded-full p-1 w-fit self-center border border-border"
+                className="relative flex bg-muted rounded-full p-1 w-full max-w-[320px] sm:max-w-[400px] self-center border border-border"
                 role="tablist"
                 aria-label="Payment management tabs"
             >
@@ -233,7 +233,7 @@ const ManagePayments: React.FC<Props> = ({
                             role="tab"
                             aria-selected={selectedTab === tab}
                             aria-controls={`${tabSlug}-panel`}
-                            className={`relative z-10 rounded-full px-6 py-3 text-base font-medium transition-colors duration-200 ${selectedTab === tab
+                            className={`relative z-10 w-1/2 rounded-full py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-colors duration-200 text-center whitespace-nowrap ${selectedTab === tab
                                 ? "text-foreground"
                                 : "text-muted-foreground hover:text-foreground"
                                 }`}

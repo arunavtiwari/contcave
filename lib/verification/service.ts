@@ -282,6 +282,11 @@ export class VerificationService {
         }
 
         if (data.step === "bank" && data.bankVerifiedName && data.accountNumber && data.ifscCode) {
+            const vendorId = trimmedString(data.vendorId);
+            if (!vendorId) {
+                throw new Error("Payout setup did not complete. Please try bank verification again.");
+            }
+
             updates.bank_verified = true;
             updates.bank_verified_name = (data.bankVerifiedName as string).trim();
             updates.verified_via = { push: "bank_verification" };
@@ -296,7 +301,7 @@ export class VerificationService {
                 ifscCode: (data.ifscCode as string).trim(),
                 companyName: companyName || undefined,
                 gstin: gstin || undefined,
-                cashfreeVendorId: data.vendorId as string,
+                cashfreeVendorId: vendorId,
             });
 
             if (!paymentResult.success) throw new Error(paymentResult.error || "Failed to save payment details");

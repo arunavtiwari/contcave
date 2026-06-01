@@ -308,8 +308,10 @@ export async function POST(req: NextRequest) {
                 transaction_id: tId,
                 order_amount: amount,
                 customer_id: txn.userId,
-                return_url: `${appUrl}/payments/cashfree/return?tid={transaction_id}`,
-                notify_url: `${appUrl}/api/payments/cashfree/webhook`,
+                return_url: `${appUrl}/api/payments/cashfree/return?tid={transaction_id}`,
+                notify_url: (process.env.CASHFREE_ENV || "SANDBOX").toUpperCase() === "PRODUCTION"
+                    ? undefined
+                    : `${appUrl}/api/payments/cashfree/webhook`,
                 customer_name: customerName,
                 customer_email: customerEmail || undefined,
                 customer_phone: customerPhone,

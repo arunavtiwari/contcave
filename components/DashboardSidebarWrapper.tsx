@@ -40,7 +40,7 @@ export default function DashboardSidebarWrapper({
     }
 
     return (
-        <div className="flex-1 w-full max-w-360 mx-auto flex px-4 sm:px-8">
+        <div className="flex-1 w-full max-w-360 mx-auto flex flex-col sm:flex-row px-4 sm:px-8">
             {showSidebar && (
                 <React.Suspense fallback={<div className="min-w-56" />}>
                     <Sidebar
@@ -51,8 +51,8 @@ export default function DashboardSidebarWrapper({
                 </React.Suspense>
             )}
             <div
-                className={`flex flex-col flex-1 w-full gap-8 border-border overflow-hidden ${
-                    showSidebar ? "sm:pl-6 sm:pb-6 sm:pt-8 sm:border-l" : "sm:py-8"
+                className={`flex min-w-0 flex-col flex-1 w-full gap-8 border-border overflow-hidden ${
+                    showSidebar ? "pt-0 pb-6 sm:pl-6 sm:pt-8 sm:border-l" : "py-5 sm:py-8"
                 }`}
             >
                 {children}

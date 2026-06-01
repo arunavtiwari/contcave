@@ -166,7 +166,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
         ably.connection.on("suspended", handleConnectionSuspended);
         ably.connection.on("connected", handleConnectionConnected);
 
-        const chatChannel = ably.channels.get(reservationId);
+        const chatChannel = ably.channels.get(`chat:${reservationId}`);
         channelRef.current = chatChannel;
 
         handleIncomingMessage = (incoming: AblyMessageLike) => {
@@ -305,14 +305,14 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                   >
                     <div className="max-w-[85%] md:max-w-sm">
                       <div
-                        className={`p-2.5 rounded-full px-4 ${message.email === userEmail
-                          ? "bg-foreground text-background"
-                          : "border border-border bg-background text-foreground"
+                        className={`p-3 rounded-2xl px-4 text-sm ${message.email === userEmail
+                          ? "bg-foreground text-background rounded-tr-none"
+                          : "border border-border bg-background text-foreground rounded-tl-none"
                           }`}
                       >
                         {message.text}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-2">
+                      <div className="text-xs text-muted-foreground mt-2 px-1">
                         {message.name} - {formatISTDateTime(message.timestamp)}
                       </div>
                     </div>
@@ -323,16 +323,16 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
             </div>
           </div>
 
-          <div className="flex-none p-4 border-t bg-background">
-            <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between">
+          <div className="flex-none p-4 border-t border-border bg-background">
+            <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between font-medium">
               <span>{isChannelReady ? "Connected" : "Connecting..."}</span>
               <span>{newMessage.length}/{MAX_MESSAGE_LENGTH}</span>
             </div>
-            <div className="flex items-stretch h-11">
+            <div className="flex items-center w-full bg-background border border-border rounded-xl focus-within:border-foreground transition-all duration-200 h-12 px-2 gap-2">
               <input
                 type="text"
                 placeholder="Type a message..."
-                className="grow rounded-l-full border border-border px-4 outline-none focus:border-foreground"
+                className="grow bg-transparent border-none outline-none focus:ring-0 text-sm text-foreground px-2 h-full min-w-0"
                 value={newMessage}
                 onChange={(event) => {
                   setNewMessage(event.target.value);
@@ -348,14 +348,14 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                 maxLength={MAX_MESSAGE_LENGTH}
               />
               <button
-                className="flex items-center justify-center rounded-r-full bg-foreground px-6 text-background transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+                className="flex items-center justify-center w-8 h-8 rounded-lg bg-foreground text-background transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground shrink-0 cursor-pointer"
                 onClick={() => {
                   void handleSend();
                 }}
                 disabled={!newMessage.trim() || isSending || !isChannelReady}
                 aria-label="Send message"
               >
-                <IoSend size={18} />
+                <IoSend size={14} />
               </button>
             </div>
           </div>
