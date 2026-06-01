@@ -115,7 +115,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
           prevEl: '.swiper-button-prev-custom',
         }}
         initialSlide={selectedImageIndex || 0}
-        className="w-full h-[60vh] rounded-xl"
+        className="w-full aspect-[4/3] lg:aspect-auto lg:h-[60vh] rounded-xl"
       >
         {imageSrc.map((url, index) => (
           <SwiperSlide key={index}>

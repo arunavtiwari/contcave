@@ -28,6 +28,64 @@ type Props = {
   testId?: string;
 };
 
+let activeLocksCount = 0;
+let savedScrollY = 0;
+let savedOriginalStyles = {
+  overflow: "",
+  position: "",
+  width: "",
+  height: "",
+  top: "",
+  paddingRight: "",
+};
+
+const lockBodyScroll = () => {
+  if (typeof window === "undefined") return;
+
+  if (activeLocksCount === 0) {
+    savedScrollY = window.scrollY;
+
+    savedOriginalStyles = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      width: document.body.style.width,
+      height: document.body.style.height,
+      top: document.body.style.top,
+      paddingRight: document.body.style.paddingRight,
+    };
+
+    // Calculate scrollbar width to prevent Cumulative Layout Shift (CLS)
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    document.body.style.height = "100%";
+    document.body.style.top = `-${savedScrollY}px`;
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+  }
+  activeLocksCount++;
+};
+
+const unlockBodyScroll = () => {
+  if (typeof window === "undefined") return;
+
+  activeLocksCount = Math.max(0, activeLocksCount - 1);
+
+  if (activeLocksCount === 0) {
+    document.body.style.overflow = savedOriginalStyles.overflow;
+    document.body.style.position = savedOriginalStyles.position;
+    document.body.style.width = savedOriginalStyles.width;
+    document.body.style.height = savedOriginalStyles.height;
+    document.body.style.top = savedOriginalStyles.top;
+    document.body.style.paddingRight = savedOriginalStyles.paddingRight;
+
+    window.scrollTo(0, savedScrollY);
+  }
+};
+
 function Modal({
   isOpen,
   onCloseAction,
@@ -64,11 +122,15 @@ function Modal({
 
 
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    if (isOpen) {
+      lockBodyScroll();
+      return () => {
+        unlockBodyScroll();
+      };
+    }
   }, [isOpen]);
+
+
 
   const handleClose = useCallback(() => {
     if (disabled) return;
