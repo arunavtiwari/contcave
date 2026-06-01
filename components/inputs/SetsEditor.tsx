@@ -265,6 +265,7 @@ export default function SetsEditor({
                                                             src={img}
                                                             alt={`Set ${index + 1} image ${imgIndex + 1}`}
                                                             fill
+                                                            sizes="80px"
                                                             className="object-cover"
                                                             unoptimized
                                                         />

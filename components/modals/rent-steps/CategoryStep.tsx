@@ -3,7 +3,7 @@
 import React from "react";
 
 import CategoryInput from "@/components/inputs/CategoryInput";
-import { categories } from "@/components/navbar/Categories";
+import { categories } from "@/components/navbar/categoriesData";
 import Heading from "@/components/ui/Heading";
 
 interface CategoryStepProps {

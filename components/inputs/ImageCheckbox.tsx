@@ -82,6 +82,7 @@ const ImageCheckbox = ({
             src={imageUrl}
             alt={label || "image"}
             fill
+            sizes="56px"
             className={cn(
               "object-contain p-2 transition-transform duration-700",
               isChecked ? "scale-110" : "group-hover:scale-110"

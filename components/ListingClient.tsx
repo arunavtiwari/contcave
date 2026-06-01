@@ -7,7 +7,7 @@ import ListingHead from "@/components/listing/ListingHead";
 import ListingInfo from "@/components/listing/ListingInfo";
 import ListingReservation from "@/components/listing/ListingReservation";
 import PackageSetModal from "@/components/modals/PackageSetModal";
-import { categories } from "@/components/navbar/Categories";
+import { categories } from "@/components/navbar/categoriesData";
 import {
   calculateSetPricing,
 } from "@/lib/pricing";

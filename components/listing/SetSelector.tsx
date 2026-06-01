@@ -199,6 +199,7 @@ export default function SetSelector({
                                                                     src={img}
                                                                     alt={`${set.name} image ${idx + 1}`}
                                                                     fill
+                                                                    sizes="256px"
                                                                     className="object-cover transition group-hover:scale-105"
                                                                 />
                                                             </div>
@@ -211,6 +212,7 @@ export default function SetSelector({
                                                 src={set.images[0]}
                                                 alt={set.name}
                                                 fill
+                                                sizes="256px"
                                                 className="object-cover transition group-hover:scale-105"
                                             />
                                         ) : (

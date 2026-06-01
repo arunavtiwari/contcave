@@ -77,6 +77,7 @@ export default function SetDetailModal({
                                                 src={img}
                                                 alt={`${set.name} image ${idx + 1}`}
                                                 fill
+                                                sizes="(max-width: 768px) 100vw, 540px"
                                                 className="object-cover"
                                                 priority={idx === 0}
                                             />

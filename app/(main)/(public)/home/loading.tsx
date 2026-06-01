@@ -1,6 +1,6 @@
 import Container from "@/components/Container";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
-import { categories } from "@/components/navbar/Categories";
+import { categories } from "@/components/navbar/categoriesData";
 import Skeleton from "@/components/ui/Skeleton";
 
 export default function HomeLoading() {

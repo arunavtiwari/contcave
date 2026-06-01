@@ -40,7 +40,7 @@ const ImagesStep: React.FC<ImagesStepProps> = ({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
               {imageSrc.map((src, index) => (
                 <div key={index} className="relative group w-full aspect-square">
-                  <Image fill src={src} alt={`Upload ${index + 1}`} className="object-cover rounded-xl border border-border" />
+                  <Image fill sizes="(max-width: 768px) 50vw, 250px" src={src} alt={`Upload ${index + 1}`} className="object-cover rounded-xl border border-border" />
                   <button
                     onClick={() => {
                       const newImages = [...imageSrc];

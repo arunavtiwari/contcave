@@ -21,8 +21,7 @@ const buttonVariants = cva(
       size: {
         sm: "h-10 px-4 text-sm",
         md: "h-11 px-6 text-sm",
-        lg: "h-12 px-8 text-sm",
-        xl: "h-14 px-10 text-base",
+        lg: "h-12 px-6 text-base",
       },
       outline: {
         true: "",
@@ -49,7 +48,6 @@ const buttonVariants = cva(
       { isIconOnly: true, size: "sm", className: "w-9 h-9 p-0" },
       { isIconOnly: true, size: "md", className: "w-11 h-11 p-0" },
       { isIconOnly: true, size: "lg", className: "w-12 h-12 p-0" },
-      { isIconOnly: true, size: "xl", className: "w-14 h-14 p-0" },
       { isIconOnly: true, className: "rounded-lg border-none active:scale-95" },
     ],
     defaultVariants: {
@@ -106,7 +104,6 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
       sm: 16,
       md: 20,
       lg: 24,
-      xl: 28,
     }[size || "md"];
 
     const content = (

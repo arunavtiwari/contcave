@@ -20,13 +20,14 @@ const BlogItem: React.FC<BlogItemProps> = ({ post }) => {
             href={`/blog/${post.id}`}
             className="group flex flex-col bg-background rounded-2xl shadow-sm transition-all duration-500 overflow-hidden h-full"
         >
-            <div className="relative h-60 overflow-hidden">
+            <div className="relative h-60 overflow-hidden rounded-t-2xl">
                 {post.meta.image && (
                     <Image
                         src={post.meta.image.url}
                         alt={post.title}
                         fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-700 transform-gpu group-hover:scale-105"
                     />
                 )}
                 <div className="absolute top-3 right-3 z-10">

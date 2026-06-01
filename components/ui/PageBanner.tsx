@@ -30,6 +30,7 @@ const PageBanner: React.FC<PageBannerProps> = ({
                     src={image}
                     alt={title}
                     fill
+                    sizes="100vw"
                     className="object-cover opacity-60"
                     priority
                 />
