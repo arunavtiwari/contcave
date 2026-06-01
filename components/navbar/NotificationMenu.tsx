@@ -155,7 +155,7 @@ const NotificationMenu = memo(function NotificationMenu({ currentUser }: Props) 
                                         {notifications.map((notification) => (
                                             <Link
                                                 key={notification.id}
-                                                href={`/dashboard/chat?reservationId=${notification.id}`}
+                                                href={`/dashboard/chat/${notification.id}`}
                                                 onClick={closeMenu}
                                                 className="flex items-start gap-4 p-4 hover:bg-foreground/5 transition-colors group"
                                             >
@@ -191,16 +191,6 @@ const NotificationMenu = memo(function NotificationMenu({ currentUser }: Props) 
                                         ))}
                                     </div>
                                 )}
-                            </div>
-
-                            <div className="p-3 bg-muted/30 border-t border-border text-center">
-                                <Link
-                                    href="/dashboard/chat"
-                                    onClick={closeMenu}
-                                    className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
-                                >
-                                    View all chats
-                                </Link>
                             </div>
                         </motion.div>
                     )}

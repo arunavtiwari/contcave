@@ -27,6 +27,7 @@ type Props = {
   isOpen: boolean;
   onCloseAction: () => void;
   currentUser: SafeUser | null;
+  onUserChange?: (user: SafeUser) => void;
   onComplete?: () => void;
 };
 
@@ -39,11 +40,6 @@ const steps = [
 const digitsOnly = (value: string, maxLength: number) =>
   value.replace(/\D/g, "").slice(0, maxLength);
 
-const isBankInputError = (error: unknown) => {
-  const message = error instanceof Error ? error.message : "";
-  return /^Vendor (email|phone number|account number|IFSC)|required|invalid/i.test(message);
-};
-
 const getInitialStep = (user: SafeUser | null): number => {
   if (!user) return 1;
   if (!user.phone_verified || !user.email_verified) return 1;
@@ -52,10 +48,16 @@ const getInitialStep = (user: SafeUser | null): number => {
   return 4;
 };
 
+const mergeUserState = (previous: SafeUser | null, updated: Partial<SafeUser>): SafeUser => ({
+  ...(previous ?? ({} as SafeUser)),
+  ...updated,
+} as SafeUser);
+
 const VerificationModal: React.FC<Props> = ({
   isOpen,
   onCloseAction,
   currentUser,
+  onUserChange,
   onComplete,
 }) => {
   const [userState, setUserState] = useState<SafeUser | null>(currentUser);
@@ -118,7 +120,9 @@ const VerificationModal: React.FC<Props> = ({
       }
 
       const updatedUser = await updateVerificationStepAction({ step: "email" });
-      setUserState(updatedUser as SafeUser);
+      const nextUser = mergeUserState(userState, updatedUser as Partial<SafeUser>);
+      setUserState(nextUser);
+      onUserChange?.(nextUser);
       toast.success("Email verified successfully");
     } catch (_err: unknown) {
       toast.error("Email verification failed");
@@ -135,7 +139,9 @@ const VerificationModal: React.FC<Props> = ({
         step: "phone",
         phone: phoneValue,
       });
-      setUserState(updatedUser as SafeUser);
+      const nextUser = mergeUserState(userState, updatedUser as Partial<SafeUser>);
+      setUserState(nextUser);
+      onUserChange?.(nextUser);
       toast.success("Phone verified successfully");
     } catch (_err: unknown) {
       toast.error("Phone verification failed");
@@ -157,7 +163,9 @@ const VerificationModal: React.FC<Props> = ({
       formData.append("aadhaarDocument", aadhaarFile);
       const resp = await verifyAadhaarOcrAction(formData);
       if (resp.success && resp.data) {
-        setUserState(resp.data.user as SafeUser);
+        const nextUser = mergeUserState(userState, resp.data.user as Partial<SafeUser>);
+        setUserState(nextUser);
+        onUserChange?.(nextUser);
         setAadhaarFile(null);
         setAadhaarPreview([]);
         toast.success("Aadhaar identity confirmed");
@@ -190,14 +198,9 @@ const VerificationModal: React.FC<Props> = ({
       };
       if (gstin) vendorPayload.gstin = gstin;
 
-      let vendorId = "";
-      try {
-        const vendor = await createVendorAction(vendorPayload);
-        vendorId = typeof vendor?.vendor_id === "string" ? vendor.vendor_id : "";
-      } catch (error) {
-        if (isBankInputError(error)) throw error;
-        toast.warning("Bank details saved. Payout setup will be retried before payouts.");
-      }
+      const vendor = await createVendorAction(vendorPayload);
+      const vendorId = typeof vendor?.vendor_id === "string" ? vendor.vendor_id : "";
+      if (!vendorId) throw new Error("Payout setup failed. Please verify your bank details again.");
 
       const verificationPayload: Parameters<typeof updateVerificationStepAction>[0] = {
         step: "bank",
@@ -211,7 +214,9 @@ const VerificationModal: React.FC<Props> = ({
 
       const updatedUser = await updateVerificationStepAction(verificationPayload);
 
-      setUserState(updatedUser as SafeUser);
+      const nextUser = mergeUserState(userState, updatedUser as Partial<SafeUser>);
+      setUserState(nextUser);
+      onUserChange?.(nextUser);
       toast.success("Bank verification complete! Profile fully verified.");
       onComplete?.();
       onCloseAction();

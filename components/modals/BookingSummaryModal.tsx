@@ -33,6 +33,9 @@ type BookingSummaryModalProps = {
   transactionId: string;
 };
 
+const hasInvoiceIds = (reservationId: string, transactionId: string) =>
+  /^[a-f\d]{24}$/i.test(reservationId.trim()) && /^[a-f\d]{24}$/i.test(transactionId.trim());
+
 export default function BookingSummaryModal({
   isOpen,
   onCloseAction,
@@ -75,13 +78,14 @@ export default function BookingSummaryModal({
 
         setGstDetailsAction({ ...gstDetails });
 
-        const invoiceData = await createInvoice({
-          reservationId,
-          transactionId,
-          amount: subTotal,
-        });
+        if (hasInvoiceIds(reservationId, transactionId)) {
+          await createInvoice({
+            reservationId,
+            transactionId,
+            amount: subTotal,
+          });
+        }
 
-        console.warn("Invoice URL:", invoiceData.invoiceUrl);
         onConfirmAction();
       } catch (err: unknown) {
         console.error(err);

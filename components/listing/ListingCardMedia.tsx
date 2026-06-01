@@ -106,19 +106,19 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
 
             {/* Verified Badge */}
             {isVerified && !reservationStatus && (
-                <div className="absolute left-3 top-3 z-20">
+                <div className="absolute left-3.5 top-3.5 z-20">
                     <Pill
                         label="Verified"
                         variant="glass"
                         size="xs"
-                        className="text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-white/20"
+                        className="text-[11px] font-semibold tracking-normal border border-foreground/15"
                     />
                 </div>
             )}
 
             {/* Status Badge (Reservation) */}
             {reservationStatus !== undefined && (
-                <div className={`absolute left-3 top-3 z-20 transition-transform ${allowScale ? "group-hover:scale-110" : ""}`}>
+                <div className={`absolute left-3.5 top-3.5 z-20 transition-transform ${allowScale ? "group-hover:scale-110" : ""}`}>
                     <Pill
                         label={
                             reservationStatus === 1 ? "Approved" :
@@ -130,7 +130,10 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                                 reservationStatus === 0 ? "warning" : "destructive"
                         }
                         size="xs"
-                        className="font-bold uppercase tracking-wider text-[10px] px-3 border border-white/20 shadow-md"
+                        className={`font-semibold text-[11px] px-3 border ${
+                            reservationStatus === 1 ? "border-success/30" :
+                                reservationStatus === 0 ? "border-warning/30" : "border-destructive/30"
+                        }`}
                     />
                 </div>
             )}

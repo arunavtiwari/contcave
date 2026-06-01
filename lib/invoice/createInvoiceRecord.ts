@@ -17,6 +17,16 @@ export type InvoiceWithAttachment = {
   attachment?: AttachmentInput;
 };
 
+const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
+
+function normalizeObjectId(value: string, fieldName: string) {
+  const normalized = value.trim();
+  if (!OBJECT_ID_PATTERN.test(normalized)) {
+    throw new Error(`${fieldName} must be a valid id`);
+  }
+  return normalized;
+}
+
 
 
 async function downloadInvoiceAttachment(
@@ -40,8 +50,12 @@ async function downloadInvoiceAttachment(
 export async function ensureInvoiceWithAttachment(
   params: CreateInvoiceParams
 ): Promise<InvoiceWithAttachment> {
+  const userId = normalizeObjectId(params.userId, "userId");
+  const reservationId = normalizeObjectId(params.reservationId, "reservationId");
+  const transactionId = normalizeObjectId(params.transactionId, "transactionId");
+
   const existing = await prisma.invoice.findFirst({
-    where: { transactionId: params.transactionId },
+    where: { transactionId },
     orderBy: { createdAt: "desc" },
   });
   if (existing) {
@@ -49,7 +63,7 @@ export async function ensureInvoiceWithAttachment(
     return { invoice: existing, attachment };
   }
 
-  const { userId, reservationId, transactionId, amountOverride } = params;
+  const { amountOverride } = params;
 
   const [user, reservation, transaction] = await Promise.all([
     prisma.user.findUnique({

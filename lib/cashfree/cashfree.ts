@@ -84,7 +84,7 @@ export async function cfCreateOrder(input: {
     order_amount: number;
     customer_id: string;
     return_url: string;
-    notify_url: string;
+    notify_url?: string;
     customer_name: string;
     customer_email?: string;
     customer_phone: string;
@@ -205,14 +205,15 @@ export async function cfEnsureVendor(payload: {
     if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)) throw new Error("Vendor IFSC code is invalid");
 
     const kycDetails: Record<string, string> = {
-        account_type: "BUSINESS",
-        business_type: "B2B",
+        account_type: payload.gstin ? "BUSINESS" : "INDIVIDUAL",
+        business_type: payload.gstin ? "B2B" : "INDIVIDUAL",
     };
     if (payload.gstin) {
         kycDetails.gst = payload.gstin.trim().toUpperCase();
     }
 
     const { controller, timeoutId } = vendorTimeoutController();
+    const verifyAccount = process.env.CASHFREE_VERIFY_VENDOR_ACCOUNT === "true";
 
     try {
         const res = await axios.post(url, {
@@ -227,7 +228,7 @@ export async function cfEnsureVendor(payload: {
                 account_number: accountNumber,
                 ifsc,
             },
-            verify_account: true,
+            verify_account: verifyAccount,
             dashboard_access: false,
             kyc_details: kycDetails,
         }, {
@@ -288,7 +289,7 @@ export async function cfUpdateVendor(vendorId: string, payload: {
     if (payload.phone) body.phone = payload.phone;
     if (payload.bank) {
         body.bank = payload.bank;
-        body.verify_account = true;
+        body.verify_account = process.env.CASHFREE_VERIFY_VENDOR_ACCOUNT === "true";
     }
     if (payload.kyc_details) body.kyc_details = payload.kyc_details;
 
