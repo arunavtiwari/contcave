@@ -217,7 +217,7 @@ const VerificationModal: React.FC<Props> = ({
       const nextUser = mergeUserState(userState, updatedUser as Partial<SafeUser>);
       setUserState(nextUser);
       onUserChange?.(nextUser);
-      toast.success("Bank verification complete! Profile fully verified.");
+      toast.success("Profile verification completed.");
       onComplete?.();
       onCloseAction();
     } catch (err: unknown) {

@@ -94,10 +94,10 @@ const CancellationPolicy = () => {
             <div className="space-y-2">
               <ul className="pl-6 space-y-1 list-disc text-muted-foreground text-sm">
                 <li>
-                  <strong className="text-foreground">Full Refund (100%)</strong> — Cancellations made at least 48 hours before the scheduled booking.
+                  <strong className="text-foreground">Full Refund (100%)</strong> — Cancellations made at least 72 hours before the scheduled booking.
                 </li>
                 <li>
-                  <strong className="text-foreground">Partial Refund (50%)</strong> — Cancellations made between 24 and 48 hours before the scheduled booking.
+                  <strong className="text-foreground">Partial Refund (50%)</strong> — Cancellations made between 24 and 72 hours before the scheduled booking.
                 </li>
                 <li>
                   <strong className="text-foreground">No Refund (0%)</strong> — Cancellations made within 24 hours of the scheduled booking.
