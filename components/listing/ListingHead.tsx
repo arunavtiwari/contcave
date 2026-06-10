@@ -176,6 +176,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                     src={imageSrc[4]}
                     alt="image-4"
                     fill
+                    priority
                     sizes="(max-width: 768px) 100vw, 33vw"
                     onLoad={() => handleImageLoad(4)}
                     className={`object-cover rounded-br-lg hover:brightness-90 ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
