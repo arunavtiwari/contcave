@@ -104,7 +104,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                     <div className="flex gap-2 w-full">
                         {onChat && (
                             <Button
-                                label={isHost ? "Chat Client" : "Chat Host"}
+                                label={isHost ? "Chat with Client" : "Chat with Host"}
                                 variant={reservation.isApproved === 1 ? "default" : "outline"}
                                 onClick={(e) => { e?.stopPropagation(); onChat(String(reservation?.id)); }}
                                 disabled={reservation.isApproved !== 1 || disabled}

@@ -222,7 +222,7 @@ export async function cfEnsureVendor(payload: {
             status: "ACTIVE",
             email,
             phone,
-            schedule_option: 1,
+            schedule_option: Number(process.env.CASHFREE_VENDOR_SCHEDULE_OPTION ?? 2),
             bank: {
                 account_holder: sanitizeVendorName(payload.account_holder, "Account Holder"),
                 account_number: accountNumber,

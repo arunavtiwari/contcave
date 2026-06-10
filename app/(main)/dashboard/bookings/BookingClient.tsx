@@ -166,7 +166,7 @@ function BookingClient({ reservations, currentUser }: Props) {
                 <p>We’re sorry to hear you couldn’t go ahead with your booking at {studioName}.</p>
                 <p>
                   Refunds are processed manually by our support team based on our cancellation policy. Tap below to
-                  connect with us on WhatsApp – we’ll help you sort your refund right away.
+                  connect with us on WhatsApp - we’ll help you with refund.
                 </p>
               </div>
             );
