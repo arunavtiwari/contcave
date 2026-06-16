@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
             })) as ListingSet[];
 
             const result = calculateSetPricing({
-                baseHourlyRate: listing.price,
+                baseHourlyRate: listing.price ?? 0,
                 durationMinutes,
                 selectedSetIds,
                 sets: setsForCalc,

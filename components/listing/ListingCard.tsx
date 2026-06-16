@@ -25,7 +25,7 @@ export interface ListingCardData {
   name?: string;
   imageSrc?: string | string[];
   image?: string;
-  price: number | string;
+  price: number | string | null;
   locationValue?: string;
   area?: string;
   city?: string | null;
@@ -39,6 +39,9 @@ export interface ListingCardData {
   hasSets?: boolean;
   carpetArea?: number | null;
   maximumPax?: number | null;
+  listingType?: "STANDARD" | "CURATED";
+  priceRangeMin?: number | null;
+  priceRangeMax?: number | null;
   slug?: string | null;
   href?: string;
 }
@@ -96,7 +99,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
   const displayTitle = useMemo(() => getDisplayTitle(data), [data]);
   const locationLabel = useMemo(() => getLocationLabel(data, getByValue), [data, getByValue]);
   const images = useMemo(() => normalizeImages(data?.imageSrc || data?.image), [data?.imageSrc, data?.image]);
-  const formattedPrice = useMemo(() => formatPrice(data?.price, reservation), [reservation, data?.price]);
+  const formattedPrice = useMemo(() => formatPrice(data?.price ?? undefined, reservation), [reservation, data?.price]);
   const ratingValue = useMemo(() => data?.avgReviewRating || data?.rating, [data?.avgReviewRating, data?.rating]);
   const cardHref = useMemo(() => getListingHref(data, onEdit), [data, onEdit]);
 
@@ -159,6 +162,9 @@ const ListingCard: React.FC<ListingCardProps> = ({
           displayTitle={displayTitle}
           cardHref={cardHref}
           isVerified={data?.status === "VERIFIED" || data?.verified}
+          listingType={data?.listingType ?? "STANDARD"}
+          priceRangeMin={data?.priceRangeMin ?? undefined}
+          priceRangeMax={data?.priceRangeMax ?? undefined}
           formattedPrice={formattedPrice}
           hasSets={data?.hasSets}
           isReservation={!!reservation}

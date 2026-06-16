@@ -14,6 +14,9 @@ interface ListingCardMediaProps {
     displayTitle: string;
     cardHref: string;
     isVerified?: boolean;
+    listingType?: "STANDARD" | "CURATED";
+    priceRangeMin?: number;
+    priceRangeMax?: number;
     formattedPrice: number;
     hasSets?: boolean;
     isReservation?: boolean;
@@ -31,6 +34,9 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
     displayTitle,
     cardHref,
     isVerified,
+    listingType = "STANDARD",
+    priceRangeMin,
+    priceRangeMax,
     formattedPrice,
     hasSets,
     isReservation,
@@ -104,15 +110,24 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                 <div className="absolute inset-0 bg-linear-to-t from-foreground/20 via-transparent to-foreground/5 opacity-60 pointer-events-none z-10" />
             </Link>
 
-            {/* Verified Badge */}
-            {isVerified && !reservationStatus && (
+            {/* Listing Type / Verified Badge */}
+            {!reservationStatus && (listingType === "CURATED" || isVerified) && (
                 <div className="absolute left-3.5 top-3.5 z-20">
-                    <Pill
-                        label="Verified"
-                        variant="glass"
-                        size="xs"
-                        className="text-[11px] font-semibold tracking-normal border border-foreground/15"
-                    />
+                    {listingType === "CURATED" ? (
+                        <Pill
+                            label="Curated"
+                            variant="curated-button"
+                            size="xs"
+                            className="text-[11px] font-semibold tracking-normal border border-warning/30"
+                        />
+                    ) : (
+                        <Pill
+                            label="Verified"
+                            variant="verified-button"
+                            size="xs"
+                            className="text-[11px] font-semibold tracking-normal border border-success/30"
+                        />
+                    )}
                 </div>
             )}
 
@@ -142,9 +157,23 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
             <Pill
                 label={
                     <div className="flex gap-1 items-center font-medium">
-                        {hasSets && !isReservation && <span className="text-[10px] opacity-70">From</span>}
-                        <span className="text-xs">₹{(totalPrice ?? formattedPrice).toLocaleString("en-IN")}</span>
-                        {!isReservation && <span className="text-[10px] opacity-70">/ hr</span>}
+                        {listingType === "CURATED" ? (
+                            priceRangeMin && priceRangeMax ? (
+                                <>
+                                    <span className="text-[10px] opacity-70">Est.</span>
+                                    <span className="text-xs">₹{priceRangeMin.toLocaleString("en-IN")}–{priceRangeMax.toLocaleString("en-IN")}</span>
+                                    <span className="text-[10px] opacity-70">/ hr</span>
+                                </>
+                            ) : (
+                                <span className="text-xs">Price on Demand</span>
+                            )
+                        ) : (
+                            <>
+                                {hasSets && !isReservation && <span className="text-[10px] opacity-70">From</span>}
+                                <span className="text-xs">₹{(totalPrice ?? formattedPrice).toLocaleString("en-IN")}</span>
+                                {!isReservation && <span className="text-[10px] opacity-70">/ hr</span>}
+                            </>
+                        )}
                     </div>
                 }
                 variant="glass"

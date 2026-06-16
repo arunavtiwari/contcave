@@ -37,6 +37,11 @@ enum AdditionalSetPricingType {
   HOURLY
 }
 
+enum ListingType {
+  STANDARD
+  CURATED
+}
+
 /**
  * ---------------------------- Models -----------------------------
  */
@@ -117,17 +122,17 @@ model Listing {
   locationValue            String
   actualLocation           Json?
   userId                   String                    @db.ObjectId
-  price                    Int
+  price                    Int?
   user                     User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   reservations             Reservation[]
   amenities                String[]
   otherAmenities           String[]
   addons                   Json?
-  carpetArea               Int
+  carpetArea               Int?
   operationalDays          Json?
   operationalHours         Json?
-  minimumBookingHours      Int
-  maximumPax               Int
+  minimumBookingHours      Int?
+  maximumPax               Int?
   instantBooking           Boolean?
   type                     String[]
   verifications            Json?
@@ -154,7 +159,22 @@ model Listing {
 
   blocks                   ListingBlock[]
 
+  // Curated listing fields
+  listingType              ListingType               @default(STANDARD)
+  curatedSource            String?
+  contactEmail             String?
+  mapsUrl                  String?
+  websiteUrl               String?
+  instagramHandle          String?
+  priceRangeMin            Int?
+  priceRangeMax            Int?
+  notifyEmailSentAt        DateTime?
+  notifyReminderAt         DateTime?
+  inConversation           Boolean                   @default(false)
+  enquiryCount             Int                       @default(0)
+
   @@index([userId])
+  @@index([listingType])
 }
 
 model Package {

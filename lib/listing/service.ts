@@ -92,12 +92,14 @@ export class ListingService {
 
         const {
             id,
+            listingType,
             title, description, imageSrc, category, locationValue, actualLocation,
             price, amenities, otherAmenities, addons, carpetArea, operationalDays,
             operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
             verifications, customTerms, packages,
             hasSets, setsHaveSamePrice, unifiedSetPrice, additionalSetPricingType, sets,
-            terms, slug
+            terms, slug,
+            priceRangeMin, priceRangeMax, mapsUrl, websiteUrl, instagramHandle, contactEmail,
         } = validated;
 
         const trimmedTitle = title.trim();
@@ -139,6 +141,13 @@ export class ListingService {
                     type: Array.isArray(type) ? type.map(t => String(t)) : [],
                     verifications: finalVerifications,
                     terms: Boolean(terms),
+                    listingType: (listingType as "STANDARD" | "CURATED") ?? "STANDARD",
+                    priceRangeMin: priceRangeMin ?? null,
+                    priceRangeMax: priceRangeMax ?? null,
+                    mapsUrl: mapsUrl || null,
+                    websiteUrl: websiteUrl || null,
+                    instagramHandle: instagramHandle || null,
+                    contactEmail: contactEmail || null,
                     status: "PENDING",
                     active: false,
                     hasSets: Boolean(hasSets),

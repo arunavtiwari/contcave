@@ -23,6 +23,7 @@ export type ListingDetails = {
 type Props = {
     onChange: (details: ListingDetails) => void;
     data?: ListingDetails;
+    optional?: boolean;
 };
 
 const dayOptions: SelectOption[] = [
@@ -40,7 +41,7 @@ const staticTimeOptions: SelectOption[] = TIME_SLOTS.map((t) => ({
     label: t,
 }));
 
-const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
+const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false }) => {
     // Default values if data is undefined
     const details = useMemo(() => data || {
         carpetArea: 0,
@@ -102,7 +103,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 value={details.carpetArea || ""}
                 onNumberChange={(val) => handleInputChange("carpetArea", val)}
                 customRightContent={<span className="text-muted-foreground text-xs font-medium">sq ft</span>}
-                required
+                required={!optional}
             />
 
             <Input
@@ -114,7 +115,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 value={details.maximumPax || ""}
                 onNumberChange={(val) => handleInputChange("maximumPax", val)}
                 customRightContent={<span className="text-muted-foreground text-xs font-medium">pax</span>}
-                required
+                required={!optional}
             />
         </div>
 
@@ -129,10 +130,10 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
                 value={details.minimumBookingHours || ""}
                 onNumberChange={(val) => handleInputChange("minimumBookingHours", val)}
                 customRightContent={<span className="text-muted-foreground text-xs font-medium">hrs</span>}
-                required
+                required={!optional}
             />
 
-            <FormField label="Operational Days" required variant="vertical">
+            <FormField label="Operational Days" required={!optional} variant="vertical">
                 <div className="flex gap-3 w-full">
                     <Select
                         className="flex-1"
@@ -166,7 +167,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data }) => {
 
         {/* Row 3: Operational Hours (Full Width) */}
         <div className="w-full">
-            <FormField label="Operational Hours" required variant="horizontal" align="start">
+            <FormField label="Operational Hours" required={!optional} variant="horizontal" align="start">
                 <div className="flex flex-col gap-4 w-full">
                     <Switch
                         size="sm"

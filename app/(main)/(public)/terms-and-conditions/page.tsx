@@ -396,8 +396,17 @@ const TermsAndConditions = () => {
                             </p>
                         </div>
 
-                        {/* 24. Contact */}
-                        <SectionTitle number={24} title="Contact" />
+                        {/* 24. ContCave Curated Listings */}
+                        <SectionTitle number={24} title="ContCave Curated Listings" />
+                        <div className="space-y-2 text-muted-foreground text-sm leading-relaxed">
+                            <p>ContCave may create and publish studio listings (&ldquo;Curated Listings&rdquo;) using information sourced independently by the ContCave team, including from public sources such as Google Maps, studio websites, and social media profiles.</p>
+                            <p>Curated Listings are not created or verified by the studio owner. Information including pricing, availability, equipment, and amenities may be incomplete, estimated, or unverified. ContCave makes no representations as to the accuracy of information in Curated Listings.</p>
+                            <p>Studio owners who wish to update, correct, or remove a Curated Listing may contact ContCave at <strong>info@contcave.com</strong> or via the contact page on the website.</p>
+                            <p>Brands should independently verify all details with the studio before confirming any booking arrangement. Curated listing content must not be used in paid advertisements, sponsored posts, or marketing campaigns without prior written consent from ContCave.</p>
+                        </div>
+
+                        {/* 25. Contact */}
+                        <SectionTitle number={25} title="Contact" />
                         <div className="space-y-2">
                             <p className="text-muted-foreground text-sm leading-relaxed">
                                 For any questions regarding these Terms, please contact us at:

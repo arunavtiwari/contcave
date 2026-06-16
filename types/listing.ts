@@ -36,9 +36,9 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
     packages: Package[];
     operationalDays?: { start?: string; end?: string };
     operationalHours?: { start?: string; end?: string };
-    carpetArea: number;
-    maximumPax: number;
-    minimumBookingHours: number;
+    carpetArea?: number | null;
+    maximumPax?: number | null;
+    minimumBookingHours?: number | null;
     type?: string[];
     avgReviewRating?: number;
     actualLocation?: ActualLocation | null;
@@ -48,7 +48,7 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
     locationValue: string;
     imageSrc: string[];
     title: string;
-    price: number;
+    price?: number | null;
     instantBooking?: boolean;
     user: SafeUser;
     hasSets?: boolean;
@@ -60,6 +60,14 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
     sets?: ListingSet[];
     blocks?: ListingBlock[];
     videoSrc?: string | null;
+
+    // Curated listing fields
+    listingType?: "STANDARD" | "CURATED";
+    mapsUrl?: string | null;
+    websiteUrl?: string | null;
+    instagramHandle?: string | null;
+    priceRangeMin?: number | null;
+    priceRangeMax?: number | null;
 };
 
 export type ListingBlockData = {

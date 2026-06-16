@@ -287,3 +287,44 @@ export async function sendReservationConfirmationOwner(input: {
     attachments: input.attachments,
   });
 }
+
+export async function sendCuratedOutreachEmail(input: {
+  toEmail: string;
+  studioName: string;
+  city: string;
+  listingId: string;
+}) {
+  const waNumber = process.env.NEXT_PUBLIC_CONTCAVE_WHATSAPP ?? "";
+  const contactEmail = process.env.MAILERSEND_FROM_EMAIL ?? "info@contcave.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://contcave.com";
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/><title>Your studio is on ContCave</title></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#374151;">
+  <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px;">
+    <table width="100%" style="max-width:560px;background:#ffffff;border-radius:8px;padding:32px;"><tr><td style="font-size:15px;line-height:1.7;">
+      <p>Hi ${escapeHtml(input.studioName)} Team,</p>
+      <p>We've added <strong>${escapeHtml(input.studioName)}</strong> to <strong>ContCave</strong> — a curated marketplace where brands discover studios for shoots and productions in ${escapeHtml(input.city)}.</p>
+      <p>Your studio is listed as a <strong>ContCave Curated</strong> studio. We've added basic information to help brands find you and are already directing interested brands your way.</p>
+      <p>View your listing: <a href="${baseUrl}/listings/${escapeHtml(input.listingId)}" style="color:#b45309;">${baseUrl}/listings/${escapeHtml(input.listingId)}</a></p>
+      <p>To update your listing, add pricing, or explore a full partnership, reach us at:</p>
+      <ul style="padding-left:20px;">
+        ${waNumber ? `<li>WhatsApp: <a href="https://wa.me/${escapeHtml(waNumber)}" style="color:#b45309;">+${escapeHtml(waNumber)}</a></li>` : ""}
+        <li>Email: <a href="mailto:${escapeHtml(contactEmail)}" style="color:#b45309;">${escapeHtml(contactEmail)}</a></li>
+        <li>Website: <a href="https://contcave.com/contact" style="color:#b45309;">contcave.com/contact</a></li>
+      </ul>
+      <p style="color:#6b7280;font-size:13px;">No action needed if you're happy with the listing as-is.</p>
+      <p>— Team ContCave</p>
+    </td></tr></table>
+  </td></tr></table>
+</body>
+</html>`;
+
+  await sendEmail({
+    toEmail: input.toEmail,
+    toName: `${input.studioName} Team`,
+    subject: `We've listed ${input.studioName} on ContCave`,
+    html,
+  });
+}

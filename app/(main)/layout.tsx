@@ -19,6 +19,7 @@ import SearchModal from "@/components/modals/SearchModal";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import GlobalProviders from "@/components/providers/GlobalProviders";
 import ToastContainerBar from "@/components/ToastContainerBar";
+import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import {
@@ -244,6 +245,7 @@ export default async function RootLayout({
                         <CookieConsent />
                     </ClientOnly>
                     {children}
+                    <WhatsAppFloatingButton />
                     <ScrollToTop />
                 </GlobalProviders>
             </body>
