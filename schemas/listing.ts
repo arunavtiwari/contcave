@@ -119,6 +119,7 @@ export const signatureSchema = z.object({
 
 export const listingBaseSchema = z.object({
     id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid listing ID").optional(),
+    listingType: z.enum(["STANDARD", "CURATED"]).default("STANDARD"),
     category: z.string().min(1, "Category is required").max(100),
     locationValue: z.string().min(1, "Location is required"),
     actualLocation: locationSchema.nullable(),
@@ -127,13 +128,21 @@ export const listingBaseSchema = z.object({
 
     title: z.string().min(5, "Title must be at least 5 characters").max(200),
     slug: z.string().min(3, "Slug too short").max(200).optional().nullable(),
-    description: z.string().min(50, "Description must be at least 50 characters").max(5000),
+    description: z.string().min(10, "Description must be at least 10 characters").max(5000),
 
 
-    price: z.coerce.number().min(1, "Price must be at least 1").max(10000000),
-    minimumBookingHours: z.coerce.number().min(1, "Minimum booking is 1 hour").max(168),
-    maximumPax: z.coerce.number().min(1, "Maximum capacity must be at least 1").max(10000),
-    carpetArea: z.coerce.number().min(1, "Carpet area must be at least 1").max(1000000),
+    price: z.coerce.number().min(0).max(10000000),
+    minimumBookingHours: z.coerce.number().min(0).max(168),
+    maximumPax: z.coerce.number().min(0).max(10000),
+    carpetArea: z.coerce.number().min(0).max(1000000),
+
+    // Curated-specific optional fields
+    priceRangeMin: z.coerce.number().min(0).max(10000000).optional().nullable(),
+    priceRangeMax: z.coerce.number().min(0).max(10000000).optional().nullable(),
+    mapsUrl: z.string().url().optional().nullable().or(z.literal("")),
+    websiteUrl: z.string().url().optional().nullable().or(z.literal("")),
+    instagramHandle: z.string().max(60).optional().nullable(),
+    contactEmail: z.string().email().optional().nullable().or(z.literal("")),
 
 
     amenities: z.array(z.string()).max(50).optional(),
@@ -161,21 +170,16 @@ export const listingBaseSchema = z.object({
     videoSrc: z.string().url("Invalid video URL").optional().nullable(),
 });
 
-export const listingSchema = listingBaseSchema.refine((data) => {
-    if (data.hasSets) {
-        if (!data.sets || data.sets.length < 2) {
-            return false;
-        }
+export const listingSchema = listingBaseSchema.superRefine((data, ctx) => {
+    if (data.hasSets && (!data.sets || data.sets.length < 2)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Multi-set listings must have at least 2 sets", path: ["sets"] });
     }
-    return true;
-}, {
-    message: "Multi-set listings must have at least 2 sets",
-    path: ["sets"],
-}).refine((data) => {
-    return data.terms === true;
-}, {
-    message: "You must accept the terms",
-    path: ["terms"],
+    if (data.terms !== true) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "You must accept the terms", path: ["terms"] });
+    }
+    if (data.listingType === "STANDARD" && (!data.price || data.price < 1)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Price must be at least ₹1 for standard listings", path: ["price"] });
+    }
 });
 
 export type ListingSchema = z.infer<typeof listingSchema>;

@@ -18,7 +18,7 @@ import {
 } from "react-icons/fi";
 import { toast } from "sonner";
 
-import { type AdminListingReview, approveListingAction, rejectListingAction } from "@/app/actions/listingActions";
+import { type AdminListingReview, approveListingAction, markInConversationAction, rejectListingAction } from "@/app/actions/listingActions";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
@@ -27,6 +27,7 @@ import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
 
 type ListingStatus = "PENDING" | "VERIFIED" | "REJECTED";
 type ConfirmAction = "approve" | "reject" | null;
+type ViewMode = "STANDARD" | "CURATED";
 
 const STATUS_OPTIONS: Array<{ value: "ALL" | ListingStatus; label: string }> = [
     { value: "ALL", label: "All" },
@@ -258,7 +259,7 @@ function ReviewModal({
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <Detail label="Category" value={listing.category} />
-                                <Detail label="Base Price" value={formatINR(listing.price)} />
+                                <Detail label="Base Price" value={listing.price != null ? formatINR(listing.price) : "—"} />
                                 <Detail label="Submitted" value={formatISTDateTime(listing.createdAt)} />
                                 <Detail label="Reviewed" value={listing.reviewedAt ? formatISTDateTime(listing.reviewedAt) : null} />
                             </div>
@@ -422,23 +423,34 @@ function ReviewModal({
 
 export default function AdminListingsClient({ listings }: { listings: AdminListingReview[] }) {
     const router = useRouter();
+    const [viewMode, setViewMode] = useState<ViewMode>("STANDARD");
     const [status, setStatus] = useState<"ALL" | ListingStatus>("PENDING");
     const [selected, setSelected] = useState<AdminListingReview | null>(null);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
     const [rejectReason, setRejectReason] = useState("");
     const [isPending, startTransition] = useTransition();
 
+    const standardListings = useMemo(() => listings.filter(l => l.listingType !== "CURATED"), [listings]);
+    const curatedListings = useMemo(() => listings.filter(l => l.listingType === "CURATED"), [listings]);
+
     const counts = useMemo(() => ({
-        ALL: listings.length,
-        PENDING: listings.filter((listing) => listing.status === "PENDING").length,
-        VERIFIED: listings.filter((listing) => listing.status === "VERIFIED").length,
-        REJECTED: listings.filter((listing) => listing.status === "REJECTED").length,
-    }), [listings]);
+        ALL: standardListings.length,
+        PENDING: standardListings.filter((listing) => listing.status === "PENDING").length,
+        VERIFIED: standardListings.filter((listing) => listing.status === "VERIFIED").length,
+        REJECTED: standardListings.filter((listing) => listing.status === "REJECTED").length,
+    }), [standardListings]);
 
     const visibleListings = useMemo(
-        () => status === "ALL" ? listings : listings.filter((listing) => listing.status === status),
-        [listings, status]
+        () => status === "ALL" ? standardListings : standardListings.filter((listing) => listing.status === status),
+        [standardListings, status]
     );
+
+    const outreachLabel = (listing: AdminListingReview) => {
+        if (listing.inConversation) return { label: "In Conversation", variant: "success" as const };
+        if (listing.notifyReminderAt) return { label: "Reminder Sent", variant: "info" as const };
+        if (listing.notifyEmailSentAt) return { label: "Email Sent", variant: "warning" as const };
+        return { label: "Not Sent", variant: "neutral" as const };
+    };
 
     const resetConfirm = () => {
         setConfirmAction(null);
@@ -477,8 +489,84 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                         Review host submissions, verification evidence, and publishing decisions.
                     </p>
                 </div>
+                <div className="flex items-center gap-2">
+                    <div className="flex rounded-xl border border-border bg-background p-1">
+                        {(["STANDARD", "CURATED"] as ViewMode[]).map(m => (
+                            <button key={m} type="button"
+                                onClick={() => setViewMode(m)}
+                                className={cn("h-8 rounded-lg px-4 text-xs font-semibold transition",
+                                    viewMode === m ? "bg-neutral-100 text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                                {m === "STANDARD" ? `Verified (${counts.ALL})` : `Curated (${curatedListings.length})`}
+                            </button>
+                        ))}
+                    </div>
+                    {viewMode === "CURATED" && (
+                        <Button label="+ New Curated" href="/admin/dashboard/listings/curated" size="sm" />
+                    )}
+                </div>
             </div>
 
+            {viewMode === "CURATED" ? (
+                <>
+                    {curatedListings.length === 0 ? (
+                        <div className="flex min-h-72 flex-col items-center justify-center rounded-xl border border-border bg-background px-6 py-14 text-center">
+                            <FiLayers className="mb-4 h-8 w-8 text-muted-foreground" />
+                            <div className="text-sm font-semibold text-foreground">No curated listings yet</div>
+                            <p className="mt-1 text-sm text-muted-foreground">Create one using the button above.</p>
+                        </div>
+                    ) : (
+                        <div className="overflow-hidden rounded-xl border border-border bg-background">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-border">
+                                    <thead className="bg-muted/70">
+                                        <tr>
+                                            {["Studio", "City", "Enquiries", "Outreach Status", "Actions"].map(h => (
+                                                <th key={h} scope="col" className={cn("px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground", h === "Actions" && "text-right")}>{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {curatedListings.map(listing => {
+                                            const { label, variant } = outreachLabel(listing);
+                                            const isHighPriority = (listing.enquiryCount ?? 0) >= 3;
+                                            return (
+                                                <tr key={listing.id} className="hover:bg-muted/30">
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-medium text-sm text-foreground">{listing.title}</span>
+                                                            {isHighPriority && <Pill label="High Priority" variant="destructive" size="xs" />}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-4 text-sm text-muted-foreground">{listing.locationValue}</td>
+                                                    <td className="px-5 py-4 text-sm font-semibold text-foreground">{listing.enquiryCount ?? 0}</td>
+                                                    <td className="px-5 py-4">
+                                                        <Pill label={label} variant={variant} size="xs" />
+                                                    </td>
+                                                    <td className="px-5 py-4 text-right">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <a href={publicListingHref(listing.slug || listing.id)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">View</a>
+                                                            {!listing.inConversation && (
+                                                                <button type="button" className="text-xs text-success hover:underline"
+                                                                    onClick={() => startTransition(async () => {
+                                                                        await markInConversationAction({ listingId: listing.id, inConversation: true });
+                                                                        router.refresh();
+                                                                    })}>
+                                                                    Mark In Conversation
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </>
+            ) : (
+            <>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <StatCard label="All Listings" value={counts.ALL} icon={FiLayers} />
                 <StatCard label="Pending" value={counts.PENDING} icon={FiClock} />
@@ -562,7 +650,7 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                                         <td className="px-5 py-4">
                                             <Pill label={listing.status} variant={statusVariant(listing.status)} size="xs" />
                                         </td>
-                                        <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-foreground">{formatINR(listing.price)}</td>
+                                        <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-foreground">{listing.price != null ? formatINR(listing.price) : "—"}</td>
                                         <td className="whitespace-nowrap px-5 py-4 text-sm text-muted-foreground">
                                             {formatISTDate(listing.createdAt, { day: "numeric", month: "short", year: "numeric" })}
                                         </td>
@@ -635,6 +723,8 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                         </div>
                     }
                 />
+            )}
+            </>
             )}
         </div>
     );

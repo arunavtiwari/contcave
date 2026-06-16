@@ -30,12 +30,11 @@ import {
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
 
-import AddonsStep from "./rent-steps/AddonsStep";
-import AmenitiesStep from "./rent-steps/AmenitiesStep";
 import CategoryStep from "./rent-steps/CategoryStep";
 import CustomTermsStep from "./rent-steps/CustomTermsStep";
 import DescriptionStep from "./rent-steps/DescriptionStep";
 import ImagesStep from "./rent-steps/ImagesStep";
+import ListingTypeStep from "./rent-steps/ListingTypeStep";
 import LocationStep from "./rent-steps/LocationStep";
 import OtherDetailsStep from "./rent-steps/OtherDetailsStep";
 import PackagesStep from "./rent-steps/PackagesStep";
@@ -47,14 +46,13 @@ import VideoStep from "./rent-steps/VideoStep";
 // removed unused LocationValue type
 
 enum STEPS {
+  LISTING_TYPE = -1,
   CATEGORY = 0,
   LOCATION,
   IMAGES,
   VIDEO,
   DESCRIPTION,
-  AMENITIES,
-  ADDONS,
-  OTHERDETAILS,
+  OTHERDETAILS = 7,
   CUSTOMTERMS,
   SETS,
   PACKAGES,
@@ -63,13 +61,12 @@ enum STEPS {
 }
 
 const STEP_TEST_IDS: Record<STEPS, string> = {
+  [STEPS.LISTING_TYPE]: "listing-type",
   [STEPS.CATEGORY]: "category",
   [STEPS.LOCATION]: "location",
   [STEPS.IMAGES]: "images",
   [STEPS.VIDEO]: "video",
   [STEPS.DESCRIPTION]: "description",
-  [STEPS.AMENITIES]: "amenities",
-  [STEPS.ADDONS]: "addons",
   [STEPS.OTHERDETAILS]: "other-details",
   [STEPS.CUSTOMTERMS]: "custom-terms",
   [STEPS.SETS]: "sets",
@@ -78,37 +75,33 @@ const STEP_TEST_IDS: Record<STEPS, string> = {
   [STEPS.TERMS]: "terms",
 };
 
-const getActiveSteps = (hasSets: boolean) =>
-  hasSets
-    ? [
+const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED") => {
+  if (listingType === "CURATED") {
+    return [
+      STEPS.LISTING_TYPE,
       STEPS.CATEGORY,
       STEPS.LOCATION,
       STEPS.IMAGES,
-      STEPS.VIDEO,
       STEPS.DESCRIPTION,
-      STEPS.AMENITIES,
-      STEPS.ADDONS,
       STEPS.OTHERDETAILS,
-      STEPS.SETS,
-      STEPS.CUSTOMTERMS,
-      STEPS.PACKAGES,
-      STEPS.VERIFICATION,
-      STEPS.TERMS,
-    ]
-    : [
-      STEPS.CATEGORY,
-      STEPS.LOCATION,
-      STEPS.IMAGES,
-      STEPS.VIDEO,
-      STEPS.DESCRIPTION,
-      STEPS.AMENITIES,
-      STEPS.ADDONS,
-      STEPS.OTHERDETAILS,
-      STEPS.CUSTOMTERMS,
-      STEPS.PACKAGES,
-      STEPS.VERIFICATION,
-      STEPS.TERMS,
     ];
+  }
+  const base = [
+    STEPS.LISTING_TYPE,
+    STEPS.CATEGORY,
+    STEPS.LOCATION,
+    STEPS.IMAGES,
+    STEPS.VIDEO,
+    STEPS.DESCRIPTION,
+    STEPS.OTHERDETAILS,
+    STEPS.CUSTOMTERMS,
+    ...(hasSets ? [STEPS.SETS] : []),
+    STEPS.PACKAGES,
+    STEPS.VERIFICATION,
+    STEPS.TERMS,
+  ];
+  return base;
+};
 
 type RentModalFormValues = ListingSchema;
 type VerificationDocumentInput = Partial<VerificationDocument> & {
@@ -172,7 +165,7 @@ interface RentModalProps {
 export default function RentModal({ predefinedAmenities = [], predefinedAddons = [] }: RentModalProps) {
   const uiStore = useUIStore();
 
-  const [step, setStep] = useState(STEPS.CATEGORY);
+  const [step, setStep] = useState(STEPS.LISTING_TYPE);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [, setAgreementPdf] = useState<unknown>(null);
@@ -203,6 +196,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     mode: "onTouched",
     shouldUnregister: false,
     defaultValues: {
+      listingType: "STANDARD" as "STANDARD" | "CURATED",
       category: "",
       locationValue: "",
       actualLocation: null as LocationSchema | null,
@@ -211,6 +205,12 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       title: "",
       description: "",
       price: 0,
+      priceRangeMin: null,
+      priceRangeMax: null,
+      mapsUrl: "",
+      websiteUrl: "",
+      instagramHandle: "",
+      contactEmail: "",
       amenities: [],
       otherAmenities: [],
       addons: [],
@@ -233,6 +233,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       customTerms: "",
     },
   });
+  const listingType = watch("listingType") as "STANDARD" | "CURATED";
+  const isCurated = listingType === "CURATED";
   const category = watch("category");
   const actualLocation = watch("actualLocation") as LocationSchema | null;
   const locationValue = watch("locationValue");
@@ -292,7 +294,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     [setValue]
   );
 
-  const activeSteps = useMemo(() => getActiveSteps(Boolean(hasSets)), [hasSets]);
+  const activeSteps = useMemo(() => getActiveSteps(Boolean(hasSets), listingType), [hasSets, listingType]);
 
   const currentStepIndex = activeSteps.indexOf(step);
 
@@ -368,15 +370,19 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
   }, []);
 
   const validateDescriptionStep = useCallback(async () => {
-    const isValid = await trigger(["title", "description", "price"]);
+    const fieldsToValidate: (keyof RentModalFormValues)[] = ["title", "description"];
+    if (!isCurated) fieldsToValidate.push("price");
+    const isValid = await trigger(fieldsToValidate);
     if (!isValid) return false;
-    const currentPrice = Number(watch("price"));
-    if (currentPrice <= 0) {
-      toast.error("Price must be greater than 0");
-      return false;
+    if (!isCurated) {
+      const currentPrice = Number(watch("price"));
+      if (currentPrice <= 0) {
+        toast.error("Price must be greater than 0");
+        return false;
+      }
     }
     return true;
-  }, [trigger, watch]);
+  }, [trigger, watch, isCurated]);
 
   const validateAddonsStep = useCallback(async () => {
     if ((selectedAddons?.length ?? 0) > 0) {
@@ -396,52 +402,42 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
   }, [trigger]);
 
   const validateOtherDetailsStep = useCallback(async () => {
-    if (!listingDetails.carpetArea || listingDetails.carpetArea <= 0) {
-      toast.error("Please enter carpet area");
-      return false;
+    if (!isCurated) {
+      if (!listingDetails.carpetArea || listingDetails.carpetArea <= 0) {
+        toast.error("Please enter carpet area");
+        return false;
+      }
+      if (!listingDetails.minimumBookingHours || listingDetails.minimumBookingHours <= 0) {
+        toast.error("Please enter minimum booking hours");
+        return false;
+      }
+      if (!listingDetails.maximumPax || listingDetails.maximumPax <= 0) {
+        toast.error("Please enter maximum pax");
+        return false;
+      }
+      if (!listingDetails.type || listingDetails.type.length === 0) {
+        toast.error("Please select at least one space type");
+        return false;
+      }
+      const start = listingDetails.operationalHours?.start?.trim() || "";
+      const end = listingDetails.operationalHours?.end?.trim() || "";
+      if (!start || !end) {
+        toast.error("Please select opening hours");
+        return false;
+      }
+      const startIdx = TIME_SLOTS.indexOf(start);
+      const endIdx = TIME_SLOTS.lastIndexOf(end);
+      if (startIdx === -1 || endIdx === -1) {
+        toast.error(`Opening hours must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`);
+        return false;
+      }
+      if (endIdx < startIdx) {
+        toast.error("End time cannot be earlier than start time");
+        return false;
+      }
     }
-    if (!listingDetails.minimumBookingHours || listingDetails.minimumBookingHours <= 0) {
-      toast.error("Please enter minimum booking hours");
-      return false;
-    }
-    if (!listingDetails.maximumPax || listingDetails.maximumPax <= 0) {
-      toast.error("Please enter maximum pax");
-      return false;
-    }
-    if (!listingDetails.type || listingDetails.type.length === 0) {
-      toast.error("Please select at least one space type");
-      return false;
-    }
-    const start = listingDetails.operationalHours?.start?.trim() || "";
-    const end = listingDetails.operationalHours?.end?.trim() || "";
-    if (!start || !end) {
-      toast.error("Please select opening hours");
-      return false;
-    }
-    const startIdx = TIME_SLOTS.indexOf(start);
-    const endIdx = TIME_SLOTS.lastIndexOf(end);
-
-    if (startIdx === -1 || endIdx === -1) {
-      toast.error(`Opening hours must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`);
-      return false;
-    }
-    if (endIdx < startIdx) {
-      toast.error("End time cannot be earlier than start time");
-      return false;
-    }
-
-    const isValid = await trigger([
-      "carpetArea",
-      "minimumBookingHours",
-      "maximumPax",
-      "type",
-      "instantBooking",
-      "hasSets",
-      "operationalDays",
-      "operationalHours"
-    ]);
-    return isValid;
-  }, [listingDetails, trigger]);
+    return true;
+  }, [listingDetails, isCurated]);
 
   const validateSetsStep = useCallback(async () => {
     if (hasSets) {
@@ -548,6 +544,14 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
 
   const stepDefinitions = useMemo<Record<STEPS, StepDefinition>>(
     () => ({
+      [STEPS.LISTING_TYPE]: {
+        id: STEPS.LISTING_TYPE,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        render: () => (
+          <ListingTypeStep listingType={listingType} setCustomValue={setCustomValue} />
+        ),
+      },
       [STEPS.CATEGORY]: {
         id: STEPS.CATEGORY,
         modalTitle: "List Your Space",
@@ -613,34 +617,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
             isLoading={isLoading}
             watch={watch}
             setValue={setValue as never}
-          />
-        ),
-      },
-      [STEPS.AMENITIES]: {
-        id: STEPS.AMENITIES,
-        modalTitle: "List Your Space",
-        actionLabel: "Next",
-        validate: validateAmenitiesStep,
-        render: () => (
-          <AmenitiesStep
-            amenities={selectedAmenityIds || []}
-            amenitiesData={predefinedAmenities}
-            otherAmenities={otherAmenities || []}
-            handleAmenitiesChange={handleAmenitiesChange}
-          />
-        ),
-      },
-      [STEPS.ADDONS]: {
-        id: STEPS.ADDONS,
-        modalTitle: "List Your Space",
-        actionLabel: "Next",
-        validate: validateAddonsStep,
-        render: () => (
-          <AddonsStep
-            selectedAddons={selectedAddons || []}
-            addonsData={predefinedAddons}
-            handleAddonChange={handleAddonChange}
-            setValue={setValue as never}
+            listingType={listingType}
           />
         ),
       },
@@ -653,7 +630,18 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
           <OtherDetailsStep
             listingDetails={listingDetails}
             handleDetailsChange={handleDetailsChange}
+            listingType={listingType}
+            register={register}
           />
+        ),
+      },
+      [STEPS.CUSTOMTERMS]: {
+        id: STEPS.CUSTOMTERMS,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateCustomTermsStep,
+        render: () => (
+          <CustomTermsStep customTerms={customTerms || ""} setValue={setValue as never} />
         ),
       },
       [STEPS.SETS]: {
@@ -671,18 +659,6 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
             setsError={setsError}
             setCustomValue={setCustomValue}
             setSetsError={setSetsError}
-          />
-        ),
-      },
-      [STEPS.CUSTOMTERMS]: {
-        id: STEPS.CUSTOMTERMS,
-        modalTitle: "List Your Space",
-        actionLabel: "Next",
-        validate: validateCustomTermsStep,
-        render: () => (
-          <CustomTermsStep
-            customTerms={customTerms || ""}
-            setValue={setValue as never}
           />
         ),
       },
@@ -733,14 +709,11 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       actualLocation,
       additionalSetPricingType,
       addressError,
-      predefinedAddons,
-      predefinedAmenities,
       category,
       categoryError,
       cityError,
+      customTerms,
       errors,
-      handleAddonChange,
-      handleAmenitiesChange,
       handleDetailsChange,
       handleSignature,
       handleTermsAndConditions,
@@ -750,37 +723,33 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       imageSrc,
       isLoading,
       listingDetails,
+      listingType,
       packages,
       register,
-      selectedAddons,
-      selectedAmenityIds,
+      setCustomValue,
       sets,
       setsError,
       setsHaveSamePrice,
-      setCustomValue,
+      setSetsError,
       setValue,
       signature,
       terms,
       locationValue,
-      validateCategoryStep,
       unifiedSetPrice,
-      validateLocationStep,
-      validateImagesStep,
+      validateCategoryStep,
+      validateCustomTermsStep,
       validateDescriptionStep,
-      validateAddonsStep,
+      validateImagesStep,
+      validateLocationStep,
       validateOtherDetailsStep,
+      validatePackagesStep,
       validateSetsStep,
       validateVerificationStep,
-      validatePackagesStep,
-      validateCustomTermsStep,
-      validateAmenitiesStep,
+      validateVideoStep,
       verificationError,
       verifications,
       videoSrc,
       watch,
-      customTerms,
-      otherAmenities,
-      validateVideoStep,
     ]
   );
 
@@ -806,7 +775,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     setIsSubmitting(false);
 
     reset();
-    setStep(STEPS.CATEGORY);
+    setStep(STEPS.LISTING_TYPE);
   }, [reset]);
 
   useEffect(() => {
@@ -824,18 +793,20 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
   }, [isSubmitting]);
 
   const onSubmit: SubmitHandler<RentModalFormValues> = async (data) => {
-    if (step !== STEPS.TERMS) {
-
-
-
-
-
+    const isLastStep = currentStepIndex === activeSteps.length - 1;
+    if (!isLastStep) {
       await onNext();
       return;
     }
 
-    if (!data.terms || !data.agreementSignature) {
-      return toast.error("Please accept the terms and conditions and provide your signature");
+    const isListingCurated = data.listingType === "CURATED";
+    if (!isListingCurated) {
+      if (!data.terms) {
+        return toast.error("Please accept the terms and conditions");
+      }
+      if (!data.agreementSignature) {
+        return toast.error("Please provide your signature to continue");
+      }
     }
 
     const locationValue =
@@ -893,6 +864,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
 
       const payload = {
         id: listingId,
+        listingType: data.listingType ?? "STANDARD",
         title: data.title,
         description: data.description,
         imageSrc: finalImageUrls,
@@ -903,11 +875,16 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
           ...data.actualLocation!,
           latlng: data.actualLocation!.latlng as [number, number]
         },
-        price: Number(data.price),
+        price: isListingCurated ? 0 : Number(data.price),
+        priceRangeMin: isListingCurated ? (data.priceRangeMin ?? null) : null,
+        priceRangeMax: isListingCurated ? (data.priceRangeMax ?? null) : null,
+        mapsUrl: data.mapsUrl || null,
+        websiteUrl: data.websiteUrl || null,
+        instagramHandle: data.instagramHandle || null,
         amenities: Array.isArray(data.amenities) ? data.amenities : [],
         otherAmenities: Array.isArray(data.otherAmenities) ? data.otherAmenities : [],
         addons: finalAddons,
-        carpetArea: data.carpetArea,
+        carpetArea: data.carpetArea || 0,
         operationalHours: (data.operationalHours?.start && data.operationalHours?.end) ? {
           start: String(data.operationalHours.start),
           end: String(data.operationalHours.end)

@@ -134,8 +134,19 @@ const PrivacyPolicy = () => {
               </Clause>
             </div>
 
-            {/* 6. Contact Us */}
-            <SectionTitle number={6} title="Contact Us" />
+            {/* 6. Information About Third-Party Studios */}
+            <SectionTitle number={6} title="Information About Third-Party Studios" />
+            <div className="space-y-2">
+              <Clause>
+                ContCave may collect and publish publicly available information about studios that have not registered with our platform, for the purpose of enabling brand discovery. This information is sourced from public directories, Google Maps, studio websites, and social media profiles.
+              </Clause>
+              <Clause>
+                Studio owners who wish to exercise their right to remove or correct their studio&apos;s information may contact us at <strong>info@contcave.com</strong>. We will action such requests within a reasonable timeframe.
+              </Clause>
+            </div>
+
+            {/* 7. Contact Us */}
+            <SectionTitle number={7} title="Contact Us" />
             <div className="space-y-2">
               <Clause>
                 If you have questions or comments about this policy, you may email us at:

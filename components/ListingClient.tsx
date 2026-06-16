@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Container from "@/components/Container";
+import CuratedReservation from "@/components/listing/CuratedReservation";
 import ListingHead from "@/components/listing/ListingHead";
 import ListingInfo from "@/components/listing/ListingInfo";
 import ListingReservation from "@/components/listing/ListingReservation";
@@ -358,6 +359,8 @@ function ListingClient({
     return { starts: merged.map(x => x.s), ends: merged.map(x => x.e) };
   }, [selectedDate, buildMergedIntervalsFor, selectedSetIds]);
 
+  const isCurated = listing.listingType === "CURATED";
+
   const getRequiredMinutes = useCallback((selPkg: Package | null, lst: FullListing) => {
     const pkgMin = Math.max(0, Number(selPkg?.durationHours ?? 0)) * 60;
     const listingMin = Math.max(0, Number(lst.minimumBookingHours ?? 0)) * 60;
@@ -556,7 +559,7 @@ function ListingClient({
   const pricingResult = useMemo(() => {
     if (!listing.hasSets || !listing.sets) return null;
     return calculateSetPricing({
-      baseHourlyRate: listing.price,
+      baseHourlyRate: listing.price ?? 0,
       durationMinutes: timeDifferenceInHours * 60,
       selectedSetIds,
       sets: listing.sets,
@@ -677,39 +680,47 @@ function ListingClient({
                 descriptionShouldTruncate={descriptionShouldTruncate}
               />
               <div className="order-first mb-10 md:order-last md:col-span-3">
-                <ListingReservation
-                  listingId={listing.id}
-                  price={listing.price}
-                  platformFee={0}
-                  time={timeDifferenceInHours}
-                  setSelectDateAction={setSelectedDate}
-                  selectedDate={selectedDate}
-                  setSelectTimeSlotsAction={setSelectedTimeSlot}
-                  selectedTime={selectedTimeSlot}
-                  instantBooking={!!listing.instantBooking}
-                  disabledDates={disabledDates}
-                  disabledStartTimes={disabledPairsForPicker.starts}
-                  disabledEndTimes={disabledPairsForPicker.ends}
-                  operationalTimings={operationalTimings}
-                  selectedAddons={selectedAddons}
-                  currentUserPhone={currentUser?.phone ?? null}
-                  isAuthenticated={!!currentUser}
-                  minBookingHours={Number(listing.minimumBookingHours)}
-
-                  selectedPackage={selectedPackage}
-                  hasSets={listing.hasSets && (listing.sets?.length ?? 0) >= 2}
-                  sets={listing.sets}
-                  additionalSetPricingType={listing.additionalSetPricingType}
-
-
-                  selectedSetIds={selectedSetIds}
-                  pricingResult={pricingResult}
-
-                  selectedPackageId={selectedPackage?.id || null}
-                  setSelectionError={null}
-
-                  reservations={reservations}
-                />
+                {isCurated ? (
+                  <CuratedReservation
+                    listingId={listing.id}
+                    studioName={listing.title}
+                    area={listing.locationValue}
+                    priceRangeMin={listing.priceRangeMin}
+                    priceRangeMax={listing.priceRangeMax}
+                    mapsUrl={listing.mapsUrl}
+                    websiteUrl={listing.websiteUrl}
+                    instagramHandle={listing.instagramHandle}
+                  />
+                ) : (
+                  <ListingReservation
+                    listingId={listing.id}
+                    price={listing.price ?? 0}
+                    platformFee={0}
+                    time={timeDifferenceInHours}
+                    setSelectDateAction={setSelectedDate}
+                    selectedDate={selectedDate}
+                    setSelectTimeSlotsAction={setSelectedTimeSlot}
+                    selectedTime={selectedTimeSlot}
+                    instantBooking={!!listing.instantBooking}
+                    disabledDates={disabledDates}
+                    disabledStartTimes={disabledPairsForPicker.starts}
+                    disabledEndTimes={disabledPairsForPicker.ends}
+                    operationalTimings={operationalTimings}
+                    selectedAddons={selectedAddons}
+                    currentUserPhone={currentUser?.phone ?? null}
+                    isAuthenticated={!!currentUser}
+                    minBookingHours={Number(listing.minimumBookingHours ?? 0)}
+                    selectedPackage={selectedPackage}
+                    hasSets={listing.hasSets && (listing.sets?.length ?? 0) >= 2}
+                    sets={listing.sets}
+                    additionalSetPricingType={listing.additionalSetPricingType}
+                    selectedSetIds={selectedSetIds}
+                    pricingResult={pricingResult}
+                    selectedPackageId={selectedPackage?.id || null}
+                    setSelectionError={null}
+                    reservations={reservations}
+                  />
+                )}
               </div>
             </div>
           </div>

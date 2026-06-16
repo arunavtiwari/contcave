@@ -139,7 +139,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         type="number"
         formatPrice
         placeholder="Price"
-        value={Number.isFinite(initialListing.price) ? initialListing.price : ""}
+        value={Number.isFinite(initialListing.price ?? undefined) ? (initialListing.price as number) : ""}
         onNumberChange={(val) => handleInputChange("price", val)}
       />
 

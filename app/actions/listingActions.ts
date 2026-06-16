@@ -147,6 +147,13 @@ export async function getAdminListingReviews(status?: AdminListingStatus) {
                 setsHaveSamePrice: listing.setsHaveSamePrice,
                 unifiedSetPrice: listing.unifiedSetPrice,
                 additionalSetPricingType: listing.additionalSetPricingType,
+                listingType: listing.listingType,
+                priceRangeMin: listing.priceRangeMin,
+                priceRangeMax: listing.priceRangeMax,
+                enquiryCount: listing.enquiryCount,
+                inConversation: listing.inConversation,
+                notifyEmailSentAt: listing.notifyEmailSentAt?.toISOString() ?? null,
+                notifyReminderAt: listing.notifyReminderAt?.toISOString() ?? null,
                 verifications,
                 packages: listing.packages.map((pkg) => ({
                     id: pkg.id,
@@ -359,3 +366,97 @@ export const updateDayStatusAction = createAction(
         return { success: true };
     }
 );
+
+// ─── Curated Listing Actions ─────────────────────────────────────────────────
+
+const curatedListingSchema = z.object({
+    title: z.string().min(2).max(200),
+    description: z.string().min(10).max(5000),
+    category: z.string().min(1),
+    locationValue: z.string().min(1),
+    imageSrc: z.array(z.string().url()).min(1),
+    mapsUrl: z.string().url().optional().or(z.literal("")),
+    websiteUrl: z.string().url().optional().or(z.literal("")),
+    instagramHandle: z.string().optional(),
+    priceRangeMin: z.number().int().positive().optional(),
+    priceRangeMax: z.number().int().positive().optional(),
+    contactEmail: z.string().email().optional().or(z.literal("")),
+    curatedSource: z.string().optional(),
+});
+
+export const createCuratedListingAction = createAction(
+    curatedListingSchema,
+    { requireAuth: true, allowedRoles: ["ADMIN"] },
+    async (data, { user }) => {
+        const listing = await prisma.listing.create({
+            data: {
+                title: data.title,
+                description: data.description,
+                category: data.category,
+                locationValue: data.locationValue,
+                imageSrc: data.imageSrc,
+                mapsUrl: data.mapsUrl || null,
+                websiteUrl: data.websiteUrl || null,
+                instagramHandle: data.instagramHandle || null,
+                priceRangeMin: data.priceRangeMin ?? null,
+                priceRangeMax: data.priceRangeMax ?? null,
+                contactEmail: data.contactEmail || null,
+                curatedSource: data.curatedSource || null,
+                listingType: "CURATED",
+                status: "VERIFIED",
+                active: true,
+                userId: user!.id,
+                amenities: [],
+                otherAmenities: [],
+                type: [],
+            },
+        });
+
+        if (data.contactEmail) {
+            try {
+                const { sendCuratedOutreachEmail } = await import("@/lib/email/templates");
+                await sendCuratedOutreachEmail({
+                    toEmail: data.contactEmail,
+                    studioName: data.title,
+                    city: data.locationValue,
+                    listingId: listing.id,
+                });
+                await prisma.listing.update({
+                    where: { id: listing.id },
+                    data: { notifyEmailSentAt: new Date() },
+                });
+            } catch (err) {
+                console.error("[createCuratedListing] Outreach email failed:", err);
+            }
+        }
+
+        revalidatePath("/home");
+        revalidatePath("/admin/dashboard/listings");
+        return { listingId: listing.id };
+    }
+);
+
+export const markInConversationAction = createAction(
+    z.object({ listingId: z.string(), inConversation: z.boolean() }),
+    { requireAuth: true, allowedRoles: ["ADMIN"] },
+    async ({ listingId, inConversation }) => {
+        await prisma.listing.update({
+            where: { id: listingId },
+            data: { inConversation },
+        });
+        revalidatePath("/admin/dashboard/listings");
+        return { ok: true };
+    }
+);
+
+export async function trackEnquiryAction(listingId: string): Promise<void> {
+    "use server";
+    try {
+        await prisma.listing.update({
+            where: { id: listingId },
+            data: { enquiryCount: { increment: 1 } },
+        });
+    } catch {
+        // Non-critical — don't surface to user
+    }
+}
