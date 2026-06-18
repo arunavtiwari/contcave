@@ -61,14 +61,15 @@ const AddonsSelection: React.FC<AddonsCheckboxProps> = ({
                 : addons.find((a) => a.name === addonName) || {
                     name: addonName,
                     price: 0,
-                    qty: 0,
+                    qty: 1,
                     imageUrl: '',
                 };
 
+        const isNewSelection = selectedIndex === -1;
         const updatedAddon: Addon = {
             ...currentAddon,
             price: price === undefined || price === '' ? currentAddon.price : Number(price),
-            qty: qty === undefined || qty === '' ? currentAddon.qty : Number(qty),
+            qty: qty === undefined || qty === '' ? (isNewSelection ? 1 : currentAddon.qty) : Number(qty),
         };
 
         let newSelected: Addon[];

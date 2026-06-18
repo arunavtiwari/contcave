@@ -30,6 +30,8 @@ import {
 import { Addon } from "@/types/addon";
 import { Package } from "@/types/package";
 
+import AddonsStep from "./rent-steps/AddonsStep";
+import AmenitiesStep from "./rent-steps/AmenitiesStep";
 import CategoryStep from "./rent-steps/CategoryStep";
 import CustomTermsStep from "./rent-steps/CustomTermsStep";
 import DescriptionStep from "./rent-steps/DescriptionStep";
@@ -52,6 +54,8 @@ enum STEPS {
   IMAGES,
   VIDEO,
   DESCRIPTION,
+  AMENITIES,
+  ADDONS,
   OTHERDETAILS = 7,
   CUSTOMTERMS,
   SETS,
@@ -67,6 +71,8 @@ const STEP_TEST_IDS: Record<STEPS, string> = {
   [STEPS.IMAGES]: "images",
   [STEPS.VIDEO]: "video",
   [STEPS.DESCRIPTION]: "description",
+  [STEPS.AMENITIES]: "amenities",
+  [STEPS.ADDONS]: "addons",
   [STEPS.OTHERDETAILS]: "other-details",
   [STEPS.CUSTOMTERMS]: "custom-terms",
   [STEPS.SETS]: "sets",
@@ -93,6 +99,8 @@ const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED") =
     STEPS.IMAGES,
     STEPS.VIDEO,
     STEPS.DESCRIPTION,
+    STEPS.AMENITIES,
+    STEPS.ADDONS,
     STEPS.OTHERDETAILS,
     STEPS.CUSTOMTERMS,
     ...(hasSets ? [STEPS.SETS] : []),
@@ -436,8 +444,9 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         return false;
       }
     }
+    await trigger(["hasSets", "carpetArea", "minimumBookingHours", "maximumPax", "type", "operationalDays", "operationalHours"]);
     return true;
-  }, [listingDetails, isCurated]);
+  }, [listingDetails, isCurated, trigger]);
 
   const validateSetsStep = useCallback(async () => {
     if (hasSets) {
@@ -621,6 +630,34 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
           />
         ),
       },
+      [STEPS.AMENITIES]: {
+        id: STEPS.AMENITIES,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateAmenitiesStep,
+        render: () => (
+          <AmenitiesStep
+            amenities={selectedAmenityIds || []}
+            amenitiesData={predefinedAmenities}
+            otherAmenities={otherAmenities || []}
+            handleAmenitiesChange={handleAmenitiesChange}
+          />
+        ),
+      },
+      [STEPS.ADDONS]: {
+        id: STEPS.ADDONS,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateAddonsStep,
+        render: () => (
+          <AddonsStep
+            selectedAddons={selectedAddons || []}
+            addonsData={predefinedAddons}
+            handleAddonChange={handleAddonChange}
+            setValue={setValue as never}
+          />
+        ),
+      },
       [STEPS.OTHERDETAILS]: {
         id: STEPS.OTHERDETAILS,
         modalTitle: "List Your Space",
@@ -714,6 +751,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       cityError,
       customTerms,
       errors,
+      handleAddonChange,
+      handleAmenitiesChange,
       handleDetailsChange,
       handleSignature,
       handleTermsAndConditions,
@@ -727,6 +766,11 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       packages,
       register,
       setCustomValue,
+      otherAmenities,
+      predefinedAddons,
+      predefinedAmenities,
+      selectedAddons,
+      selectedAmenityIds,
       sets,
       setsError,
       setsHaveSamePrice,
@@ -736,6 +780,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       terms,
       locationValue,
       unifiedSetPrice,
+      validateAddonsStep,
+      validateAmenitiesStep,
       validateCategoryStep,
       validateCustomTermsStep,
       validateDescriptionStep,

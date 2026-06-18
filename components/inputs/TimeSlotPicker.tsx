@@ -224,8 +224,26 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
             ) : (
                 <>
 
-                    <p className="px-1 pb-2 mt-2 text-xs text-muted-foreground">
-                        Minimum booking: {minBookingMinutes} minutes
+                    <p className="px-1 pb-2 mt-2 text-xs text-muted-foreground flex items-center justify-between">
+                        
+                        {normStart && normEnd && (() => {
+                            const startM = toMinutes(normStart);
+                            const rawEnd = toMinutes(normEnd);
+                            const endM = rawEnd === 0 ? 24 * 60 : rawEnd;
+                            const diff = endM - startM;
+                            if (!Number.isFinite(diff) || diff <= 0) return null;
+                            const h = Math.floor(diff / 60);
+                            const m = diff % 60;
+                            const label = h > 0 && m > 0 ? `${h}h ${m}m` : h > 0 ? `${h} hr${h !== 1 ? "s" : ""}` : `${m}m`;
+                            return <span className="font-medium text-success">{label} selected</span>;
+                        })()}
+
+                        <span>
+                            Min booking:{" "}
+                            {minBookingMinutes % 60 === 0
+                                ? `${minBookingMinutes / 60} hr${minBookingMinutes / 60 !== 1 ? "s" : ""}`
+                                : `${Math.floor(minBookingMinutes / 60)}h ${minBookingMinutes % 60}m`}
+                        </span>
                     </p>
 
                     <div className="gap-4 grid grid-cols-3 h-[30vh] pr-1 overflow-y-auto pb-4">

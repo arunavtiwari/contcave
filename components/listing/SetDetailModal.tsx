@@ -4,8 +4,8 @@ import "swiper/css";
 import "swiper/css/navigation";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
-import { IoCheckmark, IoChevronBack, IoChevronForward, IoClose } from "react-icons/io5";
+import { useEffect, useRef, useState } from "react";
+import { IoCheckmark, IoCheckmarkCircle, IoChevronBack, IoChevronForward, IoClose } from "react-icons/io5";
 import type { Swiper as SwiperClass } from "swiper";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -37,9 +37,19 @@ export default function SetDetailModal({
     isEligible,
 }: SetDetailModalProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [justActed, setJustActed] = useState<"added" | "removed" | null>(null);
     const swiperRef = useRef<SwiperClass>(null);
 
+    useEffect(() => {
+        if (!isOpen) setJustActed(null);
+    }, [isOpen]);
+
     if (!isOpen || !set) return null;
+
+    const handleToggle = () => {
+        setJustActed(isSelected ? "removed" : "added");
+        onToggle();
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4 backdrop-blur-sm transition-opacity duration-300" onClick={onClose}>
@@ -151,15 +161,23 @@ export default function SetDetailModal({
                             </div>
                         )}
 
+                        {justActed && (
+                            <div className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium ${
+                                justActed === "added"
+                                    ? "bg-success/10 text-success border border-success/20"
+                                    : "bg-neutral-100 text-muted-foreground border border-border"
+                            }`}>
+                                <IoCheckmarkCircle size={16} />
+                                {justActed === "added" ? "Added to your booking" : "Removed from your booking"}
+                            </div>
+                        )}
+
                         <Button
-                            label={isSelected ? "Selected" : "Select Set"}
-                            onClick={() => {
-                                onToggle();
-                                onClose();
-                            }}
+                            label={isSelected ? "Remove Set" : "Select Set"}
+                            onClick={handleToggle}
                             disabled={!isAvailable || !isEligible}
                             outline={isSelected}
-                            icon={isSelected ? IoCheckmark : undefined}
+                            icon={isSelected ? undefined : IoCheckmark}
                         />
                     </div>
                 </div>

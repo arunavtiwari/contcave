@@ -674,7 +674,6 @@ function ListingClient({
                 includedSetId={pricingResult?.includedSetId || null}
                 selectedPackage={selectedPackage}
                 isSetSelectionDisabled={!!selectedPackage}
-
                 processedDescription={processedDescription}
                 processedTerms={processedTerms}
                 descriptionShouldTruncate={descriptionShouldTruncate}
