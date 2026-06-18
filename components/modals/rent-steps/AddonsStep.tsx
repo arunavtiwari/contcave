@@ -28,7 +28,7 @@ const AddonsStep: React.FC<AddonsStepProps> = ({
           save={(value) => {
             const updated = [
               ...(selectedAddons || []),
-              { ...value, price: 0, qty: 0, imageUrl: value.imageUrl ?? "" },
+              { ...value, price: 0, qty: 1, imageUrl: value.imageUrl ?? "" },
             ];
             setValue("addons", updated, { shouldDirty: true });
           }}

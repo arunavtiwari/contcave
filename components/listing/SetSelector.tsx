@@ -10,6 +10,8 @@ import type { Swiper as SwiperClass } from "swiper";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
+import { IoInformationCircleOutline } from "react-icons/io5";
+
 import Checkbox from "@/components/inputs/Checkbox";
 import SetDetailModal from "@/components/listing/SetDetailModal";
 import Heading from "@/components/ui/Heading";
@@ -79,12 +81,8 @@ export default function SetSelector({
         };
     };
 
-    const handleCardClick = (set: ListingSet) => {
-        setModalSet(set);
-    };
-
     const handleToggle = (setId: string) => {
-        onSetToggle(setId);
+        if (!isEntireStudioBooked) onSetToggle(setId);
     };
 
     const handleSwiperUpdate = (swiper: SwiperClass) => {
@@ -127,7 +125,7 @@ export default function SetSelector({
                 )}
 
                 {/* Right navigation arrow */}
-                {!isEnd && sets.length > 3 && (
+                {!isEnd && sets.length >= 3 && (
                     <button
                         onClick={() => swiperRef.current?.slideNext()}
                         aria-label="Scroll right"
@@ -177,77 +175,69 @@ export default function SetSelector({
                             <SwiperSlide key={set.id} style={{ width: "256px" }}>
                                 <div className="py-2">
                                     <div
-                                        onClick={() => !isDisabled && handleCardClick(set)}
+                                        onClick={() => !isDisabled && handleToggle(set.id)}
                                         className={`
                                             relative w-full aspect-video rounded-xl overflow-hidden cursor-pointer group transition-all
                                             ${isSelected ? "ring-2 ring-foreground ring-offset-2" : ""}
                                             ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
                                         `}
                                     >
-
                                         {set.images.length > 1 ? (
                                             <div className="absolute inset-0 z-0">
-                                                <Swiper
-                                                    loop={true}
-                                                    speed={500}
-                                                    className="h-full w-full"
-                                                >
+                                                <Swiper loop speed={500} className="h-full w-full">
                                                     {set.images.map((img, idx) => (
                                                         <SwiperSlide key={idx}>
                                                             <div className="relative w-full h-full aspect-video">
-                                                                <Image
-                                                                    src={img}
-                                                                    alt={`${set.name} image ${idx + 1}`}
-                                                                    fill
-                                                                    sizes="256px"
-                                                                    className="object-cover transition group-hover:scale-105"
-                                                                />
+                                                                <Image src={img} alt={`${set.name} image ${idx + 1}`} fill sizes="220px" className="object-cover transition group-hover:scale-105" />
                                                             </div>
                                                         </SwiperSlide>
                                                     ))}
                                                 </Swiper>
                                             </div>
                                         ) : set.images.length === 1 ? (
-                                            <Image
-                                                src={set.images[0]}
-                                                alt={set.name}
-                                                fill
-                                                sizes="256px"
-                                                className="object-cover transition group-hover:scale-105"
-                                            />
+                                            <Image src={set.images[0]} alt={set.name} fill sizes="220px" className="object-cover transition group-hover:scale-105" />
                                         ) : (
                                             <div className="w-full h-full bg-muted flex items-center justify-center">
                                                 <span className="text-xs text-muted-foreground">No Image</span>
                                             </div>
                                         )}
 
+                                        {/* Selection overlay (no text — name shown below card) */}
+                                        {isSelected && (
+                                            <div className="absolute inset-0 bg-foreground/30" />
+                                        )}
 
-                                        <div className={`absolute inset-0 transition-all duration-300 flex items-center justify-center p-2 text-center
-                                            ${isSelected ? "bg-foreground/40" : "bg-foreground/0 group-hover:bg-foreground/40"}
-                                        `}>
-                                            <h4 className={`font-bold text-background text-lg drop- leading-tight transition-opacity duration-300
-                                                ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
-                                            `}>
-                                                {set.name}
-                                            </h4>
-                                        </div>
-
-
-                                        <div className="absolute top-2 right-2 z-10">
+                                        {/* Checkbox top-right */}
+                                        <div className="absolute top-2 right-2 z-10" onClick={(e) => { e.stopPropagation(); if (!isDisabled) handleToggle(set.id); }}>
                                             <Checkbox
                                                 checked={isSelected}
-                                                readOnly
-                                                className="pointer-events-none data-[state=checked]:bg-success data-[state=checked]:border-success"
+                                                className="data-[state=checked]:bg-success data-[state=checked]:border-success"
                                             />
                                         </div>
 
+                                        {/* Info icon bottom-left → opens detail modal */}
+                                        {(set.description || set.images.length > 1) && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); setModalSet(set); }}
+                                                className="absolute bottom-2 left-2 z-10 w-6 h-6 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
+                                                aria-label="View set details"
+                                            >
+                                                <IoInformationCircleOutline size={14} className="text-foreground" />
+                                            </button>
+                                        )}
+
                                         {!isAvailable && (
                                             <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-center justify-center z-20">
-                                                <span className="text-xs font-bold text-destructive bg-background/80 px-2 py-1 rounded-md ">
-                                                    Unavailable
-                                                </span>
+                                                <span className="text-xs font-bold text-destructive bg-background/80 px-2 py-1 rounded-md">Unavailable</span>
                                             </div>
                                         )}
+                                    </div>
+
+                                    {/* Name + price below card */}
+                                    <div className="mt-1.5 px-0.5 flex items-center justify-between gap-2">
+                                        <p className="text-xs font-medium text-foreground truncate">{set.name}</p>
+                                        <p className="text-xs text-muted-foreground shrink-0">{getSetPrice(set).label}</p>
                                     </div>
                                 </div>
                             </SwiperSlide>

@@ -75,10 +75,13 @@ export function calculateSetPricing(params: SetPricingParams): SetPricingResult 
     } = params;
 
     const hours = calculateHours(durationMinutes);
-    const baseCost = calculateBaseCost(baseHourlyRate, hours);
 
+    // When sets are selected, the included (cheapest) set's price drives the hourly rate.
+    // Falling back to the listing base rate only when no set is selected.
     const includedSet = findIncludedSet(selectedSetIds, sets);
     const includedSetId = includedSet?.id || null;
+    const effectiveHourlyRate = includedSet ? includedSet.price : baseHourlyRate;
+    const baseCost = calculateBaseCost(effectiveHourlyRate, hours);
 
     let additionalSetsCost = 0;
     let additionalSets: Array<{ id: string; name: string; price: number }> = [];
@@ -102,7 +105,7 @@ export function calculateSetPricing(params: SetPricingParams): SetPricingResult 
     }
 
     const breakdown: PricingBreakdown = {
-        baseHourlyRate,
+        baseHourlyRate: effectiveHourlyRate,
         hours,
         baseCost,
         includedSetId,

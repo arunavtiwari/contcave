@@ -306,13 +306,12 @@ function ListingInfo({
 
       <hr />
 
-
       {fullListing.hasSets && fullListing.sets && fullListing.sets.length > 0 && (
         <>
           <SetSelector
             sets={fullListing.sets}
             selectedSetIds={selectedSetIds}
-            onSetToggle={onSetToggle || (() => { })}
+            onSetToggle={onSetToggle || (() => {})}
             onSelectAll={onSelectAllSets}
             includedSetId={includedSetId}
             pricingType={setPricingType}
