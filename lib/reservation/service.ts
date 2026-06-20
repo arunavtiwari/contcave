@@ -518,20 +518,16 @@ export class ReservationService {
         if (!txn || !txn.user?.email || txn.emailSentFailed) return;
 
         try {
-            const { sendTemplateEmail } = await import("@/lib/email/mailer");
+            const { sendReservationFailedEmail } = await import("@/lib/email/templates");
             await prisma.transaction.update({
                 where: { id: txnId },
                 data: { emailSentFailed: true }
             });
 
-            await sendTemplateEmail({
+            await sendReservationFailedEmail({
                 toEmail: txn.user.email,
                 toName: txn.user.name || "Customer",
-                templateId: process.env.MS_TPL_RESERVATION_FAILED || "",
-                data: {
-                    customer_name: txn.user.name || "Customer",
-                    order_id: txn.cfOrderId || "N/A"
-                }
+                orderId: txn.cfOrderId || "N/A"
             });
         } catch (e) {
             await prisma.transaction.update({
