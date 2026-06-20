@@ -668,7 +668,6 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
             listingDetails={listingDetails}
             handleDetailsChange={handleDetailsChange}
             listingType={listingType}
-            register={register}
           />
         ),
       },
@@ -1063,7 +1062,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
 
 
 
-  const actionLabel = currentStepDefinition.actionLabel;
+  const isLastStep = currentStepIndex === activeSteps.length - 1;
+  const actionLabel = isLastStep ? "Create Listing" : currentStepDefinition.actionLabel;
 
   const secondActionLabel = currentStepIndex <= 0 ? undefined : "Back";
 
@@ -1085,7 +1085,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         title={currentStepDefinition.modalTitle}
         actionLabel={actionLabel}
         onSubmitAction={() => {
-          if (step === STEPS.TERMS) {
+          const isLastStep = currentStepIndex === activeSteps.length - 1;
+          if (isLastStep) {
             handleSubmit(onSubmit, (errors) => {
               if (errors.terms || !signature?.url) {
                 toast.error("Please accept the terms and conditions and provide your signature");
