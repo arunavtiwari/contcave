@@ -19,8 +19,8 @@ import SearchModal from "@/components/modals/SearchModal";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import GlobalProviders from "@/components/providers/GlobalProviders";
 import ToastContainerBar from "@/components/ToastContainerBar";
-import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import ScrollToTop from "@/components/ui/ScrollToTop";
+import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import {
     BRAND_DESCRIPTION,

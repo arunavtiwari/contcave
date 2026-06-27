@@ -68,7 +68,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
 
     return (
         <div
-            className="relative mb-3 overflow-hidden rounded-xl aspect-[4/3] bg-neutral-100 border border-foreground/5"
+            className="relative mb-3 overflow-hidden rounded-xl aspect-4/3 bg-neutral-100 border border-foreground/5"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >

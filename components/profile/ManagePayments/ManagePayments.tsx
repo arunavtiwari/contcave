@@ -210,7 +210,7 @@ const ManagePayments: React.FC<Props> = ({
 
 
             <nav
-                className="relative flex bg-muted rounded-full p-1 w-full max-w-[320px] sm:max-w-[400px] self-center border border-border"
+                className="relative flex bg-muted rounded-full p-1 w-full max-w-[320px] sm:max-w-100 self-center border border-border"
                 role="tablist"
                 aria-label="Payment management tabs"
             >

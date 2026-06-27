@@ -174,7 +174,7 @@ export const listingSchema = listingBaseSchema.superRefine((data, ctx) => {
     if (data.hasSets && (!data.sets || data.sets.length < 2)) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Multi-set listings must have at least 2 sets", path: ["sets"] });
     }
-    if (data.terms !== true) {
+    if (data.listingType !== "CURATED" && data.terms !== true) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "You must accept the terms", path: ["terms"] });
     }
     if (data.listingType === "STANDARD" && (!data.price || data.price < 1)) {

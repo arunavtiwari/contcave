@@ -1,9 +1,6 @@
 name: Staging E2E
 
 on:
-  push:
-    branches:
-      - staging
   workflow_dispatch:
     inputs:
       base_url:

@@ -241,6 +241,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false
         />
 
         {/* Toggles Card Grid */}
+        {!optional && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="border border-border rounded-xl p-4 bg-neutral-50/50">
                 <Switch
@@ -269,6 +270,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false
                 />
             </div>
         </div>
+        )}
     </div >
     );
 };
