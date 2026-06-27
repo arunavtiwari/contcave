@@ -10,9 +10,6 @@ import { IoInformationCircleOutline } from "react-icons/io5";
 import type { Swiper as SwiperClass } from "swiper";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-
-import { IoInformationCircleOutline } from "react-icons/io5";
-
 import Checkbox from "@/components/inputs/Checkbox";
 import SetDetailModal from "@/components/listing/SetDetailModal";
 import Heading from "@/components/ui/Heading";
