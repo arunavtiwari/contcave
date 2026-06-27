@@ -45,10 +45,12 @@ export const metadata: Metadata = {
         canonical: "/",
     },
     icons: {
-        icon: "/assets/logo_small.png",
-        apple: {
-            url: "/assets/logo_small.png",
-        },
+        icon: [
+            { url: "/favicon.ico", sizes: "48x48" },
+            { url: "/icon.png", sizes: "192x192", type: "image/png" },
+        ],
+        shortcut: "/favicon.ico",
+        apple: { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
     },
     openGraph: {
         type: "website",
