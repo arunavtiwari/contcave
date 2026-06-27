@@ -117,7 +117,8 @@ function ImageUpload({
         const uploadRes = await fetch(url, {
           method: "PUT",
           headers: {
-            "Content-Type": file.type
+            "Content-Type": file.type,
+            "Cache-Control": "public, max-age=31536000, immutable",
           },
           body: file,
         });

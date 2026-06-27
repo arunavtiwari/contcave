@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
             Bucket: bucket,
             Key: key,
             ContentType: contentType,
+            CacheControl: "public, max-age=31536000, immutable",
         });
 
         const url = await getSignedUrl(r2, command, { expiresIn: 3600 });
