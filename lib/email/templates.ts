@@ -51,6 +51,9 @@ function getReservationEmailHtml(input: {
           <table width="100%" style="max-width:560px;background:#ffffff;border-radius:8px;padding:32px;">
             <tr>
               <td style="font-size:15px;line-height:1.6;">
+                <div style="margin-bottom:24px;text-align:left;">
+                  <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                </div>
                 <p>Hi ${escapeHtml(input.greetingName)},</p>
                 <p>${escapeHtml(input.intro)}</p>
                 <h2 style="font-size:18px;color:#111827;margin:24px 0 12px;">Booking Details</h2>
@@ -96,6 +99,9 @@ export function getResetPasswordTemplate(name: string, resetUrl: string): string
           <table width="100%" style="max-width:480px;background:#ffffff;border-radius:8px;padding:32px;">
             <tr>
               <td style="color:#374151;font-size:15px;line-height:1.6;">
+                <div style="margin-bottom:24px;text-align:left;">
+                  <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                </div>
                 <p>Hi ${name || "there"},</p>
                 <p>We received a request to reset your password. Click the button below to choose a new one:</p>
                 <div style="text-align:center;margin:32px 0;">
@@ -138,6 +144,9 @@ export function getHostOnboardingTemplate(name: string): string {
           <table width="100%" style="max-width:480px;background:#ffffff;border-radius:8px;padding:32px;">
             <tr>
               <td style="color:#374151;font-size:15px;line-height:1.6;">
+                <div style="margin-bottom:24px;text-align:left;">
+                  <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                </div>
                 <p>Hi ${name},</p>
                 <p>Welcome to <strong>ContCave</strong>! We're thrilled to have you join our ecosystem as a host.</p>
                 <p>As a host, you can list your studio, manage bookings, and connect with top-tier creators across the country.</p>
@@ -184,6 +193,9 @@ export function getCustomerOnboardingTemplate(name: string): string {
           <table width="100%" style="max-width:480px;background:#ffffff;border-radius:8px;padding:32px;">
             <tr>
               <td style="color:#374151;font-size:15px;line-height:1.6;">
+                <div style="margin-bottom:24px;text-align:left;">
+                  <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                </div>
                 <p>Hi ${name},</p>
                 <p>Welcome to <strong>ContCave</strong>! We're thrilled to have you join our ecosystem for India's growing creator economy.</p>
                 <p>Discover the perfect spaces for your creative projects, manage your bookings, and find your next inspiration.</p>
@@ -326,5 +338,60 @@ export async function sendCuratedOutreachEmail(input: {
     toName: `${input.studioName} Team`,
     subject: `We've listed ${input.studioName} on ContCave`,
     html,
+  });
+}
+
+export function getReservationFailedTemplate(name: string, orderId: string): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Booking Payment Failed</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#374151;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td align="center" style="padding:40px 0;">
+          <table width="100%" style="max-width:480px;background:#ffffff;border-radius:8px;padding:32px;">
+            <tr>
+              <td style="color:#374151;font-size:15px;line-height:1.6;">
+                <div style="margin-bottom:24px;text-align:left;">
+                  <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                </div>
+                <p>Hi ${escapeHtml(name)},</p>
+                <p>We encountered an issue processing the payment for your recent booking request (Order ID: <strong>${escapeHtml(orderId)}</strong>).</p>
+                <p>Don't worry, if any money was deducted from your account, it will be automatically refunded back to your original payment method within 5-7 business days.</p>
+                <p>You can try booking the space again from our platform.</p>
+                <div style="text-align:center;margin:32px 0;">
+                  <a href="${getBaseUrl()}/home" 
+                     style="background:#000000;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block;">
+                    Try Booking Again
+                  </a>
+                </div>
+                <p style="font-size:14px;color:#6b7280;">If you need assistance, feel free to reply to this email.</p>
+                <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
+                <p style="font-size:13px;color:#9ca3af;margin:0;">ContCave by Arkanet Ventures LLP.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>
+  `;
+}
+
+export async function sendReservationFailedEmail(input: {
+  toEmail: string;
+  toName?: string;
+  orderId: string;
+}) {
+  await sendEmail({
+    toEmail: input.toEmail,
+    toName: input.toName || "",
+    subject: `Payment failed for your booking: Order #${input.orderId}`,
+    html: getReservationFailedTemplate(input.toName || "there", input.orderId),
   });
 }

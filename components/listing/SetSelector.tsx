@@ -6,6 +6,7 @@ import "swiper/css/navigation";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
+import { IoInformationCircleOutline } from "react-icons/io5";
 import type { Swiper as SwiperClass } from "swiper";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";

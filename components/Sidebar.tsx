@@ -38,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "mai
     }, [pathname, currentTab]);
 
     return (
-        <aside className="sticky top-20 z-20 -mx-4 bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/85 sm:z-auto sm:mx-0 sm:flex sm:h-fit sm:min-w-56 sm:flex-col sm:bg-background sm:px-0 sm:py-6 sm:pr-4 sm:backdrop-blur-none">
+        <aside className="sticky top-20 z-20 -mx-4 bg-background/95 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-background/85 sm:z-auto sm:mx-0 sm:flex sm:h-fit sm:min-w-56 sm:flex-col sm:bg-background sm:px-0 sm:py-6 sm:pr-4 sm:backdrop-blur-none">
             <nav ref={navRef} className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:overflow-visible">
                 <ul className="flex min-w-max gap-2 sm:min-w-0 sm:flex-col">
                     {itemsToDisplay.map((item, index) => {

@@ -6,6 +6,7 @@ import { IoLogoWhatsapp } from "react-icons/io";
 
 import { trackEnquiryAction } from "@/app/actions/listingActions";
 import { buildWhatsAppUrl, curatedEnquiryMessage } from "@/lib/whatsapp";
+
 import CuratedListingBanner from "./CuratedListingBanner";
 
 interface CuratedReservationProps {
