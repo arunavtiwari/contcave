@@ -39,7 +39,8 @@ export async function uploadToR2(files: (File | string)[], folder?: string): Pro
         const uploadRes = await fetch(url, {
             method: "PUT",
             headers: {
-                "Content-Type": f.type
+                "Content-Type": f.type,
+                "Cache-Control": "public, max-age=31536000, immutable",
             },
             body: f,
         });
