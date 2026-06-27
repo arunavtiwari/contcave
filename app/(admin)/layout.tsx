@@ -23,8 +23,9 @@ export const metadata: Metadata = {
         follow: false
     },
     icons: {
-        icon: '/images/logo/logo-og.png',
-        shortcut: '/images/logo/logo-og.png',
+        icon: "/favicon.ico",
+        shortcut: "/favicon.ico",
+        apple: "/apple-icon.png",
     },
 };
 
