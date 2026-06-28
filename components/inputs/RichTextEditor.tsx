@@ -333,7 +333,7 @@ export default function RichTextEditor({
             {/* SSR & Initial Loading Preview */}
             {(!hasInitialized) && value && (
               <div
-                className="absolute inset-0 p-4 prose prose-sm dark:prose-invert max-w-none z-0 pointer-events-none opacity-40"
+                className="absolute inset-0 p-4 prose prose-sm max-w-none z-0 pointer-events-none opacity-40"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(value) }}
               />
             )}

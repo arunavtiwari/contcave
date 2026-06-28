@@ -57,8 +57,13 @@ function ListingFeed({ listings, currentUser }: Props) {
     <div className="space-y-6">
 
       <div className="pb-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 overflow-x-hidden">
-        {sortedListings.map((item: safeListing) => (
-          <ListingCard key={item.id} data={item} currentUser={currentUser} />
+        {sortedListings.map((item: safeListing, index: number) => (
+          <ListingCard
+            key={item.id}
+            data={item}
+            currentUser={currentUser}
+            priority={index < 4}
+          />
         ))}
       </div>
     </div>

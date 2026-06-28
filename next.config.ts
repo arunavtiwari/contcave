@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
     serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
     allowedDevOrigins: ['192.168.1.3'],
     images: {
+        loader: 'custom',
+        loaderFile: './lib/cloudflare-image-loader.ts',
         remotePatterns: [
             { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
             { protocol: 'https', hostname: '*.r2.dev' },

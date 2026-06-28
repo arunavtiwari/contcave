@@ -4,7 +4,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { HiOutlineChevronLeft, HiOutlineChevronRight, HiOutlineVideoCamera } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
 import { Navigation } from "swiper/modules";
@@ -33,14 +33,15 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
   const [showModal, setShowModal] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
-
   const [loaded, setLoaded] = useState<boolean[]>(new Array(imageSrc.length).fill(false));
-
+  const [prevImageSignature, setPrevImageSignature] = useState(imageSrc.join("|"));
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
-  useEffect(() => {
+  const imageSignature = imageSrc.join("|");
+  if (imageSignature !== prevImageSignature) {
+    setPrevImageSignature(imageSignature);
     setLoaded(new Array(imageSrc.length).fill(false));
-  }, [imageSrc]);
+  }
 
   const handleImageLoad = (index: number) => {
     setLoaded(prev => {
@@ -66,16 +67,29 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
 
   const showCarousel = imageSrc.length < 5;
 
-  const renderImageWithSkeleton = (src: string, index: number, extraClasses = "") => (
-    <div className="relative w-full h-full cursor-pointer" onClick={() => handleImageClick(index)}>
+  const skeletonClasses = (index: number) =>
+    `bg-muted ${!loaded[index] ? "animate-pulse" : ""}`;
+
+  const imageOpacityClasses = (index: number) =>
+    `${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`;
+
+  const renderImageWithSkeleton = (
+    src: string,
+    index: number,
+    extraClasses = "",
+    imageClasses = "object-cover hover:brightness-90",
+    priority = true,
+    sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  ) => (
+    <div className={`relative w-full h-full cursor-pointer overflow-hidden ${extraClasses} ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
       <Image
         src={src}
         alt={`image-${index}`}
         fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        priority={index === 0}
+        sizes={sizes}
+        priority={priority}
         onLoad={() => handleImageLoad(index)}
-        className={`object-cover hover:brightness-90 ${extraClasses} ${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+        className={`${imageClasses} ${imageOpacityClasses(index)}`}
       />
     </div>
   );
@@ -87,7 +101,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
         return (
           <div
             key={index}
-            className={`relative ${isFeatured ? "col-span-2" : ""} h-75 cursor-pointer group`}
+            className={`relative ${isFeatured ? "col-span-2" : ""} h-75 cursor-pointer group overflow-hidden rounded-lg ${skeletonClasses(index)}`}
             onClick={() => handleModalImageClick(index)}
           >
             <Image
@@ -96,7 +110,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               onLoad={() => handleImageLoad(index)}
-              className={`object-cover rounded-lg group-hover:brightness-90 ${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+              className={`object-cover group-hover:brightness-90 ${imageOpacityClasses(index)}`}
             />
           </div>
         );
@@ -115,18 +129,25 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
           prevEl: '.swiper-button-prev-custom',
         }}
         initialSlide={selectedImageIndex || 0}
-        className="w-full aspect-[4/3] lg:aspect-auto lg:h-[60vh] rounded-xl"
+        className="w-full aspect-4/3 lg:aspect-auto lg:h-[60vh] rounded-xl"
       >
         {imageSrc.map((url, index) => (
           <SwiperSlide key={index}>
-            <div className="w-full h-full relative cursor-pointer" onClick={() => handleImageClick(index)}>
-              <Image src={url} alt={`image-${index}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" priority={index === 0} className="object-cover w-full" />
+            <div className={`w-full h-full relative cursor-pointer overflow-hidden ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
+              <Image
+                src={url}
+                alt={`image-${index}`}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={index === 0}
+                onLoad={() => handleImageLoad(index)}
+                className={`object-cover w-full ${imageOpacityClasses(index)}`}
+              />
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
 
-      {/* Custom Navigation */}
       <div className="swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100">
         <HiOutlineChevronLeft className="text-background" size={24} />
       </div>
@@ -152,7 +173,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
       ) : (
         <>
           <div className="hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
-            <div className="relative h-113.75 cursor-pointer" onClick={() => handleImageClick(0)}>
+            <div className={`relative h-113.75 cursor-pointer overflow-hidden rounded-l-lg ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
               {imageSrc[0] && (
                 <Image
                   src={imageSrc[0]}
@@ -161,7 +182,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                   sizes="(max-width: 768px) 100vw, 50vw"
                   priority
                   onLoad={() => handleImageLoad(0)}
-                  className={`object-cover rounded-l-lg hover:brightness-90 ${loaded[0] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+                  className={`object-cover hover:brightness-90 ${imageOpacityClasses(0)}`}
                 />
               )}
             </div>
@@ -171,7 +192,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-tr-lg")}
               {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
               {imageSrc[4] && (
-                <div className="relative w-full h-full">
+                <div className={`relative w-full h-full overflow-hidden rounded-br-lg ${skeletonClasses(4)}`}>
                   <Image
                     src={imageSrc[4]}
                     alt="image-4"
@@ -179,7 +200,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                     priority
                     sizes="(max-width: 768px) 100vw, 33vw"
                     onLoad={() => handleImageLoad(4)}
-                    className={`object-cover rounded-br-lg hover:brightness-90 ${loaded[4] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+                    className={`object-cover hover:brightness-90 ${imageOpacityClasses(4)} cursor-pointer`}
                     onClick={() => handleImageClick(4)}
                   />
                   <div className="absolute bottom-4 right-4 flex gap-2">
@@ -259,13 +280,14 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                 {imageSrc.map((url, index) => (
                   <SwiperSlide key={index}>
                     <div className="h-screen w-full flex items-center justify-center select-none cursor-grab active:cursor-grabbing">
-                      <div className="relative h-[90vh] w-full">
+                      <div className={`relative h-[90vh] w-full ${skeletonClasses(index)}`}>
                         <Image
                           src={url}
                           alt={`Fullscreen image ${index}`}
                           fill
                           sizes="100vw"
-                          className="object-contain"
+                          className={`object-contain ${imageOpacityClasses(index)}`}
+                          onLoad={() => handleImageLoad(index)}
                           priority={index === selectedImageIndex}
                           draggable={false}
                         />
@@ -276,7 +298,6 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               </Swiper>
             </div>
 
-            {/* Lighbox Custom Navigation */}
             <div className="swiper-lb-prev absolute top-1/2 left-4 transform -translate-y-1/2 z-10 cursor-pointer bg-background/10 hover:bg-background/20 backdrop-blur-xl p-3 rounded-full transition opacity-0 group-hover:opacity-100">
               <HiOutlineChevronLeft className="text-background" size={32} />
             </div>

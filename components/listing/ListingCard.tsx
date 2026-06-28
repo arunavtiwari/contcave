@@ -68,6 +68,7 @@ interface ListingCardProps {
   hideActions?: boolean;
   allowScale?: boolean;
   isHost?: boolean;
+  priority?: boolean;
 }
 
 const ListingCard: React.FC<ListingCardProps> = ({
@@ -92,6 +93,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
   hideActions = false,
   allowScale = true,
   isHost = false,
+  priority = false,
 }) => {
   const { getByValue } = useCities();
 
@@ -175,6 +177,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
           allowScale={allowScale}
           reservationStatus={reservation?.isApproved ?? undefined}
           totalPrice={reservation?.totalPrice}
+          priority={priority}
         />
 
         <ListingCardContent
