@@ -33,11 +33,49 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [mounted, setMounted] = useState(false);
-  const [coords, setCoords] = useState({ top: 0, right: 0 });
+  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
+
+  const getMenuCoords = useCallback(() => {
+    const trigger = triggerRef.current;
+
+    if (!trigger) return null;
+
+    const rect = trigger.getBoundingClientRect();
+
+    return {
+      top: Math.round(rect.bottom + 12),
+      right: Math.max(8, Math.round(window.innerWidth - rect.right)),
+    };
+  }, []);
+
+  const updateMenuCoords = useCallback(() => {
+    const nextCoords = getMenuCoords();
+
+    if (!nextCoords) return;
+
+    setCoords((prevCoords) => {
+      if (prevCoords?.top === nextCoords.top && prevCoords.right === nextCoords.right) {
+        return prevCoords;
+      }
+
+      return nextCoords;
+    });
+  }, [getMenuCoords]);
 
   const toggleOpen = useCallback(() => {
-    setIsOpen((prev) => !prev);
-  }, []);
+    if (isOpen) {
+      setIsOpen(false);
+      return;
+    }
+
+    const nextCoords = getMenuCoords();
+
+    if (nextCoords) {
+      setCoords(nextCoords);
+    }
+
+    setIsOpen(true);
+  }, [getMenuCoords, isOpen]);
 
   const closeMenu = useCallback(() => {
     setIsOpen(false);
@@ -50,17 +88,13 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
   useEffect(() => {
     if (!isOpen) return;
 
-    const updateCoords = () => {
-      if (triggerRef.current) {
-        const rect = triggerRef.current.getBoundingClientRect();
-        setCoords({
-          top: rect.bottom + 12,
-          right: window.innerWidth - rect.right,
-        });
-      }
+    let animationFrameId = 0;
+    const scheduleCoordsUpdate = () => {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(updateMenuCoords);
     };
 
-    updateCoords();
+    updateMenuCoords();
 
     const handleClickOutside = (event: PointerEvent) => {
       if (
@@ -73,15 +107,16 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
     };
 
     document.addEventListener("pointerdown", handleClickOutside);
-    window.addEventListener("resize", updateCoords);
-    window.addEventListener("scroll", updateCoords, true);
+    window.addEventListener("resize", scheduleCoordsUpdate);
+    window.addEventListener("scroll", scheduleCoordsUpdate, true);
 
     return () => {
+      cancelAnimationFrame(animationFrameId);
       document.removeEventListener("pointerdown", handleClickOutside);
-      window.removeEventListener("resize", updateCoords);
-      window.removeEventListener("scroll", updateCoords, true);
+      window.removeEventListener("resize", scheduleCoordsUpdate);
+      window.removeEventListener("scroll", scheduleCoordsUpdate, true);
     };
-  }, [isOpen]);
+  }, [isOpen, updateMenuCoords]);
 
   const handleRent = useCallback(() => {
     uiStore.onOpen("rent");
@@ -114,7 +149,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
           size="md"
           outline
           rounded
-          className="w-10! h-10! md:w-auto! md:h-11! px-0 md:px-2 flex items-center justify-center md:justify-start gap-3 transition-all duration-300 border bg-background/80! hover:bg-background/90"
+          className="w-10! h-10! md:w-auto! md:h-11! px-0 md:px-2 flex items-center justify-center md:justify-start gap-3 transition-colors duration-200 border bg-background/80! hover:bg-background/90 active:scale-100!"
         >
           <AiOutlineMenu className="text-foreground shrink-0" />
           <div className="hidden md:block shrink-0">
@@ -125,20 +160,20 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
 
       {mounted && createPortal(
         <AnimatePresence>
-          {isOpen && (
+          {isOpen && coords && (
             <motion.div
               ref={menuRef}
-              initial={{ opacity: 0, scale: 0.95, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="fixed rounded-2xl min-w-72 bg-background/70 backdrop-blur-lg overflow-hidden text-sm p-2 border border-border z-100000 flex flex-col gap-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.14, ease: "easeOut" }}
+              className="fixed rounded-2xl min-w-72 bg-background/70 backdrop-blur-lg overflow-hidden text-sm p-2 border border-border z-100000 will-change-opacity"
               style={{
                 top: coords.top,
                 right: coords.right,
               }}
             >
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-1">
                 {currentUser ? (
                   <>
                     <MenuItem onClick={closeMenu} href="/dashboard/bookings" label="My Bookings" icon={FiCalendar} />

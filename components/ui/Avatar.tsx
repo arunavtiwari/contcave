@@ -12,20 +12,26 @@ interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 function Avatar({ src, size = 30, className, ...props }: AvatarProps) {
+  const isGoogleAvatar = src?.startsWith("https://lh3.googleusercontent.com/");
+  const [failedSrc, setFailedSrc] = React.useState<string | null>(null);
+  const imageSrc = failedSrc === src ? null : src;
+
   return (
     <div
       className={cn("relative overflow-hidden shrink-0 rounded-full bg-muted flex items-center justify-center", className)}
       style={{ width: size, height: size }}
       {...props}
     >
-      {src ? (
+      {imageSrc ? (
         <Image
-          className="rounded-full object-cover"
-          height={size}
-          width={size}
+          className="object-cover"
+          fill
+          sizes={`${size}px`}
           alt="Avatar"
-          src={src}
+          src={imageSrc}
           priority={false}
+          unoptimized={isGoogleAvatar}
+          onError={() => setFailedSrc(imageSrc)}
         />
       ) : (
         <FaUserCircle

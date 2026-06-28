@@ -229,7 +229,7 @@ export default function CashfreeReturnStatusClient({
           animate={{ opacity: 1, y: 0 }}
           className="w-full rounded-xl border border-border bg-card p-8 flex flex-col items-center space-y-6 text-center"
         >
-          <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-500">
+          <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600">
             <svg
               className="w-8 h-8"
               fill="none"

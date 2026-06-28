@@ -27,6 +27,7 @@ interface ListingCardMediaProps {
     allowScale?: boolean;
     reservationStatus?: number;
     totalPrice?: number;
+    priority?: boolean;
 }
 
 const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
@@ -47,6 +48,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
     allowScale = true,
     reservationStatus,
     totalPrice,
+    priority = false,
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const slideshowInterval = useRef<NodeJS.Timeout | null>(null);
@@ -88,7 +90,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                             className={`object-cover h-full w-full transition-transform duration-700 ease-out ${allowScale ? "group-hover:scale-110" : ""}`}
                             src={images[currentIndex]}
                             alt={displayTitle}
-                            priority={currentIndex === 0}
+                            priority={priority && currentIndex === 0}
                         />
                     </motion.div>
                 </AnimatePresence>
@@ -101,7 +103,6 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                             alt="preload"
                             width={10}
                             height={10}
-                            priority
                         />
                     </div>
                 )}

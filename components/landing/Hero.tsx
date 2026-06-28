@@ -88,7 +88,7 @@ const Hero = () => {
     <motion.div
       ref={containerRef}
       style={{ scale, borderRadius }}
-      className="overflow-hidden"
+      className="relative overflow-hidden"
     >
       <div
         className="relative flex items-center h-[calc(100vh-80px)] min-h-120"
@@ -108,12 +108,13 @@ const Hero = () => {
             autoPlay
             muted
             playsInline
+            preload="metadata"
             onEnded={(e) => e.currentTarget.pause()}
             className="w-full h-full object-cover"
             controls={false}
           >
             <source
-              src={`${process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL}/static/hero-bg.mp4`}
+              src="/videos/hero-bg.mp4"
               type="video/mp4"
             />
           </video>
