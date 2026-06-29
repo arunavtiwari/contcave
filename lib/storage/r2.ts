@@ -11,4 +11,6 @@ export const r2 = new S3Client({
         accessKeyId,
         secretAccessKey,
     },
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
 });
