@@ -14,11 +14,12 @@ const buttonVariants = cva(
         default: "bg-foreground border-foreground text-background",
         success: "bg-success border-success text-background",
         destructive: "bg-destructive border-destructive text-destructive-foreground",
-        ghost: "bg-transparent border-transparent text-foreground",
+        ghost: "bg-transparent border-transparent text-foreground hover:bg-neutral-100",
         secondary: "bg-background/10 border-background/20 text-background",
         outline: "bg-background border-foreground/20 text-foreground",
       },
       size: {
+        xs: "h-auto py-2 px-3 text-sm",
         sm: "h-10 px-4 text-sm",
         md: "h-11 px-6 text-sm",
         lg: "h-12 px-6 text-base",
@@ -101,6 +102,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
     );
 
     const iconSize = {
+      xs: 16,
       sm: 16,
       md: 20,
       lg: 24,

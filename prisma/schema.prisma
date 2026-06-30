@@ -121,6 +121,7 @@ model Listing {
   category                 String
   locationValue            String
   actualLocation           Json?
+  locationPoint            Json?
   userId                   String                    @db.ObjectId
   price                    Int?
   user                     User                      @relation(fields: [userId], references: [id], onDelete: Cascade)

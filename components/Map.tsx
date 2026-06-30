@@ -1,14 +1,17 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
+import "@/styles/leaflet-overrides.css";
 
 import L from "leaflet";
 import { useEffect, useMemo } from "react";
-import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
+import { Circle, MapContainer, Marker, TileLayer, useMap,ZoomControl } from "react-leaflet";
 
 type Props = {
   center?: [number, number];
   animated?: boolean;
+  isExact?: boolean;
+  draggable?: boolean;
 };
 
 const INDIA_CENTER: [number, number] = [20.5937, 78.9629];
@@ -49,7 +52,7 @@ function MapViewportController({
   return null;
 }
 
-function Map({ center, animated = false }: Props) {
+function Map({ center, animated = false, isExact = true, draggable = false }: Props) {
   const isValidCenter = useMemo(() => {
     return (
       Array.isArray(center) &&
@@ -79,15 +82,16 @@ function Map({ center, animated = false }: Props) {
       zoom={isValidCenter ? 14 : 4}
       minZoom={3}
       maxZoom={19}
-      scrollWheelZoom={true}
+      scrollWheelZoom={false}
+      dragging={draggable}
       zoomControl={false}
       attributionControl={false}
       preferCanvas
-      className="z-0 h-[35vh] w-full rounded-xl"
+      className="z-0 h-[35vh] w-full rounded-xl outline-none focus:outline-none focus:ring-0"
     >
       <MapViewportController
         center={mapCenter}
-        zoom={isValidCenter ? 15 : 4}
+        zoom={isValidCenter ? (isExact ? 15 : 13) : 4}
         shouldFocus={isValidCenter}
         animated={animated}
       />
@@ -96,8 +100,21 @@ function Map({ center, animated = false }: Props) {
         maxZoom={19}
         detectRetina
       />
+      <ZoomControl position="bottomright" />
 
-      {isValidCenter && <Marker position={mapCenter} icon={customIcon} />}
+      {isValidCenter && isExact && <Marker position={mapCenter} icon={customIcon} />}
+      {isValidCenter && !isExact && (
+        <Circle
+          center={mapCenter}
+          radius={500}
+          pathOptions={{ 
+            stroke: false, 
+            fillColor: '#000', 
+            fillOpacity: 0.20,
+            interactive: false 
+          }}
+        />
+      )}
     </MapContainer>
   );
 }

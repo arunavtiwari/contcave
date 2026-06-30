@@ -7,10 +7,13 @@ import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplet
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import Input from "@/components/inputs/Input";
 import Heading from "@/components/ui/Heading";
-
-const Map = dynamic(() => import("../../Map"), { ssr: false });
-
+import Skeleton from "@/components/ui/Skeleton";
 import { LocationSchema } from "@/schemas/listing";
+
+const Map = dynamic(() => import("../../Map"), { 
+  ssr: false,
+  loading: () => <Skeleton className="h-[35vh] w-full rounded-xl" />
+});
 
 interface LocationStepProps {
   actualLocation: LocationSchema | null;

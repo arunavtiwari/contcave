@@ -11,6 +11,7 @@ import Checkbox from "@/components/inputs/Checkbox";
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import Modal from "@/components/modals/Modal";
 import Heading from "@/components/ui/Heading";
+import Skeleton from "@/components/ui/Skeleton";
 import useUIStore from "@/hooks/useUIStore";
 
 enum STEPS {
@@ -30,10 +31,12 @@ function SearchModalContent({ }: Props) {
   const [hasSets, setHasSets] = useState(false);
 
 
+
   const Map = useMemo(
     () =>
       dynamic(() => import("../Map"), {
         ssr: false,
+        loading: () => <Skeleton className="h-[35vh] w-full rounded-xl" />
       }),
     []
   );

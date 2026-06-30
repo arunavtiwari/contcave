@@ -20,6 +20,8 @@ export type ActualLocation = {
     lat: number;
     lng: number;
     latlng: [number, number];
+    exactLatlng?: [number, number];
+    isExact?: boolean;
     address: string;
     label?: string;
     region?: string;

@@ -5,17 +5,20 @@ import "swiper/css/navigation";
 
 import Image from "next/image";
 import { useState } from "react";
+import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+import { FiShare } from "react-icons/fi";
 import { HiOutlineChevronLeft, HiOutlineChevronRight, HiOutlineVideoCamera } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
+import { toast } from "sonner";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-import HeartButton from "@/components/HeartButton";
 import Modal from "@/components/modals/Modal";
 import VideoTourModal from "@/components/modals/VideoTourModal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import useCities from "@/hooks/useCities";
+import useFavorite from "@/hooks/useFavorite";
 import { SafeUser } from "@/types/user";
 
 type Props = {
@@ -30,6 +33,10 @@ type Props = {
 function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser }: Props) {
   const { getByValue } = useCities();
   const location = getByValue(locationValue);
+  const { hasFavorite, toggleFavorite } = useFavorite({
+    listingId: id,
+    currentUser,
+  });
   const [showModal, setShowModal] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
@@ -148,10 +155,10 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
         ))}
       </Swiper>
 
-      <div className="swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100">
+      <div className="hidden lg:block swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100">
         <HiOutlineChevronLeft className="text-background" size={24} />
       </div>
-      <div className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100">
+      <div className="hidden lg:block swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100">
         <HiOutlineChevronRight className="text-background" size={24} />
       </div>
     </div>
@@ -159,10 +166,42 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
 
   return (
     <>
-      <div className="flex gap-2">
-        <Heading variant="h4" as="h1" title={title} subtitle={`${location?.label}, India`} />
-        <div className="pt-1">
-          <HeartButton listingId={id} currentUser={currentUser} />
+      <div className="flex flex-col gap-1">
+        <Heading variant="h4" as="h1" title={title} />
+        
+        <div className="flex items-center justify-between gap-4 text-sm mt-1">
+          <span className="font-semibold text-muted-foreground">
+            {location?.label}, India
+          </span>
+          
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost"
+              size="xs"
+              fit
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                toast.success("Link copied to clipboard");
+              }}
+            >
+              <FiShare size={16} />
+              <span className="underline">Share</span>
+            </Button>
+            
+            <Button 
+              variant="ghost"
+              size="xs"
+              fit
+              onClick={(e) => toggleFavorite(e)}
+            >
+              {hasFavorite ? (
+                <AiFillHeart size={16} className="fill-rose-500" />
+              ) : (
+                <AiOutlineHeart size={16} />
+              )}
+              <span className="underline">{hasFavorite ? "Saved" : "Save"}</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -173,7 +212,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
       ) : (
         <>
           <div className="hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
-            <div className={`relative h-113.75 cursor-pointer overflow-hidden rounded-l-lg ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
+            <div className={`relative h-113.75 cursor-pointer overflow-hidden rounded-l-2xl ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
               {imageSrc[0] && (
                 <Image
                   src={imageSrc[0]}
@@ -189,10 +228,10 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
 
             <div className="grid grid-rows-2 grid-cols-2 gap-1 h-113.75">
               {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
-              {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-tr-lg")}
+              {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-tr-2xl")}
               {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
               {imageSrc[4] && (
-                <div className={`relative w-full h-full overflow-hidden rounded-br-lg ${skeletonClasses(4)}`}>
+                <div className={`relative w-full h-full overflow-hidden rounded-br-2xl ${skeletonClasses(4)}`}>
                   <Image
                     src={imageSrc[4]}
                     alt="image-4"

@@ -19,10 +19,12 @@ import PackageList from "@/components/listing/PackageList";
 import SetSelector from "@/components/listing/SetSelector";
 import Offers from "@/components/Offers";
 import Avatar from "@/components/ui/Avatar";
+import Button from "@/components/ui/Button";
 import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
+import Skeleton from "@/components/ui/Skeleton";
 import StarRating from "@/components/ui/StarRating";
 import useCities from "@/hooks/useCities";
 import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
@@ -32,7 +34,10 @@ import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
 import { SafeUser } from "@/types/user";
 
-const Map = dynamic(() => import("../Map"), { ssr: false });
+const Map = dynamic(() => import("../Map"), { 
+  ssr: false,
+  loading: () => <Skeleton className="h-[35vh] w-full rounded-xl" />
+});
 
 interface Review {
   id: string;
@@ -340,13 +345,16 @@ function ListingInfo({
         />
 
         {shouldTruncate && (
-          <button
-            onClick={toggleExpand}
-            className="underline font-medium text-sm mt-1 cursor-pointer"
-            type="button"
-          >
-            {isExpanded ? "See less" : "See more"}
-          </button>
+          <div className="mt-1 -ml-3">
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={toggleExpand}
+              className="underline font-medium"
+              fit
+              label={isExpanded ? "See less" : "See more"}
+            />
+          </div>
         )}
       </div>
 
@@ -386,7 +394,11 @@ function ListingInfo({
 
       <div className="flex flex-col gap-4">
         <Heading title="Where you'll be" variant="h5" />
-        <Map center={getValidCenter() as [number, number] | undefined} />
+        <Map 
+          center={getValidCenter() as [number, number] | undefined} 
+          isExact={fullListing.actualLocation?.isExact ?? false} 
+          draggable={false}
+        />
       </div>
 
       <Divider />
@@ -550,13 +562,16 @@ function ListingInfo({
                 className={!isTermsExpanded ? "max-h-40 overflow-hidden relative" : ""}
               />
               {shouldTruncateTerms && (
-                <button
-                  onClick={toggleTermsExpand}
-                  className="underline font-medium text-sm mt-1 cursor-pointer"
-                  type="button"
-                >
-                  {isTermsExpanded ? "See less" : "See more"}
-                </button>
+                <div className="mt-1 -ml-3">
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={toggleTermsExpand}
+                    className="underline font-medium"
+                    fit
+                    label={isTermsExpanded ? "See less" : "See more"}
+                  />
+                </div>
               )}
             </div>
           </div>

@@ -107,8 +107,41 @@ export class ListingService {
 
         // 2. Normalization
         const priceValue = Math.round(Number(price) || 0);
-        const privacySafeLatLng = jitterLatLng((actualLocation as { latlng?: unknown })?.latlng);
-        const finalActualLocation = { ...(actualLocation as Record<string, unknown>), latlng: privacySafeLatLng || [0, 0] };
+        const locRecord = actualLocation as Record<string, unknown> | undefined;
+        let exactLatlng: [number, number] | undefined = undefined;
+
+        if (locRecord && Array.isArray(locRecord.latlng) && locRecord.latlng.length >= 2) {
+            exactLatlng = [Number(locRecord.latlng[0]), Number(locRecord.latlng[1])];
+        } else if (locRecord && typeof locRecord.lat === 'number' && typeof locRecord.lng === 'number') {
+            exactLatlng = [locRecord.lat, locRecord.lng];
+        }
+
+        const privacySafeLatLng = exactLatlng ? jitterLatLng(exactLatlng) : null;
+        let finalActualLocation = locRecord ? { ...locRecord } : {};
+
+        if (privacySafeLatLng && exactLatlng) {
+            finalActualLocation = {
+                ...finalActualLocation,
+                latlng: privacySafeLatLng,
+                lat: privacySafeLatLng[0],
+                lng: privacySafeLatLng[1],
+                exactLatlng: exactLatlng
+            };
+        }
+
+        let finalLocationPoint: { type: string; coordinates: [number, number] } | null = null;
+        if (privacySafeLatLng) {
+            finalLocationPoint = {
+                type: "Point",
+                coordinates: [privacySafeLatLng[1], privacySafeLatLng[0]]
+            };
+        } else if (exactLatlng && Number.isFinite(exactLatlng[0]) && Number.isFinite(exactLatlng[1])) {
+            finalLocationPoint = {
+                type: "Point",
+                coordinates: [exactLatlng[1], exactLatlng[0]]
+            };
+        }
+
         const newSlug = await generateUniqueSlug(slug || trimmedTitle);
         const finalAddons = toNullableJson(addons);
         const finalOperationalDays = toNullableJson(operationalDays);
@@ -127,6 +160,7 @@ export class ListingService {
                     category: String(category || "").trim(),
                     locationValue: String(locationValue || "").trim(),
                     actualLocation: toNullableJson(finalActualLocation),
+                    locationPoint: toNullableJson(finalLocationPoint),
                     price: priceValue,
                     user: { connect: { id: userId } },
                     amenities: sanitizeStringList(amenities),
@@ -241,14 +275,43 @@ export class ListingService {
 
         // 3. Normalized Location (Privacy Jitter)
         const loc = listingData.actualLocation;
+        let finalLocationPoint: { type: string; coordinates: [number, number] } | undefined = undefined;
         if (loc) {
-            const privacySafeLatLng = jitterLatLng(loc.latlng);
-            listingData.actualLocation = {
-                ...loc,
-                latlng: privacySafeLatLng || [0, 0]
-            } as typeof loc;
+            const locRecord = loc as Record<string, unknown>;
+            let exactLatlng: [number, number] | undefined = undefined;
+            if (locRecord.latlng && Array.isArray(locRecord.latlng) && locRecord.latlng.length >= 2) {
+                exactLatlng = [Number(locRecord.latlng[0]), Number(locRecord.latlng[1])];
+            } else if (typeof locRecord.lat === 'number' && typeof locRecord.lng === 'number') {
+                exactLatlng = [locRecord.lat, locRecord.lng];
+            }
+
+            const privacySafeLatLng = exactLatlng ? jitterLatLng(exactLatlng) : null;
+            if (privacySafeLatLng && exactLatlng) {
+                listingData.actualLocation = {
+                    ...loc,
+                    latlng: privacySafeLatLng,
+                    lat: privacySafeLatLng[0],
+                    lng: privacySafeLatLng[1],
+                    exactLatlng: exactLatlng
+                } as typeof loc;
+            }
+
+            if (privacySafeLatLng) {
+                finalLocationPoint = {
+                    type: "Point",
+                    coordinates: [privacySafeLatLng[1], privacySafeLatLng[0]]
+                };
+            } else if (exactLatlng && Number.isFinite(exactLatlng[0]) && Number.isFinite(exactLatlng[1])) {
+                finalLocationPoint = {
+                    type: "Point",
+                    coordinates: [exactLatlng[1], exactLatlng[0]]
+                };
+            }
         }
         const sanitizedListingData = sanitizeListingJsonFields(listingData as Record<string, unknown>);
+        if (finalLocationPoint !== undefined) {
+            (sanitizedListingData as Record<string, unknown>).locationPoint = toNullableJson(finalLocationPoint);
+        }
 
         // 4. Atomic Transaction
         return await prisma.$transaction(async (tx) => {
@@ -405,8 +468,10 @@ export class ListingService {
         hasSets?: boolean;
         startDate?: string;
         endDate?: string;
+        latitude?: number;
+        longitude?: number;
     }): Promise<FullListing[]> {
-        const { userId, locationValue, category, type, hasSets, startDate, endDate } = params;
+        const { userId, locationValue, category, type, hasSets, startDate, endDate, latitude, longitude } = params;
 
         const query: Prisma.ListingWhereInput = {};
 
@@ -439,11 +504,91 @@ export class ListingService {
             };
         }
 
+        // Geospatial Sorting & Defaulting
+        let sortedIdsByDistance: string[] | undefined = undefined;
+
+        // Run geospatial query ONLY if we are in public feed mode (no userId filter)
+        if (!userId) {
+            let searchLat = latitude;
+            let searchLng = longitude;
+
+            if (searchLat === undefined || searchLng === undefined) {
+                try {
+                    const { headers } = require("next/headers");
+                    const headersList = await headers();
+                    const vLat = headersList.get("x-vercel-ip-latitude");
+                    const vLng = headersList.get("x-vercel-ip-longitude");
+                    if (vLat && vLng) {
+                        const parsedLat = Number(vLat);
+                        const parsedLng = Number(vLng);
+                        if (Number.isFinite(parsedLat) && Number.isFinite(parsedLng)) {
+                            searchLat = parsedLat;
+                            searchLng = parsedLng;
+                            console.warn(`[ListingService] IP Geolocation detected: ${searchLat}, ${searchLng}`);
+                        }
+                    }
+                } catch {
+                    // Ignore header resolution errors (e.g. static build context)
+                }
+
+                // Default to Delhi NCR coordinates if not resolved
+                if (searchLat === undefined || searchLng === undefined) {
+                    searchLat = 28.6139;
+                    searchLng = 77.2090;
+                    console.warn(`[ListingService] Using default Delhi NCR coordinates: ${searchLat}, ${searchLng}`);
+                }
+            }
+
+            if (searchLat !== undefined && searchLng !== undefined) {
+                try {
+                    const rawFilter: Record<string, unknown> = {
+                        active: true,
+                        locationPoint: {
+                            $nearSphere: {
+                                $geometry: {
+                                    type: "Point",
+                                    coordinates: [searchLng, searchLat],
+                                },
+                            },
+                        },
+                    };
+
+                    if (category) rawFilter.category = category;
+                    if (locationValue) rawFilter.locationValue = locationValue;
+                    if (type) rawFilter.type = type;
+                    if (hasSets) rawFilter.hasSets = true;
+
+                    const rawResults = (await prisma.listing.findRaw({
+                        filter: rawFilter as unknown as Prisma.InputJsonValue,
+                        options: {
+                            projection: { _id: 1 },
+                            limit: 100,
+                        },
+                    })) as unknown as { _id: { $oid: string } }[];
+
+                    sortedIdsByDistance = rawResults.map((r) => r._id.$oid);
+                } catch (error) {
+                    console.error("[ListingService] Geospatial query failed:", error);
+                }
+            }
+        }
+
+        if (sortedIdsByDistance) {
+            query.id = { in: sortedIdsByDistance };
+        }
+
         const listings = await prisma.listing.findMany({
             where: query,
-            orderBy: { createdAt: "desc" },
+            // If sorted by distance, we will re-order in memory, so orderBy is only a fallback
+            orderBy: sortedIdsByDistance ? undefined : { createdAt: "desc" },
             include: { packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, user: true },
         });
+
+        // Re-order the results in memory to match the distance ranking from findRaw
+        if (sortedIdsByDistance) {
+            const idToIndexMap = new Map(sortedIdsByDistance.map((id, index) => [id, index]));
+            listings.sort((a, b) => (idToIndexMap.get(a.id) ?? 9999) - (idToIndexMap.get(b.id) ?? 9999));
+        }
 
         return listings.map(l => this.normalizeListingWithRelations(l as ListingWithRelations));
     }

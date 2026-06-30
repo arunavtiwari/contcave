@@ -186,7 +186,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
                       </>
                     )}
                     <MenuItem onClick={closeMenu} href="/dashboard/profile" label="My Profile" icon={FiUser} />
-                    <hr className="my-2 border-white/10" />
+                    <hr className="my-2 border-border" />
                     <MenuItem onClick={handleLogout} label="Logout" icon={FiLogOut} />
                   </>
                 ) : (

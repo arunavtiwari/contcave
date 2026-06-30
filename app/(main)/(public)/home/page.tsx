@@ -8,10 +8,8 @@ import getListings, { IListingsParams } from "@/app/actions/getListings";
 import Container from "@/components/Container";
 import EmptyState from "@/components/EmptyState";
 import ListingFeed from "@/components/listing/ListingFeed";
-import ListingFeedHeader from "@/components/listing/ListingFeedHeader";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
 import Categories from "@/components/navbar/Categories";
-import { LocationSortProvider } from "@/hooks/useLocationSort";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 import { safeListing } from "@/types/listing";
@@ -80,12 +78,9 @@ export default function Home(props: HomeProps) {
     <main>
       <Container>
         <Categories />
-        <LocationSortProvider>
-          <ListingFeedHeader />
-          <Suspense fallback={<ListingGridSkeleton count={6} hideActions />}>
-            <HomeContent {...props} />
-          </Suspense>
-        </LocationSortProvider>
+        <Suspense fallback={<ListingGridSkeleton count={6} hideActions />}>
+          <HomeContent {...props} />
+        </Suspense>
       </Container>
     </main>
   );

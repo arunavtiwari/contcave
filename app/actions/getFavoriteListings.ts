@@ -21,10 +21,24 @@ export default async function getFavoriteListings() {
       },
     });
 
-    const safeFavorites = favorites.map((favorite) => ({
-      ...favorite,
-      createdAt: favorite.createdAt.toString(),
-    }));
+    const safeFavorites = favorites.map((favorite) => {
+      let actualLocation = favorite.actualLocation as Record<string, unknown> | undefined;
+      
+      if (actualLocation) {
+        // Create a deep copy to avoid mutating Prisma result directly
+        actualLocation = JSON.parse(JSON.stringify(actualLocation));
+        if (actualLocation) {
+          actualLocation.isExact = false;
+          delete actualLocation.exactLatlng;
+        }
+      }
+
+      return {
+        ...favorite,
+        actualLocation,
+        createdAt: favorite.createdAt.toString(),
+      };
+    });
 
     return safeFavorites;
   } catch (error: unknown) {

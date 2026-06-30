@@ -180,6 +180,10 @@ export async function createActiveListingFixture(ownerId: string, suffix: string
         display_name: "Connaught Place, New Delhi, Delhi, India",
         state: "Delhi",
       },
+      locationPoint: {
+        type: "Point",
+        coordinates: [77.21905, 28.62868],
+      },
       price: 1500,
       userId: ownerId,
       amenities: [],
@@ -273,6 +277,10 @@ export async function createReviewListingFixture(params: {
         latlng: [28.62868, 77.21905],
         label: "Delhi",
         display_name: "Connaught Place, New Delhi, Delhi, India",
+      },
+      locationPoint: {
+        type: "Point",
+        coordinates: [77.21905, 28.62868],
       },
       price: 2200,
       userId: params.ownerId,

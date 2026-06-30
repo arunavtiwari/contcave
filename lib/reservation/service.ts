@@ -621,10 +621,29 @@ export class ReservationService {
             orderBy: { createdAt: "desc" },
         });
 
-        return reservations.map(r => this.normalizeReservation(r as FullReservationPayload));
+        return reservations.map(r => this.normalizeReservation(r as FullReservationPayload, authorId !== undefined));
     }
 
-    private static normalizeReservation(r: FullReservationPayload): SafeReservation {
+    private static normalizeReservation(r: FullReservationPayload, isHostQuery: boolean): SafeReservation {
+        // Strip exact location if it's a guest query and the reservation is NOT confirmed
+        const originalLocation = r.listing.actualLocation as Record<string, unknown> | undefined;
+        let actualLocation = undefined;
+        if (originalLocation) {
+            actualLocation = JSON.parse(JSON.stringify(originalLocation));
+            if (actualLocation && !isHostQuery && r.isApproved !== 1) {
+                actualLocation.isExact = false;
+                delete actualLocation.exactLatlng;
+            } else if (actualLocation) {
+                actualLocation.isExact = true;
+                if (Array.isArray(actualLocation.exactLatlng)) {
+                    actualLocation.latlng = actualLocation.exactLatlng;
+                    actualLocation.lat = actualLocation.exactLatlng[0];
+                    actualLocation.lng = actualLocation.exactLatlng[1];
+                }
+                delete actualLocation.exactLatlng;
+            }
+        }
+
         return {
             ...r,
             createdAt: r.createdAt.toISOString(),
@@ -634,6 +653,7 @@ export class ReservationService {
             markedForDeletionAt: r.markedForDeletionAt?.toISOString() || null,
             listing: {
                 ...r.listing,
+                actualLocation,
                 createdAt: r.listing.createdAt.toISOString(),
             } as unknown as safeListing,
         };
