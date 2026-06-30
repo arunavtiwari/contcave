@@ -56,7 +56,7 @@ const SocialProof = () => {
             >
               <video
                 src="/videos/shoot_1.mp4"
-                poster="/images/features/book_studio.jpeg"
+                poster="/videos/shoot_1-poster.webp"
                 autoPlay
                 muted
                 loop
