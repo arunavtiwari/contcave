@@ -6,8 +6,8 @@ import "swiper/css/navigation";
 import Image from "next/image";
 import { useState } from "react";
 import { HiOutlineChevronLeft, HiOutlineChevronRight, HiOutlineVideoCamera } from "react-icons/hi";
-import { IoMdClose } from "react-icons/io";
-import { Navigation } from "swiper/modules";
+import { IoClose } from "react-icons/io5";
+import { Keyboard, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 import HeartButton from "@/components/HeartButton";
@@ -36,6 +36,13 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
   const [loaded, setLoaded] = useState<boolean[]>(new Array(imageSrc.length).fill(false));
   const [prevImageSignature, setPrevImageSignature] = useState(imageSrc.join("|"));
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [activeLightboxIndex, setActiveLightboxIndex] = useState(0);
+  const [prevSelectedImageIndex, setPrevSelectedImageIndex] = useState<number>(0);
+
+  if (selectedImageIndex !== prevSelectedImageIndex) {
+    setPrevSelectedImageIndex(selectedImageIndex);
+    setActiveLightboxIndex(selectedImageIndex);
+  }
 
   const imageSignature = imageSrc.join("|");
   if (imageSignature !== prevImageSignature) {
@@ -53,11 +60,13 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);
+    setActiveLightboxIndex(index);
     setIsLightboxOpen(true);
   };
 
   const handleModalImageClick = (index: number) => {
     setSelectedImageIndex(index);
+    setActiveLightboxIndex(index);
     setIsLightboxOpen(true);
   };
 
@@ -68,7 +77,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
   const showCarousel = imageSrc.length < 5;
 
   const skeletonClasses = (index: number) =>
-    `bg-muted ${!loaded[index] ? "animate-pulse" : ""}`;
+    !loaded[index] ? "bg-muted animate-pulse" : "";
 
   const imageOpacityClasses = (index: number) =>
     `${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`;
@@ -257,18 +266,28 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
       )}
 
       {isLightboxOpen && (
-        <div className="fixed inset-0 z-9999 bg-foreground flex flex-col items-center justify-center">
-          <button
-            onClick={() => setIsLightboxOpen(false)}
-            className="absolute top-6 right-6 text-background hover:text-white z-50 p-2.5 bg-background/20 backdrop-blur-xl border border-white/20 rounded-full transition-all hover:scale-110 active:scale-95"
-          >
-            <IoMdClose size={24} />
-          </button>
+        <div className="fixed inset-0 z-9999 bg-foreground/70 backdrop-blur-md flex flex-col items-center justify-center">
+          <div className="absolute top-0 inset-x-0 h-20 px-6 md:px-10 flex items-center justify-between z-50 bg-linear-to-b from-foreground/80 to-transparent">
+            <Button
+              onClick={() => setIsLightboxOpen(false)}
+              variant="ghost"
+              icon={IoClose}
+              fit
+              className="text-background rounded-full md:rounded-lg p-2 md:px-4 md:py-2 [&_svg]:shrink-0"
+            >
+              <span className="leading-none hidden md:inline">Close</span>
+            </Button>
+            <div className="text-background/80 text-sm font-medium select-none">
+              {activeLightboxIndex + 1} / {imageSrc.length}
+            </div>
+            <div className="w-20 hidden md:block" />
+          </div>
 
           <div className="w-full h-full max-w-screen-2xl max-h-screen flex items-center justify-center group relative">
             <div className="w-full h-full">
               <Swiper
-                modules={[Navigation]}
+                modules={[Navigation, Keyboard]}
+                keyboard={{ enabled: true }}
                 loop={true}
                 initialSlide={selectedImageIndex}
                 className="h-full"
@@ -276,11 +295,12 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                   nextEl: '.swiper-lb-next',
                   prevEl: '.swiper-lb-prev',
                 }}
+                onSlideChange={(swiper) => setActiveLightboxIndex(swiper.realIndex)}
               >
                 {imageSrc.map((url, index) => (
                   <SwiperSlide key={index}>
                     <div className="h-screen w-full flex items-center justify-center select-none cursor-grab active:cursor-grabbing">
-                      <div className={`relative h-[90vh] w-full ${skeletonClasses(index)}`}>
+                      <div className={`relative h-[80vh] w-full ${skeletonClasses(index)}`}>
                         <Image
                           src={url}
                           alt={`Fullscreen image ${index}`}
@@ -298,12 +318,12 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               </Swiper>
             </div>
 
-            <div className="swiper-lb-prev absolute top-1/2 left-4 transform -translate-y-1/2 z-10 cursor-pointer bg-background/10 hover:bg-background/20 backdrop-blur-xl p-3 rounded-full transition opacity-0 group-hover:opacity-100">
-              <HiOutlineChevronLeft className="text-background" size={32} />
-            </div>
-            <div className="swiper-lb-next absolute top-1/2 right-4 transform -translate-y-1/2 z-10 cursor-pointer bg-background/10 hover:bg-background/20 backdrop-blur-xl p-3 rounded-full transition opacity-0 group-hover:opacity-100">
-              <HiOutlineChevronRight className="text-background" size={32} />
-            </div>
+            <button className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-all hidden md:flex items-center justify-center active:scale-90">
+              <HiOutlineChevronLeft size={20} />
+            </button>
+            <button className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-all hidden md:flex items-center justify-center active:scale-90">
+              <HiOutlineChevronRight size={20} />
+            </button>
           </div>
         </div>
       )}
