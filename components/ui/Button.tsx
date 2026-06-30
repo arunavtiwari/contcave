@@ -14,7 +14,7 @@ const buttonVariants = cva(
         default: "bg-foreground border-foreground text-background",
         success: "bg-success border-success text-background",
         destructive: "bg-destructive border-destructive text-destructive-foreground",
-        ghost: "bg-transparent border-transparent text-foreground",
+        ghost: "bg-transparent border-transparent text-foreground hover:bg-current/10",
         secondary: "bg-background/10 border-background/20 text-background",
         outline: "bg-background border-foreground/20 text-foreground",
       },
@@ -119,7 +119,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
         {Icon && !loading && (
           <Icon size={iconSize} className={cn(isColor && "text-info")} />
         )}
-        {label && <span>{loading ? "Processing..." : label}</span>}
+        {label && <span className="leading-none">{loading ? "Processing..." : label}</span>}
         {children && !loading && children}
         {!label && !children && loading && <span className="sr-only">Processing...</span>}
       </>

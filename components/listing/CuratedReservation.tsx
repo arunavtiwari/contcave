@@ -55,7 +55,7 @@ export default function CuratedReservation({
                 ) : (
                     <p className="text-xl font-semibold text-muted-foreground">Price on Demand</p>
                 )}
-                {priceRangeMin && priceRangeMax && (
+                {!!(priceRangeMin && priceRangeMax) && (
                     <p className="text-xs text-muted-foreground mt-1">Estimated — confirm with ContCave</p>
                 )}
             </div>
