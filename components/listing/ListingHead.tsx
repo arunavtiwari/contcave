@@ -273,7 +273,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               variant="ghost"
               icon={IoClose}
               fit
-              className="text-background rounded-full md:rounded-lg p-2 md:px-4 md:py-2 [&_svg]:shrink-0"
+              className="text-background rounded-full md:rounded-lg p-2 md:px-4 md:py-2 [&_svg]:shrink-0 hover:bg-background/10"
             >
               <span className="leading-none hidden md:inline">Close</span>
             </Button>
@@ -300,7 +300,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                 {imageSrc.map((url, index) => (
                   <SwiperSlide key={index}>
                     <div className="h-screen w-full flex items-center justify-center select-none cursor-grab active:cursor-grabbing">
-                      <div className={`relative h-[80vh] w-full ${skeletonClasses(index)}`}>
+                      <div className="relative h-[80vh] w-full">
                         <Image
                           src={url}
                           alt={`Fullscreen image ${index}`}
