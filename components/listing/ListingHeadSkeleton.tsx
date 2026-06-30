@@ -1,4 +1,3 @@
-import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 
 import Skeleton from "@/components/ui/Skeleton";
 
