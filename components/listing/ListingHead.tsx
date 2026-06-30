@@ -17,7 +17,6 @@ import Modal from "@/components/modals/Modal";
 import VideoTourModal from "@/components/modals/VideoTourModal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
-import useCities from "@/hooks/useCities";
 import useFavorite from "@/hooks/useFavorite";
 import { SafeUser } from "@/types/user";
 
@@ -30,9 +29,7 @@ type Props = {
   currentUser?: SafeUser | null;
 };
 
-function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser }: Props) {
-  const { getByValue } = useCities();
-  const location = getByValue(locationValue);
+function ListingHead({ title, locationValue: _locationValue, imageSrc, videoSrc, id, currentUser }: Props) {
   const { hasFavorite, toggleFavorite } = useFavorite({
     listingId: id,
     currentUser,
@@ -43,6 +40,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
   const [loaded, setLoaded] = useState<boolean[]>(new Array(imageSrc.length).fill(false));
   const [prevImageSignature, setPrevImageSignature] = useState(imageSrc.join("|"));
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   const imageSignature = imageSrc.join("|");
   if (imageSignature !== prevImageSignature) {
@@ -136,7 +134,8 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
           prevEl: '.swiper-button-prev-custom',
         }}
         initialSlide={selectedImageIndex || 0}
-        className="w-full aspect-4/3 lg:aspect-auto lg:h-[60vh] rounded-xl"
+        onSlideChange={(swiper) => setActiveSlide(swiper.realIndex)}
+        className="w-full aspect-4/3 lg:aspect-auto lg:h-[60vh] rounded-none lg:rounded-xl"
       >
         {imageSrc.map((url, index) => (
           <SwiperSlide key={index}>
@@ -155,6 +154,12 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
         ))}
       </Swiper>
 
+      {imageSrc.length > 1 && (
+        <div className="absolute bottom-4 right-4 z-10 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-md text-white text-xs font-semibold select-none lg:hidden">
+          {activeSlide + 1} / {imageSrc.length}
+        </div>
+      )}
+
       <div className="hidden lg:block swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100">
         <HiOutlineChevronLeft className="text-background" size={24} />
       </div>
@@ -166,99 +171,134 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
 
   return (
     <>
-      <div className="flex flex-col gap-1">
-        <Heading variant="h4" as="h1" title={title} />
-        
-        <div className="flex items-center justify-between gap-4 text-sm mt-1">
-          <span className="font-semibold text-muted-foreground">
-            {location?.label}, India
-          </span>
-          
-          <div className="flex items-center gap-1">
-            <Button 
+      <div className="lg:hidden -mx-6 -mt-10 mb-4 relative">
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-3 pt-3">
+          <Button
+            variant="ghost"
+            rounded
+            fit
+            icon={HiOutlineChevronLeft}
+            onClick={() => window.history.back()}
+            aria-label="Go back"
+            className="bg-white shadow-md border-none! p-2! h-auto!"
+          />
+          <div className="flex items-center gap-2">
+            <Button
               variant="ghost"
-              size="xs"
+              rounded
               fit
+              icon={FiShare}
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href);
                 toast.success("Link copied to clipboard");
               }}
-            >
-              <FiShare size={16} />
-              <span className="underline">Share</span>
-            </Button>
-            
-            <Button 
+              aria-label="Share"
+              className="bg-white shadow-md border-none! p-2! h-auto!"
+            />
+            <Button
               variant="ghost"
-              size="xs"
+              rounded
               fit
               onClick={(e) => toggleFavorite(e)}
+              aria-label={hasFavorite ? "Remove from wishlist" : "Add to wishlist"}
+              className="bg-white shadow-md border-none! p-2! h-auto!"
             >
               {hasFavorite ? (
                 <AiFillHeart size={16} className="fill-rose-500" />
               ) : (
-                <AiOutlineHeart size={16} />
+                <AiOutlineHeart size={16} className="text-foreground" />
               )}
-              <span className="underline">{hasFavorite ? "Saved" : "Save"}</span>
             </Button>
           </div>
         </div>
+        {sliderContent}
       </div>
 
-      {showCarousel ? (
-        <div className="mt-4">
-          {sliderContent}
+      <Heading variant="h4" as="h1" title={title} className="lg:hidden text-[1.375rem] font-medium font-sans leading-6.5!" />
+
+      <div className="hidden lg:flex items-end justify-between gap-2">
+        <Heading variant="h4" as="h1" title={title} className="text-[1.625rem] font-medium font-sans flex-1 leading-7.5!" />
+
+        <div className="flex items-center gap-1 shrink-0">
+          <Button
+            variant="ghost"
+            size="xs"
+            fit
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast.success("Link copied to clipboard");
+            }}
+            className="border-none! px-3! py-1.5! rounded-lg!"
+          >
+            <FiShare size={16} />
+            <span className="underline">Share</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="xs"
+            fit
+            onClick={(e) => toggleFavorite(e)}
+            className="border-none! px-3! py-1.5! h-auto! rounded-lg!"
+          >
+            {hasFavorite ? (
+              <AiFillHeart size={16} className="fill-rose-500" />
+            ) : (
+              <AiOutlineHeart size={16} />
+            )}
+            <span className="underline">{hasFavorite ? "Saved" : "Save"}</span>
+          </Button>
+        </div>
+      </div>
+
+      {!showCarousel ? (
+        <div className="hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
+          <div className={`relative h-113.75 cursor-pointer overflow-hidden rounded-l-2xl ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
+            {imageSrc[0] && (
+              <Image
+                src={imageSrc[0]}
+                alt="image-0"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+                onLoad={() => handleImageLoad(0)}
+                className={`object-cover hover:brightness-90 ${imageOpacityClasses(0)}`}
+              />
+            )}
+          </div>
+
+          <div className="grid grid-rows-2 grid-cols-2 gap-1 h-113.75">
+            {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
+            {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-tr-2xl")}
+            {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
+            {imageSrc[4] && (
+              <div className={`relative w-full h-full overflow-hidden rounded-br-2xl ${skeletonClasses(4)}`}>
+                <Image
+                  src={imageSrc[4]}
+                  alt="image-4"
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  onLoad={() => handleImageLoad(4)}
+                  className={`object-cover hover:brightness-90 ${imageOpacityClasses(4)} cursor-pointer`}
+                  onClick={() => handleImageClick(4)}
+                />
+                <div className="absolute bottom-4 right-4 flex gap-2">
+                  <Button
+                    label="Show all photos"
+                    onClick={handleShowAllPhotos}
+                    variant="outline"
+                    fit
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
-        <>
-          <div className="hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
-            <div className={`relative h-113.75 cursor-pointer overflow-hidden rounded-l-2xl ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
-              {imageSrc[0] && (
-                <Image
-                  src={imageSrc[0]}
-                  alt="image-0"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  priority
-                  onLoad={() => handleImageLoad(0)}
-                  className={`object-cover hover:brightness-90 ${imageOpacityClasses(0)}`}
-                />
-              )}
-            </div>
-
-            <div className="grid grid-rows-2 grid-cols-2 gap-1 h-113.75">
-              {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
-              {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-tr-2xl")}
-              {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
-              {imageSrc[4] && (
-                <div className={`relative w-full h-full overflow-hidden rounded-br-2xl ${skeletonClasses(4)}`}>
-                  <Image
-                    src={imageSrc[4]}
-                    alt="image-4"
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    onLoad={() => handleImageLoad(4)}
-                    className={`object-cover hover:brightness-90 ${imageOpacityClasses(4)} cursor-pointer`}
-                    onClick={() => handleImageClick(4)}
-                  />
-                  <div className="absolute bottom-4 right-4 flex gap-2">
-                    <Button
-                      label="Show all photos"
-                      onClick={handleShowAllPhotos}
-                      variant="outline"
-                      fit
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="lg:hidden mt-4">
-            {sliderContent}
-          </div>
-        </>
+        <div className="hidden lg:block mt-4">
+          {sliderContent}
+        </div>
       )}
 
       <Modal

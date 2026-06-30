@@ -19,7 +19,7 @@ const buttonVariants = cva(
         outline: "bg-background border-foreground/20 text-foreground",
       },
       size: {
-        xs: "h-auto py-2 px-3 text-sm",
+        xs: "h-9 px-3 text-sm",
         sm: "h-10 px-4 text-sm",
         md: "h-11 px-6 text-sm",
         lg: "h-12 px-6 text-base",

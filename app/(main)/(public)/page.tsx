@@ -92,7 +92,7 @@ export default async function Home() {
   const [headerList, currentUser, listings] = await Promise.all([
     headers(),
     getCurrentUser(),
-    getRandomListings(3),
+    getRandomListings(4),
   ]);
   const nonce = headerList.get("x-nonce") || "";
 
@@ -108,7 +108,7 @@ export default async function Home() {
       {/* 1. Hero —  full-viewport, city search */}
       <Hero />
 
-      {/* 2. Studio Showcase —  3-card grid with live data */}
+      {/* 2. Studio Showcase —  4-card grid with live data */}
       <StudioShowcase listings={listings} />
 
       {/* 3. For Brands & Agencies —  two-path layout */}

@@ -85,8 +85,8 @@ const StudioShowcase: React.FC<StudioShowcaseProps> = ({ listings }) => {
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-          {listings.slice(0, 3).map((studio, i) => (
+        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {listings.slice(0, 4).map((studio, i) => (
             <StudioCard key={studio.id} studio={studio} index={i} />
           ))}
         </div>

@@ -11,9 +11,9 @@ export default function ProfileLoading() {
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-background rounded-2xl border border-border overflow-hidden">
             {/* Banner placeholder */}
-            <div className="relative h-24 bg-foreground/3 animate-pulse">
+            <div className="relative h-24 bg-foreground/5 animate-shimmer">
               <div className="absolute -bottom-12 left-8">
-                <div className="w-24 h-24 rounded-full border-4 border-background bg-foreground/3 animate-pulse" />
+                <div className="w-24 h-24 rounded-full border-4 border-background bg-foreground/5 animate-shimmer" />
               </div>
             </div>
 

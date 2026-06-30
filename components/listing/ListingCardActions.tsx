@@ -42,7 +42,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
     if (!showActions) return null;
 
     return (
-        <div className="flex mt-4 pt-1 gap-2">
+        <div className="flex mt-3 pt-1 gap-2">
             {reservation && onShowInfo && (
                 <Button
                     icon={IoInformationCircleOutline}

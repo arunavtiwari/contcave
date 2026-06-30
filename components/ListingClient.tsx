@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AiFillStar } from "react-icons/ai";
 
 import Container from "@/components/Container";
 import CuratedReservation from "@/components/listing/CuratedReservation";
@@ -642,7 +643,7 @@ function ListingClient({
   return (
     <div className="pt-10">
       <Container>
-        <div className="max-w-280 mx-auto pb-24">
+        <div className="max-w-280 mx-auto pb-32 md:pb-24">
           <div className="flex flex-col gap-2">
             <ListingHead
               title={listing.title}
@@ -678,7 +679,7 @@ function ListingClient({
                 processedTerms={processedTerms}
                 descriptionShouldTruncate={descriptionShouldTruncate}
               />
-              <div className="order-first mb-10 md:order-last md:col-span-3">
+              <div id="booking-section" className="order-last mt-10 md:order-last md:col-span-3 scroll-mt-20">
                 {isCurated ? (
                   <CuratedReservation
                     listingId={listing.id}
@@ -739,6 +740,47 @@ function ListingClient({
           />
         )}
       </Container>
+
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 border-t border-border px-6 py-3.5 flex items-center justify-between md:hidden backdrop-blur-md">
+        <div className="flex flex-col">
+          <div className="flex items-baseline gap-1">
+            <span className="text-base font-bold text-foreground">
+              {isCurated ? (
+                listing.priceRangeMin && listing.priceRangeMax ? (
+                  `₹${listing.priceRangeMin.toLocaleString("en-IN")}–${listing.priceRangeMax.toLocaleString("en-IN")}`
+                ) : (
+                  "Price on Demand"
+                )
+              ) : (
+                `₹${(pricingResult?.subtotal ?? listing.price ?? 0).toLocaleString("en-IN")}`
+              )}
+            </span>
+            {!isCurated && (
+              <span className="text-xs text-muted-foreground font-normal">
+                {selectedTimeSlot && selectedTimeSlot[0] ? `for ${timeDifferenceInHours} hrs` : "/ hr"}
+              </span>
+            )}
+          </div>
+          {listing.avgReviewRating !== undefined && listing.avgReviewRating > 0 && (
+            <div className="flex items-center gap-1 text-xs font-semibold text-foreground/95 mt-0.5">
+              <AiFillStar className="text-amber-500 w-3 h-3" />
+              <span>{listing.avgReviewRating.toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={() => {
+            document.getElementById("booking-section")?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }}
+          className="bg-primary text-primary-foreground font-semibold text-sm px-6 py-2.5 rounded-xl active:scale-95 transition-all shadow-xs"
+        >
+          {isCurated ? "Enquire Now" : "Check availability"}
+        </button>
+      </div>
     </div>
   );
 }
