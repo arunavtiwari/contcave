@@ -109,6 +109,7 @@ const Hero = () => {
             muted
             playsInline
             preload="metadata"
+            poster="/videos/hero-bg-poster.webp"
             onEnded={(e) => e.currentTarget.pause()}
             className="w-full h-full object-cover"
             controls={false}
