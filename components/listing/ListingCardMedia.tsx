@@ -112,27 +112,27 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
             </Link>
 
             {showListingBadge && reservationStatus === undefined && (listingType === "CURATED" || isVerified) && (
-                <div className="absolute left-3.5 top-3.5 z-20">
+                <div className="absolute left-3 top-3 z-20">
                     {listingType === "CURATED" ? (
                         <Pill
                             label="Curated"
                             variant="curated-button"
                             size="xs"
-                            className="text-[11px] font-semibold tracking-normal border border-warning/30"
+                            className="bg-background/80 backdrop-blur-md text-[11px] font-semibold tracking-normal border border-warning/30 shadow-sm"
                         />
                     ) : (
                         <Pill
                             label="Verified"
                             variant="verified-button"
                             size="xs"
-                            className="text-[11px] font-semibold tracking-normal border border-success/30"
+                            className="bg-background/80 backdrop-blur-md text-[11px] font-semibold tracking-normal border border-success/30 shadow-sm"
                         />
                     )}
                 </div>
             )}
 
             {reservationStatus !== undefined && (
-                <div className={`absolute left-3.5 top-3.5 z-20 transition-transform ${allowScale ? "group-hover:scale-110" : ""}`}>
+                <div className={`absolute left-3 top-3 z-20 transition-transform ${allowScale ? "group-hover:scale-110" : ""}`}>
                     <Pill
                         label={
                             reservationStatus === 1 ? "Approved" :
@@ -144,9 +144,9 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                                 reservationStatus === 0 ? "warning" : "destructive"
                         }
                         size="xs"
-                        className={`font-semibold text-[11px] px-3 border ${
-                            reservationStatus === 1 ? "border-success/30" :
-                                reservationStatus === 0 ? "border-warning/30" : "border-destructive/30"
+                        className={`bg-background/80 backdrop-blur-md font-semibold text-[11px] px-3 border shadow-sm ${
+                            reservationStatus === 1 ? "text-success border-success/30" :
+                                reservationStatus === 0 ? "text-warning border-warning/30" : "text-destructive border-destructive/30"
                         }`}
                     />
                 </div>
@@ -180,13 +180,13 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
             />
 
             {!onEdit && showHeart && (
-                <div className="absolute top-2.5 right-3 z-30">
+                <div className="absolute top-3 right-3 z-30">
                     <HeartButton listingId={listingId} currentUser={currentUser} />
                 </div>
             )}
 
             {images.length > 1 && (
-                <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
                     {images.map((_, i) => (
                         <div
                             key={i}

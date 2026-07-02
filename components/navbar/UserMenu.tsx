@@ -149,7 +149,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
           size="md"
           outline
           rounded
-          className="w-10! h-10! md:w-auto! md:h-11! px-0 md:px-2 flex items-center justify-center md:justify-start gap-3 transition-colors duration-200 border bg-background/80! hover:bg-background/90 active:scale-100!"
+          className="w-10! h-10! md:w-auto! md:h-11! px-0 md:px-2 flex items-center justify-center md:justify-start gap-3 transition-colors duration-200 border border-neutral-300! bg-background! ring-1 ring-neutral-300/70 hover:bg-muted active:scale-100!"
         >
           <AiOutlineMenu className="text-foreground shrink-0" />
           <div className="hidden md:block shrink-0">
@@ -167,7 +167,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.14, ease: "easeOut" }}
-              className="fixed rounded-2xl min-w-72 bg-background/70 backdrop-blur-lg overflow-hidden text-sm p-2 border border-border z-100000 will-change-opacity"
+              className="fixed rounded-2xl min-w-72 bg-background/70 backdrop-blur-lg overflow-hidden text-sm p-2 border border-neutral-300! ring-1 ring-neutral-300/70 shadow-lg z-100000 will-change-opacity"
               style={{
                 top: coords.top,
                 right: coords.right,
@@ -186,7 +186,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
                       </>
                     )}
                     <MenuItem onClick={closeMenu} href="/dashboard/profile" label="My Profile" icon={FiUser} />
-                    <hr className="my-2 border-white/10" />
+                    <div className="mx-2 my-2 border-t border-neutral-300" role="separator" />
                     <MenuItem onClick={handleLogout} label="Logout" icon={FiLogOut} />
                   </>
                 ) : (

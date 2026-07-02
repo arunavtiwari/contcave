@@ -47,7 +47,7 @@ const SearchContent = memo(function SearchContent() {
       rounded
       outline
       fit
-      className="bg-background/20 backdrop-blur-md px-2!"
+      className="bg-background! border-neutral-300! ring-1 ring-neutral-300/70 shadow-sm px-2!"
     >
       <div className="flex flex-row items-center justify-between w-full">
         <div className="text-sm font-medium px-6">{locationLabel}</div>
@@ -74,7 +74,7 @@ const Search = memo(function Search() {
         rounded
         outline
         fit
-        className="p-2! bg-background/20 backdrop-blur-md opacity-50"
+        className="p-2! bg-background! border-neutral-300! ring-1 ring-neutral-300/70 shadow-sm opacity-50"
         disabled
       >
         <div className="flex flex-row items-center justify-between w-full">
