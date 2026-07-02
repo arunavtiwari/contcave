@@ -112,7 +112,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                                 className="flex-1 whitespace-nowrap"
                             />
                         )}
-                        {onCancel && (reservation.isApproved === 1 || reservation.isApproved === 0) && (
+                        {onCancel && reservation.isApproved === 0 && (
                             <Button
                                 label="Cancel"
                                 variant="outline"

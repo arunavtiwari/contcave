@@ -30,6 +30,10 @@ export async function sendEmail({
     apiKey = process.env.MAILERSEND_API_KEY || "",
     attachments,
 }: SendEmailInput) {
+    if (process.env.E2E_DISABLE_EMAIL_SEND === "true") {
+        return;
+    }
+
     if (!apiKey || !toEmail) return;
 
     const ms = new MailerSend({ apiKey });

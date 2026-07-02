@@ -48,7 +48,6 @@ function ListingFeed({ listings, currentUser }: Props) {
     }
   }, [setSortedByLocation]);
 
-  // Register prioritize function in context
   useEffect(() => {
     registerPrioritize(prioritizeListings);
   }, [registerPrioritize, prioritizeListings]);
@@ -63,6 +62,7 @@ function ListingFeed({ listings, currentUser }: Props) {
             data={item}
             currentUser={currentUser}
             priority={index < 4}
+            showListingBadge
           />
         ))}
       </div>

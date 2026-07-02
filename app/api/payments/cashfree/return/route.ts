@@ -10,17 +10,14 @@ async function resolveTid(req: NextRequest): Promise<string> {
   const url = new URL(req.url);
   let tid = url.searchParams.get("tid") || url.searchParams.get("order_id") || "";
 
-  // 1. Try to extract from request body if missing in query parameters
   if (!tid) {
     try {
       const text = await req.text();
       if (text) {
         try {
-          // Try parsing as JSON first
           const body = JSON.parse(text);
           tid = body.orderId || body.order_id || body.cf_order_id || body.transaction_id || body.tid || "";
         } catch {
-          // Fallback to parsing as URL-encoded form data
           const params = new URLSearchParams(text);
           tid = params.get("orderId") || params.get("order_id") || params.get("cf_order_id") || params.get("transaction_id") || params.get("tid") || "";
         }
@@ -34,7 +31,6 @@ async function resolveTid(req: NextRequest): Promise<string> {
     return tid.trim();
   }
 
-  // 2. Self-Healing: Query database for the user's latest transaction in the last 10 minutes
   try {
     const currentUser = await getCurrentUser();
     if (currentUser?.id) {
@@ -42,7 +38,7 @@ async function resolveTid(req: NextRequest): Promise<string> {
         where: {
           userId: currentUser.id,
           createdAt: {
-            gte: new Date(Date.now() - 10 * 60 * 1000), // last 10 minutes
+            gte: new Date(Date.now() - 10 * 60 * 1000),
           },
         },
         orderBy: {

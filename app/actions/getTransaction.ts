@@ -35,5 +35,17 @@ export default async function getTransaction({ tid }: Args) {
     });
   }
 
+  if (txn.status === "SUCCESS" && txn.reservationId) {
+    await ReservationService.ensurePostReservationSideEffects(txn.id);
+    return await prisma.transaction.findUnique({
+      where: { id: txn.id },
+      include: {
+        reservation: { include: { listing: true } },
+        listing: true,
+        user: true,
+      },
+    });
+  }
+
   return txn;
 }

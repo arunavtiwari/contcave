@@ -57,6 +57,20 @@ async function waitForRentStep(page: Page, step: string) {
   return stepLocator;
 }
 
+export async function chooseStandardListingTypeIfPresent(page: Page) {
+  const standardListing = page.getByRole("button", { name: /standard listing/i });
+  if (await standardListing.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await standardListing.click();
+    await page.getByTestId("rent-modal-primary-action").click();
+  }
+}
+
+function cashfreeExpiryForInput(expiry: string) {
+  const match = expiry.match(/^(\d{2})\/(\d{2}|\d{4})$/);
+  if (!match) return expiry;
+  return `${match[1]}/${match[2].slice(-2)}`;
+}
+
 export async function openUserMenu(page: Page) {
   await dismissCookieBanner(page);
 
@@ -196,6 +210,7 @@ export async function createListingViaRentModal(page: Page, title: string) {
   await openUserMenu(page);
   await page.getByText("List your space").click();
   await expect(page.getByTestId("rent-modal")).toBeVisible();
+  await chooseStandardListingTypeIfPresent(page);
   await waitForRentStep(page, "category");
 
   await page.getByRole("button", { name: /indoor studio/i }).click();
@@ -286,11 +301,54 @@ export async function completeCashfreeCheckout(page: Page) {
     await proceed.click();
   } else {
     await page.getByText(/card/i).first().click({ timeout: 30_000 });
-    await page.getByLabel(/card number/i).fill(method.number);
-    await page.getByLabel(/expiry|valid thru/i).fill(method.expiry);
-    await page.getByLabel(/cvv|security/i).fill(method.cvv);
-    await page.getByLabel(/name/i).fill(method.name);
-    await page.getByRole("button", { name: /pay|continue/i }).first().click();
+
+    const spacedCardNumber = method.number.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+    const testCardUseButton = page
+      .locator("div")
+      .filter({ hasText: spacedCardNumber })
+      .getByRole("button", { name: /^use$/i })
+      .first();
+    if (await testCardUseButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await testCardUseButton.click();
+    }
+
+    const cardInput = page
+      .getByRole("textbox", { name: /card details/i })
+      .or(page.getByPlaceholder(/1234 1234/i))
+      .first();
+    if (await cardInput.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await cardInput.click();
+      await cardInput.pressSequentially(spacedCardNumber, { delay: 30 });
+      await expect(cardInput).not.toHaveValue("", { timeout: 5_000 });
+    }
+
+    await page.getByRole("textbox", { name: /mm\/yy|expiry|valid thru/i }).fill(cashfreeExpiryForInput(method.expiry));
+    await page.getByRole("textbox", { name: /cvv|security/i }).fill(method.cvv);
+    await page.getByRole("textbox", { name: /card holder|name/i }).fill(method.name);
+
+    const proceed = page.getByRole("button", { name: /proceed to pay|pay|continue/i }).first();
+    await expect(proceed).toBeEnabled({ timeout: 30_000 });
+    await proceed.click();
+
+    const otpInput = page.getByRole("textbox", { name: /otp|password|code/i }).first();
+    if (await otpInput.isVisible({ timeout: 20_000 }).catch(() => false)) {
+      await otpInput.fill(method.otp || "111000");
+      await page.getByRole("button", { name: /submit|pay|continue|verify/i }).first().click();
+    }
+  }
+
+  await page.waitForURL((url) => {
+    if (/payments-test\.cashfree\.com\/pgbillpayuiapi\/simulator/i.test(url.href)) return true;
+    if (/payments\/cashfree\/return/i.test(url.pathname)) return true;
+    return url.pathname === "/" && url.searchParams.has("callbackUrl") && url.searchParams.has("tid");
+  }, { timeout: 30_000 }).catch(() => {});
+
+  if (/payments-test\.cashfree\.com\/pgbillpayuiapi\/simulator/i.test(page.url())) {
+    await page.getByRole("textbox", { name: /otp/i }).fill(method.type === "card" ? method.otp || "111000" : "111000");
+    await page.getByText(/^success$/i).click();
+    const submit = page.getByRole("button", { name: /^submit$/i });
+    await expect(submit).toBeEnabled({ timeout: 30_000 });
+    await submit.click();
   }
 
   await page.waitForURL((url) => {

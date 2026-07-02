@@ -90,9 +90,17 @@ export async function getAdminListingReviews(status?: AdminListingStatus) {
             return [];
         }
 
+        const hydratableIds = await ListingService.getHydratableListingIds(
+            status ? { status } : {}
+        );
+        if (hydratableIds.length === 0) return [];
+
         const [listings, allAmenities] = await Promise.all([
             prisma.listing.findMany({
-                where: status ? { status } : {},
+                where: {
+                    ...(status ? { status } : {}),
+                    id: { in: hydratableIds },
+                },
                 include: {
                     packages: { orderBy: { createdAt: "asc" } },
                     sets: { orderBy: [{ position: "asc" }, { price: "asc" }] },

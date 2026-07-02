@@ -67,7 +67,7 @@ test.describe("booking staging flow", () => {
     await registerCustomerViaUi(page, customer);
     const customerUser = await waitForUserByEmail(customer.email);
 
-    await page.goto(`/listings/${listing.slug || listing.id}`);
+    await page.goto(`/listings/${listing.id}`);
     await selectFirstBookableSlot(page);
     await page.getByRole("button", { name: /reserve and pay/i }).click();
 
@@ -120,7 +120,7 @@ test.describe("booking staging flow", () => {
     });
     const listing = await createActiveListingFixture(owner.id, `unauthenticated-r${testInfo.retry}`);
 
-    await page.goto(`/listings/${listing.slug || listing.id}`);
+    await page.goto(`/listings/${listing.id}`);
     await selectFirstBookableSlot(page);
     await page.getByRole("button", { name: /reserve and pay/i }).click();
     await expect(page.getByTestId("login-modal")).toBeVisible();

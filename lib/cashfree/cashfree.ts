@@ -27,6 +27,12 @@ export function cfSplitBaseURL() {
     return cfBaseURL() + "/easy-split";
 }
 
+function cfApiV2BaseURL() {
+    return cfEnv() === "PRODUCTION"
+        ? "https://api.cashfree.com/api/v2"
+        : "https://test.cashfree.com/api/v2";
+}
+
 export function cfHeaders(): Record<string, string> {
     const appId = process.env.CASHFREE_APP_ID;
     const secret = process.env.CASHFREE_SECRET_KEY;
@@ -178,7 +184,14 @@ export function cfVerifyWebhookSignature({
     const h = crypto.createHmac("sha256", secret);
     h.update(timestamp + rawBody);
     const computed = h.digest("base64");
-    return crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(signatureBase64));
+    const computedBuffer = Buffer.from(computed);
+    const providedBuffer = Buffer.from(signatureBase64);
+
+    if (computedBuffer.length !== providedBuffer.length) {
+        return false;
+    }
+
+    return crypto.timingSafeEqual(computedBuffer, providedBuffer);
 }
 
 export async function cfEnsureVendor(payload: {
@@ -206,7 +219,7 @@ export async function cfEnsureVendor(payload: {
 
     const kycDetails: Record<string, string> = {
         account_type: payload.gstin ? "BUSINESS" : "INDIVIDUAL",
-        business_type: payload.gstin ? "B2B" : "INDIVIDUAL",
+        business_type: payload.gstin ? "B2B" : "Miscellaneous",
     };
     if (payload.gstin) {
         kycDetails.gst = payload.gstin.trim().toUpperCase();
@@ -322,17 +335,23 @@ export async function cfOnDemandTransfer(params: {
     transfer_id: string;
     remarks?: string;
 }) {
-    const url = `${cfSplitBaseURL()}/settlements/on-demand-transfer`;
+    const url = `${cfSplitBaseURL()}/vendors/${encodeURIComponent(params.vendor_id)}/transfer`;
     const httpsAgent = getFixieProxyAgent();
 
     try {
         const res = await axios.post(url, {
-            vendor_id: params.vendor_id,
-            amount: params.amount,
-            transfer_id: params.transfer_id,
-            remarks: params.remarks || "",
+            transfer_from: "MERCHANT",
+            transfer_type: "ON_DEMAND",
+            transfer_amount: params.amount,
+            remark: params.remarks || "",
+            tags: {
+                transfer_id: params.transfer_id,
+            },
         }, {
-            headers: cfHeaders(),
+            headers: {
+                ...cfHeaders(),
+                "x-idempotency-key": params.transfer_id,
+            },
             httpsAgent,
             timeout: 30000
         });
@@ -345,6 +364,43 @@ export async function cfOnDemandTransfer(params: {
             const data = error.response?.data;
             errorMessage = data?.message || error.message;
             console.error(`[Cashfree Transfer] Error (${status}):`, JSON.stringify(data));
+        } else if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        throw new Error(errorMessage);
+    }
+}
+
+export async function cfSetVendorSettlementEligibilityDate(params: {
+    orderId: string;
+    vendorId: string;
+    settlementEligibilityDate: Date;
+}) {
+    const url = `${cfApiV2BaseURL()}/easy-split/orders/${encodeURIComponent(params.orderId)}/settlement-eligibility/vendors/${encodeURIComponent(params.vendorId)}`;
+    const httpsAgent = getFixieProxyAgent();
+    const pad = (value: number) => String(value).padStart(2, "0");
+    const date = params.settlementEligibilityDate;
+    const settlementEligibilityDateUpdate =
+        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+        `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+
+    try {
+        const res = await axios.put(url, {
+            settlementEligibilityDateUpdate,
+        }, {
+            headers: cfHeaders(),
+            httpsAgent,
+            timeout: 30000
+        });
+
+        return res.data;
+    } catch (error: unknown) {
+        let errorMessage = "Settlement eligibility update failed";
+        if (axios.isAxiosError(error)) {
+            const status = error.response?.status;
+            const data = error.response?.data;
+            errorMessage = data?.message || error.message;
+            console.error(`[Cashfree SettlementEligibility] Error (${status}):`, JSON.stringify(data));
         } else if (error instanceof Error) {
             errorMessage = error.message;
         }

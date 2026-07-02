@@ -139,7 +139,6 @@ export async function POST(request: Request) {
             actualListingId = listing.id;
         }
 
-        // 1. Generate PDF Buffer
         const dateStr = formatISTDate(new Date());
 
         const buffer = await renderToBuffer(
@@ -149,7 +148,6 @@ export async function POST(request: Request) {
             }) as React.ReactElement<import("@react-pdf/renderer").DocumentProps>
         );
 
-        // 2. Prepare R2 Upload
         const folder = `users/${currentUser.id}/listings/${actualListingId}/compliance/agreements`;
         const timestamp = Math.floor(Date.now() / 1000);
         const publicId = `agreement-${timestamp}`;

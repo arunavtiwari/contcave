@@ -1,6 +1,6 @@
 import { createUserFixture, prisma, waitForListingByTitle } from "./support/db";
 import { expect, test } from "./support/test";
-import { createListingViaRentModal, loginViaUi, openUserMenu, selectAddressOption, selectReactOption } from "./support/ui";
+import { chooseStandardListingTypeIfPresent, createListingViaRentModal, loginViaUi, openUserMenu, selectAddressOption, selectReactOption } from "./support/ui";
 
 test.describe.configure({ mode: "serial" });
 
@@ -49,6 +49,7 @@ test.describe("rent modal staging flow", () => {
     await page.goto("/");
     await openUserMenu(page);
     await page.getByText("List your space").click();
+    await chooseStandardListingTypeIfPresent(page);
     await expect(page.getByTestId("rent-modal-step-category")).toBeVisible();
 
     await page.getByTestId("rent-modal-primary-action").click();

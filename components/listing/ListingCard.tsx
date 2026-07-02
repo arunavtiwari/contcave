@@ -69,6 +69,7 @@ interface ListingCardProps {
   allowScale?: boolean;
   isHost?: boolean;
   priority?: boolean;
+  showListingBadge?: boolean;
 }
 
 const ListingCard: React.FC<ListingCardProps> = ({
@@ -94,10 +95,10 @@ const ListingCard: React.FC<ListingCardProps> = ({
   allowScale = true,
   isHost = false,
   priority = false,
+  showListingBadge = false,
 }) => {
   const { getByValue } = useCities();
 
-  // 1. Memoized Normalized Data
   const displayTitle = useMemo(() => getDisplayTitle(data), [data]);
   const locationLabel = useMemo(() => getLocationLabel(data, getByValue), [data, getByValue]);
   const images = useMemo(() => normalizeImages(data?.imageSrc || data?.image), [data?.imageSrc, data?.image]);
@@ -111,7 +112,6 @@ const ListingCard: React.FC<ListingCardProps> = ({
 
   const reservationTime = useMemo(() => reservation?.startTime, [reservation?.startTime]);
 
-  // 2. Interaction State (Tilt)
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const mouseXSpring = useSpring(x);
@@ -178,6 +178,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
           reservationStatus={reservation?.isApproved ?? undefined}
           totalPrice={reservation?.totalPrice}
           priority={priority}
+          showListingBadge={showListingBadge}
         />
 
         <ListingCardContent

@@ -4,8 +4,16 @@ import { format } from "date-fns";
 import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund } from "@/lib/cashfree/cashfree";
-import { sendReservationConfirmationCustomer, sendReservationConfirmationOwner } from "@/lib/email/templates";
+import {
+    sendReservationCancelledOwner,
+    sendReservationConfirmationCustomer,
+    sendReservationConfirmationOwner,
+    sendReservationReceivedCustomer,
+    sendReservationRejectedCustomer,
+} from "@/lib/email/templates";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
+import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
+import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
 import prisma from "@/lib/prismadb";
 import { generateBookingId } from "@/lib/utils";
 import { WhatsappService } from "@/lib/whatsapp/service";
@@ -14,7 +22,7 @@ import { ReservationMetadata, ReservationResult, SafeReservation } from "@/types
 
 type FullReservationPayload = Prisma.ReservationGetPayload<{
     include: {
-        listing: { include: { user: true } };
+        listing: { include: { user: { include: { paymentDetails: true } } } };
         user: true;
         Transaction: { orderBy: { createdAt: "desc" } };
     };
@@ -90,11 +98,149 @@ function getListingLocation(listing: FullReservationPayload["listing"]) {
     return (listing.actualLocation as Record<string, unknown> | null)?.display_name as string || "";
 }
 
+function getListingLocationLink(listing: FullReservationPayload["listing"]) {
+    const actualLocation = listing.actualLocation as Record<string, unknown> | null;
+    return String(actualLocation?.url || actualLocation?.mapsUrl || actualLocation?.googleMapsUrl || actualLocation?.display_name || "https://maps.google.com");
+}
+
+function toNotificationError(error: unknown) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function parseTimeForDate(date: Date, label: string) {
+    const ymd = format(date, "yyyy-MM-dd");
+    const value = String(label || "").trim();
+    const m12 = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    const m24 = value.match(/^(\d{1,2}):(\d{2})$/);
+
+    if (m12) {
+        let hour = Number(m12[1]);
+        const minute = Number(m12[2]);
+        const period = m12[3].toUpperCase();
+        if (period === "PM" && hour < 12) hour += 12;
+        if (period === "AM" && hour === 12) hour = 0;
+        return new Date(`${ymd}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`);
+    }
+
+    if (m24) {
+        return new Date(`${ymd}T${m24[1].padStart(2, "0")}:${m24[2]}:00`);
+    }
+
+    return null;
+}
+
+function getPayoutDueAt(startDate: Date, endTime: string) {
+    const endAt = parseTimeForDate(startDate, endTime);
+    const dueAt = endAt || new Date(startDate);
+
+    if (!endAt) {
+        dueAt.setHours(23, 59, 0, 0);
+    }
+
+    dueAt.setMinutes(dueAt.getMinutes() + 2);
+
+    const now = new Date();
+    return dueAt.getTime() > now.getTime() ? dueAt : now;
+}
+
+function buildPayoutTransactionData(params: {
+    owner: FullReservationPayload["listing"]["user"];
+    amount: number;
+    startDate: Date;
+    endTime: string;
+    approved: boolean;
+}): Prisma.TransactionUncheckedUpdateInput {
+    try {
+        if (!params.owner.paymentDetails) return {};
+
+        const paymentDetails = decryptPaymentDetailsInternal(params.owner.paymentDetails);
+        const vendorId = paymentDetails.cashfreeVendorId?.trim();
+        if (!vendorId) return {};
+
+        const payoutDetails = calculatePayoutDetails(params.amount, hasValidGST(paymentDetails));
+        const data: Prisma.TransactionUncheckedUpdateInput = {
+            vendorId,
+            payoutAmountToOwner: payoutDetails.payoutToStudio,
+            payoutPercentToOwner: payoutDetails.payoutPercentOfTotal,
+            gstOwnedBy: payoutDetails.gstOwnedBy,
+            baseAmountBeforeGst: payoutDetails.baseAmount,
+        };
+
+        if (params.approved) {
+            data.payoutDueAt = getPayoutDueAt(params.startDate, params.endTime);
+        }
+
+        return data;
+    } catch (error) {
+        console.error("[ReservationService] Payout setup failed:", toNotificationError(error));
+        return {};
+    }
+}
+
+async function runNotification(label: string, task: () => Promise<void>) {
+    try {
+        await task();
+    } catch (error) {
+        console.error(`[ReservationService] ${label} failed:`, toNotificationError(error));
+    }
+}
+
 export class ReservationService {
-    /**
-     * Create a reservation from a successful Cashfree transaction.
-     * Handles conflict resolution, atomicity, GST mapping, and initial notifications.
-     */
+    private static async refundSuccessfulReservationTransactions(reservationId: string, note: string, refundIdPrefix: string) {
+        const txns = await prisma.transaction.findMany({
+            where: {
+                reservationId,
+                status: "SUCCESS",
+            },
+            select: {
+                id: true,
+                amount: true,
+                cfOrderId: true,
+                payoutSplitAt: true,
+            },
+        });
+
+        for (const txn of txns) {
+            if (!txn.cfOrderId) {
+                throw new Error("Cannot refund booking because Cashfree order ID is missing");
+            }
+
+            if (txn.payoutSplitAt) {
+                throw new Error("Cannot automatically refund after owner payout split is configured. Contact support.");
+            }
+
+            await cfCreateRefund({
+                order_id: txn.cfOrderId,
+                refund_amount: txn.amount,
+                refund_id: `${refundIdPrefix}_${txn.id}`,
+                refund_note: note,
+            });
+
+            await prisma.transaction.update({
+                where: { id: txn.id },
+                data: {
+                    status: "REFUNDED",
+                    description: note,
+                    payoutDueAt: null,
+                },
+            });
+        }
+    }
+
+    private static async assertNoConfiguredPayoutSplit(reservationId: string) {
+        const txn = await prisma.transaction.findFirst({
+            where: {
+                reservationId,
+                payoutSplitAt: { not: null },
+            },
+            select: { id: true },
+        });
+
+        if (txn) {
+            throw new Error("This booking already has an owner payout split configured. Contact support for cancellation or refund handling.");
+        }
+    }
+
     static async createFromTransaction(txnId: string): Promise<ReservationResult | null> {
         let result: ReservationResult | null;
         try {
@@ -104,7 +250,7 @@ export class ReservationService {
                     include: {
                         listing: {
                             include: {
-                                user: true,
+                                user: { include: { paymentDetails: true } },
                             }
                         },
                         user: true
@@ -112,6 +258,7 @@ export class ReservationService {
                 });
 
                 if (!txn || !txn.listing || !txn.userId) throw new Error("Transaction or listing not found");
+                if (txn.status !== "PENDING" && txn.status !== "SUCCESS") return null;
                 if (txn.reservationId) {
                     return {
                         reservationId: txn.reservationId,
@@ -122,7 +269,7 @@ export class ReservationService {
                 }
 
                 const md = (txn.metadata || {}) as unknown as ReservationMetadata;
-                const startDate = md.startDate ? new Date(`${md.startDate}T00:00:00`) : new Date();
+                const startDate = md.startDate ? new Date(`${md.startDate}T00:00:00.000Z`) : new Date();
                 const { startTime, endTime } = md;
                 const setIds = Array.isArray(md.setIds) ? md.setIds : [];
                 const selectedAddons = parseMetadataJson(md.selectedAddons);
@@ -135,13 +282,22 @@ export class ReservationService {
                     endTime,
                     setIds,
                     tx,
+                    skipGoogleCalendar: true,
                 });
 
                 if (conflict.hasConflict) {
-                    await cfCreateRefund({ order_id: txn.cfOrderId!, refund_amount: txn.amount, refund_id: `rf_auto_${txnId}`, refund_note: "Conflict resolution" });
+                    if (!txn.cfOrderId) {
+                        await tx.transaction.update({
+                            where: { id: txnId },
+                            data: { status: "FAILED", description: `Booking failed: ${conflict.conflictDetails || "Slot taken"}` }
+                        });
+                        return null;
+                    }
+
+                    await cfCreateRefund({ order_id: txn.cfOrderId, refund_amount: txn.amount, refund_id: `rf_auto_${txnId}`, refund_note: "Conflict resolution" });
                     await tx.transaction.update({
                         where: { id: txnId },
-                        data: { status: "FAILED", description: `Refunded: ${conflict.conflictDetails || "Slot taken"}` }
+                        data: { status: "REFUNDED", description: `Refunded: ${conflict.conflictDetails || "Slot taken"}` }
                     });
                     return null;
                 }
@@ -178,12 +334,22 @@ export class ReservationService {
                     await tx.reservationSlot.createMany({ data: slotRows });
                 }
 
+                const isApproved = txn.listing.instantBooking === true;
+                const payoutData = buildPayoutTransactionData({
+                    owner: txn.listing.user,
+                    amount: txn.amount,
+                    startDate,
+                    endTime,
+                    approved: isApproved,
+                });
+
                 await tx.transaction.update({
                     where: { id: txnId },
                     data: {
                         reservationId: reservation.id,
                         bookingId,
-                        status: "SUCCESS"
+                        status: "SUCCESS",
+                        ...payoutData,
                     }
                 });
 
@@ -193,11 +359,11 @@ export class ReservationService {
                     isInstant: !!txn.listing.instantBooking,
                     created: true,
                 };
-            });
+            }, { maxWait: 10_000, timeout: 30_000 });
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
                 const txn = await prisma.transaction.findUnique({ where: { id: txnId } });
-                if (txn?.cfOrderId && txn.status === "PENDING") {
+                if (txn?.cfOrderId && (txn.status === "PENDING" || (txn.status === "SUCCESS" && !txn.reservationId))) {
                     await cfCreateRefund({
                         order_id: txn.cfOrderId,
                         refund_amount: txn.amount,
@@ -208,7 +374,10 @@ export class ReservationService {
                     });
                     await prisma.transaction.update({
                         where: { id: txnId },
-                        data: { status: "FAILED", description: "Refunded: slot was reserved by another booking" }
+                        data: { status: "REFUNDED", description: "Refunded: slot was reserved by another booking" }
+                    });
+                    await this.handleFailedPayment(txnId).catch((notifyError) => {
+                        console.error("[ReservationService] Failed to notify customer after slot conflict:", notifyError);
                     });
                 }
                 return null;
@@ -216,25 +385,55 @@ export class ReservationService {
             throw error;
         }
 
-        if (result?.reservationId && result.created) {
-            void this.runPostReservationSideEffects(result.reservationId, txnId);
+        if (result?.reservationId) {
+            await this.runPostReservationSideEffects(result.reservationId, txnId, Boolean(result.created));
+        } else {
+            const txn = await prisma.transaction.findUnique({
+                where: { id: txnId },
+                select: { status: true },
+            });
+            if (txn?.status === "FAILED" || txn?.status === "REFUNDED") {
+                await this.handleFailedPayment(txnId).catch((notifyError) => {
+                    console.error("[ReservationService] Failed to notify customer after failed reservation creation:", notifyError);
+                });
+            }
         }
 
         return result;
     }
 
-    private static async runPostReservationSideEffects(reservationId: string, txnId: string) {
+    static async ensurePostReservationSideEffects(txnId: string) {
+        const txn = await prisma.transaction.findUnique({
+            where: { id: txnId },
+            select: { reservationId: true },
+        });
+
+        if (!txn?.reservationId) return;
+
+        await this.runPostReservationSideEffects(txn.reservationId, txnId, false);
+    }
+
+    private static async runPostReservationSideEffects(reservationId: string, txnId: string, force: boolean) {
         try {
             const fullResv = await prisma.reservation.findUnique({
                 where: { id: reservationId },
                 include: {
                     user: true,
-                    listing: { include: { user: true } },
+                    listing: { include: { user: { include: { paymentDetails: true } } } },
                     Transaction: { orderBy: { createdAt: "desc" } },
                 }
             }) as FullReservationPayload | null;
 
             if (!fullResv) return;
+
+            const txn = fullResv.Transaction.find((item) => item.id === txnId) || fullResv.Transaction[0];
+            const hasPendingNotification =
+                Boolean(fullResv.user.email && !txn?.emailSentCustomer) ||
+                Boolean(fullResv.listing.user.email && !txn?.emailSentOwner) ||
+                Boolean(fullResv.user.phone && !txn?.whatsappSentCustomer) ||
+                Boolean(fullResv.listing.user.phone && !txn?.whatsappSentHost);
+
+            if (!force && !hasPendingNotification) return;
 
             let invoiceAttachment: { filename: string; content: string } | undefined;
             try {
@@ -248,26 +447,32 @@ export class ReservationService {
                 console.error("[ReservationService] Invoice generation failed:", error);
             }
 
-            await this.triggerInitialNotifications(fullResv, invoiceAttachment);
+            await this.triggerInitialNotifications(fullResv, invoiceAttachment, txnId);
         } catch (error) {
             console.error("[ReservationService] Post-reservation side effects failed:", error);
         }
     }
 
-    private static async triggerInitialNotifications(resv: FullReservationPayload, invoiceAttachment: { filename: string; content: string } | undefined) {
-        try {
-            const txn = resv.Transaction[0];
-            const listing = resv.listing;
-            const md = (txn?.metadata || {}) as unknown as ReservationMetadata;
+    private static async triggerInitialNotifications(resv: FullReservationPayload, invoiceAttachment: { filename: string; content: string } | undefined, txnId: string) {
+        const txn = resv.Transaction.find((item) => item.id === txnId) || resv.Transaction[0];
+        const listing = resv.listing;
+        const md = (txn?.metadata || {}) as unknown as ReservationMetadata;
 
-            const dateStr = format(resv.startDate, "dd MMM yyyy");
+        const dateStr = format(resv.startDate, "dd MMM yyyy");
+        const timeSlot = `${resv.startTime} to ${resv.endTime}`;
+        const studioName = listing.title;
+        const location = getListingLocation(listing);
+        const locationLink = getListingLocationLink(listing);
+        const addons = formatSelectedAddons(md.selectedAddons);
+        const isInstant = resv.isApproved === 1 || listing.instantBooking === true;
+        const customerEmail = resv.user.email;
+        const ownerEmail = listing.user.email;
+        const customerPhone = resv.user.phone;
+        const ownerPhone = listing.user.phone;
+        const notificationTasks: Array<Promise<void>> = [];
 
-
-            const studioName = listing.title;
-            const location = getListingLocation(listing);
-            const addons = formatSelectedAddons(md.selectedAddons);
-
-            if (txn?.id && resv.user.email) {
+        if (txn?.id && customerEmail) {
+            notificationTasks.push(runNotification("customer initial email", async () => {
                 const claim = await prisma.transaction.updateMany({
                     where: { id: txn.id, emailSentCustomer: false },
                     data: { emailSentCustomer: true },
@@ -275,8 +480,12 @@ export class ReservationService {
 
                 if (claim.count > 0) {
                     try {
-                        await sendReservationConfirmationCustomer({
-                            toEmail: resv.user.email,
+                        const sendCustomerEmail = isInstant
+                            ? sendReservationConfirmationCustomer
+                            : sendReservationReceivedCustomer;
+
+                        await sendCustomerEmail({
+                            toEmail: customerEmail,
                             toName: resv.user.name || "Valued Customer",
                             studioName,
                             bookingId: resv.bookingId || "",
@@ -296,9 +505,11 @@ export class ReservationService {
                         throw error;
                     }
                 }
-            }
+            }));
+        }
 
-            if (txn?.id && listing.user.email) {
+        if (txn?.id && ownerEmail) {
+            notificationTasks.push(runNotification("owner initial email", async () => {
                 const claim = await prisma.transaction.updateMany({
                     where: { id: txn.id, emailSentOwner: false },
                     data: { emailSentOwner: true },
@@ -307,7 +518,7 @@ export class ReservationService {
                 if (claim.count > 0) {
                     try {
                         await sendReservationConfirmationOwner({
-                            toEmail: listing.user.email,
+                            toEmail: ownerEmail,
                             toName: listing.user.name || "Studio Owner",
                             customerName: resv.user.name || "Customer",
                             studioName,
@@ -326,9 +537,11 @@ export class ReservationService {
                         throw error;
                     }
                 }
-            }
+            }));
+        }
 
-            if (txn?.id && resv.user.phone) {
+        if (txn?.id && customerPhone) {
+            notificationTasks.push(runNotification("customer initial WhatsApp", async () => {
                 const claim = await prisma.transaction.updateMany({
                     where: { id: txn.id, whatsappSentCustomer: false },
                     data: { whatsappSentCustomer: true },
@@ -337,20 +550,20 @@ export class ReservationService {
                 if (claim.count > 0) {
                     try {
                         if (listing.instantBooking) {
-                            await WhatsappService.sendBookingConfirmedCustomer(resv.user.phone, {
+                            await WhatsappService.sendBookingConfirmedCustomer(customerPhone, {
                                 customerName: resv.user.name || "Customer",
                                 listingTitle: studioName,
                                 startDate: dateStr,
-                                startTime: resv.startTime,
-                                locationLink: location || "https://maps.google.com",
+                                startTime: timeSlot,
+                                locationLink,
                                 idempotencyKey: `confirm_cust_${resv.id}`
                             });
                         } else {
-                            await WhatsappService.sendBookingReceivedCustomer(resv.user.phone, {
+                            await WhatsappService.sendBookingReceivedCustomer(customerPhone, {
                                 customerName: resv.user.name || "Customer",
                                 listingTitle: studioName,
                                 startDate: dateStr,
-                                startTime: resv.startTime,
+                                startTime: timeSlot,
                                 idempotencyKey: `receive_cust_${resv.id}`
                             });
                         }
@@ -362,9 +575,11 @@ export class ReservationService {
                         throw error;
                     }
                 }
-            }
+            }));
+        }
 
-            if (txn?.id && listing.user.phone) {
+        if (txn?.id && ownerPhone) {
+            notificationTasks.push(runNotification("owner initial WhatsApp", async () => {
                 const claim = await prisma.transaction.updateMany({
                     where: { id: txn.id, whatsappSentHost: false },
                     data: { whatsappSentHost: true },
@@ -372,12 +587,12 @@ export class ReservationService {
 
                 if (claim.count > 0) {
                     try {
-                        await WhatsappService.sendBookingReceivedHost(listing.user.phone, {
+                        await WhatsappService.sendBookingReceivedHost(ownerPhone, {
                             hostName: listing.user.name || "Studio Owner",
                             customerName: resv.user.name || "Customer",
                             listingTitle: studioName,
                             startDate: dateStr,
-                            startTime: resv.startTime,
+                            startTime: timeSlot,
                             idempotencyKey: `notify_host_${resv.id}`
                         });
                     } catch (error) {
@@ -388,26 +603,32 @@ export class ReservationService {
                         throw error;
                     }
                 }
-            }
+            }));
+        }
+
+        notificationTasks.push(runNotification("customer calendar event", async () => {
+            const startAt = parseTimeForDate(resv.startDate, resv.startTime);
+            const endAt = parseTimeForDate(resv.startDate, resv.endTime);
+            if (!startAt || !endAt) return;
 
             await ensureCalendarEventForUser({
                 userId: resv.userId,
                 title: `Booking: ${studioName}`,
-                startIso: new Date(`${format(resv.startDate, 'yyyy-MM-dd')}T${resv.startTime}:00`).toISOString(),
-                endIso: new Date(`${format(resv.startDate, 'yyyy-MM-dd')}T${resv.endTime}:00`).toISOString(),
+                startIso: startAt.toISOString(),
+                endIso: endAt.toISOString(),
             });
+        }));
 
-        } catch (error) {
-            console.error("[ReservationService] Notification loop failed:", error);
-        }
+        await Promise.all(notificationTasks);
     }
 
     static async updateStatus(reservationId: string, userId: string, status: number, reason?: string): Promise<void> {
         const resv = await prisma.reservation.findUnique({
             where: { id: reservationId },
             include: {
-                listing: { include: { user: true } },
-                user: true
+                listing: { include: { user: { include: { paymentDetails: true } } } },
+                user: true,
+                Transaction: { orderBy: { createdAt: "desc" } },
             }
         });
 
@@ -418,56 +639,293 @@ export class ReservationService {
 
         if (!isHost && !isCustomer) throw new Error("Unauthorized");
 
-        if (status === 1 || status === 0) {
+        if (status !== 1 && status !== 2 && status !== 3) {
+            throw new Error("Invalid reservation status");
+        }
+
+        if (status === 1 || status === 2) {
             if (!isHost) throw new Error("Only hosts can approve/reject");
         }
         if (status === 3) {
             if (!isCustomer) throw new Error("Only customers can cancel");
         }
 
-        await prisma.reservation.update({
-            where: { id: reservationId },
+        const previousStatus = resv.isApproved;
+
+        if (previousStatus === status) {
+            await this.triggerStatusNotifications(resv, status, reason);
+            return;
+        }
+
+        if ((status === 1 || status === 2) && previousStatus !== 0) {
+            throw new Error("Only pending reservations can be approved or rejected");
+        }
+
+        if (status === 3 && previousStatus !== 0) {
+            throw new Error("Confirmed bookings cannot be cancelled automatically. Contact support for cancellation and refund handling.");
+        }
+
+        if (status === 2) {
+            const refundDescription = `Refunded: host rejected booking${reason ? ` - ${reason}` : ""}`
+                .trim()
+                .slice(0, 500);
+            await this.refundSuccessfulReservationTransactions(
+                reservationId,
+                refundDescription,
+                "rf_reject"
+            );
+        }
+
+        if (status === 3) {
+            await this.assertNoConfiguredPayoutSplit(reservationId);
+            const refundDescription = "Refunded: customer cancelled before host approval";
+            await this.refundSuccessfulReservationTransactions(
+                reservationId,
+                refundDescription,
+                "rf_cancel"
+            );
+        }
+
+        const updateResult = await prisma.reservation.updateMany({
+            where: {
+                id: reservationId,
+                isApproved: previousStatus,
+            },
             data: { isApproved: status, rejectReason: reason || null }
         });
 
-        if (status === 3) {
-            await prisma.reservationSlot.deleteMany({ where: { reservationId } });
+        if (updateResult.count !== 1) {
+            throw new Error("Reservation status changed while processing. Please refresh and try again.");
         }
 
-        // Trigger notifications for status change
-        this.triggerStatusNotifications(resv as FullReservationPayload, status, reason);
+        if (status === 2 || status === 3) {
+            await prisma.reservationSlot.deleteMany({ where: { reservationId } });
+            await prisma.transaction.updateMany({
+                where: {
+                    reservationId,
+                    OR: [
+                        { payoutDoneAt: null },
+                        { payoutDoneAt: { isSet: false } },
+                    ],
+                },
+                data: { payoutDueAt: null },
+            });
+        }
+
+        if (status === 1) {
+            const payoutData = buildPayoutTransactionData({
+                owner: resv.listing.user,
+                amount: resv.totalPrice,
+                startDate: resv.startDate,
+                endTime: resv.endTime,
+                approved: true,
+            });
+
+            if (Object.keys(payoutData).length > 0) {
+                await prisma.transaction.updateMany({
+                    where: {
+                        reservationId,
+                        status: "SUCCESS",
+                        OR: [
+                            { payoutDoneAt: null },
+                            { payoutDoneAt: { isSet: false } },
+                        ],
+                    },
+                    data: payoutData,
+                });
+            }
+        }
+
+        await this.triggerStatusNotifications(resv, status, reason);
     }
 
     private static async triggerStatusNotifications(resv: FullReservationPayload, status: number, reason?: string) {
-        try {
-            const dateStr = format(resv.startDate, "dd MMM yyyy");
-            const timeStr = `${resv.startTime} to ${resv.endTime}`;
+        const txn = resv.Transaction[0];
+        const dateStr = format(resv.startDate, "dd MMM yyyy");
+        const timeStr = `${resv.startTime} to ${resv.endTime}`;
+        const location = getListingLocation(resv.listing);
+        const locationLink = getListingLocationLink(resv.listing);
+        const customerEmail = resv.user.email;
+        const customerPhone = resv.user.phone;
+        const ownerEmail = resv.listing.user.email;
+        const ownerPhone = resv.listing.user.phone;
+        const notificationTasks: Array<Promise<void>> = [];
 
-            if (status === 1 && resv.user.phone) {
-                await WhatsappService.sendBookingConfirmedCustomer(resv.user.phone, {
-                    customerName: resv.user.name || "Customer",
-                    listingTitle: resv.listing.title,
-                    startDate: dateStr,
-                    startTime: timeStr,
-                    locationLink: "https://maps.google.com"
-                });
-            } else if (status === 0 && resv.user.phone) {
-                await WhatsappService.sendBookingRejectedCustomer(resv.user.phone, {
-                    customerName: resv.user.name || "Customer",
-                    listingTitle: resv.listing.title,
-                    rejectReason: reason || "Not specified"
-                });
-            } else if (status === 3 && resv.listing.user.phone) {
-                await WhatsappService.sendBookingCancelledHost(resv.listing.user.phone, {
-                    hostName: resv.listing.user.name || "Host",
-                    customerName: resv.user.name || "Customer",
-                    listingTitle: resv.listing.title,
-                    startDate: dateStr
-                });
+        if (status === 1) {
+            if (txn?.id && customerEmail) {
+                notificationTasks.push(runNotification("customer approval email", async () => {
+                    const claim = await prisma.transaction.updateMany({
+                        where: { id: txn.id, emailSentApprovalCustomer: false },
+                        data: { emailSentApprovalCustomer: true },
+                    });
+
+                    if (claim.count > 0) {
+                        try {
+                            await sendReservationConfirmationCustomer({
+                                toEmail: customerEmail,
+                                toName: resv.user.name || "Valued Customer",
+                                studioName: resv.listing.title,
+                                bookingId: resv.bookingId || "",
+                                startDate: dateStr,
+                                startTime: resv.startTime,
+                                endTime: resv.endTime,
+                                totalPrice: resv.totalPrice,
+                                studioLocation: location,
+                            });
+                        } catch (error) {
+                            await prisma.transaction.update({
+                                where: { id: txn.id },
+                                data: { emailSentApprovalCustomer: false },
+                            });
+                            throw error;
+                        }
+                    }
+                }));
             }
-        } catch (e) {
-            console.error("[ReservationService] status notification failed", e);
+
+            if (txn?.id && customerPhone) {
+                notificationTasks.push(runNotification("customer approval WhatsApp", async () => {
+                    const claim = await prisma.transaction.updateMany({
+                        where: { id: txn.id, whatsappSentApprovalCustomer: false },
+                        data: { whatsappSentApprovalCustomer: true },
+                    });
+
+                    if (claim.count > 0) {
+                        try {
+                            await WhatsappService.sendBookingConfirmedCustomer(customerPhone, {
+                                customerName: resv.user.name || "Customer",
+                                listingTitle: resv.listing.title,
+                                startDate: dateStr,
+                                startTime: timeStr,
+                                locationLink,
+                                idempotencyKey: `approve_cust_${resv.id}`
+                            });
+                        } catch (error) {
+                            await prisma.transaction.update({
+                                where: { id: txn.id },
+                                data: { whatsappSentApprovalCustomer: false },
+                            });
+                            throw error;
+                        }
+                    }
+                }));
+            }
+        } else if (status === 2) {
+            if (txn?.id && customerEmail) {
+                notificationTasks.push(runNotification("customer rejection email", async () => {
+                    const claim = await prisma.transaction.updateMany({
+                        where: { id: txn.id, emailSentRejectionCustomer: false },
+                        data: { emailSentRejectionCustomer: true },
+                    });
+
+                    if (claim.count > 0) {
+                        try {
+                            await sendReservationRejectedCustomer({
+                                toEmail: customerEmail,
+                                toName: resv.user.name || "Valued Customer",
+                                studioName: resv.listing.title,
+                                startDate: dateStr,
+                                startTime: resv.startTime,
+                                endTime: resv.endTime,
+                                totalPrice: resv.totalPrice,
+                                rejectReason: reason,
+                            });
+                        } catch (error) {
+                            await prisma.transaction.update({
+                                where: { id: txn.id },
+                                data: { emailSentRejectionCustomer: false },
+                            });
+                            throw error;
+                        }
+                    }
+                }));
+            }
+
+            if (txn?.id && customerPhone) {
+                notificationTasks.push(runNotification("customer rejection WhatsApp", async () => {
+                    const claim = await prisma.transaction.updateMany({
+                        where: { id: txn.id, whatsappSentRejectionCustomer: false },
+                        data: { whatsappSentRejectionCustomer: true },
+                    });
+
+                    if (claim.count > 0) {
+                        try {
+                            await WhatsappService.sendBookingRejectedCustomer(customerPhone, {
+                                customerName: resv.user.name || "Customer",
+                                listingTitle: resv.listing.title,
+                                rejectReason: reason || "Not specified",
+                                idempotencyKey: `reject_cust_${resv.id}`
+                            });
+                        } catch (error) {
+                            await prisma.transaction.update({
+                                where: { id: txn.id },
+                                data: { whatsappSentRejectionCustomer: false },
+                            });
+                            throw error;
+                        }
+                    }
+                }));
+            }
+        } else if (status === 3) {
+            if (txn?.id && ownerEmail) {
+                notificationTasks.push(runNotification("owner cancellation email", async () => {
+                    const claim = await prisma.transaction.updateMany({
+                        where: { id: txn.id, emailSentCancellationHost: false },
+                        data: { emailSentCancellationHost: true },
+                    });
+
+                    if (claim.count > 0) {
+                        try {
+                            await sendReservationCancelledOwner({
+                                toEmail: ownerEmail,
+                                toName: resv.listing.user.name || "Studio Owner",
+                                customerName: resv.user.name || "Customer",
+                                studioName: resv.listing.title,
+                                startDate: dateStr,
+                                startTime: resv.startTime,
+                                endTime: resv.endTime,
+                                totalPrice: resv.totalPrice,
+                            });
+                        } catch (error) {
+                            await prisma.transaction.update({
+                                where: { id: txn.id },
+                                data: { emailSentCancellationHost: false },
+                            });
+                            throw error;
+                        }
+                    }
+                }));
+            }
+
+            if (txn?.id && ownerPhone) {
+                notificationTasks.push(runNotification("owner cancellation WhatsApp", async () => {
+                    const claim = await prisma.transaction.updateMany({
+                        where: { id: txn.id, whatsappSentCancellationHost: false },
+                        data: { whatsappSentCancellationHost: true },
+                    });
+
+                    if (claim.count > 0) {
+                        try {
+                            await WhatsappService.sendBookingCancelledHost(ownerPhone, {
+                                hostName: resv.listing.user.name || "Host",
+                                customerName: resv.user.name || "Customer",
+                                listingTitle: resv.listing.title,
+                                startDate: dateStr,
+                                idempotencyKey: `cancel_host_${resv.id}`
+                            });
+                        } catch (error) {
+                            await prisma.transaction.update({
+                                where: { id: txn.id },
+                                data: { whatsappSentCancellationHost: false },
+                            });
+                            throw error;
+                        }
+                    }
+                }));
+            }
         }
+
+        await Promise.all(notificationTasks);
     }
 
     static async reconcileTransaction(txnId: string): Promise<Prisma.TransactionGetPayload<{ include: { reservation: { include: { listing: true } }, listing: true, user: true } }> | null> {
@@ -560,9 +1018,6 @@ export class ReservationService {
         await prisma.reservationSlot.deleteMany({ where: { reservationId } });
     }
 
-    /**
-     * Cron-driven Booking Reminders
-     */
     static async sendReminders(rangeStart: Date, rangeEnd: Date): Promise<Array<{ id: string; status: string; error?: string }>> {
         const reservations = await prisma.reservation.findMany({
             where: {
@@ -598,9 +1053,6 @@ export class ReservationService {
         return results;
     }
 
-    /**
-     * Unified Reservation Retrieval
-     */
     static async getReservations(params: {
         listingId?: string;
         userId?: string;
@@ -639,12 +1091,9 @@ export class ReservationService {
         };
     }
 
-    /**
-     * Check if a user has a valid booking and determine if they can review.
-     */
     static async checkUserBooking(userId: string, listingId: string) {
         const resv = await prisma.reservation.findFirst({
-            where: { listingId, userId },
+            where: { listingId, userId, isApproved: 1, markedForDeletion: false },
             orderBy: { createdAt: 'desc' },
             select: { id: true, startDate: true, startTime: true, endTime: true }
         });

@@ -1,4 +1,7 @@
+import axios from "axios";
+
 import { cfHeaders, cfSplitBaseURL } from "@/lib/cashfree/cashfree";
+import { getFixieProxyAgent } from "@/lib/fixie-proxy";
 
 type SplitItem = {
     vendor_id: string;
@@ -40,27 +43,28 @@ export async function createOrderSplit(input: CreateOrderSplitInput): Promise<vo
         headers["x-idempotency-key"] = idempotencyKey;
     }
 
-    const response = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(body),
-    });
+    try {
+        await axios.post(url, body, {
+            headers,
+            httpsAgent: getFixieProxyAgent(),
+            timeout: 30000,
+        });
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            const status = error.response?.status ?? 500;
+            const responseData = error.response?.data;
+            let errorMessage = error.message || `Request failed with status ${status}`;
+            let responseContext: Record<string, unknown> | undefined;
 
-    if (!response.ok) {
-        let errorMessage = `Request failed with status ${response.status}`;
-        let responseContext: Record<string, unknown> | undefined = undefined;
-
-        try {
-            const ctx = await response.json();
-            if (ctx && typeof ctx === 'object' && !Array.isArray(ctx)) {
-                responseContext = ctx as Record<string, unknown>;
-                const msg = responseContext.message ?? responseContext.status;
-                if (msg) errorMessage = String(msg);
+            if (responseData && typeof responseData === "object" && !Array.isArray(responseData)) {
+                responseContext = responseData as Record<string, unknown>;
+                const message = responseContext.message ?? responseContext.status;
+                if (message) errorMessage = String(message);
             }
-        } catch {
-            // Ignore JSON parsing errors
+
+            throw new CashfreeEasySplitAPIError(errorMessage, status, responseContext);
         }
 
-        throw new CashfreeEasySplitAPIError(errorMessage, response.status, responseContext);
+        throw error;
     }
 }

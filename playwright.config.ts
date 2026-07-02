@@ -12,9 +12,11 @@ const isCI = !!process.env.CI;
 const baseUrlHost = new URL(baseURL).hostname;
 const shouldStartLocalServer =
   process.env.E2E_START_LOCAL_SERVER === "true" && ["localhost", "127.0.0.1"].includes(baseUrlHost);
+const includeServerModuleSpecs = process.env.E2E_INCLUDE_SERVER_MODULE_SPECS === "true";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  testIgnore: includeServerModuleSpecs ? [] : ["**/booking-service.e2e.spec.ts"],
   timeout: 120_000,
   expect: {
     timeout: 15_000,
