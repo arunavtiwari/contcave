@@ -1,6 +1,6 @@
 "use client";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { memo, useRef } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { FiChevronRight } from "react-icons/fi";
 
 import Container from "@/components/Container";
@@ -26,7 +26,7 @@ const StudioCard = memo(({ studio, index }: { studio: FullListing; index: number
       viewport={{ once: true, margin: "-50px" }}
       className="h-full"
     >
-      <ListingCard data={studio} showHeart={false} useTilt={true} allowScale={true} />
+      <ListingCard data={studio} showHeart={false} useTilt={true} allowScale={true} showListingBadge />
     </motion.div>
   );
 });
@@ -35,9 +35,14 @@ StudioCard.displayName = "StudioCard";
 
 const StudioShowcase: React.FC<StudioShowcaseProps> = ({ listings }) => {
   const sectionRef = useRef<HTMLElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { scrollYProgress } = useScroll({
-    target: sectionRef,
+    target: isMounted ? sectionRef : undefined,
     offset: ["start end", "end start"],
   });
   const decoY = useTransform(scrollYProgress, [0, 1], [0, -100]);

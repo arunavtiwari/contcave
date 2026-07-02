@@ -28,6 +28,7 @@ interface ListingCardMediaProps {
     reservationStatus?: number;
     totalPrice?: number;
     priority?: boolean;
+    showListingBadge?: boolean;
 }
 
 const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
@@ -49,6 +50,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
     reservationStatus,
     totalPrice,
     priority = false,
+    showListingBadge = false,
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const slideshowInterval = useRef<NodeJS.Timeout | null>(null);
@@ -95,7 +97,6 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                     </motion.div>
                 </AnimatePresence>
 
-                {/* Hidden Preloading for Next Image */}
                 {images.length > 1 && (
                     <div className="hidden">
                         <Image
@@ -107,12 +108,10 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                     </div>
                 )}
 
-                {/* Soft Overlay */}
                 <div className="absolute inset-0 bg-linear-to-t from-foreground/20 via-transparent to-foreground/5 opacity-60 pointer-events-none z-10" />
             </Link>
 
-            {/* Listing Type / Verified Badge */}
-            {!reservationStatus && (listingType === "CURATED" || isVerified) && (
+            {showListingBadge && reservationStatus === undefined && (listingType === "CURATED" || isVerified) && (
                 <div className="absolute left-3.5 top-3.5 z-20">
                     {listingType === "CURATED" ? (
                         <Pill
@@ -132,7 +131,6 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                 </div>
             )}
 
-            {/* Status Badge (Reservation) */}
             {reservationStatus !== undefined && (
                 <div className={`absolute left-3.5 top-3.5 z-20 transition-transform ${allowScale ? "group-hover:scale-110" : ""}`}>
                     <Pill
@@ -154,7 +152,6 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                 </div>
             )}
 
-            {/* Pricing Backdrop */}
             <Pill
                 label={
                     <div className="flex gap-1 items-center font-medium">
@@ -188,7 +185,6 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                 </div>
             )}
 
-            {/* Slideshow Progress Indicators */}
             {images.length > 1 && (
                 <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
                     {images.map((_, i) => (

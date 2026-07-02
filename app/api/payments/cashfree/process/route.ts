@@ -8,6 +8,7 @@ import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { calculateSetPricing, validateSetSelection } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
+import { labelToMinutes } from "@/lib/scheduling";
 import { TransactionService } from "@/lib/transaction/service";
 import { getBaseUrl } from "@/lib/utils";
 import { processPaymentSchema } from "@/schemas/cashfree";
@@ -54,6 +55,97 @@ function sanitizeAddons(input: unknown): Array<{ price: number; qty?: number; na
             };
         })
         .filter((a) => a.price > 0 && a.qty > 0);
+}
+
+const dayKeys = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+const configuredDayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function getBookingDate(date: string) {
+    return new Date(`${date}T00:00:00.000Z`);
+}
+
+function getBookingDayKey(date: string) {
+    return dayKeys[new Date(`${date}T12:00:00+05:30`).getUTCDay()];
+}
+
+function isOperationalDay(operationalDays: unknown, date: string) {
+    const day = getBookingDayKey(date);
+    if (!operationalDays || typeof operationalDays !== "object" || Array.isArray(operationalDays)) return true;
+    const days = operationalDays as { days?: unknown[]; start?: unknown; end?: unknown };
+
+    if (Array.isArray(days.days)) {
+        return days.days.map(String).includes(day);
+    }
+
+    const start = typeof days.start === "string" ? days.start : "Mon";
+    const end = typeof days.end === "string" ? days.end : "Sun";
+    const startIndex = configuredDayOrder.indexOf(start);
+    const endIndex = configuredDayOrder.indexOf(end);
+    const currentIndex = configuredDayOrder.indexOf(day);
+
+    if (startIndex < 0 || endIndex < 0 || currentIndex < 0) return true;
+    if (startIndex <= endIndex) return currentIndex >= startIndex && currentIndex <= endIndex;
+    return currentIndex >= startIndex || currentIndex <= endIndex;
+}
+
+function validateBookingWindow(params: {
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    operationalDays: unknown;
+    operationalHours: unknown;
+    minimumBookingHours?: number | null;
+    selectedPackageDurationHours?: number | null;
+}) {
+    const startMin = labelToMinutes(params.startTime);
+    const endMin = labelToMinutes(params.endTime);
+
+    if (!Number.isFinite(startMin) || !Number.isFinite(endMin)) {
+        return "Please choose a valid start and end time.";
+    }
+
+    if (endMin <= startMin) {
+        return "End time must be after start time.";
+    }
+
+    const durationMinutes = endMin - startMin;
+    const minimumMinutes = Math.max(0, Number(params.minimumBookingHours || 0)) * 60;
+    if (minimumMinutes > 0 && durationMinutes < minimumMinutes) {
+        return `Minimum booking duration is ${params.minimumBookingHours} hour${params.minimumBookingHours === 1 ? "" : "s"}.`;
+    }
+
+    const packageMinutes = Math.max(0, Number(params.selectedPackageDurationHours || 0)) * 60;
+    if (packageMinutes > 0 && durationMinutes !== packageMinutes) {
+        return "Selected time slot must match the package duration.";
+    }
+
+    if (!isOperationalDay(params.operationalDays, params.startDate)) {
+        return "This studio is not operational on the selected date.";
+    }
+
+    if (params.operationalHours && typeof params.operationalHours === "object" && !Array.isArray(params.operationalHours)) {
+        const hours = params.operationalHours as { start?: unknown; end?: unknown };
+        const openMin = labelToMinutes(typeof hours.start === "string" ? hours.start : "");
+        const closeMin = labelToMinutes(typeof hours.end === "string" ? hours.end : "");
+        const isAlwaysOpen = openMin === 0 && closeMin === 0;
+
+        if (!isAlwaysOpen && Number.isFinite(openMin) && Number.isFinite(closeMin)) {
+            if (closeMin <= openMin) {
+                return "This studio's operational hours are not configured correctly.";
+            }
+            if (startMin < openMin || endMin > closeMin) {
+                return "Selected time slot is outside this studio's operational hours.";
+            }
+        }
+    }
+
+    const now = new Date();
+    const slotStart = new Date(`${params.startDate}T${String(Math.floor(startMin / 60)).padStart(2, "0")}:${String(startMin % 60).padStart(2, "0")}:00+05:30`);
+    if (slotStart.getTime() <= now.getTime()) {
+        return "Past time slots are not available for booking.";
+    }
+
+    return null;
 }
 
 export const runtime = "nodejs";
@@ -111,6 +203,49 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Selected package is no longer available", 400);
         }
 
+        const windowError = validateBookingWindow({
+            startDate: data.startDate,
+            startTime: data.startTime,
+            endTime: data.endTime,
+            operationalDays: listing.operationalDays,
+            operationalHours: listing.operationalHours,
+            minimumBookingHours: listing.minimumBookingHours,
+            selectedPackageDurationHours: selectedPackage?.durationHours ?? null,
+        });
+
+        if (windowError) {
+            return createErrorResponse(windowError, 400);
+        }
+
+        const dayStatus = await prisma.dayStatus.findUnique({
+            where: {
+                listingId_date: {
+                    listingId: data.listingId,
+                    date: getBookingDate(data.startDate),
+                }
+            }
+        });
+
+        if (dayStatus) {
+            if (!dayStatus.listingActive) {
+                return createErrorResponse("This studio is not accepting bookings on the selected date", 400);
+            }
+
+            const overrideError = validateBookingWindow({
+                startDate: data.startDate,
+                startTime: data.startTime,
+                endTime: data.endTime,
+                operationalDays: listing.operationalDays,
+                operationalHours: { start: dayStatus.startTime, end: dayStatus.endTime },
+                minimumBookingHours: listing.minimumBookingHours,
+                selectedPackageDurationHours: selectedPackage?.durationHours ?? null,
+            });
+
+            if (overrideError) {
+                return createErrorResponse(overrideError, 400);
+            }
+        }
+
         if (listing.hasSets) {
             if (selectedSetIds.length === 0) {
                 return createErrorResponse("Select at least one set for this listing", 400);
@@ -133,7 +268,7 @@ export async function POST(req: NextRequest) {
 
         const conflict = await checkSetConflicts({
             listingId: data.listingId,
-            date: new Date(data.startDate),
+            date: getBookingDate(data.startDate),
             startTime: data.startTime,
             endTime: data.endTime,
             setIds: selectedSetIds,
@@ -145,8 +280,7 @@ export async function POST(req: NextRequest) {
 
         const startMin = parseTimeToMinutes(data.startTime);
         const endMin = parseTimeToMinutes(data.endTime);
-        let durationMinutes = endMin - startMin;
-        if (durationMinutes <= 0) durationMinutes = 60;
+        const durationMinutes = endMin - startMin;
 
         let bookingFee = 0;
         let pricingBreakdown: unknown = null;
@@ -231,6 +365,10 @@ export async function POST(req: NextRequest) {
 
         const amount = finalCalculatedAmount;
 
+        if (Math.abs(Number(data.totalPrice) - amount) > 1) {
+            return createErrorResponse("Booking price changed. Please refresh the page and try again.", 409);
+        }
+
         if (amount <= 0) {
             return createErrorResponse("Calculated amount is zero. Invalid booking parameters.", 400);
         }
@@ -255,17 +393,24 @@ export async function POST(req: NextRequest) {
                 qty: addon.qty || 0,
             })),
         });
-        const tId = "tid_" + hash.slice(0, 16);
+        const baseTId = "tid_" + hash.slice(0, 16);
 
-        const existingTxn = await TransactionService.findByRef(tId);
+        const existingTxn = await TransactionService.findByRef(baseTId);
 
         if (existingTxn && existingTxn.cfPaymentSessionId) {
+            const mode = (process.env.CASHFREE_ENV || "SANDBOX").toLowerCase() === "production" ? "production" : "sandbox";
+
             return createSuccessResponse({
                 tId: existingTxn.cfTxnRef,
                 paymentSessionId: existingTxn.cfPaymentSessionId,
+                mode,
                 reused: true
             });
         }
+
+        const tId = await TransactionService.hasAnyRef(baseTId)
+            ? `${baseTId}_${Date.now().toString(36)}`
+            : baseTId;
 
         const appUrl = new URL(req.url).origin || getBaseUrl();
         if (!appUrl.startsWith("http")) {
@@ -309,9 +454,7 @@ export async function POST(req: NextRequest) {
                 order_amount: amount,
                 customer_id: txn.userId,
                 return_url: `${appUrl}/api/payments/cashfree/return?tid={transaction_id}`,
-                notify_url: (process.env.CASHFREE_ENV || "SANDBOX").toUpperCase() === "PRODUCTION"
-                    ? undefined
-                    : `${appUrl}/api/payments/cashfree/webhook`,
+                notify_url: `${appUrl}/api/payments/cashfree/webhook`,
                 customer_name: customerName,
                 customer_email: customerEmail || undefined,
                 customer_phone: customerPhone,

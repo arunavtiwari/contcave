@@ -9,7 +9,7 @@ export interface Transaction {
     customerName?: string;
     amount: number;
     currency?: string;
-    status: TransactionStatus | 'Pending' | 'Successful' | 'Success' | 'Failed' | 'Failure';
+    status: TransactionStatus | 'Pending' | 'Successful' | 'Success' | 'Failed' | 'Failure' | 'Refunded';
     description?: string;
     paymentMethod?: string;
     merchantTransactionId?: string;

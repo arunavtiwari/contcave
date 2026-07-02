@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   staging-e2e:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     environment: staging
     timeout-minutes: 60
@@ -26,8 +27,11 @@ jobs:
       E2E_BASE_URL: ${{ inputs.base_url || secrets.E2E_BASE_URL }}
       E2E_DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
       E2E_ALLOW_STAGING_WRITES: "true"
-      E2E_ALLOWED_DATABASE_NAMES: contcave
+      E2E_ALLOWED_DATABASE_NAMES: database
+      E2E_START_LOCAL_SERVER: "false"
       E2E_EMAIL_DOMAIN: ${{ inputs.email_domain || secrets.E2E_EMAIL_DOMAIN }}
+      E2E_DISABLE_EMAIL_SEND: "true"
+      E2E_DISABLE_WHATSAPP_SEND: "true"
       E2E_BANK_ACCOUNT_NUMBER: ${{ secrets.E2E_BANK_ACCOUNT_NUMBER }}
       E2E_BANK_IFSC: ${{ secrets.E2E_BANK_IFSC }}
       E2E_BANK_NAME: ${{ secrets.E2E_BANK_NAME }}

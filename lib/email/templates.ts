@@ -262,6 +262,42 @@ export async function sendReservationConfirmationCustomer(input: {
   });
 }
 
+export async function sendReservationReceivedCustomer(input: {
+  toEmail: string;
+  toName?: string;
+  studioName: string;
+  startDate: string;
+  startTime: string;
+  endTime: string;
+  totalPrice: number;
+  addons?: string | null;
+  studioLocation: string;
+  bookingId?: string;
+  attachments?: AttachmentInput[];
+}) {
+  await sendEmail({
+    toEmail: input.toEmail,
+    toName: input.toName || "",
+    subject: `We received your ContCave booking request: ${input.studioName}`,
+    html: getReservationEmailHtml({
+      greetingName: input.toName || "there",
+      intro: `We have received your booking request for ${input.studioName}. The studio owner has been notified and will review it shortly.`,
+      studioName: input.studioName,
+      startDate: input.startDate,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      totalPrice: input.totalPrice,
+      addons: input.addons,
+      studioLocation: input.studioLocation,
+      nextSteps: [
+        "We will notify you as soon as the studio owner approves your booking.",
+        "You can track this request from your bookings dashboard.",
+      ],
+    }),
+    attachments: input.attachments,
+  });
+}
+
 export async function sendReservationConfirmationOwner(input: {
   toEmail: string;
   toName?: string;
@@ -297,6 +333,91 @@ export async function sendReservationConfirmationOwner(input: {
       nextSteps: ["Review the booking in your dashboard and prepare the studio for the scheduled slot."],
     }),
     attachments: input.attachments,
+  });
+}
+
+export async function sendReservationRejectedCustomer(input: {
+  toEmail: string;
+  toName?: string;
+  studioName: string;
+  startDate: string;
+  startTime: string;
+  endTime: string;
+  totalPrice: number;
+  rejectReason?: string | null;
+}) {
+  await sendEmail({
+    toEmail: input.toEmail,
+    toName: input.toName || "",
+    subject: `Your ContCave booking was not approved: ${input.studioName}`,
+    html: getReservationEmailHtml({
+      greetingName: input.toName || "there",
+      intro: `Your booking request for ${input.studioName} was not approved by the studio owner. We have initiated a refund to your original payment method.`,
+      studioName: input.studioName,
+      startDate: input.startDate,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      totalPrice: input.totalPrice,
+      nextSteps: [
+        input.rejectReason ? `Reason provided: ${input.rejectReason}` : "Reason provided: Not specified.",
+        "Refunds usually reflect within 5-7 business days, depending on your bank or payment provider.",
+      ],
+    }),
+  });
+}
+
+export async function sendReservationCancelledOwner(input: {
+  toEmail: string;
+  toName?: string;
+  customerName: string;
+  studioName: string;
+  startDate: string;
+  startTime: string;
+  endTime: string;
+  totalPrice: number;
+}) {
+  await sendEmail({
+    toEmail: input.toEmail,
+    toName: input.toName || "",
+    subject: `Booking request cancelled: ${input.studioName}`,
+    html: getReservationEmailHtml({
+      greetingName: input.toName || "there",
+      intro: `${input.customerName || "The customer"} cancelled their pending booking request for ${input.studioName}. The slot has been released and the refund has been initiated.`,
+      studioName: input.studioName,
+      startDate: input.startDate,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      totalPrice: input.totalPrice,
+      nextSteps: ["No action is required from your side."],
+    }),
+  });
+}
+
+export async function sendPayoutProcessedOwner(input: {
+  toEmail: string;
+  toName?: string;
+  studioName: string;
+  bookingId?: string | null;
+  bookingDate: string;
+  payoutAmount: number;
+}) {
+  await sendEmail({
+    toEmail: input.toEmail,
+    toName: input.toName || "",
+    subject: `ContCave payout processed: ${input.studioName}`,
+    html: getReservationEmailHtml({
+      greetingName: input.toName || "there",
+      intro: `Your payout for ${input.studioName} has been processed for settlement to your registered bank account.`,
+      studioName: input.studioName,
+      startDate: input.bookingDate,
+      startTime: "",
+      endTime: "",
+      totalPrice: input.payoutAmount,
+      nextSteps: [
+        input.bookingId ? `Booking ID: ${input.bookingId}` : "You can review this payout from your dashboard.",
+        "Settlement timing depends on your Cashfree schedule and bank processing timelines.",
+      ],
+    }),
   });
 }
 

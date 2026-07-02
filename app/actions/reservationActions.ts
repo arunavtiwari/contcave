@@ -11,9 +11,6 @@ import {
     updateReservationSchema
 } from "@/schemas/reservation";
 
-/**
- * Fetch reservations (Read-only, no wrapper needed but keeping logic clean)
- */
 export async function getReservations(params: { listingId?: string; userId?: string; authorId?: string }) {
     try {
         return await ReservationService.getReservations(params);
@@ -23,23 +20,17 @@ export async function getReservations(params: { listingId?: string; userId?: str
     }
 }
 
-/**
- * Cancel a reservation
- */
 export const cancelReservationAction = createAction(
     cancelReservationSchema,
     { requireAuth: true },
     async (data, { user }) => {
         await ReservationService.updateStatus(data.reservationId, user!.id, 3);
         revalidatePath("/dashboard/reservations");
-        revalidatePath("/dashboard/trips");
+        revalidatePath("/dashboard/bookings");
         return { success: true };
     }
 );
 
-/**
- * Update reservation status (Approve/Reject)
- */
 export const updateReservationAction = createAction(
     updateReservationSchema,
     { requireAuth: true },
@@ -50,23 +41,17 @@ export const updateReservationAction = createAction(
     }
 );
 
-/**
- * Delete a reservation
- */
 export const deleteReservationAction = createAction(
     deleteReservationSchema,
     { requireAuth: true },
     async (data, { user }) => {
         await ReservationService.delete(data.reservationId, user!.id);
         revalidatePath("/dashboard/reservations");
-        revalidatePath("/dashboard/trips");
+        revalidatePath("/dashboard/bookings");
         return { success: true };
     }
 );
 
-/**
- * Check if the current user has an active booking for a listing
- */
 export const checkBookingAction = createAction(
     checkBookingSchema,
     { requireAuth: false },

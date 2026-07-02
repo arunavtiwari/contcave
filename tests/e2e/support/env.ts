@@ -11,6 +11,7 @@ export type CashfreePaymentMethod =
       expiry: string;
       cvv: string;
       name: string;
+      otp?: string;
     };
 
 export type E2EEnv = {
@@ -71,6 +72,7 @@ function parsePaymentMethod(raw: string): CashfreePaymentMethod {
       expiry: parsed.expiry,
       cvv: parsed.cvv,
       name: parsed.name,
+      otp: typeof parsed.otp === "string" ? parsed.otp : undefined,
     };
   }
 

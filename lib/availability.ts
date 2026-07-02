@@ -50,6 +50,7 @@ export interface ConflictCheckParams {
     setIds: string[];
     excludeReservationId?: string;
     tx?: Prisma.TransactionClient | PrismaClient;
+    skipGoogleCalendar?: boolean;
 }
 
 export interface ConflictResult {
@@ -62,7 +63,7 @@ export interface ConflictResult {
 export async function checkSetConflicts(
     params: ConflictCheckParams
 ): Promise<ConflictResult> {
-    const { listingId, date, startTime, endTime, setIds, excludeReservationId, tx } = params;
+    const { listingId, date, startTime, endTime, setIds, excludeReservationId, tx, skipGoogleCalendar } = params;
     const db = tx || prisma;
 
     const requestedStart = parseTimeToMinutes(startTime);
@@ -99,6 +100,7 @@ export async function checkSetConflicts(
                 listingId,
                 startDate: { gte: dateStart, lte: dateEnd },
                 markedForDeletion: false,
+                OR: [{ isApproved: 0 }, { isApproved: 1 }, { isApproved: null }],
                 ...(excludeReservationId ? { id: { not: excludeReservationId } } : {}),
             },
             select: {
@@ -172,6 +174,10 @@ export async function checkSetConflicts(
         }
     }
 
+    if (skipGoogleCalendar) {
+        return { hasConflict: false };
+    }
+
     const googleEvents = await fetchListingCalendarEvents(listingId);
     for (const ev of googleEvents) {
         const sISO = ev?.start?.dateTime || ev?.start?.date;
@@ -222,6 +228,7 @@ export async function getBlockedSlots(
                 listingId,
                 startDate: { gte: dateStart, lte: dateEnd },
                 markedForDeletion: false,
+                OR: [{ isApproved: 0 }, { isApproved: 1 }, { isApproved: null }],
             },
             select: {
                 startTime: true,
@@ -302,6 +309,7 @@ export async function getAvailableSets(
                 listingId,
                 startDate: { gte: dateStart, lte: dateEnd },
                 markedForDeletion: false,
+                OR: [{ isApproved: 0 }, { isApproved: 1 }, { isApproved: null }],
             },
             select: {
                 startTime: true,

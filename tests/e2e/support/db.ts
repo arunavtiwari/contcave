@@ -16,18 +16,53 @@ export type QAAccount = {
   phone: string;
 };
 
+function safeAliasSeed(value: string) {
+  return value.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 48);
+}
+
+export function qaEmail(role: "owner" | "customer", suffix = "") {
+  const state = readRunState();
+  const base =
+    role === "owner"
+      ? process.env.E2E_TEST_OWNER_EMAIL
+      : process.env.E2E_TEST_CUSTOMER_EMAIL;
+
+  if (!base) {
+    const safeSuffix = suffix ? `-${suffix}` : "";
+    const localPart = `${state.runId}-${role}${safeSuffix}`.replace(/[^a-zA-Z0-9._-]/g, "-");
+    return `${localPart}@${env.emailDomain}`;
+  }
+
+  const atIndex = base.lastIndexOf("@");
+  if (atIndex <= 0) return base;
+
+  const local = base.slice(0, atIndex);
+  const domain = base.slice(atIndex);
+  const seed = safeAliasSeed(`${state.runId}-${suffix || role}`);
+  return `${local}-${seed}${domain}`.toLowerCase();
+}
+
+export function qaPhone(role: "owner" | "customer") {
+  const configured =
+    role === "owner"
+      ? process.env.E2E_TEST_OWNER_PHONE
+      : process.env.E2E_TEST_CUSTOMER_PHONE;
+
+  if (configured) return configured.replace(/\D/g, "").slice(-10);
+
+  const digitSeed = `${Date.now()}`.slice(-8);
+  return `9${role === "owner" ? "8" : "7"}${digitSeed}`.slice(0, 10);
+}
+
 export function qaAccount(role: "owner" | "customer", suffix = ""): QAAccount {
   const state = readRunState();
-  const safeSuffix = suffix ? `-${suffix}` : "";
-  const localPart = `${state.runId}-${role}${safeSuffix}`.replace(/[^a-zA-Z0-9._-]/g, "-");
-  const digitSeed = `${Date.now()}`.slice(-8);
   const displaySeed = state.runId.replace(/^qa-e2e-/, "").slice(-6);
 
   return {
-    email: `${localPart}@${env.emailDomain}`,
+    email: qaEmail(role, suffix),
     password: "QaPass12345",
     name: `QA ${role} ${displaySeed}`,
-    phone: `9${role === "owner" ? "8" : "7"}${digitSeed}`.slice(0, 10),
+    phone: qaPhone(role),
   };
 }
 

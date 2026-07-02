@@ -218,6 +218,10 @@ export const WhatsappService = {
         components = [],
         idempotencyKey,
     }: SendTemplateInput): Promise<WhatsAppSendResult> {
+        if (process.env.E2E_DISABLE_WHATSAPP_SEND === "true") {
+            return { success: true, messageId: null, raw: { skipped: true } };
+        }
+
         const { phoneNumberId, accessToken } = getCredentials();
 
         const formattedTo = formatPhoneNumber(to);

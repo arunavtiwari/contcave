@@ -102,8 +102,8 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
     const updateData: Record<string, unknown> = {};
 
     if ("isApproved" in body) {
-      if (typeof body.isApproved !== "number" || (body.isApproved !== 0 && body.isApproved !== 1 && body.isApproved !== 3)) {
-        return createErrorResponse("isApproved must be 0, 1, or 3", 400);
+      if (typeof body.isApproved !== "number" || (body.isApproved !== 1 && body.isApproved !== 2 && body.isApproved !== 3)) {
+        return createErrorResponse("isApproved must be 1, 2, or 3", 400);
       }
       updateData.isApproved = body.isApproved;
     }
@@ -119,8 +119,8 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       updateData.rejectReason = trimmedReason || null;
     }
 
-    if (Object.keys(updateData).length === 0) {
-      return createErrorResponse("No valid fields to update", 400);
+    if (typeof updateData.isApproved !== "number") {
+      return createErrorResponse("isApproved is required", 400);
     }
 
     try {

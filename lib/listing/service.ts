@@ -20,6 +20,9 @@ type ListingWithRelations = Prisma.ListingGetPayload<{
     };
 }>;
 
+type RawMongoId = string | { $oid?: unknown };
+type RawListingId = { _id?: RawMongoId };
+
 const JSON_FIELD_KEYS = new Set([
     "actualLocation",
     "addons",
@@ -87,6 +90,59 @@ function sanitizeListingJsonFields<T extends Record<string, unknown>>(data: T): 
 }
 
 export class ListingService {
+    private static readonly NUMERIC_OR_EMPTY_FILTER = [
+        { $exists: false },
+        null,
+        { $type: "int" },
+        { $type: "long" },
+    ];
+
+    private static getHydratableNumberFilter(fieldName: string) {
+        return {
+            $or: this.NUMERIC_OR_EMPTY_FILTER.map((condition) => ({
+                [fieldName]: condition,
+            })),
+        };
+    }
+
+    private static getHydratableListingFilter(params: { active?: boolean; status?: string } = { active: true }): Record<string, unknown> {
+        const filter: Record<string, unknown> = {
+            $and: [
+                this.getHydratableNumberFilter("price"),
+                this.getHydratableNumberFilter("carpetArea"),
+                this.getHydratableNumberFilter("minimumBookingHours"),
+                this.getHydratableNumberFilter("maximumPax"),
+                this.getHydratableNumberFilter("unifiedSetPrice"),
+                this.getHydratableNumberFilter("priceRangeMin"),
+                this.getHydratableNumberFilter("priceRangeMax"),
+                this.getHydratableNumberFilter("enquiryCount"),
+            ],
+        };
+
+        if (typeof params.active === "boolean") filter.active = params.active;
+        if (params.status) filter.status = params.status;
+
+        return filter;
+    }
+
+    private static extractRawMongoId(raw: RawListingId): string | null {
+        const id = raw._id;
+        if (typeof id === "string") return id;
+        if (id && typeof id === "object" && typeof id.$oid === "string") return id.$oid;
+        return null;
+    }
+
+    static async getHydratableListingIds(params: { active?: boolean; status?: string } = { active: true }): Promise<string[]> {
+        const rawListings = await prisma.listing.findRaw({
+            filter: this.getHydratableListingFilter(params) as Prisma.InputJsonObject,
+            options: { projection: { _id: 1 } },
+        }) as unknown as RawListingId[];
+
+        return rawListings
+            .map((item) => this.extractRawMongoId(item))
+            .filter((id): id is string => !!id);
+    }
+
     static async createListing(userId: string, body: Record<string, unknown>): Promise<FullListing> {
         const validated = listingSchema.parse(body);
 
@@ -414,6 +470,9 @@ export class ListingService {
             query.userId = userId;
         } else {
             query.active = true;
+            const hydratableIds = await this.getHydratableListingIds({ active: true });
+            if (hydratableIds.length === 0) return [];
+            query.id = { in: hydratableIds };
         }
 
         if (category) query.category = category;
@@ -470,27 +529,23 @@ export class ListingService {
     }
 
     static async getRandomListings(limit: number = 3): Promise<FullListing[]> {
-        const count = await prisma.listing.count({ where: { active: true } });
+        const hydratableIds = await this.getHydratableListingIds({ active: true });
+        const count = hydratableIds.length;
 
         if (count === 0) return [];
 
         if (count <= limit) {
             const listings = await prisma.listing.findMany({
-                where: { active: true },
+                where: { id: { in: hydratableIds } },
                 include: { packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, user: true },
             });
             return listings
                 .sort(() => Math.random() - 0.5)
-                .map(l => this.normalizeListingWithRelations(l as ListingWithRelations));
+                .map(l => this.normalizeListingWithRelations(l as ListingWithRelations))
+                .filter((item): item is FullListing => item !== null);
         }
 
-        const allIds = await prisma.listing.findMany({
-            where: { active: true },
-            select: { id: true }
-        });
-
-        const shuffledIds = allIds
-            .map(item => item.id)
+        const shuffledIds = hydratableIds
             .sort(() => Math.random() - 0.5)
             .slice(0, limit);
 
@@ -502,7 +557,8 @@ export class ListingService {
         return shuffledIds
             .map(id => listings.find(l => l.id === id))
             .filter((l): l is NonNullable<typeof l> => !!l)
-            .map(l => this.normalizeListingWithRelations(l as ListingWithRelations));
+            .map(l => this.normalizeListingWithRelations(l as ListingWithRelations))
+            .filter((item): item is FullListing => item !== null);
     }
 
     static async findById(listingId: string): Promise<FullListing | null> {

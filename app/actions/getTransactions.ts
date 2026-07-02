@@ -4,7 +4,7 @@ import prisma from "@/lib/prismadb";
 
 export function mapTransactionStatus(
     status: TransactionStatus
-): 'Pending' | 'Successful' | 'Success' | 'Failed' | 'Failure' {
+): 'Pending' | 'Successful' | 'Success' | 'Failed' | 'Failure' | 'Refunded' {
     switch (status) {
         case 'PENDING':
             return 'Pending';
@@ -13,8 +13,9 @@ export function mapTransactionStatus(
         case 'FAILED':
         case 'CANCELLED':
         case 'EXPIRED':
-        case 'REFUNDED':
             return 'Failed';
+        case 'REFUNDED':
+            return 'Refunded';
         default:
             return 'Pending';
     }

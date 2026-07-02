@@ -76,11 +76,15 @@ function BookingClient({ reservations, currentUser }: Props) {
     if (modalAction === "cancel") {
       setDeletingId(selectedId);
       updateReservationAction({ reservationId: selectedId, isApproved: 3 })
-        .then(() => {
-          toast.success("Reservation cancelled", { id: "Reservation_Cancelled" });
-          setRefundReservationId(selectedId);
-          setRefundOpen(true);
-          router.refresh();
+        .then((res: { success?: boolean; error?: string }) => {
+          if (res.success) {
+            toast.success("Reservation cancelled", { id: "Reservation_Cancelled" });
+            setRefundReservationId(selectedId);
+            setRefundOpen(true);
+            router.refresh();
+          } else {
+            toast.error(res.error || "Something went wrong cancelling the reservation.", { id: "Reservation_Error_2" });
+          }
         })
         .catch((error: unknown) => {
           const msg = error instanceof Error ? error.message : "Something went wrong cancelling the reservation.";
@@ -93,9 +97,13 @@ function BookingClient({ reservations, currentUser }: Props) {
     } else if (modalAction === "delete") {
       setDeletingId(selectedId);
       deleteReservationAction({ reservationId: selectedId })
-        .then(() => {
-          toast.info("Reservation deleted", { id: "Reservation_Deleted" });
-          router.refresh();
+        .then((res: { success?: boolean; error?: string }) => {
+          if (res.success) {
+            toast.info("Reservation deleted", { id: "Reservation_Deleted" });
+            router.refresh();
+          } else {
+            toast.error(res.error || "Something went wrong deleting the reservation.", { id: "Reservation_Error_1" });
+          }
         })
         .catch((error: unknown) => {
           const msg = error instanceof Error ? error.message : "Something went wrong deleting the reservation.";
@@ -157,16 +165,16 @@ function BookingClient({ reservations, currentUser }: Props) {
           isOpen={isRefundOpen}
           onCloseAction={() => setRefundOpen(false)}
           onSubmitAction={handleRefundContact}
-          title="Booking Cancelled 😔"
+          title="Booking Cancelled"
           body={(() => {
             const r = reservations.find((x) => x.id === refundReservationId);
             const studioName = r?.listing?.title || "this studio";
             return (
               <div className="space-y-4">
-                <p>We’re sorry to hear you couldn’t go ahead with your booking at {studioName}.</p>
+                <p>We're sorry to hear you couldn't go ahead with your booking at {studioName}.</p>
                 <p>
-                  Refunds are processed manually by our support team based on our cancellation policy. Tap below to
-                  connect with us on WhatsApp - we’ll help you with refund.
+                  Your refund has been initiated to the original payment method. Tap below to contact support if you
+                  need help tracking it.
                 </p>
               </div>
             );

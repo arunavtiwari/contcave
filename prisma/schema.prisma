@@ -364,9 +364,17 @@ model Transaction {
   emailSentFailed      Boolean   @default(false)
   whatsappSentCustomer Boolean   @default(false)
   whatsappSentHost     Boolean   @default(false)
+  emailSentApprovalCustomer Boolean @default(false)
+  emailSentRejectionCustomer Boolean @default(false)
+  emailSentCancellationHost Boolean @default(false)
+  whatsappSentApprovalCustomer Boolean @default(false)
+  whatsappSentRejectionCustomer Boolean @default(false)
+  whatsappSentCancellationHost Boolean @default(false)
   vendorId             String?
+  payoutAmountToOwner  Float?
   payoutPercentToOwner Float?    @default(88)
   payoutDueAt          DateTime?
+  payoutSplitAt        DateTime?
   payoutDoneAt         DateTime?
   
   // -------- GST Handling ----------
@@ -389,6 +397,7 @@ model Transaction {
   @@index([listingId])
   @@index([status])
   @@index([payoutDueAt])
+  @@index([payoutSplitAt])
 }
 
 model Invoice {

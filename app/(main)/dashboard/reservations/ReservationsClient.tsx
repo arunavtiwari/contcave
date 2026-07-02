@@ -30,7 +30,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
   const [deletingId, setDeletingId] = useState("");
 
   const [isModalOpen, setModalOpen] = useState(false);
-  const [modalAction, setModalAction] = useState<"cancel" | "delete" | "reject" | "">("");
+  const [modalAction, setModalAction] = useState<"delete" | "reject" | "">("");
   const [selectedId, setSelectedId] = useState("");
 
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
@@ -57,12 +57,6 @@ function ReservationsClient({ reservations, currentUser }: Props) {
   const handleDeleteModal = useCallback((id: string) => {
     setSelectedId(id);
     setModalAction("delete");
-    setModalOpen(true);
-  }, []);
-
-  const handleCancelModal = useCallback((id: string) => {
-    setSelectedId(id);
-    setModalAction("cancel");
     setModalOpen(true);
   }, []);
 
@@ -107,23 +101,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
       return toast.error("No reservation selected.");
     }
 
-    if (modalAction === "cancel") {
-      setDeletingId(selectedId);
-      updateReservationAction({ reservationId: selectedId, isApproved: 3 })
-        .then((res: { success?: boolean; error?: string }) => {
-          if (res.success) {
-            toast.success("Reservation cancelled", { id: "Reservation_Cancelled" });
-            router.refresh();
-          } else {
-            toast.error(res.error || "Something went wrong", { id: "Reservation_Error_1" });
-          }
-        })
-        .finally(() => {
-          setDeletingId("");
-          resetModal();
-        });
-
-    } else if (modalAction === "delete") {
+    if (modalAction === "delete") {
       setDeletingId(selectedId);
       deleteReservationAction({ reservationId: selectedId })
         .then((res: { success?: boolean; error?: string }) => {
@@ -188,7 +166,6 @@ function ReservationsClient({ reservations, currentUser }: Props) {
               data={reservation.listing}
               reservation={reservation}
               actionId={reservation.id}
-              onCancel={handleCancelModal}
               onDelete={handleDeleteModal}
               onApprove={onApprove}
               onReject={onReject}
@@ -217,9 +194,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
           title={
             modalAction === "reject"
               ? "Reason for Rejecting This Booking"
-              : modalAction === "cancel"
-                ? "Cancel Reservation"
-                : "Delete Reservation"
+              : "Delete Reservation"
           }
           body={
             modalAction === "reject" ? (
@@ -249,16 +224,14 @@ function ReservationsClient({ reservations, currentUser }: Props) {
               </div>
             ) : (
               <p className="text-center">
-                Are you sure you want to {modalAction === "cancel" ? "cancel" : "delete"} this reservation?
+                Are you sure you want to delete this reservation?
               </p>
             )
           }
           actionLabel={
             modalAction === "reject"
               ? "Reject Booking"
-              : modalAction === "cancel"
-                ? "Cancel Reservation"
-                : "Delete Reservation"
+              : "Delete Reservation"
           }
           secondaryActionAction={() => !deletingId && setModalOpen(false)}
           secondaryActionLabel="Close"

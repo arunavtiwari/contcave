@@ -3,9 +3,6 @@ import { Prisma, TransactionStatus } from "@prisma/client";
 import prisma from "@/lib/prismadb";
 
 export class TransactionService {
-    /**
-     * Update a transaction's status and link it to the external payment ID.
-     */
     static async updateStatus(params: {
         txnId: string;
         status: TransactionStatus;
@@ -26,25 +23,34 @@ export class TransactionService {
         });
     }
 
-    /**
-     * Professionalized creation with input typing.
-     */
+    static async updateWebhookMetadata(params: {
+        txnId: string;
+        cfPaymentId?: string;
+        webhookPayload?: Record<string, unknown>;
+        signature?: string;
+    }) {
+        const { txnId, cfPaymentId, webhookPayload, signature } = params;
+
+        return await prisma.transaction.update({
+            where: { id: txnId },
+            data: {
+                cfPaymentId,
+                cfWebhookPayload: webhookPayload as Prisma.InputJsonValue,
+                cfSignature: signature || undefined,
+            }
+        });
+    }
+
     static async create(data: Prisma.TransactionUncheckedCreateInput) {
         return await prisma.transaction.create({
             data
         });
     }
 
-    /**
-     * Data Retrieval: Find by ID.
-     */
     static async findById(id: string) {
         return await prisma.transaction.findUnique({ where: { id } });
     }
 
-    /**
-     * Session management for payment flows.
-     */
     static async updateSession(id: string, sessionId: string, orderId: string) {
         return await prisma.transaction.update({
             where: { id },
@@ -52,9 +58,6 @@ export class TransactionService {
         });
     }
 
-    /**
-     * Mark transaction as failed with a sanitized reason.
-     */
     static async fail(id: string, reason: string) {
         return await prisma.transaction.update({
             where: { id },
@@ -62,18 +65,20 @@ export class TransactionService {
         });
     }
 
-    /**
-     * Find by reference code for reconciliation.
-     */
     static async findByRef(ref: string) {
         return await prisma.transaction.findFirst({
             where: { cfTxnRef: ref, status: "PENDING" }
         });
     }
 
-    /**
-     * Find by Cashfree Order ID.
-     */
+    static async hasAnyRef(ref: string) {
+        const txn = await prisma.transaction.findFirst({
+            where: { cfTxnRef: ref },
+            select: { id: true },
+        });
+        return Boolean(txn);
+    }
+
     static async findByOrderId(orderId: string) {
         return await prisma.transaction.findFirst({
             where: { cfOrderId: orderId },
