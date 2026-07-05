@@ -909,3 +909,323 @@ model MaintenanceJobLog {
   @@index([status, createdAt])
   @@index([createdAt])
 }
+/**
+ * ------------------- Production agent (supply graph) -------------------
+ * Shoot-production planning: brands submit briefs, producers compose
+ * studio + crew + talent plans and quotes. Studios ARE Listings — plans
+ * reference listingId; studio availability comes from DayStatus/ListingBlock.
+ * Money is integer INR. Plain dates are ISO "YYYY-MM-DD" strings.
+ * `embedding` fields are queried via Atlas $vectorSearch ($runCommandRaw),
+ * populated in Phase 1 — see docs/production-agent.md.
+ */
+
+enum CrewRole {
+  PHOTOGRAPHER
+  MUA
+  STYLIST
+  DP
+  ASSISTANT
+}
+
+enum BriefStatus {
+  NEW
+  PLANNING
+  QUOTED
+  BOOKED
+  COMPLETED
+  LOST
+}
+
+enum BriefSource {
+  WHATSAPP
+  WEB
+}
+
+enum ProductionPlanSource {
+  AGENT
+  PRODUCER
+}
+
+enum ProposalStatus {
+  PROPOSED
+  CONTACTED
+  CONFIRMED
+  DECLINED
+}
+
+enum ProductionEntityType {
+  CREW
+  TALENT
+}
+
+enum ReliabilityEventType {
+  ONTIME
+  LATE
+  NOSHOW
+}
+
+type CreativeFingerprint {
+  lighting        String[]
+  palette         String[]
+  composition     String[]
+  mood            String[]
+  productCategory String?
+  summaryText     String // embedded as text in Phase 1 (fingerprint-as-text)
+}
+
+type ProductionContact {
+  name      String?
+  phone     String?
+  email     String?
+  instagram String?
+}
+
+type ProductionReliability {
+  shootsCompleted Int   @default(0)
+  noShows         Int   @default(0)
+  avgRating       Float @default(0)
+  onTimePct       Float @default(100)
+}
+
+type ProductionPortfolioAsset {
+  assetUrl    String
+  tags        String[]
+  fingerprint CreativeFingerprint? // filled at ingestion in Phase 1
+}
+
+type TalentAttributes {
+  gender   String
+  ageRange String
+  heightCm Int?
+  look     String[]
+}
+
+type BriefDeliverable {
+  type String
+  qty  Int
+}
+
+type BriefTalentPrefs {
+  gender   String?
+  ageRange String?
+  look     String[]
+}
+
+type PlanStudio {
+  listingId String @db.ObjectId // -> Listing
+  fitReason String
+  costInr   Int
+}
+
+type PlanCrewItem {
+  crewId     String         @db.ObjectId
+  role       String
+  styleMatch Float
+  rateInr    Int
+  status     ProposalStatus @default(PROPOSED)
+}
+
+type PlanTalentItem {
+  talentId  String         @db.ObjectId
+  lookMatch Float
+  rateInr   Int
+  status    ProposalStatus @default(PROPOSED)
+}
+
+type PlanShotListItem {
+  deliverable String
+  setup       String
+  estMinutes  Int
+}
+
+type PlanScheduleItem {
+  time     String
+  activity String
+}
+
+type PlanBudget {
+  subtotalInr    Int
+  contcaveFeeInr Int
+  totalInr       Int
+  withinBudget   Boolean
+}
+
+type ShootOutcome {
+  ratingByBrand Float?
+  notes         String?
+}
+
+type ShootReliabilityEvent {
+  entityType ProductionEntityType
+  entityId   String               @db.ObjectId
+  event      ReliabilityEventType
+  note       String?
+}
+
+model Crew {
+  id                   String                     @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String
+  role                 CrewRole
+  city                 String
+  serviceableCities    String[]
+  dayRateInr           Int
+  halfDayRateInr       Int?
+  portfolio            ProductionPortfolioAsset[]
+  aggregateFingerprint CreativeFingerprint?
+  embedding            Float[]
+  reliability          ProductionReliability
+  contact              ProductionContact?
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+
+  @@index([city])
+  @@index([serviceableCities])
+  @@index([role])
+  @@index([dayRateInr])
+  @@index([reliability.avgRating])
+}
+
+model Talent {
+  id                String                     @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  city              String
+  serviceableCities String[]
+  attributes        TalentAttributes
+  dayRateInr        Int
+  portfolio         ProductionPortfolioAsset[]
+  embedding         Float[]
+  reliability       ProductionReliability
+  contact           ProductionContact?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+
+  @@index([city])
+  @@index([serviceableCities])
+  @@index([dayRateInr])
+  @@index([reliability.avgRating])
+}
+
+model ClientBrand {
+  id          String             @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  category    String?
+  contact     ProductionContact?
+  city        String?
+  notes       String?
+  intakeToken String             @unique // tokenised intake link: /submit/<intakeToken>
+  briefs      Brief[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model Brief {
+  id                   String               @id @default(auto()) @map("_id") @db.ObjectId
+  brandId              String               @db.ObjectId
+  brand                ClientBrand          @relation(fields: [brandId], references: [id])
+  submittedVia         BriefSource
+  deliverables         BriefDeliverable[]
+  moodWords            String[]
+  moodboardImages      String[] // R2 urls
+  moodboardFingerprint CreativeFingerprint? // derived in Phase 1
+  moodboardEmbedding   Float[]
+  budgetInr            Int
+  city                 String
+  dates                String[] // ISO "YYYY-MM-DD"
+  talentPrefs          BriefTalentPrefs?
+  notes                String?
+  status               BriefStatus          @default(NEW)
+  plans                ProductionPlan[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  @@index([status])
+  @@index([city])
+  @@index([brandId])
+}
+
+model ProductionPlan {
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  briefId          String             @db.ObjectId
+  brief            Brief              @relation(fields: [briefId], references: [id])
+  studio           PlanStudio?
+  crew             PlanCrewItem[]
+  talent           PlanTalentItem[]
+  shotList         PlanShotListItem[]
+  schedule         PlanScheduleItem[]
+  budget           PlanBudget?
+  confidence       Float              @default(0)
+  needsHumanReview Boolean            @default(true)
+  source           ProductionPlanSource
+  version          Int                @default(1)
+  producerEdits    Json[] // audit trail of human changes (future training data)
+  quotedAt         DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([briefId])
+}
+
+model Shoot {
+  id                      String                  @id @default(auto()) @map("_id") @db.ObjectId
+  planId                  String                  @db.ObjectId
+  briefId                 String                  @db.ObjectId
+  date                    String // ISO "YYYY-MM-DD"
+  actualListingId         String?                 @db.ObjectId // studio used
+  actualCrewIds           String[]                @db.ObjectId
+  actualTalentIds         String[]                @db.ObjectId
+  actualCostInr           Int
+  contcaveFeeCollectedInr Int
+  outcome                 ShootOutcome?
+  reliabilityEvents       ShootReliabilityEvent[]
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  @@index([briefId])
+}
+
+// Simple date-block availability for crew/talent (studios use DayStatus/ListingBlock)
+model ProductionAvailability {
+  id             String               @id @default(auto()) @map("_id") @db.ObjectId
+  entityType     ProductionEntityType
+  entityId       String               @db.ObjectId
+  blockedDates   String[] // ISO "YYYY-MM-DD"
+  tentativeDates String[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@unique([entityType, entityId])
+}
+
+// Phase 1: creative fingerprint + embedding for a Listing, kept out of the
+// hot Listing model so the marketplace schema stays untouched.
+model ListingCreativeProfile {
+  id          String               @id @default(auto()) @map("_id") @db.ObjectId
+  listingId   String               @unique @db.ObjectId
+  styleTags   String[]
+  fingerprint CreativeFingerprint?
+  embedding   Float[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+}
+
+enum WaDirection {
+  INBOUND
+  OUTBOUND
+}
+
+// Hermes WhatsApp communication log (open-source connector, see
+// scripts/hermes-whatsapp-connector.ts). Matched to a ClientBrand by phone.
+model WhatsAppMessage {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  direction WaDirection
+  waNumber  String // counterparty number, digits only
+  text      String?
+  mediaUrls String[]
+  brandId   String?     @db.ObjectId
+  briefId   String?     @db.ObjectId
+  createdAt DateTime    @default(now())
+
+  @@index([waNumber])
+  @@index([brandId])
+}
+

@@ -6,6 +6,7 @@ export * from "@/schemas/common";
 export * from "@/schemas/dayStatus";
 export * from "@/schemas/listing";
 export * from "@/schemas/payment";
+export * from "@/schemas/production";
 export * from "@/schemas/reservation";
 export * from "@/schemas/user";
 export * from "@/schemas/verification";

@@ -17,7 +17,9 @@
 		"qstash:dev": "npx @upstash/qstash-cli@latest dev",
 		"configure:qstash": "node scripts/configure-qstash-schedules.mjs",
 		"backfill:listing-location": "node scripts/backfill-listing-location.mjs",
-		"postinstall": "npx prisma generate"
+		"postinstall": "npx prisma generate",
+		"hermes:wa": "tsx scripts/hermes-whatsapp-connector.ts",
+		"hermes:indexes": "tsx scripts/create-hermes-vector-indexes.ts"
 	},
 	"dependencies": {
 		"@auth/prisma-adapter": "^2.11.3",
@@ -46,6 +48,7 @@
 		"@upstash/qstash": "^2.11.1",
 		"@vercel/analytics": "^1.6.1",
 		"@vercel/speed-insights": "^1.3.1",
+		"@whiskeysockets/baileys": "^7.0.0-rc13",
 		"ably": "^2.6.3",
 		"axios": "^1.13.5",
 		"bcryptjs": "^3.0.2",
@@ -63,6 +66,8 @@
 		"mailersend": "^2.8.0",
 		"next": "^16.3.3",
 		"next-auth": "^5.0.0-beta.32",
+		"pino": "^10.3.1",
+		"qrcode-terminal": "^0.12.0",
 		"query-string": "^9.1.1",
 		"react": "^19.2.5",
 		"react-date-range": "^2.0.1",
@@ -96,6 +101,7 @@
 		"@types/css-modules": "^1.0.5",
 		"@types/leaflet": "^1.9.16",
 		"@types/node": "^25.0.3",
+		"@types/qrcode-terminal": "^0.12.2",
 		"@types/react": "^19.2.14",
 		"@types/react-date-range": "^1.4.10",
 		"@types/react-dom": "^19.2.3",
@@ -109,7 +115,8 @@
 		"knip": "^6.14.2",
 		"postcss": "^8.5.26",
 		"prisma": "^6.19.3",
-		"tailwindcss": "^4.2.4"
+		"tailwindcss": "^4.2.4",
+		"tsx": "^4.23.0"
 	},
 	"overrides": {
 		"axios": "$axios",
