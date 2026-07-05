@@ -1,11 +1,11 @@
 import "server-only";
 
 /**
- * Model-tier wrapper for the Anthropic Messages API (production agent).
+ * Model-tier wrapper for the Anthropic Messages API (Hermes).
  * Reasoning tier: moodboard understanding, plan composition.
  * Utility tier: tag normalisation, short classification.
+ * Plain fetch — no SDK dependency; images are passed by URL.
  *
- * PHASE 1+ — not called anywhere in Phase 0.
  * Env: ANTHROPIC_API_KEY, ANTHROPIC_MODEL_REASONING, ANTHROPIC_MODEL_UTILITY.
  */
 
@@ -27,6 +27,43 @@ export function modelForTier(tier: ModelTier): string {
     return model;
 }
 
-export async function complete(_tier: ModelTier, _req: LlmRequest): Promise<string> {
-    throw new Error("Not implemented — production agent Phase 1");
+type ContentBlock =
+    | { type: "text"; text: string }
+    | { type: "image"; source: { type: "url"; url: string } };
+
+export async function complete(tier: ModelTier, req: LlmRequest): Promise<string> {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
+
+    const content: ContentBlock[] = [
+        ...(req.imageUrls ?? []).slice(0, 8).map(
+            (url): ContentBlock => ({ type: "image", source: { type: "url", url } })
+        ),
+        { type: "text", text: req.prompt },
+    ];
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+            model: modelForTier(tier),
+            max_tokens: req.maxTokens ?? 1500,
+            system: req.system,
+            messages: [{ role: "user", content }],
+        }),
+    });
+
+    if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        throw new Error(`Anthropic API ${res.status}: ${body.slice(0, 300)}`);
+    }
+
+    const data = (await res.json()) as { content?: { type: string; text?: string }[] };
+    const text = data.content?.find((b) => b.type === "text")?.text;
+    if (!text) throw new Error("Anthropic API returned no text content");
+    return text;
 }

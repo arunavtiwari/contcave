@@ -19,7 +19,8 @@
 		"backfill:listing-location": "node scripts/backfill-listing-location.mjs",
 		"postinstall": "npx prisma generate",
 		"hermes:wa": "tsx scripts/hermes-whatsapp-connector.ts",
-		"hermes:indexes": "tsx scripts/create-hermes-vector-indexes.ts"
+		"hermes:indexes": "tsx scripts/create-hermes-vector-indexes.ts",
+		"hermes:ingest": "NODE_OPTIONS=--conditions=react-server tsx scripts/hermes-ingest-supply.ts"
 	},
 	"dependencies": {
 		"@auth/prisma-adapter": "^2.11.3",

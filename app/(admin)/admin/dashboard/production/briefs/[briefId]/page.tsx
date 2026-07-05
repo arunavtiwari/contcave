@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getBriefWithPlans, getSupplyForCity } from "@/app/actions/getProductionData";
+import {
+    getBriefWithPlans,
+    getHermesSuggestions,
+    getSupplyForCity,
+} from "@/app/actions/getProductionData";
 
 import PlanBuilder from "./PlanBuilder";
 
@@ -18,7 +22,10 @@ export default async function BriefDetailPage({
     const brief = await getBriefWithPlans(briefId);
     if (!brief) notFound();
 
-    const supply = await getSupplyForCity(brief.city);
+    const [supply, suggestions] = await Promise.all([
+        getSupplyForCity(brief.city),
+        getHermesSuggestions(briefId),
+    ]);
     const feePct = Number(process.env.CONTCAVE_FEE_PCT ?? 15);
 
     return (
@@ -113,6 +120,66 @@ export default async function BriefDetailPage({
                             ))}
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {suggestions && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-5">
+                    <h2 className="text-sm font-semibold text-foreground">
+                        Hermes suggestions{" "}
+                        <span className="font-normal text-muted-foreground">
+                            — ranked by moodboard match; you assemble the plan
+                        </span>
+                    </h2>
+                    <div className="mt-3 grid gap-4 sm:grid-cols-3">
+                        <div>
+                            <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Studios
+                            </h3>
+                            {suggestions.studios.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No match yet</p>
+                            ) : (
+                                suggestions.studios.slice(0, 5).map((s) => (
+                                    <p key={s.listingId} className="text-sm">
+                                        {s.title}{" "}
+                                        <span className="text-xs text-muted-foreground">({s.score})</span>
+                                    </p>
+                                ))
+                            )}
+                        </div>
+                        <div>
+                            <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Crew
+                            </h3>
+                            {suggestions.crew.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No match yet</p>
+                            ) : (
+                                suggestions.crew.slice(0, 5).map((c) => (
+                                    <p key={c.id} className="text-sm">
+                                        {c.name}{" "}
+                                        <span className="text-xs text-muted-foreground">
+                                            ({c.role} · {c.score})
+                                        </span>
+                                    </p>
+                                ))
+                            )}
+                        </div>
+                        <div>
+                            <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Talent
+                            </h3>
+                            {suggestions.talent.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No match yet</p>
+                            ) : (
+                                suggestions.talent.slice(0, 5).map((t) => (
+                                    <p key={t.id} className="text-sm">
+                                        {t.name}{" "}
+                                        <span className="text-xs text-muted-foreground">({t.score})</span>
+                                    </p>
+                                ))
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
 

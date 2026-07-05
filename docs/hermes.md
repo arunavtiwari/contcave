@@ -64,11 +64,11 @@ HERMES_WA_SHARED_SECRET=      # openssl rand -hex 24; shared app <-> connector
 HERMES_WA_CONNECTOR_URL=http://127.0.0.1:8790
 HERMES_APP_URL=http://localhost:3000   # connector -> app (inbound bridge)
 
-# Phase 1+ (unused today)
+# Phase 1 (retrieval assist)
 ANTHROPIC_API_KEY=
 ANTHROPIC_MODEL_REASONING=claude-fable-5
 ANTHROPIC_MODEL_UTILITY=claude-haiku-4-5-20251001
-EMBEDDINGS_API_KEY=
+EMBEDDINGS_API_KEY=               # Voyage AI
 EMBEDDINGS_MODEL=voyage-3
 ```
 
@@ -76,17 +76,23 @@ EMBEDDINGS_MODEL=voyage-3
 
 ```bash
 npm run hermes:wa        # start the WhatsApp connector (QR on first run)
-npm run hermes:indexes   # create Atlas Vector Search indexes (M10+; Phase 1)
+npm run hermes:indexes   # create Atlas Vector Search indexes (M10+, once)
+npm run hermes:ingest    # backfill fingerprints/embeddings for existing supply
 npx prisma db push       # sync the new collections after pulling this branch
 ```
 
 ## Phase roadmap (spec §9)
 
-- **Phase 0 (this)** — data model, admin workflow, intake, WhatsApp comms.
-- **Phase 1** — `lib/hermes/agent/fingerprint.ts` (multimodal fingerprints on
-  moodboards/portfolios), embeddings, `retrieve.ts` ranked candidates in the
-  brief view.
-- **Phase 2** — `compose.ts` full agent-drafted plans (`source: AGENT`),
+- **Phase 0 (shipped)** — data model, admin workflow, intake, WhatsApp comms.
+- **Phase 1 (shipped)** — multimodal fingerprints on moodboards/portfolios/
+  listings (`lib/hermes/agent/fingerprint.ts` + `ingest.ts`, cache-respecting,
+  runs via `after()` so intake never waits), Voyage embeddings,
+  `retrieve.ts` `$vectorSearch` retrieval, and a ranked "Hermes suggestions"
+  panel on the brief page. Degrades gracefully: without API keys or the Atlas
+  index, the panel simply doesn't render.
+  **Acceptance to verify with real briefs:** producers rate top suggestions
+  usable on ≥60% of test briefs (spec §11).
+- **Phase 2 (next)** — `compose.ts` full agent-drafted plans (`source: AGENT`),
   producer edit-distance as the iteration metric.
 - **Non-goals for now** — payments/escrow for shoots, crew self-serve portals,
   calendar sync, auto-booking. Humans stay in the loop for booking and money.

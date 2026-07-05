@@ -1,5 +1,6 @@
 "use server";
 
+import { retrieveCandidates } from "@/lib/hermes/agent/retrieve";
 import prisma from "@/lib/prismadb";
 import { toSafe } from "@/types/production";
 
@@ -226,4 +227,68 @@ export async function getBrandByIntakeToken(token: string) {
         select: { name: true },
     });
     return brand;
+}
+
+export type HermesSuggestions = {
+    studios: { listingId: string; title: string; score: number }[];
+    crew: { id: string; name: string; role: string; score: number }[];
+    talent: { id: string; name: string; score: number }[];
+};
+
+/**
+ * Hermes retrieval assist: ranked candidates for a brief, with names resolved.
+ * Returns null when retrieval isn't possible yet (no embeddings, missing API
+ * keys, no Atlas vector index) — the brief page then simply hides the section.
+ */
+export async function getHermesSuggestions(briefId: string): Promise<HermesSuggestions | null> {
+    try {
+        const candidates = await retrieveCandidates(briefId);
+        if (
+            !candidates.studios.length &&
+            !candidates.crew.length &&
+            !candidates.talent.length
+        ) {
+            return null;
+        }
+
+        const [listings, crew, talent] = await Promise.all([
+            prisma.listing.findMany({
+                where: { id: { in: candidates.studios.map((s) => s.listingId) } },
+                select: { id: true, title: true },
+            }),
+            prisma.crew.findMany({
+                where: { id: { in: candidates.crew.map((c) => c.crewId) } },
+                select: { id: true, name: true },
+            }),
+            prisma.talent.findMany({
+                where: { id: { in: candidates.talent.map((t) => t.talentId) } },
+                select: { id: true, name: true },
+            }),
+        ]);
+
+        return {
+            studios: candidates.studios.map((s) => ({
+                listingId: s.listingId,
+                title: listings.find((l) => l.id === s.listingId)?.title ?? s.listingId,
+                score: Math.round(s.score * 100) / 100,
+            })),
+            crew: candidates.crew.map((c) => ({
+                id: c.crewId,
+                name: crew.find((x) => x.id === c.crewId)?.name ?? c.crewId,
+                role: c.role.toLowerCase(),
+                score: Math.round(c.score * 100) / 100,
+            })),
+            talent: candidates.talent.map((t) => ({
+                id: t.talentId,
+                name: talent.find((x) => x.id === t.talentId)?.name ?? t.talentId,
+                score: Math.round(t.score * 100) / 100,
+            })),
+        };
+    } catch (error) {
+        console.warn(
+            "[hermes] suggestions unavailable:",
+            error instanceof Error ? error.message : error
+        );
+        return null;
+    }
 }

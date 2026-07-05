@@ -2,9 +2,11 @@
 
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import { createAction } from "@/lib/actions-utils";
 import { UserFacingError } from "@/lib/errors";
+import { ingestBrief, ingestCrewPortfolio, ingestTalentPortfolio } from "@/lib/hermes/agent/ingest";
 import { nextReliability, PunctualityEvent } from "@/lib/hermes/reliability";
 import { sendAndLogWhatsApp } from "@/lib/hermes/whatsapp";
 import prisma from "@/lib/prismadb";
@@ -81,7 +83,15 @@ export const addPortfolioAsset = createAction(
                 data: { portfolio: { push: asset } },
             });
         }
-        // TODO(Phase 1): fingerprint asset -> update aggregate fingerprint + embedding
+        const ingest =
+            data.entityType === "CREW"
+                ? () => ingestCrewPortfolio(data.entityId)
+                : () => ingestTalentPortfolio(data.entityId);
+        after(() =>
+            ingest().catch((err) =>
+                console.error("[hermes] portfolio ingest failed", data.entityId, err)
+            )
+        );
         revalidatePath(`${PRODUCTION_PATH}/supply`);
         return { added: true };
     }
@@ -136,7 +146,12 @@ export const submitBrief = createAction(briefIntakeSchema, {}, async (data) => {
         },
     });
 
-    // TODO(Phase 1): enqueue moodboard fingerprint job (lib/hermes/agent/fingerprint.ts)
+    // Fingerprint + embed after the response is sent — intake never waits on AI.
+    after(() =>
+        ingestBrief(brief.id).catch((err) =>
+            console.error("[hermes] brief ingest failed", brief.id, err)
+        )
+    );
 
     revalidatePath(PRODUCTION_PATH);
     return { briefId: brief.id };
