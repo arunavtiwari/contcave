@@ -134,13 +134,21 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                         <C>4.4 The Host must not discriminate against any Client on the basis of race, gender, religion, caste, disability, sexual orientation, or any other protected characteristic under Indian law.</C>
 
                         {/* 5 */}
-                        <S>5. Cancellation by Host</S>
-                        <C>5.1 If the Host cancels a confirmed Booking, the following consequences shall apply:</C>
-                        <C>(a) The Client shall receive a full refund of the Booking amount.</C>
-                        <C>(b) The Host&apos;s listing may be deprioritized in search results for a period determined by the Company.</C>
-                        <C>(c) If the Host cancels more than 3 (three) confirmed Bookings in a 90-day period, the listing may be temporarily suspended or permanently removed at the Company&apos;s discretion.</C>
-                        <C>(d) In case of cancellation within 24 hours of the booking date, the Company may impose a penalty of up to 25% of the Booking Value on the Host, to be adjusted against future payouts.</C>
-                        <C>5.2 The Host must cancel through the Platform. Verbal or off-platform cancellations shall not be recognized.</C>
+                        <S>5. Bookings, Cancellations & Refunds</S>
+
+                        <C>5.1 The following cancellation and refund policy shall apply to all Bookings made through the Platform unless otherwise agreed in writing by the Company.</C>
+                        <C>5.1.1 If the Client cancels the Booking at least 72 (seventy-two) hours before the scheduled Booking start time, the Client shall receive a 100% refund of the Booking Value. No Platform Commission shall be payable, and no Payout shall be made to the Host.</C>
+                        <C>5.1.2 If the Client cancels the Booking between 24 (twenty-four) and 72 (seventy-two) hours before the scheduled Booking start time, the Client shall receive a refund equal to 50% of the Booking Value. The remaining 50% shall be settled as follows: 20% of the Booking Value shall be retained by the Company as Platform Commission, and 30% of the Booking Value shall be paid to the Host.</C>
+                        <C>5.1.3 If the Client cancels the Booking less than 24 (twenty-four) hours before the scheduled Booking start time, or fails to arrive for the Booking without prior cancellation through the Platform (No-Show), the Client shall not be entitled to any refund. The Booking Value shall be retained and distributed as follows: 20% of the Booking Value shall be retained by the Company as Platform Commission, and 80% shall be paid to the Host.</C>
+                        <C>5.2 If the Host cancels a confirmed Booking after acceptance, the Client shall receive a 100% refund of the Booking Value.</C>
+                        <C>5.2.1 The Company may temporarily suspend, permanently remove, or otherwise restrict the Host&apos;s listing following such cancellation.</C>
+                        <C>5.2.2 If the Host cancels more than 2 (two) confirmed Bookings within any rolling 60 (sixty) day period, the Company may reduce the Host&apos;s listing visibility, suspend the listing, or permanently remove the listing from the Platform at its sole discretion.</C>
+                        <C>5.2.3 Where the Company incurs additional costs in arranging an alternative Studio for the Client following a Host cancellation, the Company may recover such costs from the Host by adjustment against future Payouts, provided that the Host&apos;s total liability shall not exceed the Booking Value.</C>
+                        <C>5.3 If the Company determines that the Studio is materially different from its listing, inaccessible at the scheduled Booking time, or that the Host is otherwise unable to provide the Studio substantially as described, the Company may, at its sole discretion: (a) issue a full refund to the Client; (b) arrange an alternative Studio for the Client; (c) recover reasonable rebooking costs from the Host, capped at the Booking Value; and (d) suspend or permanently remove the Host&apos;s listing for repeated violations.</C>
+                        <C>5.4 All refunds shall be processed solely by the Company through the Platform&apos;s payment gateway and may be adjusted against future Payouts payable to the Host.</C>
+                        <C>5.5 Payment gateway charges, payment processing fees, convenience fees, and other third-party transaction charges shall be non-refundable unless otherwise required by applicable law.</C>
+                        <C>5.6 The Company reserves the right to amend or update this cancellation and refund policy from time to time by providing notice through the Platform or by electronic communication. Continued use of the Platform after such notice shall constitute acceptance of the revised policy.</C>
+                        <C>5.7 All cancellations by either the Client or the Host must be made through the Platform. Verbal, offline, or off-platform cancellations shall not be recognized for the purposes of refunds, settlements, or dispute resolution.</C>
 
                         {/* 6 */}
                         <S>6. No-Show Policy (Client)</S>
