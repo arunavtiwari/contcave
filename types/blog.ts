@@ -43,7 +43,7 @@ export interface MetaImage {
 export interface Meta {
   title: string;
   description: string;
-  image: MetaImage;
+  image?: MetaImage;
 }
 
 export interface BlogBlock {
