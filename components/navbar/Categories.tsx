@@ -12,7 +12,7 @@ import { categories } from "./categoriesData";
 
 const CategoriesContent = memo(function CategoriesContent() {
   const params = useSearchParams();
-  const category = useMemo(() => params?.get("category"), [params]);
+  const venueType = useMemo(() => params?.get("venueTypes"), [params]);
 
   const categoryItems = useMemo(
     () =>
@@ -21,10 +21,10 @@ const CategoriesContent = memo(function CategoriesContent() {
           key={item.label}
           icon={item.icon}
           label={item.label}
-          selected={category === item.label}
+          selected={venueType === item.label}
         />
       )),
-    [category]
+    [venueType]
   );
 
   return (

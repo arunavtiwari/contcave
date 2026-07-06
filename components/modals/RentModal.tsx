@@ -223,6 +223,9 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       otherAmenities: [],
       addons: [],
       type: [],
+      venueTypes: [],
+      aesthetics: [],
+      setFeatures: [],
       instantBooking: false,
       hasSets: false,
       setsHaveSamePrice: false,
@@ -257,6 +260,9 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
   const maximumPax = watch("maximumPax");
   const instantBooking = watch("instantBooking");
   const type = watch("type");
+  const venueTypes = watch("venueTypes");
+  const aesthetics = watch("aesthetics");
+  const setFeatures = watch("setFeatures");
   const hasSets = watch("hasSets");
   const sets = watch("sets") as SetEditorItem[] | undefined;
   const setsHaveSamePrice = watch("setsHaveSamePrice");
@@ -276,8 +282,11 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     maximumPax: maximumPax || 0,
     instantBooking: Boolean(instantBooking),
     type: Array.isArray(type) ? type : [],
+    venueTypes: Array.isArray(venueTypes) ? venueTypes : [],
+    aesthetics: Array.isArray(aesthetics) ? aesthetics : [],
+    setFeatures: Array.isArray(setFeatures) ? setFeatures : [],
     hasSets: Boolean(hasSets),
-  }), [carpetArea, operationalDays, operationalHours, minimumBookingHours, maximumPax, instantBooking, type, hasSets]);
+  }), [carpetArea, operationalDays, operationalHours, minimumBookingHours, maximumPax, instantBooking, type, venueTypes, aesthetics, setFeatures, hasSets]);
   const [categoryError, setCategoryError] = useState<string>("");
   const [cityError, setCityError] = useState<string>("");
   const [addressError, setAddressError] = useState<string>("");
@@ -334,13 +343,13 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
   }, []);
 
   const validateCategoryStep = useCallback(async () => {
-    const valid = await trigger("category");
-    if (!valid) {
-      setCategoryError("Please select a category");
+    const currentVenueTypes = Array.isArray(venueTypes) ? venueTypes : [];
+    if (currentVenueTypes.length === 0) {
+      setCategoryError("Please select at least one space type");
       return false;
     }
     return true;
-  }, [trigger]);
+  }, [venueTypes]);
 
   const validateLocationStep = useCallback(async () => {
     if (!actualLocation || !actualLocation.value) {
@@ -510,6 +519,9 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     setValue("maximumPax", details.maximumPax, { shouldDirty: true, shouldValidate: true });
     setValue("instantBooking", details.instantBooking, { shouldDirty: true });
     setValue("type", details.type, { shouldDirty: true, shouldValidate: true });
+    setValue("venueTypes", details.venueTypes, { shouldDirty: true, shouldValidate: true });
+    setValue("aesthetics", details.aesthetics, { shouldDirty: true, shouldValidate: true });
+    setValue("setFeatures", details.setFeatures, { shouldDirty: true, shouldValidate: true });
     setValue("hasSets", details.hasSets, { shouldDirty: true });
     setValue("operationalDays", {
       start: details.operationalDays.start || "Mon",
@@ -568,7 +580,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         validate: validateCategoryStep,
         render: () => (
           <CategoryStep
-            category={category}
+            venueTypes={Array.isArray(venueTypes) ? venueTypes : []}
             setCustomValue={setCustomValue}
             categoryError={categoryError}
             setCategoryError={setCategoryError}
@@ -942,6 +954,9 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         maximumPax: Number(data.maximumPax || 1),
         instantBooking: data.instantBooking ?? false,
         type: data.type ?? [],
+        venueTypes: data.venueTypes ?? [],
+        aesthetics: data.hasSets ? [] : (data.aesthetics ?? []),
+        setFeatures: data.hasSets ? [] : (data.setFeatures ?? []),
         packages: Array.isArray(data.packages) ? (data.packages as Package[]).map(p => ({
           ...p,
           isActive: p.isActive !== false,
@@ -962,6 +977,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
           images: Array.isArray(s.images) ? (s.images as string[]) : [],
           price: Number(s.price || 0),
           position: i,
+          aesthetics: s.aesthetics ?? [],
+          setFeatures: s.setFeatures ?? [],
         })) : [],
       };
 

@@ -17,12 +17,13 @@ import PackagesForm from "@/components/inputs/PackagesForm";
 import RichTextEditor from "@/components/inputs/RichTextEditor";
 import SetsEditor from "@/components/inputs/SetsEditor";
 import Switch from "@/components/inputs/Switch";
+import TaxonomyPillSelect from "@/components/inputs/TaxonomyPillSelect";
 import CustomAddonModal from "@/components/modals/CustomAddonModal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import Select, { SelectOption } from "@/components/ui/Select";
-import { spaceTypes } from "@/constants/spaceTypes";
+import { AESTHETICS, SET_FEATURES, USE_CASE_LABELS, VENUE_TYPES } from "@/lib/taxonomy";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 import { slugify } from "@/lib/strings";
 import { Addon } from "@/types/addon";
@@ -32,7 +33,6 @@ import { Package as ListingPackage } from "@/types/package";
 interface EditPropertyTabProps {
   initialListing: FullListing;
   handleInputChange: (field: string, value: unknown) => void;
-  categoryOptionsPrepared: SelectOption[];
   handleAmenitiesChange: (v: { predefined: { [key: string]: boolean }; custom: string[] }) => void;
   amenities: Amenities[];
   addons: Addon[];
@@ -51,7 +51,6 @@ interface EditPropertyTabProps {
 const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
   initialListing,
   handleInputChange,
-  categoryOptionsPrepared,
   handleAmenitiesChange,
   amenities,
   addons,
@@ -102,21 +101,44 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         onChange={(html) => handleInputChange("customTerms", html)}
       />
 
-      <Select
-        label="Category"
+      <TaxonomyPillSelect
+        label="Venue Type"
+        description="Select all that apply"
         variant="horizontal"
-        options={categoryOptionsPrepared}
-        value={categoryOptionsPrepared.find((item) => item.label === initialListing.category) || null}
-        onChange={(sel) => {
-          const selected = sel as SelectOption | null;
-          handleInputChange("category", selected?.value || "");
+        vocab={VENUE_TYPES}
+        value={(initialListing.venueTypes as string[] | undefined) ?? []}
+        onChange={(next) => {
+          handleInputChange("venueTypes", next);
+          if (next.length > 0) handleInputChange("category", next[0]);
         }}
-        placeholder="Select Category"
       />
+
+      {!initialListing.hasSets && (
+        <>
+          <TaxonomyPillSelect
+            label="Aesthetics"
+            description="Pick up to 6 that best describe this studio's look"
+            variant="horizontal"
+            vocab={AESTHETICS}
+            value={(initialListing.aesthetics as string[] | undefined) ?? []}
+            onChange={(next) => handleInputChange("aesthetics", next)}
+            max={6}
+          />
+
+          <TaxonomyPillSelect
+            label="Space Features"
+            description="Physical features present in this studio"
+            variant="horizontal"
+            vocab={SET_FEATURES}
+            value={(initialListing.setFeatures as string[] | undefined) ?? []}
+            onChange={(next) => handleInputChange("setFeatures", next)}
+          />
+        </>
+      )}
 
       <FormField label="Listed Services" description="Select all services available in this space" variant="horizontal" align="start">
         <div className="w-full flex flex-wrap gap-2">
-          {Array.from(new Set([...spaceTypes, ...(initialListing.type || [])])).map((t) => (
+          {Array.from(new Set([...USE_CASE_LABELS, ...(initialListing.type || [])])).map((t) => (
             <Pill
               key={t}
               label={t}

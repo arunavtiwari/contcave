@@ -4,9 +4,10 @@ import AmenitiesCheckbox from "@/components/inputs/AmenitySelection";
 import FormField from "@/components/inputs/FormField";
 import Input from "@/components/inputs/Input";
 import Switch from "@/components/inputs/Switch";
+import TaxonomyPillSelect from "@/components/inputs/TaxonomyPillSelect";
 import Select, { SelectOption } from "@/components/ui/Select";
-import { spaceTypes } from "@/constants/spaceTypes";
 import { TIME_SLOTS } from "@/constants/timeSlots";
+import { AESTHETICS, SET_FEATURES, USE_CASES, VENUE_TYPES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 
 export type ListingDetails = {
@@ -17,6 +18,9 @@ export type ListingDetails = {
     maximumPax: number;
     instantBooking: boolean;
     type: string[];
+    venueTypes: string[];
+    aesthetics: string[];
+    setFeatures: string[];
     hasSets: boolean;
 };
 
@@ -51,6 +55,9 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false
         maximumPax: 0,
         instantBooking: false,
         type: [],
+        venueTypes: [],
+        aesthetics: [],
+        setFeatures: [],
         hasSets: false,
     }, [data]);
 
@@ -89,6 +96,10 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false
     const handleInputChange = useCallback((field: keyof ListingDetails, value: string | number | boolean | string[] | { start?: string; end?: string }) => {
         onChange({ ...details, [field]: value });
     }, [details, onChange]);
+
+    const useCaseAmenities = useMemo(() =>
+        USE_CASES.map(u => ({ id: u.label, name: u.label, createdAt: new Date(), icon: null })),
+    []);
 
 
     return (<div className="flex flex-col gap-8">
@@ -231,14 +242,46 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false
         </div>
 
         <AmenitiesCheckbox
-            label="Space Type"
+            label="Use Cases"
             variant="vertical"
             required
             disableCustom
-            amenities={spaceTypes.map(t => ({ id: t, name: t, createdAt: new Date(), icon: null }))}
+            amenities={useCaseAmenities}
             checked={details.type || []}
             onChange={(updated: { predefined: { [key: string]: boolean }; custom: string[] }) => handleInputChange("type", Object.keys(updated.predefined).filter(k => updated.predefined[k]))}
         />
+
+        <TaxonomyPillSelect
+            label="Venue Type"
+            description="What kind of space is this?"
+            variant="vertical"
+            vocab={VENUE_TYPES}
+            value={details.venueTypes || []}
+            onChange={(v) => handleInputChange("venueTypes", v)}
+        />
+
+        {!details.hasSets && (
+            <>
+                <TaxonomyPillSelect
+                    label="Aesthetics"
+                    description="Pick up to 6 that best describe this studio's look"
+                    variant="vertical"
+                    vocab={AESTHETICS}
+                    value={details.aesthetics || []}
+                    onChange={(v) => handleInputChange("aesthetics", v)}
+                    max={6}
+                />
+
+                <TaxonomyPillSelect
+                    label="Space Features"
+                    description="Physical features present in this studio"
+                    variant="vertical"
+                    vocab={SET_FEATURES}
+                    value={details.setFeatures || []}
+                    onChange={(v) => handleInputChange("setFeatures", v)}
+                />
+            </>
+        )}
 
         {/* Toggles Card Grid */}
         {!optional && (

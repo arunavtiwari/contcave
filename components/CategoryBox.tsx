@@ -19,11 +19,11 @@ const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label,
 
   const updatedQuery: Record<string, string | string[] | null | undefined> = {
     ...currentQuery,
-    category: label,
+    venueTypes: label,
   };
 
-  if (params?.get("category") === label) {
-    delete updatedQuery.category;
+  if (params?.get("venueTypes") === label) {
+    delete updatedQuery.venueTypes;
   }
 
   const url = qs.stringifyUrl(
