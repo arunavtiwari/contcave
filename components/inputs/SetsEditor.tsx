@@ -6,8 +6,10 @@ import { IoAdd, IoClose, IoTrash } from "react-icons/io5";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/inputs/Input";
+import TaxonomyPillSelect from "@/components/inputs/TaxonomyPillSelect";
 import Textarea from "@/components/inputs/Textarea";
 import Button from "@/components/ui/Button";
+import { AESTHETICS, SET_FEATURES } from "@/lib/taxonomy";
 import { AdditionalSetPricingType } from "@/types/set";
 
 import FormField from "./FormField";
@@ -33,6 +35,8 @@ interface SetEditorItem {
     images: string[];
     price: number | null;
     position?: number;
+    aesthetics?: string[];
+    setFeatures?: string[];
 }
 
 const INR = new Intl.NumberFormat("en-IN", {
@@ -254,6 +258,25 @@ export default function SetsEditor({
                                                 />
                                             </div>
                                         )}
+
+                                        <TaxonomyPillSelect
+                                            label="Aesthetics"
+                                            description="Pick up to 6 that best describe this set's look"
+                                            vocab={AESTHETICS}
+                                            value={set.aesthetics ?? []}
+                                            onChange={(v) => updateSet(index, { aesthetics: v })}
+                                            max={6}
+                                            disabled={disabled}
+                                        />
+
+                                        <TaxonomyPillSelect
+                                            label="Set Features"
+                                            description="Physical features present in this set"
+                                            vocab={SET_FEATURES}
+                                            value={set.setFeatures ?? []}
+                                            onChange={(v) => updateSet(index, { setFeatures: v })}
+                                            disabled={disabled}
+                                        />
 
                                             <div className="flex flex-wrap gap-2 mb-2">
                                                 {set.images.map((img, imgIndex) => (

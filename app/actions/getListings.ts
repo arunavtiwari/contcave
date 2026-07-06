@@ -9,6 +9,9 @@ export interface IListingsParams {
   locationValue?: string;
   category?: string;
   type?: string;
+  venueTypes?: string;
+  aesthetics?: string;
+  setFeatures?: string;
   hasSets?: string;
 }
 

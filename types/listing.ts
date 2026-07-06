@@ -61,6 +61,11 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
     blocks?: ListingBlock[];
     videoSrc?: string | null;
 
+    // Taxonomy axes
+    venueTypes?: string[];
+    aesthetics?: string[];
+    setFeatures?: string[];
+
     // Curated listing fields
     listingType?: "STANDARD" | "CURATED";
     mapsUrl?: string | null;

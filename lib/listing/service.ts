@@ -5,6 +5,7 @@ import { isRichTextEmpty } from "@/lib/richText";
 import { generateUniqueSlug } from "@/lib/slug";
 import { slugify } from "@/lib/strings";
 import { sanitizeStringList } from "@/lib/strings";
+import { normaliseUseCase } from "@/lib/taxonomy";
 import { listingBaseSchema, listingSchema } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData } from "@/types/listing";
@@ -152,6 +153,7 @@ export class ListingService {
             title, description, imageSrc, category, locationValue, actualLocation,
             price, amenities, otherAmenities, addons, carpetArea, operationalDays,
             operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
+            venueTypes, aesthetics, setFeatures,
             verifications, customTerms, packages,
             hasSets, setsHaveSamePrice, unifiedSetPrice, additionalSetPricingType, sets,
             terms, slug,
@@ -195,6 +197,9 @@ export class ListingService {
                     maximumPax: maximumPax,
                     instantBooking: Boolean(instantBooking),
                     type: Array.isArray(type) ? type.map(t => String(t)) : [],
+                    venueTypes: Array.isArray(venueTypes) ? venueTypes.map(v => String(v)) : [],
+                    aesthetics: Array.isArray(aesthetics) ? aesthetics.map(a => String(a)) : [],
+                    setFeatures: Array.isArray(setFeatures) ? setFeatures.map(f => String(f)) : [],
                     verifications: finalVerifications,
                     terms: Boolean(terms),
                     listingType: (listingType as "STANDARD" | "CURATED") ?? "STANDARD",
@@ -218,7 +223,7 @@ export class ListingService {
             // Handle Sets
             if (hasSets && Array.isArray(sets) && sets.length > 0) {
                 const setData = sets.map((s: unknown, index: number) => {
-                    const set = s as { name?: string; description?: string; images?: string[]; price?: number; position?: number; id?: string };
+                    const set = s as { name?: string; description?: string; images?: string[]; price?: number; position?: number; id?: string; aesthetics?: string[]; setFeatures?: string[] };
                     return {
                         ...(set.id ? { id: set.id } : {}),
                         name: String(set.name || "").trim(),
@@ -226,6 +231,8 @@ export class ListingService {
                         images: Array.isArray(set.images) ? set.images.filter((img: unknown) => typeof img === "string" && !img.startsWith("blob:")) : [],
                         price: Math.round(Number(set.price) || 0),
                         position: typeof set.position === "number" ? Math.round(set.position) : index,
+                        aesthetics: Array.isArray(set.aesthetics) ? set.aesthetics.map(String) : [],
+                        setFeatures: Array.isArray(set.setFeatures) ? set.setFeatures.map(String) : [],
                         listingId: listing.id,
                     };
                 });
@@ -357,13 +364,15 @@ export class ListingService {
                 }
 
                 for (let i = 0; i < sets.length; i++) {
-                    const setData = sets[i] as { name?: string; description?: string; images?: string[]; price?: number; position?: number; id?: string };
+                    const setData = sets[i] as { name?: string; description?: string; images?: string[]; price?: number; position?: number; id?: string; aesthetics?: string[]; setFeatures?: string[] };
                     const sData = {
                         name: String(setData.name || "").trim(),
                         description: setData.description || null,
                         images: Array.isArray(setData.images) ? setData.images.filter((img: unknown) => typeof img === "string" && !img.startsWith("blob:")) : [],
                         price: Math.round(Number(setData.price) || 0),
                         position: typeof setData.position === "number" ? setData.position : i,
+                        aesthetics: Array.isArray(setData.aesthetics) ? setData.aesthetics.map(String) : [],
+                        setFeatures: Array.isArray(setData.setFeatures) ? setData.setFeatures.map(String) : [],
                         listingId,
                     };
                     if (setData.id) await tx.listingSet.update({ where: { id: setData.id }, data: sData });
@@ -458,11 +467,14 @@ export class ListingService {
         locationValue?: string;
         category?: string;
         type?: string;
+        venueTypes?: string;
+        aesthetics?: string;
+        setFeatures?: string;
         hasSets?: boolean;
         startDate?: string;
         endDate?: string;
     }): Promise<FullListing[]> {
-        const { userId, locationValue, category, type, hasSets, startDate, endDate } = params;
+        const { userId, locationValue, category, type, venueTypes, aesthetics, setFeatures, hasSets, startDate, endDate } = params;
 
         const query: Prisma.ListingWhereInput = {};
 
@@ -477,7 +489,10 @@ export class ListingService {
 
         if (category) query.category = category;
         if (locationValue) query.locationValue = locationValue;
-        if (type) query.type = { has: type };
+        if (type) query.type = { hasSome: type.split(",") };
+        if (venueTypes) query.venueTypes = { hasSome: venueTypes.split(",") };
+        if (aesthetics) query.aesthetics = { hasSome: aesthetics.split(",") };
+        if (setFeatures) query.setFeatures = { hasSome: setFeatures.split(",") };
         if (hasSets) query.hasSets = true;
 
         if (startDate && endDate) {
@@ -584,22 +599,9 @@ export class ListingService {
             return value as T;
         };
 
-        const legacyTypeMap: Record<string, string> = {
-            "Fashion shoot": "Fashion Shoot",
-            "Photo Shoot": "Portraits & Photoshoot",
-            "Pre-Wedding": "Pre-Wedding Shoot",
-            "Product Shoot": "Product & E-commerce Shoot",
-            "Video Shoot": "Video Production",
-            "Film Shoot": "Film & Music Video Shoot",
-            "Social Media Content": "Reels & Social Media Content",
-            "Workshop": "Workshops & Classes",
-            "Meeting": "Meetings & Creative Sessions",
-            "Event": "Events & Pop-Ups",
-            "Podcast": "Podcast Recording",
-            "Interview": "Interviews & YouTube Videos",
-        };
-
-        const normalizedTypes = Array.from(new Set(((l.type as string[]) || []).map(t => legacyTypeMap[t] || t)));
+        const normalizedTypes = Array.from(
+            new Set(((l.type as string[]) || []).map(normaliseUseCase).filter((t): t is string => t !== null))
+        );
         if (!l.user) {
             console.error(`[ListingService] Data integrity violation: Listing ${l.id} missing owner.`);
             return null as unknown as FullListing;

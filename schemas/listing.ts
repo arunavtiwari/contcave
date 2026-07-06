@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
+import { AESTHETIC_LABELS, SET_FEATURE_LABELS, USE_CASE_LABELS, VENUE_TYPE_LABELS } from "@/lib/taxonomy";
 export const imageSchema = z.string().url("Invalid image URL").max(500, "URL too long");
 
 export const locationSchema = z.object({
@@ -61,6 +62,8 @@ export const listingSetSchema = z.object({
     images: z.array(imageSchema).max(30, "Maximum 30 images per set"),
     price: z.number().min(0, "Price must be positive").max(10000000, "Price exceeds limit"),
     position: z.number().int().optional(),
+    aesthetics: z.array(z.enum(AESTHETIC_LABELS)).max(6).optional().default([]),
+    setFeatures: z.array(z.enum(SET_FEATURE_LABELS)).max(17).optional().default([]),
 });
 
 
@@ -147,7 +150,10 @@ export const listingBaseSchema = z.object({
 
     amenities: z.array(z.string()).max(50).optional(),
     otherAmenities: z.array(z.string()).max(50).optional(),
-    type: z.array(z.string()).max(20).optional(),
+    type: z.array(z.enum(USE_CASE_LABELS)).max(20).optional(),
+    venueTypes: z.array(z.enum(VENUE_TYPE_LABELS)).max(7).optional().default([]),
+    aesthetics: z.array(z.enum(AESTHETIC_LABELS)).max(6).optional().default([]),
+    setFeatures: z.array(z.enum(SET_FEATURE_LABELS)).max(17).optional().default([]),
 
 
     instantBooking: z.boolean().default(false),

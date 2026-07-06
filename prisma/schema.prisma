@@ -154,6 +154,11 @@ model Listing {
   unifiedSetPrice          Int?
   additionalSetPricingType AdditionalSetPricingType?
 
+  // Taxonomy axes — studio-level
+  venueTypes               String[]                  @default([]) // axis 2 (replaces category; category kept for back-compat migration)
+  aesthetics               String[]                  @default([]) // axis 3 (mirror of set-level for simple studios)
+  setFeatures              String[]                  @default([]) // axis 4a (mirror of set-level for simple studios)
+
   sets                     ListingSet[]
   videoSrc                 String?
 
@@ -444,6 +449,8 @@ model ListingSet {
   images      String[]
   price       Int      @default(0)
   position    Int      @default(0)
+  aesthetics  String[] @default([]) // axis 3 — per-set aesthetic tags
+  setFeatures String[] @default([]) // axis 4a — per-set physical features
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

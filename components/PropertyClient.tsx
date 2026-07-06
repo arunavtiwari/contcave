@@ -8,8 +8,6 @@ import { toast } from "sonner";
 
 import { deleteListingAction } from "@/app/actions/listingActions";
 import DeletePropertyModal from "@/components/modals/DeletePropertyModal";
-import { categories as CATEGORY_OPTIONS } from "@/components/navbar/categoriesData";
-import { SelectOption } from "@/components/ui/Select";
 import { usePropertyEdit } from "@/hooks/usePropertyEdit";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
@@ -25,8 +23,6 @@ type Props = {
     predefinedAmenities: Amenities[];
     predefinedAddons: Addon[];
 };
-
-const CATEGORY_OPTIONS_PREPARED: SelectOption[] = CATEGORY_OPTIONS.map((c) => ({ ...c, value: c.label }));
 
 const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Props) => {
     const searchParams = useSearchParams();
@@ -82,7 +78,6 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
                     <EditPropertyTab
                         initialListing={initialListing}
                         handleInputChange={handleInputChange}
-                        categoryOptionsPrepared={CATEGORY_OPTIONS_PREPARED}
                         handleAmenitiesChange={handleAmenitiesChange}
                         amenities={predefinedAmenities}
                         addons={addons}

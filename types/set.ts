@@ -8,6 +8,8 @@ export interface ListingSet {
     images: string[];
     price: number;
     position: number;
+    aesthetics: string[];
+    setFeatures: string[];
     createdAt: string | Date;
     updatedAt: string | Date;
 }
