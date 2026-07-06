@@ -41,6 +41,7 @@ export async function generateMetadata({
     return {
       title,
       description,
+      keywords: post.tags?.length ? post.tags : undefined,
       alternates: { canonical },
       openGraph: {
         type: "article",
@@ -111,6 +112,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
     publisher: { "@id": `${SITE_URL}/#localbusiness` },
     datePublished: post.publishedAt,
     dateModified: post.updatedAt ?? post.publishedAt,
+    keywords: post.tags?.length ? post.tags.join(", ") : undefined,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": absoluteUrl(`/blog/${id}`),
@@ -186,6 +188,22 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
                   return null;
               }
             })}
+
+            {post.tags?.length ? (
+              <div className="pt-8 border-t border-border">
+                <Heading title="Related Topics" variant="h6" className="text-foreground mb-4" />
+                <div className="flex flex-wrap gap-2">
+                  {post.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 rounded-full bg-foreground/5 border border-border text-foreground/70 text-xs"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </article>
         </Container>
       </section>
