@@ -58,7 +58,7 @@ function Footer() {
 
             <div className="flex flex-col space-y-3">
               <p className="text-lg font-bold text-foreground">Support</p>
-              <Link href="/about" className="text-muted-foreground hover:text-foreground transition-all text-sm">Help Center</Link>
+              <Link rel="noopener noreferrer" target="_blank" href="https://great-nova-7ea.notion.site/26d01ecdcb528023ad9fffbb25a4f65a?v=26d01ecdcb5280399b81000c9996a2e7" className="text-muted-foreground hover:text-foreground transition-all text-sm">For Studio Owners</Link>
               <Link href="/cancellation" className="text-muted-foreground hover:text-foreground transition-all text-sm">Cancellation Policy</Link>
               <EmailShield email="info@contcave.com" className="text-muted-foreground hover:text-foreground transition-all text-sm">Contact Us</EmailShield>
             </div>
