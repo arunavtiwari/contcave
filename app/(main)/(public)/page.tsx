@@ -11,6 +11,7 @@ import Hero from "@/components/landing/Hero";
 import HowItWorks from "@/components/landing/HowItWorks";
 import SocialProof from "@/components/landing/SocialProof";
 import StudioShowcase from "@/components/landing/StudioShowcase";
+import VerifiedVsCurated from "@/components/landing/VerifiedVsCurated";
 import {
   absoluteUrl,
   BRAND_NAME,
@@ -110,6 +111,9 @@ export default async function Home() {
 
       {/* 2. Studio Showcase —  3-card grid with live data */}
       <StudioShowcase listings={listings} />
+
+      {/* 2.5 Curated vs Verified —  trust comparison */}
+      <VerifiedVsCurated currentUser={currentUser} />
 
       {/* 3. For Brands & Agencies —  two-path layout */}
       <ForBrands />
