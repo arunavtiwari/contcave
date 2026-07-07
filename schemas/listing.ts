@@ -13,6 +13,7 @@ export const locationSchema = z.object({
     country: z.string().optional(),
     display_name: z.string().optional(),
     state: z.string().optional(),
+    propertyStateCode: z.string().regex(/^\d{2}$/, "Invalid GST state code").optional(),
     additionalInfo: z.string().max(200, "Additional info too long").optional(),
 });
 
@@ -126,6 +127,7 @@ export const listingBaseSchema = z.object({
     category: z.string().min(1, "Category is required").max(100),
     locationValue: z.string().min(1, "Location is required"),
     actualLocation: locationSchema.nullable(),
+    propertyStateCode: z.string().regex(/^\d{2}$/, "Invalid GST state code").optional().nullable(),
     imageSrc: z.array(imageSchema).min(1, "At least one image is required").max(30),
 
 

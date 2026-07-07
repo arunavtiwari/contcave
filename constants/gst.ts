@@ -8,7 +8,8 @@
 export const ARKANET_VENTURES_GST = {
     companyName: "Arkanet Ventures LLP",
     gstin: "09ACGFA5238G1ZE",
-    address: "Your registered address here", // TODO: Update with actual registered address
+    stateCode: "09",
+    address: "SN/317-A, Shanti Nagar, Lucknow, Uttar Pradesh - 226008",
 } as const;
 
 export const GST_RATE = 0.18;

@@ -42,6 +42,31 @@ enum ListingType {
   CURATED
 }
 
+enum InvoiceDocumentType {
+  CUSTOMER_STUDIO_TAX_INVOICE
+  CUSTOMER_ARKANET_TAX_INVOICE
+  OWNER_MONTHLY_COMMISSION_INVOICE
+  OWNER_MONTHLY_BILL_OF_SUPPLY
+}
+
+enum InvoicePartyType {
+  CUSTOMER
+  OWNER
+  STUDIO
+  ARKANET
+}
+
+enum InvoiceStatus {
+  DRAFT
+  GENERATED
+  STORED
+  EMAIL_PENDING
+  EMAIL_SENT
+  EMAIL_FAILED
+  RETRYING
+  DELIVERY_BLOCKED
+}
+
 /**
  * ---------------------------- Models -----------------------------
  */
@@ -121,6 +146,7 @@ model Listing {
   category                 String
   locationValue            String
   actualLocation           Json?
+  propertyStateCode        String?
   userId                   String                    @db.ObjectId
   price                    Int?
   user                     User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -406,23 +432,74 @@ model Transaction {
 }
 
 model Invoice {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  invoiceNumber String   @unique
-  userId        String   @db.ObjectId
-  reservationId String?  @db.ObjectId
-  transactionId String?  @db.ObjectId
-  billingId     String?  @db.ObjectId
-  amount        Float
-  gstAmount     Float?
-  totalAmount   Float
-  invoiceUrl    String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String              @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceNumber  String              @unique
+  userId         String              @db.ObjectId
+  reservationId  String?             @db.ObjectId
+  transactionId  String?             @db.ObjectId
+  billingId      String?             @db.ObjectId
+  amount         Float
+  gstAmount      Float?
+  totalAmount    Float
+  taxableValue   Float?
+  cgstRate       Float?
+  cgstAmount     Float?
+  sgstRate       Float?
+  sgstAmount     Float?
+  igstRate       Float?
+  igstAmount     Float?
+  invoiceUrl     String
+  documentType   InvoiceDocumentType @default(CUSTOMER_ARKANET_TAX_INVOICE)
+  issuerType     InvoicePartyType    @default(ARKANET)
+  recipientType  InvoicePartyType    @default(CUSTOMER)
+  financialYear  String?
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  issuedAt       DateTime?
+  generatedAt    DateTime?
+  storedAt       DateTime?
+  emailSentAt    DateTime?
+  sequence       Int?
+  idempotencyKey String?
+  status         InvoiceStatus       @default(STORED)
+  emailError     String?
+  retryCount     Int                 @default(0)
+  lineItems      Json?
+  totals         Json?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
   user           User            @relation(fields: [userId], references: [id])
   reservation    Reservation?    @relation(fields: [reservationId], references: [id])
   transaction    Transaction?    @relation(fields: [transactionId], references: [id])
   billingDetails BillingDetails? @relation(fields: [billingId], references: [id])
+
+  @@index([userId])
+  @@index([reservationId])
+  @@index([transactionId])
+  @@index([documentType])
+  @@index([status])
+  @@index([idempotencyKey])
+  @@index([periodStart, periodEnd])
+}
+
+model InvoiceSequence {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  scopeKey      String   @unique
+  financialYear String
+  series        String
+  ownerId       String?  @db.ObjectId
+  nextNumber    Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([financialYear, series])
+}
+
+model InvoiceIdempotencyLock {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  idempotencyKey String   @unique
+  createdAt      DateTime @default(now())
 }
 
 model AuditLog {

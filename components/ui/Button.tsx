@@ -1,3 +1,5 @@
+"use client";
+
 import { cva, type VariantProps } from "class-variance-authority";
 import Link from "next/link";
 import React from "react";
@@ -7,7 +9,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative font-medium cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none transition active:scale-[0.98] flex justify-center items-center gap-2 border",
+  "relative flex cursor-pointer items-center justify-center gap-2 border font-medium transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20",
   {
     variants: {
       variant: {
@@ -16,7 +18,7 @@ const buttonVariants = cva(
         destructive: "bg-destructive border-destructive text-destructive-foreground",
         ghost: "bg-transparent border-transparent text-foreground",
         secondary: "bg-background/10 border-background/20 text-background",
-        outline: "bg-background border-foreground/20 text-foreground",
+        outline: "bg-background border-border text-foreground hover:border-foreground/30 hover:bg-muted",
       },
       size: {
         sm: "h-10 px-4 text-sm",
@@ -39,16 +41,17 @@ const buttonVariants = cva(
       },
     },
     compoundVariants: [
-      { variant: "default", outline: true, className: "bg-background border-foreground text-foreground" },
+      { variant: "default", outline: true, className: "border-border bg-background text-foreground hover:border-foreground/30 hover:bg-muted" },
       { variant: "success", outline: true, className: "bg-background border-success text-success" },
       { variant: "destructive", outline: true, className: "bg-background border-destructive text-destructive" },
       { variant: "ghost", outline: true, className: "bg-transparent border-border text-foreground" },
       { variant: "secondary", outline: true, className: "border-background/20 text-background" },
+      { isIconOnly: true, outline: true, className: "border-border bg-background text-foreground hover:border-foreground/30 hover:bg-muted" },
       // Icon only sizes
       { isIconOnly: true, size: "sm", className: "w-9 h-9 p-0" },
       { isIconOnly: true, size: "md", className: "w-11 h-11 p-0" },
       { isIconOnly: true, size: "lg", className: "w-12 h-12 p-0" },
-      { isIconOnly: true, className: "rounded-lg border-none active:scale-95" },
+      { isIconOnly: true, className: "rounded-xl active:scale-95" },
     ],
     defaultVariants: {
       variant: "default",
@@ -67,6 +70,7 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement | HTMLAncho
   href?: string;
   target?: "_blank" | "_self";
   className?: string;
+  tooltip?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
@@ -88,6 +92,8 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
       className,
       children,
       disabled,
+      tooltip,
+      title,
       onClick,
       ...props
     },
@@ -95,8 +101,10 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
   ) => {
     const computedIsIconOnly = isIconOnly !== undefined ? isIconOnly : (!label && !!Icon && !children);
 
+    const computedFit = computedIsIconOnly ? true : fit;
+
     const finalClasses = cn(
-      buttonVariants({ variant, size, outline, rounded, fit, isIconOnly: computedIsIconOnly }),
+      buttonVariants({ variant, size, outline, rounded, fit: computedFit, isIconOnly: computedIsIconOnly }),
       className
     );
 
@@ -104,7 +112,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
       sm: 16,
       md: 20,
       lg: 24,
-    }[size || "md"];
+    }[size || "sm"];
 
     const content = (
       <>
@@ -125,33 +133,36 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
       </>
     );
 
-    if (href) {
-      return (
+    const commonProps = {
+      ...props,
+      title: tooltip || title,
+    };
+
+    const button = href ? (
         <Link
           href={href}
           target={target}
           rel={target === "_blank" ? "noopener noreferrer" : undefined}
           className={finalClasses}
           ref={ref as React.Ref<HTMLAnchorElement>}
-          {...props}
+          {...commonProps}
         >
           {content}
         </Link>
-      );
-    }
-
-    return (
+    ) : (
       <button
         type={type as "button" | "submit" | "reset"}
         disabled={disabled || loading}
         onClick={onClick}
         className={finalClasses}
         ref={ref as React.Ref<HTMLButtonElement>}
-        {...props}
+        {...commonProps}
       >
         {content}
       </button>
     );
+
+    return button;
   }
 );
 

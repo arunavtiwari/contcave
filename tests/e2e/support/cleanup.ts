@@ -133,9 +133,10 @@ export async function cleanupE2ERun(state: RunState) {
         { transactionId: { in: transactionIds } },
       ],
     },
-    select: { id: true, invoiceUrl: true },
+    select: { id: true, invoiceUrl: true, idempotencyKey: true },
   });
   const invoiceIds = unique([...state.created.invoice, ...invoices.map((invoice) => invoice.id)]);
+  const invoiceIdempotencyKeys = unique(invoices.map((invoice) => invoice.idempotencyKey));
 
   const r2Keys = [
     ...state.created.r2Key,
@@ -151,6 +152,7 @@ export async function cleanupE2ERun(state: RunState) {
     .filter((key): key is string => !!key);
 
   await prisma.invoice.deleteMany({ where: { id: { in: invoiceIds } } });
+  await prisma.invoiceIdempotencyLock.deleteMany({ where: { idempotencyKey: { in: invoiceIdempotencyKeys } } });
   await prisma.review.deleteMany({
     where: {
       OR: [

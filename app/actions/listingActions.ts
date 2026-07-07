@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import { createAction } from "@/lib/actions-utils";
 import { ListingService } from "@/lib/listing/service";
 import { decryptAndSanitizePaymentDetails } from "@/lib/payment-details";
@@ -382,6 +383,7 @@ const curatedListingSchema = z.object({
     description: z.string().min(10).max(5000),
     category: z.string().min(1),
     locationValue: z.string().min(1),
+    propertyStateCode: z.string().regex(/^\d{2}$/).optional().nullable(),
     imageSrc: z.array(z.string().url()).min(1),
     mapsUrl: z.string().url().optional().or(z.literal("")),
     websiteUrl: z.string().url().optional().or(z.literal("")),
@@ -402,6 +404,7 @@ export const createCuratedListingAction = createAction(
                 description: data.description,
                 category: data.category,
                 locationValue: data.locationValue,
+                propertyStateCode: data.propertyStateCode || getGstStateCodeFromStateName(data.locationValue),
                 imageSrc: data.imageSrc,
                 mapsUrl: data.mapsUrl || null,
                 websiteUrl: data.websiteUrl || null,

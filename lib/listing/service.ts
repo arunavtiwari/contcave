@@ -1,5 +1,6 @@
 import { AdditionalSetPricingType, Prisma } from "@prisma/client";
 
+import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import prisma from "@/lib/prismadb";
 import { isRichTextEmpty } from "@/lib/richText";
 import { generateUniqueSlug } from "@/lib/slug";
@@ -150,7 +151,7 @@ export class ListingService {
         const {
             id,
             listingType,
-            title, description, imageSrc, category, locationValue, actualLocation,
+            title, description, imageSrc, category, locationValue, actualLocation, propertyStateCode,
             price, amenities, otherAmenities, addons, carpetArea, operationalDays,
             operationalHours, minimumBookingHours, maximumPax, instantBooking, type,
             venueTypes, aesthetics, setFeatures,
@@ -167,6 +168,10 @@ export class ListingService {
         const priceValue = Math.round(Number(price) || 0);
         const privacySafeLatLng = jitterLatLng((actualLocation as { latlng?: unknown })?.latlng);
         const finalActualLocation = { ...(actualLocation as Record<string, unknown>), latlng: privacySafeLatLng || [0, 0] };
+        const finalPropertyStateCode =
+            propertyStateCode ||
+            (actualLocation as { propertyStateCode?: string } | null)?.propertyStateCode ||
+            getGstStateCodeFromStateName((actualLocation as { state?: string } | null)?.state);
         const newSlug = await generateUniqueSlug(slug || trimmedTitle);
         const finalAddons = toNullableJson(addons);
         const finalOperationalDays = toNullableJson(operationalDays);
@@ -185,6 +190,7 @@ export class ListingService {
                     category: String(category || "").trim(),
                     locationValue: String(locationValue || "").trim(),
                     actualLocation: toNullableJson(finalActualLocation),
+                    propertyStateCode: finalPropertyStateCode,
                     price: priceValue,
                     user: { connect: { id: userId } },
                     amenities: sanitizeStringList(amenities),
@@ -310,6 +316,10 @@ export class ListingService {
                 ...loc,
                 latlng: privacySafeLatLng || [0, 0]
             } as typeof loc;
+            listingData.propertyStateCode =
+                listingData.propertyStateCode ||
+                loc.propertyStateCode ||
+                getGstStateCodeFromStateName(loc.state);
         }
         const sanitizedListingData = sanitizeListingJsonFields(listingData as Record<string, unknown>);
 
