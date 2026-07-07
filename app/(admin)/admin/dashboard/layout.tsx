@@ -7,7 +7,7 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import { isAdmin } from "@/lib/user/permissions";
 
 export const metadata: Metadata = {
-    title: "Admin Dashboard",
+    title: "Dashboard",
     description: "Contcave Admin Dashboard",
     robots: {
         index: false,

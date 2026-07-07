@@ -9,7 +9,6 @@ import {
     FiCheck,
     FiClock,
     FiExternalLink,
-    FiEye,
     FiFileText,
     FiLayers,
     FiMapPin,
@@ -655,16 +654,17 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                                             {formatISTDate(listing.createdAt, { day: "numeric", month: "short", year: "numeric" })}
                                         </td>
                                         <td className="px-5 py-4 text-right">
-                                            <button
-                                                type="button"
-                                                aria-label={`Review ${listing.title}`}
-                                                title="Review listing"
-                                                data-testid={`review-listing-${listing.id}`}
-                                                onClick={() => setSelected(listing)}
-                                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-foreground transition hover:border-foreground/30 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
-                                            >
-                                                <FiEye />
-                                            </button>
+                                            <div className="flex justify-end">
+                                                <Button
+                                                    icon={FiExternalLink}
+                                                    isIconOnly
+                                                    outline
+                                                    aria-label={`Open listing review: ${listing.title}`}
+                                                    tooltip="Open review"
+                                                    data-testid={`review-listing-${listing.id}`}
+                                                    onClick={() => setSelected(listing)}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

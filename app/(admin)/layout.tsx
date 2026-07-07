@@ -14,8 +14,8 @@ import { BRAND_NAME, SITE_URL } from "@/lib/seo";
 export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),
     title: {
-        default: 'Admin Portal',
-        template: `%s | Admin | ${BRAND_NAME}`
+        default: `${BRAND_NAME} Admin`,
+        template: `%s | ${BRAND_NAME} Admin`
     },
     description: 'Secure Management Portal',
     robots: {

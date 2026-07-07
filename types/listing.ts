@@ -27,6 +27,7 @@ export type ActualLocation = {
     flag?: string;
     country?: string;
     display_name?: string;
+    propertyStateCode?: string;
     additionalInfo?: string;
     [key: string]: unknown;
 };
