@@ -18,13 +18,13 @@ import { CATEGORY_TO_VENUE_TYPES, normaliseUseCase } from "../lib/taxonomy";
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log("Starting taxonomy migration…");
+    console.warn("Starting taxonomy migration…");
 
     const listings = await prisma.listing.findMany({
         select: { id: true, category: true, type: true, venueTypes: true, hasSets: true },
     });
 
-    console.log(`Found ${listings.length} listings to migrate`);
+    console.warn(`Found ${listings.length} listings to migrate`);
 
     let updated = 0;
     let skipped = 0;
@@ -72,10 +72,10 @@ async function main() {
         }
 
         updated++;
-        if (updated % 50 === 0) console.log(`  … ${updated} listings updated`);
+        if (updated % 50 === 0) console.warn(`  … ${updated} listings updated`);
     }
 
-    console.log(`\nMigration complete. Updated: ${updated}, Skipped: ${skipped}`);
+    console.warn(`\nMigration complete. Updated: ${updated}, Skipped: ${skipped}`);
 }
 
 main()

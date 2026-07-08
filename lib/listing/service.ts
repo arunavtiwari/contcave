@@ -33,6 +33,24 @@ const JSON_FIELD_KEYS = new Set([
     "verifications",
 ]);
 
+const LISTING_UPDATE_KEYS = new Set(
+    Object.keys(listingBaseSchema.shape).filter((key) => key !== "id" && key !== "agreementSignature")
+);
+
+function parseListingUpdateBody(body: Record<string, unknown>): Record<string, unknown> {
+    const rawUpdateData = Object.entries(body).reduce<Record<string, unknown>>((acc, [key, value]) => {
+        if (LISTING_UPDATE_KEYS.has(key)) acc[key] = value;
+        return acc;
+    }, {});
+
+    const parsed = listingBaseSchema.partial().parse(rawUpdateData) as Record<string, unknown>;
+
+    return Object.keys(rawUpdateData).reduce<Record<string, unknown>>((acc, key) => {
+        acc[key] = parsed[key];
+        return acc;
+    }, {});
+}
+
 function isFileLike(value: object): boolean {
     const candidate = value as {
         name?: unknown;
@@ -89,6 +107,60 @@ function sanitizeListingJsonFields<T extends Record<string, unknown>>(data: T): 
     }
 
     return sanitized;
+}
+
+function isJsonEqual(a: unknown, b: unknown): boolean {
+    return JSON.stringify(toJsonCompatible(a)) === JSON.stringify(toJsonCompatible(b));
+}
+
+interface PackageCompare {
+    title: string;
+    description: string | null;
+    originalPrice: number;
+    offeredPrice: number;
+    features: string[];
+    durationHours: number;
+    requiredSetCount: number | null;
+    fixedAddOn: number | null;
+    eligibleSetIds: string[];
+    isActive: boolean;
+}
+
+interface SetCompare {
+    name: string;
+    description: string | null;
+    images: string[];
+    price: number;
+    position: number;
+    aesthetics: string[];
+    setFeatures: string[];
+}
+
+function isPackageEqual(a: PackageCompare, b: PackageCompare): boolean {
+    return (
+        a.title === b.title &&
+        a.originalPrice === b.originalPrice &&
+        a.offeredPrice === b.offeredPrice &&
+        a.durationHours === b.durationHours &&
+        a.requiredSetCount === b.requiredSetCount &&
+        a.description === b.description &&
+        a.fixedAddOn === b.fixedAddOn &&
+        a.isActive === b.isActive &&
+        JSON.stringify(a.features) === JSON.stringify(b.features) &&
+        JSON.stringify(a.eligibleSetIds) === JSON.stringify(b.eligibleSetIds)
+    );
+}
+
+function isSetEqual(a: SetCompare, b: SetCompare): boolean {
+    return (
+        a.name === b.name &&
+        a.description === b.description &&
+        a.price === b.price &&
+        a.position === b.position &&
+        JSON.stringify(a.images) === JSON.stringify(b.images) &&
+        JSON.stringify(a.aesthetics) === JSON.stringify(b.aesthetics) &&
+        JSON.stringify(a.setFeatures) === JSON.stringify(b.setFeatures)
+    );
 }
 
 export class ListingService {
@@ -291,81 +363,165 @@ export class ListingService {
     }
 
     static async updateListing(userId: string, listingId: string, body: Record<string, unknown>): Promise<FullListing> {
-        const validated = listingBaseSchema.partial().parse(body);
-        const { packages, sets, ...listingData } = validated;
+        const validated = parseListingUpdateBody(body);
+        const { packages, sets: validatedSets, ...listingData } = validated;
+        let sets = validatedSets;
 
-        // 1. Permission Check
+        // 1. Fetch listing for permission and comparison
         const existingListing = await prisma.listing.findUnique({
             where: { id: listingId },
-            select: { userId: true },
         });
-        if (!existingListing || existingListing.userId !== userId) throw new Error("Permission denied");
+        if (!existingListing) throw new Error("Listing not found");
+        if (existingListing.userId !== userId) throw new Error("Permission denied");
+        if (listingData.hasSets === false && existingListing.hasSets && !Array.isArray(sets)) {
+            sets = [];
+        }
 
         // 2. Normalization
         if (listingData.description && isRichTextEmpty(listingData.description as string)) throw new Error("Description cannot be empty");
 
         if (listingData.unifiedSetPrice != null) listingData.unifiedSetPrice = Math.round(Number(listingData.unifiedSetPrice));
         if (listingData.price != null) listingData.price = Math.round(Number(listingData.price));
-        if (listingData.slug) listingData.slug = slugify(listingData.slug);
+        if (listingData.slug) listingData.slug = slugify(String(listingData.slug));
 
         // 3. Normalized Location (Privacy Jitter)
-        const loc = listingData.actualLocation;
+        const loc = listingData.actualLocation as { latlng?: unknown; propertyStateCode?: string; state?: string } | null | undefined;
         if (loc) {
-            const privacySafeLatLng = jitterLatLng(loc.latlng);
-            listingData.actualLocation = {
-                ...loc,
-                latlng: privacySafeLatLng || [0, 0]
-            } as typeof loc;
-            listingData.propertyStateCode =
-                listingData.propertyStateCode ||
-                loc.propertyStateCode ||
-                getGstStateCodeFromStateName(loc.state);
+            if (!isJsonEqual(loc, existingListing.actualLocation)) {
+                const privacySafeLatLng = jitterLatLng(loc.latlng);
+                listingData.actualLocation = {
+                    ...loc,
+                    latlng: privacySafeLatLng || [0, 0]
+                } as typeof loc;
+                listingData.propertyStateCode =
+                    listingData.propertyStateCode ||
+                    loc.propertyStateCode ||
+                    getGstStateCodeFromStateName(loc.state);
+            }
         }
         const sanitizedListingData = sanitizeListingJsonFields(listingData as Record<string, unknown>);
 
+        // Check if main listing actually has changes
+        const hasMainListingChanges = Object.keys(sanitizedListingData).some(key => {
+            const val = (sanitizedListingData as Record<string, unknown>)[key];
+            const existingVal = (existingListing as unknown as Record<string, unknown>)[key];
+            if (val && typeof val === "object") return !isJsonEqual(val, existingVal);
+            return val !== existingVal;
+        });
+
+        const shouldValidateSetCount = Array.isArray(sets) || listingData.hasSets === true;
+        const shouldFetchSets = Array.isArray(sets) || Array.isArray(packages) || listingData.hasSets === true;
+        const [existingPkgs, existingSets] = await Promise.all([
+            Array.isArray(packages)
+                ? prisma.package.findMany({ where: { listingId } })
+                : Promise.resolve([]),
+            shouldFetchSets
+                ? prisma.listingSet.findMany({ where: { listingId }, orderBy: [{ price: "asc" }, { position: "asc" }] })
+                : Promise.resolve([]),
+        ]);
+        const nextHasSets = typeof listingData.hasSets === "boolean" ? listingData.hasSets : existingListing.hasSets;
+        const nextSetCount = Array.isArray(sets) ? sets.length : existingSets.length;
+        if (shouldValidateSetCount && nextHasSets && nextSetCount < 2) {
+            throw new Error("Multi-set listings must have at least 2 sets");
+        }
+
         // 4. Atomic Transaction
-        return await prisma.$transaction(async (tx) => {
-            // Update Main Listing
-            if (Object.keys(sanitizedListingData).length > 0) {
+        const hasChanges = await prisma.$transaction(async (tx) => {
+            let hasChanges = false;
+
+            // Update Main Listing if changed
+            if (hasMainListingChanges && Object.keys(sanitizedListingData).length > 0) {
+                hasChanges = true;
                 await tx.listing.update({
                     where: { id: listingId },
                     data: {
                         ...sanitizedListingData,
-                        videoSrc: body.videoSrc !== undefined ? (body.videoSrc as string | null) : undefined,
                     } as Prisma.ListingUpdateInput,
                 });
             }
 
             // Sync Packages
+            if (listingData.hasSets === false && existingListing.hasSets) {
+                hasChanges = true;
+                await tx.package.updateMany({
+                    where: { listingId },
+                    data: {
+                        requiredSetCount: null,
+                        fixedAddOn: null,
+                        eligibleSetIds: [],
+                    },
+                });
+            }
+
             if (Array.isArray(packages)) {
-                const existing = await tx.package.findMany({ where: { listingId }, select: { id: true } });
-                const incomingIds = new Set(packages.map((pkg: unknown) => (pkg as { id?: string }).id).filter(Boolean));
-                const toDelete = existing.filter(p => !incomingIds.has(p.id)).map(p => p.id);
-                if (toDelete.length > 0) await tx.package.deleteMany({ where: { id: { in: toDelete } } });
+                const incomingIds = new Set(packages.map((pkg: { id?: string }) => pkg.id).filter(Boolean));
+                const toDelete = existingPkgs.filter(p => !incomingIds.has(p.id)).map(p => p.id);
+                const validEligibleSetIds = new Set(
+                    Array.isArray(sets)
+                        ? sets
+                            .map((set) => (set as { id?: string }).id)
+                            .filter((id): id is string => typeof id === "string" && existingSets.some((existingSet) => existingSet.id === id))
+                        : existingSets.map((set) => set.id)
+                );
+
+                if (toDelete.length > 0) {
+                    hasChanges = true;
+                    await tx.package.deleteMany({ where: { id: { in: toDelete } } });
+                }
 
                 for (const pkg of packages) {
-                    const p = pkg as { title?: string; originalPrice?: number; offeredPrice?: number; features?: string[]; durationHours?: number; requiredSetCount?: number; id?: string };
+                    const p = pkg as {
+                        title?: string;
+                        description?: string | null;
+                        originalPrice?: number;
+                        offeredPrice?: number;
+                        features?: string[];
+                        durationHours?: number;
+                        requiredSetCount?: number | null;
+                        fixedAddOn?: number | null;
+                        eligibleSetIds?: string[];
+                        isActive?: boolean;
+                        id?: string;
+                    };
+                    const eligibleSetIds = Array.isArray(p.eligibleSetIds) ? p.eligibleSetIds.map(String).filter(Boolean) : [];
+                    const invalidEligibleSetIds = nextHasSets ? eligibleSetIds.filter((id) => !validEligibleSetIds.has(id)) : [];
+                    if (invalidEligibleSetIds.length > 0) throw new Error("Invalid package set eligibility");
+
                     const pData = {
                         title: String(p.title || "").trim(),
+                        description: p.description ? String(p.description).trim().slice(0, 500) : null,
                         originalPrice: Math.round(Number(p.originalPrice) || 0),
                         offeredPrice: Math.round(Number(p.offeredPrice) || 0),
                         features: Array.isArray(p.features) ? p.features.map((f: unknown) => String(f)) : [],
                         durationHours: Math.round(Number(p.durationHours) || 0),
-                        requiredSetCount: p.requiredSetCount ? Number(p.requiredSetCount) : null,
+                        requiredSetCount: nextHasSets && p.requiredSetCount ? Number(p.requiredSetCount) : null,
+                        fixedAddOn: nextHasSets && p.fixedAddOn != null ? Math.max(0, Number(p.fixedAddOn)) : null,
+                        eligibleSetIds: nextHasSets ? eligibleSetIds : [],
+                        isActive: p.isActive !== false,
                         listingId,
                     };
-                    if (p.id) await tx.package.update({ where: { id: p.id }, data: pData });
-                    else await tx.package.create({ data: pData });
+
+                    if (p.id) {
+                        const existing = existingPkgs.find(ep => ep.id === p.id);
+                        if (!existing) throw new Error("Invalid package for listing");
+                        if (!isPackageEqual(pData, existing)) {
+                            hasChanges = true;
+                            await tx.package.update({ where: { id: p.id }, data: pData });
+                        }
+                    } else {
+                        hasChanges = true;
+                        await tx.package.create({ data: pData });
+                    }
                 }
             }
 
             // Sync Sets
             if (Array.isArray(sets)) {
-                const existing = await tx.listingSet.findMany({ where: { listingId }, select: { id: true } });
-                const incomingIds = new Set(sets.map((s: unknown) => (s as { id?: string }).id).filter(Boolean));
-                const toDelete = existing.filter(s => !incomingIds.has(s.id)).map(s => s.id);
+                const incomingIds = new Set(sets.map((s: { id?: string }) => s.id).filter(Boolean));
+                const toDelete = existingSets.filter(s => !incomingIds.has(s.id)).map(s => s.id);
 
                 if (toDelete.length > 0) {
+                    hasChanges = true;
                     const futureRes = await tx.reservation.findFirst({
                         where: { listingId, setIds: { hasSome: toDelete }, startDate: { gte: new Date() }, markedForDeletion: false }
                     });
@@ -385,16 +541,27 @@ export class ListingService {
                         setFeatures: Array.isArray(setData.setFeatures) ? setData.setFeatures.map(String) : [],
                         listingId,
                     };
-                    if (setData.id) await tx.listingSet.update({ where: { id: setData.id }, data: sData });
-                    else await tx.listingSet.create({ data: sData });
+
+                    if (setData.id) {
+                        const existing = existingSets.find(es => es.id === setData.id);
+                        if (!existing) throw new Error("Invalid set for listing");
+                        if (!isSetEqual(sData, existing)) {
+                            hasChanges = true;
+                            await tx.listingSet.update({ where: { id: setData.id }, data: sData });
+                        }
+                    } else {
+                        hasChanges = true;
+                        await tx.listingSet.create({ data: sData });
+                    }
                 }
             }
 
-            return await tx.listing.findUnique({
-                where: { id: listingId },
-                include: { packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, user: true },
-            }) as unknown as FullListing;
+            return hasChanges;
         });
+
+        const updatedListing = await ListingService.findById(listingId);
+        if (!updatedListing) throw new Error(hasChanges ? "Listing update failed" : "Listing not found");
+        return updatedListing;
     }
 
     /**

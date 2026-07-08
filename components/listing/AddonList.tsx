@@ -3,6 +3,7 @@ import "swiper/css/free-mode";
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { FiImage } from "react-icons/fi";
 import { FreeMode } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
@@ -39,15 +40,25 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
 
   return (
     <div className="flex gap-4 items-center bg-muted/30 rounded-lg p-2 border border-border/10 shadow-xs">
-      <div className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden">
-        <Image
-          src={resolvedImg}
-          alt={addon.name}
-          fill
-          sizes="64px"
-          className="object-cover"
-        />
-      </div>
+      {resolvedImg.trim() ? (
+        <div className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden bg-muted">
+          <Image
+            src={resolvedImg}
+            alt={addon.name}
+            fill
+            sizes="64px"
+            className="object-cover"
+          />
+        </div>
+      ) : (
+        <div
+          className="h-16 w-16 shrink-0 rounded-lg bg-muted border border-border/40 flex flex-col items-center justify-center gap-0.5 text-muted-foreground"
+          aria-label={`${addon.name} image not available`}
+        >
+          <FiImage size={18} aria-hidden="true" />
+          <span className="text-[9px] font-medium leading-none">No image</span>
+        </div>
+      )}
 
       <div className="text-sm overflow-hidden flex flex-col gap-2 w-full">
         <div className="flex flex-col gap-0.5 w-full">

@@ -265,8 +265,33 @@ export const createListingAction = createAction(
     }
 );
 
+const listingUpdateActionSchema = z.object({ id: z.string().min(1) }).passthrough().transform((input, ctx) => {
+    const listingKeys = new Set(
+        Object.keys(listingBaseSchema.shape).filter((key) => key !== "id" && key !== "agreementSignature")
+    );
+    const rawUpdateData = Object.entries(input).reduce<Record<string, unknown>>((acc, [key, value]) => {
+        if (listingKeys.has(key)) acc[key] = value;
+        return acc;
+    }, {});
+
+    const parsed = listingBaseSchema.partial().safeParse(rawUpdateData);
+    if (!parsed.success) {
+        for (const issue of parsed.error.issues) {
+            ctx.addIssue({ code: "custom", message: issue.message, path: issue.path });
+        }
+        return z.NEVER;
+    }
+
+    const updateData = Object.keys(rawUpdateData).reduce<Record<string, unknown>>((acc, key) => {
+        acc[key] = (parsed.data as Record<string, unknown>)[key];
+        return acc;
+    }, {});
+
+    return { id: input.id, ...updateData };
+});
+
 export const updateListingAction = createAction(
-    listingBaseSchema.partial().extend({ id: z.string().min(1) }),
+    listingUpdateActionSchema,
     { requireAuth: true, allowedRoles: ["OWNER", "ADMIN"] },
     async (data, { user }) => {
         const { id, ...updateData } = data;

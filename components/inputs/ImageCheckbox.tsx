@@ -4,6 +4,7 @@ import { AnimatePresence,motion } from 'framer-motion';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { IconType } from 'react-icons';
+import { FiImage } from 'react-icons/fi';
 
 import { cn } from '@/lib/utils';
 import { Addon } from "@/types/addon";
@@ -94,9 +95,11 @@ const ImageCheckbox = ({
 
     return (
       <div
-        className="rounded-xl w-14 h-14 bg-muted/20 border border-dashed border-border/40 flex items-center justify-center text-muted-foreground/20 text-[8px] font-black shrink-0"
+        className="w-14 h-14 rounded-xl bg-muted shrink-0 border border-border/40 flex flex-col items-center justify-center gap-0.5 text-muted-foreground"
+        aria-label={`${label || "Addon"} image not available`}
       >
-        <span>N/A</span>
+        <FiImage size={17} aria-hidden="true" />
+        <span className="text-[9px] font-medium leading-none">No image</span>
       </div>
     );
   };
@@ -128,11 +131,6 @@ const ImageCheckbox = ({
           )}>
             {label}
           </h4>
-          {isChecked && (
-            <p className="text-sm text-foreground/40 font-medium mt-0.5">
-              Active selection
-            </p>
-          )}
         </div>
 
         {/* Selection Control */}
@@ -156,7 +154,7 @@ const ImageCheckbox = ({
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="pt-4 mt-4 border-t border-muted/5 grid grid-cols-2 gap-4">
+              <div className="mt-3 pt-3 border-t border-border/40 grid grid-cols-2 gap-3">
                 <div className='w-full'>
                   <Input
                     id={`addon-price-${label}`}
