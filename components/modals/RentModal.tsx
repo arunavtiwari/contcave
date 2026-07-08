@@ -20,6 +20,7 @@ import { SignatureMeta, TermsRef } from "@/components/inputs/TermsAndConditions"
 import Modal from "@/components/modals/Modal";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useUIStore from "@/hooks/useUIStore";
+import { uploadListingMedia } from "@/lib/listing/mediaUpload";
 import { isRichTextEmpty } from "@/lib/richText";
 import { uploadToR2 } from "@/lib/storage/upload";
 import {
@@ -44,8 +45,6 @@ import SetsStep from "./rent-steps/SetsStep";
 import TermsStep from "./rent-steps/TermsStep";
 import VerificationStep from "./rent-steps/VerificationStep";
 import VideoStep from "./rent-steps/VideoStep";
-
-// removed unused LocationValue type
 
 enum STEPS {
   LISTING_TYPE = -1,
@@ -246,7 +245,6 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
   });
   const listingType = watch("listingType") as "STANDARD" | "CURATED";
   const isCurated = listingType === "CURATED";
-  const category = watch("category");
   const actualLocation = watch("actualLocation") as LocationSchema | null;
   const locationValue = watch("locationValue");
   const imageSrc = watch("imageSrc");
@@ -757,7 +755,6 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       actualLocation,
       additionalSetPricingType,
       addressError,
-      category,
       categoryError,
       cityError,
       customTerms,
@@ -803,6 +800,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       validateSetsStep,
       validateVerificationStep,
       validateVideoStep,
+      venueTypes,
       verificationError,
       verifications,
       videoSrc,
@@ -891,31 +889,19 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
 
     try {
       const listingId = createObjectId();
-      const finalImageUrls = await uploadToR2(remoteImages, `listings/${listingId}/media/main`);
 
-      let finalVideoUrl = data.videoSrc;
-      if (data.videoSrc && data.videoSrc.startsWith('blob:')) {
-        const uploadedVideos = await uploadToR2([data.videoSrc], `listings/${listingId}/media/videos`);
-        finalVideoUrl = uploadedVideos[0];
-      }
+      const mediaResults = await uploadListingMedia(listingId, {
+        imageSrc: remoteImages,
+        videoSrc: data.videoSrc,
+        sets: data.hasSets ? data.sets : [],
+        addons: data.addons,
+      });
 
-      if (finalImageUrls.length === 0) {
+      if (mediaResults.imageSrc.length === 0) {
         setIsLoading(false);
         setIsSubmitting(false);
         return toast.error("Please upload at least one image");
       }
-
-      const finalAddons = await Promise.all(
-        (Array.isArray(data.addons) ? data.addons : []).map(async (addon) => {
-          const addonId = addon.id || createObjectId();
-          let imageUrl = addon.imageUrl || "";
-          if (imageUrl.startsWith("blob:")) {
-            const [uploadedUrl] = await uploadToR2([imageUrl], `listings/${listingId}/addons/${addonId}`);
-            imageUrl = uploadedUrl;
-          }
-          return { ...addon, id: addonId, imageUrl };
-        })
-      );
 
       const storedVerifications = toStoredVerificationPayload(data.verifications);
 
@@ -924,8 +910,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         listingType: data.listingType ?? "STANDARD",
         title: data.title,
         description: data.description,
-        imageSrc: finalImageUrls,
-        videoSrc: finalVideoUrl,
+        imageSrc: mediaResults.imageSrc,
+        videoSrc: mediaResults.videoSrc,
         category: data.category,
         locationValue,
         actualLocation: {
@@ -940,7 +926,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         instagramHandle: data.instagramHandle || null,
         amenities: Array.isArray(data.amenities) ? data.amenities : [],
         otherAmenities: Array.isArray(data.otherAmenities) ? data.otherAmenities : [],
-        addons: finalAddons,
+        addons: mediaResults.addons,
         carpetArea: data.carpetArea || 0,
         operationalHours: (data.operationalHours?.start && data.operationalHours?.end) ? {
           start: String(data.operationalHours.start),
@@ -970,28 +956,17 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         unifiedSetPrice: data.setsHaveSamePrice ? Number(data.unifiedSetPrice) : undefined,
         additionalSetPricingType: data.hasSets ? data.additionalSetPricingType : null,
 
-        sets: data.hasSets ? (data.sets ?? []).map((s, i) => ({
-          id: s.id && /^[0-9a-fA-F]{24}$/.test(s.id) ? s.id : createObjectId(),
+        sets: mediaResults.sets.map((s) => ({
+          id: s.id,
           name: String(s.name).trim(),
           description: s.description ? String(s.description).trim() : null,
-          images: Array.isArray(s.images) ? (s.images as string[]) : [],
+          images: s.images || [],
           price: Number(s.price || 0),
-          position: i,
+          position: s.position,
           aesthetics: s.aesthetics ?? [],
           setFeatures: s.setFeatures ?? [],
-        })) : [],
+        })),
       };
-
-      const finalSets = [...payload.sets];
-      if (data.hasSets && finalSets.length > 0) {
-        for (let i = 0; i < finalSets.length; i++) {
-          const set = finalSets[i];
-          if (set.images && set.images.length > 0) {
-            finalSets[i].images = await uploadToR2(set.images, `listings/${listingId}/media/sets/${set.id}`);
-          }
-        }
-      }
-      payload.sets = finalSets;
 
       const createdListing = await createListingAction(payload);
       if (!createdListing.success) {

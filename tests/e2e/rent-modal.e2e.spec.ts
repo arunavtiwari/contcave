@@ -53,9 +53,9 @@ test.describe("rent modal staging flow", () => {
     await expect(page.getByTestId("rent-modal-step-category")).toBeVisible();
 
     await page.getByTestId("rent-modal-primary-action").click();
-    await expect(page.getByText(/please select a category/i)).toBeVisible();
+    await expect(page.getByText(/please select at least one space type/i)).toBeVisible();
 
-    await page.getByRole("button", { name: /indoor studio/i }).click();
+    await page.getByRole("button", { name: /shoot studio/i }).click();
     await page.getByTestId("rent-modal-primary-action").click();
     await selectReactOption(page, "input#city-select", "Delhi", "Delhi");
     await page.getByTestId("rent-modal-primary-action").click();

@@ -213,7 +213,7 @@ export async function createListingViaRentModal(page: Page, title: string) {
   await chooseStandardListingTypeIfPresent(page);
   await waitForRentStep(page, "category");
 
-  await page.getByRole("button", { name: /indoor studio/i }).click();
+  await page.getByRole("button", { name: /shoot studio/i }).click();
   await page.getByTestId("rent-modal-primary-action").click();
   await waitForRentStep(page, "location");
 
@@ -252,7 +252,7 @@ export async function createListingViaRentModal(page: Page, title: string) {
   await otherDetailsStep.locator("#carpetArea").fill("1200");
   await otherDetailsStep.locator("#maximumPax").fill("12");
   await otherDetailsStep.locator("#minimumBookingHours").fill("2");
-  await otherDetailsStep.getByText("Fashion Shoot").click();
+  await otherDetailsStep.getByText("Fashion & Lifestyle").click();
   await otherDetailsStep.getByText("Instant Booking").click();
   await page.getByTestId("rent-modal-primary-action").click();
   await waitForRentStep(page, "custom-terms");
