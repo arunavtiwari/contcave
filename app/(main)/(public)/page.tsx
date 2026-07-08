@@ -6,9 +6,9 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import getRandomListings from "@/app/actions/getRandomListings";
 import CTA from "@/components/landing/CTA";
 import FAQ from "@/components/landing/FAQ";
-import ForBrands from "@/components/landing/ForBrands";
 import Hero from "@/components/landing/Hero";
 import HowItWorks from "@/components/landing/HowItWorks";
+import ProductionConcierge from "@/components/landing/ProductionConcierge";
 import SocialProof from "@/components/landing/SocialProof";
 import StudioShowcase from "@/components/landing/StudioShowcase";
 import VerifiedVsCurated from "@/components/landing/VerifiedVsCurated";
@@ -115,8 +115,8 @@ export default async function Home() {
       {/* 2.5 Curated vs Verified —  trust comparison */}
       <VerifiedVsCurated currentUser={currentUser} />
 
-      {/* 3. For Brands & Agencies —  two-path layout */}
-      <ForBrands />
+      {/* 3. Production Concierge —  dark feature card + WhatsApp CTA */}
+      <ProductionConcierge />
 
       {/* 4. How It Works —  3-step flow */}
       <HowItWorks />
