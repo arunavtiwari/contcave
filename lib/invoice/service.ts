@@ -8,6 +8,7 @@ import {
 
 import { ARKANET_VENTURES_GST, DEFAULT_SAC_CODE, GST_RATE, PLATFORM_COMMISSION_PERCENT } from "@/constants/gst";
 import { GST_STATE_NAMES_BY_CODE, isValidGstStateCode } from "@/constants/gstStateCodes";
+import { escapeEmailHtml } from "@/lib/email/html";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
 import { sendReservationConfirmationCustomer } from "@/lib/email/templates";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
@@ -448,7 +449,12 @@ function getInvoiceEmailSubject(invoice: Invoice) {
   return `Your ContCave invoice ${invoice.invoiceNumber}`;
 }
 
-function getInvoiceEmailHtml(invoice: Invoice) {
+function getInvoiceEmailHtml(invoice: Invoice, recipientName?: string | null) {
+  const documentLabel = invoice.documentType === "OWNER_MONTHLY_COMMISSION_INVOICE"
+    ? "monthly commission invoice"
+    : invoice.documentType === "OWNER_MONTHLY_BILL_OF_SUPPLY"
+      ? "bill of supply"
+      : "tax invoice";
   const invoiceUrl = invoice.invoiceUrl ? `<p><a href="${invoice.invoiceUrl}" style="color:#111827;font-weight:600;">View invoice PDF</a></p>` : "";
   return `<!DOCTYPE html>
 <html>
@@ -463,8 +469,8 @@ function getInvoiceEmailHtml(invoice: Invoice) {
               <div style="margin-bottom:24px;text-align:left;">
                 <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
               </div>
-              <p>Hi,</p>
-              <p>Your ContCave invoice <strong>${invoice.invoiceNumber}</strong> is attached.</p>
+               <p>Hi ${escapeEmailHtml(recipientName || "there")},</p>
+               <p>Your ContCave ${documentLabel} <strong>${invoice.invoiceNumber}</strong> is attached for your records.</p>
               <p><strong>Total:</strong> ${formatInr(invoice.totalAmount)}</p>
               ${invoiceUrl}
               <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
@@ -975,7 +981,7 @@ export class InvoiceService {
         toEmail: invoice.user.email,
         toName: invoice.user.name || "",
         subject: getInvoiceEmailSubject(invoice),
-        html: getInvoiceEmailHtml(invoice),
+        html: getInvoiceEmailHtml(invoice, invoice.user.name),
         attachments: [attachment],
       });
 

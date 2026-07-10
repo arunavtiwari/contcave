@@ -1,6 +1,7 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { PaymentVoucher, PaymentVoucherType, Prisma } from "@prisma/client";
 
+import { escapeEmailHtml } from "@/lib/email/html";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
 import prisma from "@/lib/prismadb";
 import { r2 } from "@/lib/storage/r2";
@@ -232,7 +233,7 @@ async function renderAndStore(voucher: PaymentVoucher, pdfData: VoucherPdfData):
   }
 }
 
-function voucherEmailHtml(voucher: PaymentVoucher) {
+function voucherEmailHtml(voucher: PaymentVoucher, recipientName?: string | null) {
   const title = voucher.voucherType === "REFUND_VOUCHER" ? "refund voucher" : "payment receipt";
   const link = voucher.voucherUrl
     ? `<p><a href="${voucher.voucherUrl}" style="color:#111827;font-weight:600;">View PDF</a></p>`
@@ -250,8 +251,8 @@ function voucherEmailHtml(voucher: PaymentVoucher) {
               <div style="margin-bottom:24px;text-align:left;">
                 <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
               </div>
-              <p>Hi,</p>
-              <p>Your ContCave ${title} <strong>${voucher.voucherNumber}</strong> is attached.</p>
+              <p>Hi ${escapeEmailHtml(recipientName || "there")},</p>
+              <p>Your ContCave ${title} <strong>${voucher.voucherNumber}</strong> is attached for your records.</p>
               <p><strong>Amount:</strong> ${formatInr(voucher.amount)}</p>
               ${link}
               <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
@@ -458,7 +459,7 @@ export class PaymentVoucherService {
         toEmail: voucher.user.email,
         toName: voucher.user.name || "",
         subject: `Your ContCave ${voucher.voucherType === "REFUND_VOUCHER" ? "refund voucher" : "payment receipt"} ${voucher.voucherNumber}`,
-        html: voucherEmailHtml(voucher),
+        html: voucherEmailHtml(voucher, voucher.user.name),
         attachments: [attachment],
       });
       return await this.markEmailSent(voucher.id);
