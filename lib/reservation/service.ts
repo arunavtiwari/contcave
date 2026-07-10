@@ -8,11 +8,14 @@ import {
     sendReservationCancelledOwner,
     sendReservationConfirmationCustomer,
     sendReservationConfirmationOwner,
+    sendReservationPendingOwner,
     sendReservationReceivedCustomer,
+    sendReservationRefundCustomer,
     sendReservationRejectedCustomer,
 } from "@/lib/email/templates";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
+import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
 import prisma from "@/lib/prismadb";
 import { generateBookingId } from "@/lib/utils";
@@ -27,6 +30,13 @@ type FullReservationPayload = Prisma.ReservationGetPayload<{
         Transaction: { orderBy: { createdAt: "desc" } };
     };
 }>;
+
+type DocumentAttachment = {
+    kind: "invoice" | "voucher";
+    id: string;
+    emailSentAt?: Date | null;
+    attachment?: { filename: string; content: string };
+};
 
 const LISTING_WIDE_SLOT_ID = "__LISTING__";
 
@@ -185,6 +195,68 @@ async function runNotification(label: string, task: () => Promise<void>) {
     }
 }
 
+async function markDocumentEmailSent(document?: DocumentAttachment) {
+    if (!document) return;
+    if (document.kind === "invoice") {
+        await prisma.invoice.update({
+            where: { id: document.id },
+            data: { status: "EMAIL_SENT", emailSentAt: new Date(), emailError: null },
+        }).catch((error) => {
+            console.error("[ReservationService] Invoice email status update failed:", toNotificationError(error));
+        });
+        return;
+    }
+
+    await PaymentVoucherService.markEmailSent(document.id).catch((error) => {
+        console.error("[ReservationService] Voucher email status update failed:", toNotificationError(error));
+    });
+}
+
+async function markDocumentEmailFailed(document: DocumentAttachment | undefined, error: unknown) {
+    if (!document) return;
+    if (document.kind === "invoice") {
+        const message = error instanceof Error ? error.message : "Invoice email failed";
+        await prisma.invoice.update({
+            where: { id: document.id },
+            data: {
+                status: "EMAIL_FAILED",
+                emailError: message.slice(0, 500),
+                retryCount: { increment: 1 },
+            },
+        }).catch((statusError) => {
+            console.error("[ReservationService] Invoice email failure status update failed:", toNotificationError(statusError));
+        });
+        return;
+    }
+
+    await PaymentVoucherService.markEmailFailed(document.id, error).catch((statusError) => {
+        console.error("[ReservationService] Voucher email failure status update failed:", toNotificationError(statusError));
+    });
+}
+
+function requireDocumentAttachment(document: DocumentAttachment | undefined, label: string) {
+    if (!document) {
+        throw new Error(`${label} document was not generated`);
+    }
+    if (!document.attachment?.content) {
+        throw new Error(`${label} PDF attachment is not available`);
+    }
+    return document.attachment;
+}
+
+async function ensureCalendarForReservation(resv: FullReservationPayload, studioName: string) {
+    const startAt = parseTimeForDate(resv.startDate, resv.startTime);
+    const endAt = parseTimeForDate(resv.startDate, resv.endTime);
+    if (!startAt || !endAt) return;
+
+    await ensureCalendarEventForUser({
+        userId: resv.userId,
+        title: `Booking: ${studioName}`,
+        startIso: startAt.toISOString(),
+        endIso: endAt.toISOString(),
+    });
+}
+
 export class ReservationService {
     private static async refundSuccessfulReservationTransactions(reservationId: string, note: string, refundIdPrefix: string) {
         const txns = await prisma.transaction.findMany({
@@ -209,12 +281,21 @@ export class ReservationService {
                 throw new Error("Cannot automatically refund after owner payout split is configured. Contact support.");
             }
 
-            await cfCreateRefund({
-                order_id: txn.cfOrderId,
-                refund_amount: txn.amount,
-                refund_id: `${refundIdPrefix}_${txn.id}`,
-                refund_note: note,
-            });
+            const refundId = `${refundIdPrefix}_${txn.id}`;
+            try {
+                await cfCreateRefund({
+                    order_id: txn.cfOrderId,
+                    refund_amount: txn.amount,
+                    refund_id: refundId,
+                    refund_note: note,
+                });
+            } catch (error) {
+                const message = toNotificationError(error);
+                if (!/already|duplicate|exist/i.test(message)) {
+                    throw error;
+                }
+                console.warn("[ReservationService] Treating existing Cashfree refund as success", { refundId, txnId: txn.id });
+            }
 
             await prisma.transaction.update({
                 where: { id: txn.id },
@@ -223,6 +304,10 @@ export class ReservationService {
                     description: note,
                     payoutDueAt: null,
                 },
+            });
+
+            await PaymentVoucherService.ensureRefundVoucherForTransaction(txn.id, note).catch((error) => {
+                console.error("[ReservationService] Refund voucher generation failed:", toNotificationError(error));
             });
         }
     }
@@ -274,6 +359,10 @@ export class ReservationService {
                 const setIds = Array.isArray(md.setIds) ? md.setIds : [];
                 const selectedAddons = parseMetadataJson(md.selectedAddons);
                 const pricingSnapshot = parseMetadataJson(md.pricingSnapshot);
+                const billingSnapshot = parseMetadataJson(md.billingSnapshot);
+                const billingDetailId = typeof md.billingDetailId === "string" && /^[a-f\d]{24}$/i.test(md.billingDetailId)
+                    ? md.billingDetailId
+                    : null;
 
                 const conflict = await checkSetConflicts({
                     listingId: txn.listingId!,
@@ -317,6 +406,8 @@ export class ReservationService {
                         setIds,
                         selectedAddons,
                         pricingSnapshot,
+                        billingDetailId,
+                        billingSnapshot,
                         isApproved: txn.listing.instantBooking ? 1 : 0,
                     }
                 });
@@ -427,33 +518,50 @@ export class ReservationService {
             if (!fullResv) return;
 
             const txn = fullResv.Transaction.find((item) => item.id === txnId) || fullResv.Transaction[0];
+            let document: DocumentAttachment | undefined;
+            try {
+                if (fullResv.isApproved === 1) {
+                    const invoiceRes = await ensureInvoiceWithAttachment({
+                        userId: fullResv.userId,
+                        reservationId,
+                        transactionId: txnId
+                    });
+                    document = {
+                        kind: "invoice",
+                        id: invoiceRes.invoice.id,
+                        emailSentAt: invoiceRes.invoice.emailSentAt,
+                        attachment: invoiceRes.attachment,
+                    };
+                } else if (fullResv.isApproved === 0) {
+                    const voucherRes = await PaymentVoucherService.ensureReceiptVoucherForTransaction(txnId);
+                    document = {
+                        kind: "voucher",
+                        id: voucherRes.voucher.id,
+                        emailSentAt: voucherRes.voucher.emailSentAt,
+                        attachment: voucherRes.attachment,
+                    };
+                }
+            } catch (error) {
+                console.error("[ReservationService] Booking document generation failed:", error);
+            }
+
+            const documentNeedsEmail = Boolean(document && !document.emailSentAt);
             const hasPendingNotification =
                 Boolean(fullResv.user.email && !txn?.emailSentCustomer) ||
                 Boolean(fullResv.listing.user.email && !txn?.emailSentOwner) ||
                 Boolean(fullResv.user.phone && !txn?.whatsappSentCustomer) ||
-                Boolean(fullResv.listing.user.phone && !txn?.whatsappSentHost);
+                Boolean(fullResv.listing.user.phone && !txn?.whatsappSentHost) ||
+                documentNeedsEmail;
 
             if (!force && !hasPendingNotification) return;
 
-            let invoiceAttachment: { filename: string; content: string } | undefined;
-            try {
-                const invoiceRes = await ensureInvoiceWithAttachment({
-                    userId: fullResv.userId,
-                    reservationId,
-                    transactionId: txnId
-                });
-                invoiceAttachment = invoiceRes.attachment;
-            } catch (error) {
-                console.error("[ReservationService] Invoice generation failed:", error);
-            }
-
-            await this.triggerInitialNotifications(fullResv, invoiceAttachment, txnId);
+            await this.triggerInitialNotifications(fullResv, document, txnId);
         } catch (error) {
             console.error("[ReservationService] Post-reservation side effects failed:", error);
         }
     }
 
-    private static async triggerInitialNotifications(resv: FullReservationPayload, invoiceAttachment: { filename: string; content: string } | undefined, txnId: string) {
+    private static async triggerInitialNotifications(resv: FullReservationPayload, document: DocumentAttachment | undefined, txnId: string) {
         const txn = resv.Transaction.find((item) => item.id === txnId) || resv.Transaction[0];
         const listing = resv.listing;
         const md = (txn?.metadata || {}) as unknown as ReservationMetadata;
@@ -477,12 +585,17 @@ export class ReservationService {
                     where: { id: txn.id, emailSentCustomer: false },
                     data: { emailSentCustomer: true },
                 });
+                const shouldSendForDocument = Boolean(document && !document.emailSentAt);
 
-                if (claim.count > 0) {
+                if (claim.count > 0 || shouldSendForDocument) {
                     try {
                         const sendCustomerEmail = isInstant
                             ? sendReservationConfirmationCustomer
                             : sendReservationReceivedCustomer;
+                        const attachment = requireDocumentAttachment(
+                            document,
+                            isInstant ? "Customer invoice" : "Payment receipt"
+                        );
 
                         await sendCustomerEmail({
                             toEmail: customerEmail,
@@ -495,13 +608,15 @@ export class ReservationService {
                             totalPrice: resv.totalPrice,
                             addons,
                             studioLocation: location,
-                            attachments: invoiceAttachment ? [invoiceAttachment] : [],
+                            attachments: [attachment],
                         });
+                        await markDocumentEmailSent(document);
                     } catch (error) {
                         await prisma.transaction.update({
                             where: { id: txn.id },
                             data: { emailSentCustomer: false },
                         });
+                        await markDocumentEmailFailed(document, error);
                         throw error;
                     }
                 }
@@ -517,7 +632,10 @@ export class ReservationService {
 
                 if (claim.count > 0) {
                     try {
-                        await sendReservationConfirmationOwner({
+                        const sendOwnerEmail = isInstant
+                            ? sendReservationConfirmationOwner
+                            : sendReservationPendingOwner;
+                        await sendOwnerEmail({
                             toEmail: ownerEmail,
                             toName: listing.user.name || "Studio Owner",
                             customerName: resv.user.name || "Customer",
@@ -606,18 +724,11 @@ export class ReservationService {
             }));
         }
 
-        notificationTasks.push(runNotification("customer calendar event", async () => {
-            const startAt = parseTimeForDate(resv.startDate, resv.startTime);
-            const endAt = parseTimeForDate(resv.startDate, resv.endTime);
-            if (!startAt || !endAt) return;
-
-            await ensureCalendarEventForUser({
-                userId: resv.userId,
-                title: `Booking: ${studioName}`,
-                startIso: startAt.toISOString(),
-                endIso: endAt.toISOString(),
-            });
-        }));
+        if (isInstant) {
+            notificationTasks.push(runNotification("customer calendar", async () => {
+                await ensureCalendarForReservation(resv, studioName);
+            }));
+        }
 
         await Promise.all(notificationTasks);
     }
@@ -653,6 +764,19 @@ export class ReservationService {
         const previousStatus = resv.isApproved;
 
         if (previousStatus === status) {
+            if (status === 2 || status === 3) {
+                await prisma.reservationSlot.deleteMany({ where: { reservationId } });
+                await prisma.transaction.updateMany({
+                    where: {
+                        reservationId,
+                        OR: [
+                            { payoutDoneAt: null },
+                            { payoutDoneAt: { isSet: false } },
+                        ],
+                    },
+                    data: { payoutDueAt: null },
+                });
+            }
             await this.triggerStatusNotifications(resv, status, reason);
             return;
         }
@@ -665,25 +789,8 @@ export class ReservationService {
             throw new Error("Confirmed bookings cannot be cancelled automatically. Contact support for cancellation and refund handling.");
         }
 
-        if (status === 2) {
-            const refundDescription = `Refunded: host rejected booking${reason ? ` - ${reason}` : ""}`
-                .trim()
-                .slice(0, 500);
-            await this.refundSuccessfulReservationTransactions(
-                reservationId,
-                refundDescription,
-                "rf_reject"
-            );
-        }
-
-        if (status === 3) {
+        if (status === 2 || status === 3) {
             await this.assertNoConfiguredPayoutSplit(reservationId);
-            const refundDescription = "Refunded: customer cancelled before host approval";
-            await this.refundSuccessfulReservationTransactions(
-                reservationId,
-                refundDescription,
-                "rf_cancel"
-            );
         }
 
         const updateResult = await prisma.reservation.updateMany({
@@ -696,6 +803,33 @@ export class ReservationService {
 
         if (updateResult.count !== 1) {
             throw new Error("Reservation status changed while processing. Please refresh and try again.");
+        }
+
+        try {
+            if (status === 2) {
+                const refundDescription = `Refunded: host rejected booking${reason ? ` - ${reason}` : ""}`
+                    .trim()
+                    .slice(0, 500);
+                await this.refundSuccessfulReservationTransactions(
+                    reservationId,
+                    refundDescription,
+                    "rf_reject"
+                );
+            }
+
+            if (status === 3) {
+                await this.refundSuccessfulReservationTransactions(
+                    reservationId,
+                    "Refunded: customer cancelled before host approval",
+                    "rf_cancel"
+                );
+            }
+        } catch (error) {
+            await prisma.reservation.updateMany({
+                where: { id: reservationId, isApproved: status },
+                data: { isApproved: previousStatus, rejectReason: resv.rejectReason || null },
+            });
+            throw error;
         }
 
         if (status === 2 || status === 3) {
@@ -752,15 +886,36 @@ export class ReservationService {
         const notificationTasks: Array<Promise<void>> = [];
 
         if (status === 1) {
+            let invoiceDocument: DocumentAttachment | undefined;
+            if (txn?.id) {
+                try {
+                    const invoiceRes = await ensureInvoiceWithAttachment({
+                        userId: resv.userId,
+                        reservationId: resv.id,
+                        transactionId: txn.id,
+                    });
+                    invoiceDocument = {
+                        kind: "invoice",
+                        id: invoiceRes.invoice.id,
+                        emailSentAt: invoiceRes.invoice.emailSentAt,
+                        attachment: invoiceRes.attachment,
+                    };
+                } catch (error) {
+                    console.error("[ReservationService] Approval invoice generation failed:", toNotificationError(error));
+                }
+            }
+
             if (txn?.id && customerEmail) {
                 notificationTasks.push(runNotification("customer approval email", async () => {
                     const claim = await prisma.transaction.updateMany({
                         where: { id: txn.id, emailSentApprovalCustomer: false },
                         data: { emailSentApprovalCustomer: true },
                     });
+                    const shouldSendForDocument = Boolean(invoiceDocument && !invoiceDocument.emailSentAt);
 
-                    if (claim.count > 0) {
+                    if (claim.count > 0 || shouldSendForDocument) {
                         try {
+                            const attachment = requireDocumentAttachment(invoiceDocument, "Customer invoice");
                             await sendReservationConfirmationCustomer({
                                 toEmail: customerEmail,
                                 toName: resv.user.name || "Valued Customer",
@@ -771,17 +926,24 @@ export class ReservationService {
                                 endTime: resv.endTime,
                                 totalPrice: resv.totalPrice,
                                 studioLocation: location,
+                                attachments: [attachment],
                             });
+                            await markDocumentEmailSent(invoiceDocument);
                         } catch (error) {
                             await prisma.transaction.update({
                                 where: { id: txn.id },
                                 data: { emailSentApprovalCustomer: false },
                             });
+                            await markDocumentEmailFailed(invoiceDocument, error);
                             throw error;
                         }
                     }
                 }));
             }
+
+            notificationTasks.push(runNotification("customer calendar", async () => {
+                await ensureCalendarForReservation(resv, resv.listing.title);
+            }));
 
             if (txn?.id && customerPhone) {
                 notificationTasks.push(runNotification("customer approval WhatsApp", async () => {
@@ -811,15 +973,35 @@ export class ReservationService {
                 }));
             }
         } else if (status === 2) {
+            let refundDocument: DocumentAttachment | undefined;
+            if (txn?.id) {
+                try {
+                    const voucherRes = await PaymentVoucherService.ensureRefundVoucherForTransaction(
+                        txn.id,
+                        reason ? `Refunded: host rejected booking - ${reason}` : "Refunded: host rejected booking"
+                    );
+                    refundDocument = {
+                        kind: "voucher",
+                        id: voucherRes.voucher.id,
+                        emailSentAt: voucherRes.voucher.emailSentAt,
+                        attachment: voucherRes.attachment,
+                    };
+                } catch (error) {
+                    console.error("[ReservationService] Rejection refund voucher generation failed:", toNotificationError(error));
+                }
+            }
+
             if (txn?.id && customerEmail) {
                 notificationTasks.push(runNotification("customer rejection email", async () => {
                     const claim = await prisma.transaction.updateMany({
                         where: { id: txn.id, emailSentRejectionCustomer: false },
                         data: { emailSentRejectionCustomer: true },
                     });
+                    const shouldSendForDocument = Boolean(refundDocument && !refundDocument.emailSentAt);
 
-                    if (claim.count > 0) {
+                    if (claim.count > 0 || shouldSendForDocument) {
                         try {
+                            const attachment = requireDocumentAttachment(refundDocument, "Refund voucher");
                             await sendReservationRejectedCustomer({
                                 toEmail: customerEmail,
                                 toName: resv.user.name || "Valued Customer",
@@ -829,12 +1011,15 @@ export class ReservationService {
                                 endTime: resv.endTime,
                                 totalPrice: resv.totalPrice,
                                 rejectReason: reason,
+                                attachments: [attachment],
                             });
+                            await markDocumentEmailSent(refundDocument);
                         } catch (error) {
                             await prisma.transaction.update({
                                 where: { id: txn.id },
                                 data: { emailSentRejectionCustomer: false },
                             });
+                            await markDocumentEmailFailed(refundDocument, error);
                             throw error;
                         }
                     }
@@ -867,6 +1052,49 @@ export class ReservationService {
                 }));
             }
         } else if (status === 3) {
+            let refundDocument: DocumentAttachment | undefined;
+            if (txn?.id) {
+                try {
+                    const voucherRes = await PaymentVoucherService.ensureRefundVoucherForTransaction(
+                        txn.id,
+                        "Refunded: customer cancelled before host approval"
+                    );
+                    refundDocument = {
+                        kind: "voucher",
+                        id: voucherRes.voucher.id,
+                        emailSentAt: voucherRes.voucher.emailSentAt,
+                        attachment: voucherRes.attachment,
+                    };
+                } catch (error) {
+                    console.error("[ReservationService] Cancellation refund voucher generation failed:", toNotificationError(error));
+                }
+            }
+
+            if (txn?.id && customerEmail) {
+                notificationTasks.push(runNotification("customer cancellation refund email", async () => {
+                    const shouldSendForDocument = Boolean(refundDocument && !refundDocument.emailSentAt);
+                    if (!shouldSendForDocument) return;
+                    try {
+                        const attachment = requireDocumentAttachment(refundDocument, "Refund voucher");
+                        await sendReservationRefundCustomer({
+                            toEmail: customerEmail,
+                            toName: resv.user.name || "Valued Customer",
+                            studioName: resv.listing.title,
+                            startDate: dateStr,
+                            startTime: resv.startTime,
+                            endTime: resv.endTime,
+                            totalPrice: resv.totalPrice,
+                            reason: "Customer cancelled before host approval",
+                            attachments: [attachment],
+                        });
+                        await markDocumentEmailSent(refundDocument);
+                    } catch (error) {
+                        await markDocumentEmailFailed(refundDocument, error);
+                        throw error;
+                    }
+                }));
+            }
+
             if (txn?.id && ownerEmail) {
                 notificationTasks.push(runNotification("owner cancellation email", async () => {
                     const claim = await prisma.transaction.updateMany({
@@ -1023,6 +1251,7 @@ export class ReservationService {
             where: {
                 startDate: { gte: rangeStart, lte: rangeEnd },
                 reminderSent: false,
+                isApproved: 1,
                 Transaction: { some: { status: "SUCCESS" } }
             },
             include: { user: true, listing: true }
@@ -1050,6 +1279,89 @@ export class ReservationService {
                 }
             }
         }
+        return results;
+    }
+
+    static async expirePendingApprovalReservations(
+        reference = new Date(),
+        onlyReservationId?: string
+    ): Promise<Array<{ id: string; status: string; error?: string }>> {
+        const cutoff = new Date(reference.getTime() - 24 * 60 * 60 * 1000);
+        const reason = "Auto-rejected: host did not respond within 24 hours";
+        const reservations = await prisma.reservation.findMany({
+            where: {
+                ...(onlyReservationId ? { id: onlyReservationId } : {}),
+                isApproved: 0,
+                createdAt: { lte: cutoff },
+                markedForDeletion: false,
+                Transaction: { some: { status: "SUCCESS" } },
+            },
+            include: {
+                listing: { include: { user: { include: { paymentDetails: true } } } },
+                user: true,
+                Transaction: { orderBy: { createdAt: "desc" } },
+            },
+            take: 50,
+        }) as FullReservationPayload[];
+
+        const results: Array<{ id: string; status: string; error?: string }> = [];
+        for (const reservation of reservations) {
+            try {
+                const claim = await prisma.reservation.updateMany({
+                    where: { id: reservation.id, isApproved: 0 },
+                    data: { isApproved: 2, rejectReason: reason },
+                });
+                if (claim.count !== 1) {
+                    results.push({ id: reservation.id, status: "skipped" });
+                    continue;
+                }
+
+                try {
+                    await this.refundSuccessfulReservationTransactions(
+                        reservation.id,
+                        "Refunded: host did not respond within 24 hours",
+                        "rf_timeout"
+                    );
+                } catch (error) {
+                    await prisma.reservation.updateMany({
+                        where: { id: reservation.id, isApproved: 2, rejectReason: reason },
+                        data: { isApproved: 0, rejectReason: reservation.rejectReason || null },
+                    });
+                    throw error;
+                }
+                await prisma.reservationSlot.deleteMany({ where: { reservationId: reservation.id } });
+                await prisma.transaction.updateMany({
+                    where: {
+                        reservationId: reservation.id,
+                        OR: [
+                            { payoutDoneAt: null },
+                            { payoutDoneAt: { isSet: false } },
+                        ],
+                    },
+                    data: { payoutDueAt: null },
+                });
+
+                const refreshed = await prisma.reservation.findUnique({
+                    where: { id: reservation.id },
+                    include: {
+                        listing: { include: { user: { include: { paymentDetails: true } } } },
+                        user: true,
+                        Transaction: { orderBy: { createdAt: "desc" } },
+                    },
+                }) as FullReservationPayload | null;
+                if (refreshed) {
+                    await this.triggerStatusNotifications(refreshed, 2, reason);
+                }
+                results.push({ id: reservation.id, status: "expired" });
+            } catch (error) {
+                results.push({
+                    id: reservation.id,
+                    status: "failed",
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            }
+        }
+
         return results;
     }
 

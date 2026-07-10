@@ -138,6 +138,20 @@ export async function cleanupE2ERun(state: RunState) {
   const invoiceIds = unique([...state.created.invoice, ...invoices.map((invoice) => invoice.id)]);
   const invoiceIdempotencyKeys = unique(invoices.map((invoice) => invoice.idempotencyKey));
 
+  const vouchers = await prisma.paymentVoucher.findMany({
+    where: {
+      OR: [
+        { id: { in: state.created.voucher || [] } },
+        { userId: { in: userIds } },
+        { reservationId: { in: reservationIds } },
+        { transactionId: { in: transactionIds } },
+      ],
+    },
+    select: { id: true, voucherUrl: true, idempotencyKey: true },
+  });
+  const voucherIds = unique([...(state.created.voucher || []), ...vouchers.map((voucher) => voucher.id)]);
+  const voucherIdempotencyKeys = unique(vouchers.map((voucher) => voucher.idempotencyKey));
+
   const r2Keys = [
     ...state.created.r2Key,
     ...listings.flatMap((listing) => [
@@ -146,11 +160,22 @@ export async function cleanupE2ERun(state: RunState) {
       ...jsonUrls(listing.verifications),
     ]),
     ...invoices.map((invoice) => invoice.invoiceUrl),
+    ...vouchers.map((voucher) => voucher.voucherUrl),
   ]
     .flatMap((url) => (url ? [url] : []))
     .map(keyFromPublicUrl)
     .filter((key): key is string => !!key);
 
+  await prisma.paymentVoucher.deleteMany({ where: { id: { in: voucherIds } } });
+  await prisma.paymentVoucherIdempotencyLock.deleteMany({
+    where: {
+      OR: [
+        { id: { in: state.created.voucherLock || [] } },
+        { idempotencyKey: { in: voucherIdempotencyKeys } },
+      ],
+    },
+  });
+  await prisma.paymentVoucherSequence.deleteMany({ where: { id: { in: state.created.voucherSequence || [] } } });
   await prisma.invoice.deleteMany({ where: { id: { in: invoiceIds } } });
   await prisma.invoiceIdempotencyLock.deleteMany({ where: { idempotencyKey: { in: invoiceIdempotencyKeys } } });
   await prisma.review.deleteMany({

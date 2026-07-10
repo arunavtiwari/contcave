@@ -4,7 +4,7 @@ import { safeListing } from "@/types/listing";
 
 export type SafeReservation = Omit<
     Reservation,
-    "createdAt" | "startDate" | "endDate" | "listing" | "markedForDeletionAt" | "pricingSnapshot"
+    "createdAt" | "startDate" | "listing" | "markedForDeletionAt" | "pricingSnapshot"
 > & {
     createdAt: string;
     startDate: Date;
@@ -34,4 +34,6 @@ export interface ReservationMetadata {
     setIds: string[];
     selectedAddons?: Prisma.JsonValue | string;
     pricingSnapshot?: Prisma.JsonValue | string;
+    billingDetailId?: string | null;
+    billingSnapshot?: Prisma.JsonValue | string | null;
 }

@@ -29,6 +29,10 @@ export const processPaymentSchema = z.object({
     customerPhone: z.preprocess(trimStr, z.string().optional()),
     customerName: z.preprocess(trimStr, z.string().optional()),
     customerEmail: z.preprocess(trimStr, z.string().email().optional()),
+    billingDetailId: z.preprocess(
+        trimStr,
+        z.string().regex(/^[a-f\d]{24}$/i, "billingDetailId must be a valid id").nullable().optional()
+    ),
 
     setIds: z.array(z.string()).optional(),
     setPackageId: z.string().nullable().optional(),

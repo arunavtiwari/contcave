@@ -4,7 +4,6 @@ import Link from "next/link";
 import React, { useState } from "react";
 
 import { saveBillingInfo } from "@/app/actions/billingActions";
-import { createInvoice } from "@/app/actions/invoiceActions";
 import Checkbox from "@/components/inputs/Checkbox";
 import Input from "@/components/inputs/Input";
 import Textarea from "@/components/inputs/Textarea";
@@ -20,21 +19,16 @@ type GSTDetails = {
 type BookingSummaryModalProps = {
   isOpen: boolean;
   onCloseAction: () => void;
-  onConfirmAction: () => void;
+  onConfirmAction: (billingDetailId?: string | null) => void;
   finalTotal: number;
   bookingFee: number;
   addonsSum: number;
   platformFee: number;
   gstAmount: number;
-  subTotal: number;
   gstDetails: GSTDetails;
   setGstDetailsAction: (v: GSTDetails) => void;
-  reservationId: string;
-  transactionId: string;
+  instantBooking: boolean;
 };
-
-const hasInvoiceIds = (reservationId: string, transactionId: string) =>
-  /^[a-f\d]{24}$/i.test(reservationId.trim()) && /^[a-f\d]{24}$/i.test(transactionId.trim());
 
 export default function BookingSummaryModal({
   isOpen,
@@ -45,11 +39,9 @@ export default function BookingSummaryModal({
   addonsSum,
   platformFee,
   gstAmount,
-  subTotal,
   gstDetails,
   setGstDetailsAction,
-  reservationId,
-  transactionId,
+  instantBooking,
 }: BookingSummaryModalProps) {
   const [needGST, setNeedGST] = useState(false);
   const [agree, setAgree] = useState(false);
@@ -69,7 +61,7 @@ export default function BookingSummaryModal({
       }
 
       try {
-        await saveBillingInfo({
+        const billingRecord = await saveBillingInfo({
           companyName: gstDetails.companyName,
           gstin: gstDetails.gstin,
           billingAddress: gstDetails.billingAddress,
@@ -78,15 +70,7 @@ export default function BookingSummaryModal({
 
         setGstDetailsAction({ ...gstDetails });
 
-        if (hasInvoiceIds(reservationId, transactionId)) {
-          await createInvoice({
-            reservationId,
-            transactionId,
-            amount: subTotal,
-          });
-        }
-
-        onConfirmAction();
+        onConfirmAction(billingRecord?.id || null);
       } catch (err: unknown) {
         console.error(err);
         if (err instanceof Error) {
@@ -98,7 +82,7 @@ export default function BookingSummaryModal({
         setSaving(false);
       }
     } else {
-      onConfirmAction();
+      onConfirmAction(null);
       setSaving(false);
     }
   };
@@ -131,7 +115,7 @@ export default function BookingSummaryModal({
 
       <div className="space-y-4">
         <Checkbox
-          label="Need GST Invoice?"
+          label="Need GST billing details?"
           checked={needGST}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNeedGST(e.target.checked)}
         />
@@ -170,6 +154,12 @@ export default function BookingSummaryModal({
         )}
 
         {gstError && <p className="text-sm text-destructive">{gstError}</p>}
+
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {instantBooking
+            ? "Your tax invoice is generated after payment confirmation."
+            : "You receive a payment receipt after payment. Your tax invoice is generated only after the studio approves the booking."}
+        </p>
 
         <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
           <div className="flex items-start gap-3">

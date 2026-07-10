@@ -140,7 +140,7 @@ export default function CashfreeReturnStatusClient({
       ? "Your reservation has been confirmed!"
       : "Your reservation request has been sent to the studio!";
     const subtext = isPendingApproval
-      ? "We'll notify you as soon as the studio reviews your booking."
+      ? "Your payment receipt has been sent. We'll notify you as soon as the studio reviews your booking."
       : undefined;
 
     return (
@@ -207,7 +207,7 @@ export default function CashfreeReturnStatusClient({
               <h3 className="font-semibold text-foreground text-sm tracking-wide uppercase">What happens next</h3>
               <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted-foreground">
                 <li>The studio owner has been notified and will review your request shortly.</li>
-                <li>You'll receive a confirmation email and SMS once approved.</li>
+                <li>You'll receive the tax invoice only after the studio approves your booking.</li>
                 <li>You can check the real-time status under your dashboard's bookings tab.</li>
               </ul>
             </div>

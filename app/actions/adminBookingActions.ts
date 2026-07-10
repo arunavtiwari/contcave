@@ -1,11 +1,12 @@
 "use server";
 
-import { InvoiceDocumentType, InvoiceStatus, TransactionStatus } from "@prisma/client";
+import { InvoiceDocumentType, InvoiceStatus, PaymentVoucherStatus, PaymentVoucherType, TransactionStatus } from "@prisma/client";
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createAction } from "@/lib/actions-utils";
 import { InvoiceService } from "@/lib/invoice/service";
+import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import prisma from "@/lib/prismadb";
 import { isAdmin } from "@/lib/user/permissions";
 import { UserRole } from "@/types/user";
@@ -70,6 +71,7 @@ export type AdminBookingRow = {
   customerInvoiceStatus?: InvoiceStatus | null;
   customerInvoiceUrl?: string | null;
   customerInvoiceEmailSentAt?: string | null;
+  vouchers: AdminVoucherRow[];
   detail: AdminBookingDetail;
 };
 
@@ -87,6 +89,22 @@ export type AdminInvoiceRow = {
   emailError?: string | null;
   retryCount: number;
   invoiceUrl: string;
+  reservationMarkedForDeletion?: boolean | null;
+};
+
+export type AdminVoucherRow = {
+  id: string;
+  voucherNumber: string;
+  voucherType: PaymentVoucherType;
+  status: PaymentVoucherStatus;
+  recipientName: string;
+  bookingId?: string | null;
+  amount: number;
+  issuedAt?: string | null;
+  emailSentAt?: string | null;
+  emailError?: string | null;
+  retryCount: number;
+  voucherUrl: string;
   reservationMarkedForDeletion?: boolean | null;
 };
 
@@ -115,13 +133,23 @@ function iso(value?: Date | null) {
   return value ? value.toISOString() : null;
 }
 
+function readBillingSnapshot(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const snapshot = value as Record<string, unknown>;
+  return {
+    companyName: typeof snapshot.companyName === "string" ? snapshot.companyName : null,
+    gstin: typeof snapshot.gstin === "string" ? snapshot.gstin : null,
+    billingAddress: typeof snapshot.billingAddress === "string" ? snapshot.billingAddress : null,
+  };
+}
+
 export async function getAdminBookingOperations() {
   const currentUser = await getCurrentUser();
   if (!currentUser || !isAdmin(currentUser.role)) {
     throw new Error("Unauthorized");
   }
 
-  const [reservations, invoices, payouts, audits] = await Promise.all([
+  const [reservations, invoices, payouts, paymentVouchers, audits] = await Promise.all([
     prisma.reservation.findMany({
       where: { markedForDeletion: false },
       select: {
@@ -138,6 +166,7 @@ export async function getAdminBookingOperations() {
         pricingSnapshot: true,
         setIds: true,
         setPackageId: true,
+        billingSnapshot: true,
         billingDetail: {
           select: {
             companyName: true,
@@ -205,6 +234,22 @@ export async function getAdminBookingOperations() {
             emailSentAt: true,
           },
         },
+        paymentVouchers: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            voucherNumber: true,
+            voucherType: true,
+            status: true,
+            amount: true,
+            issuedAt: true,
+            emailSentAt: true,
+            emailError: true,
+            retryCount: true,
+            voucherUrl: true,
+            user: { select: { name: true, email: true } },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
       take: 200,
@@ -260,8 +305,26 @@ export async function getAdminBookingOperations() {
       orderBy: { createdAt: "desc" },
       take: 200,
     }),
+    prisma.paymentVoucher.findMany({
+      select: {
+        id: true,
+        voucherNumber: true,
+        voucherType: true,
+        status: true,
+        amount: true,
+        issuedAt: true,
+        emailSentAt: true,
+        emailError: true,
+        retryCount: true,
+        voucherUrl: true,
+        user: { select: { name: true, email: true } },
+        reservation: { select: { bookingId: true, markedForDeletion: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    }),
     prisma.auditLog.findMany({
-      where: { resource: "Invoice" },
+      where: { resource: { in: ["Invoice", "PaymentVoucher"] } },
       select: {
         id: true,
         action: true,
@@ -277,6 +340,7 @@ export async function getAdminBookingOperations() {
   const bookingRows: AdminBookingRow[] = reservations.map((reservation) => {
     const transaction = reservation.Transaction[0];
     const customerInvoice = reservation.invoices[0];
+    const billing = readBillingSnapshot(reservation.billingSnapshot) || reservation.billingDetail;
     const gstModel: AdminGstModel =
       transaction?.gstOwnedBy === "STUDIO"
         ? "GST_STUDIO_AGENT"
@@ -300,14 +364,29 @@ export async function getAdminBookingOperations() {
       customerInvoiceStatus: customerInvoice?.status,
       customerInvoiceUrl: customerInvoice?.invoiceUrl,
       customerInvoiceEmailSentAt: iso(customerInvoice?.emailSentAt),
+      vouchers: reservation.paymentVouchers.map((voucher) => ({
+        id: voucher.id,
+        voucherNumber: voucher.voucherNumber,
+        voucherType: voucher.voucherType,
+        status: voucher.status,
+        recipientName: voucher.user.name || voucher.user.email || "Recipient",
+        bookingId: reservation.bookingId,
+        amount: voucher.amount,
+        issuedAt: iso(voucher.issuedAt),
+        emailSentAt: iso(voucher.emailSentAt),
+        emailError: voucher.emailError,
+        retryCount: voucher.retryCount,
+        voucherUrl: voucher.voucherUrl,
+        reservationMarkedForDeletion: false,
+      })),
       detail: {
         startTime: reservation.startTime,
         endTime: reservation.endTime,
         createdAt: reservation.createdAt.toISOString(),
         rejectReason: reservation.rejectReason,
-        billingCompany: reservation.billingDetail?.companyName,
-        billingGstin: reservation.billingDetail?.gstin,
-        billingAddress: reservation.billingDetail?.billingAddress,
+        billingCompany: billing?.companyName,
+        billingGstin: billing?.gstin,
+        billingAddress: billing?.billingAddress,
         selectedAddons: reservation.selectedAddons,
         pricingSnapshot: reservation.pricingSnapshot,
         selectedSetIds: reservation.setIds,
@@ -360,6 +439,22 @@ export async function getAdminBookingOperations() {
     invoiceUrl: invoice.invoiceUrl,
   }));
 
+  const voucherRows: AdminVoucherRow[] = paymentVouchers.map((voucher) => ({
+    id: voucher.id,
+    voucherNumber: voucher.voucherNumber,
+    voucherType: voucher.voucherType,
+    status: voucher.status,
+    recipientName: voucher.user.name || voucher.user.email || "Recipient",
+    bookingId: voucher.reservation?.bookingId,
+    reservationMarkedForDeletion: voucher.reservation?.markedForDeletion,
+    amount: voucher.amount,
+    issuedAt: iso(voucher.issuedAt),
+    emailSentAt: iso(voucher.emailSentAt),
+    emailError: voucher.emailError,
+    retryCount: voucher.retryCount,
+    voucherUrl: voucher.voucherUrl,
+  }));
+
   const payoutRows: AdminPayoutRow[] = payouts.map((txn) => ({
     id: txn.id,
     bookingId: txn.bookingId || txn.reservation?.bookingId,
@@ -398,6 +493,7 @@ export async function getAdminBookingOperations() {
     bookings: bookingRows,
     customerInvoices: activeBookingCustomerInvoices,
     ownerInvoices: ownerInvoiceRows,
+    vouchers: voucherRows.filter((voucher) => voucher.reservationMarkedForDeletion !== true),
     failures: visibleFailureRows,
     payouts: payoutRows,
     audits: auditRows,
@@ -410,5 +506,14 @@ export const retryAdminInvoiceEmailAction = createAction(
   async ({ invoiceId }) => {
     const invoice = await InvoiceService.retryFailedInvoiceEmail(invoiceId);
     return { invoiceId: invoice.id, status: invoice.status };
+  }
+);
+
+export const retryAdminVoucherEmailAction = createAction(
+  z.object({ voucherId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid voucher ID") }),
+  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  async ({ voucherId }) => {
+    const voucher = await PaymentVoucherService.retryVoucherEmail(voucherId);
+    return { voucherId: voucher.id, status: voucher.status };
   }
 );

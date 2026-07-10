@@ -33,6 +33,16 @@ async function loginAdmin(page: Page, email: string, password: string) {
   await expect(page).toHaveURL(/\/admin\/dashboard\/listings/);
 }
 
+function reviewButtonFor(page: Page, listingTitle: string) {
+  return page.locator(`button[aria-label="Open listing review: ${listingTitle}"]`).first();
+}
+
+async function openReviewModal(page: Page, listingTitle: string) {
+  const reviewButton = reviewButtonFor(page, listingTitle);
+  await expect(reviewButton).toBeVisible({ timeout: 60_000 });
+  await reviewButton.click();
+}
+
 test.describe("admin listing moderation", () => {
   test("loads status tabs and opens the enterprise review modal with KYC and documents", async ({ page }, testInfo) => {
     const { account } = await createAdminUserFixture(`review-open-r${testInfo.retry}`);
@@ -54,9 +64,7 @@ test.describe("admin listing moderation", () => {
     await expect(page.getByRole("tab", { name: /verified/i })).toBeVisible();
     await expect(page.getByRole("tab", { name: /rejected/i })).toBeVisible();
 
-    const reviewButton = page.getByTestId(`review-listing-${listing.id}`);
-    await expect(reviewButton).toBeVisible({ timeout: 60_000 });
-    await reviewButton.click();
+    await openReviewModal(page, listing.title);
     const modal = page.getByTestId("admin-listing-review-modal");
     await expect(modal).toBeVisible();
     await expect(modal.getByText(listing.title)).toBeVisible();
@@ -88,7 +96,7 @@ test.describe("admin listing moderation", () => {
     });
 
     await loginAdmin(page, account.email, account.password);
-    await page.getByTestId(`review-listing-${listing.id}`).click();
+    await openReviewModal(page, listing.title);
     await page.getByTestId("admin-review-approve").click();
 
     const confirm = page.getByTestId("admin-listing-confirm-modal");
@@ -119,7 +127,7 @@ test.describe("admin listing moderation", () => {
     });
 
     await loginAdmin(page, account.email, account.password);
-    await page.getByTestId(`review-listing-${listing.id}`).click();
+    await openReviewModal(page, listing.title);
     await page.getByTestId("admin-review-reject").click();
 
     const confirm = page.getByTestId("admin-listing-confirm-modal");

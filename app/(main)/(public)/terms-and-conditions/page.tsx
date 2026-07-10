@@ -157,9 +157,10 @@ const TermsAndConditions = () => {
                             <Clause id="5.5">The Company charges a service fee (Platform Commission) which is deducted from the Host&apos;s payout. This fee is not separately charged to the Client.</Clause>
                             <Clause id="5.6"><strong>GST and Input Tax Credit:</strong></Clause>
                             <SubList items={[
-                                "GST is charged on the full booking value under the Company's GSTIN.",
+                                "GST is charged on the full booking value according to the applicable supplier model. Where the studio is GST-registered, the customer tax invoice may be issued by the studio through the Platform; otherwise it may be issued by Arkanet Ventures LLP.",
                                 "The place of supply for GST purposes is the location (city and state) of the Studio, as per Section 12(3) of the IGST Act, 2017 (services related to immovable property).",
                                 "Clients who are GST-registered may claim Input Tax Credit (ITC) on the GST paid, subject to the conditions prescribed under Section 16 of the CGST Act, 2017.",
+                                "For instant bookings, the customer tax invoice is generated after payment confirmation. For approval-required bookings, the Client receives a payment receipt after payment and the customer tax invoice is generated only after Host approval.",
                                 "ITC eligibility is determined by the Client's own GST registration status and compliance. The Company makes no representation regarding the Client's eligibility to claim ITC."
                             ]} />
                         </div>

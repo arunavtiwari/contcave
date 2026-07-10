@@ -4,7 +4,7 @@ import crypto from "crypto";
 
 import { createAction } from "@/lib/actions-utils";
 import { sendEmail } from "@/lib/email/mailer";
-import { getCustomerOnboardingTemplate, getHostOnboardingTemplate, getResetPasswordTemplate } from "@/lib/email/templates";
+import { getCustomerOnboardingTemplate, getResetPasswordTemplate } from "@/lib/email/templates";
 import { UserService } from "@/lib/user/service";
 import { getBaseUrl } from "@/lib/utils";
 import { ownerRegisterSchema, registerSchema, resetPasswordSchema } from "@/schemas/auth";
@@ -59,13 +59,6 @@ export const registerOwnerAction = createAction(
             password,
             role: UserRole.OWNER
         });
-
-        // 2. Trigger Onboarding Email
-        sendEmail({
-            toEmail: user.email!,
-            subject: "Welcome to the ContCave Partner Program!",
-            html: getHostOnboardingTemplate(user.name || "partner"),
-        }).catch(err => console.error("[OwnerRegistrationAction] Email Failed:", err));
 
         return { id: user.id, email: user.email, name: user.name };
     }
