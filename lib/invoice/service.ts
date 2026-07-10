@@ -9,6 +9,7 @@ import {
 import { ARKANET_VENTURES_GST, DEFAULT_SAC_CODE, GST_RATE, PLATFORM_COMMISSION_PERCENT } from "@/constants/gst";
 import { GST_STATE_NAMES_BY_CODE, isValidGstStateCode } from "@/constants/gstStateCodes";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
+import { sendReservationConfirmationCustomer } from "@/lib/email/templates";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
 import { r2 } from "@/lib/storage/r2";
@@ -18,6 +19,7 @@ import { generateInvoicePDFBlob, InvoiceLineItem, InvoiceParty, InvoicePDFData, 
 
 const IST_TIME_ZONE = "Asia/Kolkata";
 const MAX_RETRY_COUNT = 5;
+const DELIVERY_CLAIM_TIMEOUT_MS = 10 * 60 * 1000;
 const MAX_TRANSACTION_RETRIES = 3;
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
 const GSTIN_PATTERN = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
@@ -34,6 +36,13 @@ type MonthPeriod = {
   start: Date;
   end: Date;
   key: string;
+};
+
+type BillingSnapshot = {
+  id?: string;
+  companyName: string;
+  gstin: string;
+  billingAddress: string;
 };
 
 function roundMoney(value: number) {
@@ -61,6 +70,17 @@ function assertPropertyStateCode(value: string | null | undefined) {
     throw new Error("Listing property GST state code is missing or invalid; backfill it before invoice generation");
   }
   return code as string;
+}
+
+function parseBillingSnapshot(value: Prisma.JsonValue | null | undefined): BillingSnapshot | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const snapshot = value as Record<string, unknown>;
+  const companyName = typeof snapshot.companyName === "string" ? snapshot.companyName.trim() : "";
+  const gstin = typeof snapshot.gstin === "string" ? snapshot.gstin.trim().toUpperCase() : "";
+  const billingAddress = typeof snapshot.billingAddress === "string" ? snapshot.billingAddress.trim() : "";
+  const id = typeof snapshot.id === "string" ? snapshot.id : undefined;
+  if (!companyName || !gstin || !billingAddress) return null;
+  return { id, companyName, gstin, billingAddress };
 }
 
 function calculateTaxBreakup(taxableValueInput: number, supplierGstinInput: string, posStateCode: string): InvoiceTaxBreakup {
@@ -529,7 +549,7 @@ export class InvoiceService {
     const transaction = await prisma.transaction.findUnique({
       where: { id: transactionId },
       include: {
-        user: { include: { billingDetails: { where: { isDefault: true }, take: 1 } } },
+        user: true,
         reservation: {
           include: {
             billingDetail: true,
@@ -546,11 +566,15 @@ export class InvoiceService {
     if (!transaction) throw new Error("Transaction not found");
     if (!transaction.reservation) throw new Error("Reservation not found");
     if (transaction.status !== "SUCCESS") throw new Error("Cannot invoice an unsuccessful transaction");
+    if (transaction.reservation.isApproved !== 1) {
+      throw new Error("Cannot create a customer tax invoice before booking confirmation");
+    }
 
     const reservation = transaction.reservation;
     const listing = reservation.listing;
     const owner = listing.user;
-    const billing = reservation.billingDetail || transaction.user.billingDetails[0] || null;
+    const billingSnapshot = parseBillingSnapshot(reservation.billingSnapshot);
+    const billing = billingSnapshot || reservation.billingDetail || null;
 
     let studioPayment: ReturnType<typeof decryptPaymentDetailsInternal> | null = null;
     try {
@@ -659,7 +683,7 @@ export class InvoiceService {
           userId: transaction.userId,
           reservationId: reservation.id,
           transactionId: transaction.id,
-          billingId: billing?.id,
+          billingId: billing?.id || null,
           amount,
           gstAmount,
           totalAmount,
@@ -915,10 +939,13 @@ export class InvoiceService {
       where: {
         id: invoice.id,
         emailSentAt: null,
-        status: { not: "RETRYING" },
+        OR: [
+          { status: { not: "RETRYING" } },
+          { status: "RETRYING", updatedAt: { lte: new Date(Date.now() - DELIVERY_CLAIM_TIMEOUT_MS) } },
+        ],
       },
       data: {
-        status: invoice.retryCount > 0 ? "RETRYING" : "EMAIL_PENDING",
+        status: "RETRYING",
         emailError: null,
       },
     });
@@ -977,7 +1004,127 @@ export class InvoiceService {
     const invoice = await prisma.invoice.findUnique({ where: { id: assertObjectId(invoiceId, "invoiceId") } });
     if (!invoice) throw new Error("Invoice not found");
     if (invoice.retryCount >= MAX_RETRY_COUNT) throw new Error("Invoice email retry limit reached");
+    if (!invoice.invoiceUrl) {
+      if (
+        (invoice.documentType === "CUSTOMER_ARKANET_TAX_INVOICE" || invoice.documentType === "CUSTOMER_STUDIO_TAX_INVOICE")
+        && invoice.transactionId
+      ) {
+        await this.ensureCustomerInvoiceForTransaction(invoice.transactionId);
+        return await this.retryFailedInvoiceEmail(invoice.id);
+      }
+
+      if (
+        (invoice.documentType === "OWNER_MONTHLY_COMMISSION_INVOICE" || invoice.documentType === "OWNER_MONTHLY_BILL_OF_SUPPLY")
+        && invoice.periodStart
+        && invoice.periodEnd
+      ) {
+        await this.ensureMonthlyOwnerInvoice({
+          ownerId: invoice.userId,
+          periodStart: invoice.periodStart,
+          periodEnd: invoice.periodEnd,
+          documentType: invoice.documentType,
+        });
+        return await this.retryFailedInvoiceEmail(invoice.id);
+      }
+
+      throw new Error("Invoice PDF is not stored and cannot be regenerated");
+    }
+    if (invoice.documentType === "CUSTOMER_ARKANET_TAX_INVOICE" || invoice.documentType === "CUSTOMER_STUDIO_TAX_INVOICE") {
+      return await this.sendCustomerBookingConfirmationWithInvoice(invoice.id);
+    }
     return await this.sendInvoiceEmail(invoice.id);
+  }
+
+  static async sendCustomerBookingConfirmationWithInvoice(invoiceIdInput: string): Promise<Invoice> {
+    const invoiceId = assertObjectId(invoiceIdInput, "invoiceId");
+    const invoice = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      include: {
+        user: true,
+        reservation: { include: { listing: true } },
+      },
+    });
+
+    if (!invoice) throw new Error("Invoice not found");
+    if (!invoice.reservation) throw new Error("Reservation not found");
+    if (invoice.reservation.isApproved !== 1) throw new Error("Cannot send customer invoice before booking confirmation");
+    if (invoice.emailSentAt) return invoice;
+    if (!invoice.invoiceUrl) throw new Error("Invoice PDF is not stored");
+    if (!invoice.user.email) {
+      return await prisma.invoice.update({
+        where: { id: invoice.id },
+        data: { status: "DELIVERY_BLOCKED", emailError: "Recipient email is missing" },
+      });
+    }
+
+    const claim = await prisma.invoice.updateMany({
+      where: {
+        id: invoice.id,
+        emailSentAt: null,
+        OR: [
+          { status: { not: "RETRYING" } },
+          { status: "RETRYING", updatedAt: { lte: new Date(Date.now() - DELIVERY_CLAIM_TIMEOUT_MS) } },
+        ],
+      },
+      data: {
+        status: "RETRYING",
+        emailError: null,
+      },
+    });
+    if (claim.count !== 1) {
+      const latest = await prisma.invoice.findUnique({ where: { id: invoice.id } });
+      if (latest?.emailSentAt) return latest;
+      throw new Error("Invoice email delivery is already in progress");
+    }
+
+    if (process.env.E2E_DISABLE_EMAIL_SEND === "true") {
+      const sent = await prisma.invoice.update({
+        where: { id: invoice.id },
+        data: { status: "EMAIL_SENT", emailSentAt: new Date(), emailError: null },
+      });
+      await auditInvoice(sent, "INVOICE_EMAIL_SENT", { invoiceNumber: sent.invoiceNumber, skipped: true, bookingConfirmation: true });
+      return sent;
+    }
+
+    try {
+      const attachment = await downloadInvoiceAttachment(invoice);
+      if (!attachment) throw new Error("Invoice attachment unavailable");
+      await sendReservationConfirmationCustomer({
+        toEmail: invoice.user.email,
+        toName: invoice.user.name || "Valued Customer",
+        studioName: invoice.reservation.listing.title,
+        bookingId: invoice.reservation.bookingId,
+        startDate: formatDateIST(invoice.reservation.startDate),
+        startTime: invoice.reservation.startTime,
+        endTime: invoice.reservation.endTime,
+        totalPrice: invoice.reservation.totalPrice,
+        studioLocation: actualLocationLabel(invoice.reservation.listing.actualLocation) || invoice.reservation.listing.locationValue,
+        attachments: [attachment],
+      });
+
+      const sent = await prisma.invoice.update({
+        where: { id: invoice.id },
+        data: { status: "EMAIL_SENT", emailSentAt: new Date(), emailError: null },
+      });
+      await auditInvoice(sent, "INVOICE_EMAIL_SENT", { invoiceNumber: sent.invoiceNumber, bookingConfirmation: true });
+      return sent;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Invoice email failed";
+      const failed = await prisma.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          status: "EMAIL_FAILED",
+          emailError: message.slice(0, 500),
+          retryCount: { increment: 1 },
+        },
+      });
+      await auditInvoice(failed, "INVOICE_EMAIL_FAILED", {
+        invoiceNumber: failed.invoiceNumber,
+        error: message.slice(0, 300),
+        bookingConfirmation: true,
+      });
+      throw error;
+    }
   }
 
   static async processMonthlyOwnerInvoices(params: {
@@ -1042,6 +1189,7 @@ export class InvoiceService {
         invoiceUrl: { not: "" },
         status: { in: ["EMAIL_FAILED", "EMAIL_PENDING", "RETRYING"] },
         retryCount: { lt: MAX_RETRY_COUNT },
+        documentType: { in: ["OWNER_MONTHLY_COMMISSION_INVOICE", "OWNER_MONTHLY_BILL_OF_SUPPLY"] },
       },
       take: limit,
       orderBy: { updatedAt: "asc" },

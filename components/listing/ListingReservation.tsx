@@ -358,7 +358,7 @@ export default function ListingReservation({
   }, [phoneInput]);
 
   const startPayment = useCallback(
-    async (controller: AbortController, gst?: GSTDetails) => {
+    async (controller: AbortController, billingDetailId?: string | null) => {
       if (!listingId || !selectedDate || !localTimes.start || !localTimes.end)
         return;
       const startDateStr = formatLocalYmd(selectedDate);
@@ -371,7 +371,7 @@ export default function ListingReservation({
         totalPrice: number;
         selectedAddons: Addon[];
         instantBooking: boolean;
-        gstDetails?: GSTDetails;
+        billingDetailId?: string | null;
         setIds?: string[];
         setPackageId?: string | null;
         pricingSnapshot?: unknown;
@@ -390,7 +390,7 @@ export default function ListingReservation({
         totalPrice: finalTotal,
         selectedAddons,
         instantBooking: !!instantBooking,
-        gstDetails: gst,
+        billingDetailId,
       };
 
       if (selectedPackage) {
@@ -415,16 +415,32 @@ export default function ListingReservation({
       });
       const j = (await res.json().catch(() => ({}))) as {
         success?: boolean;
-        data?: { paymentSessionId?: string; mode?: "sandbox" | "production" };
+        data?: { tId?: string; paymentSessionId?: string; mode?: "sandbox" | "production" };
         message?: string;
         error?: string;
       };
 
+      const tId = j?.data?.tId;
       const sessionId = j?.data?.paymentSessionId;
       const mode = j?.data?.mode || "sandbox";
 
       if (!res.ok || !sessionId)
         throw new Error(j?.error || j?.message || "Failed to create reservation");
+
+      if (process.env.NEXT_PUBLIC_E2E_BYPASS_CASHFREE_CHECKOUT === "true" && tId) {
+        const simulated = await fetch("/api/payments/cashfree/e2e-complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tid: tId }),
+          signal: controller.signal,
+        });
+        const simulatedJson = (await simulated.json().catch(() => ({}))) as { error?: string; message?: string };
+        if (!simulated.ok) {
+          throw new Error(simulatedJson.error || simulatedJson.message || "Failed to simulate payment");
+        }
+        window.location.assign(`/payments/cashfree/return?tid=${encodeURIComponent(tId)}`);
+        return;
+      }
 
       const cf = await getCashfree(mode);
       if (!cf) throw new Error("Unable to initialize payment gateway");
@@ -460,20 +476,20 @@ export default function ListingReservation({
     setShowSummaryModal(true);
   }, [ready, isAuthenticated, uiStore, ensurePhone]);
 
-  const handleConfirmModal = useCallback(() => {
+  const handleConfirmModal = useCallback((billingDetailId?: string | null) => {
     setShowSummaryModal(false);
     setIsPaying(true);
     inflight.current?.abort();
     const controller = new AbortController();
     inflight.current = controller;
 
-    startPayment(controller, gstDetails).catch((e) => {
+    startPayment(controller, billingDetailId).catch((e) => {
       if (mountedRef.current && e?.name !== "AbortError") {
         setErr(e?.message || "Payment initiation failed. Please try again.");
         setIsPaying(false);
       }
     });
-  }, [gstDetails, startPayment]);
+  }, [startPayment]);
 
   return (
     <section className="bg-background rounded-xl shadow-sm border border-border/10 overflow-hidden">
@@ -635,11 +651,9 @@ export default function ListingReservation({
         addonsSum={addonsSum}
         platformFee={platformFee || 0}
         gstAmount={gstAmount}
-        subTotal={computedTotal}
         gstDetails={gstDetails}
         setGstDetailsAction={setGstDetails}
-        reservationId={""}
-        transactionId={""} />
+        instantBooking={instantBooking} />
     </section>
   );
 }

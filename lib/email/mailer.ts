@@ -34,7 +34,17 @@ export async function sendEmail({
         return;
     }
 
-    if (!apiKey || !toEmail) return;
+    if (!toEmail) {
+        throw new Error("Email recipient is missing");
+    }
+
+    if (!apiKey) {
+        throw new Error("MailerSend API key is missing");
+    }
+
+    if (!fromEmail) {
+        throw new Error("MailerSend sender email is missing");
+    }
 
     const ms = new MailerSend({ apiKey });
 
@@ -47,9 +57,7 @@ export async function sendEmail({
         params.setText(text);
     }
 
-    if (fromEmail) {
-        params.setFrom(new Sender(fromEmail, fromName));
-    }
+    params.setFrom(new Sender(fromEmail, fromName));
 
     if (attachments?.length) {
         params.setAttachments(

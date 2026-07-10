@@ -302,25 +302,14 @@ export async function completeCashfreeCheckout(page: Page) {
   } else {
     await page.getByText(/card/i).first().click({ timeout: 30_000 });
 
-    const spacedCardNumber = method.number.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
-    const testCardUseButton = page
-      .locator("div")
-      .filter({ hasText: spacedCardNumber })
-      .getByRole("button", { name: /^use$/i })
-      .first();
-    if (await testCardUseButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await testCardUseButton.click();
-    }
-
     const cardInput = page
       .getByRole("textbox", { name: /card details/i })
       .or(page.getByPlaceholder(/1234 1234/i))
       .first();
-    if (await cardInput.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await cardInput.click();
-      await cardInput.pressSequentially(spacedCardNumber, { delay: 30 });
-      await expect(cardInput).not.toHaveValue("", { timeout: 5_000 });
-    }
+
+    await expect(cardInput).toBeVisible({ timeout: 30_000 });
+    await cardInput.click();
+    await cardInput.pressSequentially(method.number, { delay: 50 });
 
     await page.getByRole("textbox", { name: /mm\/yy|expiry|valid thru/i }).fill(cashfreeExpiryForInput(method.expiry));
     await page.getByRole("textbox", { name: /cvv|security/i }).fill(method.cvv);
@@ -345,7 +334,7 @@ export async function completeCashfreeCheckout(page: Page) {
 
   if (/payments-test\.cashfree\.com\/pgbillpayuiapi\/simulator/i.test(page.url())) {
     await page.getByRole("textbox", { name: /otp/i }).fill(method.type === "card" ? method.otp || "111000" : "111000");
-    await page.getByText(/^success$/i).click();
+    await page.getByText(/success/i).first().click();
     const submit = page.getByRole("button", { name: /^submit$/i });
     await expect(submit).toBeEnabled({ timeout: 30_000 });
     await submit.click();

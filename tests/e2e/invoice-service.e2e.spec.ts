@@ -4,10 +4,6 @@ import { prisma, qaEmail, qaPhone } from "./support/db";
 import { trackCreated } from "./support/run-state";
 import { expect, test } from "./support/test";
 
-process.env.E2E_DISABLE_R2_UPLOAD = "true";
-process.env.E2E_DISABLE_EMAIL_SEND = "true";
-process.env.E2E_DISABLE_PDF_RENDER = "true";
-
 function ymd(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -18,6 +14,7 @@ async function createInvoiceFixture(params: {
   suffix: string;
   ownerHasGst: boolean;
   bookingDate?: Date;
+  attachBilling?: boolean;
 }) {
   const owner = await prisma.user.create({
     data: {
@@ -106,7 +103,7 @@ async function createInvoiceFixture(params: {
     data: {
       userId: customer.id,
       listingId: listing.id,
-      billingDetailId: billing.id,
+      billingDetailId: params.attachBilling === false ? undefined : billing.id,
       bookingId: `BKG-${params.suffix}`.slice(0, 16).toUpperCase(),
       startDate,
       startTime: "11:00 AM",
@@ -147,7 +144,7 @@ async function createInvoiceFixture(params: {
   });
   trackCreated("transaction", transaction.id);
 
-  return { owner, customer, listing, reservation, transaction };
+  return { owner, customer, billing, listing, reservation, transaction };
 }
 
 test.describe("enterprise invoice service", () => {
@@ -198,6 +195,34 @@ test.describe("enterprise invoice service", () => {
     expect(result.invoice.igstAmount).toBe(180);
     expect(result.invoice.cgstAmount).toBe(0);
     expect(result.invoice.sgstAmount).toBe(0);
+  });
+
+  test("customer invoice is blocked until the booking is confirmed", async () => {
+    const fixture = await createInvoiceFixture({
+      suffix: `pending-${Date.now()}`,
+      ownerHasGst: true,
+    });
+    await prisma.reservation.update({
+      where: { id: fixture.reservation.id },
+      data: { isApproved: 0 },
+    });
+
+    await expect(
+      InvoiceService.ensureCustomerInvoiceForTransaction(fixture.transaction.id)
+    ).rejects.toThrow(/before booking confirmation/i);
+    expect(await prisma.invoice.count({ where: { transactionId: fixture.transaction.id } })).toBe(0);
+  });
+
+  test("invoice does not use a default GST profile that was not selected at checkout", async () => {
+    const fixture = await createInvoiceFixture({
+      suffix: `personal-${Date.now()}`,
+      ownerHasGst: false,
+      attachBilling: false,
+    });
+
+    const result = await InvoiceService.ensureCustomerInvoiceForTransaction(fixture.transaction.id);
+    trackCreated("invoice", result.invoice.id);
+    expect(result.invoice.billingId).toBeNull();
   });
 
   test("monthly owner invoice reruns reuse the same invoice and month-end issued date", async () => {
