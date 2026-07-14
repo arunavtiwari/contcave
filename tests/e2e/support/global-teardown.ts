@@ -1,6 +1,6 @@
 import { cleanupE2ERun } from "./cleanup";
 import { getE2EEnv } from "./env";
-import { readRunState } from "./run-state";
+import { clearRunState, readRunState } from "./run-state";
 
 export default async function globalTeardown() {
   getE2EEnv();
@@ -8,6 +8,7 @@ export default async function globalTeardown() {
   try {
     const state = readRunState();
     await cleanupE2ERun(state);
+    clearRunState();
   } catch (error) {
     console.error("[e2e] Cleanup failed", error);
     throw error;

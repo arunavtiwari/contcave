@@ -24,7 +24,7 @@ import {
 } from "@/lib/scheduling";
 import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
-import { SafeReservation } from "@/types/reservation";
+import { PublicReservationSlot } from "@/types/reservation";
 import {
   buildOperationalTimings,
   ReservationOperationalTimings,
@@ -34,7 +34,7 @@ import {
 import { SafeUser } from "@/types/user";
 
 type Props = {
-  reservations?: SafeReservation[];
+  reservations?: PublicReservationSlot[];
   listing: FullListing;
   currentUser?: SafeUser | null;
   googleCalendarEvents?: GoogleCalendarEvent[];
@@ -710,7 +710,7 @@ function ListingClient({
                     isAuthenticated={!!currentUser}
                     minBookingHours={Number(listing.minimumBookingHours ?? 0)}
                     selectedPackage={selectedPackage}
-                    hasSets={listing.hasSets && (listing.sets?.length ?? 0) >= 2}
+                    hasSets={listing.hasSets && (listing.sets?.length ?? 0) >= 1}
                     sets={listing.sets}
                     additionalSetPricingType={listing.additionalSetPricingType}
                     selectedSetIds={selectedSetIds}

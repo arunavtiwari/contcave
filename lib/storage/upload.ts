@@ -3,8 +3,20 @@ export async function uploadToR2(files: (File | string)[], folder?: string): Pro
     for (const item of Array.from(files)) {
         let f: File;
         if (typeof item === "string") {
-            if (item.startsWith("http") && !item.startsWith("blob:")) {
-                newUrls.push(item);
+            if (/^https?:\/\//i.test(item)) {
+                let existingUrl: URL;
+                try {
+                    existingUrl = new URL(item);
+                } catch {
+                    throw new Error("Existing media URL is invalid");
+                }
+                if (existingUrl.protocol !== "https:" && process.env.NODE_ENV === "production") {
+                    throw new Error("Existing media URLs must use HTTPS");
+                }
+                if (item.length > 2_000 || existingUrl.username || existingUrl.password) {
+                    throw new Error("Existing media URL is invalid");
+                }
+                newUrls.push(existingUrl.toString());
                 continue;
             }
             try {
@@ -20,7 +32,14 @@ export async function uploadToR2(files: (File | string)[], folder?: string): Pro
             f = item;
         }
 
-        const payload: Record<string, string> = { filename: f.name, contentType: f.type };
+        if (!Number.isSafeInteger(f.size) || f.size <= 0) {
+            throw new Error("Cannot upload an empty or invalid file");
+        }
+        const payload: Record<string, string | number> = {
+            filename: f.name,
+            contentType: f.type,
+            fileSize: f.size,
+        };
         if (folder) payload.folder = folder;
 
         const presignRes = await fetch("/api/upload/presign", {
@@ -34,7 +53,14 @@ export async function uploadToR2(files: (File | string)[], folder?: string): Pro
             throw new Error(`Presign failed: ${txt}`);
         }
 
-        const { url, publicUrl } = await presignRes.json();
+        const presignPayload: unknown = await presignRes.json();
+        if (!presignPayload || typeof presignPayload !== "object") {
+            throw new Error("Storage did not return a valid upload session");
+        }
+        const { url, publicUrl } = presignPayload as { url?: unknown; publicUrl?: unknown };
+        if (typeof url !== "string" || typeof publicUrl !== "string") {
+            throw new Error("Storage did not return a valid upload session");
+        }
 
         const uploadRes = await fetch(url, {
             method: "PUT",

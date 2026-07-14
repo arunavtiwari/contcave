@@ -5,7 +5,7 @@ import React from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import AgreementDocument from "@/components/pdfs/AgreementDocument";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
 import { formatISTDate } from "@/lib/utils";
 
@@ -58,7 +58,7 @@ function validatePng(buffer: Buffer) {
     }
 
     try {
-        inflateSync(Buffer.concat(idatChunks));
+        inflateSync(Buffer.concat(idatChunks), { maxOutputLength: 4_000_000 });
     } catch {
         throw new SignatureImageError("Signature PNG is corrupted. Please upload a valid PNG or JPEG signature");
     }
@@ -107,10 +107,12 @@ export async function POST(request: Request) {
             return createErrorResponse("Unauthorized", 401);
         }
 
-        const body = await request.json();
+        const parsedBody = await readJsonObject(request, 1_500_000);
+        if (!parsedBody.success) return parsedBody.response;
+        const body = parsedBody.data;
         const { listingId, signatureUrl } = body;
 
-        if (!listingId || !signatureUrl) {
+        if (typeof listingId !== "string" || typeof signatureUrl !== "string") {
             return createErrorResponse("Missing listingId or signatureUrl", 400);
         }
 
@@ -124,20 +126,14 @@ export async function POST(request: Request) {
 
         const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
 
-        let actualListingId = listingId;
-
-        if (!isObjectId) {
-            const listing = await prisma.listing.findUnique({
-                where: { slug: listingId },
-                select: { id: true },
-            });
-
-            if (!listing) {
-                return createErrorResponse("Listing not found", 404);
-            }
-
-            actualListingId = listing.id;
+        const listing = await prisma.listing.findUnique({
+            where: isObjectId ? { id: listingId } : { slug: listingId },
+            select: { id: true, userId: true },
+        });
+        if (!listing || listing.userId !== currentUser.id) {
+            return createErrorResponse("Listing not found", 404);
         }
+        const actualListingId = listing.id;
 
         const dateStr = formatISTDate(new Date());
 
@@ -173,7 +169,11 @@ export async function POST(request: Request) {
             throw new Error("R2 upload failed");
         }
 
-        const secureUrl = `${process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL}/${key}`;
+        const publicBaseUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL?.replace(/\/+$/, "");
+        if (!publicBaseUrl || !/^https:\/\//i.test(publicBaseUrl)) {
+            throw new Error("Missing or invalid R2 public URL config");
+        }
+        const secureUrl = `${publicBaseUrl}/${key}`;
 
         return createSuccessResponse({
             url: secureUrl,

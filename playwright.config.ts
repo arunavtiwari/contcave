@@ -56,10 +56,17 @@ if (isLocalBaseUrl && !useRealCashfree) {
   process.env.E2E_DISABLE_EMAIL_SEND ??= "true";
   process.env.E2E_DISABLE_WHATSAPP_SEND ??= "true";
   process.env.E2E_DISABLE_R2_UPLOAD ??= "true";
+  // The expiry fixture models a booking created 25 hours ago, so place this
+  // isolated database's activation boundary one hour before that fixture.
+  // Production continues to provide its real deployment timestamp explicitly.
+  process.env.NOTIFICATION_AUTOMATION_START_AT ??= new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString();
 }
 
 const shouldStartLocalServer =
   process.env.E2E_START_LOCAL_SERVER === "true" && isLocalBaseUrl;
+if (shouldStartLocalServer) {
+  process.env.NEXT_DIST_DIR = `.next/e2e-${process.pid}`;
+}
 const webServerEnv = Object.fromEntries(
   Object.entries(process.env).filter((entry): entry is [string, string] => typeof entry[1] === "string")
 );

@@ -35,7 +35,7 @@ export const USE_CASE_LABELS = USE_CASES.map((u) => u.label) as [
  * Legacy label → new label mapping for Listing.type normalisation.
  * Used by the listing service on read, and by the migration script.
  */
-export const USE_CASE_LEGACY_MAP: Record<string, string> = {
+export const USE_CASE_LEGACY_MAP: Record<string, string | null> = {
   // old verbose labels
   "Fashion Shoot": "Fashion & Lifestyle",
   "Product & E-commerce Shoot": "Product & E-commerce",
@@ -52,8 +52,8 @@ export const USE_CASE_LEGACY_MAP: Record<string, string> = {
   Workshop: "Events & Pop-Ups",
   Podcast: "Podcast & Interview",
   Interview: "Podcast & Interview",
-  Meeting: null as unknown as string, // drop
-  "Meetings & Creative Sessions": null as unknown as string, // drop
+  Meeting: null, // drop
+  "Meetings & Creative Sessions": null, // drop
   "Interviews & YouTube Videos": "UGC & Reels",
 };
 

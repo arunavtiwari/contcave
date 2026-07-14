@@ -15,6 +15,11 @@ interface ListingCardActionsProps {
     onDelete?: (id: string) => void;
     onCancel?: (id: string) => void;
     onReject?: (id: string) => void;
+    onCheckIn?: (id: string) => void;
+    onComplete?: (id: string) => void;
+    onNoShow?: (id: string) => void;
+    onExtend?: (reservation: SafeReservation) => void;
+    onAddCharge?: (reservation: SafeReservation, type: "SERVICE" | "DAMAGE") => void;
     onShowInfo?: (reservation: SafeReservation) => void;
     actionId?: string;
     disabled?: boolean;
@@ -31,13 +36,26 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
     onDelete,
     onCancel,
     onReject,
+    onCheckIn,
+    onComplete,
+    onNoShow,
+    onExtend,
+    onAddCharge,
     onShowInfo,
     actionId,
     disabled,
     actionLabel,
     isHost,
 }) => {
-    const showActions = onEdit || onDelete || onCancel || (!reservation?.isApproved && isHost) || (reservation?.isApproved !== 0 && onChat);
+    const completedAt = reservation?.completedAt ? new Date(reservation.completedAt) : null;
+    const canAddPostBookingCharge = Boolean(
+        reservation?.status === "CHECKED_IN" ||
+        (reservation?.status === "COMPLETED" && completedAt && Date.now() - completedAt.getTime() <= 24 * 60 * 60 * 1000)
+    );
+    const isPendingApproval = reservation?.status === "PENDING_APPROVAL";
+    const isTerminal = Boolean(reservation && ["CANCELLED", "COMPLETED", "NO_SHOW", "REFUNDED", "PARTIALLY_REFUNDED"].includes(reservation.status));
+    const showActions = onEdit || onDelete || onCancel || (isPendingApproval && isHost) || (!isPendingApproval && onChat)
+        || onCheckIn || onComplete || onNoShow || onExtend || onAddCharge;
 
     if (!showActions) return null;
 
@@ -78,7 +96,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                     />
                 )}
 
-                {reservation && reservation.isApproved === 0 && isHost && (
+                {reservation && isPendingApproval && isHost && (
                     <div className="flex gap-2 w-full">
                         <Button
                             label="Approve"
@@ -100,19 +118,38 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                     </div>
                 )}
 
-                {reservation && (reservation?.isApproved !== 0 || !isHost) && (
-                    <div className="flex gap-2 w-full">
+                {reservation && (!isPendingApproval || !isHost) && (
+                    <div className="flex flex-col gap-2 w-full">
+                        {isHost && reservation.status === "CONFIRMED" && (
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button label="Check In" variant="success" onClick={(e) => { e?.stopPropagation(); onCheckIn?.(String(reservation.id)); }} disabled={disabled} size="sm" />
+                                <Button label="No Show" variant="outline" onClick={(e) => { e?.stopPropagation(); onNoShow?.(String(reservation.id)); }} disabled={disabled} size="sm" />
+                            </div>
+                        )}
+                        {isHost && reservation.status === "CHECKED_IN" && (
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button label="Complete" variant="success" onClick={(e) => { e?.stopPropagation(); onComplete?.(String(reservation.id)); }} disabled={disabled} size="sm" />
+                                <Button label="Extend" variant="outline" onClick={(e) => { e?.stopPropagation(); onExtend?.(reservation); }} disabled={disabled} size="sm" />
+                            </div>
+                        )}
+                        {isHost && canAddPostBookingCharge && (
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button label="Add Services" variant="outline" onClick={(e) => { e?.stopPropagation(); onAddCharge?.(reservation, "SERVICE"); }} disabled={disabled} size="sm" />
+                                <Button label="Damage" variant="outline" onClick={(e) => { e?.stopPropagation(); onAddCharge?.(reservation, "DAMAGE"); }} disabled={disabled} size="sm" />
+                            </div>
+                        )}
+                        <div className="flex gap-2 w-full">
                         {onChat && (
                             <Button
                                 label={isHost ? "Chat with Client" : "Chat with Host"}
-                                variant={reservation.isApproved === 1 ? "default" : "outline"}
+                                variant={reservation.status === "CONFIRMED" || reservation.status === "CHECKED_IN" ? "default" : "outline"}
                                 onClick={(e) => { e?.stopPropagation(); onChat(String(reservation?.id)); }}
-                                disabled={reservation.isApproved !== 1 || disabled}
+                                disabled={!(reservation.status === "CONFIRMED" || reservation.status === "CHECKED_IN" || reservation.status === "COMPLETED") || disabled}
                                 size="sm"
                                 className="flex-1 whitespace-nowrap"
                             />
                         )}
-                        {onCancel && reservation.isApproved === 0 && (
+                        {onCancel && isPendingApproval && (
                             <Button
                                 label="Cancel"
                                 variant="outline"
@@ -122,7 +159,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                                 className="flex-1"
                             />
                         )}
-                        {(reservation.isApproved === 2 || reservation.isApproved === 3) && onDelete && (
+                        {isTerminal && onDelete && (
                             <Button
                                 label="Delete"
                                 variant="outline"
@@ -132,6 +169,7 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                                 className="flex-1"
                             />
                         )}
+                        </div>
                     </div>
                 )}
             </div>

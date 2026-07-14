@@ -15,7 +15,11 @@ export const metadata: Metadata = {
   },
 };
 
-const ProfilePage = async () => {
+const ProfilePage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ becomeOwner?: string; verify?: string }>;
+}) => {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -24,7 +28,14 @@ const ProfilePage = async () => {
     );
   }
 
-  return <MyProfile profile={currentUser} />;
+  const { becomeOwner, verify } = await searchParams;
+  return (
+    <MyProfile
+      profile={currentUser}
+      openOwnerOnLoad={becomeOwner === "1"}
+      openVerificationOnLoad={verify === "1"}
+    />
+  );
 };
 
 export default ProfilePage;

@@ -1,4 +1,5 @@
 import { cfMapStatus, cfVerifyWebhookSignature } from "@/lib/cashfree/cashfree";
+import { PostBookingService } from "@/lib/post-booking/service";
 import { ReservationService } from "@/lib/reservation/service";
 import { TransactionService } from "@/lib/transaction/service";
 
@@ -16,7 +17,10 @@ type CashfreeWebhookPayload = {
   [key: string]: unknown;
 };
 
-const MAX_SKEW_SEC = Number(process.env.WEBHOOK_MAX_SKEW_SEC || 600);
+const configuredMaxSkew = Number(process.env.WEBHOOK_MAX_SKEW_SEC || 600);
+const MAX_SKEW_SEC = Number.isFinite(configuredMaxSkew) && configuredMaxSkew > 0
+  ? configuredMaxSkew
+  : 600;
 
 type HandleInput = {
   raw: string;
@@ -71,6 +75,7 @@ function verifySignature(raw: string, headers: HandleInput["headers"]) {
 function shouldApplyWebhookStatus(currentStatus: string, incomingStatus: string) {
   if (currentStatus === incomingStatus) return false;
   if (incomingStatus === "PENDING") return false;
+  if (currentStatus === "REFUNDED") return false;
   if (currentStatus === "SUCCESS" && incomingStatus !== "SUCCESS") return false;
   if (currentStatus === "FAILED" && incomingStatus !== "SUCCESS") return false;
   return true;
@@ -98,25 +103,46 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
     const txn = await TransactionService.findByOrderId(orderId);
     if (!txn) return { statusCode: 200 };
 
-    if (status === "SUCCESS" && txn.userId && txn.listingId) {
+    if (status === "SUCCESS" && txn.status !== "REFUNDED" && txn.purpose === "EXTENSION") {
+      await TransactionService.updateWebhookMetadata({
+        txnId: txn.id,
+        cfPaymentId,
+        webhookPayload: body,
+        signature: headers.signature
+      });
+      await PostBookingService.applyExtensionPayment(txn.id, cfPaymentId);
+      console.warn("[Webhook] Extension payment processed", { txnId: txn.id });
+    } else if (status === "FAILED" && txn.purpose === "EXTENSION" && shouldApplyWebhookStatus(txn.status, status)) {
+      await TransactionService.updateStatus({ txnId: txn.id, status, cfPaymentId, webhookPayload: body, signature: headers.signature });
+      await PostBookingService.markExtensionPaymentFailed(txn.id, "Cashfree reported the extension payment as failed", cfPaymentId);
+    } else if (status === "SUCCESS" && txn.status !== "REFUNDED" && txn.purpose === "ADDITIONAL_CHARGE") {
+      await TransactionService.updateWebhookMetadata({
+        txnId: txn.id,
+        cfPaymentId,
+        webhookPayload: body,
+        signature: headers.signature
+      });
+      await PostBookingService.applyAdditionalChargePayment(txn.id, cfPaymentId);
+      console.warn("[Webhook] Additional charge payment processed", { txnId: txn.id });
+    } else if (status === "FAILED" && txn.purpose === "ADDITIONAL_CHARGE" && shouldApplyWebhookStatus(txn.status, status)) {
+      await TransactionService.updateStatus({ txnId: txn.id, status, cfPaymentId, webhookPayload: body, signature: headers.signature });
+      await PostBookingService.markAdditionalChargePaymentFailed(txn.id, "Cashfree reported the additional payment as failed", cfPaymentId);
+    } else if (status === "SUCCESS" && txn.status !== "REFUNDED" && txn.userId && txn.listingId) {
+      // Record Cashfree's authoritative success before creating the reservation.
+      // This also lets a legitimate late success recover a locally failed order;
+      // reservation creation is idempotent and refunds an unavailable slot.
+      await TransactionService.updateStatus({
+        txnId: txn.id,
+        status: "SUCCESS",
+        cfPaymentId,
+        webhookPayload: body,
+        signature: headers.signature
+      });
       const result = await ReservationService.createFromTransaction(txn.id);
       if (result) {
-        await TransactionService.updateStatus({
-          txnId: txn.id,
-          status,
-          cfPaymentId,
-          webhookPayload: body,
-          signature: headers.signature
-        });
         console.warn("[Webhook] Reservation processed via Service", { txnId: txn.id, reservationId: result.reservationId });
       } else {
-        await TransactionService.updateWebhookMetadata({
-          txnId: txn.id,
-          cfPaymentId,
-          webhookPayload: body,
-          signature: headers.signature
-        });
-        console.warn("[Webhook] Payment succeeded but reservation was not created; local transaction status preserved", { txnId: txn.id });
+        console.warn("[Webhook] Payment succeeded but reservation creation returned no result", { txnId: txn.id });
       }
     } else if (shouldApplyWebhookStatus(txn.status, status) || txn.cfPaymentId !== cfPaymentId) {
       await TransactionService.updateStatus({
@@ -128,7 +154,12 @@ export async function handleCashfreeWebhook(input: HandleInput): Promise<{ statu
       });
     }
 
-    if (status === "FAILED" && txn.id) {
+    if (
+      status === "FAILED" &&
+      txn.id &&
+      txn.purpose === "BASE_BOOKING" &&
+      shouldApplyWebhookStatus(txn.status, status)
+    ) {
       console.warn("[Webhook] Payment failed for transaction", { txnId: txn.id });
       await ReservationService.handleFailedPayment(txn.id).catch((error) => {
         console.error("[Webhook] Failed-payment notification failed", {

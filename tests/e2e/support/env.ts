@@ -102,28 +102,15 @@ function databaseNameFromUrl(databaseUrl: string) {
   }
 }
 
-function allowedDatabaseNames() {
-  return new Set(
-    (process.env.E2E_ALLOWED_DATABASE_NAMES || "")
-      .split(",")
-      .map((name) => name.trim())
-      .filter(Boolean)
-  );
-}
-
-function assertSafeDatabaseUrl(databaseUrl: string) {
+function assertSafeDatabaseUrl(databaseUrl: string, expectedDatabaseName: string) {
   if (!/^mongodb(\+srv)?:\/\//i.test(databaseUrl)) {
     throw new Error("E2E_DATABASE_URL must be a MongoDB connection string.");
   }
 
   const databaseName = databaseNameFromUrl(databaseUrl);
-  const hasSafeName = /(staging|stage|test|qa|e2e)/i.test(databaseUrl);
-  const hasExplicitNameAllow = databaseName && allowedDatabaseNames().has(databaseName);
-
-  if (!hasSafeName && !hasExplicitNameAllow) {
+  if (!databaseName || databaseName !== expectedDatabaseName) {
     throw new Error(
-      "Refusing staging writes: E2E_DATABASE_URL must clearly contain staging, stage, test, qa, or e2e, " +
-        "or E2E_ALLOWED_DATABASE_NAMES must include the exact staging database name."
+      `Refusing E2E writes: expected database "${expectedDatabaseName}", received "${databaseName || "<missing>"}".`
     );
   }
 }
@@ -138,9 +125,10 @@ export function getE2EConnectionEnv(): E2EConnectionEnv {
   }
 
   const baseUrl = required("E2E_BASE_URL", ["APP_URL", "NEXTAUTH_URL"]).replace(/\/$/, "");
-  const databaseUrl = required("E2E_DATABASE_URL", ["DATABASE_URL"]);
+  const databaseUrl = required("E2E_DATABASE_URL");
+  const expectedDatabaseName = required("E2E_EXPECTED_DATABASE_NAME");
   assertSafeBaseUrl(baseUrl);
-  assertSafeDatabaseUrl(databaseUrl);
+  assertSafeDatabaseUrl(databaseUrl, expectedDatabaseName);
 
   process.env.E2E_BASE_URL = baseUrl;
   process.env.E2E_DATABASE_URL = databaseUrl;

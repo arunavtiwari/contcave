@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { IoLogoWhatsapp } from "react-icons/io";
 
-import { buildWhatsAppUrl, GENERAL_ENQUIRY_MESSAGE } from "@/lib/whatsapp";
+import { buildWhatsAppUrl, GENERAL_ENQUIRY_MESSAGE } from "@/lib/whatsapp/urls";
 
 export default function WhatsAppFloatingButton() {
     const [hovered, setHovered] = useState(false);

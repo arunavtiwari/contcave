@@ -1,7 +1,9 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createKnownErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
 import { ReservationService } from "@/lib/reservation/service";
+import { updateReservationSchema } from "@/schemas/reservation";
+import { UserRole } from "@/types/user";
 
 interface IParams {
   reservationId?: string;
@@ -18,19 +20,20 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
 
     const { reservationId } = params;
 
-    if (!reservationId || typeof reservationId !== "string") {
+    if (!reservationId || !/^[a-f\d]{24}$/i.test(reservationId)) {
       return createErrorResponse("Invalid reservation ID", 400);
     }
 
-    const reservation = await prisma.reservation.findFirst({
-      where: {
-        id: reservationId,
-        markedForDeletion: false,
-      },
-      include: { listing: true },
-    });
+    const reservation = (await ReservationService.getReservations({ reservationId }))[0];
 
-    if (!reservation || (reservation.userId !== currentUser.id && reservation.listing.userId !== currentUser.id)) {
+    if (
+      !reservation ||
+      (
+        reservation.userId !== currentUser.id &&
+        reservation.listing.userId !== currentUser.id &&
+        currentUser.role !== UserRole.ADMIN
+      )
+    ) {
       return createErrorResponse("Reservation not found or unauthorized", 404);
     }
 
@@ -51,14 +54,16 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
 
     const { reservationId } = params;
 
-    if (!reservationId || typeof reservationId !== "string") {
+    if (!reservationId || !/^[a-f\d]{24}$/i.test(reservationId)) {
       return createErrorResponse("Invalid reservation ID", 400);
     }
 
     const existingReservation = await prisma.reservation.findFirst({
       where: {
         id: reservationId,
-        OR: [{ userId: currentUser.id }, { listing: { userId: currentUser.id } }],
+        ...(currentUser.role === UserRole.ADMIN
+          ? {}
+          : { OR: [{ userId: currentUser.id }, { listing: { userId: currentUser.id } }] }),
       },
     });
 
@@ -67,11 +72,12 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
     }
 
     try {
-      await ReservationService.delete(reservationId, currentUser.id);
+      await ReservationService.delete(reservationId, currentUser.id, currentUser.role === UserRole.ADMIN);
       return createSuccessResponse(null, 200, "Reservation deleted successfully");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to delete reservation";
-      return createErrorResponse(message, 400);
+      const knownResponse = createKnownErrorResponse(error);
+      if (knownResponse) return knownResponse;
+      throw error;
     }
   } catch (error) {
     return handleRouteError(error, "DELETE /api/reservations/[reservationId]");
@@ -89,46 +95,33 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
 
     const { reservationId } = params;
 
-    if (!reservationId || typeof reservationId !== "string" || reservationId.trim().length === 0) {
+    if (!reservationId || !/^[a-f\d]{24}$/i.test(reservationId)) {
       return createErrorResponse("Invalid reservation ID", 400);
     }
 
-    if (!request.headers.get("content-type")?.includes("application/json")) {
-      return createErrorResponse("Content-Type must be application/json", 415);
-    }
-
-    const body = await request.json().catch(() => ({}));
-
-    const updateData: Record<string, unknown> = {};
-
-    if ("isApproved" in body) {
-      if (typeof body.isApproved !== "number" || (body.isApproved !== 1 && body.isApproved !== 2 && body.isApproved !== 3)) {
-        return createErrorResponse("isApproved must be 1, 2, or 3", 400);
-      }
-      updateData.isApproved = body.isApproved;
-    }
-
-    if ("rejectReason" in body) {
-      if (typeof body.rejectReason !== "string") {
-        return createErrorResponse("rejectReason must be a string", 400);
-      }
-      const trimmedReason = body.rejectReason.trim();
-      if (trimmedReason.length > 500) {
-        return createErrorResponse("rejectReason is too long (max 500 characters)", 400);
-      }
-      updateData.rejectReason = trimmedReason || null;
-    }
-
-    if (typeof updateData.isApproved !== "number") {
-      return createErrorResponse("isApproved is required", 400);
+    const parsedBody = await readJsonObject(request, 10_000);
+    if (!parsedBody.success) return parsedBody.response;
+    const parsedUpdate = updateReservationSchema.safeParse({
+      ...parsedBody.data,
+      reservationId,
+    });
+    if (!parsedUpdate.success) {
+      return createErrorResponse(parsedUpdate.error.issues[0]?.message || "Invalid reservation update", 400);
     }
 
     try {
-      await ReservationService.updateStatus(reservationId, currentUser.id, updateData.isApproved as number, updateData.rejectReason as string);
+      await ReservationService.updateStatus(
+        reservationId,
+        currentUser.id,
+        parsedUpdate.data.status,
+        parsedUpdate.data.rejectReason,
+        currentUser.role === UserRole.ADMIN
+      );
       return createSuccessResponse(null, 200, "Reservation updated successfully");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to update reservation";
-      return createErrorResponse(message, 400);
+      const knownResponse = createKnownErrorResponse(error);
+      if (knownResponse) return knownResponse;
+      throw error;
     }
   } catch (error) {
     return handleRouteError(error, "PATCH /api/reservations/[reservationId]");

@@ -5,7 +5,11 @@ export const phoneVerificationSchema = z.object({
 });
 
 export const emailVerificationSchema = z.object({
-  email: z.string().email("Invalid email format").max(255, "Email is too long"),
+  email: z.string().trim().email("Invalid email format").max(255, "Email is too long"),
+});
+
+export const emailVerificationCodeSchema = z.object({
+  code: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit verification code"),
 });
 
 export const bankSchema = z.object({

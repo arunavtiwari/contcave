@@ -9,7 +9,7 @@ interface Props {
   packages: Package[];
   onSelect?: (pkg: Package | null) => void;
   selectedPackageId?: string | null;
-  isMultiSets?: boolean;
+  hasSets?: boolean;
 }
 
 const INR = new Intl.NumberFormat("en-IN", {
@@ -18,7 +18,7 @@ const INR = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
 });
 
-export default function PackageList({ packages, onSelect, selectedPackageId, isMultiSets = false }: Props) {
+export default function PackageList({ packages, onSelect, selectedPackageId, hasSets = false }: Props) {
 
   const handleSelect = (pkg: Package) => {
     if (selectedPackageId === pkg.id) {
@@ -91,7 +91,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
                       Duration: {pkg.durationHours} hr{pkg.durationHours > 1 ? "s" : ""}
                     </span>
 
-                    {(isMultiSets && pkg.requiredSetCount && pkg.requiredSetCount > 0) ? (
+                    {(hasSets && pkg.requiredSetCount && pkg.requiredSetCount > 0) ? (
                       <>
                         <span className="text-muted-foreground/30">•</span>
                         <span className="text-muted-foreground font-medium">
@@ -130,4 +130,3 @@ export default function PackageList({ packages, onSelect, selectedPackageId, isM
     </div>
   );
 }
-

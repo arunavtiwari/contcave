@@ -15,7 +15,7 @@ export async function DELETE(request: NextRequest) {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    const accessToken = (session as { accessToken?: string }).accessToken;
+    const accessToken = session.calendarAccessToken;
     if (!accessToken || typeof accessToken !== "string") {
       return createErrorResponse("No access token found", 401);
     }
@@ -52,7 +52,7 @@ export async function DELETE(request: NextRequest) {
       await calendar.events.delete({
         calendarId: effectiveCalendarId,
         eventId: id.trim(),
-      });
+      }, { signal: controller.signal });
 
       clearTimeout(timeoutId);
       return createSuccessResponse({

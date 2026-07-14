@@ -1,11 +1,23 @@
 import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { formatRetryAfterMs, rateLimitRequest } from "@/lib/security/rateLimit";
 import { UserService } from "@/lib/user/service";
 import { resetPasswordSchema } from "@/schemas/auth";
 
 export async function POST(request: NextRequest) {
     try {
+        const requestLimit = rateLimitRequest(request.headers, {
+            scope: "password-reset",
+            limit: 10,
+            windowMs: 15 * 60 * 1000,
+        });
+        if (!requestLimit.allowed) {
+            const response = createErrorResponse("Too many reset attempts. Please try again later.", 429);
+            response.headers.set("Retry-After", formatRetryAfterMs(requestLimit.resetAt));
+            return response;
+        }
+
         if (!request.headers.get("content-type")?.includes("application/json")) {
             return createErrorResponse("Content-Type must be application/json", 415);
         }

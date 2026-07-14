@@ -1,5 +1,7 @@
 import { Attachment, EmailParams, MailerSend, Recipient, Sender } from "mailersend";
 
+import { isExternalDeliveryDisabled } from "@/lib/notifications/external-delivery";
+
 export type AttachmentInput = {
     filename: string;
     content: string;
@@ -30,7 +32,7 @@ export async function sendEmail({
     apiKey = process.env.MAILERSEND_API_KEY || "",
     attachments,
 }: SendEmailInput) {
-    if (process.env.E2E_DISABLE_EMAIL_SEND === "true") {
+    if (isExternalDeliveryDisabled("email")) {
         return;
     }
 

@@ -1,3 +1,4 @@
 import { z } from "zod";
 
-export const userIdSchema = z.string().min(1, 'User ID cannot be empty').trim();
+export const objectIdSchema = z.string().trim().regex(/^[a-f\d]{24}$/i, "Invalid ID");
+export const userIdSchema = objectIdSchema;

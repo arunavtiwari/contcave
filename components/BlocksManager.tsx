@@ -17,7 +17,7 @@ export interface ListingBlock {
     endTime: string;
     setIds?: string[];
     reason?: string | null;
-    createdAt?: Date;
+    createdAt?: string | Date;
 }
 
 import { TIME_SLOTS } from "@/constants/timeSlots";
@@ -55,7 +55,7 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
             const data = await getBlocksAction(listingId);
             const formattedBlocks = (data || []).map(b => ({
                 ...b,
-                date: b.date instanceof Date ? b.date.toISOString() : b.date,
+                date: typeof b.date === "string" ? b.date : new Date(b.date).toISOString(),
                 reason: b.reason || ""
             }));
             setBlocks(formattedBlocks as unknown as ListingBlock[]);
@@ -251,4 +251,3 @@ export default function BlocksManager({ listingId, sets }: BlocksManagerProps) {
         </div>
     );
 }
-

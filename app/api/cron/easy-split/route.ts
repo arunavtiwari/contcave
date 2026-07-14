@@ -1,17 +1,16 @@
 import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
-import { runDueSplits } from "@/lib/cron/runDueSplits";
+import { hasValidCronSecret } from "@/lib/cron/auth";
+import { runDueSplits } from "@/lib/maintenance/payoutSplits";
+import { assertNoFailedMaintenanceResults } from "@/lib/maintenance/results";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
     try {
-        const cronSecret = req.headers.get("x-github-secret");
-        const expectedSecret = process.env.CRON_SECRET;
-
-        if (!expectedSecret || cronSecret !== expectedSecret) {
+        if (!hasValidCronSecret(req)) {
             return createErrorResponse("Unauthorized", 401);
         }
 
@@ -26,6 +25,7 @@ export async function GET(req: NextRequest) {
         }
 
         const results = await runDueSplits(limit);
+        assertNoFailedMaintenanceResults(results);
         const ok = results.filter((r) => r.ok).length;
 
         return createSuccessResponse({ ok, total: results.length, results });

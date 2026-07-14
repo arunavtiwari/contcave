@@ -42,19 +42,7 @@ export async function POST(req: NextRequest) {
                 name: true,
                 email: true,
                 phone: true,
-                paymentDetails: {
-                    select: {
-                        id: true,
-                        cashfreeVendorId: true,
-                        accountHolderName: true,
-                        accountNumber: true,
-                        accountNumberIV: true,
-                        ifscCode: true,
-                        ifscCodeIV: true,
-                        gstin: true,
-                        gstinIV: true,
-                    },
-                },
+                paymentDetails: true,
             },
         });
 
@@ -66,16 +54,15 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Payment details must be set up before creating a vendor", 400);
         }
 
-        if (user.paymentDetails.cashfreeVendorId) {
-            return createSuccessResponse({ vendorId: user.paymentDetails.cashfreeVendorId });
-        }
-
         if (!user.paymentDetails.accountHolderName || !user.paymentDetails.accountNumber || !user.paymentDetails.ifscCode) {
             return createErrorResponse("Complete payment details (account holder, account number, IFSC) are required", 400);
         }
 
         const { decryptPaymentDetailsInternal } = await import('@/lib/payment-details');
-        const decryptedDetails = decryptPaymentDetailsInternal(user.paymentDetails as import('@prisma/client').PaymentDetails);
+        const decryptedDetails = decryptPaymentDetailsInternal(user.paymentDetails);
+        if (decryptedDetails.cashfreeVendorId) {
+            return createSuccessResponse({ vendorId: decryptedDetails.cashfreeVendorId });
+        }
 
         const vendorId = await cfEnsureVendor({
             vendor_id: `v_${userId}`,

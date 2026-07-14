@@ -10,7 +10,12 @@ function ClientOnly({ children }: Props) {
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    document.documentElement.dataset.appHydrated = "true";
     setHasMounted(true);
+
+    return () => {
+      delete document.documentElement.dataset.appHydrated;
+    };
   }, []);
 
   if (!hasMounted) {

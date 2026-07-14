@@ -7,10 +7,10 @@ import { FaCheckCircle, FaShieldAlt } from "react-icons/fa";
 import { toast } from "sonner";
 
 import {
-  createVendorAction,
+  confirmEmailVerificationAction,
+  requestEmailVerificationAction,
   updateVerificationStepAction,
-  verifyAadhaarOcrAction,
-  verifyEmailAction
+  verifyBankAction
 } from "@/app/actions/verificationActions";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import Input from "@/components/inputs/Input";
@@ -32,7 +32,7 @@ type Props = {
 };
 
 const steps = [
-  { id: 1, title: "Phone & Email", description: "Verify your contact information" },
+  { id: 1, title: "Contact", description: "Verify email and save your phone number" },
   { id: 2, title: "Aadhaar KYC", description: "Complete identity verification" },
   { id: 3, title: "Bank Details", description: "Add payment information" },
 ];
@@ -42,7 +42,7 @@ const digitsOnly = (value: string, maxLength: number) =>
 
 const getInitialStep = (user: SafeUser | null): number => {
   if (!user) return 1;
-  if (!user.phone_verified || !user.email_verified) return 1;
+  if (!user.email_verified) return 1;
   if (!user.aadhaar_verified) return 2;
   if (!user.bank_verified) return 3;
   return 4;
@@ -65,6 +65,8 @@ const VerificationModal: React.FC<Props> = ({
   const [busyAction, setBusyAction] = useState<"email" | "phone" | "aadhaar" | "bank" | null>(null);
   const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
   const [aadhaarPreview, setAadhaarPreview] = useState<string[]>([]);
+  const [emailCodeSent, setEmailCodeSent] = useState(false);
+  const [emailCode, setEmailCode] = useState("");
 
   const {
     register,
@@ -97,6 +99,8 @@ const VerificationModal: React.FC<Props> = ({
       setStep(getInitialStep(currentUser));
       setAadhaarFile(null);
       setAadhaarPreview([]);
+      setEmailCodeSent(false);
+      setEmailCode("");
       reset({
         email: currentUser.email || "",
         phone: currentUser.phone || "",
@@ -109,42 +113,50 @@ const VerificationModal: React.FC<Props> = ({
     }
   }, [isOpen, currentUser, reset]);
 
-  const verifyEmail = async () => {
+  const requestEmailCode = async () => {
     if (busyAction) return;
     setBusyAction("email");
     try {
-      const resp = await verifyEmailAction(emailValue);
-      if (resp?.data?.result === "undeliverable") {
-        toast.error("Email address is not deliverable");
+      const resp = await requestEmailVerificationAction(emailValue);
+      if (!resp.success) {
+        toast.error(resp.error || "Could not send the verification code");
         return;
       }
-
-      const updatedUser = await updateVerificationStepAction({ step: "email" });
-      const nextUser = mergeUserState(userState, updatedUser as Partial<SafeUser>);
-      setUserState(nextUser);
-      onUserChange?.(nextUser);
-      toast.success("Email verified successfully");
+      if (resp.data?.alreadyVerified && resp.data.user) {
+        const nextUser = mergeUserState(userState, resp.data.user as Partial<SafeUser>);
+        setUserState(nextUser);
+        onUserChange?.(nextUser);
+        toast.success("Email is already verified");
+        return;
+      }
+      setEmailCodeSent(true);
+      setEmailCode("");
+      const developmentCode = resp.data && "developmentCode" in resp.data ? resp.data.developmentCode : undefined;
+      toast.success(developmentCode ? `Development verification code: ${developmentCode}` : "Verification code sent to your email");
     } catch (_err: unknown) {
-      toast.error("Email verification failed");
+      toast.error("Could not send the verification code");
     } finally {
       setBusyAction(null);
     }
   };
 
-  const verifyPhone = async () => {
-    if (busyAction) return;
-    setBusyAction("phone");
+  const confirmEmailCode = async () => {
+    if (busyAction || !/^\d{6}$/.test(emailCode)) return;
+    setBusyAction("email");
     try {
-      const updatedUser = await updateVerificationStepAction({
-        step: "phone",
-        phone: phoneValue,
-      });
-      const nextUser = mergeUserState(userState, updatedUser as Partial<SafeUser>);
+      const resp = await confirmEmailVerificationAction({ code: emailCode });
+      if (!resp.success || !resp.data) {
+        toast.error(resp.error || "Email verification failed");
+        return;
+      }
+      const nextUser = mergeUserState(userState, resp.data as Partial<SafeUser>);
       setUserState(nextUser);
       onUserChange?.(nextUser);
-      toast.success("Phone verified successfully");
-    } catch (_err: unknown) {
-      toast.error("Phone verification failed");
+      setEmailCodeSent(false);
+      setEmailCode("");
+      toast.success("Email verified successfully");
+    } catch {
+      toast.error("Email verification failed");
     } finally {
       setBusyAction(null);
     }
@@ -161,9 +173,11 @@ const VerificationModal: React.FC<Props> = ({
     try {
       const formData = new FormData();
       formData.append("aadhaarDocument", aadhaarFile);
-      const resp = await verifyAadhaarOcrAction(formData);
-      if (resp.success && resp.data) {
-        const nextUser = mergeUserState(userState, resp.data.user as Partial<SafeUser>);
+      const response = await fetch("/api/user/verify/aadhaar", { method: "POST", body: formData });
+      const resp = await response.json().catch(() => null) as { success: boolean; data?: { user?: Partial<SafeUser> }; error?: string } | null;
+      if (!resp) throw new Error(response.status === 413 ? "Aadhaar document is too large. Upload an image up to 5 MB or a PDF up to 1 MB" : "Verification server returned an invalid response. Please try again");
+      if (response.ok && resp.success && resp.data?.user) {
+        const nextUser = mergeUserState(userState, resp.data.user);
         setUserState(nextUser);
         onUserChange?.(nextUser);
         setAadhaarFile(null);
@@ -173,8 +187,8 @@ const VerificationModal: React.FC<Props> = ({
       } else {
         toast.error(resp.error || "Aadhaar verification failed");
       }
-    } catch (_err: unknown) {
-      toast.error("Failed to connect to verification server");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to connect to verification server");
     } finally {
       setBusyAction(null);
     }
@@ -188,7 +202,7 @@ const VerificationModal: React.FC<Props> = ({
       const ifscCode = data.ifscCode.trim().toUpperCase();
       const gstin = data.gstNumber?.trim().toUpperCase();
 
-      const vendorPayload: Record<string, unknown> = {
+      const vendorPayload = {
         display_name: userState?.name || data.accountHolderName,
         email: userState?.email || data.email,
         phone: data.phone,
@@ -196,25 +210,15 @@ const VerificationModal: React.FC<Props> = ({
         account_number: accountNumber,
         ifsc: ifscCode,
       };
-      if (gstin) vendorPayload.gstin = gstin;
-
-      const vendor = await createVendorAction(vendorPayload);
-      const vendorId = typeof vendor?.vendor_id === "string" ? vendor.vendor_id : "";
-      if (!vendorId) throw new Error("Payout setup failed. Please verify your bank details again.");
-
-      const verificationPayload: Parameters<typeof updateVerificationStepAction>[0] = {
-        step: "bank",
-        bankVerifiedName: data.accountHolderName,
-        accountNumber,
-        ifscCode,
+      const bankResult = await verifyBankAction({
+        ...vendorPayload,
+        ...(gstin ? { gstin } : {}),
         bankName: data.bankName,
-      };
-      if (vendorId) verificationPayload.vendorId = vendorId;
-      if (gstin) verificationPayload.gstin = gstin;
-
-      const updatedUser = await updateVerificationStepAction(verificationPayload);
-
-      const nextUser = mergeUserState(userState, updatedUser as Partial<SafeUser>);
+      });
+      if (!bankResult.success || !bankResult.data?.user) {
+        throw new Error(bankResult.error || "Bank verification failed");
+      }
+      const nextUser = mergeUserState(userState, bankResult.data.user as Partial<SafeUser>);
       setUserState(nextUser);
       onUserChange?.(nextUser);
       toast.success("Profile verification completed.");
@@ -227,10 +231,23 @@ const VerificationModal: React.FC<Props> = ({
     }
   };
 
-  const handleNextClick = () => {
+  const handleNextClick = async () => {
     if (step === 1) {
       if (!userState?.email_verified) return toast.error("Please verify email first");
-      if (!userState?.phone_verified) return toast.error("Please verify phone first");
+      if (!/^\d{10}$/.test(phoneValue)) return toast.error("Enter a valid 10-digit phone number");
+      setBusyAction("phone");
+      try {
+        const result = await updateVerificationStepAction({ step: "phone", phone: phoneValue });
+        if (!result.success || !result.data) {
+          toast.error(result.error || "Unable to save phone number");
+          return;
+        }
+        const nextUser = mergeUserState(userState, result.data as Partial<SafeUser>);
+        setUserState(nextUser);
+        onUserChange?.(nextUser);
+      } finally {
+        setBusyAction(null);
+      }
       setStep(2);
     } else if (step === 2) {
       if (userState?.aadhaar_verified) {
@@ -249,7 +266,7 @@ const VerificationModal: React.FC<Props> = ({
         <div className="space-y-6">
           <div className="space-y-1">
             <Heading title="Contact Info" variant="h5" />
-            <p className="text-sm text-muted-foreground">Verify email and phone to continue.</p>
+            <p className="text-sm text-muted-foreground">Verify your email and save a contact phone number to continue.</p>
           </div>
 
           <div className="flex gap-3 items-end">
@@ -267,39 +284,40 @@ const VerificationModal: React.FC<Props> = ({
             </div>
             <div className="min-w-30">
               <Button
-                label={userState?.email_verified ? "Verified" : "Verify"}
+                label={userState?.email_verified ? "Verified" : emailCodeSent ? "Resend code" : "Send code"}
                 variant={userState?.email_verified ? "success" : "default"}
-                onClick={verifyEmail}
+                onClick={requestEmailCode}
                 loading={busyAction === "email"}
                 disabled={!!userState?.email_verified || !emailValue || isBusy}
               />
             </div>
           </div>
 
-          <div className="flex gap-3 items-end">
-            <div className="flex-1">
-              <Input
-                id="phone"
-                label="Phone"
-                type="number"
-                required
-                onNumberChange={(val) => setValue("phone", val.toString().slice(0, 10))}
-                register={register("phone")}
-                errors={errors}
-                disabled={!!userState?.phone_verified || isBusy}
-                className={userState?.phone_verified ? "border-success bg-success/10 text-success-900" : ""}
-              />
+          {emailCodeSent && !userState?.email_verified && (
+            <div className="flex gap-3 items-end">
+              <div className="flex-1">
+                <Input id="emailVerificationCode" label="Email verification code" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={emailCode} onChange={(event) => setEmailCode(digitsOnly(event.target.value, 6))} disabled={isBusy} />
+              </div>
+              <div className="min-w-30">
+                <Button label="Confirm" onClick={confirmEmailCode} loading={busyAction === "email"} disabled={!/^\d{6}$/.test(emailCode) || isBusy} />
+              </div>
             </div>
-            <div className="min-w-30">
-              <Button
-                label={userState?.phone_verified ? "Verified" : "Verify"}
-                variant={userState?.phone_verified ? "success" : "default"}
-                onClick={verifyPhone}
-                loading={busyAction === "phone"}
-                disabled={!!userState?.phone_verified || !phoneValue || isBusy}
-              />
-            </div>
+          )}
+
+          <div>
+            <Input
+              id="phone"
+              label="Phone number"
+              type="number"
+              required
+              onNumberChange={(value) => setValue("phone", value.toString().slice(0, 10), { shouldValidate: true })}
+              register={register("phone")}
+              errors={errors}
+              disabled={isBusy}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Saved as your contact number. No mobile OTP is required.</p>
           </div>
+
         </div>
       );
     }
@@ -485,6 +503,3 @@ const VerificationModal: React.FC<Props> = ({
 };
 
 export default VerificationModal;
-
-
-

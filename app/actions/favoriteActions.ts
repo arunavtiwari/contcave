@@ -6,7 +6,7 @@ import { createAction } from "@/lib/actions-utils";
 import { UserService } from "@/lib/user/service";
 
 const favoriteSchema = z.object({
-    listingId: z.string().min(1),
+    listingId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid listing ID"),
 });
 
 /**
@@ -20,7 +20,7 @@ export const toggleFavoriteAction = createAction(
         const { listingId } = data;
 
         // Toggle favorite for the authenticated user
-        const updatedUser = await UserService.toggleFavorite(user!.id, listingId);
+        const updatedUser = await UserService.toggleFavorite(user.id, listingId);
 
         return {
             favoriteIds: updatedUser.favoriteIds,
@@ -28,3 +28,4 @@ export const toggleFavoriteAction = createAction(
         };
     }
 );
+

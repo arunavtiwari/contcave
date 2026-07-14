@@ -1,5 +1,5 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createKnownErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { UserService } from "@/lib/user/service";
 
 type RouteParams = { listingId: string };
@@ -15,16 +15,20 @@ export async function POST(request: Request, props: { params: Promise<RouteParam
 
     const { listingId } = params;
 
-    if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
+    if (!listingId || !/^[a-f\d]{24}$/i.test(listingId)) {
       return createErrorResponse("Invalid listing ID", 400);
     }
 
     try {
-      const user = await UserService.toggleFavorite(currentUser.id, listingId);
-      return createSuccessResponse(user, 200, "Listing added to favorites");
+      const user = await UserService.setFavorite(currentUser.id, listingId, true);
+      return createSuccessResponse({
+        favoriteIds: user.favoriteIds,
+        isFavorite: user.favoriteIds.includes(listingId),
+      }, 200, "Listing added to favorites");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to toggle favorite";
-      return createErrorResponse(message, 400);
+      const knownResponse = createKnownErrorResponse(error);
+      if (knownResponse) return knownResponse;
+      throw error;
     }
   } catch (error) {
     return handleRouteError(error, "POST /api/favorites/[listingId]");
@@ -42,16 +46,20 @@ export async function DELETE(request: Request, props: { params: Promise<RoutePar
 
     const { listingId } = params;
 
-    if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
+    if (!listingId || !/^[a-f\d]{24}$/i.test(listingId)) {
       return createErrorResponse("Invalid listing ID", 400);
     }
 
     try {
-      const user = await UserService.toggleFavorite(currentUser.id, listingId);
-      return createSuccessResponse(user, 200, "Listing removed from favorites");
+      const user = await UserService.setFavorite(currentUser.id, listingId, false);
+      return createSuccessResponse({
+        favoriteIds: user.favoriteIds,
+        isFavorite: user.favoriteIds.includes(listingId),
+      }, 200, "Listing removed from favorites");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to toggle favorite";
-      return createErrorResponse(message, 400);
+      const knownResponse = createKnownErrorResponse(error);
+      if (knownResponse) return knownResponse;
+      throw error;
     }
   } catch (error) {
     return handleRouteError(error, "DELETE /api/favorites/[listingId]");

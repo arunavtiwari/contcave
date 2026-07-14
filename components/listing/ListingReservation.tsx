@@ -219,8 +219,9 @@ export default function ListingReservation({
   const selStart = (selectedTime?.[0] as TimeLabel | null) ?? null;
   const selEnd = (selectedTime?.[1] as TimeLabel | null) ?? null;
   useEffect(() => {
+    if (selectedPackage && selStart && selectedDate) return;
     setLocalTimes({ start: selStart, end: selEnd });
-  }, [selStart, selEnd]);
+  }, [selStart, selEnd, selectedPackage, selectedDate]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -244,7 +245,7 @@ export default function ListingReservation({
   const bookingFee = useMemo(() => {
     if (selectedPackage) return Number(selectedPackage.offeredPrice || 0);
     if (hasSets && pricingResult) return pricingResult.subtotal;
-    return price * safeHours;
+    return price * Math.ceil(safeHours);
   }, [selectedPackage, hasSets, pricingResult, price, safeHours]);
 
   const addonsSum = useMemo(
@@ -295,8 +296,11 @@ export default function ListingReservation({
   );
 
   const minBookingMinutes = useMemo(
-    () => hoursToMinutes(minBookingHours, 90),
-    [minBookingHours]
+    () => Math.max(
+      hoursToMinutes(minBookingHours, 90),
+      selectedPackage ? Math.max(0, Number(selectedPackage.durationHours || 0)) * 60 : 0
+    ),
+    [minBookingHours, selectedPackage]
   );
 
   const handleTimeSelect = useCallback(
@@ -399,11 +403,11 @@ export default function ListingReservation({
           offeredPrice: selectedPackage.offeredPrice,
           durationHours: selectedPackage.durationHours,
         };
+        payload.setPackageId = selectedPackageId || selectedPackage.id || null;
       }
 
       if (hasSets && pricingResult) {
         payload.setIds = selectedSetIds;
-        payload.setPackageId = selectedPackageId;
         payload.pricingSnapshot = pricingResult.breakdown;
       }
 
@@ -542,7 +546,7 @@ export default function ListingReservation({
       {hasSets && (
         <>
           <div className="p-4">
-            {!setValidation.valid && selectedSetIds.length > 0 && (
+            {!setValidation.valid && (
               <p className="mt-2 text-sm text-destructive">{setValidation.error}</p>
             )}
           </div>
@@ -657,4 +661,3 @@ export default function ListingReservation({
     </section>
   );
 }
-

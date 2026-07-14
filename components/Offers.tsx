@@ -11,7 +11,7 @@ interface AmenityProp {
   id: string;
   name: string;
   icon?: string | null;
-  createdAt: Date;
+  createdAt: string;
 }
 
 type Props = {

@@ -57,6 +57,12 @@ export function readRunState(): RunState {
   return JSON.parse(fs.readFileSync(runStatePath, "utf8")) as RunState;
 }
 
+export function clearRunState() {
+  if (fs.existsSync(runStatePath)) {
+    fs.unlinkSync(runStatePath);
+  }
+}
+
 export function updateRunState(updater: (state: RunState) => RunState): RunState {
   ensureDir();
   const current = fs.existsSync(runStatePath)

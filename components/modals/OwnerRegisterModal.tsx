@@ -15,7 +15,7 @@ import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import useUIStore from "@/hooks/useUIStore";
-import { getAuthErrorMessage } from "@/lib/auth-errors";
+import { getAuthErrorMessage } from "@/lib/errors";
 import { type OwnerRegisterSchema, ownerRegisterSchema } from "@/schemas/auth";
 
 function OwnerRegisterModal() {
@@ -168,5 +168,4 @@ function OwnerRegisterModal() {
 }
 
 export default OwnerRegisterModal;
-
 

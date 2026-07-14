@@ -56,6 +56,11 @@ interface ListingCardProps {
   onDelete?: (id: string) => void;
   onCancel?: (id: string) => void;
   onReject?: (id: string) => void;
+  onCheckIn?: (id: string) => void;
+  onComplete?: (id: string) => void;
+  onNoShow?: (id: string) => void;
+  onExtend?: (reservation: SafeReservation) => void;
+  onAddCharge?: (reservation: SafeReservation, type: "SERVICE" | "DAMAGE") => void;
   onShowInfo?: (reservation: SafeReservation) => void;
   actionId?: string;
   disabled?: boolean;
@@ -82,6 +87,11 @@ const ListingCard: React.FC<ListingCardProps> = ({
   onDelete,
   onCancel,
   onReject,
+  onCheckIn,
+  onComplete,
+  onNoShow,
+  onExtend,
+  onAddCharge,
   onShowInfo,
   actionId,
   disabled,
@@ -175,7 +185,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
           currentUser={currentUser}
           onEdit={!!onEdit}
           allowScale={allowScale}
-          reservationStatus={reservation?.isApproved ?? undefined}
+          reservationLifecycleStatus={reservation?.status}
           totalPrice={reservation?.totalPrice}
           priority={priority}
           showListingBadge={showListingBadge}
@@ -204,6 +214,11 @@ const ListingCard: React.FC<ListingCardProps> = ({
             onDelete={onDelete}
             onCancel={onCancel}
             onReject={onReject}
+            onCheckIn={onCheckIn}
+            onComplete={onComplete}
+            onNoShow={onNoShow}
+            onExtend={onExtend}
+            onAddCharge={onAddCharge}
             onShowInfo={onShowInfo}
             actionId={actionId}
             disabled={disabled}

@@ -207,6 +207,9 @@ export async function cleanupE2ERun(state: RunState) {
   await prisma.customAmenities.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.account.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.listing.deleteMany({ where: { id: { in: listingIds } } });
+  // A delayed QStash delivery can create a voucher after the first collection
+  // pass above. Remove user-owned documents again immediately before users.
+  await prisma.paymentVoucher.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.user.deleteMany({ where: { id: { in: userIds } } });
   await deleteR2Keys(r2Keys);
   await prisma.$disconnect();

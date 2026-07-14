@@ -40,11 +40,13 @@ import { SafeUser, UserRole } from "@/types/user";
 
 interface ProfileClientProps {
     profile: SafeUser | null;
+    openOwnerOnLoad?: boolean;
+    openVerificationOnLoad?: boolean;
 }
 
 type FormValues = z.input<typeof UserDataSchema>;
 
-const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
+const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = false, openVerificationOnLoad = false }) => {
 
     const [currentUser, setCurrentUser] = useState<SafeUser | null>(profile);
     const [isVerified, setIsVerified] = useState(profile?.is_verified || false);
@@ -53,6 +55,11 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
     const [showVerificationModal, setShowVerificationModal] = useState(false);
     const uiStore = useUIStore();
     const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+
+    useEffect(() => {
+        if (openOwnerOnLoad) setShowOwnerModal(true);
+        if (openVerificationOnLoad) setShowVerificationModal(true);
+    }, [openOwnerOnLoad, openVerificationOnLoad]);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(UserDataSchema),
@@ -70,24 +77,19 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
                 is_verified: false,
                 createdAt: new Date().toISOString(),
             } as unknown as FormValues;
-            try {
-                return {
-                } as unknown as FormValues;
-            } catch (_e) {
-                return {
-                    name: profile.name || "",
-                    description: profile.description || "",
-                    location: profile.location || "",
-                    languages: profile.languages || [],
-                    title: profile.title || "",
-                    email: profile.email || "",
-                    phone: profile.phone || "",
-                    profileImage: profile.image || null,
-                    role: profile.role || UserRole.CUSTOMER,
-                    is_verified: profile.is_verified || false,
-                    createdAt: profile.createdAt ? new Date(profile.createdAt).toISOString() : new Date().toISOString(),
-                } as unknown as FormValues;
-            }
+            return {
+                name: profile.name || "",
+                description: profile.description || "",
+                location: profile.location || "",
+                languages: profile.languages || [],
+                title: profile.title || "",
+                email: profile.email || "",
+                phone: profile.phone || "",
+                profileImage: profile.profileImage || profile.image || null,
+                role: profile.role || UserRole.CUSTOMER,
+                is_verified: profile.is_verified || false,
+                createdAt: profile.createdAt ? new Date(profile.createdAt).toISOString() : new Date().toISOString(),
+            } as unknown as FormValues;
         })()
     });
 
@@ -653,7 +655,6 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile }) => {
 };
 
 export default MyProfile;
-
 
 
 

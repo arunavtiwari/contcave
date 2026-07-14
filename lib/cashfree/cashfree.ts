@@ -1,10 +1,21 @@
+import "server-only";
+
 import axios from "axios";
 import crypto from "crypto";
+import { formatInTimeZone } from "date-fns-tz";
 
+import { isE2eEffectDisabled } from "@/lib/e2e-guards";
 import { getFixieProxyAgent } from "@/lib/fixie-proxy";
 
 type CFEnv = "SANDBOX" | "PRODUCTION";
 const CASHFREE_VENDOR_TIMEOUT_MS = 30_000;
+
+export class CashfreeVendorNotFoundError extends Error {
+    constructor() {
+        super("Cashfree vendor does not exist");
+        this.name = "CashfreeVendorNotFoundError";
+    }
+}
 
 export function cfEnv(): CFEnv {
     const v = (process.env.CASHFREE_ENV || "SANDBOX").toUpperCase();
@@ -33,7 +44,7 @@ function cfApiV2BaseURL() {
         : "https://test.cashfree.com/api/v2";
 }
 
-export function cfHeaders(): Record<string, string> {
+export function cfPgHeaders(): Record<string, string> {
     const appId = process.env.CASHFREE_APP_ID;
     const secret = process.env.CASHFREE_SECRET_KEY;
     const version = process.env.CASHFREE_API_VERSION || "2023-08-01";
@@ -54,6 +65,24 @@ export function cfHeaders(): Record<string, string> {
         "x-client-secret": secret,
         "x-api-version": version,
         "Content-Type": "application/json",
+    };
+}
+
+export function cfSecureIdHeaders(apiVersion: string): Record<string, string> {
+    const clientId = process.env.CASHFREE_CLIENT_ID;
+    const clientSecret = process.env.CASHFREE_CLIENT_SECRET;
+    if (!clientId || !clientSecret) {
+        const missing = [
+            !clientId ? "CASHFREE_CLIENT_ID" : null,
+            !clientSecret ? "CASHFREE_CLIENT_SECRET" : null,
+        ].filter(Boolean);
+        throw new Error(`Cashfree Secure ID credentials missing: ${missing.join(", ")}`);
+    }
+
+    return {
+        "x-client-id": clientId,
+        "x-client-secret": clientSecret,
+        "x-api-version": apiVersion,
     };
 }
 
@@ -94,6 +123,7 @@ export async function cfCreateOrder(input: {
     customer_name: string;
     customer_email?: string;
     customer_phone: string;
+    expires_at?: Date;
 }): Promise<{ payment_session_id: string; order_id: string }> {
 
     if (!input.transaction_id || typeof input.transaction_id !== "string" || input.transaction_id.trim().length === 0) {
@@ -109,12 +139,15 @@ export async function cfCreateOrder(input: {
     if (input.customer_email && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.customer_email))) {
         throw new Error("customer_email must be a valid email address if provided");
     }
+    if (input.expires_at && (!Number.isFinite(input.expires_at.getTime()) || input.expires_at.getTime() <= Date.now())) {
+        throw new Error("expires_at must be a future date");
+    }
 
     const url = `${cfBaseURL()}/orders`;
-    const headers = cfHeaders();
+    const headers = cfPgHeaders();
 
     const requestBody = {
-        transaction_id: input.transaction_id,
+        order_id: input.transaction_id,
         order_amount: input.order_amount,
         order_currency: "INR",
         customer_details: {
@@ -127,6 +160,7 @@ export async function cfCreateOrder(input: {
             return_url: input.return_url.replace("{transaction_id}", input.transaction_id),
             notify_url: input.notify_url,
         },
+        ...(input.expires_at ? { order_expiry_time: input.expires_at.toISOString() } : {}),
     };
 
     const httpsAgent = getFixieProxyAgent();
@@ -180,12 +214,12 @@ export function cfVerifyWebhookSignature({
     timestamp: string;
     signatureBase64: string;
 }) {
-    const secret = process.env.CASHFREE_SECRET_KEY!;
+    const secret = process.env.CASHFREE_SECRET_KEY;
+    if (!secret) return false;
     const h = crypto.createHmac("sha256", secret);
     h.update(timestamp + rawBody);
-    const computed = h.digest("base64");
-    const computedBuffer = Buffer.from(computed);
-    const providedBuffer = Buffer.from(signatureBase64);
+    const computedBuffer = h.digest();
+    const providedBuffer = Buffer.from(signatureBase64, "base64");
 
     if (computedBuffer.length !== providedBuffer.length) {
         return false;
@@ -245,7 +279,7 @@ export async function cfEnsureVendor(payload: {
             dashboard_access: false,
             kyc_details: kycDetails,
         }, {
-            headers: cfHeaders(),
+            headers: cfPgHeaders(),
             httpsAgent,
             signal: controller.signal,
             timeout: CASHFREE_VENDOR_TIMEOUT_MS
@@ -268,7 +302,20 @@ export async function cfEnsureVendor(payload: {
             errorMessage = data?.message || error.message;
             console.error(`[Cashfree EnsureVendor] Error (${status}):`, JSON.stringify(data));
 
-            if (status === 409) return payload.vendor_id;
+            if (status === 409) {
+                await cfUpdateVendor(payload.vendor_id.trim(), {
+                    name: sanitizeVendorName(payload.display_name, "Vendor"),
+                    email,
+                    phone,
+                    bank: {
+                        account_holder: sanitizeVendorName(payload.account_holder, "Account Holder"),
+                        account_number: accountNumber,
+                        ifsc,
+                    },
+                    kyc_details: kycDetails,
+                });
+                return payload.vendor_id;
+            }
         } else if (error instanceof Error) {
             errorMessage = error.message;
         }
@@ -308,7 +355,7 @@ export async function cfUpdateVendor(vendorId: string, payload: {
 
     try {
         const res = await axios.patch(url, body, {
-            headers: cfHeaders(),
+            headers: cfPgHeaders(),
             httpsAgent,
             timeout: 30000,
         });
@@ -321,6 +368,9 @@ export async function cfUpdateVendor(vendorId: string, payload: {
             const data = error.response?.data;
             errorMessage = data?.message || error.message;
             console.error(`[Cashfree UpdateVendor] Error (${status}):`, JSON.stringify(data));
+            if (status === 400 && /vendor does not exist/i.test(String(data?.message || ""))) {
+                throw new CashfreeVendorNotFoundError();
+            }
         } else if (error instanceof Error) {
             errorMessage = error.message;
         }
@@ -335,7 +385,15 @@ export async function cfOnDemandTransfer(params: {
     transfer_id: string;
     remarks?: string;
 }) {
-    const url = `${cfSplitBaseURL()}/vendors/${encodeURIComponent(params.vendor_id)}/transfer`;
+    const vendorId = params.vendor_id.trim();
+    const transferId = params.transfer_id.trim();
+    if (!vendorId) throw new Error("Vendor ID is required");
+    if (!transferId) throw new Error("Transfer ID is required");
+    if (!Number.isFinite(params.amount) || params.amount <= 0) {
+        throw new Error("Transfer amount must be greater than zero");
+    }
+
+    const url = `${cfSplitBaseURL()}/vendors/${encodeURIComponent(vendorId)}/transfer`;
     const httpsAgent = getFixieProxyAgent();
 
     try {
@@ -345,12 +403,12 @@ export async function cfOnDemandTransfer(params: {
             transfer_amount: params.amount,
             remark: params.remarks || "",
             tags: {
-                transfer_id: params.transfer_id,
+                transfer_id: transferId,
             },
         }, {
             headers: {
-                ...cfHeaders(),
-                "x-idempotency-key": params.transfer_id,
+                ...cfPgHeaders(),
+                "x-idempotency-key": transferId,
             },
             httpsAgent,
             timeout: 30000
@@ -376,19 +434,27 @@ export async function cfSetVendorSettlementEligibilityDate(params: {
     vendorId: string;
     settlementEligibilityDate: Date;
 }) {
-    const url = `${cfApiV2BaseURL()}/easy-split/orders/${encodeURIComponent(params.orderId)}/settlement-eligibility/vendors/${encodeURIComponent(params.vendorId)}`;
+    const orderId = params.orderId.trim();
+    const vendorId = params.vendorId.trim();
+    if (!orderId) throw new Error("Order ID is required");
+    if (!vendorId) throw new Error("Vendor ID is required");
+    if (!Number.isFinite(params.settlementEligibilityDate.getTime())) {
+        throw new Error("Settlement eligibility date is invalid");
+    }
+
+    const url = `${cfApiV2BaseURL()}/easy-split/orders/${encodeURIComponent(orderId)}/settlement-eligibility/vendors/${encodeURIComponent(vendorId)}`;
     const httpsAgent = getFixieProxyAgent();
-    const pad = (value: number) => String(value).padStart(2, "0");
-    const date = params.settlementEligibilityDate;
-    const settlementEligibilityDateUpdate =
-        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
-        `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    const settlementEligibilityDateUpdate = formatInTimeZone(
+        params.settlementEligibilityDate,
+        "Asia/Kolkata",
+        "yyyy-MM-dd HH:mm:ss",
+    );
 
     try {
         const res = await axios.put(url, {
             settlementEligibilityDateUpdate,
         }, {
-            headers: cfHeaders(),
+            headers: cfPgHeaders(),
             httpsAgent,
             timeout: 30000
         });
@@ -409,12 +475,14 @@ export async function cfSetVendorSettlementEligibilityDate(params: {
 }
 
 export async function cfFetchOrder(orderId: string) {
-    const url = `${cfBaseURL()}/orders/${orderId}`;
+    const normalizedOrderId = orderId.trim();
+    if (!normalizedOrderId) throw new Error("Order ID is required");
+    const url = `${cfBaseURL()}/orders/${encodeURIComponent(normalizedOrderId)}`;
     const httpsAgent = getFixieProxyAgent();
 
     try {
         const res = await axios.get(url, {
-            headers: cfHeaders(),
+            headers: cfPgHeaders(),
             httpsAgent,
             timeout: 10000
         });
@@ -452,7 +520,15 @@ export async function cfCreateRefund(params: {
     refund_id: string;
     refund_note?: string;
 }) {
-    if (process.env.E2E_DISABLE_CASHFREE_REFUND === "true") {
+    const orderId = params.order_id.trim();
+    const refundId = params.refund_id.trim();
+    if (!orderId) throw new Error("Order ID is required");
+    if (!refundId) throw new Error("Refund ID is required");
+    if (!Number.isFinite(params.refund_amount) || params.refund_amount <= 0) {
+        throw new Error("Refund amount must be greater than zero");
+    }
+
+    if (isE2eEffectDisabled("E2E_DISABLE_CASHFREE_REFUND")) {
         return {
             refund_id: params.refund_id,
             order_id: params.order_id,
@@ -461,16 +537,16 @@ export async function cfCreateRefund(params: {
         };
     }
 
-    const url = `${cfBaseURL()}/orders/${params.order_id}/refunds`;
+    const url = `${cfBaseURL()}/orders/${encodeURIComponent(orderId)}/refunds`;
     const httpsAgent = getFixieProxyAgent();
 
     try {
         const res = await axios.post(url, {
             refund_amount: params.refund_amount,
-            refund_id: params.refund_id,
+            refund_id: refundId,
             refund_note: params.refund_note,
         }, {
-            headers: cfHeaders(),
+            headers: cfPgHeaders(),
             httpsAgent,
             timeout: 30000
         });

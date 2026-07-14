@@ -1,8 +1,9 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+    distDir: process.env.NEXT_DIST_DIR || '.next',
     serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
-    allowedDevOrigins: ['192.168.1.3'],
+    allowedDevOrigins: ['192.168.1.3', 'admin.localhost', '*.localhost'],
     experimental: {
         serverActions: {
             bodySizeLimit: "6mb",
@@ -23,7 +24,9 @@ const nextConfig: NextConfig = {
             { protocol: 'https', hostname: 'www.elinchrom.com' },
             { protocol: 'https', hostname: 'cdn-icons-png.flaticon.com' },
             { protocol: 'https', hostname: 'assets.contcave.com' },
-            { protocol: 'http', hostname: '127.0.0.1' }
+            ...(process.env.NODE_ENV !== 'production'
+                ? [{ protocol: 'http' as const, hostname: '127.0.0.1' }]
+                : [])
         ],
         formats: ['image/avif', 'image/webp'],
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -63,4 +66,3 @@ const nextConfig: NextConfig = {
 }
 
 export default nextConfig
-

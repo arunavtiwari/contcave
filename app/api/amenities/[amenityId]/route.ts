@@ -16,13 +16,13 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
       return createErrorResponse("Unauthorized", 401);
     }
 
-    if (!isOwner(currentUser.role) && !currentUser.is_verified) {
+    if (!isOwner(currentUser.role) || !currentUser.is_verified) {
       return createErrorResponse("Only verified owners can delete amenities", 403);
     }
 
     const { amenityId } = params;
 
-    if (!amenityId || typeof amenityId !== "string" || amenityId.trim().length === 0) {
+    if (!amenityId || !/^[a-f\d]{24}$/i.test(amenityId)) {
       return createErrorResponse("Invalid amenity ID", 400);
     }
 

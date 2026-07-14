@@ -1,45 +1,65 @@
-import { Listing } from "@prisma/client";
+import type { Listing } from "@prisma/client";
 
-import { Addon } from "@/types/addon";
-import { Package } from "@/types/package";
-import { AdditionalSetPricingType, ListingBlock, ListingSet } from "@/types/set";
-import { SafeUser } from "@/types/user";
+import type { Addon } from "@/types/addon";
+import type { Package } from "@/types/package";
+import type { AdditionalSetPricingType, ListingBlock, ListingSet } from "@/types/set";
+import type { PublicUser } from "@/types/user";
 
-export type safeListing = Omit<Listing, "createdAt" | "addons" | "packages" | "operationalDays" | "operationalHours" | "actualLocation"> & {
+export type safeListing = Omit<
+    Listing,
+    | "createdAt"
+    | "addons"
+    | "packages"
+    | "operationalDays"
+    | "operationalHours"
+    | "actualLocation"
+    | "verifications"
+    | "reviewedAt"
+    | "reviewedById"
+    | "rejectionReason"
+    | "curatedSource"
+    | "contactEmail"
+    | "notifyEmailSentAt"
+    | "notifyReminderAt"
+    | "inConversation"
+    | "enquiryCount"
+    | "accountDeactivatedAt"
+    | "avgReviewRating"
+> & {
     createdAt: string;
-    addons?: unknown;
-    packages?: unknown;
-    operationalDays?: unknown;
-    operationalHours?: unknown;
-    actualLocation?: unknown;
+    addons?: Addon[] | null;
+    packages?: Package[] | null;
+    operationalDays?: { start?: string; end?: string } | null;
+    operationalHours?: { start?: string; end?: string } | null;
+    actualLocation?: ActualLocation | null;
     avgReviewRating?: number;
     videoSrc?: string | null;
 };
 
 export type ActualLocation = {
-    lat: number;
-    lng: number;
+    lat?: number;
+    lng?: number;
     latlng: [number, number];
-    address: string;
+    address?: string;
     label?: string;
     region?: string;
+    state?: string;
     value?: string;
     flag?: string;
     country?: string;
     display_name?: string;
     propertyStateCode?: string;
     additionalInfo?: string;
-    [key: string]: unknown;
+    url?: string;
+    mapsUrl?: string;
+    googleMapsUrl?: string;
 };
 
-export type FullListing = Omit<safeListing, "addons" | "packages" | "operationalDays" | "operationalHours" | "carpetArea" | "maximumPax" | "minimumBookingHours" | "actualLocation" | "avgReviewRating" | "instantBooking"> & {
+export type FullListing = Omit<safeListing, "addons" | "packages" | "operationalDays" | "operationalHours" | "actualLocation" | "avgReviewRating"> & {
     addons: Addon[];
     packages: Package[];
     operationalDays?: { start?: string; end?: string };
     operationalHours?: { start?: string; end?: string };
-    carpetArea?: number | null;
-    maximumPax?: number | null;
-    minimumBookingHours?: number | null;
     type?: string[];
     avgReviewRating?: number;
     actualLocation?: ActualLocation | null;
@@ -50,8 +70,8 @@ export type FullListing = Omit<safeListing, "addons" | "packages" | "operational
     imageSrc: string[];
     title: string;
     price?: number | null;
-    instantBooking?: boolean;
-    user: SafeUser;
+    contactEmail?: string | null;
+    user: PublicUser;
     hasSets?: boolean;
     setsHaveSamePrice?: boolean;
     unifiedSetPrice?: number | null;

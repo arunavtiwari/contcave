@@ -1,6 +1,7 @@
 {
 	"name": "contcave",
 	"version": "0.1.0",
+	"description": "Creative studio booking marketplace for India",
 	"private": true,
 	"scripts": {
 		"dev": "next dev",
@@ -13,6 +14,8 @@
 		"test:e2e": "playwright test",
 		"test:e2e:headed": "playwright test --headed",
 		"test:e2e:staging": "playwright test --project=staging-chromium",
+		"qstash:dev": "npx @upstash/qstash-cli@latest dev",
+		"configure:qstash": "node scripts/configure-qstash-schedules.mjs",
 		"postinstall": "npx prisma generate"
 	},
 	"dependencies": {
@@ -39,6 +42,7 @@
 		"@prisma/client": "^6.19.3",
 		"@react-google-maps/api": "^2.20.6",
 		"@react-pdf/renderer": "^4.3.2",
+		"@upstash/qstash": "^2.11.1",
 		"@vercel/analytics": "^1.6.1",
 		"@vercel/speed-insights": "^1.3.1",
 		"ably": "^2.6.3",

@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Amenities } from "@prisma/client";
 import React, {
   useCallback,
   useEffect,
@@ -29,7 +28,9 @@ import {
   LocationSchema,
 } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
+import type { SafeAmenity } from "@/types/amenity";
 import { Package } from "@/types/package";
+import type { DayKey } from "@/types/scheduling";
 
 import AddonsStep from "./rent-steps/AddonsStep";
 import AmenitiesStep from "./rent-steps/AmenitiesStep";
@@ -111,9 +112,10 @@ const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED") =
 };
 
 type RentModalFormValues = ListingSchema;
-type VerificationDocumentInput = Partial<VerificationDocument> & {
+type VerificationDocumentInput = Omit<Partial<VerificationDocument>, "file"> & {
   name?: string;
   type?: string;
+  file?: unknown;
 };
 type VerificationPayloadInput = {
   documents?: VerificationDocumentInput[];
@@ -165,7 +167,7 @@ type StepDefinition = {
 };
 
 interface RentModalProps {
-  predefinedAmenities?: Amenities[];
+  predefinedAmenities?: SafeAmenity[];
   predefinedAddons?: Addon[];
 }
 
@@ -457,13 +459,13 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
 
   const validateSetsStep = useCallback(async () => {
     if (hasSets) {
-      if (!additionalSetPricingType) {
+      if ((sets?.length ?? 0) > 1 && !additionalSetPricingType) {
         setSetsError("Please select a pricing type for additional sets");
         return false;
       }
 
-      if ((sets?.length ?? 0) < 2) {
-        setSetsError("Please add at least 2 sets for a multi-set listing");
+      if ((sets?.length ?? 0) < 1) {
+        setSetsError("Please add at least one set");
         return false;
       }
 
@@ -522,8 +524,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     setValue("setFeatures", details.setFeatures, { shouldDirty: true, shouldValidate: true });
     setValue("hasSets", details.hasSets, { shouldDirty: true });
     setValue("operationalDays", {
-      start: details.operationalDays.start || "Mon",
-      end: details.operationalDays.end || "Sun"
+      start: (details.operationalDays.start || "Mon") as DayKey,
+      end: (details.operationalDays.end || "Sun") as DayKey
     }, { shouldDirty: true, shouldValidate: true });
 
     if (!details.hasSets) {
@@ -933,8 +935,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
           end: String(data.operationalHours.end)
         } : undefined,
         operationalDays: (data.operationalDays?.start && data.operationalDays?.end) ? {
-          start: String(data.operationalDays.start),
-          end: String(data.operationalDays.end)
+          start: data.operationalDays.start,
+          end: data.operationalDays.end
         } : undefined,
         minimumBookingHours: Number(data.minimumBookingHours || 1),
         maximumPax: Number(data.maximumPax || 1),
@@ -1153,4 +1155,3 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     </>
   );
 }
-

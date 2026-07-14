@@ -26,7 +26,8 @@ const ProfileSettings = ({ profile }: Props) => {
   const handleDeleteRequest = async () => {
     setIsSubmitting(true);
     try {
-      await deleteAccount();
+      const result = await deleteAccount(undefined);
+      if (!result.success) throw new Error(result.error || "Unable to update account status.");
       toast.success("Account scheduled for deletion. Log in again to cancel.");
       setShowConfirmModal(false);
       await signOut({ callbackUrl: "/" });
@@ -135,4 +136,3 @@ const ProfileSettings = ({ profile }: Props) => {
 };
 
 export default ProfileSettings;
-

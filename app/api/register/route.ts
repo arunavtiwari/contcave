@@ -5,12 +5,24 @@ import { sendEmail } from "@/lib/email/mailer";
 import { getCustomerOnboardingTemplate } from "@/lib/email/templates";
 import { normalizePhone } from "@/lib/phone";
 import prisma from "@/lib/prismadb";
+import { formatRetryAfterMs, rateLimitRequest } from "@/lib/security/rateLimit";
 import { UserService } from "@/lib/user/service";
 import { ownerRegisterSchema, registerSchema } from "@/schemas/auth";
 import { UserRole } from "@/types/user";
 
 export async function POST(request: NextRequest) {
   try {
+    const requestLimit = rateLimitRequest(request.headers, {
+      scope: "register",
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!requestLimit.allowed) {
+      const response = createErrorResponse("Too many registration attempts. Please try again later.", 429);
+      response.headers.set("Retry-After", formatRetryAfterMs(requestLimit.resetAt));
+      return response;
+    }
+
     if (!request.headers.get("content-type")?.includes("application/json")) {
       return createErrorResponse("Content-Type must be application/json", 415);
     }
@@ -18,7 +30,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const { email, name, password, phone, role = UserRole.CUSTOMER } = body;
 
-    const isOwner = role === UserRole.OWNER || role === UserRole.ADMIN;
+    const isOwner = role === UserRole.OWNER;
 
 
     const schema = isOwner ? ownerRegisterSchema : registerSchema;
@@ -70,7 +82,13 @@ export async function POST(request: NextRequest) {
         }).catch(err => console.error("[RegistrationEmail] Failed:", err));
       }
 
-      return createSuccessResponse(user, 201, "User registered successfully");
+      return createSuccessResponse({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      }, 201, "User registered successfully");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Registration failed";
       return createErrorResponse(message, 400);

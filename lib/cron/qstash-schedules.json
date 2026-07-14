@@ -1,0 +1,8 @@
+[
+  { "scheduleId": "contcave-post-booking-fast", "cron": "*/5 * * * *", "job": "post-booking-fast" },
+  { "scheduleId": "contcave-post-booking-complete", "cron": "*/30 * * * *", "job": "post-booking-complete" },
+  { "scheduleId": "contcave-booking-reminders", "cron": "0 6 * * *", "job": "booking-reminders" },
+  { "scheduleId": "contcave-payout-splits", "cron": "30 18 * * *", "job": "payout-splits" },
+  { "scheduleId": "contcave-invoice-retry", "cron": "50 * * * *", "job": "invoice-retry" },
+  { "scheduleId": "contcave-month-end-invoices", "cron": "25 18 * * *", "job": "month-end-invoices" }
+]

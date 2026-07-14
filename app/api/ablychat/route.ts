@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { getAblyApiKey } from "@/lib/ably-server";
 import { createErrorResponse, handleRouteError } from "@/lib/api-utils";
 import { getAuthorizedChatReservation } from "@/lib/chat/reservation";
 import { getClientIp, getUserAgent } from "@/lib/http/requestMeta";
@@ -84,8 +85,8 @@ export async function POST(request: NextRequest) {
       return createErrorResponse("Reservation not found or unauthorized", 404);
     }
 
-    const ablyApiKey = process.env.ABLY_CHAT_API;
-    if (!ablyApiKey || typeof ablyApiKey !== "string") {
+    const ablyApiKey = getAblyApiKey();
+    if (!ablyApiKey) {
       return createErrorResponse("Server configuration error", 500);
     }
 

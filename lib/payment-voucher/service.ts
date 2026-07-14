@@ -1,11 +1,13 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { PaymentVoucher, PaymentVoucherType, Prisma } from "@prisma/client";
 
+import { isE2eEffectDisabled } from "@/lib/e2e-guards";
 import { escapeEmailHtml } from "@/lib/email/html";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
 import prisma from "@/lib/prismadb";
+import { buildR2PublicUrl, isTrustedR2PublicUrl } from "@/lib/storage/publicUrl";
 import { r2 } from "@/lib/storage/r2";
-import { getBaseUrl } from "@/lib/utils";
+import { getValidatedBaseUrl } from "@/lib/utils";
 
 import { generateVoucherPDFBuffer, VoucherPdfData } from "./pdfBlob";
 
@@ -21,6 +23,8 @@ type VoucherResult = {
   voucher: PaymentVoucher;
   attachment?: AttachmentInput;
 };
+
+const e2eAttachmentCache = new Map<string, AttachmentInput>();
 
 function assertObjectId(value: string, fieldName: string) {
   const normalized = value.trim();
@@ -145,12 +149,17 @@ function buildAttachment(voucher: PaymentVoucher, buffer: Buffer): AttachmentInp
 
 async function downloadVoucherAttachment(voucher: PaymentVoucher): Promise<AttachmentInput | undefined> {
   if (!voucher.voucherUrl) return undefined;
-  if (process.env.E2E_DISABLE_R2_UPLOAD === "true") return undefined;
+  if (isE2eEffectDisabled("E2E_DISABLE_R2_UPLOAD")) return e2eAttachmentCache.get(voucher.id);
+  if (!isTrustedR2PublicUrl(voucher.voucherUrl)) return undefined;
 
   try {
     const res = await fetch(voucher.voucherUrl);
     if (!res.ok) throw new Error(`Voucher download failed (${res.status})`);
-    const buffer = Buffer.from(await res.arrayBuffer());
+    const declaredLength = Number(res.headers.get("content-length") || 0);
+    if (declaredLength > 10_000_000) throw new Error("Voucher attachment exceeds size limit");
+    const arrayBuffer = await res.arrayBuffer();
+    if (arrayBuffer.byteLength > 10_000_000) throw new Error("Voucher attachment exceeds size limit");
+    const buffer = Buffer.from(arrayBuffer);
     return buildAttachment(voucher, buffer);
   } catch (error) {
     console.error("[PaymentVoucherService] Voucher attachment download failed", error);
@@ -159,15 +168,12 @@ async function downloadVoucherAttachment(voucher: PaymentVoucher): Promise<Attac
 }
 
 async function uploadVoucherPdf(params: { voucher: PaymentVoucher; pdfBuffer: Buffer }) {
-  if (process.env.E2E_DISABLE_R2_UPLOAD === "true") {
+  if (isE2eEffectDisabled("E2E_DISABLE_R2_UPLOAD")) {
     return `https://assets.contcave.com/e2e/vouchers/${params.voucher.id}/${params.voucher.voucherNumber}.pdf`;
   }
 
   const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
   if (!bucket) throw new Error("Missing R2 bucket config");
-  const publicBaseUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL;
-  if (!publicBaseUrl) throw new Error("Missing Cloudflare public URL config");
-
   const key = [
     "users",
     params.voucher.userId,
@@ -186,7 +192,7 @@ async function uploadVoucherPdf(params: { voucher: PaymentVoucher; pdfBuffer: Bu
     ContentType: "application/pdf",
   }));
 
-  return `${publicBaseUrl.replace(/\/$/, "")}/${key}`;
+  return buildR2PublicUrl(key);
 }
 
 async function auditVoucher(voucher: PaymentVoucher, action: string, metadata: Prisma.InputJsonObject = {}) {
@@ -220,7 +226,9 @@ async function renderAndStore(voucher: PaymentVoucher, pdfData: VoucherPdfData):
       voucherNumber: stored.voucherNumber,
       voucherType: stored.voucherType,
     });
-    return { voucher: stored, attachment: buildAttachment(stored, pdfBuffer) };
+    const attachment = buildAttachment(stored, pdfBuffer);
+    if (isE2eEffectDisabled("E2E_DISABLE_R2_UPLOAD")) e2eAttachmentCache.set(stored.id, attachment);
+    return { voucher: stored, attachment };
   } catch (error) {
     await prisma.paymentVoucher.update({
       where: { id: voucher.id },
@@ -235,8 +243,8 @@ async function renderAndStore(voucher: PaymentVoucher, pdfData: VoucherPdfData):
 
 function voucherEmailHtml(voucher: PaymentVoucher, recipientName?: string | null) {
   const title = voucher.voucherType === "REFUND_VOUCHER" ? "refund voucher" : "payment receipt";
-  const link = voucher.voucherUrl
-    ? `<p><a href="${voucher.voucherUrl}" style="color:#111827;font-weight:600;">View PDF</a></p>`
+  const link = voucher.voucherUrl && isTrustedR2PublicUrl(voucher.voucherUrl)
+    ? `<p><a href="${escapeEmailHtml(voucher.voucherUrl)}" style="color:#111827;font-weight:600;">View PDF</a></p>`
     : "";
   return `<!DOCTYPE html>
 <html>
@@ -249,7 +257,7 @@ function voucherEmailHtml(voucher: PaymentVoucher, recipientName?: string | null
           <tr>
             <td style="font-size:15px;line-height:1.6;">
               <div style="margin-bottom:24px;text-align:left;">
-                <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                <img src="${getValidatedBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
               </div>
               <p>Hi ${escapeEmailHtml(recipientName || "there")},</p>
               <p>Your ContCave ${title} <strong>${voucher.voucherNumber}</strong> is attached for your records.</p>
@@ -297,7 +305,7 @@ export class PaymentVoucherService {
           include: {
             listing: true,
             paymentVouchers: {
-              where: { voucherType: "RECEIPT_VOUCHER" },
+              where: { voucherType: "RECEIPT_VOUCHER", transactionId },
               take: 1,
               orderBy: { createdAt: "desc" },
             },
@@ -431,10 +439,14 @@ export class PaymentVoucherService {
     const claim = await prisma.paymentVoucher.updateMany({
       where: {
         id: voucher.id,
-        emailSentAt: null,
-        OR: [
-          { status: { not: "RETRYING" } },
-          { status: "RETRYING", updatedAt: { lte: new Date(Date.now() - DELIVERY_CLAIM_TIMEOUT_MS) } },
+        AND: [
+          { OR: [{ emailSentAt: null }, { emailSentAt: { isSet: false } }] },
+          {
+            OR: [
+              { status: { not: "RETRYING" } },
+              { status: "RETRYING", updatedAt: { lte: new Date(Date.now() - DELIVERY_CLAIM_TIMEOUT_MS) } },
+            ],
+          },
         ],
       },
       data: {
@@ -448,7 +460,7 @@ export class PaymentVoucherService {
       throw new Error("Receipt/refund email delivery is already in progress");
     }
 
-    if (process.env.E2E_DISABLE_EMAIL_SEND === "true") {
+    if (isE2eEffectDisabled("E2E_DISABLE_EMAIL_SEND")) {
       return await this.markEmailSent(voucher.id);
     }
 

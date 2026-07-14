@@ -1,8 +1,11 @@
-import { format } from "date-fns";
+
+import { formatInTimeZone } from "date-fns-tz";
 
 import { createOrderSplit } from "@/lib/cashfree/easySplit";
 import { sendPayoutProcessedOwner } from "@/lib/email/templates";
+import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
+import { formatReservationDate } from "@/lib/reservation/time";
 import { WhatsappService } from "@/lib/whatsapp/service";
 
 function toErrorMessage(error: unknown) {
@@ -10,21 +13,29 @@ function toErrorMessage(error: unknown) {
 }
 
 export class PayoutService {
-    static async processDueSplits(limit = 200): Promise<Array<{ id: string; ok: boolean; error?: string }>> {
+    static async processDueSplits(
+        limit = 200,
+        createdAfter?: Date,
+    ): Promise<Array<{ id: string; ok: boolean; error?: string }>> {
         const now = new Date();
         const splitSafeCreatedAt = new Date(now.getTime() - 2 * 60 * 1000);
         const txns = await prisma.transaction.findMany({
             where: {
                 status: "SUCCESS",
-                createdAt: { lte: splitSafeCreatedAt },
+                createdAt: {
+                    ...(createdAfter ? { gte: createdAfter } : {}),
+                    lte: splitSafeCreatedAt,
+                },
                 reservationId: { not: null },
                 reservation: {
                     is: {
-                        isApproved: 1,
                         markedForDeletion: false,
+                        OR: [
+                            { status: "COMPLETED", checkedInAt: { not: null } },
+                            { status: "NO_SHOW", noShowAt: { not: null } },
+                        ],
                     }
                 },
-                vendorId: { not: null },
                 cfOrderId: { not: null },
                 payoutDueAt: { lte: now },
                 OR: [
@@ -37,7 +48,7 @@ export class PayoutService {
                     include: {
                         listing: {
                             include: {
-                                user: true,
+                                user: { include: { paymentDetails: true } },
                             },
                         },
                     },
@@ -58,23 +69,43 @@ export class PayoutService {
                     throw new Error(`Invalid payout amount for transaction ${txn.id}`);
                 }
 
+                const ownerPaymentDetails = txn.reservation?.listing.user.paymentDetails;
+                if (!ownerPaymentDetails) {
+                    throw new Error(`Payout details are unavailable for transaction ${txn.id}`);
+                }
+                const vendorId = decryptPaymentDetailsInternal(ownerPaymentDetails).cashfreeVendorId?.trim();
+                if (!vendorId) {
+                    throw new Error(`Cashfree vendor is unavailable for transaction ${txn.id}`);
+                }
+
                 await createOrderSplit({
                     orderId: txn.cfOrderId!,
-                    split: [{ vendor_id: txn.vendorId!, amount: payoutAmount }],
+                    split: [{ vendor_id: vendorId, amount: payoutAmount }],
                     idempotencyKey: `split-${txn.id}`
                 });
 
                 const completedAt = new Date();
-                await prisma.transaction.update({
-                    where: { id: txn.id },
-                    data: { payoutSplitAt: completedAt, payoutDoneAt: completedAt }
+                const claimed = await prisma.transaction.updateMany({
+                    where: {
+                        id: txn.id,
+                        status: "SUCCESS",
+                        OR: [
+                            { payoutSplitAt: null },
+                            { payoutSplitAt: { isSet: false } },
+                        ],
+                    },
+                    data: { payoutSplitAt: completedAt, payoutDoneAt: completedAt },
                 });
+                if (claimed.count !== 1) {
+                    results.push({ id: txn.id, ok: true });
+                    continue;
+                }
 
                 const owner = txn.reservation?.listing.user;
                 const listingTitle = txn.reservation?.listing.title || "your studio";
                 const bookingDate = txn.reservation?.startDate
-                    ? format(txn.reservation.startDate, "dd MMM yyyy")
-                    : format(completedAt, "dd MMM yyyy");
+                    ? formatReservationDate(txn.reservation.startDate)
+                    : formatInTimeZone(completedAt, "Asia/Kolkata", "dd MMM yyyy");
 
                 const notificationTasks: Array<Promise<unknown>> = [];
 

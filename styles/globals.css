@@ -245,33 +245,6 @@ span.rdrWeekDay {
 	border-radius: 9999px !important;
 }
 
-.fc-next-button,
-.fc-timeGridDay-button {
-	border-top-left-radius: 0 !important;
-	border-bottom-left-radius: 0 !important;
-	border-top-right-radius: 9999px !important;
-	border-bottom-right-radius: 9999px !important;
-}
-
-.fc-prev-button,
-.fc-dayGridMonth-button {
-	border-top-left-radius: 12px !important;
-	border-bottom-left-radius: 12px !important;
-	border-top-right-radius: 0 !important;
-	border-bottom-right-radius: 0 !important;
-}
-
-.fc-next-button,
-.fc-timeGridDay-button {
-	border-top-right-radius: 12px !important;
-	border-bottom-right-radius: 12px !important;
-	border-top-left-radius: 0 !important;
-	border-bottom-left-radius: 0 !important;
-}
-
-.fc-button-group .fc-button:not(:first-child):not(:last-child) {
-	border-radius: 0 !important;
-}
 
 .fc {
 	font-family: inherit;

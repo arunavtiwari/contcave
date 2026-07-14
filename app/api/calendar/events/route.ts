@@ -72,6 +72,11 @@ async function refreshCalendarAccessToken(account: {
 
 export async function GET(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return createErrorResponse("Unauthorized", 401);
+    }
+
     const { searchParams } = new URL(request.url);
     const listingParam = searchParams.get("listingId");
 
@@ -90,17 +95,17 @@ export async function GET(request: Request) {
       if (isObjectId(listingParam)) {
         listing = await prisma.listing.findUnique({
           where: { id: listingParam },
-          include: { user: { include: { accounts: true } } },
+          select: { userId: true, user: { select: { accounts: true } } },
         });
       } else {
         listing = await prisma.listing.findUnique({
           where: { slug: listingParam },
-          include: { user: { include: { accounts: true } } },
+          select: { userId: true, user: { select: { accounts: true } } },
         });
       }
 
-      if (!listing || !listing.user) {
-        return createErrorResponse("Listing or owner not found", 400);
+      if (!listing || listing.userId !== session.user.id) {
+        return createErrorResponse("Listing not found", 404);
       }
 
       googleAccount =
@@ -122,12 +127,6 @@ export async function GET(request: Request) {
 
       accessToken = googleAccount.access_token;
     } else {
-      const session = await auth();
-
-      if (!session) {
-        return createErrorResponse("Unauthorized", 401);
-      }
-
       if (!session.calendarAccessToken) {
         return createErrorResponse("Session calendar access token missing", 401);
       }

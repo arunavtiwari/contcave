@@ -211,6 +211,7 @@ export async function createActiveListingFixture(ownerId: string, suffix: string
       imageSrc: ["https://assets.contcave.com/e2e/placeholder-studio.png"],
       category: "Indoor Studio",
       locationValue: "Delhi",
+      propertyStateCode: "07",
       actualLocation: {
         latlng: [28.62868, 77.21905],
         label: "Delhi",

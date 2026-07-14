@@ -1,22 +1,19 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { BillingService } from "@/lib/billing/service";
 
 export async function POST(req: Request) {
   try {
-    if (!req.headers.get("content-type")?.includes("application/json")) {
-      return createErrorResponse("Content-Type must be application/json", 415);
-    }
-
     const currentUser = await getCurrentUser();
     if (!currentUser?.id) {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    const body = await req.json().catch(() => ({}));
+    const parsedBody = await readJsonObject(req, 25_000);
+    if (!parsedBody.success) return parsedBody.response;
 
     try {
-      const billingRecord = await BillingService.upsertRecord(currentUser.id, body);
+      const billingRecord = await BillingService.upsertRecord(currentUser.id, parsedBody.data);
       return createSuccessResponse(billingRecord, 201);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to upsert billing record";
@@ -44,10 +41,14 @@ export async function PUT(req: Request) {
     const currentUser = await getCurrentUser();
     if (!currentUser) return createErrorResponse("Unauthorized", 401);
 
-    const body = await req.json().catch(() => ({}));
+    const parsedBody = await readJsonObject(req, 25_000);
+    if (!parsedBody.success) return parsedBody.response;
+    const body = parsedBody.data;
     const { id, ...data } = body;
 
-    if (!id) return createErrorResponse("Billing record ID is required", 400);
+    if (typeof id !== "string" || !/^[a-f\d]{24}$/i.test(id)) {
+      return createErrorResponse("A valid billing record ID is required", 400);
+    }
 
     try {
       const updated = await BillingService.updateRecord(currentUser.id, id, data);

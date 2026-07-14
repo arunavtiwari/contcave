@@ -10,6 +10,18 @@ export interface ChatBooking {
   endTime: string;
   totalPrice: number;
   selectedAddons: unknown;
+  status: string;
+  readOnly: boolean;
+  messages: ChatPersistedMessage[];
+}
+
+export interface ChatPersistedMessage {
+  id: string;
+  text: string;
+  senderId: string | null;
+  name: string;
+  timestamp: string;
+  kind: "USER" | "SYSTEM";
 }
 
 export interface SelectedAddon {

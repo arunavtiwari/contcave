@@ -1,6 +1,5 @@
 "use client";
 
-import { Amenities } from "@prisma/client";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,9 +27,10 @@ import useCities from "@/hooks/useCities";
 import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
 import { formatISTDate } from "@/lib/utils";
 import { Addon } from "@/types/addon";
+import type { SafeAmenity } from "@/types/amenity";
 import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
-import { SafeUser } from "@/types/user";
+import { PublicUser } from "@/types/user";
 
 const Map = dynamic(() => import("../Map"), { ssr: false });
 
@@ -48,7 +48,7 @@ interface Review {
 }
 
 type Props = {
-  user: SafeUser;
+  user: PublicUser;
   description: string;
   category:
   | {
@@ -59,7 +59,7 @@ type Props = {
   | undefined;
   locationValue: string;
   fullListing: FullListing;
-  definedAmenities?: Amenities[];
+  definedAmenities?: SafeAmenity[];
   onAddonChange: (addons: Addon[]) => void;
   services: string[];
   onPackageSelect?: (pkg: Package | null) => void;
@@ -146,7 +146,7 @@ function ListingInfo({
   const relayAddons = useCallback((addons: Addon[]) => onAddonChange(addons), [onAddonChange]);
 
   const [addonList, setAddonList] = useState<Addon[]>([]);
-  const [amenityDefs, setAmenityDefs] = useState<Amenities[]>(definedAmenities ?? []);
+  const [amenityDefs, setAmenityDefs] = useState<SafeAmenity[]>(definedAmenities ?? []);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
@@ -182,10 +182,10 @@ function ListingInfo({
     };
     const checkBookingStatus = async () => {
       try {
-        const res = await checkBookingAction(fullListing.id);
+        const res = await checkBookingAction({ listingId: fullListing.id });
         const reservation = res.data;
         if (reservation) {
-          setCanReview(Boolean(reservation.status === "PAID"));
+          setCanReview(Boolean(reservation.status === "COMPLETED"));
           setLatestReservationId(reservation.id ?? "");
         } else {
           setCanReview(false);
@@ -381,7 +381,7 @@ function ListingInfo({
               onPackageSelect?.(pkg ?? null);
             }}
             selectedPackageId={selectedPackage?.id}
-            isMultiSets={fullListing.hasSets}
+            hasSets={fullListing.hasSets}
           />
           <Divider />
         </>
@@ -588,4 +588,3 @@ function ListingInfo({
 }
 
 export default ListingInfo;
-

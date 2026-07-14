@@ -10,19 +10,19 @@ export interface ListingSet {
     position: number;
     aesthetics: string[];
     setFeatures: string[];
-    createdAt: string | Date;
-    updatedAt: string | Date;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface ListingBlock {
     id: string;
     listingId: string;
-    date: string | Date;
+    date: string;
     startTime: string;
     endTime: string;
     setIds: string[];
     reason?: string | null;
-    createdAt: string | Date;
+    createdAt: string;
 }
 
 export interface PricingBreakdown {
@@ -63,7 +63,7 @@ export interface PricingSnapshot {
     total: number;
 }
 
-import { Package } from "@/types/package";
+import type { Package } from "@/types/package";
 
 export interface SetPricingParams {
     baseHourlyRate: number;

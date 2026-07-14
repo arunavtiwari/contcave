@@ -106,27 +106,9 @@ users/{userId}/billing/invoices/{financialYear}/{documentType}/{invoiceId}/{invo
 users/{userId}/billing/vouchers/{financialYear}/{voucherType}/{voucherId}/{voucherNumber}.pdf
 ```
 
-## Cleanup and Migration
+## Migration State
 
-The canonicalization script is:
-
-```bash
-node scripts/canonicalize-r2-storage.js
-```
-
-Dry-run mode reports stale DB references and planned object moves. Apply mode copies objects to canonical keys, verifies the target objects, updates MongoDB, and writes backups:
-
-```bash
-node scripts/canonicalize-r2-storage.js --apply
-```
-
-Cleanup mode additionally deletes obsolete source objects, but only after the DB verification step reports zero stale references:
-
-```bash
-node scripts/canonicalize-r2-storage.js --apply --cleanup
-```
-
-The same canonicalizer also audits Cloudinary references and fails if any remain.
+The storage migration is complete. Runtime storage code writes only the layout documented above; no migration or cleanup script is part of the application or deployment path.
 
 ## Post-Migration State
 

@@ -32,7 +32,7 @@ export async function PUT(request: NextRequest) {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    const accessToken = (session as { accessToken?: string }).accessToken;
+    const accessToken = session.calendarAccessToken;
     if (!accessToken || typeof accessToken !== "string") {
       return createErrorResponse("No access token found", 401);
     }
@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest) {
         calendarId: 'primary',
         eventId: id.trim(),
         requestBody: event,
-      });
+      }, { signal: controller.signal });
 
       clearTimeout(timeoutId);
       return createSuccessResponse(response.data);

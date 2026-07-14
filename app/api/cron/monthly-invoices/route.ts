@@ -1,25 +1,21 @@
 import { NextRequest } from "next/server";
 
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { hasValidCronSecret } from "@/lib/cron/auth";
 import {
   getCurrentMonthToDatePeriod,
   getPreviousMonthPeriod,
   InvoiceService,
 } from "@/lib/invoice/service";
+import { assertNoFailedMaintenanceResults } from "@/lib/maintenance/results";
+import { getAutomatedNotificationStart } from "@/lib/notification-activation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function assertCronSecret(req: NextRequest) {
-  const provided = req.headers.get("x-github-secret") || req.headers.get("x-cron-secret");
-  const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  const expected = process.env.CRON_SECRET;
-  return Boolean(expected && (provided === expected || bearer === expected));
-}
-
 export async function GET(req: NextRequest) {
   try {
-    if (!assertCronSecret(req)) {
+    if (!hasValidCronSecret(req)) {
       return createErrorResponse("Unauthorized", 401);
     }
 
@@ -32,11 +28,24 @@ export async function GET(req: NextRequest) {
 
     if (mode === "retry-emails") {
       const retryResults = await InvoiceService.retryPendingInvoiceEmails(100);
+      assertNoFailedMaintenanceResults(retryResults);
       return createSuccessResponse({
         mode,
         retried: retryResults.filter((result) => result.ok).length,
         total: retryResults.length,
         results: retryResults,
+      });
+    }
+
+    const automationStart = getAutomatedNotificationStart();
+    if (!automationStart) {
+      return createSuccessResponse({
+        mode,
+        generated: 0,
+        total: 0,
+        results: [],
+        retryResults: [],
+        skipped: "Automation activation time is not configured",
       });
     }
 
@@ -48,9 +57,12 @@ export async function GET(req: NextRequest) {
       periodStart: period.start,
       periodEnd: period.end,
       sendEmails,
+      createdAfter: automationStart,
     });
 
     const retryResults = await InvoiceService.retryPendingInvoiceEmails(100);
+    assertNoFailedMaintenanceResults(results);
+    assertNoFailedMaintenanceResults(retryResults);
 
     return createSuccessResponse({
       mode,

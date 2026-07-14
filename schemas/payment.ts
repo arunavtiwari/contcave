@@ -22,6 +22,7 @@ export const paymentDetailsSchema = z.object({
     gstin: z.string()
         .max(15, 'GSTIN is too long')
         .regex(/^[0-9A-Z]{15}$/i, 'Invalid GSTIN format')
+        .or(z.literal(''))
         .optional()
         .nullable()
 });

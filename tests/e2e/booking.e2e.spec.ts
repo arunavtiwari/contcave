@@ -8,7 +8,7 @@ import {
   waitForUserByEmail,
 } from "./support/db";
 import { expect, test } from "./support/test";
-import { completeCashfreeCheckout, loginViaUi, registerCustomerViaUi } from "./support/ui";
+import { completeCashfreeCheckout, gotoApp, loginViaUi, registerCustomerViaUi } from "./support/ui";
 
 test.describe.configure({ mode: "serial" });
 
@@ -67,7 +67,7 @@ test.describe("booking staging flow", () => {
     await registerCustomerViaUi(page, customer);
     const customerUser = await waitForUserByEmail(customer.email);
 
-    await page.goto(`/listings/${listing.id}`);
+    await gotoApp(page, `/listings/${listing.id}`);
     await selectFirstBookableSlot(page);
     await page.getByRole("button", { name: /reserve and pay/i }).click();
 
@@ -102,12 +102,12 @@ test.describe("booking staging flow", () => {
     expect(duplicate.status()).toBe(400);
     await expect(duplicate.json()).resolves.toMatchObject({ success: false });
 
-    await page.goto("/dashboard/bookings");
+    await gotoApp(page, "/dashboard/bookings");
     await expect(page.getByText(listing.title)).toBeVisible({ timeout: 30_000 });
 
     const ownerPage = await browser.newPage();
     await loginViaUi(ownerPage, ownerAccount);
-    await ownerPage.goto("/dashboard/reservations");
+    await gotoApp(ownerPage, "/dashboard/reservations");
     await expect(ownerPage.getByText(listing.title)).toBeVisible({ timeout: 30_000 });
     await ownerPage.close();
   });
@@ -120,7 +120,7 @@ test.describe("booking staging flow", () => {
     });
     const listing = await createActiveListingFixture(owner.id, `unauthenticated-r${testInfo.retry}`);
 
-    await page.goto(`/listings/${listing.id}`);
+    await gotoApp(page, `/listings/${listing.id}`);
     await selectFirstBookableSlot(page);
     await page.getByRole("button", { name: /reserve and pay/i }).click();
     await expect(page.getByTestId("login-modal")).toBeVisible();
@@ -153,7 +153,7 @@ test.describe("booking staging flow", () => {
         instantBooking: true,
       },
     });
-    expect(overQuantity.status()).toBe(400);
+    expect(overQuantity.status()).toBe(409);
     await expect(overQuantity.json()).resolves.toMatchObject({
       success: false,
       error: expect.stringContaining("only has 1 available"),

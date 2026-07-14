@@ -1,3 +1,4 @@
+import { GST_RATE } from "@/constants/gst";
 import { Package } from "@/types/package";
 import {
     AdditionalSetPricingType,
@@ -81,15 +82,20 @@ export function calculateSetPricing(params: SetPricingParams): SetPricingResult 
     const includedSet = findIncludedSet(selectedSetIds, sets);
     const includedSetId = includedSet?.id || null;
     const effectiveHourlyRate = includedSet ? includedSet.price : baseHourlyRate;
-    const baseCost = calculateBaseCost(effectiveHourlyRate, hours);
+    const hourlyBaseCost = calculateBaseCost(effectiveHourlyRate, hours);
 
     let additionalSetsCost = 0;
     let additionalSets: Array<{ id: string; name: string; price: number }> = [];
     let packageAddOn = 0;
-    let subtotal = baseCost;
+    let baseCost = hourlyBaseCost;
+    let subtotal = hourlyBaseCost;
 
     if (selectedPackage) {
-        packageAddOn = selectedPackage.fixedAddOn || 0;
+        // Package prices are fixed for their configured duration and already
+        // include the required set selection. Do not recompute them from the
+        // underlying hourly set rates.
+        baseCost = Math.round(Math.max(0, Number(selectedPackage.offeredPrice) || 0));
+        packageAddOn = Math.round(Math.max(0, Number(selectedPackage.fixedAddOn) || 0));
         subtotal = baseCost + packageAddOn;
     } else if (selectedSetIds.length > 0) {
         const additionalResult = calculateAdditionalSetsCost(
@@ -105,7 +111,7 @@ export function calculateSetPricing(params: SetPricingParams): SetPricingResult 
     }
 
     const breakdown: PricingBreakdown = {
-        baseHourlyRate: effectiveHourlyRate,
+        baseHourlyRate: selectedPackage ? 0 : effectiveHourlyRate,
         hours,
         baseCost,
         includedSetId,
@@ -141,6 +147,13 @@ export function validateSetSelection(
 
     const count = selectedSetIds.length;
 
+    if (count < 1) {
+        return {
+            valid: false,
+            error: "Select at least one set for this listing.",
+        };
+    }
+
     if (selectedPackage && selectedPackage.requiredSetCount) {
         if (count !== selectedPackage.requiredSetCount) {
             return {
@@ -174,7 +187,7 @@ export function calculateBookingTotal(params: {
     platformFee: number;
     gstRate?: number;
 }): { subtotal: number; gstAmount: number; total: number } {
-    const { setSubtotal, addonsTotal, platformFee, gstRate = 0.18 } = params;
+    const { setSubtotal, addonsTotal, platformFee, gstRate = GST_RATE } = params;
     const subtotal = setSubtotal + addonsTotal + platformFee;
     const gstAmount = Math.round(subtotal * gstRate);
     const total = subtotal + gstAmount;

@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 import { generateInvoicePDFBlob } from "../../lib/invoice/pdfBlob";
 import { InvoiceService } from "../../lib/invoice/service";
 import { prisma, qaEmail, qaPhone } from "./support/db";
@@ -104,13 +106,14 @@ async function createInvoiceFixture(params: {
       userId: customer.id,
       listingId: listing.id,
       billingDetailId: params.attachBilling === false ? undefined : billing.id,
-      bookingId: `BKG-${params.suffix}`.slice(0, 16).toUpperCase(),
+      bookingId: `BKG-${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`,
       startDate,
       startTime: "11:00 AM",
       endTime: "1:00 PM",
       totalPrice: 1180,
       totalPriceInt: 1180,
       isApproved: 1,
+      status: "CONFIRMED",
     },
   });
   trackCreated("reservation", reservation.id);
@@ -197,6 +200,28 @@ test.describe("enterprise invoice service", () => {
     expect(result.invoice.sgstAmount).toBe(0);
   });
 
+  test("retries a failed base-booking invoice into a sent confirmation email", async () => {
+    const fixture = await createInvoiceFixture({
+      suffix: `base-retry-${Date.now()}`,
+      ownerHasGst: true,
+    });
+    const ensured = await InvoiceService.ensureCustomerInvoiceForTransaction(fixture.transaction.id);
+    trackCreated("invoice", ensured.invoice.id);
+
+    expect(ensured.invoice.status).toBe("EMAIL_PENDING");
+    await prisma.invoice.update({
+      where: { id: ensured.invoice.id },
+      data: { status: "EMAIL_FAILED", emailError: "Simulated delivery failure" },
+    });
+
+    const results = await InvoiceService.retryPendingInvoiceEmails();
+    expect(results.find((result) => result.invoiceId === ensured.invoice.id)?.ok).toBe(true);
+
+    const delivered = await prisma.invoice.findUniqueOrThrow({ where: { id: ensured.invoice.id } });
+    expect(delivered.status).toBe("EMAIL_SENT");
+    expect(delivered.emailSentAt).toBeInstanceOf(Date);
+  });
+
   test("customer invoice is blocked until the booking is confirmed", async () => {
     const fixture = await createInvoiceFixture({
       suffix: `pending-${Date.now()}`,
@@ -204,7 +229,7 @@ test.describe("enterprise invoice service", () => {
     });
     await prisma.reservation.update({
       where: { id: fixture.reservation.id },
-      data: { isApproved: 0 },
+      data: { isApproved: 0, status: "PENDING_APPROVAL" },
     });
 
     await expect(
@@ -232,6 +257,14 @@ test.describe("enterprise invoice service", () => {
       suffix: `month-${Date.now()}`,
       ownerHasGst: true,
       bookingDate: new Date("2026-07-15T05:30:00.000Z"),
+    });
+    await prisma.reservation.update({
+      where: { id: fixture.reservation.id },
+      data: {
+        status: "COMPLETED",
+        checkedInAt: new Date("2026-07-15T05:30:00.000Z"),
+        completedAt: new Date("2026-07-15T07:30:00.000Z"),
+      },
     });
 
     const first = await InvoiceService.ensureMonthlyOwnerInvoice({
@@ -278,6 +311,14 @@ test.describe("enterprise invoice service", () => {
       suffix: `nongst-${Date.now()}`,
       ownerHasGst: false,
       bookingDate: new Date("2026-07-20T05:30:00.000Z"),
+    });
+    await prisma.reservation.update({
+      where: { id: fixture.reservation.id },
+      data: {
+        status: "COMPLETED",
+        checkedInAt: new Date("2026-07-20T05:30:00.000Z"),
+        completedAt: new Date("2026-07-20T07:30:00.000Z"),
+      },
     });
 
     const statement = await InvoiceService.ensureMonthlyOwnerInvoice({

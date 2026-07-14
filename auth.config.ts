@@ -4,12 +4,9 @@ import { UserRole } from "@/types/user";
 
 async function refreshCalendarAccessToken(token: Record<string, unknown>) {
     try {
-        const url = "https://oauth2.googleapis.com/token";
-        const response = await fetch(url, {
+        const response = await fetch("https://oauth2.googleapis.com/token", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
                 client_id: process.env.GOOGLE_CLIENT_ID!,
                 client_secret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -17,27 +14,17 @@ async function refreshCalendarAccessToken(token: Record<string, unknown>) {
                 refresh_token: token.calendarRefreshToken as string,
             }),
         });
-
         const refreshedTokens = await response.json();
-
-        if (!response.ok) {
-            throw refreshedTokens;
-        }
-
+        if (!response.ok) throw refreshedTokens;
         return {
             ...token,
             calendarAccessToken: refreshedTokens.access_token,
-            calendarAccessTokenExpires:
-                Date.now() + refreshedTokens.expires_in * 1000,
-            calendarRefreshToken:
-                refreshedTokens.refresh_token ?? token.calendarRefreshToken,
+            calendarAccessTokenExpires: Date.now() + refreshedTokens.expires_in * 1000,
+            calendarRefreshToken: refreshedTokens.refresh_token ?? token.calendarRefreshToken,
         };
     } catch (error) {
         console.error("Error refreshing calendar access token:", error);
-        return {
-            ...token,
-            error: "RefreshAccessTokenError",
-        };
+        return { ...token, error: "RefreshAccessTokenError" };
     }
 }
 
@@ -59,7 +46,6 @@ const ADMIN_ROUTES = ['/admin/dashboard'] as const;
 const PUBLIC_API_ROUTES = [
     '/api/auth',
     '/api/register',
-    '/api/verify_email',
     '/api/payments/cashfree/webhook',
 ] as const;
 
@@ -75,13 +61,17 @@ function logSecurityEvent(
     );
 }
 
+function matchesRoute(pathname: string, route: string) {
+    return pathname === route || pathname.startsWith(`${route}/`);
+}
+
 export const authConfig = {
     providers: [],
     pages: {
         signIn: "/",
         error: "/",
     },
-    debug: process.env.NODE_ENV === "development",
+    debug: false,
     session: {
         strategy: "jwt",
         maxAge: 30 * 24 * 60 * 60,
@@ -91,25 +81,24 @@ export const authConfig = {
             const isLoggedIn = !!auth?.user;
             const pathname = nextUrl.pathname;
 
-            const isPublicAPI = PUBLIC_API_ROUTES.some(route =>
-                pathname.startsWith(route)
-            );
+            const isPublicAPI = PUBLIC_API_ROUTES.some(route => matchesRoute(pathname, route));
             if (isPublicAPI) {
                 return true;
             }
 
-            const isProtected = PROTECTED_ROUTES.some(route =>
-                pathname.startsWith(route)
-            );
+            const isProtected = PROTECTED_ROUTES.some(route => matchesRoute(pathname, route));
 
             if (isProtected) {
+                const isAdminRoute = ADMIN_ROUTES.some(route => matchesRoute(pathname, route));
                 if (!isLoggedIn) {
                     logSecurityEvent('unauthorized_access', { path: pathname });
+                    if (isAdminRoute) {
+                        return Response.redirect(new URL('/admin', nextUrl));
+                    }
                     return false;
                 }
 
                 // Admin routes require the ADMIN role in addition to being logged in
-                const isAdminRoute = ADMIN_ROUTES.some(route => pathname.startsWith(route));
                 if (isAdminRoute && auth?.user?.role !== 'ADMIN') {
                     logSecurityEvent('unauthorized_access', {
                         path: pathname,
@@ -144,11 +133,11 @@ export const authConfig = {
                 if (account.provider === "google-calendar") {
                     token.calendarAccessToken = account.access_token;
                     token.calendarRefreshToken = account.refresh_token;
-                    token.calendarAccessTokenExpires =
-                        Date.now() + Number(account.expires_in) * 1000;
+                    token.calendarAccessTokenExpires = Date.now() + Number(account.expires_in) * 1000;
                 } else if (account.provider === "google") {
                     token.accessToken = account.access_token;
                 }
+
                 return token;
             }
 
@@ -172,12 +161,10 @@ export const authConfig = {
             }
 
             session.accessToken = token.accessToken as string | undefined;
-            session.calendarAccessToken = token.calendarAccessToken as
-                | string
-                | undefined;
-            session.calendarRefreshToken = token.calendarRefreshToken as
-                | string
-                | undefined;
+            session.calendarAccessToken = token.calendarAccessToken as string | undefined;
+            session.calendarRefreshToken = token.calendarRefreshToken as string | undefined;
+            session.calendarAccessTokenExpires = token.calendarAccessTokenExpires as number | undefined;
+            session.error = token.error as string | undefined;
 
             if (token.role !== undefined) {
                 session.user.role = token.role as UserRole;

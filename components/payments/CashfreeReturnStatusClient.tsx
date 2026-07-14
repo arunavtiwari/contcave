@@ -21,8 +21,7 @@ interface SerializedReservation {
   startTime: string;
   endTime: string;
   totalPrice: number;
-  isApproved?: number | null;
-  isApprove?: number | null;
+  status: string;
   listing?: SerializedListing | null;
 }
 
@@ -87,7 +86,10 @@ export default function CashfreeReturnStatusClient({
     maximumFractionDigits: 0,
   });
   
-  const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
+  const dateFormatter = new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeZone: "Asia/Kolkata",
+  });
 
   const getPublicVenueLocation = (listing: SerializedListing | null | undefined) => {
     if (!listing) return "";
@@ -104,16 +106,8 @@ export default function CashfreeReturnStatusClient({
     return Array.from(new Set(parts)).join(", ");
   };
 
-  const getApproveCode = (resv: SerializedReservation | null | undefined) => {
-    const value = resv?.isApproved ?? resv?.isApprove;
-    if (value === 0 || value === 1) return value;
-    const numeric = Number(value);
-    return Number.isFinite(numeric) ? numeric : undefined;
-  };
-
-  const approval = reservation ? getApproveCode(reservation) : undefined;
-  const isConfirmed = status === "SUCCESS" && approval === 1;
-  const isPendingApproval = status === "SUCCESS" && approval === 0;
+  const isConfirmed = status === "SUCCESS" && reservation?.status === "CONFIRMED";
+  const isPendingApproval = status === "SUCCESS" && reservation?.status === "PENDING_APPROVAL";
 
   const listingHref = listingId ? `/listings/${listingId}` : "/";
 
