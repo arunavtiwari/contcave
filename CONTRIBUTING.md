@@ -1,6 +1,6 @@
 # Contributing to Contcave
 
-Thank you for your interest in contributing to Contcave! This document outlines the technical standards, project conventions, and workflow guidelines required to maintain our codebase at an enterprise grade.
+Thank you for your interest in contributing to Contcave! This document outlines the technical standards, project conventions, and workflow guidelines required to maintain our codebase quality.
 
 ---
 
@@ -115,7 +115,7 @@ if (selectedStart !== prevStart) {
 }
 ```
 
-### 4. React 19 Enterprise Form Architecture
+### 4. React 19 Form Architecture
 Every interactive form must use a corresponding **Zod schema** for validation, integrated with `react-hook-form` and the `@hookform/resolvers/zod` resolver. Use React 19's `useActionState` to handle form actions and submission/error states.
 
 ```tsx

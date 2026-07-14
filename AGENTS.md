@@ -4,7 +4,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## What this project is
 
-Contcave is a studio booking marketplace for India — hosts list creative studios (photography, video, podcast, events), guests discover and book them. Think Airbnb for creative spaces, starting with Delhi NCR.
+Contcave is a studio booking marketplace. The platform enables hosts to list and manage creative studios (photography, video, podcast, events) with availability and pricing controls, while allowing guests to discover and book these spaces.
 
 ## Commands
 

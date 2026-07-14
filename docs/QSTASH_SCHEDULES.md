@@ -10,7 +10,7 @@ Required production variables:
 - `QSTASH_DESTINATION_URL` (optional; defaults to `https://contcave.com/api/cron/qstash`)
 - `NOTIFICATION_AUTOMATION_START_AT` (required ISO-8601 deployment cutoff, for example `2026-07-13T12:00:00Z`)
 
-Set `NOTIFICATION_AUTOMATION_START_AT` to the production activation time before enabling the schedules. Automated invoice retries, monthly invoice generation, reservation reconciliation, review reminders, booking reminders, extension nudges, extension/additional-charge expiry, and payout splits ignore records created before this stable cutoff. The signed QStash dispatcher and the authenticated compatibility cron endpoints both enforce it. Do not derive it from a server start time: serverless instances start at different times and would otherwise process different record sets.
+Set `NOTIFICATION_AUTOMATION_START_AT` to the production activation time before enabling the schedules. Automated invoice retries, monthly invoice generation, reservation reconciliation, review reminders, booking reminders, extension nudges, extension/additional-charge expiry, and payout splits ignore records created before this stable cutoff. The signed QStash dispatcher enforces it. Do not derive it from a server start time: serverless instances start at different times and would otherwise process different record sets.
 
 ## Local QStash
 
@@ -41,4 +41,4 @@ npm run configure:qstash
 
 The recurring schedule definitions live in `lib/cron/qstash-schedules.json`. They use UTC expressions for compatibility with local and hosted QStash; the application applies the Asia/Kolkata month-end guard where calendar-day boundaries matter. Do not add GitHub Actions cron workflows for these jobs, because that would run maintenance twice.
 
-The worker implementations live under `lib/maintenance`. The `/api/cron/*` paths are retained as authenticated compatibility endpoints; production scheduling is performed through the signed `/api/cron/qstash` dispatcher.
+The worker implementations live under `lib/maintenance`. Production scheduling is performed through the signed `/api/cron/qstash` dispatcher.

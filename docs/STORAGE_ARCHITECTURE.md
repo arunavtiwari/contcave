@@ -106,26 +106,9 @@ users/{userId}/billing/invoices/{financialYear}/{documentType}/{invoiceId}/{invo
 users/{userId}/billing/vouchers/{financialYear}/{voucherType}/{voucherId}/{voucherNumber}.pdf
 ```
 
-## Migration State
-
-The storage migration is complete. Runtime storage code writes only the layout documented above; no migration or cleanup script is part of the application or deployment path.
-
-## Post-Migration State
-
-As of the canonical storage migration on 2026-05-14:
-
-- Cloudinary DB references: `0`
-- Generic `migrated/cloudinary` DB references: `0`
-- Root-level `verifications/` DB references: `0`
-- Root-level `agreements/` DB references: `0`
-- Old flat `users/{userId}/invoices` DB references: `0`
-
-Final rollback backups and URL maps are stored in `dump/cloudinary-r2-migration/`.
-
 ## Security Properties
 
 1. Tenant isolation: presigned uploads are scoped to `users/{currentUser.id}`.
 2. Listing isolation: listing-owned assets are grouped under `users/{ownerId}/listings/{listingId}`.
 3. Erasure support: deleting a user can recursively remove `users/{userId}/`.
 4. Listing cleanup: deleting a listing can recursively remove `users/{ownerId}/listings/{listingId}/`.
-5. Auditability: migration scripts write before/after JSONL backups and URL maps before cleanup.

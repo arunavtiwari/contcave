@@ -31,6 +31,7 @@ yarn-error.log*
 # local env files
 .env*.local
 .env*
+!.env.example
 .env.test
 .env.e2e
 
