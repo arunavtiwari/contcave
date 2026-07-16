@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 1 | Podcast Studio Rental in Delhi NCR: 2026 Price & Booking Guide | podcast studio in delhi | studio-guides | creators |
 | 2 | How Much Does It Cost to Rent a Photography Studio in India? | photography studio rental cost india | booking-tips | creators, brands |
 | 3 | YouTube Studio Setup: Rent a Studio vs Build Your Own | youtube studio setup cost india | content-creation | creators |
 | 4 | Product Photography Studios for D2C Brands: What to Look For | product photography studio india | studio-guides | brands |
@@ -65,3 +64,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 
 | Date | Topic # | Slug |
 |---|---|---|
+| 2026-07-09 | 1 | podcast-studio-rental-delhi-ncr |
