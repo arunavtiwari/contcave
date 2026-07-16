@@ -1,7 +1,6 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-    distDir: process.env.NEXT_DIST_DIR || '.next',
     serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
     allowedDevOrigins: ['192.168.1.3', 'admin.localhost', '*.localhost'],
     experimental: {

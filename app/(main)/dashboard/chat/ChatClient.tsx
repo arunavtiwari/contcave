@@ -347,6 +347,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                 }}
                 disabled={isSending || initialBooking.readOnly}
                 maxLength={MAX_MESSAGE_LENGTH}
+                data-testid="chat-input"
               />
               <button
                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-foreground text-background transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground shrink-0 cursor-pointer"
@@ -355,6 +356,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                 }}
                 disabled={!newMessage.trim() || isSending || !isChannelReady || initialBooking.readOnly}
                 aria-label="Send message"
+                data-testid="chat-send-button"
               >
                 <IoSend size={14} />
               </button>

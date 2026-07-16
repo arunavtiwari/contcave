@@ -137,7 +137,7 @@ For architectural deep-dives and specific setups, refer to the documentation:
 * [Email Templates](docs/EMAIL_TEMPLATES.md) — MailerSend transactional templates.
 * [WhatsApp Templates](docs/WHATSAPP_TEMPLATES.md) — Meta WhatsApp webhook integration message templates.
 * [QStash Maintenance Schedules](docs/QSTASH_SCHEDULES.md) — Scheduled background jobs and cron configurations.
-* [Staging E2E Testing](docs/E2E_STAGING_TESTS.md) — Playwright test configuration and Smart OCR staging setup.
+* [Testing Playbook](docs/TESTING.md) — Architectural guidelines and design patterns for unit, integration, and E2E tests, including staging environments, Cashfree OCR setups, and dynamic file cleanups.
 * [Contributing Guidelines](CONTRIBUTING.md) — Code quality standards, React 19 render loop, and Git workflows.
 * [Security Policies](SECURITY.md) — Vulnerability disclosure policy and safety compliance.
 * [License Terms](LICENSE) — Ownership terms.

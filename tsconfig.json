@@ -42,7 +42,15 @@
     ".next/e2e-9396/types/**/*.ts",
     ".next/e2e-9396/dev/types/**/*.ts",
     ".next/e2e-34716/types/**/*.ts",
-    ".next/e2e-34716/dev/types/**/*.ts"
+    ".next/e2e-34716/dev/types/**/*.ts",
+    ".next/e2e-35788/types/**/*.ts",
+    ".next/e2e-35788/dev/types/**/*.ts",
+    ".next/e2e-8984/types/**/*.ts",
+    ".next/e2e-8984/dev/types/**/*.ts",
+    ".next/e2e-25400/types/**/*.ts",
+    ".next/e2e-25400/dev/types/**/*.ts",
+    ".next/e2e-24384/types/**/*.ts",
+    ".next/e2e-24384/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -41,7 +41,19 @@ function reviewButtonFor(page: Page, listingTitle: string) {
 async function openReviewModal(page: Page, listingTitle: string) {
   const reviewButton = reviewButtonFor(page, listingTitle);
   await expect(reviewButton).toBeVisible({ timeout: 60_000 });
+
+  const modal = page.getByTestId("admin-listing-review-modal");
+  // Click the review button once
   await reviewButton.click();
+
+  // Wait for the modal to be visible. If it doesn't open (due to click-before-hydration lag), click again.
+  try {
+    await modal.waitFor({ state: "visible", timeout: 5000 });
+  } catch {
+    // Retry clicking once
+    await reviewButton.click();
+    await modal.waitFor({ state: "visible", timeout: 15_000 });
+  }
 }
 
 test.describe("admin listing moderation", () => {

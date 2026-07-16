@@ -537,7 +537,7 @@ function ListingInfo({
                     inactiveColor="text-muted-foreground"
                   />
                 </div>
-                <button type="button" onClick={handleReviewSubmit} className="rounded-full bg-foreground w-full py-2.5 text-background hover:opacity-90 cursor-pointer">
+                <button type="button" onClick={handleReviewSubmit} data-testid="review-submit-button" className="rounded-full bg-foreground w-full py-2.5 text-background hover:opacity-90 cursor-pointer">
                   Submit
                 </button>
               </div>
