@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
+import prisma from "@/lib/prismadb";
 
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
 
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { userId, reservationId, transactionId, amount } = body;
+    const { userId, reservationId, transactionId } = body;
 
     if (typeof userId !== "string" || !OBJECT_ID_PATTERN.test(userId.trim())) {
       return createErrorResponse("userId must be a valid id", 400);
@@ -36,20 +37,26 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("transactionId must be a valid id", 400);
     }
 
-    if (amount !== undefined && amount !== null) {
-      if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0) {
-        return createErrorResponse("amount must be a non-negative number if provided", 400);
-      }
-      if (amount > 10000000) {
-        return createErrorResponse("amount exceeds maximum limit", 400);
-      }
+    const reservation = await prisma.reservation.findFirst({
+      where: {
+        id: reservationId.trim(),
+        userId: currentUser.id,
+      },
+      select: { isApproved: true },
+    });
+
+    if (!reservation) {
+      return createErrorResponse("Reservation not found", 404);
+    }
+
+    if (reservation.isApproved !== 1) {
+      return createErrorResponse("Tax invoice is available only after booking confirmation", 409);
     }
 
     const { invoice } = await ensureInvoiceWithAttachment({
       userId: userId.trim(),
       reservationId: reservationId.trim(),
       transactionId: transactionId.trim(),
-      amountOverride: amount != null ? Math.round(amount) : undefined,
     });
 
     return createSuccessResponse({

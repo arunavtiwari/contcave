@@ -510,10 +510,6 @@ export async function generateInvoicePDFBlob(data: InvoicePDFData): Promise<Blob
     throw new Error("Invoice templates must not contain TDS references");
   }
 
-  if (process.env.E2E_DISABLE_PDF_RENDER === "true") {
-    return new Blob([new Uint8Array(Buffer.from("PDF rendering disabled for e2e"))], { type: "application/pdf" });
-  }
-
   const buffer = await renderToBuffer(<InvoiceDocument {...data} />);
   return new Blob([new Uint8Array(buffer)], { type: "application/pdf" });
 }

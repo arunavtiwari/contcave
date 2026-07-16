@@ -7,6 +7,9 @@ export type CreatedRecordType =
   | "reservation"
   | "transaction"
   | "invoice"
+  | "voucher"
+  | "voucherLock"
+  | "voucherSequence"
   | "billingDetails"
   | "paymentDetails"
   | "r2Key";
@@ -22,6 +25,9 @@ const emptyCreated: Record<CreatedRecordType, string[]> = {
   reservation: [],
   transaction: [],
   invoice: [],
+  voucher: [],
+  voucherLock: [],
+  voucherSequence: [],
   billingDetails: [],
   paymentDetails: [],
   r2Key: [],

@@ -10,7 +10,9 @@ import {
   AdminBookingRow,
   AdminInvoiceRow,
   AdminPayoutRow,
+  AdminVoucherRow,
   retryAdminInvoiceEmailAction,
+  retryAdminVoucherEmailAction,
 } from "@/app/actions/adminBookingActions";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
@@ -20,16 +22,18 @@ import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
 type Props = {
   bookings: AdminBookingRow[];
   ownerInvoices: AdminInvoiceRow[];
+  vouchers: AdminVoucherRow[];
   failures: AdminInvoiceRow[];
   payouts: AdminPayoutRow[];
   audits: AdminAuditRow[];
 };
 
-type Tab = "bookings" | "ownerInvoices" | "payouts" | "failures" | "audit";
+type Tab = "bookings" | "ownerInvoices" | "vouchers" | "payouts" | "failures" | "audit";
 
 const TABS: Array<{ key: Tab; label: string }> = [
   { key: "bookings", label: "Bookings" },
   { key: "ownerInvoices", label: "Owner Invoices" },
+  { key: "vouchers", label: "Receipts & Refunds" },
   { key: "payouts", label: "Payouts" },
   { key: "failures", label: "Failures" },
   { key: "audit", label: "Audit" },
@@ -51,10 +55,10 @@ function bookingStatus(booking: AdminBookingRow) {
   return { label: "Payment Pending", variant: "warning" as const };
 }
 
-function invoiceDelivery(invoice: AdminInvoiceRow) {
-  if (invoice.emailSentAt) return { label: "Sent", variant: "success" as const };
-  if (invoice.status === "EMAIL_FAILED" || invoice.status === "DELIVERY_BLOCKED") return { label: "Failed", variant: "destructive" as const };
-  if (invoice.status === "RETRYING") return { label: "Retrying", variant: "warning" as const };
+function documentDelivery(document: { emailSentAt?: string | null; status: string }) {
+  if (document.emailSentAt) return { label: "Sent", variant: "success" as const };
+  if (document.status === "EMAIL_FAILED" || document.status === "DELIVERY_BLOCKED") return { label: "Failed", variant: "destructive" as const };
+  if (document.status === "RETRYING") return { label: "Retrying", variant: "warning" as const };
   return { label: "Queued", variant: "warning" as const };
 }
 
@@ -77,6 +81,10 @@ function invoiceTypeLabel(value: AdminInvoiceRow["documentType"]) {
     .replace("OWNER_MONTHLY_COMMISSION_INVOICE", "Owner - Commission")
     .replace("OWNER_MONTHLY_BILL_OF_SUPPLY", "Owner - Bill of Supply")
     .replace(/_/g, " ");
+}
+
+function voucherTypeLabel(value: AdminVoucherRow["voucherType"]) {
+  return value === "REFUND_VOUCHER" ? "Refund Voucher" : "Receipt Voucher";
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -221,11 +229,29 @@ function InvoiceSummary({ booking }: { booking: AdminBookingRow }) {
   );
 }
 
+function ReceiptRefundSummary({ booking }: { booking: AdminBookingRow }) {
+  if (booking.vouchers.length === 0) {
+    return <CompactPill label="None" variant="secondary" />;
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      {booking.vouchers.slice(0, 2).map((voucher) => (
+        <div key={voucher.id} className="flex items-center justify-between gap-2">
+          <span className="truncate font-mono text-xs">{voucher.voucherNumber}</span>
+          <CompactPill label={voucher.voucherType === "REFUND_VOUCHER" ? "Refund" : "Receipt"} variant={statusVariant(voucher.status)} />
+        </div>
+      ))}
+      {booking.vouchers.length > 2 ? <span className="text-xs text-muted-foreground">+{booking.vouchers.length - 2} more</span> : null}
+    </div>
+  );
+}
+
 function DetailItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="min-w-0">
       <div className="text-xs font-semibold uppercase text-muted-foreground">{label}</div>
-      <div className="mt-1 min-h-5 break-words text-sm text-foreground">{value || <MutedDash />}</div>
+      <div className="mt-1 min-h-5 wrap-break-word text-sm text-foreground">{value || <MutedDash />}</div>
     </div>
   );
 }
@@ -285,7 +311,7 @@ function BookingDetailModal({
               </div>
             </DetailSection>
 
-            <DetailSection title="Payment & Invoice">
+            <DetailSection title="Payment & Documents">
               <div className="grid gap-3 sm:grid-cols-2">
                 <DetailItem label="Total" value={formatINR(booking.amount)} />
                 <DetailItem label="Payment Method" value={booking.detail.transaction?.paymentMethod || <MutedDash />} />
@@ -299,6 +325,7 @@ function BookingDetailModal({
                     </div>
                   ) : <CompactPill label="Pending" variant="warning" />}
                 />
+                <DetailItem label="Receipts & Refunds" value={<ReceiptRefundSummary booking={booking} />} />
               </div>
             </DetailSection>
           </div>
@@ -392,6 +419,7 @@ function BookingDetailModal({
 export default function AdminBookingsClient({
   bookings,
   ownerInvoices,
+  vouchers,
   failures,
   payouts,
   audits,
@@ -399,6 +427,7 @@ export default function AdminBookingsClient({
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("bookings");
   const [pendingInvoiceId, setPendingInvoiceId] = useState<string | null>(null);
+  const [pendingVoucherId, setPendingVoucherId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<AdminBookingRow | null>(null);
   const [isPending, startTransition] = useTransition();
   const generatedCustomerInvoiceCount = useMemo(
@@ -410,18 +439,20 @@ export default function AdminBookingsClient({
   const activeRows = useMemo(() => {
     if (tab === "bookings") return bookings;
     if (tab === "ownerInvoices") return ownerInvoices;
+    if (tab === "vouchers") return vouchers;
     if (tab === "payouts") return payouts;
     if (tab === "failures") return failures;
     return audits;
-  }, [audits, bookings, failures, ownerInvoices, payouts, tab]);
+  }, [audits, bookings, failures, ownerInvoices, payouts, tab, vouchers]);
 
   const tabCounts = useMemo<Record<Tab, number>>(() => ({
     bookings: bookings.length,
     ownerInvoices: ownerInvoices.length,
+    vouchers: vouchers.length,
     payouts: payouts.length,
     failures: failures.length,
     audit: audits.length,
-  }), [audits.length, bookings.length, failures.length, ownerInvoices.length, payouts.length]);
+  }), [audits.length, bookings.length, failures.length, ownerInvoices.length, payouts.length, vouchers.length]);
 
   const retryInvoice = (invoiceId: string) => {
     setPendingInvoiceId(invoiceId);
@@ -437,13 +468,27 @@ export default function AdminBookingsClient({
     });
   };
 
+  const retryVoucher = (voucherId: string) => {
+    setPendingVoucherId(voucherId);
+    startTransition(async () => {
+      const res = await retryAdminVoucherEmailAction({ voucherId });
+      setPendingVoucherId(null);
+      if (!res.success) {
+        toast.error(res.error || "Receipt/refund retry failed");
+        return;
+      }
+      toast.success("Receipt/refund email retry queued");
+      router.refresh();
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground">Bookings Operations</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Monitor bookings, invoice delivery, payouts, and invoice audit history.
+            Monitor bookings, document delivery, payouts, and document audit history.
           </p>
         </div>
         <Button
@@ -461,8 +506,8 @@ export default function AdminBookingsClient({
         <Stat label="Customer Invoices" value={generatedCustomerInvoiceCount} />
         <Stat label="Pending Invoices" value={pendingCustomerInvoiceCount} />
         <Stat label="Owner Invoices" value={ownerInvoices.length} />
+        <Stat label="Receipts & Refunds" value={vouchers.length} />
         <Stat label="Payouts" value={payouts.length} />
-        <Stat label="Failures" value={failures.length} />
       </div>
 
       <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-background p-2" role="tablist" aria-label="Booking operations views">
@@ -488,7 +533,7 @@ export default function AdminBookingsClient({
       {tab === "bookings" && (
         bookings.length ? (
           <TableShell>
-            <table className="min-w-[1120px] table-fixed divide-y divide-border text-[13px] xl:min-w-full">
+            <table className="min-w-[1240px] table-fixed divide-y divide-border text-[13px] xl:min-w-full">
               <colgroup>
                 <col className="w-[105px]" />
                 <col className="w-[240px]" />
@@ -499,6 +544,7 @@ export default function AdminBookingsClient({
                 <col className="w-[95px]" />
                 <col className="w-[130px]" />
                 <col className="w-[135px]" />
+                <col className="w-[150px]" />
                 <col className="w-[55px]" />
               </colgroup>
               <thead className="bg-muted/40 text-left text-[11px] uppercase text-muted-foreground">
@@ -512,6 +558,7 @@ export default function AdminBookingsClient({
                   <th className="px-3 py-3 text-right">Amount</th>
                   <th className="px-3 py-3 text-center">Status</th>
                   <th className="px-3 py-3 text-center">Invoice</th>
+                  <th className="px-3 py-3 text-center">Receipts & Refunds</th>
                   <th className="px-3 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -543,6 +590,9 @@ export default function AdminBookingsClient({
                         <div className="flex justify-center">
                           <InvoiceSummary booking={booking} />
                         </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <ReceiptRefundSummary booking={booking} />
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex justify-end">
@@ -591,7 +641,7 @@ export default function AdminBookingsClient({
               </thead>
               <tbody className="divide-y divide-border">
                 {(activeRows as AdminInvoiceRow[]).map((invoice) => {
-                  const delivery = invoiceDelivery(invoice);
+                  const delivery = documentDelivery(invoice);
                   const retryDisabled = Boolean(invoice.emailSentAt) || (isPending && pendingInvoiceId !== invoice.id);
 
                   return (
@@ -644,6 +694,87 @@ export default function AdminBookingsClient({
             </table>
           </TableShell>
         ) : <EmptyTable label="No invoices found for this view." />
+      )}
+
+      {tab === "vouchers" && (
+        vouchers.length ? (
+          <TableShell>
+            <table className="min-w-[880px] table-fixed divide-y divide-border text-sm">
+              <colgroup>
+                <col className="w-[180px]" />
+                <col className="w-[160px]" />
+                <col className="w-[190px]" />
+                <col className="w-[160px]" />
+                <col className="w-[120px]" />
+                <col className="w-[170px]" />
+                <col className="w-[100px]" />
+              </colgroup>
+              <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3">Document</th>
+                  <th className="px-4 py-3">Type</th>
+                  <th className="px-4 py-3">Recipient</th>
+                  <th className="px-4 py-3">Issued</th>
+                  <th className="px-4 py-3 text-right">Amount</th>
+                  <th className="px-4 py-3 text-center">Delivery</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {vouchers.map((voucher) => {
+                  const delivery = documentDelivery(voucher);
+                  const retryDisabled = Boolean(voucher.emailSentAt) || (isPending && pendingVoucherId !== voucher.id);
+
+                  return (
+                    <tr key={voucher.id} className="align-top hover:bg-muted/20">
+                      <td className="px-4 py-3">
+                        <div className="truncate font-mono text-xs" title={voucher.voucherNumber}>{voucher.voucherNumber}</div>
+                        {voucher.bookingId ? <div className="mt-1 truncate text-xs text-muted-foreground">{voucher.bookingId}</div> : null}
+                      </td>
+                      <td className="px-4 py-3">{voucherTypeLabel(voucher.voucherType)}</td>
+                      <td className="px-4 py-3">
+                        <div className="truncate" title={voucher.recipientName}>{voucher.recipientName}</div>
+                      </td>
+                      <td className="px-4 py-3">{voucher.issuedAt ? formatISTDateTime(voucher.issuedAt) : <MutedDash title="Document issue date unavailable" />}</td>
+                      <td className="px-4 py-3 text-right">{formatINR(voucher.amount)}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col items-center gap-1 text-center">
+                          <CompactPill label={delivery.label} variant={delivery.variant} />
+                          {voucher.emailError ? <span className="truncate text-xs text-destructive" title={voucher.emailError}>{voucher.emailError}</span> : null}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-2">
+                          {voucher.voucherUrl ? (
+                            <Button
+                              href={voucher.voucherUrl}
+                              target="_blank"
+                              icon={FiEye}
+                              isIconOnly
+                              outline
+                              aria-label="View receipt/refund PDF"
+                              tooltip="View PDF"
+                            />
+                          ) : null}
+                          <Button
+                            icon={FiRefreshCw}
+                            isIconOnly
+                            outline
+                            aria-label={voucher.emailSentAt ? "Receipt/refund email already sent" : "Retry receipt/refund email"}
+                            tooltip={voucher.emailSentAt ? "Already sent" : "Retry email"}
+                            loading={isPending && pendingVoucherId === voucher.id}
+                            disabled={retryDisabled}
+                            onClick={() => retryVoucher(voucher.id)}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </TableShell>
+        ) : <EmptyTable label="No receipts or refunds found." />
       )}
 
       {tab === "payouts" && (
@@ -703,7 +834,7 @@ export default function AdminBookingsClient({
               </div>
             ))}
           </div>
-        ) : <EmptyTable label="No invoice audit events found." />
+        ) : <EmptyTable label="No document audit events found." />
       )}
 
       <BookingDetailModal

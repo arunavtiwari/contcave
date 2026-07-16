@@ -37,8 +37,15 @@ users/
 
     billing/
       invoices/
-        {invoiceId}/
-          invoice.pdf
+        {financialYear}/
+          {documentType}/
+            {invoiceId}/
+              {invoiceNumber}.pdf
+      vouchers/
+        {financialYear}/
+          {voucherType}/
+            {voucherId}/
+              {voucherNumber}.pdf
 
 static/
   {assetName}
@@ -55,7 +62,8 @@ static/
 | Add-on thumbnail | `users/{ownerId}/listings/{listingId}/addons/{addonId}/{assetId}.{ext}` |
 | Verification document | `users/{ownerId}/listings/{listingId}/compliance/verification/{documentType}/{assetId}.{ext}` |
 | Signed agreement PDF | `users/{ownerId}/listings/{listingId}/compliance/agreements/{agreementId}/signed.pdf` |
-| Invoice PDF | `users/{userId}/billing/invoices/{invoiceId}/invoice.pdf` |
+| Invoice PDF | `users/{userId}/billing/invoices/{financialYear}/{documentType}/{invoiceId}/{invoiceNumber}.pdf` |
+| Receipt/refund PDF | `users/{userId}/billing/vouchers/{financialYear}/{voucherType}/{voucherId}/{voucherNumber}.pdf` |
 | Static public asset | `static/{assetName}` |
 
 ## Ownership Rules
@@ -94,7 +102,8 @@ Generated PDFs are written directly to R2 from the server:
 
 ```text
 users/{ownerId}/listings/{listingId}/compliance/agreements/{agreementId}/signed.pdf
-users/{userId}/billing/invoices/{invoiceId}/invoice.pdf
+users/{userId}/billing/invoices/{financialYear}/{documentType}/{invoiceId}/{invoiceNumber}.pdf
+users/{userId}/billing/vouchers/{financialYear}/{voucherType}/{voucherId}/{voucherNumber}.pdf
 ```
 
 ## Cleanup and Migration

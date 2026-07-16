@@ -8,7 +8,6 @@ type CreateInvoiceParams = {
   userId: string;
   reservationId: string;
   transactionId: string;
-  amountOverride?: number;
 };
 
 export type InvoiceWithAttachment = {
@@ -41,10 +40,6 @@ export async function ensureInvoiceWithAttachment(
   if (!txn) throw new Error("Transaction not found");
   if (txn.userId !== userId || txn.reservationId !== reservationId) {
     throw new Error("Transaction does not match the provided user/reservation pair");
-  }
-
-  if (params.amountOverride !== undefined && params.amountOverride <= 0) {
-    throw new Error("Unable to determine invoice amount");
   }
 
   return await InvoiceService.ensureCustomerInvoiceForTransaction(transactionId);

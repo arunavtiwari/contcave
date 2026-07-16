@@ -452,6 +452,15 @@ export async function cfCreateRefund(params: {
     refund_id: string;
     refund_note?: string;
 }) {
+    if (process.env.E2E_DISABLE_CASHFREE_REFUND === "true") {
+        return {
+            refund_id: params.refund_id,
+            order_id: params.order_id,
+            refund_amount: params.refund_amount,
+            status: "SIMULATED",
+        };
+    }
+
     const url = `${cfBaseURL()}/orders/${params.order_id}/refunds`;
     const httpsAgent = getFixieProxyAgent();
 

@@ -57,6 +57,21 @@ function sanitizeAddons(input: unknown): Array<{ price: number; qty?: number; na
         .filter((a) => a.price > 0 && a.qty > 0);
 }
 
+function buildBillingSnapshot(billing: {
+    id: string;
+    companyName: string;
+    gstin: string;
+    billingAddress: string;
+} | null) {
+    if (!billing) return null;
+    return {
+        id: billing.id,
+        companyName: billing.companyName,
+        gstin: billing.gstin,
+        billingAddress: billing.billingAddress,
+    };
+}
+
 const dayKeys = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const configuredDayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -377,6 +392,27 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Amount exceeds maximum limit", 400);
         }
 
+        const billingRecord = data.billingDetailId
+            ? await prisma.billingDetails.findFirst({
+                where: {
+                    id: data.billingDetailId,
+                    userId: currentUser.id,
+                },
+                select: {
+                    id: true,
+                    companyName: true,
+                    gstin: true,
+                    billingAddress: true,
+                },
+            })
+            : null;
+
+        if (data.billingDetailId && !billingRecord) {
+            return createErrorResponse("Billing details were not found for this account", 400);
+        }
+
+        const billingSnapshot = buildBillingSnapshot(billingRecord);
+
         const hash = hashPaymentInput({
             userId: currentUser.id,
             listingId: data.listingId,
@@ -384,6 +420,8 @@ export async function POST(req: NextRequest) {
             startTime: data.startTime,
             endTime: data.endTime,
             amount,
+            billingDetailId: billingRecord?.id || null,
+            billingSnapshot,
             setIds: selectedSetIds.sort(),
             setPackageId: data.setPackageId || null,
             selectedAddons: cleanedAddons.map((addon) => ({
@@ -431,7 +469,9 @@ export async function POST(req: NextRequest) {
                 startTime: data.startTime,
                 endTime: data.endTime,
                 selectedAddons: cleanedAddons,
-                instantBooking: !!data.instantBooking,
+                instantBooking: !!listing.instantBooking,
+                billingDetailId: billingRecord?.id || null,
+                billingSnapshot,
                 setIds: selectedSetIds,
                 setPackageId: data.setPackageId || null,
                 pricingSnapshot: pricingBreakdown || data.pricingSnapshot || null,
@@ -442,25 +482,30 @@ export async function POST(req: NextRequest) {
         let payment_session_id: string;
 
         try {
-            const customerName = (currentUser.name || data.customerName || "Customer").trim().slice(0, 100);
-            const customerEmail = currentUser.email || data.customerEmail;
+            if (process.env.E2E_ENABLE_CASHFREE_SIMULATOR === "true") {
+                order_id = `e2e_order_${txn.id}`;
+                payment_session_id = `e2e_session_${txn.id}`;
+            } else {
+                const customerName = (currentUser.name || data.customerName || "Customer").trim().slice(0, 100);
+                const customerEmail = currentUser.email || data.customerEmail;
 
-            if (customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
-                return createErrorResponse("Invalid email format", 400);
+                if (customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+                    return createErrorResponse("Invalid email format", 400);
+                }
+
+                const orderResult = await cfCreateOrder({
+                    transaction_id: tId,
+                    order_amount: amount,
+                    customer_id: txn.userId,
+                    return_url: `${appUrl}/api/payments/cashfree/return?tid={transaction_id}`,
+                    notify_url: `${appUrl}/api/payments/cashfree/webhook`,
+                    customer_name: customerName,
+                    customer_email: customerEmail || undefined,
+                    customer_phone: customerPhone,
+                });
+                order_id = orderResult.order_id;
+                payment_session_id = orderResult.payment_session_id;
             }
-
-            const orderResult = await cfCreateOrder({
-                transaction_id: tId,
-                order_amount: amount,
-                customer_id: txn.userId,
-                return_url: `${appUrl}/api/payments/cashfree/return?tid={transaction_id}`,
-                notify_url: `${appUrl}/api/payments/cashfree/webhook`,
-                customer_name: customerName,
-                customer_email: customerEmail || undefined,
-                customer_phone: customerPhone,
-            });
-            order_id = orderResult.order_id;
-            payment_session_id = orderResult.payment_session_id;
         } catch (orderError) {
             await TransactionService.fail(txn.id, `Payment initialization failed: ${orderError instanceof Error ? orderError.message : "Unknown error"}`).catch(() => { });
             throw orderError;

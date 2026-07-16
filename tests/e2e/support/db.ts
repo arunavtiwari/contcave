@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
@@ -15,10 +17,6 @@ export type QAAccount = {
   name: string;
   phone: string;
 };
-
-function safeAliasSeed(value: string) {
-  return value.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 48);
-}
 
 export function qaEmail(role: "owner" | "customer", suffix = "") {
   const state = readRunState();
@@ -38,8 +36,13 @@ export function qaEmail(role: "owner" | "customer", suffix = "") {
 
   const local = base.slice(0, atIndex);
   const domain = base.slice(atIndex);
-  const seed = safeAliasSeed(`${state.runId}-${suffix || role}`);
-  return `${local}-${seed}${domain}`.toLowerCase();
+  const compactRunId = state.runId.replace(/^qa-e2e-/, "").slice(-6);
+  const suffixHash = crypto.createHash("sha1").update(suffix || role).digest("hex").slice(0, 8);
+  const seed = `${compactRunId}-${suffixHash}`;
+  const maxEmailLength = 50;
+  const suffixSegment = `-${seed}`;
+  const maxLocalLength = Math.max(1, maxEmailLength - domain.length - suffixSegment.length);
+  return `${local.slice(0, maxLocalLength)}${suffixSegment}${domain}`.toLowerCase();
 }
 
 export function qaPhone(role: "owner" | "customer") {

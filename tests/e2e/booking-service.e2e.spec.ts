@@ -62,6 +62,7 @@ async function createServiceFlowFixture(params: { instantBooking: boolean; suffi
       category: "Indoor Studio",
       locationValue: "Delhi",
       actualLocation: { display_name: "Delhi" },
+      propertyStateCode: "07",
       price: 1500,
       userId: owner.id,
       amenities: [],
@@ -106,7 +107,7 @@ async function createServiceFlowFixture(params: { instantBooking: boolean; suffi
   });
   trackCreated("transaction", transaction.id);
 
-  return { owner, transaction, vendorId: `qa_vendor_${params.suffix}` };
+  return { owner, customer, transaction, vendorId: `qa_vendor_${params.suffix}` };
 }
 
 function withPayoutFields<T extends object>(transaction: T): T & TransactionWithPayout {
@@ -138,6 +139,21 @@ test.describe("booking service payment and payout state", () => {
     expect(txn.payoutPercentToOwner).toBeCloseTo(89.83, 2);
     expect(txn.payoutDueAt).toBeInstanceOf(Date);
     expect(txn.payoutDoneAt).toBeNull();
+
+    const [invoiceCount, receiptCount] = await Promise.all([
+      prisma.invoice.count({
+        where: {
+          reservationId: reservation.id,
+          documentType: { in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"] },
+        },
+      }),
+      prisma.paymentVoucher.count({
+        where: { reservationId: reservation.id, voucherType: "RECEIPT_VOUCHER" },
+      }),
+    ]);
+
+    expect(invoiceCount).toBe(1);
+    expect(receiptCount).toBe(0);
   });
 
   test("approval booking waits for host approval before scheduling owner payout", async () => {
@@ -163,6 +179,21 @@ test.describe("booking service payment and payout state", () => {
     expect(txn.payoutAmountToOwner).toBe(1060);
     expect(txn.payoutDueAt).toBeNull();
 
+    let [pendingInvoiceCount, pendingReceiptCount] = await Promise.all([
+      prisma.invoice.count({
+        where: {
+          reservationId: pendingReservation.id,
+          documentType: { in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"] },
+        },
+      }),
+      prisma.paymentVoucher.count({
+        where: { reservationId: pendingReservation.id, voucherType: "RECEIPT_VOUCHER" },
+      }),
+    ]);
+
+    expect(pendingInvoiceCount).toBe(0);
+    expect(pendingReceiptCount).toBe(1);
+
     await ReservationService.updateStatus(pendingReservation.id, fixture.owner.id, 1);
 
     const approvedReservation = await prisma.reservation.findUniqueOrThrow({
@@ -175,5 +206,124 @@ test.describe("booking service payment and payout state", () => {
     expect(txn.payoutAmountToOwner).toBe(1060);
     expect(txn.payoutDueAt).toBeInstanceOf(Date);
     expect(txn.payoutDoneAt).toBeNull();
+
+    [pendingInvoiceCount, pendingReceiptCount] = await Promise.all([
+      prisma.invoice.count({
+        where: {
+          reservationId: pendingReservation.id,
+          documentType: { in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"] },
+        },
+      }),
+      prisma.paymentVoucher.count({
+        where: { reservationId: pendingReservation.id, voucherType: "RECEIPT_VOUCHER" },
+      }),
+    ]);
+
+    expect(pendingInvoiceCount).toBe(1);
+    expect(pendingReceiptCount).toBe(1);
+  });
+
+  test("approval booking rejection refunds against receipt without creating a tax invoice", async () => {
+    const fixture = await createServiceFlowFixture({
+      instantBooking: false,
+      suffix: `reject-${Date.now()}`,
+    });
+
+    const result = await ReservationService.createFromTransaction(fixture.transaction.id);
+    expect(result?.created).toBe(true);
+
+    const pendingReservation = await prisma.reservation.findUniqueOrThrow({
+      where: { id: result!.reservationId },
+      include: { Transaction: true },
+    });
+    trackCreated("reservation", pendingReservation.id);
+
+    expect(pendingReservation.isApproved).toBe(0);
+    expect(await prisma.paymentVoucher.count({
+      where: { reservationId: pendingReservation.id, voucherType: "RECEIPT_VOUCHER" },
+    })).toBe(1);
+    expect(await prisma.invoice.count({
+      where: {
+        reservationId: pendingReservation.id,
+        documentType: { in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"] },
+      },
+    })).toBe(0);
+
+    await ReservationService.updateStatus(pendingReservation.id, fixture.owner.id, 2, "QA rejection");
+
+    const rejectedReservation = await prisma.reservation.findUniqueOrThrow({
+      where: { id: pendingReservation.id },
+      include: { Transaction: true },
+    });
+    const txn = rejectedReservation.Transaction[0];
+
+    expect(rejectedReservation.isApproved).toBe(2);
+    expect(txn.status).toBe("REFUNDED");
+    expect(txn.payoutDueAt).toBeNull();
+    expect(await prisma.reservationSlot.count({ where: { reservationId: pendingReservation.id } })).toBe(0);
+    expect(await prisma.invoice.count({
+      where: {
+        reservationId: pendingReservation.id,
+        documentType: { in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"] },
+      },
+    })).toBe(0);
+    expect(await prisma.paymentVoucher.count({
+      where: { reservationId: pendingReservation.id, voucherType: "REFUND_VOUCHER" },
+    })).toBe(1);
+  });
+
+  test("customer cancellation while approval is pending refunds and closes the receipt", async () => {
+    const fixture = await createServiceFlowFixture({
+      instantBooking: false,
+      suffix: `cancel-${Date.now()}`,
+    });
+
+    const result = await ReservationService.createFromTransaction(fixture.transaction.id);
+    const reservationId = result!.reservationId;
+    trackCreated("reservation", reservationId);
+
+    await ReservationService.updateStatus(reservationId, fixture.customer.id, 3);
+
+    const cancelled = await prisma.reservation.findUniqueOrThrow({
+      where: { id: reservationId },
+      include: { Transaction: true },
+    });
+    expect(cancelled.isApproved).toBe(3);
+    expect(cancelled.Transaction[0].status).toBe("REFUNDED");
+    expect(await prisma.reservationSlot.count({ where: { reservationId } })).toBe(0);
+    expect(await prisma.invoice.count({ where: { reservationId } })).toBe(0);
+    expect(await prisma.paymentVoucher.count({
+      where: { reservationId, voucherType: "REFUND_VOUCHER" },
+    })).toBe(1);
+  });
+
+  test("24-hour pending approval expiry refunds, releases slots, and never creates an invoice", async () => {
+    const fixture = await createServiceFlowFixture({
+      instantBooking: false,
+      suffix: `timeout-${Date.now()}`,
+    });
+
+    const result = await ReservationService.createFromTransaction(fixture.transaction.id);
+    const reservationId = result!.reservationId;
+    trackCreated("reservation", reservationId);
+
+    const expiryResults = await ReservationService.expirePendingApprovalReservations(
+      new Date(Date.now() + 25 * 60 * 60 * 1000),
+      reservationId
+    );
+    expect(expiryResults).toContainEqual({ id: reservationId, status: "expired" });
+
+    const expired = await prisma.reservation.findUniqueOrThrow({
+      where: { id: reservationId },
+      include: { Transaction: true },
+    });
+    expect(expired.isApproved).toBe(2);
+    expect(expired.rejectReason).toMatch(/did not respond within 24 hours/i);
+    expect(expired.Transaction[0].status).toBe("REFUNDED");
+    expect(await prisma.reservationSlot.count({ where: { reservationId } })).toBe(0);
+    expect(await prisma.invoice.count({ where: { reservationId } })).toBe(0);
+    expect(await prisma.paymentVoucher.count({
+      where: { reservationId, voucherType: "REFUND_VOUCHER" },
+    })).toBe(1);
   });
 });

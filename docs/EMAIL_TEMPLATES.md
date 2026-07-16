@@ -13,6 +13,8 @@ All email logic is centralized in `lib/email/templates.ts`. We utilize a **Premi
 | **Password Reset** | `getResetPasswordTemplate` | HTML String | User |
 | **Reservation Confirmation (Guest)** | `sendReservationConfirmationCustomer` | HTML String | Guest |
 | **Reservation Confirmation (Host)** | `sendReservationConfirmationOwner` | HTML String | Host |
+| **Reservation Request Received (Guest)** | `sendReservationReceivedCustomer` | HTML String | Guest |
+| **Reservation Request Pending (Host)** | `sendReservationPendingOwner` | HTML String | Host |
 | **Reservation Failed** | `sendReservationFailedEmail` | HTML String | Guest |
 
 ---
@@ -25,8 +27,11 @@ To maintain role-specific experiences, onboarding is split by lifecycle events:
 *   **Hosts**: Triggered only after **Full Verification** (Email, Phone, Aadhaar, Bank) is marked as `is_verified` in `lib/verification/service.ts`.
 
 ### Reservation Confirmations & Failures
-*   **Guest (Success)**: Triggered by `ReservationService.triggerInitialNotifications` upon successful payment. Receives a confirmation email with their official **Invoice PDF** attached.
-*   **Host (Success)**: Triggered by `ReservationService.triggerInitialNotifications` upon successful payment. Receives a notification of the new booking and payout details.
+*   **Guest (Instant Success)**: Triggered by `ReservationService.triggerInitialNotifications` upon successful payment for instant booking listings. Receives a booking confirmation email with the official **Tax Invoice PDF** attached.
+*   **Guest (Approval Payment)**: Triggered by `ReservationService.triggerInitialNotifications` upon successful payment for approval-required listings. Receives a booking request email with a customer-facing **Payment Receipt PDF** attached. In accounting/admin views this is tracked as a receipt voucher. The tax invoice is generated only after host approval.
+*   **Host (Instant Success)**: Triggered by `ReservationService.triggerInitialNotifications` upon successful payment for instant booking listings. Receives a confirmed booking notification and payout details.
+*   **Host (Approval Payment)**: Triggered by `ReservationService.triggerInitialNotifications` upon successful payment for approval-required listings. Receives a pending booking request notification and must approve or reject it.
+*   **Guest (Approval/Rejection/Timeout Refund)**: Refund flows attach a **Refund Voucher PDF** and do not create a customer tax invoice.
 *   **Guest (Failure)**: Triggered by `ReservationService.handleFailedPayment` when a payment is marked as `FAILED`. Receives a failed transaction notification.
 
 ---
