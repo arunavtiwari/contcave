@@ -12,7 +12,7 @@ import { UserRole } from "@/types/user";
 
 const httpsAgent = getFixieProxyAgent();
 const AADHAAR_OCR_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-const AADHAAR_OCR_PDF_MAX_BYTES = 1024 * 1024;
+const AADHAAR_OCR_PDF_MAX_BYTES = 5 * 1024 * 1024;
 const AADHAAR_OCR_ALLOWED_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "application/pdf"]);
 const CASHFREE_SMART_OCR_API_VERSION = "2024-12-01";
 const IFSC_PATTERN = /^[A-Z]{4}0[A-Z0-9]{6}$/;
