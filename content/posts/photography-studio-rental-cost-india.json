@@ -1,0 +1,240 @@
+{
+  "id": "photography-studio-rental-cost-india",
+  "title": "How Much Does It Cost to Rent a Photography Studio in India?",
+  "categories": [
+    {
+      "id": "booking-tips",
+      "title": "Booking Tips",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Booking Tips", "id": "bc-booking-tips" }
+      ],
+      "createdAt": "2026-07-16T00:00:00Z",
+      "updatedAt": "2026-07-16T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-07-16T04:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A realistic 2026 breakdown of photography studio rental costs in India — what hourly rates actually include, what drives prices up, and how to cut your per-shoot cost without cutting quality."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "How Much Does It Cost to Rent a Photography Studio in India?"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "Photography studio rental cost in India is one of the most searched questions among new creators and small brands — and one of the hardest to answer from studio websites alone, because most list a rate without saying what it includes. In 2026, hourly rentals in metro cities typically range from a few hundred rupees for a bare shooting space to several thousand for a fully equipped studio with lights, backdrops, and an assistant. This guide breaks the ranges down by studio type and city tier, explains what actually moves the price, and shows you how to budget a shoot end to end."
+    },
+    {
+      "id": "h-ranges",
+      "blockType": "heading",
+      "content": "Typical Hourly Rates in 2026"
+    },
+    {
+      "id": "p-ranges",
+      "blockType": "paragraph",
+      "content": "Treat these as realistic planning ranges rather than quotes — the same studio may charge differently on weekends, for commercial vs personal shoots, or when an operator is included."
+    },
+    {
+      "id": "list-ranges",
+      "blockType": "list",
+      "items": [
+        "Bare shooting space (four walls, natural light, no gear): roughly ₹500-1,200 per hour",
+        "Standard equipped studio (strobes or LEDs, 2-3 backdrops, basic props): roughly ₹1,000-2,500 per hour",
+        "Multi-set creative studio (3+ dressed sets for reels and product work): roughly ₹1,500-3,500 per hour",
+        "Premium production studio (cyclorama wall, high-end lighting, crew support): roughly ₹3,000-8,000 per hour",
+        "Full-day bookings (8-10 hours) commonly come at a 20-35% discount over hourly rates"
+      ]
+    },
+    {
+      "id": "h-city",
+      "blockType": "heading",
+      "content": "How Rates Differ by City"
+    },
+    {
+      "id": "p-city",
+      "blockType": "paragraph",
+      "content": "Location is the single biggest multiplier. Delhi NCR and Mumbai sit at the top of the market — a mid-range equipped studio that costs ₹2,000-3,000 per hour in South Delhi or Andheri often has an equivalent at ₹1,200-2,000 in Noida, Gurugram's non-premium pockets, or Pune, and lower still in tier-2 cities like Jaipur, Lucknow, or Indore. Within a city, the premium areas charge for the address as much as the equipment: the same setup can vary 30-50% between neighbourhoods."
+    },
+    {
+      "id": "quote-inclusions",
+      "blockType": "quote",
+      "content": "Never compare studios on the hourly rate alone. A ₹2,500/hour studio that includes lights, backdrops, and an assistant is usually cheaper in practice than a ₹1,200/hour bare room once you've rented gear separately."
+    },
+    {
+      "id": "h-drivers",
+      "blockType": "heading",
+      "content": "What Actually Drives the Price"
+    },
+    {
+      "id": "list-drivers",
+      "blockType": "list",
+      "items": [
+        "Equipment included: strobes, modifiers, and backdrop variety add real value — hiring the same gear separately can cost ₹1,500-3,000 per day",
+        "Studio size and ceiling height: full-length fashion and group shoots need space that small studios can't offer",
+        "Sets and styling: dressed sets (living room, cafe, textured walls) save you hours of art direction",
+        "Support staff: an in-house lighting assistant or operator typically adds ₹300-800 per hour but speeds up the shoot",
+        "Time slot: weekday mornings are cheapest; weekend and evening slots carry premiums",
+        "Usage type: commercial shoots for brands are sometimes priced higher than personal or portfolio shoots"
+      ]
+    },
+    {
+      "id": "h-budget",
+      "blockType": "heading",
+      "content": "Budgeting a Real Shoot: An Example"
+    },
+    {
+      "id": "p-budget",
+      "blockType": "paragraph",
+      "content": "Say you're a small D2C clothing brand shooting a 30-product catalogue in Delhi. A realistic budget looks like this: a 4-hour slot in an equipped studio at ₹2,000 per hour is ₹8,000. Add a freelance photographer (₹5,000-15,000 for a half day), a steamer and styling basics if the studio doesn't stock them, and travel. Your all-in cost lands around ₹15,000-25,000 — roughly ₹500-800 per finished product photo set. Batching more SKUs into the same slot is the fastest way to push that per-product cost down."
+    },
+    {
+      "id": "h-save",
+      "blockType": "heading",
+      "content": "Seven Ways to Lower Your Studio Cost"
+    },
+    {
+      "id": "list-save",
+      "blockType": "list",
+      "items": [
+        "Book weekday morning slots — they are consistently the cheapest and least contested",
+        "Batch your content: shoot a month of reels or a full catalogue in one session",
+        "Choose studios slightly outside premium neighbourhoods — the camera never shows the address",
+        "Confirm inclusions in writing so you don't pay twice for gear the studio already has",
+        "Take half-day or full-day rates when you need 4+ hours — the discount is significant",
+        "Share a booking with another creator and split the slot",
+        "Arrive prepped: shot lists, steamed garments, and charged batteries save billable time"
+      ]
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Photography Studio Rental Costs in India"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "What is the minimum booking duration for most studios?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "Most studios in India rent in 1-hour blocks with a 1-2 hour minimum. Some premium production spaces only offer half-day (4-5 hour) or full-day slots. If you only need an hour, look for creator-focused studios — they're built around short, high-turnover bookings."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "Do studio rentals include a photographer?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "No — the standard rental covers the space and listed equipment only. You bring your own photographer or shoot yourself. Some studios can arrange a photographer or operator as a paid add-on; confirm rates and portfolio before your slot."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "Is a security deposit normal?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "Many studios take a refundable deposit or hold a card amount against damage, typically ₹1,000-5,000 for standard spaces. Check the damage policy, overtime billing rate, and cancellation window before you pay — these three clauses cause most disputes."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "Are studios cheaper than shooting at home or outdoors?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "For one-off casual content, home setups win on cost. But once you need consistent lighting, clean backgrounds, and volume — catalogues, reels batches, client work — a rented studio is almost always cheaper per usable shot than buying equipment or reshooting weather-dependent outdoor content."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Compare Real Studio Prices on ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave lists creative studios across Delhi NCR with transparent hourly pricing and inclusion details on every listing — so you can compare a bare space against an equipped studio honestly, filter by budget and capacity, and book instantly without rate-card negotiations over DM."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "Studio rental in India is affordable if you compare on inclusions, not headline rates. Budget ₹1,000-2,500 per hour for a solid equipped studio in a metro, book off-peak, and batch aggressively."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Plan around total shoot cost per finished asset, not the hourly rate",
+        "Get inclusions, overtime, and cancellation terms in writing",
+        "Batch shoots to spread the slot cost across more content",
+        "Use ContCave to compare equipped studios with transparent pricing"
+      ]
+    }
+  ],
+  "slug": "photography-studio-rental-cost-india",
+  "meta": {
+    "title": "Photography Studio Rental Cost in India (2026 Price Guide)",
+    "description": "How much does it cost to rent a photography studio in India? See 2026 hourly rates by studio type & city, plus ways to save, on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-07-16T04:00:00Z",
+  "updatedAt": "2026-07-16T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "photography studio rental cost india",
+    "studio rent per hour",
+    "photo studio price india",
+    "studio rental rates 2026",
+    "photography studio near me price",
+    "studio hire cost delhi",
+    "studio rental mumbai vs delhi",
+    "equipped photo studio rental",
+    "studio with lights on rent",
+    "backdrop studio rental",
+    "cyclorama studio india",
+    "full day studio booking discount",
+    "hourly studio rental india",
+    "product catalogue shoot cost",
+    "photoshoot budget india",
+    "studio booking deposit",
+    "cheap photography studio delhi",
+    "studio rental for beginners",
+    "studio rental inclusions checklist",
+    "commercial shoot studio pricing",
+    "studio cost for small business",
+    "creator studio pricing india",
+    "how to save on studio rental",
+    "studio booking tips india",
+    "ContCave"
+  ]
+}

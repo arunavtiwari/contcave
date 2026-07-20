@@ -1,0 +1,248 @@
+{
+  "id": "product-photography-studio-d2c-brands",
+  "title": "Product Photography Studios for D2C Brands: What to Look For",
+  "categories": [
+    {
+      "id": "studio-guides",
+      "title": "Studio Guides",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Studio Guides", "id": "bc-studio-guides" }
+      ],
+      "createdAt": "2026-07-16T00:00:00Z",
+      "updatedAt": "2026-07-16T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-07-16T06:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A practical guide for D2C teams choosing a product photography studio in India — the features that actually affect your catalogue quality, SKU-per-hour planning, and how to brief a studio shoot properly."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "Product Photography Studios for D2C Brands: What to Look For"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "For a D2C brand, product photography is not a creative indulgence — it is conversion infrastructure. Marketplace listings, your own storefront, performance ads, and social content all pull from the same shoot. Choosing the right product photography studio in India determines how fast you can launch SKUs and how consistent your brand looks across channels. Here's what actually matters when you evaluate studios, and how to plan a shoot that doesn't blow the budget."
+    },
+    {
+      "id": "h-types",
+      "blockType": "heading",
+      "content": "Two Kinds of Product Shoots (Plan for Both)"
+    },
+    {
+      "id": "p-types",
+      "blockType": "paragraph",
+      "content": "Most D2C catalogues need two distinct looks, and the studio you pick should handle at least one of them extremely well."
+    },
+    {
+      "id": "list-types",
+      "blockType": "list",
+      "items": [
+        "Clean catalogue shots: white or neutral background, even lighting, marketplace-compliant — the workhorse images for Amazon, Flipkart, Myntra and your product pages",
+        "Lifestyle and context shots: dressed sets, textures, models or props — the images that feed ads, Instagram, and your homepage"
+      ]
+    },
+    {
+      "id": "p-types-extra",
+      "blockType": "paragraph",
+      "content": "Multi-set creative studios let you capture both in one booking: catalogue images on the white sweep, lifestyle content on the dressed sets. That single consolidation often cuts your total shoot cost by a third."
+    },
+    {
+      "id": "h-checklist",
+      "blockType": "heading",
+      "content": "The Studio Checklist for Product Work"
+    },
+    {
+      "id": "list-checklist",
+      "blockType": "list",
+      "items": [
+        "A proper product table or shooting sweep — not just a backdrop for people",
+        "Lighting you can shape: softboxes, diffusion, and ideally a light tent for reflective products",
+        "Macro-friendly space for jewellery, cosmetics, and small accessories",
+        "Steaming and prep area if you shoot apparel",
+        "Power, table space, and wifi for tethered shooting and on-the-spot review",
+        "Storage or trolley access for moving dozens of SKUs in and out",
+        "Set variety if you also need lifestyle content in the same slot"
+      ]
+    },
+    {
+      "id": "h-sku",
+      "blockType": "heading",
+      "content": "How Many SKUs Can You Shoot Per Hour?"
+    },
+    {
+      "id": "p-sku",
+      "blockType": "paragraph",
+      "content": "Realistic throughput planning prevents the classic mistake of booking two hours for a fifty-product catalogue. With a prepared team and a fixed lighting setup, typical rates are: simple flat-lay or on-table products at 10-15 SKUs per hour with 3-4 angles each; apparel on mannequin or model at 4-8 SKUs per hour including changes and steaming; reflective or intricate products (jewellery, glassware, electronics) at 3-6 SKUs per hour. Halve these numbers if you change lighting setups between products."
+    },
+    {
+      "id": "quote-prep",
+      "blockType": "quote",
+      "content": "The cheapest hour in a studio is the one you prepared for at the office: label SKUs, finalize the shot list, steam garments, and charge everything the day before."
+    },
+    {
+      "id": "h-brief",
+      "blockType": "heading",
+      "content": "How to Brief the Shoot (Template)"
+    },
+    {
+      "id": "p-brief",
+      "blockType": "paragraph",
+      "content": "Whether you bring your own photographer or use one arranged through the studio, a one-page brief keeps the day on schedule. Include:"
+    },
+    {
+      "id": "list-brief",
+      "blockType": "list",
+      "items": [
+        "SKU list in shooting order, grouped by lighting setup",
+        "Angles and variants required per SKU (front, back, detail, scale, in-use)",
+        "Reference images for the look you want — three examples beat three paragraphs",
+        "Marketplace specs: background colour, margins, minimum resolution",
+        "Priority order, so the must-haves are done before time pressure hits",
+        "File handover format and deadline for edited selects"
+      ]
+    },
+    {
+      "id": "h-cost",
+      "blockType": "heading",
+      "content": "What D2C Product Shoots Cost in 2026"
+    },
+    {
+      "id": "p-cost",
+      "blockType": "paragraph",
+      "content": "Studio space for product work in metro India typically runs ₹1,000-3,000 per hour depending on equipment and sets. A freelance product photographer adds ₹5,000-20,000 per half day depending on experience. For a 40-SKU catalogue with clean shots plus a handful of lifestyle setups, a well-planned half-day shoot lands most brands between ₹15,000 and ₹40,000 all-in — dramatically less per image than agency packages, if your team handles prep and art direction."
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Product Photography Studios"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "Do I need a photographer or can my team shoot the catalogue?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "For marketplace-compliant catalogue shots with fixed lighting, a trained in-house person with a decent camera or recent phone can absolutely deliver — the studio's lighting does the heavy lifting. Hire a professional for lifestyle imagery, reflective products, and hero shots where composition sells the brand."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "What background do Amazon and Flipkart require?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "Primary marketplace images generally need a pure white background (Amazon specifies RGB 255,255,255) with the product filling most of the frame. Studios with a proper white sweep and even lighting get you there without heavy editing — confirm the studio has done marketplace work before."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "How do I keep images consistent across shoots?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "Document your setup: light positions, camera height, distance, and settings from the first shoot. Rebooking the same studio and reusing that setup sheet keeps a growing catalogue visually uniform — one of the strongest arguments for building a relationship with one or two studios rather than hopping."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "Can I shoot video for ads in the same booking?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Yes, and you should — short product videos and reels-format clips convert strongly in performance ads. Add 30-60 minutes to the slot, keep the lighting setup, and capture rotation shots, hands-on-product B-roll, and unboxing sequences while everything is staged."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Book Product-Ready Studios on ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave lists studios across Delhi NCR with the details D2C teams need up front — hourly pricing, equipment inclusions, set options, and capacity — so you can match a studio to your SKU list and book instantly. Compare spaces honestly instead of piecing together rate cards over calls and DMs."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "Great product photography is a planning problem before it's a creative one. Pick a studio with real product infrastructure, plan SKU throughput honestly, and consolidate catalogue plus lifestyle work into single bookings."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Choose studios with a product table, shapeable lighting, and prep space",
+        "Plan 10-15 simple SKUs per hour; far fewer for apparel and reflective items",
+        "Brief in writing with references and a priority order",
+        "Capture ad video in the same slot while the set is staged",
+        "Compare and book product-ready studios on ContCave"
+      ]
+    }
+  ],
+  "slug": "product-photography-studio-d2c-brands",
+  "meta": {
+    "title": "Product Photography Studios for D2C Brands: What to Look For",
+    "description": "Product photography studio guide for Indian D2C brands — must-have features, SKU-per-hour planning, 2026 costs & briefing tips. Book on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-07-16T06:00:00Z",
+  "updatedAt": "2026-07-16T06:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "product photography studio india",
+    "product photography studio delhi",
+    "d2c product photography",
+    "ecommerce product shoot",
+    "catalogue shoot studio",
+    "amazon product photography requirements",
+    "white background product photography",
+    "product shoot cost india",
+    "sku per hour product shoot",
+    "product photography for flipkart",
+    "lifestyle product photography",
+    "jewellery photography studio",
+    "apparel catalogue shoot",
+    "product shoot brief template",
+    "studio with product table",
+    "tethered shooting studio",
+    "product video for ads",
+    "d2c brand content strategy",
+    "marketplace listing images",
+    "product photography pricing 2026",
+    "small business product shoot",
+    "studio rental for brands",
+    "product shoot planning checklist",
+    "book product photography studio",
+    "ContCave"
+  ]
+}

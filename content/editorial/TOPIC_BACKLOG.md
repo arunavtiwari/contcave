@@ -15,9 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 2 | How Much Does It Cost to Rent a Photography Studio in India? | photography studio rental cost india | booking-tips | creators, brands |
-| 3 | YouTube Studio Setup: Rent a Studio vs Build Your Own | youtube studio setup cost india | content-creation | creators |
-| 4 | Product Photography Studios for D2C Brands: What to Look For | product photography studio india | studio-guides | brands |
 | 5 | Best Studios in Gurugram for Content Creators & Brands | studio on rent gurgaon | studio-guides | creators, brands |
 | 6 | How to List Your Studio and Earn: A Host's Guide | list your studio for rent | host-guides | hosts |
 | 7 | Best Studios in Noida for YouTube, Podcasts & Product Shoots | studio for rent in noida | studio-guides | creators |
@@ -65,3 +62,6 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | Date | Topic # | Slug |
 |---|---|---|
 | 2026-07-09 | 1 | podcast-studio-rental-delhi-ncr |
+| 2026-07-16 | 2 | photography-studio-rental-cost-india |
+| 2026-07-16 | 3 | youtube-studio-rent-vs-build-india |
+| 2026-07-16 | 4 | product-photography-studio-d2c-brands |
