@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { BsPatchCheckFill } from "react-icons/bs";
 
 import Container from "@/components/Container";
@@ -12,33 +13,56 @@ interface ReviewCardProps {
   review: (typeof reviews)[number];
 }
 
-const ReviewCard = ({ review }: ReviewCardProps) => (
-  <div className="relative shrink-0 rounded-2xl p-5 bg-background border border-border transition-all duration-300">
-    <div className="mb-4 flex items-center gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold bg-muted text-foreground">
-        {review.initials}
+const QUOTE_TRUNCATE_LENGTH = 180;
+
+const ReviewCard = ({ review }: ReviewCardProps) => {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = review.quote.length > QUOTE_TRUNCATE_LENGTH;
+
+  return (
+    <div className="relative flex shrink-0 flex-col rounded-2xl p-5 bg-background border border-border transition-all duration-300">
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold bg-muted text-foreground">
+          {review.initials}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold leading-tight text-foreground">
+            {review.name}
+          </p>
+          <p className="mt-0.5 truncate text-[11px] leading-tight text-muted-foreground/60">
+            {review.role}
+          </p>
+        </div>
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <BsPatchCheckFill className="text-foreground" size={16} />
+        </div>
       </div>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold leading-tight text-foreground">
-          {review.name}
-        </p>
-        <p className="mt-0.5 truncate text-[11px] leading-tight text-muted-foreground/60">
-          {review.role}
-        </p>
-      </div>
-      <div className="ml-auto flex shrink-0 items-center gap-1">
-        <BsPatchCheckFill className="text-foreground" size={16} />
+      <p
+        className={`mb-2 whitespace-pre-line text-sm leading-relaxed italic text-foreground/80 ${
+          expanded ? "" : "line-clamp-3"
+        }`}
+      >
+        &ldquo;{review.quote}&rdquo;
+      </p>
+      {isLong && (
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          className="mb-4 w-fit text-xs font-semibold text-foreground underline underline-offset-2 hover:text-foreground/70"
+        >
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      )}
+      {!isLong && <div className="mb-4" />}
+      <div className="mt-auto">
+        <StarRating
+          rating={5}
+          size={11}
+        />
       </div>
     </div>
-    <p className="mb-4 line-clamp-3 text-sm leading-relaxed italic text-foreground/80">
-      &ldquo;{review.quote}&rdquo;
-    </p>
-    <StarRating
-      rating={5}
-      size={11}
-    />
-  </div>
-);
+  );
+};
 
 const SocialProof = () => {
   return (

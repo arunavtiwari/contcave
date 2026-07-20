@@ -109,25 +109,25 @@ export default async function Home() {
       {/* 1. Hero —  full-viewport, city search */}
       <Hero />
 
-      {/* 2. Studio Showcase —  3-card grid with live data */}
-      <StudioShowcase listings={listings} />
-
-      {/* 2.5 Curated vs Verified —  trust comparison */}
-      <VerifiedVsCurated currentUser={currentUser} />
-
-      {/* 3. Production Concierge —  dark feature card + WhatsApp CTA */}
-      <ProductionConcierge />
-
-      {/* 4. How It Works —  3-step flow */}
+      {/* 2. How It Works —  3-step flow, orients first-time visitors before showing product */}
       <HowItWorks />
 
-      {/* 5. Social Proof —  video + 2-row reviews */}
+      {/* 3. Studio Showcase —  3-card grid with live data */}
+      <StudioShowcase listings={listings} />
+
+      {/* 4. Social Proof —  video + 2-row reviews, trust right after seeing the product */}
       <SocialProof />
 
-      {/* 6. FAQ */}
+      {/* 5. Curated vs Verified —  trust/differentiation reinforcement */}
+      <VerifiedVsCurated currentUser={currentUser} />
+
+      {/* 6. Production Concierge —  dark feature card + WhatsApp CTA */}
+      <ProductionConcierge />
+
+      {/* 7. FAQ —  objection handling before the final ask */}
       <FAQ nonce={nonce} />
 
-      {/* 7. For Studio Owners —  CTA */}
+      {/* 8. For Studio Owners —  CTA */}
       <CTA currentUser={currentUser} />
     </main>
   );
