@@ -3,11 +3,6 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
     serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
     allowedDevOrigins: ['192.168.1.3', 'admin.localhost', '*.localhost'],
-    experimental: {
-        serverActions: {
-            bodySizeLimit: "6mb",
-        },
-    },
     images: {
         loader: 'custom',
         loaderFile: './lib/cloudflare-image-loader.ts',

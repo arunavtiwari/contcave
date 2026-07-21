@@ -39,8 +39,7 @@ function serializeVerificationUser(user: VerificationUserRecord) {
     };
 }
 
-const AADHAAR_OCR_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-const AADHAAR_OCR_PDF_MAX_BYTES = 5 * 1024 * 1024;
+const AADHAAR_OCR_MAX_BYTES = 5 * 1024 * 1024;
 const AADHAAR_OCR_ALLOWED_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "application/pdf"]);
 const CASHFREE_SMART_OCR_API_VERSION = "2024-12-01";
 const IFSC_PATTERN = /^[A-Z]{4}0[A-Z0-9]{6}$/;
@@ -84,9 +83,8 @@ function assertAadhaarOcrFile(file: File) {
         throw new Error("Upload a JPG, PNG, or PDF Aadhaar document");
     }
 
-    const maxBytes = file.type === "application/pdf" ? AADHAAR_OCR_PDF_MAX_BYTES : AADHAAR_OCR_IMAGE_MAX_BYTES;
-    if (file.size > maxBytes) {
-        throw new Error(file.type === "application/pdf" ? "Aadhaar PDF must be 1 MB or smaller" : "Aadhaar image must be 5 MB or smaller");
+    if (file.size > AADHAAR_OCR_MAX_BYTES) {
+        throw new Error("Aadhaar document is too large. Upload a file up to 5 MB");
     }
 }
 
@@ -152,7 +150,7 @@ function cashfreeOcrError(error: unknown) {
     }
 
     if (status === 413) {
-        return new Error("Aadhaar document is too large. Upload an image up to 5 MB or a PDF up to 1 MB");
+        return new Error("Aadhaar document is too large. Upload a file up to 5 MB");
     }
 
     if (status === 429) {
@@ -163,7 +161,7 @@ function cashfreeOcrError(error: unknown) {
         return new Error("Aadhaar verification service is temporarily unavailable. Please try again");
     }
 
-    return new Error(data?.message || "Aadhaar OCR verification failed. Check the document and try again");
+    return new Error("Aadhaar OCR verification failed. Check the document and try again");
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -319,15 +317,10 @@ export class VerificationService {
 
         const verificationId = sanitizeVerificationId(userId);
         const body = new FormData();
-        const buffer = await file.arrayBuffer();
         body.append("verification_id", verificationId);
         body.append("document_type", "AADHAAR");
         body.append("do_verification", "false");
-        body.append(
-            "file",
-            new Blob([new Uint8Array(buffer)], { type: file.type }),
-            safeAadhaarFilename(verificationId, file.type)
-        );
+        body.append("file", file, safeAadhaarFilename(verificationId, file.type));
 
         let response: SmartOcrResponse;
         try {

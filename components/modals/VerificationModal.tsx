@@ -175,7 +175,7 @@ const VerificationModal: React.FC<Props> = ({
       formData.append("aadhaarDocument", aadhaarFile);
       const response = await fetch("/api/user/verify/aadhaar", { method: "POST", body: formData });
       const resp = await response.json().catch(() => null) as { success: boolean; data?: { user?: Partial<SafeUser> }; error?: string } | null;
-      if (!resp) throw new Error(response.status === 413 ? "Aadhaar document is too large. Upload an image up to 5 MB or a PDF up to 1 MB" : "Verification server returned an invalid response. Please try again");
+      if (!resp) throw new Error(response.status === 413 ? "Aadhaar document is too large. Upload a file up to 5 MB" : "Verification server returned an invalid response. Please try again");
       if (response.ok && resp.success && resp.data?.user) {
         const nextUser = mergeUserState(userState, resp.data.user);
         setUserState(nextUser);
@@ -343,7 +343,7 @@ const VerificationModal: React.FC<Props> = ({
               <ImageUpload
                 uid="aadhaar-ocr-upload"
                 label="Aadhaar Document"
-                description="Upload JPG, PNG, or PDF"
+                description="Upload JPG, PNG, or PDF (maximum 5 MB)"
                 required
                 values={aadhaarPreview}
                 onChange={(values) => setAadhaarPreview(values.slice(-1))}

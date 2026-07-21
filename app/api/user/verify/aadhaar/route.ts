@@ -7,9 +7,12 @@ import { UserRole } from "@/types/user";
 
 export const runtime = "nodejs";
 
+const AADHAAR_MULTIPART_MAX_BYTES = 6 * 1024 * 1024;
+
 function verificationErrorStatus(message: string) {
   if (message === "Unauthorized") return 401;
-  if (message.includes("too large") || message.includes("required") || message.includes("Upload a")) return 400;
+  if (message.includes("too large")) return 413;
+  if (message.includes("required") || message.includes("Upload a")) return 400;
   if (message.includes("busy")) return 429;
   if (message.includes("temporarily unavailable")) return 503;
   if (
@@ -34,8 +37,8 @@ export async function POST(request: Request) {
       return createErrorResponse("Expected multipart/form-data", 415);
     }
     const contentLength = Number(request.headers.get("content-length") || 0);
-    if (Number.isFinite(contentLength) && contentLength > 6 * 1024 * 1024) {
-      return createErrorResponse("Aadhaar document is too large", 413);
+    if (Number.isFinite(contentLength) && contentLength > AADHAAR_MULTIPART_MAX_BYTES) {
+      return createErrorResponse("Aadhaar document is too large. Upload a file up to 5 MB", 413);
     }
     const requestLimit = rateLimit({
       key: `aadhaar-verify:${currentUser.id}:${getClientIp(request.headers)}`,
