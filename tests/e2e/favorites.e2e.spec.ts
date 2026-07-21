@@ -1,6 +1,7 @@
 import {
   createActiveListingFixture,
   createUserFixture,
+  prisma,
   trackUserByEmail,
 } from "./support/db";
 import { expect, test } from "./support/test";
@@ -20,7 +21,7 @@ test.describe("wishlist and favorites staging flow", () => {
     const listing = await createActiveListingFixture(owner.id, `fav-${retrySuffix}`);
 
     // 2. Create customer and login
-    const { account: customerAccount } = await createUserFixture({
+    const { account: customerAccount, user: customer } = await createUserFixture({
       role: "CUSTOMER",
       verified: true,
       suffix: `fav-customer-${retrySuffix}`,
@@ -35,6 +36,13 @@ test.describe("wishlist and favorites staging flow", () => {
     
     // Toggle favorite on
     await heartBtn.click();
+    await expect.poll(async () => {
+      const current = await prisma.user.findUnique({
+        where: { id: customer.id },
+        select: { favoriteIds: true },
+      });
+      return current?.favoriteIds.includes(listing.id) ?? false;
+    }).toBe(true);
     
     // 4. Navigate to My Favorites page and assert listing is visible
     await gotoApp(page, "/dashboard/favorites");
@@ -44,6 +52,13 @@ test.describe("wishlist and favorites staging flow", () => {
     const dashboardHeartBtn = page.getByTestId("heart-button").first();
     await expect(dashboardHeartBtn).toBeVisible();
     await dashboardHeartBtn.click();
+    await expect.poll(async () => {
+      const current = await prisma.user.findUnique({
+        where: { id: customer.id },
+        select: { favoriteIds: true },
+      });
+      return current?.favoriteIds.includes(listing.id) ?? false;
+    }).toBe(false);
 
     // 6. Assert that it is removed from the wishlist page
     await expect(page.getByText(listing.title)).toBeHidden({ timeout: 15_000 });

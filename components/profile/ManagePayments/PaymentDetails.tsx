@@ -193,7 +193,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
 
     const handleFieldChange = useCallback((name: string, value: string) => {
-        const normalizedValue = name === "gstin" ? value.toUpperCase() : value;
+        const normalizedValue = name === "gstin" || name === "ifscCode" ? value.toUpperCase() : value;
         setFormData(prev => ({ ...prev, [name]: normalizedValue }));
 
         if (errors[name]) {
@@ -230,6 +230,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                 }
             }
         }
+
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -387,4 +388,3 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 };
 
 export default PaymentDetails;
-

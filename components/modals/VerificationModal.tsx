@@ -42,7 +42,7 @@ const digitsOnly = (value: string, maxLength: number) =>
 
 const getInitialStep = (user: SafeUser | null): number => {
   if (!user) return 1;
-  if (!user.email_verified) return 1;
+  if (!user.email_verified || !user.phone_verified) return 1;
   if (!user.aadhaar_verified) return 2;
   if (!user.bank_verified) return 3;
   return 4;
@@ -438,7 +438,7 @@ const VerificationModal: React.FC<Props> = ({
               />
               <Input
                 id="gstNumber"
-                label="GST Number"
+                label="GST Number (optional)"
                 register={register("gstNumber")}
                 errors={errors}
                 disabled={isBusy}

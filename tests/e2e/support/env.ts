@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { loadE2EProcessEnv } from "./load-env";
 
 export type CashfreePaymentMethod =
@@ -137,7 +139,10 @@ export function getE2EConnectionEnv(): E2EConnectionEnv {
   cachedConnectionEnv = {
     baseUrl,
     databaseUrl,
-    runId: process.env.E2E_RUN_ID || `qa-e2e-${Date.now()}`,
+    // A timestamp alone can be reused by an interrupted or closely repeated run
+    // against the same test database. Keep an explicit E2E_RUN_ID reproducible,
+    // but make automatically generated fixture namespaces collision-resistant.
+    runId: process.env.E2E_RUN_ID || `qa-e2e-${Date.now()}-${randomUUID().slice(0, 8)}`,
     emailDomain: firstDefined(["E2E_EMAIL_DOMAIN"]) || domainFromEmail(process.env.MAILERSEND_FROM_EMAIL) || required("E2E_EMAIL_DOMAIN"),
   };
 

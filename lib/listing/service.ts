@@ -2,6 +2,7 @@ import { AdditionalSetPricingType, Prisma } from "@prisma/client";
 import { formatInTimeZone } from "date-fns-tz";
 
 import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
+import { TIME_SLOTS } from "@/constants/timeSlots";
 import { UserFacingError } from "@/lib/errors";
 import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
@@ -10,7 +11,7 @@ import { generateUniqueSlug } from "@/lib/slug";
 import { slugify } from "@/lib/strings";
 import { sanitizeStringList } from "@/lib/strings";
 import { normaliseUseCase } from "@/lib/taxonomy";
-import { listingBaseSchema, listingSchema } from "@/schemas/listing";
+import { listingBaseSchema, listingSchema, persistedMediaUrlSchema } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData } from "@/types/listing";
 
@@ -56,6 +57,42 @@ function parseListingUpdateBody(body: Record<string, unknown>): Record<string, u
     }, {});
 }
 
+function assertPersistedMediaUrl(value: unknown, field: string) {
+    if (!persistedMediaUrlSchema.safeParse(value).success) {
+        throw new UserFacingError(`${field} must be uploaded before saving the listing`, 400);
+    }
+}
+
+function assertPersistedListingMedia(data: Record<string, unknown>) {
+    if ("imageSrc" in data) {
+        if (!Array.isArray(data.imageSrc)) {
+            throw new UserFacingError("Listing images must be uploaded before saving the listing", 400);
+        }
+        data.imageSrc.forEach((image, index) => assertPersistedMediaUrl(image, `Listing image ${index + 1}`));
+    }
+
+    if ("videoSrc" in data && data.videoSrc != null) {
+        assertPersistedMediaUrl(data.videoSrc, "Video tour");
+    }
+
+    if (Array.isArray(data.sets)) {
+        data.sets.forEach((set, setIndex) => {
+            if (!set || typeof set !== "object" || Array.isArray(set)) return;
+            const images = (set as { images?: unknown }).images;
+            if (!Array.isArray(images)) return;
+            images.forEach((image, imageIndex) => assertPersistedMediaUrl(image, `Set ${setIndex + 1} image ${imageIndex + 1}`));
+        });
+    }
+
+    if (Array.isArray(data.addons)) {
+        data.addons.forEach((addon, addonIndex) => {
+            if (!addon || typeof addon !== "object" || Array.isArray(addon)) return;
+            const imageUrl = (addon as { imageUrl?: unknown }).imageUrl;
+            if (imageUrl) assertPersistedMediaUrl(imageUrl, `Add-on ${addonIndex + 1} image`);
+        });
+    }
+}
+
 function isFileLike(value: object): boolean {
     const candidate = value as {
         name?: unknown;
@@ -69,6 +106,75 @@ function isFileLike(value: object): boolean {
         typeof candidate.size === "number" &&
         (typeof candidate.slice === "function" || typeof candidate.arrayBuffer === "function")
     );
+}
+
+function assertOwnedVerificationReferences(value: unknown, userId: string, listingId: string) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return;
+    const expectedPrefix = `r2-private://users/${userId}/listings/${listingId}/compliance/`;
+    const record = value as Record<string, unknown>;
+    const documents = Array.isArray(record.documents) ? record.documents : [];
+    const agreement = record.agreementPdf && typeof record.agreementPdf === "object" && !Array.isArray(record.agreementPdf)
+        ? record.agreementPdf as Record<string, unknown>
+        : null;
+    if (documents.some((item) => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) return true;
+        return typeof (item as Record<string, unknown>).storageRef !== "string";
+    }) || (agreement && typeof agreement.storageRef !== "string")) {
+        throw new UserFacingError("Verification documents must be stored privately before submission", 400);
+    }
+    const refs = [
+        ...documents.map((item) => item && typeof item === "object" && !Array.isArray(item)
+            ? (item as Record<string, unknown>).storageRef
+            : undefined),
+        agreement?.storageRef,
+    ].filter((item): item is string => typeof item === "string");
+
+    if (refs.some((ref) => !ref.startsWith(expectedPrefix))) {
+        throw new UserFacingError("A verification document does not belong to this listing", 403);
+    }
+}
+
+function assertCompletePrivateVerification(value: unknown) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        throw new UserFacingError("Verification documents and a signed agreement are required", 400);
+    }
+    const record = value as Record<string, unknown>;
+    const documents = Array.isArray(record.documents) ? record.documents : [];
+    const hasPrivateDocument = documents.some((item) => item
+        && typeof item === "object"
+        && !Array.isArray(item)
+        && typeof (item as Record<string, unknown>).storageRef === "string");
+    const agreement = record.agreementPdf && typeof record.agreementPdf === "object" && !Array.isArray(record.agreementPdf)
+        ? record.agreementPdf as Record<string, unknown>
+        : null;
+    if (!hasPrivateDocument || typeof agreement?.storageRef !== "string") {
+        throw new UserFacingError("Private verification documents and a signed agreement are required", 400);
+    }
+}
+
+function getOperatingWindowHours(value: unknown): number | null {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    const hours = value as { start?: unknown; end?: unknown };
+    if (typeof hours.start !== "string" || typeof hours.end !== "string") return null;
+    const start = TIME_SLOTS.indexOf(hours.start);
+    const end = TIME_SLOTS.lastIndexOf(hours.end);
+    return start >= 0 && end > start ? (end - start) / 2 : null;
+}
+
+async function assertDefaultAmenitiesExist(value: unknown) {
+    const ids = sanitizeStringList(value);
+    if (ids.some((id) => !/^[a-f\d]{24}$/i.test(id))) {
+        throw new UserFacingError("One or more selected default amenities are invalid");
+    }
+    if (ids.length === 0) return ids;
+    const existing = await prisma.amenities.findMany({
+        where: { id: { in: ids } },
+        select: { id: true },
+    });
+    if (existing.length !== ids.length) {
+        throw new UserFacingError("One or more selected default amenities no longer exist", 409);
+    }
+    return ids;
 }
 
 function toJsonCompatible(value: unknown): unknown {
@@ -218,6 +324,7 @@ export class ListingService {
     private static getHydratableListingFilter(params: { active?: boolean; status?: string; listingType?: "STANDARD" | "CURATED" } = { active: true }): Record<string, unknown> {
         const filter: Record<string, unknown> = {
             $and: [
+                { $or: [{ archivedAt: { $exists: false } }, { archivedAt: null }] },
                 this.getHydratableNumberFilter("price"),
                 this.getHydratableNumberFilter("carpetArea"),
                 this.getHydratableNumberFilter("minimumBookingHours"),
@@ -318,6 +425,7 @@ export class ListingService {
         const result = listingSchema.safeParse(body);
         if (!result.success) throw new UserFacingError(result.error.issues[0]?.message || "Invalid listing data");
         const validated = result.data;
+        assertPersistedListingMedia(validated as Record<string, unknown>);
 
         const {
             id,
@@ -354,6 +462,9 @@ export class ListingService {
         const finalAddons = toNullableJson(addons);
         const finalOperationalDays = toNullableJson(operationalDays);
         const finalOperationalHours = toNullableJson(operationalHours);
+        const defaultAmenityIds = await assertDefaultAmenitiesExist(amenities);
+        assertOwnedVerificationReferences(verifications, userId, id || "");
+        if (listingType === "STANDARD") assertCompletePrivateVerification(verifications);
         const finalVerifications = toNullableJson(verifications);
 
         // 3. Atomic Transaction
@@ -371,7 +482,7 @@ export class ListingService {
                     propertyStateCode: finalPropertyStateCode,
                     price: priceValue,
                     user: { connect: { id: userId } },
-                    amenities: sanitizeStringList(amenities),
+                    amenities: defaultAmenityIds,
                     otherAmenities: sanitizeStringList(otherAmenities),
                     addons: finalAddons,
                     carpetArea: carpetArea,
@@ -476,6 +587,7 @@ export class ListingService {
 
     static async updateListing(userId: string, listingId: string, body: Record<string, unknown>, allowAdmin = false): Promise<FullListing> {
         const validated = parseListingUpdateBody(body);
+        assertPersistedListingMedia(validated);
         const { packages, sets: validatedSets, ...listingData } = validated;
         let sets = validatedSets;
 
@@ -485,6 +597,10 @@ export class ListingService {
         });
         if (!existingListing) throw new UserFacingError("Listing not found", 404);
         if (existingListing.userId !== userId && !allowAdmin) throw new UserFacingError("Permission denied", 403);
+        if (existingListing.archivedAt) throw new UserFacingError("Archived listings cannot be edited", 409);
+        if ("verifications" in listingData) {
+            assertOwnedVerificationReferences(listingData.verifications, existingListing.userId, listingId);
+        }
         const nextListingType = listingData.listingType ?? existingListing.listingType;
         if (!allowAdmin && nextListingType === "CURATED") {
             throw new UserFacingError("Only administrators can manage curated listings");
@@ -508,6 +624,12 @@ export class ListingService {
         if (listingData.unifiedSetPrice != null) listingData.unifiedSetPrice = Math.round(Number(listingData.unifiedSetPrice));
         if (listingData.price != null) listingData.price = Math.round(Number(listingData.price));
         if (listingData.slug) listingData.slug = slugify(String(listingData.slug));
+        if ("amenities" in listingData) {
+            listingData.amenities = await assertDefaultAmenitiesExist(listingData.amenities);
+        }
+        if ("otherAmenities" in listingData) {
+            listingData.otherAmenities = sanitizeStringList(listingData.otherAmenities);
+        }
 
         // 3. Normalized Location (Privacy Jitter)
         const loc = listingData.actualLocation as { latlng?: unknown; propertyStateCode?: string; state?: string } | null | undefined;
@@ -580,6 +702,22 @@ export class ListingService {
             return requiredSetCount > nextSetCount;
         })) {
             throw new UserFacingError("A package cannot require more sets than the listing contains");
+        }
+        const nextOperationalHours = "operationalHours" in listingData
+            ? listingData.operationalHours
+            : existingListing.operationalHours;
+        const operatingWindowHours = getOperatingWindowHours(nextOperationalHours);
+        const nextMinimumBookingHours = Number(
+            "minimumBookingHours" in listingData ? listingData.minimumBookingHours : existingListing.minimumBookingHours || 0
+        );
+        if (nextMinimumBookingHours > 24 || (operatingWindowHours != null && nextMinimumBookingHours > operatingWindowHours)) {
+            throw new UserFacingError("Minimum booking duration must fit within one operating day");
+        }
+        if (nextPackages.some((pkg) => {
+            const duration = Number((pkg as { durationHours?: number }).durationHours || 0);
+            return duration > 24 || (operatingWindowHours != null && duration > operatingWindowHours);
+        })) {
+            throw new UserFacingError("Every package duration must fit within the studio's daily operating window");
         }
 
         // 4. Atomic Transaction
@@ -764,11 +902,20 @@ export class ListingService {
     static async deleteListing(userId: string, listingId: string, allowAdmin = false): Promise<void> {
         const listing = await prisma.listing.findUnique({
             where: { id: listingId },
-            select: { userId: true },
+            select: { userId: true, archivedAt: true },
         });
         if (!listing) throw new UserFacingError("Listing not found", 404);
         if (listing.userId !== userId && !allowAdmin) throw new UserFacingError("Permission denied", 403);
-        await prisma.listing.delete({ where: { id: listingId } });
+        if (listing.archivedAt) return;
+
+        await prisma.listing.update({
+            where: { id: listingId },
+            data: {
+                active: false,
+                archivedAt: new Date(),
+                archivedById: userId,
+            },
+        });
     }
 
     /**
@@ -780,8 +927,11 @@ export class ListingService {
         active: boolean,
         review?: { reviewedById?: string; rejectionReason?: string | null }
     ): Promise<void> {
-        await prisma.listing.update({
-            where: { id: listingId },
+        const updated = await prisma.listing.updateMany({
+            where: {
+                id: listingId,
+                OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }],
+            },
             data: {
                 status,
                 active,
@@ -791,6 +941,9 @@ export class ListingService {
                 accountDeactivatedAt: null,
             }
         });
+        if (updated.count !== 1) {
+            throw new UserFacingError("Archived listings cannot be reviewed", 409);
+        }
     }
 
     /**
@@ -812,10 +965,11 @@ export class ListingService {
     static async createBlock(userId: string, listingId: string, data: ListingBlockData, allowAdmin = false) {
         const listing = await prisma.listing.findUnique({
             where: { id: listingId },
-            select: { userId: true, sets: { select: { id: true } } },
+            select: { userId: true, archivedAt: true, sets: { select: { id: true } } },
         });
         if (!listing) throw new UserFacingError("Listing not found", 404);
         if (listing.userId !== userId && !allowAdmin) throw new UserFacingError("Permission denied", 403);
+        if (listing.archivedAt) throw new UserFacingError("Archived listings cannot be modified", 409);
 
         const { date, startTime, endTime, setIds, reason } = data;
         const validSetIds = new Set(listing.sets.map((set) => set.id));
@@ -852,6 +1006,7 @@ export class ListingService {
         const { userId, locationValue, category, type, venueTypes, aesthetics, setFeatures, hasSets, startDate, endDate } = params;
 
         const query: Prisma.ListingWhereInput = {};
+        query.OR = [{ archivedAt: null }, { archivedAt: { isSet: false } }];
 
         if (userId) {
             query.userId = userId;
@@ -963,7 +1118,12 @@ export class ListingService {
         if (uniqueIds.length === 0) return [];
 
         const listings = await prisma.listing.findMany({
-            where: { id: { in: uniqueIds }, active: true, status: "VERIFIED" },
+            where: {
+                id: { in: uniqueIds },
+                active: true,
+                status: "VERIFIED",
+                OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }],
+            },
             include: {
                 packages: true,
                 sets: { orderBy: [{ price: "asc" }, { position: "asc" }] },
@@ -994,7 +1154,7 @@ export class ListingService {
                 include: { user: true, packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, blocks: true }
             });
 
-        if (!listing) return null;
+        if (!listing || (listing.archivedAt && viewer?.role !== "ADMIN")) return null;
         const includePrivateLocation = Boolean(viewer && (viewer.role === "ADMIN" || viewer.id === listing.userId));
         return this.normalizeListingWithRelations(listing as ListingWithRelations, includePrivateLocation);
     }
@@ -1025,6 +1185,8 @@ export class ListingService {
             inConversation: _inConversation,
             enquiryCount: _enquiryCount,
             accountDeactivatedAt: _accountDeactivatedAt,
+            archivedAt: _archivedAt,
+            archivedById: _archivedById,
             user,
             ...publicListing
         } = l;

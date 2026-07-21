@@ -15,6 +15,32 @@ export function getGoogleClientCredentials() {
   return { clientId, clientSecret };
 }
 
+export async function getGoogleCalendarCredentialForUser(userId: string) {
+  const account = await prisma.account.findFirst({
+    where: { userId, provider: "google-calendar" },
+    select: { id: true, access_token: true, refresh_token: true, expires_at: true },
+  });
+  if (!account || (!account.access_token && !account.refresh_token)) return null;
+
+  const expiresSoon = typeof account.expires_at === "number"
+    && account.expires_at <= Math.floor(Date.now() / 1000) + 60;
+  if ((!account.access_token || expiresSoon) && account.refresh_token) {
+    const refreshed = await refreshGoogleCalendarAccessToken(account.id, account.refresh_token);
+    return {
+      accountId: account.id,
+      accessToken: refreshed.access_token,
+      refreshToken: refreshed.refresh_token || account.refresh_token,
+    };
+  }
+
+  if (!account.access_token) return null;
+  return {
+    accountId: account.id,
+    accessToken: account.access_token,
+    refreshToken: account.refresh_token,
+  };
+}
+
 export async function refreshGoogleCalendarAccessToken(
   accountId: string,
   refreshToken: string

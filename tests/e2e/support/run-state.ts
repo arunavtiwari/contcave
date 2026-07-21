@@ -12,7 +12,8 @@ export type CreatedRecordType =
   | "voucherSequence"
   | "billingDetails"
   | "paymentDetails"
-  | "r2Key";
+  | "r2Key"
+  | "r2PrivateRef";
 
 export type RunState = {
   runId: string;
@@ -31,6 +32,7 @@ const emptyCreated: Record<CreatedRecordType, string[]> = {
   billingDetails: [],
   paymentDetails: [],
   r2Key: [],
+  r2PrivateRef: [],
 };
 
 export const runStatePath = path.join(process.cwd(), "test-results", "e2e-run-state.json");

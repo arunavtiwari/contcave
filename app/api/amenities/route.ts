@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { isOwner } from "@/lib/user/permissions";
+import { UserRole } from "@/types/user";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,8 +12,8 @@ export async function POST(request: NextRequest) {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    if (!isOwner(currentUser.role) || !currentUser.is_verified) {
-      return createErrorResponse("Only verified owners can create amenities", 403);
+    if (currentUser.role !== UserRole.ADMIN) {
+      return createErrorResponse("Only administrators can create default amenities", 403);
     }
 
     const parsedBody = await readJsonObject(request, 5_000);

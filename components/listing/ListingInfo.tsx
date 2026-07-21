@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { IconType } from "react-icons";
+import { toast } from "sonner";
 
 import createReview from "@/app/actions/createReview";
 import getAddons from "@/app/actions/getAddons";
@@ -151,6 +152,7 @@ function ListingInfo({
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
   const [review, setReview] = useState({ rating: 5, comment: "" });
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
@@ -185,7 +187,7 @@ function ListingInfo({
         const res = await checkBookingAction({ listingId: fullListing.id });
         const reservation = res.data;
         if (reservation) {
-          setCanReview(Boolean(reservation.status === "COMPLETED"));
+          setCanReview(Boolean(reservation.canReview));
           setLatestReservationId(reservation.id ?? "");
         } else {
           setCanReview(false);
@@ -275,18 +277,26 @@ function ListingInfo({
   const type = Array.isArray(fullListing?.type) ? fullListing.type : [];
 
   const handleReviewSubmit = async () => {
+    if (isReviewSubmitting) return;
+    setIsReviewSubmitting(true);
     try {
-      await createReview({
+      const result = await createReview({
         listingId: fullListing.id,
         reservationId: latestReservationId,
         rating: review.rating,
         comment: review.comment,
       });
+      if (!result.success) {
+        throw new Error(result.error || "Failed to submit review");
+      }
       const data = await getReviews(fullListing.id);
       setReviews(data || []);
       setReview({ rating: 5, comment: "" });
     } catch (error) {
       console.error('[ListingInfo] Error submitting review:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to submit review");
+    } finally {
+      setIsReviewSubmitting(false);
     }
   };
 
@@ -537,7 +547,7 @@ function ListingInfo({
                     inactiveColor="text-muted-foreground"
                   />
                 </div>
-                <button type="button" onClick={handleReviewSubmit} data-testid="review-submit-button" className="rounded-full bg-foreground w-full py-2.5 text-background hover:opacity-90 cursor-pointer">
+                <button type="button" onClick={handleReviewSubmit} disabled={isReviewSubmitting} data-testid="review-submit-button" className="rounded-full bg-foreground w-full py-2.5 text-background hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
                   Submit
                 </button>
               </div>

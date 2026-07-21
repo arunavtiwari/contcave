@@ -56,6 +56,7 @@ export default function SetSelector({
     const [isBeginning, setIsBeginning] = useState(true);
     const [isEnd, setIsEnd] = useState(false);
     const swiperRef = useRef<SwiperClass>(null);
+    const allSetsAvailable = sets.length > 0 && sets.every((set) => availableSetIds.includes(set.id));
 
     const getSetPrice = (set: ListingSet) => {
         if (set.id === includedSetId) {
@@ -99,7 +100,7 @@ export default function SetSelector({
                 {onSelectAll && !selectedPackage && (
                     <button
                         onClick={onSelectAll}
-                        disabled={disabled && !isEntireStudioBooked}
+                        disabled={(disabled || !allSetsAvailable) && !isEntireStudioBooked}
                         className={`text-sm font-medium px-4 py-2 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed
                             ${isEntireStudioBooked
                                 ? "bg-muted text-foreground hover:bg-muted/80 shadow-sm"
@@ -166,7 +167,7 @@ export default function SetSelector({
                             selectedPackage.eligibleSetIds.length === 0 ||
                             selectedPackage.eligibleSetIds.includes(set.id);
 
-                        const isAvailable = availableSetIds.length === 0 || availableSetIds.includes(set.id);
+                        const isAvailable = availableSetIds.includes(set.id);
 
                         const isDisabled = !isAvailable || !isEligible || disabled || isEntireStudioBooked;
 
@@ -258,11 +259,9 @@ export default function SetSelector({
                 isSelected={modalSet ? selectedSetIds.includes(modalSet.id) : false}
                 onToggle={() => modalSet && handleToggle(modalSet.id)}
                 priceLabel={modalSet ? getSetPrice(modalSet).label : ""}
-                isAvailable={modalSet ? (availableSetIds.length === 0 || availableSetIds.includes(modalSet.id)) : false}
+                isAvailable={modalSet ? availableSetIds.includes(modalSet.id) : false}
                 isEligible={modalSet ? (!selectedPackage || !selectedPackage.eligibleSetIds || selectedPackage.eligibleSetIds.length === 0 || selectedPackage.eligibleSetIds.includes(modalSet.id)) : false}
             />
         </div>
     );
 }
-
-

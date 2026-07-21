@@ -15,8 +15,13 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
       return createErrorResponse("Invalid Listing Id", 400);
     }
 
-    const listing = await prisma.listing.findUnique({
-      where: { id: listingId },
+    const listing = await prisma.listing.findFirst({
+      where: {
+        id: listingId,
+        active: true,
+        status: "VERIFIED",
+        OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }],
+      },
       select: { id: true },
     });
 

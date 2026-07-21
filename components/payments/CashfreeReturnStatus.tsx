@@ -22,8 +22,8 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
         );
     }
 
-    const transaction = await getTransaction({ tid });
-    const reservation = transaction?.reservation ?? (await getReservation({ tid }));
+    const transaction = await getTransaction({ tid }).catch(() => null);
+    const reservation = transaction?.reservation ?? (await getReservation({ tid }).catch(() => null));
 
     const txStatus = String(transaction?.status ?? "PENDING").toUpperCase();
     const listingId =

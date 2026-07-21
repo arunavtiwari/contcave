@@ -4,8 +4,10 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { isE2eEffectDisabled } from "@/lib/e2e-guards";
 import { getClientIp } from "@/lib/http/requestMeta";
 import { formatRetryAfterMs, rateLimit } from "@/lib/security/rateLimit";
+import { getPrivateDocumentBucket, toPrivateDocumentRef } from "@/lib/storage/privateDocuments";
 import { r2 } from "@/lib/storage/r2";
 
 const STORAGE_FOLDER_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9/_-]{0,240}$/;
@@ -31,6 +33,24 @@ const MAX_UPLOAD_BYTES = new Map<string, number>([
     ["video/quicktime", 250_000_000],
     ["application/pdf", 10_000_000],
 ]);
+
+export async function PUT(req: NextRequest) {
+    // Browser E2E exercises the same presign/upload contract without writing
+    // documents to a shared bucket. This flag is unavailable in production.
+    if (!isE2eEffectDisabled("E2E_DISABLE_R2_UPLOAD")) {
+        return new NextResponse("Not Found", { status: 404 });
+    }
+
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return new NextResponse("Unauthorized", { status: 401 });
+
+    const contentLength = Number(req.headers.get("content-length") || 0);
+    if (!Number.isFinite(contentLength) || contentLength < 0 || contentLength > 250_000_000) {
+        return new NextResponse("Invalid upload size", { status: 413 });
+    }
+
+    return new NextResponse(null, { status: 204 });
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -58,7 +78,7 @@ export async function POST(req: NextRequest) {
         }
 
         const rawBody = await req.text();
-        if (rawBody.length > 10_000) {
+        if (new TextEncoder().encode(rawBody).byteLength > 10_000) {
             return new NextResponse("Request body too large", { status: 413 });
         }
         let body: Record<string, unknown>;
@@ -67,7 +87,7 @@ export async function POST(req: NextRequest) {
         } catch {
             return new NextResponse("Invalid JSON", { status: 400 });
         }
-        const { filename, contentType, fileSize, folder = "uploads" } = body;
+        const { filename, contentType, fileSize, folder = "uploads", access = "public" } = body;
         if (!filename || !contentType || fileSize == null) {
             return new NextResponse("Missing filename, contentType, or fileSize", { status: 400 });
         }
@@ -78,6 +98,7 @@ export async function POST(req: NextRequest) {
             !Number.isSafeInteger(fileSize) ||
             fileSize <= 0 ||
             typeof folder !== "string" ||
+            (access !== "public" && access !== "private") ||
             filename.length > 255 ||
             filename.includes("/") ||
             filename.includes("\\") ||
@@ -101,9 +122,25 @@ export async function POST(req: NextRequest) {
         const uniqueName = `${crypto.randomBytes(16).toString("hex")}.${ext}`;
         const baseFolder = `users/${currentUser.id}/${folder}`;
         const key = `${baseFolder}/${uniqueName}`;
-        const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
+        const isPrivate = access === "private";
+        if (isPrivate && (contentType.toLowerCase() !== "application/pdf" || !/^listings\/[a-f\d]{24}\/compliance(?:\/|$)/i.test(folder))) {
+            return new NextResponse("Private uploads are limited to listing compliance PDFs", { status: 400 });
+        }
+        const cacheControl = isPrivate ? "private, no-store" : "public, max-age=31536000, immutable";
+        if (isE2eEffectDisabled("E2E_DISABLE_R2_UPLOAD")) {
+            return NextResponse.json({
+                // PUT is handled above and deliberately does not persist data.
+                url: new URL("/api/upload/presign", req.url).toString(),
+                publicUrl: isPrivate ? undefined : `https://assets.contcave.com/e2e/${key}`,
+                objectRef: isPrivate ? toPrivateDocumentRef(key) : undefined,
+                key,
+                cacheControl,
+            });
+        }
+
+        const bucket = isPrivate ? getPrivateDocumentBucket() : process.env.CLOUDFLARE_R2_BUCKET_NAME;
         const publicBaseUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL?.replace(/\/$/, "");
-        if (!bucket || !publicBaseUrl) {
+        if (!bucket || (!isPrivate && !publicBaseUrl)) {
             return new NextResponse("Storage is not configured", { status: 500 });
         }
 
@@ -112,13 +149,19 @@ export async function POST(req: NextRequest) {
             Key: key,
             ContentType: contentType.toLowerCase(),
             ContentLength: fileSize,
-            CacheControl: "public, max-age=31536000, immutable",
+            CacheControl: cacheControl,
         });
 
         const url = await getSignedUrl(r2, command, { expiresIn: 600 });
-        const publicUrl = `${publicBaseUrl}/${key}`;
+        const publicUrl = isPrivate ? undefined : `${publicBaseUrl}/${key}`;
 
-        return NextResponse.json({ url, publicUrl, key });
+        return NextResponse.json({
+            url,
+            publicUrl,
+            objectRef: isPrivate ? toPrivateDocumentRef(key) : undefined,
+            key,
+            cacheControl,
+        });
     } catch (error: unknown) {
         console.error("[PRESIGN_ERROR]", error);
         return new NextResponse("Internal Error", { status: 500 });

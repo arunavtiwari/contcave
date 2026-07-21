@@ -4,6 +4,7 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
 import prisma from "@/lib/prismadb";
+import { isInvoiceEligible } from "@/lib/reservation/status";
 
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
 
@@ -40,14 +41,14 @@ export async function POST(req: NextRequest) {
         id: reservationId.trim(),
         userId: currentUser.id,
       },
-      select: { isApproved: true },
+      select: { status: true },
     });
 
     if (!reservation) {
       return createErrorResponse("Reservation not found", 404);
     }
 
-    if (reservation.isApproved !== 1) {
+    if (!isInvoiceEligible({ status: reservation.status })) {
       return createErrorResponse("Tax invoice is available only after booking confirmation", 409);
     }
 
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
     });
 
     return createSuccessResponse({
-      invoiceUrl: invoice.invoiceUrl,
+      invoiceUrl: invoice.invoiceUrl ? `/api/documents/invoices/${invoice.id}` : "",
       invoiceId: invoice.id,
     });
   } catch (error: unknown) {

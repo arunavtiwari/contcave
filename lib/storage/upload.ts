@@ -1,4 +1,8 @@
-export async function uploadToR2(files: (File | string)[], folder?: string): Promise<string[]> {
+export async function uploadToR2(
+    files: (File | string)[],
+    folder?: string,
+    options: { access?: "public" | "private" } = {}
+): Promise<string[]> {
     const newUrls: string[] = [];
     for (const item of Array.from(files)) {
         let f: File;
@@ -26,7 +30,7 @@ export async function uploadToR2(files: (File | string)[], folder?: string): Pro
                 f = new File([blob], `upload.${ext}`, { type: blob.type });
             } catch (e) {
                 console.error("Failed to parse string into File:", e);
-                continue;
+                throw new Error("Unable to read the selected media file");
             }
         } else {
             f = item;
@@ -41,6 +45,7 @@ export async function uploadToR2(files: (File | string)[], folder?: string): Pro
             fileSize: f.size,
         };
         if (folder) payload.folder = folder;
+        payload.access = options.access || "public";
 
         const presignRes = await fetch("/api/upload/presign", {
             method: "POST",
@@ -57,8 +62,14 @@ export async function uploadToR2(files: (File | string)[], folder?: string): Pro
         if (!presignPayload || typeof presignPayload !== "object") {
             throw new Error("Storage did not return a valid upload session");
         }
-        const { url, publicUrl } = presignPayload as { url?: unknown; publicUrl?: unknown };
-        if (typeof url !== "string" || typeof publicUrl !== "string") {
+        const { url, publicUrl, objectRef, cacheControl } = presignPayload as {
+            url?: unknown;
+            publicUrl?: unknown;
+            objectRef?: unknown;
+            cacheControl?: unknown;
+        };
+        const storedRef = options.access === "private" ? objectRef : publicUrl;
+        if (typeof url !== "string" || typeof storedRef !== "string") {
             throw new Error("Storage did not return a valid upload session");
         }
 
@@ -66,13 +77,13 @@ export async function uploadToR2(files: (File | string)[], folder?: string): Pro
             method: "PUT",
             headers: {
                 "Content-Type": f.type,
-                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cache-Control": typeof cacheControl === "string" ? cacheControl : "public, max-age=31536000, immutable",
             },
             body: f,
         });
 
         if (!uploadRes.ok) throw new Error("Failed to upload file to storage");
-        newUrls.push(publicUrl);
+        newUrls.push(storedRef);
     }
     return newUrls;
 }

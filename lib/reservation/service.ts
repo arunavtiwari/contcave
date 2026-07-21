@@ -19,6 +19,7 @@ import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
 import prisma from "@/lib/prismadb";
+import { validateBookingWindow } from "@/lib/reservation/bookingWindow";
 import { legacyApprovalFromStatus, statusFromLegacyApproval } from "@/lib/reservation/status";
 import { formatReservationDate, parseReservationEndTimeForDate, parseReservationTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
@@ -26,7 +27,7 @@ import { generateBookingId } from "@/lib/utils";
 import { WhatsappService } from "@/lib/whatsapp/service";
 import { Addon } from "@/types/addon";
 import { safeListing } from "@/types/listing";
-import { PublicReservationSlot, ReservationMetadata, ReservationResult, SafeReservation } from "@/types/reservation";
+import { PublicDayStatus, PublicReservationSlot, ReservationMetadata, ReservationResult, SafeReservation } from "@/types/reservation";
 
 const fullReservationInclude = {
     listing: { include: { user: { include: { paymentDetails: true } } } },
@@ -401,7 +402,7 @@ export class ReservationService {
                             include: {
                                 user: { include: { paymentDetails: true } },
                                 sets: { select: { id: true } },
-                                packages: { select: { id: true, isActive: true } },
+                                packages: { select: { id: true, isActive: true, durationHours: true } },
                             }
                         },
                         user: true
@@ -439,6 +440,10 @@ export class ReservationService {
                     ? pricingRecord.includedSetId
                     : null;
 
+                if (txn.listing.userId === txn.userId) {
+                    throw new ReservationSlotConflictError("Owners cannot book their own listings");
+                }
+
                 const startMinutes = parseTimeToMinutes(startTime);
                 const endMinutes = asEndOfDayMinutes(parseTimeToMinutes(endTime));
                 const startAt = parseReservationTimeForDate(startDate, startTime);
@@ -455,6 +460,28 @@ export class ReservationService {
                 if (!txn.listing.active || txn.listing.status !== "VERIFIED") {
                     throw new ReservationSlotConflictError("This listing is no longer accepting bookings");
                 }
+                const dateKey = startDate.toISOString().slice(0, 10);
+                const dayStatus = await tx.dayStatus.findUnique({
+                    where: { listingId_date: { listingId: txn.listing.id, date: startDate } },
+                });
+                if (dayStatus && !dayStatus.listingActive) {
+                    throw new ReservationSlotConflictError("This listing is not accepting bookings on the selected date");
+                }
+                const selectedPackage = setPackageId
+                    ? txn.listing.packages.find((pkg) => pkg.id === setPackageId && pkg.isActive)
+                    : null;
+                const windowError = validateBookingWindow({
+                    startDate: dateKey,
+                    startTime,
+                    endTime,
+                    operationalDays: txn.listing.operationalDays,
+                    operationalHours: dayStatus
+                        ? { start: dayStatus.startTime, end: dayStatus.endTime }
+                        : txn.listing.operationalHours,
+                    minimumBookingHours: txn.listing.minimumBookingHours,
+                    selectedPackageDurationHours: selectedPackage?.durationHours ?? null,
+                });
+                if (windowError) throw new ReservationSlotConflictError(windowError);
                 const availableSetIds = new Set(txn.listing.sets.map((set) => set.id));
                 if (
                     (txn.listing.hasSets && setIds.length === 0) ||
@@ -1692,6 +1719,9 @@ export class ReservationService {
         const isCustomer = resv.userId === userId;
 
         if (!isHost && !isCustomer && !allowAdmin) throw new UserFacingError("Unauthorized", 403);
+        if (allowAdmin && !isHost && !isCustomer) {
+            throw new UserFacingError("Administrators cannot hide a reservation from either participant", 409);
+        }
 
         const deletableStatuses: ReservationStatus[] = [
             "CANCELLED",
@@ -1704,14 +1734,14 @@ export class ReservationService {
             throw new UserFacingError("Active reservations must be cancelled or completed before they can be removed", 409);
         }
 
+        const hiddenAt = new Date();
         await prisma.reservation.update({
             where: { id: reservationId },
             data: {
-                markedForDeletion: true,
-                markedForDeletionAt: new Date(),
+                ...(isCustomer ? { hiddenByGuestAt: hiddenAt } : {}),
+                ...(isHost ? { hiddenByOwnerAt: hiddenAt } : {}),
             }
         });
-        await prisma.reservationSlot.deleteMany({ where: { reservationId } });
     }
 
     static async sendReminders(
@@ -1868,11 +1898,23 @@ export class ReservationService {
             ? Math.min(100, Math.max(1, Math.floor(options.pageSize)))
             : 50;
         const query: Prisma.ReservationWhereInput = { markedForDeletion: false };
+        const visibilityFilters: Prisma.ReservationWhereInput[] = [];
 
         if (reservationId) query.id = reservationId;
         if (listingId) query.listingId = listingId;
-        if (userId) query.userId = userId;
-        if (authorId) query.listing = { userId: authorId };
+        if (userId) {
+            query.userId = userId;
+            visibilityFilters.push({
+                OR: [{ hiddenByGuestAt: null }, { hiddenByGuestAt: { isSet: false } }],
+            });
+        }
+        if (authorId) {
+            query.listing = { userId: authorId };
+            visibilityFilters.push({
+                OR: [{ hiddenByOwnerAt: null }, { hiddenByOwnerAt: { isSet: false } }],
+            });
+        }
+        if (visibilityFilters.length > 0) query.AND = visibilityFilters;
         if (status) query.status = status;
 
         const total = await prisma.reservation.count({ where: query });
@@ -1908,6 +1950,7 @@ export class ReservationService {
         const reservations = await prisma.reservation.findMany({
             where: {
                 listingId,
+                listing: { active: true, status: "VERIFIED" },
                 startDate: { gte: rangeStart, lt: rangeEnd },
                 markedForDeletion: false,
                 status: { in: ["PENDING_APPROVAL", "CONFIRMED", "CHECKED_IN"] },
@@ -1927,11 +1970,38 @@ export class ReservationService {
         }));
     }
 
+    static async getPublicDayStatuses(listingId: string): Promise<PublicDayStatus[]> {
+        const indiaDate = new Date(Date.now() + (5 * 60 + 30) * 60_000).toISOString().slice(0, 10);
+        const rangeStart = new Date(`${indiaDate}T00:00:00.000Z`);
+        const rangeEnd = new Date(rangeStart.getTime() + 91 * 24 * 60 * 60_000);
+        const statuses = await prisma.dayStatus.findMany({
+            where: {
+                listingId,
+                listing: { active: true, status: "VERIFIED" },
+                date: { gte: rangeStart, lt: rangeEnd },
+            },
+            select: {
+                date: true,
+                listingActive: true,
+                startTime: true,
+                endTime: true,
+            },
+            orderBy: { date: "asc" },
+        });
+
+        return statuses.map((status) => ({
+            ...status,
+            date: status.date.toISOString().slice(0, 10),
+        }));
+    }
+
     private static normalizeReservation(
         r: SafeReservationPayload,
         amenityNamesById: Map<string, string> = new Map()
     ): SafeReservation {
         const {
+            hiddenByGuestAt: _hiddenByGuestAt,
+            hiddenByOwnerAt: _hiddenByOwnerAt,
             isApproved: _legacyApproval,
             billingDetailId: _billingDetailId,
             billingSnapshot: _billingSnapshot,
@@ -2020,7 +2090,7 @@ export class ReservationService {
             })) || [],
             receipts: invoices?.map((invoice) => ({
                 invoiceNumber: invoice.invoiceNumber,
-                invoiceUrl: invoice.invoiceUrl,
+                invoiceUrl: `/api/documents/invoices/${invoice.id}`,
             })) || [],
             bookedSets,
             bookingAmenities,

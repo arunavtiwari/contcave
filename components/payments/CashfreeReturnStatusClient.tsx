@@ -46,38 +46,51 @@ export default function CashfreeReturnStatusClient({
 
     let attempts = 0;
     const maxAttempts = 6;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
 
-    const interval = setInterval(async () => {
+    const poll = async () => {
       attempts++;
       try {
         const res = await getTransaction({ tid });
+        if (cancelled) return;
         if (res) {
           const currentStatus = res.status;
           if (currentStatus === "SUCCESS") {
-            clearInterval(interval);
             setStatus("SUCCESS");
             if (res.reservation) {
               setReservation(res.reservation as unknown as SerializedReservation);
             }
+            return;
           } else if (currentStatus === "FAILED" || currentStatus === "EXPIRED") {
-            clearInterval(interval);
             setStatus("FAILED");
+            return;
           } else if (currentStatus === "CANCELLED") {
-            clearInterval(interval);
             setStatus("CANCELLED");
+            return;
+          } else if (currentStatus === "REFUNDED") {
+            setStatus("REFUNDED");
+            return;
           }
         }
       } catch (err) {
         console.error("[CashfreeReturnStatusClient] Error polling transaction status:", err);
       }
 
+      if (cancelled) return;
       if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        setStatus("CANCELLED");
+        setStatus("PENDING_REVIEW");
+        return;
       }
-    }, 2000);
+      timeout = setTimeout(poll, 2000);
+    };
 
-    return () => clearInterval(interval);
+    timeout = setTimeout(poll, 2000);
+
+    return () => {
+      cancelled = true;
+      if (timeout) clearTimeout(timeout);
+    };
   }, [status, tid]);
 
   const inr = new Intl.NumberFormat("en-IN", {
@@ -122,6 +135,38 @@ export default function CashfreeReturnStatusClient({
           <p className="text-muted-foreground max-w-md">
             Please do not refresh this page, close the browser window, or click the back button. We are confirming your payment details with Cashfree.
           </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (status === "PENDING_REVIEW" || (status === "SUCCESS" && !reservation)) {
+    return (
+      <main className="min-h-[calc(100vh-5rem)] w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 sm:py-10 flex items-center justify-center">
+        <div className="w-full rounded-xl border border-border bg-card p-8 flex flex-col items-center space-y-6 text-center">
+          <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 text-3xl">!</div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+              {status === "SUCCESS" ? "Payment received; finalizing your booking" : "Payment confirmation is taking longer"}
+            </h2>
+            <p className="text-muted-foreground max-w-md mx-auto">Do not retry the payment yet. Check your bookings shortly or refresh this page while we finish confirming your reservation.</p>
+          </div>
+          <div className="w-full max-w-sm flex flex-col gap-3">
+            <Button label="REFRESH STATUS" onClick={() => window.location.reload()} className="w-full" />
+            <Button label="VIEW BOOKINGS" href="/dashboard/bookings" variant="outline" className="w-full" />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (status === "REFUNDED") {
+    return (
+      <main className="min-h-[calc(100vh-5rem)] w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 sm:py-10 flex items-center justify-center">
+        <div className="w-full rounded-xl border border-border bg-card p-8 flex flex-col items-center space-y-6 text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Payment refunded</h2>
+          <p className="text-muted-foreground max-w-md mx-auto">This payment has been refunded. You can review the booking and payment status in your dashboard.</p>
+          <Button label="VIEW BOOKINGS" href="/dashboard/bookings" className="w-full max-w-sm" />
         </div>
       </main>
     );

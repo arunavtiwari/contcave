@@ -21,6 +21,7 @@ import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import useUIStore from "@/hooks/useUIStore";
 import { normalizePhone } from "@/lib/phone";
+import { istToDateOnly } from "@/lib/scheduling";
 import { Package } from "@/types/package";
 import {
   DayKey,
@@ -243,7 +244,11 @@ export default function ListingReservation({
   );
 
   const bookingFee = useMemo(() => {
-    if (selectedPackage) return Number(selectedPackage.offeredPrice || 0);
+    if (selectedPackage) {
+      return clampRound(
+        Number(selectedPackage.offeredPrice || 0) + Number(selectedPackage.fixedAddOn || 0)
+      );
+    }
     if (hasSets && pricingResult) return pricingResult.subtotal;
     return price * Math.ceil(safeHours);
   }, [selectedPackage, hasSets, pricingResult, price, safeHours]);
@@ -303,6 +308,12 @@ export default function ListingReservation({
     [minBookingHours, selectedPackage]
   );
 
+  const bookingDateRange = useMemo(() => {
+    const min = istToDateOnly(new Date());
+    const max = new Date(min.getFullYear(), min.getMonth(), min.getDate() + 90);
+    return { min, max };
+  }, []);
+
   const handleTimeSelect = useCallback(
     (value: TimeLabel | null, field: "start" | "end") => {
       setErr(null);
@@ -349,7 +360,10 @@ export default function ListingReservation({
     setPhoneSaving(true);
     setPhoneError(null);
     try {
-      await updateUser({ phone: normalized });
+      const result = await updateUser({ phone: normalized });
+      if (!result.success) {
+        throw new Error(result.error || "Failed to save mobile number.");
+      }
       setCustomerPhone(normalized);
       setShowPhoneModal(false);
       setShowSummaryModal(true);
@@ -527,6 +541,8 @@ export default function ListingReservation({
       </div>
       <Calendar
         value={selectedDate ?? null}
+        minDate={bookingDateRange.min}
+        maxDate={bookingDateRange.max}
         disabledDates={disabledDates}
         allowedDays={allowedDays}
         onChange={(value) => {

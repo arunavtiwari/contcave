@@ -9,12 +9,21 @@ export type PublicReservationSlot = {
     setIds: string[];
 };
 
+export type PublicDayStatus = {
+    date: string;
+    listingActive: boolean;
+    startTime: string;
+    endTime: string;
+};
+
 export type SafeReservation = Omit<
     Reservation,
     | "createdAt"
     | "startDate"
     | "listing"
     | "markedForDeletionAt"
+    | "hiddenByGuestAt"
+    | "hiddenByOwnerAt"
     | "pricingSnapshot"
     | "checkedInAt"
     | "completedAt"

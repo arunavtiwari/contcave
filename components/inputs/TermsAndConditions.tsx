@@ -4,7 +4,8 @@ import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } f
 import Checkbox from '@/components/inputs/Checkbox';
 import Button from '@/components/ui/Button';
 
-export type TermsRef = { generateAndUploadPdf: (listingId: string) => Promise<{ url: string; pdfUrl: string }> };
+export type AgreementPdfMeta = { storageRef: string; public_id: string };
+export type TermsRef = { generateAndUploadPdf: (listingId: string) => Promise<AgreementPdfMeta> };
 
 export interface SignatureMeta {
     url: string;
@@ -14,7 +15,7 @@ export interface SignatureMeta {
 interface TermsProps {
     onChange: (checked: boolean) => void;
     onSignature: (meta: SignatureMeta) => void;
-    onAgreementPdf: (meta: { url: string; pdfUrl: string }) => void;
+    onAgreementPdf: (meta: AgreementPdfMeta) => void;
     value?: SignatureMeta | null;
     checked?: boolean;
 }
@@ -33,6 +34,14 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
     }, [checked]);
 
     const handleSignatureFile = async (file: File) => {
+        if (!['image/png', 'image/jpeg'].includes(file.type)) {
+            window.alert("Signature must be a PNG or JPEG image");
+            return;
+        }
+        if (file.size <= 0 || file.size > 1_000_000) {
+            window.alert("Signature image must be 1 MB or smaller");
+            return;
+        }
         const reader = new FileReader();
         const dataUrl: string = await new Promise((resolve) => {
             reader.onload = () => resolve(String(reader.result || ""));
@@ -206,9 +215,9 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                         <C>12.1 The Company collects payment from the Client on behalf of the Host through the Platform&apos;s payment gateway, in its capacity as an E-Commerce Operator.</C>
                         <C>12.2 The Company shall deduct the Platform Commission (12% of the Booking Value), together with applicable GST on such Commission, from all Bookings processed through the Platform, including Managed Bookings where the Company provides end-to-end booking management services, prior to Payout.</C>
                         <C>12.3 Payouts shall be processed within T+2 (two) business days from the date of completion of the Booking (i.e., the shoot date), provided there is no active dispute, damage claim, No-Show report, or refund request pending in respect of that Booking. Where any such matter is pending, the Payout for that Booking shall be released within T+2 business days of its resolution.</C>
-                        <C>12.4 The Host must provide accurate bank account details along with PAN and, where applicable, GSTIN for payout processing. Payouts cannot be processed without valid banking and tax details. In the absence of a valid PAN, statutory deductions shall be made at the higher rate prescribed under law.</C>
+                        <C>12.4 The Host must provide accurate bank account details and, where applicable, GSTIN for payout processing. Payouts cannot be processed without valid banking details and any tax details required for the applicable payout.</C>
                         <C>12.5 Invoicing: (a) The Host authorises the Company to generate and issue, on the Host&apos;s behalf, a tax invoice to the Client for each confirmed Booking, reflecting the full Booking Value under the Host&apos;s legal name and GSTIN (where the Host is GST-registered). For approval-required listings, the Client receives a payment receipt after payment and the tax invoice is generated only after Host approval. (b) The Company shall issue to the Host a consolidated commission invoice on a monthly basis covering the Platform Commission and applicable GST on all completed Bookings during that period; no separate payment is required from the Host, as the Commission is netted from amounts already collected. (c) Where the Host is not GST-registered, the Company shall raise the Client tax invoice in its own name as principal, and the Host shall issue a bill of supply to the Company in respect of the studio services.</C>
-                        <C>12.6 Taxes and Statutory Deductions: (a) Where the Host is GST-registered, the Host is the supplier of the studio services and the Company acts as E-Commerce Operator. Accordingly, the Company shall (i) collect Tax Collected at Source (TCS) at the applicable rate (presently 0.5%) under Section 52 of the CGST Act, 2017 on the Host&apos;s supplies made through the Platform, and (ii) deduct Tax Deducted at Source (TDS) at the applicable rate (presently 0.1%) under the provision applicable to e-commerce operators (Section 393(1) of the Income-tax Act, 2025, corresponding to erstwhile Section 194-O of the Income-tax Act, 1961). Both amounts shall be deposited with the government against the Host&apos;s GSTIN/PAN. No separate deduction under Section 194H shall apply to the Platform Commission, the Commission being included within the gross amount subject to the aforesaid e-commerce operator TDS. (b) Where the Host is not GST-registered and annual payouts exceed the prescribed threshold, the Company shall deduct TDS at the applicable rate (presently 2%) under Section 194C of the Income-tax Act from the Host&apos;s Payout. (c) The Company shall file the prescribed statutory returns (including Form GSTR-8 in respect of TCS and the applicable TDS return) and issue TDS certificates within the timelines prescribed under law. Each Party remains responsible for its own tax compliance, including GST and income-tax filings.</C>
+                        <C>12.6 Taxes and Statutory Deductions: (a) Where the Host is GST-registered, the Host is the supplier of the studio services and the Company acts as E-Commerce Operator. Accordingly, the Company shall (i) collect Tax Collected at Source (TCS) at the applicable rate (presently 0.5%) under Section 52 of the CGST Act, 2017 on the Host&apos;s supplies made through the Platform, and (ii) deduct Tax Deducted at Source (TDS) at the applicable rate (presently 0.1%) under the provision applicable to e-commerce operators (Section 393(1) of the Income-tax Act, 2025, corresponding to erstwhile Section 194-O of the Income-tax Act, 1961). Both amounts shall be deposited with the government against the Host&apos;s GSTIN where applicable. No separate deduction under Section 194H shall apply to the Platform Commission, the Commission being included within the gross amount subject to the aforesaid e-commerce operator TDS. (b) Where the Host is not GST-registered and annual payouts exceed the prescribed threshold, the Company shall deduct TDS at the applicable rate (presently 2%) under Section 194C of the Income-tax Act from the Host&apos;s Payout. (c) The Company shall file the prescribed statutory returns (including Form GSTR-8 in respect of TCS and the applicable TDS return) and issue TDS certificates within the timelines prescribed under law. Each Party remains responsible for its own tax compliance, including GST and income-tax filings.</C>
 
                         {/* 13 */}
                         <S>13. Content Usage and Intellectual Property</S>

@@ -65,7 +65,7 @@ export async function POST(request: Request, props: { params: Promise<IParams> }
 
         const listing = await prisma.listing.findUnique({
             where: { id: listingId },
-            select: { userId: true, sets: { select: { id: true } } },
+            select: { userId: true, archivedAt: true, sets: { select: { id: true } } },
         });
 
         if (!listing) {
@@ -74,6 +74,9 @@ export async function POST(request: Request, props: { params: Promise<IParams> }
 
         if (listing.userId !== currentUser.id && currentUser.role !== "ADMIN") {
             return createErrorResponse("You don't have permission to manage blocks for this listing", 403);
+        }
+        if (listing.archivedAt) {
+            return createErrorResponse("Archived listings cannot be modified", 409);
         }
 
         const parsedBody = await readJsonObject(request, 25_000);
@@ -127,7 +130,7 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
 
         const block = await prisma.listingBlock.findUnique({
             where: { id: blockId },
-            include: { listing: { select: { userId: true } } },
+            include: { listing: { select: { userId: true, archivedAt: true } } },
         });
 
         if (!block) {
@@ -136,6 +139,9 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
 
         if (block.listing.userId !== currentUser.id && currentUser.role !== "ADMIN") {
             return createErrorResponse("You don't have permission to delete this block", 403);
+        }
+        if (block.listing.archivedAt) {
+            return createErrorResponse("Archived listings cannot be modified", 409);
         }
 
         if (block.listingId !== listingId) {

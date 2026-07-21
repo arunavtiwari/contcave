@@ -1,12 +1,10 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { PaymentVoucher, PaymentVoucherType, Prisma } from "@prisma/client";
 
 import { isE2eEffectDisabled } from "@/lib/e2e-guards";
 import { escapeEmailHtml } from "@/lib/email/html";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
 import prisma from "@/lib/prismadb";
-import { buildR2PublicUrl, isTrustedR2PublicUrl } from "@/lib/storage/publicUrl";
-import { r2 } from "@/lib/storage/r2";
+import { readPrivateDocument, uploadPrivateDocument } from "@/lib/storage/privateDocuments";
 import { getValidatedBaseUrl } from "@/lib/utils";
 
 import { generateVoucherPDFBuffer, VoucherPdfData } from "./pdfBlob";
@@ -150,16 +148,9 @@ function buildAttachment(voucher: PaymentVoucher, buffer: Buffer): AttachmentInp
 async function downloadVoucherAttachment(voucher: PaymentVoucher): Promise<AttachmentInput | undefined> {
   if (!voucher.voucherUrl) return undefined;
   if (isE2eEffectDisabled("E2E_DISABLE_R2_UPLOAD")) return e2eAttachmentCache.get(voucher.id);
-  if (!isTrustedR2PublicUrl(voucher.voucherUrl)) return undefined;
 
   try {
-    const res = await fetch(voucher.voucherUrl);
-    if (!res.ok) throw new Error(`Voucher download failed (${res.status})`);
-    const declaredLength = Number(res.headers.get("content-length") || 0);
-    if (declaredLength > 10_000_000) throw new Error("Voucher attachment exceeds size limit");
-    const arrayBuffer = await res.arrayBuffer();
-    if (arrayBuffer.byteLength > 10_000_000) throw new Error("Voucher attachment exceeds size limit");
-    const buffer = Buffer.from(arrayBuffer);
+    const buffer = await readPrivateDocument(voucher.voucherUrl, 10_000_000);
     return buildAttachment(voucher, buffer);
   } catch (error) {
     console.error("[PaymentVoucherService] Voucher attachment download failed", error);
@@ -172,8 +163,6 @@ async function uploadVoucherPdf(params: { voucher: PaymentVoucher; pdfBuffer: Bu
     return `https://assets.contcave.com/e2e/vouchers/${params.voucher.id}/${params.voucher.voucherNumber}.pdf`;
   }
 
-  const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
-  if (!bucket) throw new Error("Missing R2 bucket config");
   const key = [
     "users",
     params.voucher.userId,
@@ -185,14 +174,7 @@ async function uploadVoucherPdf(params: { voucher: PaymentVoucher; pdfBuffer: Bu
     `${params.voucher.voucherNumber}.pdf`,
   ].join("/");
 
-  await r2.send(new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-    Body: params.pdfBuffer,
-    ContentType: "application/pdf",
-  }));
-
-  return buildR2PublicUrl(key);
+  return uploadPrivateDocument({ key, body: params.pdfBuffer, contentType: "application/pdf" });
 }
 
 async function auditVoucher(voucher: PaymentVoucher, action: string, metadata: Prisma.InputJsonObject = {}) {
@@ -243,8 +225,8 @@ async function renderAndStore(voucher: PaymentVoucher, pdfData: VoucherPdfData):
 
 function voucherEmailHtml(voucher: PaymentVoucher, recipientName?: string | null) {
   const title = voucher.voucherType === "REFUND_VOUCHER" ? "refund voucher" : "payment receipt";
-  const link = voucher.voucherUrl && isTrustedR2PublicUrl(voucher.voucherUrl)
-    ? `<p><a href="${escapeEmailHtml(voucher.voucherUrl)}" style="color:#111827;font-weight:600;">View PDF</a></p>`
+  const link = voucher.voucherUrl
+    ? `<p><a href="${escapeEmailHtml(`${getValidatedBaseUrl()}/api/documents/vouchers/${voucher.id}`)}" style="color:#111827;font-weight:600;">View PDF</a></p>`
     : "";
   return `<!DOCTYPE html>
 <html>

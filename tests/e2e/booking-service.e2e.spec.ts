@@ -1,5 +1,6 @@
 import { scheduleQstashJob } from "../../lib/cron/qstash";
 import { prisma, qaEmail, qaPhone } from "./support/db";
+import { getE2EConnectionEnv } from "./support/env";
 import { trackCreated } from "./support/run-state";
 import { installServerOnlyStub } from "./support/server-only-stub";
 import { expect, test } from "./support/test";
@@ -174,6 +175,17 @@ async function waitForRefundVoucher(reservationId: string, timeoutMs = 15_000) {
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   throw new Error(`Timed out waiting for refund voucher for reservation ${reservationId}`);
+}
+
+async function warmQstashDispatcher() {
+  const { baseUrl } = getE2EConnectionEnv();
+  const response = await fetch(`${baseUrl}/api/cron/qstash`);
+
+  // The route accepts signed POSTs only. A 405 proves that the dispatcher is
+  // compiled and reachable before local QStash attempts its first delivery.
+  if (response.status !== 405) {
+    throw new Error(`QStash dispatcher warm-up returned ${response.status}`);
+  }
 }
 
 test.describe("booking service payment and payout state", () => {
@@ -579,13 +591,14 @@ test.describe("booking service payment and payout state", () => {
       data: { createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000) },
     });
 
+    await warmQstashDispatcher();
     const message = await scheduleQstashJob(
       { job: "pending-approval-expiry", reservationId },
       new Date(),
     );
     expect(message).not.toBeNull();
 
-    await waitForReservationStatus(reservationId, "CANCELLED");
-    await expect(waitForRefundVoucher(reservationId)).resolves.toBeTruthy();
+    await waitForReservationStatus(reservationId, "CANCELLED", 60_000);
+    await expect(waitForRefundVoucher(reservationId, 60_000)).resolves.toBeTruthy();
   });
 });

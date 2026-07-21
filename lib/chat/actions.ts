@@ -154,8 +154,16 @@ export async function getUnreadNotifications() {
             where: {
                 markedForDeletion: false,
                 OR: [
-                    { userId: currentUser.id, unreadCountGuest: { gt: 0 } },
-                    { listing: { userId: currentUser.id }, unreadCountOwner: { gt: 0 } }
+                    {
+                        userId: currentUser.id,
+                        unreadCountGuest: { gt: 0 },
+                        AND: [{ OR: [{ hiddenByGuestAt: null }, { hiddenByGuestAt: { isSet: false } }] }],
+                    },
+                    {
+                        listing: { userId: currentUser.id },
+                        unreadCountOwner: { gt: 0 },
+                        AND: [{ OR: [{ hiddenByOwnerAt: null }, { hiddenByOwnerAt: { isSet: false } }] }],
+                    }
                 ]
             },
             include: {

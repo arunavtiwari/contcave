@@ -244,6 +244,7 @@ export async function cfEnsureVendor(payload: {
     const ifsc = payload.ifsc.trim().toUpperCase();
     const email = payload.email?.trim().toLowerCase();
     const phone = payload.phone?.replace(/\D/g, "").slice(-10);
+    const verifyAccount = process.env.CASHFREE_VERIFY_VENDOR_ACCOUNT === "true";
 
     if (!payload.vendor_id.trim()) throw new Error("Vendor ID is required");
     if (!email) throw new Error("Vendor email is required");
@@ -260,8 +261,6 @@ export async function cfEnsureVendor(payload: {
     }
 
     const { controller, timeoutId } = vendorTimeoutController();
-    const verifyAccount = process.env.CASHFREE_VERIFY_VENDOR_ACCOUNT === "true";
-
     try {
         const res = await axios.post(url, {
             vendor_id: payload.vendor_id.trim(),

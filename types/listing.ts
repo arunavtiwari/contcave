@@ -24,6 +24,8 @@ export type safeListing = Omit<
     | "inConversation"
     | "enquiryCount"
     | "accountDeactivatedAt"
+    | "archivedAt"
+    | "archivedById"
     | "avgReviewRating"
 > & {
     createdAt: string;
@@ -103,4 +105,3 @@ export type ListingBlockData = {
     setIds: string[];
     reason?: string | null;
 };
-

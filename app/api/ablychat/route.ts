@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 
     const client = new Ably.Rest({ key: ablyApiKey });
     const capability = JSON.stringify({
-      [`chat:${reservationId}`]: ["publish", "subscribe", "history"],
+      [`chat:${reservationId}`]: ["subscribe", "history"],
     });
 
     const tokenRequest = await client.auth.createTokenRequest({

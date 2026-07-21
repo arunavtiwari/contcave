@@ -285,4 +285,3 @@ const ManagePayments: React.FC<Props> = ({
 };
 
 export default ManagePayments;
-

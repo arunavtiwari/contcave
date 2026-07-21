@@ -108,7 +108,9 @@ export class UserService {
             updateData.is_verified = false;
             updateData.verified_at = null;
             updateData.verified_via = {
-                set: currentUser.verified_via.filter((method) => method !== "phone_profile_verification"),
+                set: currentUser.verified_via.filter(
+                    (method) => method !== "phone_profile_capture" && method !== "phone_profile_verification"
+                ),
             };
         }
 
@@ -191,7 +193,9 @@ export class UserService {
                     is_verified: false,
                     verified_at: null,
                     verified_via: {
-                        set: user.verified_via.filter((method) => method !== "phone_profile_verification"),
+                        set: user.verified_via.filter(
+                            (method) => method !== "phone_profile_capture" && method !== "phone_profile_verification"
+                        ),
                     },
                 } : {}),
             },
@@ -221,7 +225,12 @@ export class UserService {
             throw new UserFacingError("Invalid listing ID");
         }
         const listing = await tx.listing.findFirst({
-            where: { id: listingId, active: true, status: "VERIFIED" },
+            where: {
+                id: listingId,
+                active: true,
+                status: "VERIFIED",
+                OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }],
+            },
             select: { id: true },
         });
         if (!listing) throw new UserFacingError("Listing is not available");

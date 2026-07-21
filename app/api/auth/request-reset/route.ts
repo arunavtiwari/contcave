@@ -1,12 +1,12 @@
 import crypto from "crypto";
 import { NextRequest } from "next/server";
 
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { sendEmail } from "@/lib/email/mailer";
 import { getResetPasswordTemplate } from "@/lib/email/templates";
 import { formatRetryAfterMs, rateLimitRequest } from "@/lib/security/rateLimit";
 import { UserService } from "@/lib/user/service";
-import { getBaseUrl } from "@/lib/utils";
+import { getValidatedBaseUrl } from "@/lib/utils";
 import { emailVerificationSchema } from "@/schemas/verification";
 
 export async function POST(request: NextRequest) {
@@ -22,11 +22,9 @@ export async function POST(request: NextRequest) {
             return response;
         }
 
-        if (!request.headers.get("content-type")?.includes("application/json")) {
-            return createErrorResponse("Content-Type must be application/json", 415);
-        }
-
-        const body = await request.json().catch(() => ({}));
+        const parsedBody = await readJsonObject(request, 10_000);
+        if (!parsedBody.success) return parsedBody.response;
+        const body = parsedBody.data;
         const validation = emailVerificationSchema.safeParse(body);
         if (!validation.success) return createErrorResponse(validation.error.issues[0].message, 400);
 
@@ -43,10 +41,7 @@ export async function POST(request: NextRequest) {
 
         await UserService.createResetToken(user.id, resetToken, resetTokenExpiry);
 
-        const appUrl = getBaseUrl();
-        if (!appUrl.startsWith("http")) {
-            return createErrorResponse("Server configuration error", 500);
-        }
+        const appUrl = getValidatedBaseUrl();
 
         const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
 

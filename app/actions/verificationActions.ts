@@ -79,7 +79,7 @@ export const verifyBankAction = createAction(
 
 export const updateVerificationStepAction = createAction(
     phoneStepSchema,
-    { requireAuth: true },
+    { requireAuth: true, allowedRoles: [UserRole.OWNER, UserRole.ADMIN] },
     async (data, { user }) => {
         await enforceVerificationLimit(`save-phone:${user.id}`, 10);
         return await VerificationService.updateStep(user.id, data);

@@ -235,6 +235,8 @@ model Listing {
   packages                 Package[]
   status                   ListingStatus             @default(PENDING)
   active                   Boolean                   @default(false)
+  archivedAt               DateTime?
+  archivedById             String?                   @db.ObjectId
   accountDeactivatedAt     DateTime?
   reviewedAt               DateTime?
   reviewedById             String?                   @db.ObjectId
@@ -272,6 +274,7 @@ model Listing {
   @@index([listingType])
   @@index([listingType, status, createdAt])
   @@index([active, status, createdAt])
+  @@index([userId, archivedAt])
 }
 
 model Package {
@@ -342,6 +345,8 @@ model Reservation {
   billingSnapshot      Json?
   markedForDeletion   Boolean         @default(false)
   markedForDeletionAt DateTime?
+  hiddenByGuestAt     DateTime?
+  hiddenByOwnerAt     DateTime?
   setIds              String[]        @db.ObjectId
   includedSetId       String?         @db.ObjectId
   setPackageId        String?         @db.ObjectId
@@ -369,6 +374,8 @@ model Reservation {
   @@index([completedAt])
   @@index([status, completedAt])
   @@index([reviewReminderSentAt])
+  @@index([userId, hiddenByGuestAt])
+  @@index([listingId, hiddenByOwnerAt])
 }
 
 model ReservationSlot {
@@ -790,4 +797,3 @@ model ListingBlock {
 
   @@index([listingId, date])
 }
-

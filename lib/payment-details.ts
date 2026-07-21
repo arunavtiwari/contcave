@@ -351,4 +351,3 @@ export async function deletePaymentDetailsSafe(userId: string): Promise<DeleteRe
         return { success: false, error: 'Failed to delete payment details' };
     }
 }
-

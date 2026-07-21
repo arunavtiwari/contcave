@@ -11,7 +11,7 @@ import React, {
 import { FieldPath, Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { createListingAction, updateListingAction } from "@/app/actions/listingActions";
+import { createListingAction } from "@/app/actions/listingActions";
 import { ListingDetails } from "@/components/inputs/OtherListingDetails";
 import { SetEditorItem } from "@/components/inputs/SetsEditor";
 import { VerificationDocument, VerificationPayload } from "@/components/inputs/SpaceVerification";
@@ -131,6 +131,7 @@ const toStoredVerificationDocument = (document: VerificationDocumentInput): Veri
   ...(document.version != null ? { version: document.version } : {}),
   ...(document.thumbnail ? { thumbnail: document.thumbnail } : {}),
   ...(document.url ? { url: document.url } : {}),
+  ...(document.storageRef ? { storageRef: document.storageRef } : {}),
 });
 
 const toStoredVerificationPayload = (
@@ -141,15 +142,11 @@ const toStoredVerificationPayload = (
   return {
     ...verifications,
     documents: Array.isArray(verifications.documents)
-      ? verifications.documents.map(toStoredVerificationDocument)
+      ? verifications.documents
+        .map(toStoredVerificationDocument)
+        .filter((document) => Boolean(document.url || document.storageRef))
       : [],
   };
-};
-
-const storageKeyFromUrl = (url: string): string | undefined => {
-  const publicBase = process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL?.replace(/\/$/, "");
-  if (!publicBase || !url.startsWith(`${publicBase}/`)) return undefined;
-  return url.slice(publicBase.length + 1);
 };
 
 const createObjectId = () => {
@@ -404,10 +401,10 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
   const validateAddonsStep = useCallback(async () => {
     if ((selectedAddons?.length ?? 0) > 0) {
       const invalidAddon = selectedAddons?.find(
-        (a) => !a.price || a.price <= 0 || !a.qty || a.qty <= 0
+        (a) => !Number.isFinite(Number(a.price)) || Number(a.price) < 0 || !a.qty || a.qty <= 0
       );
       if (invalidAddon) {
-        toast.error(`Please provide a valid price and quantity for ${invalidAddon.name}`);
+        toast.error(`Please provide a non-negative price and positive quantity for ${invalidAddon.name}`);
         return false;
       }
     }
@@ -906,6 +903,44 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       }
 
       const storedVerifications = toStoredVerificationPayload(data.verifications);
+      const uploadedVerificationDocs: VerificationDocument[] = [];
+
+      if (data.verifications?.documents && data.verifications.documents.length > 0) {
+        const docsWithFiles = data.verifications.documents.filter((doc) => doc.file);
+        if (docsWithFiles.length > 0) {
+          const filesToUpload = docsWithFiles.map(d => d.file as File);
+          const uploadedRefs = await uploadToR2(
+            filesToUpload,
+            `listings/${listingId}/compliance/verification/general`,
+            { access: "private" }
+          );
+
+          for (let i = 0; i < docsWithFiles.length; i++) {
+            const doc = docsWithFiles[i];
+            if (!uploadedRefs[i]) throw new Error("A verification document did not finish uploading");
+            uploadedVerificationDocs.push({
+              original_filename: doc.original_filename || "",
+              bytes: doc.bytes || 0,
+              format: "pdf",
+              resource_type: "raw",
+              public_id: uploadedRefs[i].replace(/^r2-private:\/\//, ""),
+              version: 1,
+              storageRef: uploadedRefs[i],
+            });
+          }
+        }
+      }
+
+      const finalVerifications: Record<string, unknown> = {
+        ...(storedVerifications || {}),
+        documents: uploadedVerificationDocs.length > 0 ? uploadedVerificationDocs : storedVerifications?.documents || [],
+      };
+      if (data.agreementSignature && data.terms) {
+        if (!generatePdf) throw new Error("Signed agreement generator is unavailable");
+        const meta = await generatePdf(listingId);
+        setAgreementPdf(meta);
+        finalVerifications.agreementPdf = meta;
+      }
 
       const payload = {
         id: listingId,
@@ -949,8 +984,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
           ...p,
           isActive: p.isActive !== false,
         })) : [],
-        verifications: storedVerifications,
-        agreementSignature: data.agreementSignature || undefined,
+        verifications: finalVerifications,
         terms: data.terms,
         customTerms: isRichTextEmpty(data.customTerms) ? undefined : String(data.customTerms).trim(),
         hasSets: data.hasSets,
@@ -979,68 +1013,6 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
 
       if (!createdListingId || createdListingId !== listingId) {
         throw new Error("Listing creation failed: No listing ID returned");
-      }
-
-      const uploadedVerificationDocs: VerificationDocument[] = [];
-
-      if (data.verifications?.documents && data.verifications.documents.length > 0) {
-        const docsWithFiles = data.verifications.documents.filter((doc) => doc.file);
-        if (docsWithFiles.length > 0) {
-          try {
-            const filesToUpload = docsWithFiles.map(d => d.file as File);
-            const uploadedUrls = await uploadToR2(
-              filesToUpload,
-              `listings/${listingId}/compliance/verification/general`
-            );
-
-            for (let i = 0; i < docsWithFiles.length; i++) {
-              const doc = docsWithFiles[i];
-              if (uploadedUrls[i]) {
-                uploadedVerificationDocs.push({
-                  original_filename: doc.original_filename || "",
-                  bytes: doc.bytes || 0,
-                  format: 'pdf',
-                  resource_type: 'raw',
-                  public_id: storageKeyFromUrl(uploadedUrls[i]) || `listings/${listingId}/compliance/verification/general/${doc.original_filename || "doc"}`,
-                  version: 1,
-                  url: uploadedUrls[i],
-                });
-              }
-            }
-          } catch (uploadError) {
-            const errorMessage = uploadError instanceof Error ? uploadError.message : "Failed to upload verification documents";
-            toast.error(`Listing created but ${errorMessage}. Please contact support to upload documents.`);
-          }
-        }
-      }
-
-      const finalVerifications: Record<string, unknown> = {
-        ...(storedVerifications || {}),
-        documents: uploadedVerificationDocs.length > 0 ? uploadedVerificationDocs : storedVerifications?.documents || [],
-      };
-
-      if (data.agreementSignature && data.terms && generatePdf) {
-        try {
-          const meta = await generatePdf(listingId);
-          setAgreementPdf(meta);
-
-          finalVerifications.agreementPdf = meta;
-        } catch (pdfError) {
-          const errorMessage = pdfError instanceof Error ? pdfError.message : "Failed to save agreement PDF";
-          toast.error(`Listing created but ${errorMessage}. Please contact support.`);
-        }
-      }
-
-      if (uploadedVerificationDocs.length > 0 || (data.agreementSignature && data.terms)) {
-        try {
-          await updateListingAction({
-            id: listingId,
-            verifications: finalVerifications,
-          });
-        } catch (updateError) {
-          const errorMessage = updateError instanceof Error ? updateError.message : "Failed to update verification documents";
-          toast.error(`Listing created but ${errorMessage}. Please contact support.`);
-        }
       }
 
       setShowSuccessModal(true);

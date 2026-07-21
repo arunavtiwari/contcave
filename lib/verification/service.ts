@@ -312,8 +312,17 @@ export class VerificationService {
     static async verifyAadhaarOcr(userId: string, file: File) {
         assertAadhaarOcrFile(file);
 
-        const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
-        if (!user) throw new Error("User not found");
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, role: true, email_verified: true, phone_verified: true },
+        });
+        if (!user) throw new UserFacingError("User not found", 404);
+        if (user.role !== UserRole.OWNER && user.role !== UserRole.ADMIN) {
+            throw new UserFacingError("Only owners and administrators can complete Aadhaar verification", 403);
+        }
+        if (!user.email_verified || !user.phone_verified) {
+            throw new UserFacingError("Verify your email and save your phone number before Aadhaar verification.");
+        }
 
         const verificationId = sanitizeVerificationId(userId);
         const body = new FormData();
@@ -352,9 +361,23 @@ export class VerificationService {
     static async createVendor(userId: string, payload: Record<string, unknown>) {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { name: true, email: true, phone: true },
+            select: {
+                name: true,
+                email: true,
+                phone: true,
+                role: true,
+                email_verified: true,
+                phone_verified: true,
+                aadhaar_verified: true,
+            },
         });
-        if (!user) throw new Error("User not found");
+        if (!user) throw new UserFacingError("User not found", 404);
+        if (user.role !== UserRole.OWNER && user.role !== UserRole.ADMIN) {
+            throw new UserFacingError("Only owners and administrators can configure payouts", 403);
+        }
+        if (!user.email_verified || !user.phone_verified || !user.aadhaar_verified) {
+            throw new UserFacingError("Complete contact and Aadhaar verification before configuring payouts.");
+        }
 
         const normalized = normalizeVendorPayload(userId, payload, user);
         const vendorId = await cfEnsureVendor(normalized);
@@ -383,11 +406,17 @@ export class VerificationService {
 
     static async updateStep(userId: string, data: Record<string, unknown>) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) throw new Error("User not found");
+        if (!user) throw new UserFacingError("User not found", 404);
+        if (user.role !== UserRole.OWNER && user.role !== UserRole.ADMIN) {
+            throw new UserFacingError("Only owners and administrators can complete host verification", 403);
+        }
 
         const updates: Record<string, unknown> = {};
 
-        if (data.step === "phone" && data.phone) {
+        if (data.step === "phone") {
+            if (!user.email_verified) {
+                throw new UserFacingError("Verify your email before saving your phone number.");
+            }
             const normalized = normalizePhone(data.phone as string);
             if (!normalized) throw new UserFacingError("Enter a valid 10-digit phone number.");
             updates.phone = normalized;
@@ -399,30 +428,43 @@ export class VerificationService {
             throw new Error("Aadhaar verification must be completed through Smart OCR");
         }
 
-        if (data.step === "bank" && data.bankVerifiedName && data.accountNumber && data.ifscCode) {
+        if (data.step === "bank") {
+            if (!user.email_verified || !user.phone_verified || !user.aadhaar_verified) {
+                throw new UserFacingError("Complete contact and Aadhaar verification before configuring payouts.");
+            }
+            const bankVerifiedName = trimmedString(data.bankVerifiedName);
+            const accountNumber = trimmedString(data.accountNumber).replace(/\D/g, "");
+            const ifscCode = trimmedString(data.ifscCode).toUpperCase();
+            if (!bankVerifiedName) throw new UserFacingError("Account holder name is required.");
+            if (!/^\d{9,20}$/.test(accountNumber)) throw new UserFacingError("Account number must be between 9 and 20 digits.");
+            if (!IFSC_PATTERN.test(ifscCode)) throw new UserFacingError("Invalid IFSC code.");
             const vendorId = trimmedString(data.vendorId);
             if (!vendorId) {
-                throw new Error("Payout setup did not complete. Please try bank verification again.");
+                throw new UserFacingError("Payout setup did not complete. Please try bank verification again.");
             }
 
             updates.bank_verified = true;
-            updates.bank_verified_name = (data.bankVerifiedName as string).trim();
+            updates.bank_verified_name = bankVerifiedName;
             updates.verified_via = { push: "bank_verification" };
             const gstin = trimmedString(data.gstin);
             const companyName = trimmedString(data.companyName);
 
             const paymentResult = await upsertPaymentDetailsSafe({
                 userId,
-                accountHolderName: (data.bankVerifiedName as string).trim(),
+                accountHolderName: bankVerifiedName,
                 bankName: (data.bankName as string) || "Unknown",
-                accountNumber: (data.accountNumber as string).trim(),
-                ifscCode: (data.ifscCode as string).trim(),
+                accountNumber,
+                ifscCode,
                 companyName: companyName || undefined,
                 gstin: gstin || undefined,
                 cashfreeVendorId: vendorId,
             });
 
             if (!paymentResult.success) throw new Error(paymentResult.error || "Failed to save payment details");
+        }
+
+        if (data.step !== "phone" && data.step !== "bank") {
+            throw new UserFacingError("Unsupported verification step.");
         }
 
         const currentStage = user.verification_stage || 0;

@@ -24,13 +24,35 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
       return createErrorResponse("Invalid reservation ID", 400);
     }
 
+    const visibility = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+      select: {
+        userId: true,
+        markedForDeletion: true,
+        hiddenByGuestAt: true,
+        hiddenByOwnerAt: true,
+        listing: { select: { userId: true } },
+      },
+    });
+
+    const isGuest = visibility?.userId === currentUser.id;
+    const isOwner = visibility?.listing.userId === currentUser.id;
+    const hiddenFromViewer = currentUser.role !== UserRole.ADMIN && (
+      visibility?.markedForDeletion === true
+      || (isGuest && Boolean(visibility?.hiddenByGuestAt))
+      || (isOwner && Boolean(visibility?.hiddenByOwnerAt))
+    );
+    if (!visibility || hiddenFromViewer || (!isGuest && !isOwner && currentUser.role !== UserRole.ADMIN)) {
+      return createErrorResponse("Reservation not found or unauthorized", 404);
+    }
+
     const reservation = (await ReservationService.getReservations({ reservationId }))[0];
 
     if (
       !reservation ||
       (
-        reservation.userId !== currentUser.id &&
-        reservation.listing.userId !== currentUser.id &&
+        !isGuest &&
+        !isOwner &&
         currentUser.role !== UserRole.ADMIN
       )
     ) {

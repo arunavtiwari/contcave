@@ -49,14 +49,15 @@ function asRecord(value: unknown): Record<string, unknown> {
     return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
-function normalizeVerifications(value: unknown) {
+function normalizeVerifications(value: unknown, listingId: string) {
     const record = asRecord(value);
     const documents = Array.isArray(record.documents)
         ? record.documents
-            .map((doc): VerificationDocument => {
+            .map((doc, index): VerificationDocument => {
                 const item = asRecord(doc);
+                const hasStoredDocument = typeof item.storageRef === "string" || typeof item.url === "string";
                 return {
-                    url: typeof item.url === "string" ? item.url : undefined,
+                    url: hasStoredDocument ? `/api/documents/listings/${listingId}/verification/${index}` : undefined,
                     name: typeof item.name === "string" ? item.name : undefined,
                     original_filename: typeof item.original_filename === "string" ? item.original_filename : undefined,
                     bytes: typeof item.bytes === "number" ? item.bytes : undefined,
@@ -67,11 +68,10 @@ function normalizeVerifications(value: unknown) {
         : [];
 
     const agreement = asRecord(record.agreementPdf);
-    const agreementPdf: AgreementPdf | null = agreement.url || agreement.pdfUrl
+    const agreementPdf: AgreementPdf | null = agreement.url || agreement.pdfUrl || agreement.storageRef
         ? {
-            url: typeof agreement.url === "string" ? agreement.url : undefined,
-            pdfUrl: typeof agreement.pdfUrl === "string" ? agreement.pdfUrl : undefined,
-            public_id: typeof agreement.public_id === "string" ? agreement.public_id : undefined,
+            url: `/api/documents/listings/${listingId}/agreement/0`,
+            pdfUrl: `/api/documents/listings/${listingId}/agreement/0`,
         }
         : null;
 
@@ -81,7 +81,7 @@ function normalizeVerifications(value: unknown) {
 function maskReference(value: string | null | undefined, visible = 4) {
     if (!value) return null;
     if (value.length <= visible) return value;
-    return `${"â€¢".repeat(Math.min(6, value.length - visible))}${value.slice(-visible)}`;
+    return `${"•".repeat(Math.min(6, value.length - visible))}${value.slice(-visible)}`;
 }
 
 import getAmenities from "@/app/actions/getAmenities";
@@ -135,6 +135,7 @@ export async function getAdminListingReviews(status?: AdminListingStatus, listin
             prisma.listing.findMany({
                 where: {
                     ...(status ? { status } : {}),
+                    OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }],
                     id: { in: hydratableIds },
                 },
                 include: {
@@ -158,7 +159,7 @@ export async function getAdminListingReviews(status?: AdminListingStatus, listin
                     console.error(`[AdminListings] Failed to decrypt payment details for listing ${listing.id}:`, error);
                 }
             }
-            const verifications = normalizeVerifications(listing.verifications);
+            const verifications = normalizeVerifications(listing.verifications, listing.id);
 
             return {
                 id: listing.id,
@@ -360,7 +361,7 @@ export async function getBlocksAction(listingId: string) {
         return await ListingService.getBlocks(listingId);
     } catch (error) {
         console.error("[getBlocksAction] Error:", error);
-        return [];
+        throw new Error("Failed to load availability blocks");
     }
 }
 
@@ -375,7 +376,7 @@ export async function getDayStatusAction(listingId: string, date: string) {
         });
         if (!listing || (listing.userId !== user.id && user.role !== "ADMIN")) return null;
         const parsedDate = new Date(`${date}T00:00:00.000Z`);
-        if (isNaN(parsedDate.getTime())) return null;
+        if (!Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== date) return null;
 
         const dayStatus = await prisma.dayStatus.findUnique({
             where: {
@@ -390,7 +391,7 @@ export async function getDayStatusAction(listingId: string, date: string) {
         } : null;
     } catch (error) {
         console.error("[getDayStatusAction] Error:", error);
-        return null;
+        throw new Error("Failed to load day status");
     }
 }
 
@@ -547,16 +548,25 @@ export const updateDayStatusAction = createAction(
 
 // â”€â”€â”€ Curated Listing Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+const curatedHttpUrlSchema = (maxLength: number) => z.string().url().max(maxLength).refine((value) => {
+    try {
+        const protocol = new URL(value).protocol;
+        return protocol === "http:" || protocol === "https:";
+    } catch {
+        return false;
+    }
+}, "URL must use HTTP or HTTPS");
+
 const curatedListingSchema = z.object({
     title: z.string().min(2).max(200),
     description: z.string().min(10).max(5000),
     category: z.string().trim().min(1).max(100),
     locationValue: z.string().trim().min(1).max(300),
     propertyStateCode: z.string().regex(/^\d{2}$/).optional().nullable(),
-    imageSrc: z.array(z.string().url().max(500)).min(1).max(30),
-    mapsUrl: z.string().url().max(1000).optional().or(z.literal("")),
-    websiteUrl: z.string().url().max(1000).optional().or(z.literal("")),
-    instagramHandle: z.string().trim().max(60).optional(),
+    imageSrc: z.array(curatedHttpUrlSchema(500)).min(1).max(30),
+    mapsUrl: curatedHttpUrlSchema(1000).optional().or(z.literal("")),
+    websiteUrl: curatedHttpUrlSchema(1000).optional().or(z.literal("")),
+    instagramHandle: z.string().trim().regex(/^@?[A-Za-z0-9._]{1,30}$/, "Invalid Instagram handle").optional(),
     priceRangeMin: z.number().int().positive().optional(),
     priceRangeMax: z.number().int().positive().optional(),
     contactEmail: z.string().email().optional().or(z.literal("")),
@@ -643,7 +653,13 @@ export async function trackEnquiryAction(listingId: string): Promise<void> {
         });
         if (!requestLimit.allowed) return;
         await prisma.listing.updateMany({
-            where: { id: listingId, listingType: "CURATED", status: "VERIFIED", active: true },
+            where: {
+                id: listingId,
+                listingType: "CURATED",
+                status: "VERIFIED",
+                active: true,
+                OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }],
+            },
             data: { enquiryCount: { increment: 1 } },
         });
     } catch {

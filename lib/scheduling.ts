@@ -79,11 +79,16 @@ export const labelToMinutes = (s?: string | null): number => {
 export const asEndOfDayMinutes = (minutes: number): number =>
     minutes === 0 ? 1440 : minutes;
 
-export const getRoundedNowIST_HHMM = (): TimeHM => {
+/** Rounded-up IST minute of day. Returns 1440 when rounding crosses into tomorrow. */
+export const getRoundedNowISTMinutes = (): number => {
     const parts = toISTDateParts(new Date());
-    const roundUp = (15 - (parts.mm % 15)) % 15;
-    const hh = (parts.hh + Math.floor((parts.mm + roundUp) / 60)) % 24;
-    const mm = (parts.mm + roundUp) % 60;
+    return parts.hh * 60 + parts.mm + (15 - (parts.mm % 15));
+};
+
+export const getRoundedNowIST_HHMM = (): TimeHM => {
+    const roundedMinutes = getRoundedNowISTMinutes();
+    const hh = Math.floor((roundedMinutes % 1440) / 60);
+    const mm = roundedMinutes % 60;
     return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}` as TimeHM;
 };
 

@@ -30,6 +30,12 @@ export async function getPublicReservationSlots(listingId: string) {
     return await ReservationService.getPublicReservationSlots(parsed.data);
 }
 
+export async function getPublicDayStatuses(listingId: string) {
+    const parsed = objectIdSchema.safeParse(listingId);
+    if (!parsed.success) return [];
+    return await ReservationService.getPublicDayStatuses(parsed.data);
+}
+
 export async function getReservations(params: { listingId?: string }) {
     if (!params.listingId) return [];
     return await getPublicReservationSlots(params.listingId);

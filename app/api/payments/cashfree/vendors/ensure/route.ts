@@ -2,9 +2,10 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { cfEnsureVendor } from "@/lib/cashfree/cashfree";
 import prisma from "@/lib/prismadb";
+import { isOwner } from "@/lib/user/permissions";
 import { ensureVendorSchema } from "@/schemas/cashfree";
 
 export const runtime = "nodejs";
@@ -13,16 +14,17 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
     try {
-        if (!req.headers.get("content-type")?.includes("application/json")) {
-            return createErrorResponse("Content-Type must be application/json", 415);
-        }
-
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) {
             return createErrorResponse("Unauthorized", 401);
         }
+        if (!isOwner(currentUser.role)) {
+            return createErrorResponse("Only owners can create payout vendors", 403);
+        }
 
-        const body = await req.json().catch(() => ({}));
+        const parsedBody = await readJsonObject(req, 5_000);
+        if (!parsedBody.success) return parsedBody.response;
+        const body = parsedBody.data;
         const parsed = ensureVendorSchema.safeParse(body);
 
         if (!parsed.success) {
@@ -42,6 +44,10 @@ export async function POST(req: NextRequest) {
                 name: true,
                 email: true,
                 phone: true,
+                email_verified: true,
+                phone_verified: true,
+                aadhaar_verified: true,
+                bank_verified: true,
                 paymentDetails: true,
             },
         });
@@ -54,6 +60,10 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Payment details must be set up before creating a vendor", 400);
         }
 
+        if (!user.email_verified || !user.phone_verified || !user.aadhaar_verified || !user.bank_verified) {
+            return createErrorResponse("Complete email, phone, Aadhaar, and bank verification before payout onboarding", 400);
+        }
+
         if (!user.paymentDetails.accountHolderName || !user.paymentDetails.accountNumber || !user.paymentDetails.ifscCode) {
             return createErrorResponse("Complete payment details (account holder, account number, IFSC) are required", 400);
         }
@@ -61,7 +71,7 @@ export async function POST(req: NextRequest) {
         const { decryptPaymentDetailsInternal } = await import('@/lib/payment-details');
         const decryptedDetails = decryptPaymentDetailsInternal(user.paymentDetails);
         if (decryptedDetails.cashfreeVendorId) {
-            return createSuccessResponse({ vendorId: decryptedDetails.cashfreeVendorId });
+            return createSuccessResponse({ ensured: true });
         }
 
         const vendorId = await cfEnsureVendor({
@@ -88,7 +98,7 @@ export async function POST(req: NextRequest) {
         });
 
 
-        return createSuccessResponse({ vendorId });
+        return createSuccessResponse({ ensured: true });
     } catch (error) {
         if (error instanceof z.ZodError) {
             return createErrorResponse("Invalid request body", 400, { issues: error.issues });

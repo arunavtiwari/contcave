@@ -161,7 +161,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
             const validatedData = UserDataSchema.parse(data);
             const { name, description, location, languages, title, phone } = validatedData;
 
-            await updateUser({
+            const result = await updateUser({
                 name: name || undefined,
                 description: description || undefined,
                 location: location || undefined,
@@ -170,6 +170,9 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
                 phone: phone || undefined,
                 profileImage: finalProfileImage || null,
             });
+            if (!result.success) {
+                throw new Error(result.error || "Failed to update profile");
+            }
             setValue("profileImage", finalProfileImage as string);
             setEditMode(false);
             toast.success("Profile updated successfully!");
@@ -655,6 +658,5 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
 };
 
 export default MyProfile;
-
 
 

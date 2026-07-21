@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     const listing = await prisma.listing.findUnique({
       where: { id: listingId },
-      select: { userId: true },
+      select: { userId: true, archivedAt: true },
     });
 
     if (!listing) {
@@ -98,6 +98,9 @@ export async function POST(request: NextRequest) {
 
     if (listing.userId !== currentUser.id && currentUser.role !== "ADMIN") {
       return createErrorResponse("You don't have permission to update this listing's day status", 403);
+    }
+    if (listing.archivedAt) {
+      return createErrorResponse("Archived listings cannot be modified", 409);
     }
 
     const dayStatus = await prisma.dayStatus.upsert({

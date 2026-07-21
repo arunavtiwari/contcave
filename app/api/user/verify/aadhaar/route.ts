@@ -1,5 +1,5 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createKnownErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { getClientIp } from "@/lib/http/requestMeta";
 import { formatRetryAfterMs, rateLimit } from "@/lib/security/rateLimit";
 import { VerificationService } from "@/lib/verification/service";
@@ -58,6 +58,8 @@ export async function POST(request: Request) {
     const data = await VerificationService.verifyAadhaarOcr(currentUser.id, file);
     return createSuccessResponse(data);
   } catch (error) {
+    const knownResponse = createKnownErrorResponse(error);
+    if (knownResponse) return knownResponse;
     const message = error instanceof Error ? error.message : "Failed to verify Aadhaar document";
     const status = verificationErrorStatus(message);
 

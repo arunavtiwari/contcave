@@ -182,19 +182,9 @@ export async function getAdminBookingOperations(
     documentType: { in: ["OWNER_MONTHLY_COMMISSION_INVOICE", "OWNER_MONTHLY_BILL_OF_SUPPLY"] },
   };
   const visibleFailureWhere: Prisma.InvoiceWhereInput = {
-    AND: [
-      {
-        OR: [
-          { status: { in: ["EMAIL_FAILED", "DELIVERY_BLOCKED", "RETRYING"] } },
-          { emailError: { not: null } },
-        ],
-      },
-      {
-        OR: [
-          ownerInvoiceWhere,
-          { reservation: { markedForDeletion: false } },
-        ],
-      },
+    OR: [
+      { status: { in: ["EMAIL_FAILED", "DELIVERY_BLOCKED", "RETRYING"] } },
+      { emailError: { not: null } },
     ],
   };
   const payoutWhere: Prisma.TransactionWhereInput = {
@@ -204,16 +194,10 @@ export async function getAdminBookingOperations(
       { payoutDoneAt: { not: null } },
     ],
   };
-  const visibleVoucherWhere: Prisma.PaymentVoucherWhereInput = {
-    OR: [
-      { reservationId: null },
-      { reservation: { markedForDeletion: false } },
-    ],
-  };
+  const visibleVoucherWhere: Prisma.PaymentVoucherWhereInput = {};
   const auditWhere: Prisma.AuditLogWhereInput = { resource: { in: ["Invoice", "PaymentVoucher"] } };
   const customerInvoiceWhere: Prisma.InvoiceWhereInput = {
     documentType: { in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"] },
-    reservation: { markedForDeletion: false },
   };
   const invoiceWhere = tab === "ownerInvoices" ? ownerInvoiceWhere : visibleFailureWhere;
   const skip = (page - 1) * pageSize;
@@ -234,7 +218,6 @@ export async function getAdminBookingOperations(
     pendingCustomerInvoiceTotal,
   ] = await Promise.all([
     tab === "bookings" ? prisma.reservation.findMany({
-      where: { markedForDeletion: false },
       select: {
         id: true,
         bookingId: true,
@@ -365,7 +348,7 @@ export async function getAdminBookingOperations(
       skip,
       take: pageSize,
     }) : Promise.resolve([]),
-    prisma.reservation.count({ where: { markedForDeletion: false } }),
+    prisma.reservation.count(),
     (tab === "ownerInvoices" || tab === "failures") ? prisma.invoice.findMany({
       where: invoiceWhere,
       select: {
@@ -523,7 +506,7 @@ export async function getAdminBookingOperations(
       customerInvoiceId: customerInvoice?.id,
       customerInvoiceNumber: customerInvoice?.invoiceNumber,
       customerInvoiceStatus: customerInvoice?.status,
-      customerInvoiceUrl: customerInvoice?.invoiceUrl,
+      customerInvoiceUrl: customerInvoice?.invoiceUrl ? `/api/documents/invoices/${customerInvoice.id}` : undefined,
       customerInvoiceEmailSentAt: iso(customerInvoice?.emailSentAt),
       customerInvoiceEmailError: customerInvoice?.emailError,
       customerInvoiceRetryCount: customerInvoice?.retryCount,
@@ -539,7 +522,7 @@ export async function getAdminBookingOperations(
         emailSentAt: iso(voucher.emailSentAt),
         emailError: voucher.emailError,
         retryCount: voucher.retryCount,
-        voucherUrl: voucher.voucherUrl,
+        voucherUrl: voucher.voucherUrl ? `/api/documents/vouchers/${voucher.id}` : "",
         reservationMarkedForDeletion: false,
       })),
       detail: {
@@ -600,7 +583,7 @@ export async function getAdminBookingOperations(
     emailSentAt: iso(invoice.emailSentAt),
     emailError: invoice.emailError,
     retryCount: invoice.retryCount,
-    invoiceUrl: invoice.invoiceUrl,
+    invoiceUrl: invoice.invoiceUrl ? `/api/documents/invoices/${invoice.id}` : "",
   }));
 
   const voucherRows: AdminVoucherRow[] = paymentVouchers.map((voucher) => ({
@@ -616,7 +599,7 @@ export async function getAdminBookingOperations(
     emailSentAt: iso(voucher.emailSentAt),
     emailError: voucher.emailError,
     retryCount: voucher.retryCount,
-    voucherUrl: voucher.voucherUrl,
+    voucherUrl: voucher.voucherUrl ? `/api/documents/vouchers/${voucher.id}` : "",
   }));
 
   const payoutRows: AdminPayoutRow[] = payouts.map((txn) => ({

@@ -1,5 +1,5 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
+import { createErrorResponse, createKnownErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { BillingService } from "@/lib/billing/service";
 
 export async function POST(req: Request) {
@@ -16,8 +16,9 @@ export async function POST(req: Request) {
       const billingRecord = await BillingService.upsertRecord(currentUser.id, parsedBody.data);
       return createSuccessResponse(billingRecord, 201);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to upsert billing record";
-      return createErrorResponse(message, 400);
+      const knownResponse = createKnownErrorResponse(error);
+      if (knownResponse) return knownResponse;
+      throw error;
     }
   } catch (error) {
     return handleRouteError(error, "POST /api/billing");
@@ -54,8 +55,9 @@ export async function PUT(req: Request) {
       const updated = await BillingService.updateRecord(currentUser.id, id, data);
       return createSuccessResponse(updated);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to update billing record";
-      return createErrorResponse(message, 400);
+      const knownResponse = createKnownErrorResponse(error);
+      if (knownResponse) return knownResponse;
+      throw error;
     }
   } catch (error) {
     return handleRouteError(error, "PUT /api/billing");

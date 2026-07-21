@@ -44,7 +44,7 @@ function getListingAddonItems(reservation: SafeReservation | null): ListingAddon
     const name = typeof item.name === "string" ? item.name.trim() : "";
     const price = Math.round(Number(item.price || 0));
     const qty = Math.max(1, Math.round(Number(item.qty || 1)));
-    if (!name || price <= 0) return null;
+    if (!name || price < 0) return null;
     return { id: typeof item.id === "string" && item.id ? item.id : `${name}-${index}`, name, price, qty };
   }).filter((addon): addon is ListingAddonItem => Boolean(addon));
 }

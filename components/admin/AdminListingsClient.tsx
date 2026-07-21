@@ -298,7 +298,7 @@ function ReviewModal({
                             )) : (
                                 <DocumentLink title="Verification documents" />
                             )}
-                            <DocumentLink href={agreementUrl} title="Signed agreement PDF" meta={listing.verifications.agreementPdf?.public_id} />
+                            <DocumentLink href={agreementUrl} title="Signed agreement PDF" meta="Private document" />
                         </div>
                     </Section>
 

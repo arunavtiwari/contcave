@@ -3,7 +3,40 @@ import { z } from "zod";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import { AESTHETIC_LABELS, SET_FEATURE_LABELS, USE_CASE_LABELS, VENUE_TYPE_LABELS } from "@/lib/taxonomy";
 import { objectIdSchema } from "@/schemas/common";
-export const imageSchema = z.string().url("Invalid image URL").max(500, "URL too long");
+
+const httpUrlSchema = (maxLength: number) => z.string().url().max(maxLength, "URL too long").refine((value) => {
+    try {
+        const protocol = new URL(value).protocol;
+        return protocol === "http:" || protocol === "https:";
+    } catch {
+        return false;
+    }
+}, "URL must use HTTP or HTTPS");
+
+const temporaryMediaUrlSchema = z.string().url().max(2000, "URL too long").refine((value) => {
+    try {
+        const protocol = new URL(value).protocol;
+        return protocol === "http:" || protocol === "https:" || protocol === "blob:";
+    } catch {
+        return false;
+    }
+}, "Invalid media URL");
+
+// Listing forms hold local blob URLs until media is uploaded to R2. Server
+// persistence validates the resulting HTTP(S) URLs separately.
+export const persistedMediaUrlSchema = httpUrlSchema(500);
+
+const signatureImageSchema = z.string().max(1_400_000, "Signature image is too large").refine((value) => {
+    if (/^data:image\/(?:png|jpe?g);base64,[A-Za-z0-9+/=\s]+$/.test(value)) return true;
+    try {
+        const protocol = new URL(value).protocol;
+        return protocol === "http:" || protocol === "https:";
+    } catch {
+        return false;
+    }
+}, "Signature must be a PNG or JPEG image");
+
+export const imageSchema = temporaryMediaUrlSchema;
 
 export const locationSchema = z.object({
     latlng: z.tuple([z.number().min(-90).max(90), z.number().min(-180).max(180)]),
@@ -17,9 +50,9 @@ export const locationSchema = z.object({
     address: z.string().max(500).optional(),
     display_name: z.string().max(500).optional(),
     state: z.string().max(100).optional(),
-    url: z.string().url().max(1000).optional(),
-    mapsUrl: z.string().url().max(1000).optional(),
-    googleMapsUrl: z.string().url().max(1000).optional(),
+    url: httpUrlSchema(1000).optional(),
+    mapsUrl: httpUrlSchema(1000).optional(),
+    googleMapsUrl: httpUrlSchema(1000).optional(),
     propertyStateCode: z.string().regex(/^\d{2}$/, "Invalid GST state code").optional(),
     additionalInfo: z.string().max(200, "Additional info too long").optional(),
 });
@@ -47,11 +80,11 @@ export const operationalHoursSchema = operationalHoursBaseSchema.superRefine((va
             message: `End time must be between ${OPENING_HOURS_MIN_START} and ${OPENING_HOURS_MAX_END}`,
         });
     }
-    if (startIdx !== -1 && endIdx !== -1 && endIdx < startIdx) {
+    if (startIdx !== -1 && endIdx !== -1 && endIdx <= startIdx) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["end"],
-            message: "End time cannot be earlier than start time",
+            message: "End time must be after start time",
         });
     }
 }).optional().nullable();
@@ -82,7 +115,7 @@ export const packageBaseSchema = z.object({
     originalPrice: z.number().min(0).max(10000000).optional(),
     offeredPrice: z.number().int().min(1, "Package offered price must be at least ₹1").max(10000000),
     features: z.array(z.string().trim().min(1).max(200)).max(20),
-    durationHours: z.number().int().positive().max(168),
+    durationHours: z.number().int().positive().max(24, "A package must fit within one operating day"),
     requiredSetCount: z.number().int().min(1).max(50).optional().nullable(),
     fixedAddOn: z.number().int().min(0).max(10_000_000).optional().nullable(),
     eligibleSetIds: z.array(objectIdSchema).max(50).optional(),
@@ -108,23 +141,40 @@ export const addonSchema = z.object({
     imageUrl: imageSchema.optional(),
 });
 
+const privateDocumentRefSchema = z.string()
+    .trim()
+    .max(1100)
+    .regex(/^r2-private:\/\/users\/[a-f\d]{24}\/listings\/[a-f\d]{24}\/compliance\/[a-zA-Z0-9/_-]+\.pdf$/i, "Invalid private document reference");
+
+const storedDocumentSchema = z.object({
+    storageRef: privateDocumentRefSchema.optional(),
+    public_id: z.string().trim().max(1100).optional(),
+    name: z.string().trim().max(200).optional(),
+    type: z.string().trim().max(100).optional(),
+    file: z.unknown().optional(), // File object exists only before the client upload boundary.
+    original_filename: z.string().trim().max(255).optional(),
+    bytes: z.number().int().min(0).max(20_000_000).optional(),
+    format: z.string().trim().max(20).optional(),
+    resource_type: z.string().trim().max(20).optional(),
+    version: z.number().int().min(0).max(100).optional(),
+}).refine((value) => Boolean(value.file || value.storageRef), {
+    message: "Document file or storage reference is required",
+});
+
 export const verificationSchema = z.object({
-    documents: z.array(z.object({
-        url: z.string().url().max(1000).optional(),
-        name: z.string().trim().max(200).optional(),
-        type: z.string().trim().max(100).optional(),
-        file: z.unknown().optional(), // File object exists only before the client upload boundary.
-        original_filename: z.string().trim().max(255).optional(),
-        bytes: z.number().int().min(0).max(20_000_000).optional(),
-    })).max(20).optional(),
+    documents: z.array(storedDocumentSchema).max(20).optional(),
+    agreementPdf: z.object({
+        storageRef: privateDocumentRefSchema,
+        public_id: z.string().trim().max(1100).optional(),
+    }).optional().nullable(),
 });
 
 export const signatureSchema = z.object({
     name: z.string().trim().max(200).optional(),
     signedAt: z.string().datetime().optional(),
     ip: z.string().trim().max(64).optional(),
-    url: z.string().url().max(1000),
-    thumbnail: z.string().url().max(1000).optional(),
+    url: signatureImageSchema,
+    thumbnail: signatureImageSchema.optional(),
 });
 
 
@@ -144,15 +194,15 @@ export const listingBaseSchema = z.object({
 
 
     price: z.coerce.number().min(0).max(10000000),
-    minimumBookingHours: z.coerce.number().min(0).max(168),
+    minimumBookingHours: z.coerce.number().int().min(0).max(24, "Minimum booking duration must fit within one operating day"),
     maximumPax: z.coerce.number().min(0).max(10000),
     carpetArea: z.coerce.number().min(0).max(1000000),
 
     // Curated-specific optional fields
     priceRangeMin: z.coerce.number().min(0).max(10000000).optional().nullable(),
     priceRangeMax: z.coerce.number().min(0).max(10000000).optional().nullable(),
-    mapsUrl: z.string().url().max(1000).optional().nullable().or(z.literal("")),
-    websiteUrl: z.string().url().max(1000).optional().nullable().or(z.literal("")),
+    mapsUrl: httpUrlSchema(1000).optional().nullable().or(z.literal("")),
+    websiteUrl: httpUrlSchema(1000).optional().nullable().or(z.literal("")),
     instagramHandle: z.string().max(60).optional().nullable(),
     contactEmail: z.string().email().optional().nullable().or(z.literal("")),
 
@@ -182,10 +232,31 @@ export const listingBaseSchema = z.object({
     addons: z.array(addonSchema).max(100).optional(),
     verifications: verificationSchema.optional().nullable(),
     agreementSignature: signatureSchema.optional().nullable(),
-    videoSrc: z.string().url("Invalid video URL").optional().nullable(),
+    videoSrc: temporaryMediaUrlSchema.optional().nullable(),
 });
 
 export const listingSchema = listingBaseSchema.superRefine((data, ctx) => {
+    const openingIndex = data.operationalHours ? TIME_SLOTS.indexOf(data.operationalHours.start) : -1;
+    const closingIndex = data.operationalHours ? TIME_SLOTS.lastIndexOf(data.operationalHours.end) : -1;
+    const operatingHours = openingIndex >= 0 && closingIndex > openingIndex
+        ? (closingIndex - openingIndex) / 2
+        : null;
+    if (operatingHours != null && data.minimumBookingHours > operatingHours) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Minimum booking duration cannot exceed the studio's daily operating window",
+            path: ["minimumBookingHours"],
+        });
+    }
+    data.packages?.forEach((pkg, index) => {
+        if (operatingHours != null && pkg.durationHours > operatingHours) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Package duration cannot exceed the studio's daily operating window",
+                path: ["packages", index, "durationHours"],
+            });
+        }
+    });
     if (data.hasSets && (!data.sets || data.sets.length < 1)) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Listings with sets must have at least one set", path: ["sets"] });
     }
@@ -224,6 +295,9 @@ export const listingSchema = listingBaseSchema.superRefine((data, ctx) => {
     }
     if (data.listingType !== "CURATED" && data.terms !== true) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "You must accept the terms", path: ["terms"] });
+    }
+    if (data.listingType === "STANDARD" && (!data.verifications?.documents || data.verifications.documents.length < 1)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "At least one verification document is required", path: ["verifications", "documents"] });
     }
     if (data.listingType === "STANDARD" && (!data.price || data.price < 1)) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Price must be at least ₹1 for standard listings", path: ["price"] });

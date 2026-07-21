@@ -10,7 +10,8 @@ import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { getClientIp } from "@/lib/http/requestMeta";
 import { calculateSetPricing, validateSetSelection } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
-import { asEndOfDayMinutes, labelToMinutes } from "@/lib/scheduling";
+import { getBookingDate, validateBookingWindow } from "@/lib/reservation/bookingWindow";
+import { asEndOfDayMinutes } from "@/lib/scheduling";
 import { formatRetryAfterMs, rateLimit } from "@/lib/security/rateLimit";
 import { TransactionService } from "@/lib/transaction/service";
 import { getValidatedBaseUrl } from "@/lib/utils";
@@ -75,100 +76,6 @@ function buildBillingSnapshot(billing: {
     };
 }
 
-const dayKeys = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
-const configuredDayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-function getBookingDate(date: string) {
-    return new Date(`${date}T00:00:00.000Z`);
-}
-
-function getBookingDayKey(date: string) {
-    return dayKeys[new Date(`${date}T12:00:00+05:30`).getUTCDay()];
-}
-
-function isOperationalDay(operationalDays: unknown, date: string) {
-    const day = getBookingDayKey(date);
-    if (!operationalDays || typeof operationalDays !== "object" || Array.isArray(operationalDays)) return true;
-    const days = operationalDays as { days?: unknown[]; start?: unknown; end?: unknown };
-
-    if (Array.isArray(days.days)) {
-        return days.days.map(String).includes(day);
-    }
-
-    const start = typeof days.start === "string" ? days.start : "Mon";
-    const end = typeof days.end === "string" ? days.end : "Sun";
-    const startIndex = configuredDayOrder.indexOf(start);
-    const endIndex = configuredDayOrder.indexOf(end);
-    const currentIndex = configuredDayOrder.indexOf(day);
-
-    if (startIndex < 0 || endIndex < 0 || currentIndex < 0) return true;
-    if (startIndex <= endIndex) return currentIndex >= startIndex && currentIndex <= endIndex;
-    return currentIndex >= startIndex || currentIndex <= endIndex;
-}
-
-function validateBookingWindow(params: {
-    startDate: string;
-    startTime: string;
-    endTime: string;
-    operationalDays: unknown;
-    operationalHours: unknown;
-    minimumBookingHours?: number | null;
-    selectedPackageDurationHours?: number | null;
-}) {
-    const startMin = labelToMinutes(params.startTime);
-    const endMin = asEndOfDayMinutes(labelToMinutes(params.endTime));
-
-    if (!Number.isFinite(startMin) || !Number.isFinite(endMin)) {
-        return "Please choose a valid start and end time.";
-    }
-
-    if (endMin <= startMin) {
-        return "End time must be after start time.";
-    }
-
-    const durationMinutes = endMin - startMin;
-    const configuredMinimumMinutes = Math.max(0, Number(params.minimumBookingHours || 0)) * 60;
-    const minimumMinutes = configuredMinimumMinutes > 0 ? configuredMinimumMinutes : 90;
-    if (minimumMinutes > 0 && durationMinutes < minimumMinutes) {
-        const minimumHours = minimumMinutes / 60;
-        return `Minimum booking duration is ${minimumHours} hour${minimumHours === 1 ? "" : "s"}.`;
-    }
-
-    const packageMinutes = Math.max(0, Number(params.selectedPackageDurationHours || 0)) * 60;
-    if (packageMinutes > 0 && durationMinutes !== packageMinutes) {
-        return "Selected time slot must match the package duration.";
-    }
-
-    if (!isOperationalDay(params.operationalDays, params.startDate)) {
-        return "This studio is not operational on the selected date.";
-    }
-
-    if (params.operationalHours && typeof params.operationalHours === "object" && !Array.isArray(params.operationalHours)) {
-        const hours = params.operationalHours as { start?: unknown; end?: unknown };
-        const openMin = labelToMinutes(typeof hours.start === "string" ? hours.start : "");
-        const rawCloseMin = labelToMinutes(typeof hours.end === "string" ? hours.end : "");
-        const closeMin = asEndOfDayMinutes(rawCloseMin);
-        const isAlwaysOpen = openMin === 0 && rawCloseMin === 0;
-
-        if (!isAlwaysOpen && Number.isFinite(openMin) && Number.isFinite(closeMin)) {
-            if (closeMin <= openMin) {
-                return "This studio's operational hours are not configured correctly.";
-            }
-            if (startMin < openMin || endMin > closeMin) {
-                return "Selected time slot is outside this studio's operational hours.";
-            }
-        }
-    }
-
-    const now = new Date();
-    const slotStart = new Date(`${params.startDate}T${String(Math.floor(startMin / 60)).padStart(2, "0")}:${String(startMin % 60).padStart(2, "0")}:00+05:30`);
-    if (slotStart.getTime() <= now.getTime()) {
-        return "Past time slots are not available for booking.";
-    }
-
-    return null;
-}
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -179,7 +86,7 @@ export async function POST(req: NextRequest) {
         }
 
         const rawBody = await req.text();
-        if (rawBody.length > 100_000) {
+        if (new TextEncoder().encode(rawBody).byteLength > 100_000) {
             return createErrorResponse("Request body too large", 413);
         }
 
@@ -230,8 +137,12 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Listing not found", 404);
         }
 
+        if (listing.userId === currentUser.id) {
+            return createErrorResponse("You cannot book your own listing", 403);
+        }
 
-        if (listing.status !== "VERIFIED" || !listing.active) {
+
+        if (listing.status !== "VERIFIED" || !listing.active || listing.archivedAt) {
             return createErrorResponse("This listing is currently not accepting bookings", 400);
         }
 
@@ -384,7 +295,10 @@ export async function POST(req: NextRequest) {
                 return createErrorResponse("One or more selected add-ons are no longer available", 409);
             }
 
-            const unitPrice = Math.max(0, Number(listingAddon.price) || 0);
+            const unitPrice = Number(listingAddon.price);
+            if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+                return createErrorResponse(`Add-on "${listingAddon.name}" has an invalid price`, 409);
+            }
             const maxAvailable = listingAddon.qty === undefined || listingAddon.qty === null
                 ? Number.POSITIVE_INFINITY
                 : Math.max(0, Math.floor(Number(listingAddon.qty) || 0));
@@ -573,6 +487,7 @@ export async function POST(req: NextRequest) {
                 const customerEmail = currentUser.email || data.customerEmail;
 
                 if (customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+                    await TransactionService.fail(txn.id, "Payment initialization failed: invalid customer email").catch(() => { });
                     return createErrorResponse("Invalid email format", 400);
                 }
 
@@ -595,7 +510,15 @@ export async function POST(req: NextRequest) {
             throw orderError;
         }
 
-        await TransactionService.updateSession(txn.id, payment_session_id, order_id);
+        try {
+            await TransactionService.updateSession(txn.id, payment_session_id, order_id);
+        } catch (sessionError) {
+            await TransactionService.fail(
+                txn.id,
+                `Payment initialization failed while saving the gateway session: ${sessionError instanceof Error ? sessionError.message : "Unknown error"}`
+            ).catch(() => { });
+            throw sessionError;
+        }
 
         const mode = (process.env.CASHFREE_ENV || "SANDBOX").toLowerCase() === "production" ? "production" : "sandbox";
 

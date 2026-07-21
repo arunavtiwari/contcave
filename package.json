@@ -16,6 +16,7 @@
 		"test:e2e:staging": "playwright test --project=staging-chromium",
 		"qstash:dev": "npx @upstash/qstash-cli@latest dev",
 		"configure:qstash": "node scripts/configure-qstash-schedules.mjs",
+		"migrate:data": "tsx scripts/migrate-production-data.ts",
 		"postinstall": "npx prisma generate"
 	},
 	"dependencies": {
@@ -107,7 +108,8 @@
 		"knip": "^6.14.2",
 		"postcss": "^8.5.10",
 		"prisma": "^6.19.3",
-		"tailwindcss": "^4.2.4"
+		"tailwindcss": "^4.2.4",
+		"tsx": "^4.20.6"
 	},
 	"overrides": {
 		"axios": "$axios",

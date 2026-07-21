@@ -2,28 +2,27 @@ import { google } from 'googleapis';
 import { NextRequest } from "next/server";
 
 import { auth } from "@/auth";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
+import { getGoogleCalendarCredentialForUser, isGoogleCalendarAuthError, refreshGoogleCalendarAccessToken } from "@/lib/calendar/oauth";
 
 export async function DELETE(request: NextRequest) {
   try {
-    if (!request.headers.get("content-type")?.includes("application/json")) {
-      return createErrorResponse("Content-Type must be application/json", 415);
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    const accessToken = session.calendarAccessToken;
-    if (!accessToken || typeof accessToken !== "string") {
-      return createErrorResponse("No access token found", 401);
+    const credential = await getGoogleCalendarCredentialForUser(session.user.id);
+    if (!credential) {
+      return createErrorResponse("Google Calendar is not connected", 400);
     }
 
-    const body = await request.json().catch(() => ({}));
+    const parsedBody = await readJsonObject(request, 10_000);
+    if (!parsedBody.success) return parsedBody.response;
+    const body = parsedBody.data;
     const { id, calendarId } = body;
 
-    if (!id || typeof id !== "string" || id.trim().length === 0) {
+    if (!id || typeof id !== "string" || id.trim().length === 0 || id.trim().length > 1024) {
       return createErrorResponse("Event id is required and must be a non-empty string", 400);
     }
 
@@ -31,7 +30,9 @@ export async function DELETE(request: NextRequest) {
       return createErrorResponse("calendarId must be a non-empty string if provided", 400);
     }
 
-    const effectiveCalendarId = (calendarId?.trim() || 'primary').slice(0, 200);
+    const effectiveCalendarId = (
+      typeof calendarId === "string" && calendarId.trim() ? calendarId.trim() : "primary"
+    ).slice(0, 200);
 
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
       return createErrorResponse("Server configuration error", 500);
@@ -41,7 +42,10 @@ export async function DELETE(request: NextRequest) {
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET
     );
-    oauth2Client.setCredentials({ access_token: accessToken });
+    oauth2Client.setCredentials({
+      access_token: credential.accessToken,
+      refresh_token: credential.refreshToken || undefined,
+    });
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
@@ -49,10 +53,19 @@ export async function DELETE(request: NextRequest) {
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     try {
-      await calendar.events.delete({
+      const deleteEvent = () => calendar.events.delete({
         calendarId: effectiveCalendarId,
         eventId: id.trim(),
       }, { signal: controller.signal });
+
+      try {
+        await deleteEvent();
+      } catch (error) {
+        if (!credential.refreshToken || !isGoogleCalendarAuthError(error)) throw error;
+        const refreshed = await refreshGoogleCalendarAccessToken(credential.accountId, credential.refreshToken);
+        oauth2Client.setCredentials({ access_token: refreshed.access_token, refresh_token: refreshed.refresh_token });
+        await deleteEvent();
+      }
 
       clearTimeout(timeoutId);
       return createSuccessResponse({

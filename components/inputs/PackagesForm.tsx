@@ -121,8 +121,10 @@ export default function PackagesForm({
                 <Input
                   id={`duration-${idx}`}
                   label="Duration (Hours)"
-                  description="Minimum duration is 1 hour"
+                  description="Must fit within one operating day"
                   type="number"
+                  min={1}
+                  max={24}
                   placeholder="8"
                   value={pkg.durationHours}
                   onNumberChange={(val) => updatePackage(idx, "durationHours", val)}
@@ -249,4 +251,3 @@ export default function PackagesForm({
     </FormField>
   );
 }
-

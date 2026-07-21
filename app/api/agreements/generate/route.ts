@@ -6,8 +6,12 @@ import React from "react";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import AgreementDocument from "@/components/pdfs/AgreementDocument";
 import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
+import { getClientIp } from "@/lib/http/requestMeta";
 import prisma from "@/lib/prismadb";
+import { formatRetryAfterMs, rateLimit } from "@/lib/security/rateLimit";
+import { uploadPrivateDocument } from "@/lib/storage/privateDocuments";
 import { formatISTDate } from "@/lib/utils";
+import { UserRole } from "@/types/user";
 
 export const runtime = "nodejs";
 
@@ -106,6 +110,19 @@ export async function POST(request: Request) {
         if (!currentUser?.id) {
             return createErrorResponse("Unauthorized", 401);
         }
+        if (currentUser.role !== UserRole.OWNER && currentUser.role !== UserRole.ADMIN) {
+            return createErrorResponse("Only owners and administrators can generate listing agreements", 403);
+        }
+        const generationLimit = rateLimit({
+            key: `agreement-pdf:${currentUser.id}:${getClientIp(request.headers)}`,
+            limit: 20,
+            windowMs: 15 * 60_000,
+        });
+        if (!generationLimit.allowed) {
+            const response = createErrorResponse("Too many agreement generation requests", 429);
+            response.headers.set("Retry-After", formatRetryAfterMs(generationLimit.resetAt));
+            return response;
+        }
 
         const parsedBody = await readJsonObject(request, 1_500_000);
         if (!parsedBody.success) return parsedBody.response;
@@ -126,14 +143,19 @@ export async function POST(request: Request) {
 
         const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
 
-        const listing = await prisma.listing.findUnique({
-            where: isObjectId ? { id: listingId } : { slug: listingId },
-            select: { id: true, userId: true },
-        });
-        if (!listing || listing.userId !== currentUser.id) {
+        const listing = isObjectId
+            ? await prisma.listing.findUnique({
+                where: { id: listingId },
+                select: { id: true, userId: true, archivedAt: true },
+            })
+            : await prisma.listing.findUnique({
+                where: { slug: listingId },
+                select: { id: true, userId: true, archivedAt: true },
+            });
+        if ((listing && (listing.userId !== currentUser.id || listing.archivedAt)) || (!listing && !isObjectId)) {
             return createErrorResponse("Listing not found", 404);
         }
-        const actualListingId = listing.id;
+        const actualListingId = listing?.id || listingId;
 
         const dateStr = formatISTDate(new Date());
 
@@ -149,37 +171,20 @@ export async function POST(request: Request) {
         const publicId = `agreement-${timestamp}`;
         const key = `${folder}/${publicId}/signed.pdf`;
 
-        const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
-        if (!bucket) throw new Error("Missing R2 bucket config");
-
-        const { PutObjectCommand } = await import("@aws-sdk/client-s3");
-        const { r2 } = await import("@/lib/storage/r2");
-
-        const command = new PutObjectCommand({
-            Bucket: bucket,
-            Key: key,
-            Body: buffer as Buffer,
-            ContentType: "application/pdf"
-        });
-
         try {
-            await r2.send(command);
+            const storageRef = await uploadPrivateDocument({
+                key,
+                body: buffer as Buffer,
+                contentType: "application/pdf",
+            });
+            return createSuccessResponse({
+                storageRef,
+                public_id: key,
+            });
         } catch (error) {
             console.error("R2 agreement upload error:", error);
             throw new Error("R2 upload failed");
         }
-
-        const publicBaseUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL?.replace(/\/+$/, "");
-        if (!publicBaseUrl || !/^https:\/\//i.test(publicBaseUrl)) {
-            throw new Error("Missing or invalid R2 public URL config");
-        }
-        const secureUrl = `${publicBaseUrl}/${key}`;
-
-        return createSuccessResponse({
-            url: secureUrl,
-            pdfUrl: secureUrl,
-            public_id: key,
-        });
     } catch (error) {
         return handleRouteError(error, "POST /api/agreements/generate");
     }

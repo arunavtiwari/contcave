@@ -118,7 +118,7 @@ export async function GET(request: Request) {
           provider: string;
         } | null;
 
-      if (!googleAccount || !googleAccount.access_token) {
+      if (!googleAccount || (!googleAccount.access_token && !googleAccount.refresh_token)) {
         return createErrorResponse(
           "Listing owner hasn't connected their Google Calendar",
           400
@@ -127,19 +127,40 @@ export async function GET(request: Request) {
 
       accessToken = googleAccount.access_token;
     } else {
-      if (!session.calendarAccessToken) {
-        return createErrorResponse("Session calendar access token missing", 401);
+      googleAccount = await prisma.account.findFirst({
+        where: { userId: session.user.id, provider: "google-calendar" },
+        select: { id: true, refresh_token: true, access_token: true, provider: true },
+      });
+      if (!googleAccount || (!googleAccount.access_token && !googleAccount.refresh_token)) {
+        return createErrorResponse("Google Calendar is not connected", 400);
       }
-
-      accessToken = session.calendarAccessToken;
-    }
-
-    if (!accessToken) {
-      return createErrorResponse("Access token not available", 400);
+      accessToken = googleAccount.access_token;
     }
 
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
       return createErrorResponse("Server configuration error", 500);
+    }
+
+    if (!accessToken && googleAccount?.refresh_token) {
+      const refreshedTokens = await refreshCalendarAccessToken({
+        refresh_token: googleAccount.refresh_token,
+      });
+
+      await prisma.account.update({
+        where: { id: googleAccount.id },
+        data: {
+          access_token: refreshedTokens.access_token,
+          expires_at: refreshedTokens.expires_in
+            ? Math.floor(Date.now() / 1000) + refreshedTokens.expires_in
+            : null,
+        },
+      });
+
+      accessToken = refreshedTokens.access_token;
+    }
+
+    if (!accessToken) {
+      return createErrorResponse("Access token not available", 400);
     }
 
     const oauth2Client = new google.auth.OAuth2(

@@ -2,32 +2,6 @@ import type { NextAuthConfig } from "next-auth";
 
 import { UserRole } from "@/types/user";
 
-async function refreshCalendarAccessToken(token: Record<string, unknown>) {
-    try {
-        const response = await fetch("https://oauth2.googleapis.com/token", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-                client_id: process.env.GOOGLE_CLIENT_ID!,
-                client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-                grant_type: "refresh_token",
-                refresh_token: token.calendarRefreshToken as string,
-            }),
-        });
-        const refreshedTokens = await response.json();
-        if (!response.ok) throw refreshedTokens;
-        return {
-            ...token,
-            calendarAccessToken: refreshedTokens.access_token,
-            calendarAccessTokenExpires: Date.now() + refreshedTokens.expires_in * 1000,
-            calendarRefreshToken: refreshedTokens.refresh_token ?? token.calendarRefreshToken,
-        };
-    } catch (error) {
-        console.error("Error refreshing calendar access token:", error);
-        return { ...token, error: "RefreshAccessTokenError" };
-    }
-}
-
 const PROTECTED_ROUTES = [
     '/dashboard',
     '/profile',
@@ -130,27 +104,7 @@ export const authConfig = {
                     token.is_verified = user.is_verified;
                 }
 
-                if (account.provider === "google-calendar") {
-                    token.calendarAccessToken = account.access_token;
-                    token.calendarRefreshToken = account.refresh_token;
-                    token.calendarAccessTokenExpires = Date.now() + Number(account.expires_in) * 1000;
-                } else if (account.provider === "google") {
-                    token.accessToken = account.access_token;
-                }
-
                 return token;
-            }
-
-            if (
-                token.calendarAccessToken &&
-                token.calendarAccessTokenExpires &&
-                Date.now() < Number(token.calendarAccessTokenExpires)
-            ) {
-                return token;
-            }
-
-            if (token.calendarRefreshToken) {
-                return await refreshCalendarAccessToken(token);
             }
 
             return token;
@@ -159,12 +113,6 @@ export const authConfig = {
             if (token.id) {
                 session.user.id = token.id as string;
             }
-
-            session.accessToken = token.accessToken as string | undefined;
-            session.calendarAccessToken = token.calendarAccessToken as string | undefined;
-            session.calendarRefreshToken = token.calendarRefreshToken as string | undefined;
-            session.calendarAccessTokenExpires = token.calendarAccessTokenExpires as number | undefined;
-            session.error = token.error as string | undefined;
 
             if (token.role !== undefined) {
                 session.user.role = token.role as UserRole;

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createKnownErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { sendEmail } from "@/lib/email/mailer";
 import { getCustomerOnboardingTemplate } from "@/lib/email/templates";
 import { normalizePhone } from "@/lib/phone";
@@ -23,11 +23,9 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    if (!request.headers.get("content-type")?.includes("application/json")) {
-      return createErrorResponse("Content-Type must be application/json", 415);
-    }
-
-    const body = await request.json().catch(() => ({}));
+    const parsedBody = await readJsonObject(request, 10_000);
+    if (!parsedBody.success) return parsedBody.response;
+    const body = parsedBody.data;
     const { email, name, password, phone, role = UserRole.CUSTOMER } = body;
 
     const isOwner = role === UserRole.OWNER;
@@ -90,8 +88,9 @@ export async function POST(request: NextRequest) {
         role: user.role,
       }, 201, "User registered successfully");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Registration failed";
-      return createErrorResponse(message, 400);
+      const knownResponse = createKnownErrorResponse(error);
+      if (knownResponse) return knownResponse;
+      throw error;
     }
   } catch (error) {
     return handleRouteError(error, "POST /api/register");

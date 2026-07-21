@@ -1,4 +1,3 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import {
   Invoice,
   InvoiceDocumentType,
@@ -16,8 +15,7 @@ import { getAutomatedNotificationStart } from "@/lib/notification-activation";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
 import { isInvoiceEligible } from "@/lib/reservation/status";
-import { buildR2PublicUrl, isTrustedR2PublicUrl } from "@/lib/storage/publicUrl";
-import { r2 } from "@/lib/storage/r2";
+import { readPrivateDocument, uploadPrivateDocument } from "@/lib/storage/privateDocuments";
 import { getValidatedBaseUrl } from "@/lib/utils";
 
 import { generateInvoicePDFBlob, InvoiceLineItem, InvoiceParty, InvoicePDFData, InvoiceTaxBreakup } from "./pdfBlob";
@@ -397,15 +395,8 @@ function buildInvoiceAttachment(invoice: Invoice, pdfBuffer: Buffer): Attachment
 async function downloadInvoiceAttachment(invoice: Invoice): Promise<AttachmentInput | undefined> {
   if (!invoice.invoiceUrl) return undefined;
   if (isE2eEffectDisabled("E2E_DISABLE_R2_UPLOAD")) return e2eAttachmentCache.get(invoice.id);
-  if (!isTrustedR2PublicUrl(invoice.invoiceUrl)) return undefined;
   try {
-    const res = await fetch(invoice.invoiceUrl);
-    if (!res.ok) throw new Error(`Invoice download failed (${res.status})`);
-    const declaredLength = Number(res.headers.get("content-length") || 0);
-    if (declaredLength > 10_000_000) throw new Error("Invoice attachment exceeds size limit");
-    const arrayBuffer = await res.arrayBuffer();
-    if (arrayBuffer.byteLength > 10_000_000) throw new Error("Invoice attachment exceeds size limit");
-    const buffer = Buffer.from(arrayBuffer);
+    const buffer = await readPrivateDocument(invoice.invoiceUrl, 10_000_000);
     return {
       filename: `${invoice.invoiceNumber}.pdf`,
       content: buffer.toString("base64"),
@@ -424,8 +415,6 @@ async function uploadInvoicePdf(params: {
     return `https://assets.contcave.com/e2e/invoices/${params.invoice.id}/${params.invoice.invoiceNumber}.pdf`;
   }
 
-  const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
-  if (!bucket) throw new Error("Missing R2 bucket config");
   const key = [
     "users",
     params.invoice.userId,
@@ -437,14 +426,7 @@ async function uploadInvoicePdf(params: {
     `${params.invoice.invoiceNumber}.pdf`,
   ].join("/");
 
-  await r2.send(new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-    Body: params.pdfBuffer,
-    ContentType: "application/pdf",
-  }));
-
-  return buildR2PublicUrl(key);
+  return uploadPrivateDocument({ key, body: params.pdfBuffer, contentType: "application/pdf" });
 }
 
 function getInvoiceEmailSubject(invoice: Invoice) {
@@ -463,8 +445,8 @@ function getInvoiceEmailHtml(invoice: Invoice, recipientName?: string | null) {
     : invoice.documentType === "OWNER_MONTHLY_BILL_OF_SUPPLY"
       ? "bill of supply"
       : "tax invoice";
-  const invoiceUrl = invoice.invoiceUrl && isTrustedR2PublicUrl(invoice.invoiceUrl)
-    ? `<p><a href="${escapeEmailHtml(invoice.invoiceUrl)}" style="color:#111827;font-weight:600;">View invoice PDF</a></p>`
+  const invoiceUrl = invoice.invoiceUrl
+    ? `<p><a href="${escapeEmailHtml(`${getValidatedBaseUrl()}/api/documents/invoices/${invoice.id}`)}" style="color:#111827;font-weight:600;">View invoice PDF</a></p>`
     : "";
   return `<!DOCTYPE html>
 <html>

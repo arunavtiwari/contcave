@@ -16,7 +16,16 @@ export async function getAuthorizedChatReservation(
     where: {
       id: reservationId,
       markedForDeletion: false,
-      OR: [{ userId: currentUserId }, { listing: { userId: currentUserId } }],
+      OR: [
+        {
+          userId: currentUserId,
+          AND: [{ OR: [{ hiddenByGuestAt: null }, { hiddenByGuestAt: { isSet: false } }] }],
+        },
+        {
+          listing: { userId: currentUserId },
+          AND: [{ OR: [{ hiddenByOwnerAt: null }, { hiddenByOwnerAt: { isSet: false } }] }],
+        },
+      ],
     },
     select: {
       startDate: true,

@@ -85,6 +85,23 @@ export async function POST(request: NextRequest) {
                 ? decryptPaymentDetailsInternal(paymentRecord)
                 : null;
 
+            const payoutVerificationComplete = Boolean(
+                currentUser.email_verified
+                && currentUser.phone_verified
+                && currentUser.aadhaar_verified
+                && currentUser.bank_verified
+                && currentUser.email
+                && currentUser.phone
+            );
+
+            if (!payoutVerificationComplete) {
+                return createSuccessResponse(
+                    result.data,
+                    200,
+                    'Payment details saved. Complete identity and bank verification before Cashfree payout onboarding.'
+                );
+            }
+
             if (decryptedPaymentRecord?.cashfreeVendorId) {
                 const decryptedVendorId = decryptedPaymentRecord.cashfreeVendorId;
 
@@ -114,10 +131,13 @@ export async function POST(request: NextRequest) {
                 }
 
                 if (validated.gstin !== undefined) {
+                    const effectiveGstin = validated.gstin === undefined
+                        ? decryptedPaymentRecord.gstin
+                        : validated.gstin || null;
                     updatePayload.kyc_details = {
-                        account_type: validated.gstin ? "BUSINESS" : "INDIVIDUAL",
-                        business_type: validated.gstin ? "B2B" : "Miscellaneous",
-                        ...(validated.gstin ? { gst: validated.gstin.toUpperCase() } : {}),
+                        account_type: effectiveGstin ? "BUSINESS" : "INDIVIDUAL",
+                        business_type: effectiveGstin ? "B2B" : "Miscellaneous",
+                        ...(effectiveGstin ? { gst: effectiveGstin.toUpperCase() } : {}),
                     };
                 }
 
