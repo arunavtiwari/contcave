@@ -47,7 +47,11 @@ Rules:
 - **Filename = `id` = `slug`.** Kebab-case, keyword-first, no year in the slug
   unless the year is part of the keyword (e.g. `podcast-studio-rental-delhi-ncr`).
 - **No images.** Omit `meta.image` entirely and never use `"blockType": "image"`.
-  The UI and OG tags fall back gracefully (`OG_IMAGE` default).
+  The blog card and post banner automatically render a gradient cover
+  (`lib/blogGradient.ts`, seeded from the post `id`) whenever `meta.image` is
+  absent — this is a site feature, not something the routine generates or
+  writes into the post JSON. OG/social share tags still fall back to the
+  static `OG_IMAGE` default (dynamic OG gradients are not implemented).
 - `publishedAt` / `createdAt` / `updatedAt`: today's date as an ISO timestamp,
   e.g. `"2026-07-06T04:00:00Z"`.
 - `_status`: `"published"`, `enablePremiumContent`: `false`, `premiumContent`: `[]`.
@@ -55,6 +59,12 @@ Rules:
   `populatedAuthors`: `[{ "id": "author-cc-edit", "name": "ContCave Editorial" }]`.
 - `categories`: exactly one, from the fixed set below, with breadcrumbs shaped like
   existing posts (see any file in `content/posts/` for the shape).
+- **Never invent new ids.** The only new identifier a post introduces is its own
+  `id`/`slug`. Every other id must be reused from the fixed sets already defined
+  here: category `id` (one of the five below), author id (`author-cc-edit`),
+  breadcrumb ids (`bc-home`, `bc-blogs`, `bc-<category-id>`). Block ids follow the
+  existing naming convention (`h-`, `p-`, `list-`, …) but are scoped to one post,
+  so reusing the pattern (not the literal string) from another post is fine.
 
 ### Categories (fixed set — do not invent new ones)
 
@@ -127,10 +137,12 @@ JSON parse + type-check is sufficient since posts are read dynamically.
 
 ## Publishing flow (automated routine)
 
-1. Create/checkout the session's working branch.
+1. `git fetch origin staging` then create the working branch from
+   `origin/staging` (e.g. `git checkout -b blog/<slug> origin/staging`).
+   Always branch from the latest `staging`, never from a stale local branch.
 2. Add the post JSON + updated `TOPIC_BACKLOG.md` in one commit:
    `blog: <post title>`.
-3. Push the branch and open a pull request to the default branch (`staging`)
+3. Push the branch and open a pull request against `staging` (not `main`)
    titled `blog: <post title>`, with a body summarizing the topic, primary
    keyword, and tag count.
 4. Do not merge the PR yourself unless explicitly authorized.

@@ -5,6 +5,7 @@ import Script from "next/script";
 
 import Container from "@/components/Container";
 import PageBanner from "@/components/ui/PageBanner";
+import { getBlogGradient } from "@/lib/blogGradient";
 import { getPostData, getSortedPostsData } from "@/lib/posts";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, asciiClean, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
@@ -135,6 +136,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
         title={post.title}
         subtitle={`Published on: ${formattedDate}`}
         image={post.meta?.image?.url}
+        gradient={getBlogGradient(post.id)}
       />
 
       {/* Article Content */}

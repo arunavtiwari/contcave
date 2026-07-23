@@ -11,13 +11,18 @@ interface PageBannerProps {
     title: string;
     subtitle?: string;
     image?: string;
+    /** CSS gradient (e.g. from getBlogGradient) used when no image is given. */
+    gradient?: string;
 }
 
 const PageBanner: React.FC<PageBannerProps> = ({
     title,
     subtitle,
-    image = "/assets/banner.jpg",
+    image,
+    gradient,
 }) => {
+    const resolvedImage = image ?? (gradient ? undefined : "/assets/banner.jpg");
+
     return (
         <section className="relative h-[35vh] min-h-75 w-full flex items-center justify-center overflow-hidden">
             <motion.div
@@ -26,14 +31,18 @@ const PageBanner: React.FC<PageBannerProps> = ({
                 transition={{ duration: 1.2, ease: "easeOut" }}
                 className="absolute inset-0"
             >
-                <Image
-                    src={image}
-                    alt={title}
-                    fill
-                    sizes="100vw"
-                    className="object-cover opacity-60"
-                    priority
-                />
+                {resolvedImage ? (
+                    <Image
+                        src={resolvedImage}
+                        alt={title}
+                        fill
+                        sizes="100vw"
+                        className="object-cover opacity-60"
+                        priority
+                    />
+                ) : (
+                    <div className="absolute inset-0 opacity-80" style={{ backgroundImage: gradient }} />
+                )}
                 <div className="absolute inset-0 bg-linear-to-b from-foreground/40 via-foreground/60 to-foreground" />
             </motion.div>
 
