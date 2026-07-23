@@ -137,12 +137,34 @@ JSON parse + type-check is sufficient since posts are read dynamically.
 
 ## Publishing flow (automated routine)
 
-1. `git fetch origin staging` then create the working branch from
-   `origin/staging` (e.g. `git checkout -b blog/<slug> origin/staging`).
-   Always branch from the latest `staging`, never from a stale local branch.
-2. Add the post JSON + updated `TOPIC_BACKLOG.md` in one commit:
+Use a single, persistent branch for all scheduled posts — `regular-blog-update`.
+Do **not** create a new branch per post; that produces a pile of one-post
+branches/PRs that never get cleaned up. Instead, each run adds one more commit
+to the same branch/PR until someone merges it.
+
+1. `git fetch origin staging`.
+2. Sync the shared branch with the latest `staging`:
+   - `git fetch origin regular-blog-update` (check
+     `git ls-remote --heads origin regular-blog-update` first).
+   - If it exists on `origin`: check it out tracking the remote branch, then
+     merge `origin/staging` into it (`git merge origin/staging --no-edit`).
+     This should be conflict-free since the branch only ever gains new post
+     files and backlog-file edits.
+   - If it does not exist yet (first run, or the previous PR was merged and
+     GitHub auto-deleted the branch): create it fresh —
+     `git checkout -b regular-blog-update origin/staging`.
+3. Add the post JSON + updated `TOPIC_BACKLOG.md` in one commit:
    `blog: <post title>`.
-3. Push the branch and open a pull request against `staging` (not `main`)
-   titled `blog: <post title>`, with a body summarizing the topic, primary
-   keyword, and tag count.
-4. Do not merge the PR yourself unless explicitly authorized.
+4. Push: `git push origin regular-blog-update`.
+5. Check for an existing **open** PR from this branch into `staging`
+   (`gh pr list --head regular-blog-update --base staging --state open`).
+   - If one is open, you're done — the new commit is already part of it. A
+     short PR comment noting the newly added post is a nice-to-have.
+   - If none is open (first run, or the last one was merged/closed), open a
+     new PR titled `blog: <post title>` with a body summarizing the topic,
+     primary keyword, and tag count.
+6. Do not merge the PR yourself unless explicitly authorized.
+
+Note: this branch strategy applies only to the recurring post routine. One-off
+infra/editorial changes (like updates to this playbook itself) should still use
+their own short-lived branch as normal.
