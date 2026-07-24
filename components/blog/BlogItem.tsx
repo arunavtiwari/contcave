@@ -7,6 +7,7 @@ import React from "react";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
+import { getBlogGradient } from "@/lib/blogGradient";
 import { formatISTDate } from "@/lib/utils";
 import { BlogPost } from "@/types/blog";
 
@@ -21,13 +22,18 @@ const BlogItem: React.FC<BlogItemProps> = ({ post }) => {
             className="group flex flex-col bg-background rounded-2xl shadow-sm transition-all duration-500 overflow-hidden h-full"
         >
             <div className="relative h-60 overflow-hidden rounded-t-2xl">
-                {post.meta.image && (
+                {post.meta.image ? (
                     <Image
                         src={post.meta.image.url}
                         alt={post.title}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover transition-transform duration-700 transform-gpu group-hover:scale-105"
+                    />
+                ) : (
+                    <div
+                        className="absolute inset-0 transition-transform duration-700 transform-gpu group-hover:scale-105"
+                        style={{ backgroundImage: getBlogGradient(post.id) }}
                     />
                 )}
                 <div className="absolute top-3 right-3 z-10">
