@@ -1,0 +1,262 @@
+{
+  "id": "list-your-studio-for-rent-india",
+  "title": "List Your Studio for Rent in India: 2026 Host's Guide",
+  "categories": [
+    {
+      "id": "host-guides",
+      "title": "Host Guides",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Host Guides", "id": "bc-host-guides" }
+      ],
+      "createdAt": "2026-07-24T00:00:00Z",
+      "updatedAt": "2026-07-24T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-07-24T04:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "If you have an empty room, a spare floor, or a studio that only gets used a few days a week, you can list it for rent and turn idle hours into income. Here's exactly what that takes in India."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "List Your Studio for Rent in India: 2026 Host's Guide"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "If you're searching for how to list your studio for rent, you're probably sitting on space that's either underused or costing you money to maintain — a photography studio that's booked three days a week, a spare floor in a commercial building, or a room you built out for your own shoots that now sits empty most weekdays. India's creator economy has grown fast enough that demand for hourly studio space now regularly outpaces supply in cities like Delhi, Gurugram, and Noida, which means there's a real opening for hosts who list well. This guide covers what you actually need before you list, how to price the space, what makes a listing convert into bookings, and how commission and payouts typically work."
+    },
+    {
+      "id": "h-why",
+      "blockType": "heading",
+      "content": "Why Now Is a Good Time to List Your Studio"
+    },
+    {
+      "id": "p-why",
+      "blockType": "paragraph",
+      "content": "The demand side of this market has shifted in the last few years. Reels, YouTube, and podcasting turned individual creators into recurring studio renters instead of one-off wedding or portrait clients, and D2C brands now shoot product and ad content on a near-weekly cadence instead of booking one big annual campaign. That means the buyers aren't just occasional — they're the kind of renters who come back every month if the space, price, and booking experience work for them. For a host, this changes the math: a studio doesn't need to be booked every single day to be worth listing, because even two or three paid slots a week can meaningfully offset rent, equipment costs, or a mortgage on the space."
+    },
+    {
+      "id": "h-ready",
+      "blockType": "heading",
+      "content": "What You Need Before You List Your Studio for Rent"
+    },
+    {
+      "id": "p-ready",
+      "blockType": "paragraph",
+      "content": "Before you post a listing anywhere, get the basics in order — this is what separates a listing that gets approved and booked quickly from one that sits ignored."
+    },
+    {
+      "id": "list-ready",
+      "blockType": "list",
+      "items": [
+        "Government-issued ID and proof of your right to use the space (ownership papers or a lease that permits commercial use)",
+        "A bank account for payouts, plus any details a platform's KYC process asks for",
+        "Basic safety and access essentials: functioning power backup, a clean and clutter-free set, working washroom access",
+        "A clear list of what's included — lights, backdrops, props, Wi-Fi, AC — so guests know exactly what they're booking",
+        "House rules written down: shoe policy, noise limits for shared buildings, cleaning expectations, cancellation window"
+      ]
+    },
+    {
+      "id": "h-price",
+      "blockType": "heading",
+      "content": "How to Price Your Studio for Rent"
+    },
+    {
+      "id": "p-price",
+      "blockType": "paragraph",
+      "content": "Start from your costs, not from what a competitor charges. Add up rent or EMI apportioned to the hours you'd realistically rent out, electricity, any equipment depreciation, and cleaning between sessions — that's your floor. From there, check what comparable spaces in your city and category are charging per hour; in most Delhi NCR markets, a bare shooting space with natural light rents for roughly ₹500-1,000 an hour, a standard equipped studio with lights and backdrops for ₹800-1,800, and a multi-set or podcast-ready studio for ₹1,500-3,000, though your exact number depends on location, equipment, and how finished the space looks in photos. Many hosts also offer a discounted full-day rate — commonly 20-30% below the equivalent hourly total — because it reduces the number of turnovers you manage in a day."
+    },
+    {
+      "id": "h-listing",
+      "blockType": "heading",
+      "content": "Building a Listing That Actually Gets Booked"
+    },
+    {
+      "id": "p-listing",
+      "blockType": "paragraph",
+      "content": "Two listings for near-identical spaces can get very different booking volumes, and the difference is almost always photos and clarity, not price."
+    },
+    {
+      "id": "list-listing",
+      "blockType": "list",
+      "items": [
+        "Shoot your listing photos in daylight with the set styled the way a guest would actually use it, not an empty room",
+        "Include a wide shot of the full space plus close-ups of each backdrop, prop set, and equipment piece you're offering",
+        "Write the description around use cases — 'reels and product shoots' reads better than a generic 'studio for rent'",
+        "List exact inclusions and exclusions so guests aren't surprised by an extra charge for a backdrop or a light stand",
+        "Keep your calendar realistically updated — a listing that shows stale availability loses bookings to a faster-responding host"
+      ]
+    },
+    {
+      "id": "h-manage",
+      "blockType": "heading",
+      "content": "Managing Bookings, Calendar & Guests"
+    },
+    {
+      "id": "p-manage",
+      "blockType": "paragraph",
+      "content": "Once bookings start coming in, the operational side matters as much as the listing itself. Block out personal-use hours in advance so you're never double-booked, and build in a buffer between sessions for cleanup and reset — 15-30 minutes is usually enough for a small studio, more for a multi-set space. Respond to booking requests quickly; creators and brand teams often compare two or three studios before confirming, and slow replies lose bookings even when your space and price are competitive. It also helps to keep a simple checklist for every session — confirm inclusions, note the overtime rate, and walk through house rules — so first-time guests know what to expect and repeat guests keep coming back."
+    },
+    {
+      "id": "quote-tip",
+      "blockType": "quote",
+      "content": "A studio doesn't need to be booked every day to be worth listing — two or three well-priced weekly slots are often enough to offset rent and equipment costs, especially once you build a base of repeat creators and brand teams."
+    },
+    {
+      "id": "h-payouts",
+      "blockType": "heading",
+      "content": "How Commission & Payouts Typically Work"
+    },
+    {
+      "id": "p-payouts",
+      "blockType": "paragraph",
+      "content": "Most studio-rental marketplaces charge hosts a service commission on each booking — typically somewhere in the range of 15-25%, deducted before the payout reaches your account — in exchange for handling discovery, payment collection, and dispute support. Payouts usually run on a short settlement cycle after the booking is completed rather than instantly, so it's worth confirming the exact schedule before you rely on the income for recurring expenses. Keep your bank details and KYC information accurate and up to date; incomplete verification is one of the most common reasons a host's payout gets delayed."
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Listing Your Studio for Rent"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "How much can I earn by renting out my studio in India?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "It depends heavily on your city, equipment, and how many hours a week you make available. A well-equipped studio in a high-demand pocket of Delhi NCR renting for ₹1,000-2,000 an hour and booked even 15-20 hours a week can add up to a meaningful side income; a bare space in a less central area will earn less per hour but may still be worth listing if it's otherwise sitting unused. Treat any number you see online as a range, not a guarantee — your actual earnings depend on how competitive and well-photographed your listing is."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "Do I need GST or a business registration to list my studio for rent?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "This depends on your total rental turnover and how you're structured, so it's worth checking current GST thresholds with a tax advisor before you start earning at volume. Many individual hosts begin listing as an individual with basic KYC and formalise registration later if their studio income crosses the applicable threshold or if brand clients specifically request GST invoices."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "Can I list a studio that's inside my home?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "Yes, many hosts list a spare room or a converted floor of their home, and it's common for smaller creator-focused shoots. Just be clear in the listing that it's a home-based space, set expectations around noise, shared areas, and access hours, and make sure your building or society's rules allow short-term commercial use before you start taking bookings."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "How are hosts verified before a listing goes live?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Platforms typically ask for a government ID, proof that you're authorised to rent out the space, and bank details for payouts before approving a listing. This protects both hosts and guests — it keeps low-effort or fake listings out of search results and reassures guests that they're booking a verified, real space."
+    },
+    {
+      "id": "h-faq5",
+      "blockType": "heading",
+      "content": "Can I block dates for my own personal use?"
+    },
+    {
+      "id": "p-faq5",
+      "blockType": "paragraph",
+      "content": "Yes — most platforms let hosts set their own availability calendar, so you can block out the hours or days you need the studio for your own shoots and only open the rest for booking. Keeping this calendar current is one of the simplest ways to avoid double-bookings and guest frustration."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Why List Your Studio with ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave is a studio booking marketplace built for exactly this: hosts across Delhi NCR list photography, video, podcast, and event spaces with transparent hourly pricing and clear inclusion details, while creators and brands compare and book instantly instead of DM-ing five studios for a rate card. Listing your space means your studio shows up to the creators and brand teams already searching for one, without you having to build a booking system, handle payment collection, or chase guests for confirmation yourself."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "Listing your studio for rent in India is straightforward once your basics are in order — the difference between a listing that earns steadily and one that sits idle usually comes down to preparation, photos, and how quickly you respond to booking requests."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Get your ID, ownership or lease proof, and bank KYC ready before you list",
+        "Price from your real costs first, then check comparable studios in your city and category",
+        "Shoot daylight photos of the space styled the way a guest would actually use it",
+        "Keep your availability calendar current and respond to booking requests quickly",
+        "List on ContCave to reach creators and brand teams already searching for a studio in your area"
+      ]
+    }
+  ],
+  "slug": "list-your-studio-for-rent-india",
+  "meta": {
+    "title": "List Your Studio for Rent in India: 2026 Host's Guide",
+    "description": "Want to list your studio for rent in India? Learn what you need, how to price it, and how to build a listing that gets booked — with ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-07-24T04:00:00Z",
+  "updatedAt": "2026-07-24T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "list your studio for rent",
+    "list your studio for rent india",
+    "rent out my studio",
+    "how to list a studio on rent",
+    "become a studio host",
+    "studio host guide india",
+    "earn money renting studio space",
+    "rent out photography studio",
+    "rent out podcast studio",
+    "rent out event space",
+    "studio rental income india",
+    "studio for rent delhi ncr",
+    "list studio delhi",
+    "list studio noida",
+    "list studio gurugram",
+    "studio hosting platform india",
+    "how much can i earn renting my studio",
+    "studio commission rates india",
+    "studio booking platform for hosts",
+    "photography studio host guide",
+    "podcast studio host guide",
+    "list your space for shoots",
+    "turn your studio into income",
+    "studio owner guide india",
+    "host your studio online",
+    "studio rental business india",
+    "list studio for creators",
+    "list studio for brands",
+    "get more studio bookings",
+    "ContCave"
+  ]
+}
