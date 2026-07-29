@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 8 | 25 Instagram Reels Ideas You Can Batch-Shoot in One Studio Session | reels ideas for creators | content-creation | creators |
 | 9 | Studio Booking Checklist: 15 Things to Confirm Before You Pay | studio booking checklist | booking-tips | creators, brands |
 | 10 | Hourly vs Full-Day Studio Rates: How Studio Pricing Works in India | studio rental price per hour | booking-tips | creators, brands |
 | 11 | Pre-Wedding Shoot Studios & Indoor Locations in Delhi NCR | pre wedding shoot locations delhi | studio-guides | consumers |
@@ -65,3 +64,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-07-22 | 5 | studio-on-rent-gurgaon |
 | 2026-07-24 | 6 | list-your-studio-for-rent-india |
 | 2026-07-27 | 7 | studio-for-rent-in-noida |
+| 2026-07-29 | 8 | reels-ideas-for-creators |
