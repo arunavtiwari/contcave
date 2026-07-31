@@ -15,11 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 5 | Best Studios in Gurugram for Content Creators & Brands | studio on rent gurgaon | studio-guides | creators, brands |
-| 6 | How to List Your Studio and Earn: A Host's Guide | list your studio for rent | host-guides | hosts |
-| 7 | Best Studios in Noida for YouTube, Podcasts & Product Shoots | studio for rent in noida | studio-guides | creators |
-| 8 | 25 Instagram Reels Ideas You Can Batch-Shoot in One Studio Session | reels ideas for creators | content-creation | creators |
-| 9 | Studio Booking Checklist: 15 Things to Confirm Before You Pay | studio booking checklist | booking-tips | creators, brands |
 | 10 | Hourly vs Full-Day Studio Rates: How Studio Pricing Works in India | studio rental price per hour | booking-tips | creators, brands |
 | 11 | Pre-Wedding Shoot Studios & Indoor Locations in Delhi NCR | pre wedding shoot locations delhi | studio-guides | consumers |
 | 12 | Green Screen Studio Rental: When You Need Chroma & What It Costs | green screen studio near me | studio-guides | creators |
@@ -65,3 +60,8 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-07-16 | 2 | photography-studio-rental-cost-india |
 | 2026-07-16 | 3 | youtube-studio-rent-vs-build-india |
 | 2026-07-16 | 4 | product-photography-studio-d2c-brands |
+| 2026-07-22 | 5 | studio-on-rent-gurgaon |
+| 2026-07-24 | 6 | list-your-studio-for-rent-india |
+| 2026-07-27 | 7 | studio-for-rent-in-noida |
+| 2026-07-29 | 8 | reels-ideas-for-creators |
+| 2026-07-31 | 9 | studio-booking-checklist |

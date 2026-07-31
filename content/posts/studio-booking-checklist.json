@@ -1,0 +1,269 @@
+{
+  "id": "studio-booking-checklist",
+  "title": "Studio Booking Checklist: 15 Things to Confirm Before You Pay",
+  "categories": [
+    {
+      "id": "booking-tips",
+      "title": "Booking Tips",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Booking Tips", "id": "bc-booking-tips" }
+      ],
+      "createdAt": "2026-07-31T00:00:00Z",
+      "updatedAt": "2026-07-31T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-07-31T04:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "Run through this studio booking checklist before you pay an advance — pricing and inclusions, equipment, cancellation terms, and on-site logistics — so your shoot day doesn't turn into a scramble."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "Studio Booking Checklist: 15 Things to Confirm Before You Pay"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "A studio booking checklist is the difference between a shoot that runs on schedule and one that loses an hour to a missing backdrop, a power outage, or a cancellation clause nobody read. Most disputes between renters and studios don't come from bad studios — they come from assumptions that were never confirmed before the advance was paid. This checklist walks through the 15 things worth verifying in writing before you book, grouped into pricing and inclusions, equipment and space, policies, and on-site logistics, so you know exactly what to ask whether you're booking a photo studio, a podcast room, or a full production space in Delhi NCR."
+    },
+    {
+      "id": "h-why",
+      "blockType": "heading",
+      "content": "Why a Checklist Matters More Than the Listing Photos"
+    },
+    {
+      "id": "p-why",
+      "blockType": "paragraph",
+      "content": "Listing photos and a low hourly rate are what get you to click 'book' — they're rarely what determines whether the shoot actually goes well. A studio can look identical to three others in its gallery and still differ on soundproofing, backup power, or whether the quoted rate includes lights at all. Once you've paid an advance and blocked a slot, you have far less leverage to renegotiate terms on the day, and a host juggling back-to-back bookings has little slack to fix a gap you only discover on arrival. Confirming these details upfront costs a five-minute message thread; discovering them missing mid-shoot costs the booking itself, and often the client relationship or content deadline riding on it."
+    },
+    {
+      "id": "h-pricing",
+      "blockType": "heading",
+      "content": "Pricing & Inclusions (Items 1-4)"
+    },
+    {
+      "id": "p-pricing",
+      "blockType": "paragraph",
+      "content": "Start with the number itself, because 'hourly rate' means different things at different studios."
+    },
+    {
+      "id": "list-pricing",
+      "blockType": "list",
+      "items": [
+        "1. The exact hourly or package rate, and precisely what it covers — lights, backdrops, and props are sometimes billed as extras, not included",
+        "2. The minimum booking duration and the per-hour overtime rate if your shoot runs long",
+        "3. Whether the rate card differs for personal use versus a commercial or brand shoot — many studios price these separately",
+        "4. Whether the quoted price is inclusive or exclusive of GST, so the final invoice doesn't surprise you"
+      ]
+    },
+    {
+      "id": "h-equipment",
+      "blockType": "heading",
+      "content": "Equipment & Space (Items 5-8)"
+    },
+    {
+      "id": "p-equipment",
+      "blockType": "paragraph",
+      "content": "Equipment and space are where marketing photos can mislead the most, so get specifics rather than relying on the gallery."
+    },
+    {
+      "id": "list-equipment",
+      "blockType": "list",
+      "items": [
+        "5. A full equipment list in writing — strobes or LEDs, number and type of backdrops, green screen availability, mic count for podcast rooms",
+        "6. Actual usable square footage and ceiling height, since a listing's headline number can include storage or non-shooting areas",
+        "7. A recent sample photo or short clip shot in the space (not just the studio's polished marketing gallery) to judge real lighting and finish",
+        "8. Whether setup and breakdown time is included inside your paid slot, or billed separately before and after"
+      ]
+    },
+    {
+      "id": "h-policies",
+      "blockType": "heading",
+      "content": "Policies to Get in Writing (Items 9-12)"
+    },
+    {
+      "id": "p-policies",
+      "blockType": "paragraph",
+      "content": "This is the section most renters skip, and the one most likely to cause a dispute after the shoot. None of these need a formal contract — a confirmation message or email from the studio spelling out the terms is usually enough to hold both sides accountable."
+    },
+    {
+      "id": "list-policies",
+      "blockType": "list",
+      "items": [
+        "9. The advance payment amount and how it's adjusted against your final bill",
+        "10. The cancellation and rescheduling window for a refund or credit — most studios offer a partial or full refund only a few days out, and little to nothing closer to the date",
+        "11. Damage or security deposit terms, and what specifically counts as damage versus normal wear",
+        "12. How overtime and late arrival are billed — per full block or per extra minute, since this changes the real cost of running late"
+      ]
+    },
+    {
+      "id": "quote-tip",
+      "blockType": "quote",
+      "content": "If a studio won't put its cancellation policy, equipment list, or overtime rate in writing before you pay the advance, treat that as the biggest red flag on this checklist — a good studio has these answers ready without hesitation."
+    },
+    {
+      "id": "h-logistics",
+      "blockType": "heading",
+      "content": "On-Site Logistics (Items 13-15)"
+    },
+    {
+      "id": "p-logistics",
+      "blockType": "paragraph",
+      "content": "The last three items rarely show up in a listing description but matter the moment you arrive with gear, a crew, or product samples. They're also the fastest things to check with a quick message before you commit, since a studio's team will usually know the building's constraints even if the listing itself doesn't mention them."
+    },
+    {
+      "id": "list-logistics",
+      "blockType": "list",
+      "items": [
+        "13. Power backup availability — a studio without one can lose an entire lighting-heavy shoot to a single outage",
+        "14. Parking, lift access, and loading space, especially if you're carrying product samples, racks, or heavy equipment up to the studio",
+        "15. How many people are allowed on set at the booked rate, and whether extra crew, guests, or models incur an additional footfall charge"
+      ]
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Studio Booking Checklist"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "What should I confirm before paying a studio advance?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "At minimum, confirm the exact rate and what it includes, the equipment list, the cancellation and refund policy, and the overtime rate. These four alone prevent most of the disputes that come up after a shoot, and any studio worth booking should answer them without hedging."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "Is a studio's advance payment usually refundable?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "It depends on the studio and how close to the booking date you cancel. Refund and credit terms vary widely, so treat this as one of the questions to ask before paying, not something to assume — get the exact cancellation window in writing rather than relying on a general 'yes, it's refundable' answer."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "Does the hourly rate usually include lighting and backdrops?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "Often, but not always — some studios quote a bare-space rate and bill lights, extra backdrops, or props separately. Ask for a written breakdown of what's included at the quoted rate versus what counts as an add-on, especially if the listing photos show a fully styled set."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "What counts as studio overtime, and how is it charged?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Overtime typically starts the moment you run past your booked slot, including wrap-up time. Some studios bill overtime per full hour, others per minute or in smaller blocks — confirming which applies before you book avoids an unexpectedly large bill for running fifteen minutes long."
+    },
+    {
+      "id": "h-faq5",
+      "blockType": "heading",
+      "content": "Should I visit a studio in person before booking?"
+    },
+    {
+      "id": "p-faq5",
+      "blockType": "paragraph",
+      "content": "For a first booking or a high-stakes brand shoot, a walkthrough or a video call is worth the extra step — it lets you verify actual space, lighting quality, and access before you commit. For a repeat booking at a studio you already trust, recent sample shots and a written equipment list are usually enough."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Why Book with ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave lists creative studios across Delhi NCR with transparent hourly pricing and clear inclusion details on every listing, so several of these checklist items — rate, equipment, capacity — are answered before you even message the host. You can compare studios side by side, check what's included at a glance, and book your slot instantly instead of chasing five separate rate cards over chat."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "A studio booking checklist isn't about distrusting the studio — it's about making sure both sides agree on the same terms before money changes hands. Confirm pricing and inclusions, get equipment and policies in writing, and check logistics like power and access, and most shoot-day surprises disappear."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Get the exact rate, inclusions, and GST treatment confirmed in writing before paying the advance",
+        "Ask for a written equipment list and a recent sample shot from the actual space",
+        "Pin down the cancellation window, overtime rate, and damage deposit terms upfront",
+        "Confirm power backup, access, and headcount limits if you're bringing a crew or samples",
+        "Use ContCave to compare studios with transparent pricing and inclusions before you book"
+      ]
+    }
+  ],
+  "slug": "studio-booking-checklist",
+  "meta": {
+    "title": "Studio Booking Checklist: 15 Things to Confirm Before You Pay",
+    "description": "Use this 15-point studio booking checklist to confirm pricing, equipment, and cancellation terms before you pay. Avoid shoot-day surprises with ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-07-31T04:00:00Z",
+  "updatedAt": "2026-07-31T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "studio booking checklist",
+    "studio rental checklist",
+    "things to check before booking a studio",
+    "studio booking tips",
+    "before you book a studio",
+    "studio rental india",
+    "photography studio booking checklist",
+    "podcast studio booking checklist",
+    "video studio booking checklist",
+    "studio cancellation policy",
+    "studio advance payment",
+    "studio equipment checklist",
+    "studio rental agreement checklist",
+    "studio booking mistakes to avoid",
+    "how to book a studio india",
+    "studio rental price checklist",
+    "studio overtime charges",
+    "studio damage deposit",
+    "studio booking for creators",
+    "studio booking for brands",
+    "studio booking for youtubers",
+    "studio booking for podcasters",
+    "delhi ncr studio booking",
+    "studio near me checklist",
+    "hourly studio rental checklist",
+    "studio booking guide 2026",
+    "book studio online india",
+    "content shoot checklist",
+    "studio rental red flags",
+    "ContCave"
+  ]
+}
