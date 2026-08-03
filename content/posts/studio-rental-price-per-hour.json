@@ -1,0 +1,262 @@
+{
+  "id": "studio-rental-price-per-hour",
+  "title": "Studio Rental Price Per Hour vs Full-Day: How Pricing Works",
+  "categories": [
+    {
+      "id": "booking-tips",
+      "title": "Booking Tips",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Booking Tips", "id": "bc-booking-tips" }
+      ],
+      "createdAt": "2026-08-03T00:00:00Z",
+      "updatedAt": "2026-08-03T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-08-03T04:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "Studio rental price per hour and full-day packages rarely mean the same thing across listings. Here's how the math actually works, and when a full-day booking is worth it."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "Studio Rental Price Per Hour vs Full-Day: How Pricing Works"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "If you've been comparing studio rental price per hour listings against full-day packages, the confusion is understandable — one studio quotes ₹1,500 an hour, another quotes ₹9,000 for a full day, and neither number tells you which is actually cheaper for your shoot. Studio pricing in India isn't standardised the way a cab fare is: it depends on studio type, what gear is included, the city and area, and how each host structures hourly versus package rates. This guide breaks down how studio rental price per hour compares to full-day and half-day packages, what typically pushes the number up or down, the rough break-even point where a full-day booking starts paying for itself, and the hidden costs that change your real per-hour spend — whether you're booking a photography, podcast, or video studio in Delhi NCR."
+    },
+    {
+      "id": "h-factors",
+      "blockType": "heading",
+      "content": "What Determines Studio Rental Price Per Hour in India"
+    },
+    {
+      "id": "p-factors",
+      "blockType": "paragraph",
+      "content": "Before comparing numbers across listings, it helps to know what's actually driving them. Two studios in the same neighbourhood can quote very different hourly rates for reasons that have nothing to do with one being a 'better deal' than the other."
+    },
+    {
+      "id": "list-factors",
+      "blockType": "list",
+      "items": [
+        "Studio type — a bare photography space, a fully mic'd podcast room, and a video studio with grip and lighting gear are priced on different scales",
+        "Included equipment — strobes, LED panels, backdrops, and mics can be bundled into the rate or billed as add-ons",
+        "City and area — a studio in a high-rent commercial pocket of South Delhi or Gurugram typically costs more per hour than one in an outer suburb, even with similar specs",
+        "Usable size — floor area and ceiling height affect what kind of shoot the space can host, which feeds into pricing",
+        "Minimum booking duration — a studio with a 2-hour minimum prices differently than one that rents in single-hour slots"
+      ]
+    },
+    {
+      "id": "h-typical-rates",
+      "blockType": "heading",
+      "content": "Typical Hourly Rates by Studio Type"
+    },
+    {
+      "id": "p-typical-rates",
+      "blockType": "paragraph",
+      "content": "These are broad, conservative ranges observed across the market rather than fixed prices — always confirm the exact rate and inclusions with the host before booking, since a low headline number sometimes excludes lights or backdrops."
+    },
+    {
+      "id": "list-typical-rates",
+      "blockType": "list",
+      "items": [
+        "Photography studios: roughly ₹1,000–₹4,000 per hour for a small-to-mid space with basic to mid-range lighting included",
+        "Podcast and recording rooms: roughly ₹800–₹2,500 per hour depending on mic count and acoustic treatment",
+        "Video and production studios: roughly ₹1,500–₹5,000+ per hour when grip, backdrops, and multi-camera setups are involved",
+        "Event and multi-purpose spaces: pricing usually shifts to a flat hourly or half-day rate rather than a per-camera-setup rate"
+      ]
+    },
+    {
+      "id": "h-packages",
+      "blockType": "heading",
+      "content": "Full-Day and Half-Day Packages: How the Discount Works"
+    },
+    {
+      "id": "p-packages",
+      "blockType": "paragraph",
+      "content": "Most studios that offer full-day packages (typically an 8–10 hour slot) price them below what the same hours would cost at the plain hourly rate — often in the range of a 15–30% discount, though this varies host to host. The logic is straightforward from the studio's side: a single long booking means one setup, one client, and no gap-cleaning or re-briefing between back-to-back short slots, so the host passes some of that saved overhead back as a lower effective rate. Half-day packages (4–5 hours) usually sit between the hourly rate and the full-day discount, and are worth asking for even if a listing only advertises hourly and full-day options — many hosts will quote one informally if you ask."
+    },
+    {
+      "id": "h-breakeven",
+      "blockType": "heading",
+      "content": "The Break-Even Math: When a Full-Day Booking Pays Off"
+    },
+    {
+      "id": "p-breakeven",
+      "blockType": "paragraph",
+      "content": "You can work out the break-even point for any studio with one division: full-day package price divided by the hourly rate. If a studio charges ₹1,500 an hour and its full-day package is ₹9,000, the break-even is 6 hours — book for 6 hours or more and the full-day package is cheaper than paying hourly; book for less and hourly wins. This is why a 3-hour product shoot almost always makes sense as an hourly booking, while a full day of content batching — say, a YouTuber recording multiple videos back-to-back, or a brand shooting a full catalogue — usually crosses the break-even point and justifies the package rate. Always run this math against the specific studio's actual numbers rather than assuming a fixed rule, since minimum durations and overtime rates shift the calculation."
+    },
+    {
+      "id": "quote-breakeven",
+      "blockType": "quote",
+      "content": "As a rule of thumb, once your shoot crosses roughly two-thirds of a studio's working day — around 5–6 hours in an 8-hour day — a full-day package usually works out cheaper than paying the hourly rate for the same hours."
+    },
+    {
+      "id": "h-hidden-costs",
+      "blockType": "heading",
+      "content": "Hidden Costs That Change Your Real Per-Hour Price"
+    },
+    {
+      "id": "p-hidden-costs",
+      "blockType": "paragraph",
+      "content": "The quoted hourly or day rate is rarely the full story. A handful of line items can quietly move your actual per-hour cost well above the headline number if you don't ask about them upfront."
+    },
+    {
+      "id": "list-hidden-costs",
+      "blockType": "list",
+      "items": [
+        "Setup and breakdown time — some studios count this inside your paid slot, others bill it separately before and after",
+        "Overtime granularity — running 15 minutes over can cost a full extra hour at some studios and a prorated amount at others",
+        "GST — confirm whether the quoted number is inclusive or exclusive before comparing two listings",
+        "Equipment add-ons — lights, extra backdrops, and green screens are sometimes billed on top of a 'bare space' rate",
+        "Footfall or crew charges — some studios cap the number of people included at the base rate and charge per extra person"
+      ]
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Studio Rental Price Per Hour"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "What is the average studio rental price per hour in India?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "It varies widely by studio type and city, but as a broad, conservative range, expect roughly ₹800–₹5,000 per hour depending on whether it's a basic podcast room or a fully equipped video production studio. Always treat published ranges as a starting point and confirm the exact quote and inclusions with the specific studio."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "Is it cheaper to book a studio hourly or for a full day?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "It depends entirely on how many hours you actually need. For short shoots of 2–4 hours, the hourly rate is usually cheaper. Once your shoot approaches the studio's break-even point — commonly around 5–6 hours in an 8-hour day — a full-day package typically works out cheaper overall."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "How many hours make a full-day studio booking worth it?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "Divide the studio's full-day package price by its hourly rate to get the exact break-even hour count for that studio — it commonly falls between 5 and 7 hours, but always check the specific numbers rather than assuming a fixed figure, since packages and hourly rates vary by host."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "Do full-day studio packages include setup and breakdown time?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Often, but not always — this is one of the details worth confirming before you book rather than assuming. Some full-day packages build in setup and breakdown as part of the slot, while others expect you to fit both inside your booked hours."
+    },
+    {
+      "id": "h-faq5",
+      "blockType": "heading",
+      "content": "What extra costs can push up the quoted hourly rate?"
+    },
+    {
+      "id": "p-faq5",
+      "blockType": "paragraph",
+      "content": "The most common ones are GST (if the quote was exclusive of tax), equipment add-ons like extra lights or backdrops, overtime billed in larger blocks than you actually ran over, and footfall charges if your crew exceeds the studio's included headcount."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Why Book with ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave lists creative studios across Delhi NCR with transparent hourly pricing shown upfront, so you can compare the studio rental price per hour across listings without chasing multiple hosts for a quote. Inclusions, capacity, and available slots are visible on each listing, making it easier to run your own break-even math before you book, and you can confirm your slot instantly instead of waiting on a back-and-forth over chat."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "Studio pricing comes down to a simple comparison once you know what to check: the hourly rate, the full-day package price, and the break-even point between them, plus any add-ons that change the real number. Do this math before you book and you'll rarely overpay for a shoot slot."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Get the exact hourly and full-day/half-day rates in writing, along with what each one includes",
+        "Divide the full-day price by the hourly rate to find that studio's specific break-even hour count",
+        "Book hourly for shoots under the break-even point, and the package rate once you cross it",
+        "Confirm GST treatment, overtime billing, and equipment add-ons before comparing listings",
+        "Use ContCave to compare transparent hourly pricing across Delhi NCR studios before you commit"
+      ]
+    }
+  ],
+  "slug": "studio-rental-price-per-hour",
+  "meta": {
+    "title": "Studio Rental Price Per Hour vs Full-Day: How Pricing Works",
+    "description": "Compare studio rental price per hour with full-day packages, learn the break-even math, and spot hidden costs before you book a studio in India."
+  },
+  "_status": "published",
+  "createdAt": "2026-08-03T04:00:00Z",
+  "updatedAt": "2026-08-03T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "studio rental price per hour",
+    "studio hourly rate india",
+    "studio rental price per hour india",
+    "full day studio rental price",
+    "hourly vs full day studio rental",
+    "studio rental cost india",
+    "photography studio hourly rate",
+    "podcast studio hourly rate",
+    "video studio hourly rate",
+    "studio day rate india",
+    "half day studio rental",
+    "studio booking cost",
+    "studio pricing guide india",
+    "how much does a studio cost per hour",
+    "studio rental packages india",
+    "studio overtime rate",
+    "studio rental budget planning",
+    "delhi ncr studio rental price",
+    "studio rates gurgaon",
+    "studio rates noida",
+    "studio rates delhi",
+    "studio rental price 2026",
+    "studio rental for youtubers",
+    "studio rental for brands",
+    "studio rental for creators",
+    "studio rental near me price",
+    "book studio online india",
+    "hourly studio booking india",
+    "full day shoot studio cost",
+    "ContCave"
+  ]
+}
