@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 11 | Pre-Wedding Shoot Studios & Indoor Locations in Delhi NCR | pre wedding shoot locations delhi | studio-guides | consumers |
 | 12 | Green Screen Studio Rental: When You Need Chroma & What It Costs | green screen studio near me | studio-guides | creators |
 | 13 | How to Plan a Fashion Lookbook Shoot (Shot List Included) | lookbook shoot planning | content-creation | brands |
 | 14 | Studio Lighting Basics: Natural Light vs Artificial Setups | studio lighting for beginners | content-creation | creators |
@@ -65,3 +64,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-07-29 | 8 | reels-ideas-for-creators |
 | 2026-07-31 | 9 | studio-booking-checklist |
 | 2026-08-03 | 10 | studio-rental-price-per-hour |
+| 2026-08-05 | 11 | pre-wedding-shoot-locations-delhi-ncr |
