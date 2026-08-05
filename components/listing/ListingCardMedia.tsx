@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useRef, useState } from "react";
+import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 
 import HeartButton from "@/components/HeartButton";
 import Pill from "@/components/ui/Pill";
@@ -54,6 +55,14 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const slideshowInterval = useRef<NodeJS.Timeout | null>(null);
+    const touchStartX = useRef<number | null>(null);
+
+    const clearSlideshow = () => {
+        if (slideshowInterval.current) {
+            clearInterval(slideshowInterval.current);
+            slideshowInterval.current = null;
+        }
+    };
 
     const handleMouseEnter = () => {
         if (images.length <= 1) return;
@@ -63,11 +72,40 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
     };
 
     const handleMouseLeave = () => {
-        if (images.length > 1 && slideshowInterval.current) {
-            clearInterval(slideshowInterval.current);
-            slideshowInterval.current = null;
-        }
+        clearSlideshow();
         setCurrentIndex(0);
+    };
+
+    const goToPrev = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (images.length <= 1) return;
+        clearSlideshow();
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    const goToNext = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (images.length <= 1) return;
+        clearSlideshow();
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0]?.clientX ?? null;
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (touchStartX.current === null || images.length <= 1) return;
+        const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+        const SWIPE_THRESHOLD = 40;
+        if (deltaX > SWIPE_THRESHOLD) {
+            setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+        } else if (deltaX < -SWIPE_THRESHOLD) {
+            setCurrentIndex((prev) => (prev + 1) % images.length);
+        }
+        touchStartX.current = null;
     };
 
     return (
@@ -75,6 +113,8 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
             className="relative mb-3 overflow-hidden rounded-xl aspect-4/3 bg-neutral-100 border border-foreground/5"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
         >
             <Link href={cardHref} className="block h-full w-full relative">
                 <AnimatePresence mode="popLayout" initial={false}>
@@ -83,13 +123,13 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
                         className="absolute inset-0"
                     >
                         <Image
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                            className={`object-cover h-full w-full transition-transform duration-700 ease-out ${allowScale ? "group-hover:scale-110" : ""}`}
+                            className={`object-cover h-full w-full transition-transform duration-400 ease-out ${allowScale ? "group-hover:scale-110" : ""}`}
                             src={images[currentIndex]}
                             alt={displayTitle}
                             priority={priority && currentIndex === 0}
@@ -110,6 +150,27 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
 
                 <div className="absolute inset-0 bg-linear-to-t from-foreground/20 via-transparent to-foreground/5 opacity-60 pointer-events-none z-10" />
             </Link>
+
+            {images.length > 1 && (
+                <>
+                    <button
+                        type="button"
+                        aria-label="Previous photo"
+                        onClick={goToPrev}
+                        className="absolute left-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 active:scale-90 hover:bg-foreground/70 lg:hidden"
+                    >
+                        <HiOutlineChevronLeft size={16} />
+                    </button>
+                    <button
+                        type="button"
+                        aria-label="Next photo"
+                        onClick={goToNext}
+                        className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 active:scale-90 hover:bg-foreground/70 lg:hidden"
+                    >
+                        <HiOutlineChevronRight size={16} />
+                    </button>
+                </>
+            )}
 
             {showListingBadge && reservationStatus === undefined && (listingType === "CURATED" || isVerified) && (
                 <div className="absolute left-3 top-3 z-20">
@@ -186,7 +247,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
             )}
 
             {images.length > 1 && (
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 opacity-100 transition-all duration-300 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100">
                     {images.map((_, i) => (
                         <div
                             key={i}
