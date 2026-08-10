@@ -1,0 +1,243 @@
+{
+  "id": "lookbook-shoot-planning",
+  "title": "How to Plan a Fashion Lookbook Shoot: Shot List & Budget",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Content Creation", "id": "bc-content-creation" }
+      ],
+      "createdAt": "2026-08-10T00:00:00Z",
+      "updatedAt": "2026-08-10T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-08-10T04:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A practical framework for lookbook shoot planning — from mood board to shot list to studio booking — so your fashion brand's next season launches on time and on budget."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "How to Plan a Fashion Lookbook Shoot: Shot List & Budget"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "Lookbook shoot planning is where most fashion brands lose the day before it even starts — not on set, but in the week before, when the shot list, the team, and the studio booking are supposed to line up. A lookbook has one job: show every piece of a collection the way you want buyers, press, and customers to see it, in a consistent set of images you can reuse across your storefront, lookbook PDF, and social feed. Get the planning right and shoot day is just execution. Get it wrong and you're re-booking a studio for the pieces you ran out of time for."
+    },
+    {
+      "id": "h-brief",
+      "blockType": "heading",
+      "content": "Start with the Brief, Not the Camera"
+    },
+    {
+      "id": "p-brief",
+      "blockType": "paragraph",
+      "content": "Before anyone books a studio or a model, settle three things in writing: what is this lookbook for (website, wholesale line sheet, press kit, Instagram grid, or all four), what story does the collection need to tell, and what's the hard budget ceiling. These answers change everything downstream — a wholesale-facing lookbook wants flat, consistent, catalogue-style images; a press or brand lookbook can carry more mood and environment. Build a one-page mood board with 8-12 reference images so your photographer, stylist, and models are working from the same visual language on day one, not discovering it mid-shoot."
+    },
+    {
+      "id": "h-shotlist",
+      "blockType": "heading",
+      "content": "Build the Shot List (This Is the Real Plan)"
+    },
+    {
+      "id": "p-shotlist",
+      "blockType": "paragraph",
+      "content": "A lookbook shot list is a garment-by-garment production schedule, not a mood reference. For each look, note: garment ID/SKU, styling notes (accessories, layering), required angles (front, back, three-quarter, detail crop), and whether it needs a standalone frame or can share a set with adjacent looks. Group looks by shared styling or lighting setup so you're not re-lighting between every outfit change."
+    },
+    {
+      "id": "list-shotlist",
+      "blockType": "list",
+      "items": [
+        "Full-body front and back shot for every look — the non-negotiable minimum",
+        "One detail crop per look for fabric, print, or hardware close-ups",
+        "A three-quarter or movement frame for looks with texture or flow",
+        "Group looks that share a colour story or set so lighting doesn't reset each time",
+        "Flag 'hero' looks that get extra frames and time versus 'coverage' looks that need just the essentials"
+      ]
+    },
+    {
+      "id": "p-shotlist-extra",
+      "blockType": "paragraph",
+      "content": "As a rule of thumb, most fashion brands shoot 10-30 looks in a single studio day depending on garment complexity, number of models, and how many angles each look needs. Apparel with layering, accessories, or multiple models per frame sits at the lower end; simple single-model looks with minimal styling changes sit at the higher end."
+    },
+    {
+      "id": "quote-shotlist",
+      "blockType": "quote",
+      "content": "If a look isn't on the shot list with its angles specified, it doesn't get shot — that's the discipline that keeps a 20-look day from becoming a 12-look day."
+    },
+    {
+      "id": "h-team",
+      "blockType": "heading",
+      "content": "Assemble the Team and Lock the Schedule"
+    },
+    {
+      "id": "p-team",
+      "blockType": "paragraph",
+      "content": "A lookbook shoot typically needs a photographer, a stylist to manage changes and steam garments between looks, hair and makeup (even a simple, clean look needs touch-ups between changes), and one or two models unless you're shooting multiple. Book everyone off the same call sheet with fixed arrival times — a stylist who shows up an hour after the model is the single most common cause of a shoot running over. Build in 10-15 minutes per outfit change on top of shooting time, more if accessories or complex layering are involved."
+    },
+    {
+      "id": "h-studio",
+      "blockType": "heading",
+      "content": "Choosing the Studio: Set, Light, and Space to Change"
+    },
+    {
+      "id": "p-studio",
+      "blockType": "paragraph",
+      "content": "The studio itself is the one variable that's hard to fix mid-shoot, so get this right at the booking stage. Look for a clean sweep or seamless backdrop in a neutral tone if you need catalogue-consistent images, plus enough floor space for full-body shots without cropping tight. Shapeable lighting — softboxes and diffusion you can adjust rather than one fixed rig — matters more for lookbooks than for product work, since you're lighting people and fabric, not flat surfaces. A dedicated changing area with a full-length mirror and rail space keeps wardrobe organised and speeds up the between-look turnaround."
+    },
+    {
+      "id": "list-studio",
+      "blockType": "list",
+      "items": [
+        "Neutral sweep or backdrop wide enough for full-body and group frames",
+        "Adjustable lighting rig, not just fixed continuous lights",
+        "Separate changing space with a rail and mirror, away from the shooting set",
+        "Enough ceiling height and floor space for movement or jump shots if your brief calls for them",
+        "Power and space for a laptop tether station so the stylist can check looks on the big screen"
+      ]
+    },
+    {
+      "id": "h-cost",
+      "blockType": "heading",
+      "content": "What a Lookbook Shoot Costs in 2026"
+    },
+    {
+      "id": "p-cost",
+      "blockType": "paragraph",
+      "content": "Studio space with proper lighting and a changing area typically runs ₹1,500-4,000 per hour in metro India, depending on the set and equipment included. A photographer with fashion experience charges ₹5,000-15,000 for a half-day booking; hair and makeup adds roughly ₹3,000-6,000 per artist per day. For a 15-20 look lookbook with one model, a full studio day — space, photographer, HMU, and basic retouching — commonly lands in the ₹25,000-60,000 range for an independent or emerging label, scaling up with additional models or a larger look count."
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Lookbook Shoot Planning"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "How many looks can you shoot in a day?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "Most single-model lookbook shoots cover 10-30 looks in a day, depending on styling complexity. Simple, minimal-accessory looks with one or two angles move fast; layered outfits, multiple angles per look, or a second model slow the pace. Build your shot list first and count backwards to see if your look count actually fits an eight-hour studio day."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "Do I need a stylist if I already have a fashion designer on set?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "A designer understands the garments; a stylist manages the changeover, pressing, accessorising, and pacing between looks so the photographer never waits. For anything past a handful of looks, a dedicated stylist pays for itself in the time it saves — the designer can then focus on quality control instead of running the rail."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "Studio or on-location for a fashion lookbook?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "A studio gives you consistent light, a controlled background, and reliable timing — the right call for wholesale line sheets, catalogue-style lookbooks, and brands shooting multiple collections a year that need visual consistency. On-location shoots suit brand storytelling and press lookbooks where mood matters more than uniformity, but weather, permissions, and travel time add risk to an already tight schedule. Many brands run the core lookbook in-studio and add a handful of location frames separately for social content."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "How do I brief a photographer I haven't worked with before?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Send the mood board, shot list, and look count at least a few days ahead, not the morning of. Include 3-5 reference images for lighting and posing style specifically, since 'clean and commercial' means different things to different photographers. Confirm turnaround time and file format for selects before the shoot, not after."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Book Fashion-Ready Studios on ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave lists studios across Delhi NCR with the details a fashion shoot needs upfront — sweep size, changing space, lighting equipment, and transparent hourly pricing — so you can match a space to your look count and book directly, without chasing rate cards over calls. Compare a handful of studios side by side and lock in the one that fits your shot list and budget."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "A lookbook shoot succeeds or fails in the planning, not on set. Nail the brief, the shot list, and the team schedule before you ever book a studio, and shoot day becomes a checklist you're simply working through."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Define the lookbook's purpose and budget before building the mood board",
+        "Write a garment-by-garment shot list with angles specified, grouped by set",
+        "Book photographer, stylist, and HMU off one shared call sheet",
+        "Choose a studio with a neutral sweep, adjustable lighting, and real changing space",
+        "Compare and book fashion-ready studios on ContCave"
+      ]
+    }
+  ],
+  "slug": "lookbook-shoot-planning",
+  "meta": {
+    "title": "How to Plan a Fashion Lookbook Shoot: Shot List & Budget",
+    "description": "Lookbook shoot planning guide for Indian fashion brands: shot list, team, studio checklist, and 2026 costs. Compare studios and book on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-08-10T04:00:00Z",
+  "updatedAt": "2026-08-10T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "lookbook shoot planning",
+    "how to plan a lookbook shoot",
+    "fashion lookbook photoshoot",
+    "lookbook shot list",
+    "fashion shoot planning",
+    "lookbook photoshoot india",
+    "fashion photography studio delhi",
+    "lookbook studio gurugram",
+    "lookbook studio noida",
+    "fashion shoot delhi ncr",
+    "lookbook shoot cost india",
+    "fashion shoot studio price per hour",
+    "book a lookbook studio",
+    "studio for fashion shoot near me",
+    "lookbook shoot 2026",
+    "fashion lookbook for brands",
+    "lookbook shoot for d2c fashion labels",
+    "wholesale line sheet photography",
+    "fashion catalogue shoot",
+    "clothing brand lookbook",
+    "fashion stylist for photoshoot",
+    "model shoot planning checklist",
+    "studio with changing room for shoot",
+    "seamless backdrop studio rental",
+    "fashion shoot production checklist",
+    "ContCave"
+  ]
+}
