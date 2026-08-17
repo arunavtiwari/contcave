@@ -1,0 +1,270 @@
+{
+  "id": "how-to-record-a-podcast-in-a-studio",
+  "title": "How to Record a Podcast in a Studio: First-Time Checklist",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Content Creation", "id": "bc-content-creation" }
+      ],
+      "createdAt": "2026-08-17T00:00:00Z",
+      "updatedAt": "2026-08-17T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-08-17T04:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A step-by-step checklist for first-time podcasters walking into a rented studio — what to prepare beforehand, what to expect on the day, and how to avoid the mistakes that ruin an otherwise good episode."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "How to Record a Podcast in a Studio: First-Time Checklist"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "Booking a studio takes the acoustics and gear off your plate, but it doesn't automatically make your first episode sound professional. Knowing how to record a podcast in a studio — what to bring, how to brief the engineer, and how to structure the two hours you've paid for — is what actually separates a smooth session from a rushed, unusable one. This checklist walks first-time podcasters through prep, the studio day itself, and the mistakes that trip up almost everyone on their first visit."
+    },
+    {
+      "id": "h-prep",
+      "blockType": "heading",
+      "content": "Before You Book: Prepare the Episode, Not Just the Room"
+    },
+    {
+      "id": "p-prep",
+      "blockType": "paragraph",
+      "content": "A studio buys you clean audio and a controlled room — it does not write your episode. The single most useful thing you can do before recording day is prepare a tight outline, not a word-for-word script. Read it out loud once beforehand; if it sounds stiff on paper, it will sound worse on mic."
+    },
+    {
+      "id": "list-prep",
+      "blockType": "list",
+      "items": [
+        "A one-page outline: opening hook, 3-5 main points, and a closing line — not a script",
+        "For interviews, your top 8-10 questions ranked by priority, in case time runs short",
+        "A guest prep note sent 24-48 hours ahead: topic, sample questions, studio address, parking, and arrival time",
+        "A shortlist of intro/outro lines so you're not improvising the hardest 30 seconds cold",
+        "Confirmation of recording format (audio-only, video podcast, or both) so the studio sets up the right gear"
+      ]
+    },
+    {
+      "id": "h-gear",
+      "blockType": "heading",
+      "content": "What the Studio Provides vs What You Should Bring"
+    },
+    {
+      "id": "p-gear",
+      "blockType": "paragraph",
+      "content": "Most rented podcast studios in India include mics, headphones, an acoustically treated room, and basic recording software as part of the hourly rate — confirm this when booking so you don't duplicate gear you're already paying for. What the studio usually doesn't manage for you is your content and your voice."
+    },
+    {
+      "id": "list-gear",
+      "blockType": "list",
+      "items": [
+        "Bring: your outline/questions (printed or on a tablet, not a phone that pings mid-take), water, and a change of top if you're recording video",
+        "Confirm the studio provides: XLR or USB mics per speaker, closed-back headphones, a mixer or interface, and either in-house recording or a laptop-ready setup",
+        "Ask in advance: multi-track vs single-track recording (multi-track is far easier to edit if one person messes up a line), and the file handover format"
+      ]
+    },
+    {
+      "id": "h-technique",
+      "blockType": "heading",
+      "content": "Mic Technique and Levels Even in a Treated Room"
+    },
+    {
+      "id": "p-technique",
+      "blockType": "paragraph",
+      "content": "A soundproofed studio removes room echo and outside noise, but it can't fix bad mic technique. Sit 6-8 inches from the mic, angled slightly off-axis rather than speaking straight into the capsule — this cuts plosives (the hard \"p\" and \"b\" pops) without needing a pop filter every time. Ask the engineer to run a 10-15 second level check before the real take: peaks should sit around -12 to -6 dBFS, never touching 0. Clipped audio can't be fixed in post, and a two-minute check now saves a re-record later."
+    },
+    {
+      "id": "quote-check",
+      "blockType": "quote",
+      "content": "Rule of thumb: if you haven't heard your own voice played back before hitting record, you haven't actually checked your levels — you've guessed at them."
+    },
+    {
+      "id": "h-timeline",
+      "blockType": "heading",
+      "content": "A Realistic Timeline for a One-Hour Episode"
+    },
+    {
+      "id": "p-timeline",
+      "blockType": "paragraph",
+      "content": "First-timers consistently under-book. A single 40-45 minute episode with one guest realistically needs 90 minutes to two hours of studio time once you account for setup and mistakes."
+    },
+    {
+      "id": "list-timeline",
+      "blockType": "list",
+      "items": [
+        "0-15 min: arrival, mic-up, level checks, and settling in — arrive 10-15 minutes early rather than eating into this",
+        "15-20 min: a level/sound check take that also doubles as a warm-up run of your opening line",
+        "20-75 min: the recorded episode, with a short pause if you need to reset a section rather than pushing through a flubbed take",
+        "75-90 min: buffer for a re-recorded segment, extra B-roll if it's a video podcast, or a few minutes of separate intro/outro recording",
+        "Batch two or three episodes in one booking if your guests overlap — you'll save on setup time and the per-episode studio cost drops noticeably"
+      ]
+    },
+    {
+      "id": "p-cost",
+      "blockType": "paragraph",
+      "content": "Podcast studios in Delhi NCR typically run ₹1,000-3,000 per hour depending on room size, camera count, and whether editing is bundled in. A first-timer booking a two-hour slot for one episode should budget ₹2,000-6,000 all-in before add-ons like extra edits or additional cameras. Batching multiple episodes in a single longer booking is usually the fastest way to bring that per-episode cost down."
+    },
+    {
+      "id": "h-mistakes",
+      "blockType": "heading",
+      "content": "Mistakes First-Time Podcasters Make in the Studio"
+    },
+    {
+      "id": "list-mistakes",
+      "blockType": "list",
+      "items": [
+        "Not testing gain before recording — leads to peaking, clipped audio that can't be recovered later",
+        "Talking over guests because there's no visual cue system agreed beforehand — a simple raised-hand signal fixes this",
+        "Leaving phones on vibrate instead of fully silent — vibration against a table is audible on mic",
+        "Skipping a short warm-up take, so the first few real minutes sound flat or nervous",
+        "Not confirming the file format and delivery timeline upfront, leading to back-and-forth after the session ends",
+        "Booking exactly the runtime of the episode with zero buffer for retakes or technical hiccups"
+      ]
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Recording a Podcast in a Studio"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "Do I need my own microphone if I'm booking a studio?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "Usually no. Most rented podcast studios include broadcast-quality mics and headphones per speaker in the hourly rate. Confirm this when booking, and only bring your own mic if you have a specific reason — a mismatched personal mic can actually complicate the studio's existing setup."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "How long should I book for one podcast episode?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "For a 30-45 minute finished episode with one guest, book 90 minutes to two hours. That covers setup, a warm-up take, the recording itself, and buffer for retakes. First-timers should round up rather than book the bare runtime."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "Can I record video and audio at the same time?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "Yes, if the studio is set up for video podcasts — confirm camera count and framing when you book, since single-camera and multi-camera setups need different room layouts. Add 15-30 minutes to your slot for extra camera checks and B-roll if you plan to clip the episode for reels."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "What if I mess up a line or lose my train of thought?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Pause, take a breath, and restart the sentence rather than trying to salvage it live — a clean edit point is far easier to fix in post than a stumbled sentence you talk over. Tell your guest upfront that this is normal so they don't feel awkward pausing too."
+    },
+    {
+      "id": "h-faq5",
+      "blockType": "heading",
+      "content": "Do I need editing experience to release my first episode?"
+    },
+    {
+      "id": "p-faq5",
+      "blockType": "paragraph",
+      "content": "Not necessarily. Many studios offer basic editing add-ons, and multi-track recordings are simple enough for a freelance editor to clean up quickly. If you're editing yourself, free tools handle trimming, level matching, and noise reduction well enough for a first episode."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Why Book Your First Podcast Session with ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave lists podcast-ready studios across Delhi NCR with transparent hourly pricing and clear equipment details up front — mic count, camera setup, and room capacity — so first-time podcasters know exactly what they're booking before they arrive. Compare a few studios by what's actually included, then book instantly instead of chasing quotes over calls."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "A good first podcast episode comes from preparation, not luck. The studio handles the room and the gear; you're responsible for the outline, the levels check, and building in enough buffer time to fix mistakes instead of pushing through them."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Prepare a one-page outline and send guests a prep note 24-48 hours ahead",
+        "Confirm what the studio provides — mics, headphones, multi-track recording — before you book",
+        "Run a level check and warm-up take before the real recording starts",
+        "Book 90 minutes to two hours for a single 30-45 minute episode, with buffer for retakes",
+        "Book a podcast-ready studio with clear pricing and equipment details on ContCave"
+      ]
+    }
+  ],
+  "slug": "how-to-record-a-podcast-in-a-studio",
+  "meta": {
+    "title": "How to Record a Podcast in a Studio: First-Time Checklist",
+    "description": "First-time podcaster checklist for recording in a studio: what to prepare, mic technique, realistic timing, and common mistakes to avoid in India."
+  },
+  "_status": "published",
+  "createdAt": "2026-08-17T04:00:00Z",
+  "updatedAt": "2026-08-17T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "how to record a podcast in a studio",
+    "podcast recording checklist",
+    "podcast recording tips for beginners",
+    "first time podcaster guide",
+    "podcast studio session checklist",
+    "podcast recording delhi",
+    "podcast studio noida",
+    "podcast studio gurugram",
+    "podcast recording near me",
+    "podcast equipment checklist",
+    "podcast mic setup",
+    "video podcast recording tips",
+    "podcast pre production checklist",
+    "how to prepare for a podcast recording",
+    "podcast studio booking india",
+    "podcast recording mistakes to avoid",
+    "podcast episode structure",
+    "podcast guest prep checklist",
+    "podcast recording software beginners",
+    "podcast studio hourly rental",
+    "podcast recording for youtubers",
+    "podcast recording for brands",
+    "podcast studio price india",
+    "podcast recording 2026",
+    "book a podcast studio",
+    "creator studio delhi ncr",
+    "ContCave"
+  ]
+}
