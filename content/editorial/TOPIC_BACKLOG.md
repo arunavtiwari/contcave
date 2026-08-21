@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 17 | Food Photography Studios: Shooting Menus, Packaging & Reels | food photography studio | studio-guides | brands |
 | 18 | Dance & Choreography Studio Rentals for Reels and Covers | dance studio on rent | studio-guides | creators |
 | 19 | Talking-Head Video Setups: Interviews, Courses & Founder Content | interview video setup | content-creation | brands, creators |
 | 20 | How Tier-2 City Creators Can Access Pro Studios Affordably | affordable studios for creators india | creator-economy | creators |
@@ -65,3 +64,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-08-12 | 14 | studio-lighting-for-beginners |
 | 2026-08-17 | 16 | how-to-record-a-podcast-in-a-studio |
 | 2026-08-19 | 15 | ecommerce-product-shoot-skus-per-hour |
+| 2026-08-21 | 17 | food-photography-studio-delhi-ncr |
