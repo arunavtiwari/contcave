@@ -6,20 +6,19 @@ import { ReservationService } from "@/lib/reservation/service";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { getValidatedBaseUrl } from "@/lib/utils";
 
-export async function expireExtensionRequests(limit = 200, extensionId?: string, createdAfter?: Date) {
-  return await PostBookingService.expireExtensionRequests(limit, extensionId, createdAfter);
+export async function expireExtensionRequests(limit = 200, extensionId?: string) {
+  return await PostBookingService.expireExtensionRequests(limit, extensionId);
 }
 
-export async function expireAdditionalCharges(limit = 200, chargeId?: string, createdAfter?: Date) {
-  return await PostBookingService.expireAdditionalCharges(limit, chargeId, createdAfter);
+export async function expireAdditionalCharges(limit = 200, chargeId?: string) {
+  return await PostBookingService.expireAdditionalCharges(limit, chargeId);
 }
 
-export async function autoCompleteCheckedInReservations(limit = 200, reservationId?: string, createdAfter?: Date) {
+export async function autoCompleteCheckedInReservations(limit = 200, reservationId?: string) {
   const now = new Date();
   const reservations = await prisma.reservation.findMany({
     where: {
       ...(reservationId ? { id: reservationId } : {}),
-      ...(createdAfter ? { createdAt: { gte: createdAfter } } : {}),
       status: "CHECKED_IN",
       checkedInAt: { not: null },
       markedForDeletion: false,
@@ -76,16 +75,14 @@ export async function getUnverifiedBookings(limit = 200) {
   });
 }
 
-export async function sendExtensionNudges(limit = 200, createdAfter?: Date) {
+export async function sendExtensionNudges(limit = 200) {
   const now = new Date();
   const reservations = await prisma.reservation.findMany({
     where: {
       status: "CHECKED_IN",
-      ...(createdAfter ? { createdAt: { gte: createdAfter } } : {}),
       checkedInAt: { not: null },
-      OR: [
-        { extensionNudgeSentAt: null },
-        { extensionNudgeSentAt: { isSet: false } },
+      AND: [
+        { OR: [{ extensionNudgeSentAt: null }, { extensionNudgeSentAt: { isSet: false } }] },
       ],
       markedForDeletion: false,
     },

@@ -11,7 +11,6 @@ import { isE2eEffectDisabled } from "@/lib/e2e-guards";
 import { escapeEmailHtml } from "@/lib/email/html";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
 import { sendCustomerPaymentInvoice, sendReservationConfirmationCustomer } from "@/lib/email/templates";
-import { getAutomatedNotificationStart } from "@/lib/notification-activation";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
 import { isInvoiceEligible } from "@/lib/reservation/status";
@@ -829,7 +828,6 @@ export class InvoiceService {
     ownerId: string;
     periodStart: Date;
     periodEnd: Date;
-    createdAfter?: Date;
     documentType?: Extract<InvoiceDocumentType, "OWNER_MONTHLY_COMMISSION_INVOICE" | "OWNER_MONTHLY_BILL_OF_SUPPLY">;
   }): Promise<MonthlyInvoiceResult | null> {
     const ownerId = assertObjectId(params.ownerId, "ownerId");
@@ -849,7 +847,6 @@ export class InvoiceService {
             status: "COMPLETED",
             checkedInAt: { not: null },
             startDate: { gte: params.periodStart, lte: params.periodEnd },
-            ...(params.createdAfter ? { createdAt: { gte: params.createdAfter } } : {}),
             listing: { userId: ownerId },
           },
         },
@@ -1251,7 +1248,6 @@ export class InvoiceService {
     periodStart: Date;
     periodEnd: Date;
     sendEmails?: boolean;
-    createdAfter?: Date;
   }) {
     const owners = await prisma.user.findMany({
       where: {
@@ -1264,7 +1260,6 @@ export class InvoiceService {
                 status: "COMPLETED",
                 checkedInAt: { not: null },
                 startDate: { gte: params.periodStart, lte: params.periodEnd },
-                ...(params.createdAfter ? { createdAt: { gte: params.createdAfter } } : {}),
                 Transaction: { some: { status: "SUCCESS" } },
               },
             },
@@ -1283,7 +1278,6 @@ export class InvoiceService {
             ownerId: owner.id,
             periodStart: params.periodStart,
             periodEnd: params.periodEnd,
-            createdAfter: params.createdAfter,
             documentType,
           });
           if (!result) continue;
@@ -1307,21 +1301,10 @@ export class InvoiceService {
   }
 
   static async retryPendingInvoiceEmails(limit = 100) {
-    const notificationStart = getAutomatedNotificationStart();
-    if (!notificationStart) {
-      console.warn("[InvoiceService] Automatic invoice retries are disabled until NOTIFICATION_AUTOMATION_START_AT is set.");
-      return [];
-    }
     const retryCutoff = new Date(Date.now() - 5 * 60 * 1000);
     const invoices = await prisma.invoice.findMany({
       where: {
         invoiceUrl: { not: "" },
-        createdAt: { gte: notificationStart },
-        OR: [
-          { status: "EMAIL_FAILED" },
-          { status: { in: ["EMAIL_PENDING", "RETRYING"] }, updatedAt: { lte: retryCutoff } },
-        ],
-        retryCount: { lt: MAX_RETRY_COUNT },
         AND: [
           { OR: [{ emailSentAt: null }, { emailSentAt: { isSet: false } }] },
           {
@@ -1339,6 +1322,11 @@ export class InvoiceService {
             ],
           },
         ],
+        OR: [
+          { status: "EMAIL_FAILED" },
+          { status: { in: ["EMAIL_PENDING", "RETRYING"] }, updatedAt: { lte: retryCutoff } },
+        ],
+        retryCount: { lt: MAX_RETRY_COUNT },
       },
       include: { transaction: { select: { purpose: true } } },
       take: limit,

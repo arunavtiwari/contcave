@@ -58,6 +58,8 @@ export default function SetDetailModal({
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
+                    type="button"
+                    aria-label="Close set details"
                     onClick={onClose}
                     className="absolute top-4 right-4 z-20 p-2 bg-foreground/40 hover:bg-foreground/60 text-background rounded-full transition backdrop-blur-md "
                 >
@@ -99,11 +101,15 @@ export default function SetDetailModal({
                             {set.images.length > 1 && (
                                 <>
                                     <button
+                                        type="button"
+                                        aria-label="Previous set photo"
                                         className="set-modal-prev absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-background/80 hover:bg-background text-foreground rounded-full  transition md:opacity-0 md:group-hover:opacity-100 md:-translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
                                     >
                                         <IoChevronBack size={20} />
                                     </button>
                                     <button
+                                        type="button"
+                                        aria-label="Next set photo"
                                         className="set-modal-next absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-background/80 hover:bg-background text-foreground rounded-full  transition md:opacity-0 md:group-hover:opacity-100 md:translate-x-2.5 md:group-hover:translate-x-0 duration-300 cursor-pointer"
                                     >
                                         <IoChevronForward size={20} />

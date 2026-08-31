@@ -186,9 +186,20 @@ export async function selectAddressOption(page: Page, search: string, optionName
 }
 
 export async function fillRichText(page: Page, testId: string, value: string) {
-  const editor = page.getByTestId(testId);
-  await expect(editor).toBeVisible();
-  await editor.click();
+  // Lexical can replace the contenteditable during the initial form-state
+  // update. Resolve a fresh locator for each attempt so a transient detach
+  // does not fail an otherwise valid flow.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const editor = page.getByTestId(testId);
+    await expect(editor).toBeVisible();
+    try {
+      await editor.click({ timeout: 5_000 });
+      break;
+    } catch (error) {
+      if (attempt === 2) throw error;
+      await page.waitForTimeout(250);
+    }
+  }
   await page.keyboard.insertText(value);
 }
 

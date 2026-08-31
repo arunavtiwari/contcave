@@ -229,7 +229,9 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
 
         if (connectionState !== "closed" && connectionState !== "closing") {
           try {
-            currentAbly.close();
+            void Promise.resolve(currentAbly.close()).catch((closeError) => {
+              console.warn("[ChatClient] Ignored asynchronous Ably close error during cleanup:", closeError);
+            });
           } catch (closeError) {
             console.warn("[ChatClient] Ignored Ably close error during cleanup:", closeError);
           }
@@ -426,4 +428,3 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
 };
 
 export default ChatClient;
-

@@ -10,10 +10,6 @@ import { rateLimit } from "@/lib/security/rateLimit";
 
 import { authConfig } from "./auth.config";
 
-// Note: AUTH_URL / NEXTAUTH_URL are intentionally not deleted here.
-// Removing env vars at module level mutates process.env globally and can
-// cause subtle bugs in other modules that read these values.
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma),
     ...authConfig,

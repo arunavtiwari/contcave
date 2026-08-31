@@ -35,6 +35,7 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "
     customLeftContent?: React.ReactNode;
     customRightContent?: React.ReactNode;
     variant?: "vertical" | "horizontal";
+    labelWidth?: string;
     onNumberChange?: (value: number) => void;
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     formatPrice?: boolean;
@@ -54,6 +55,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         customLeftContent,
         customRightContent,
         variant = "vertical",
+        labelWidth,
         size,
         onNumberChange,
         onChange,
@@ -85,6 +87,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 error={errorMsg}
                 required={required}
                 variant={variant}
+                labelWidth={labelWidth}
             >
                 <div className={cn(
                     inputVariants({

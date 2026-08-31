@@ -1071,12 +1071,11 @@ export class PostBookingService {
     });
   }
 
-  static async expireExtensionRequests(limit = 200, extensionId?: string, createdAfter?: Date) {
+  static async expireExtensionRequests(limit = 200, extensionId?: string) {
     const now = new Date();
     const extensions = await prisma.extensionRequest.findMany({
       where: {
         ...(extensionId ? { id: extensionId } : {}),
-        ...(createdAfter ? { createdAt: { gte: createdAfter } } : {}),
         status: "PENDING_PAYMENT",
         expiresAt: { lte: now },
       },
@@ -1086,7 +1085,10 @@ export class PostBookingService {
     for (const extension of extensions) {
       await prisma.$transaction(async (tx) => {
         const expired = await tx.extensionRequest.updateMany({
-          where: { id: extension.id, status: "PENDING_PAYMENT" },
+          where: {
+            id: extension.id,
+            status: "PENDING_PAYMENT",
+          },
           data: { status: "EXPIRED", expiredAt: now },
         });
         if (expired.count !== 1) return;
@@ -1101,13 +1103,13 @@ export class PostBookingService {
     return extensions.map((extension) => ({ id: extension.id, status: "expired" }));
   }
 
-  static async expireAdditionalCharges(limit = 200, chargeId?: string, createdAfter?: Date) {
+  static async expireAdditionalCharges(limit = 200, chargeId?: string) {
     const now = new Date();
     const expiredBefore = new Date(now.getTime() - ADDITIONAL_CHARGE_EXPIRY_MS);
     const charges = await prisma.additionalCharge.findMany({
       where: {
         ...(chargeId ? { id: chargeId } : {}),
-        ...(createdAfter ? { createdAt: { gte: createdAfter, lte: expiredBefore } } : { createdAt: { lte: expiredBefore } }),
+        createdAt: { lte: expiredBefore },
         status: "PENDING_PAYMENT",
       },
       select: { id: true, reservationId: true },
@@ -1118,7 +1120,10 @@ export class PostBookingService {
     for (const charge of charges) {
       const expired = await prisma.$transaction(async (tx) => {
         const update = await tx.additionalCharge.updateMany({
-          where: { id: charge.id, status: "PENDING_PAYMENT" },
+          where: {
+            id: charge.id,
+            status: "PENDING_PAYMENT",
+          },
           data: {
             status: "CANCELLED",
             cancelledAt: now,

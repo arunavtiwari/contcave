@@ -1,5 +1,7 @@
 # QStash Maintenance Schedules
 
+Official reference: https://upstash.com/docs/qstash/features/schedules
+
 ContCave uses Upstash QStash for time-sensitive background work. Booking creation, host approval, check-in, and paid extensions publish one-off messages for their exact due times. QStash signs each delivery and retries failed deliveries. The recurring schedules below are reconciliation backstops, not the primary timers. The route handler remains idempotent so an at-least-once delivery cannot double-complete a booking or payout.
 
 Required production variables:
@@ -8,9 +10,16 @@ Required production variables:
 - `QSTASH_CURRENT_SIGNING_KEY`
 - `QSTASH_NEXT_SIGNING_KEY`
 - `QSTASH_DESTINATION_URL` (optional; defaults to `https://contcave.com/api/cron/qstash`)
-- `NOTIFICATION_AUTOMATION_START_AT` (required ISO-8601 deployment cutoff, for example `2026-07-13T12:00:00Z`)
 
-Set `NOTIFICATION_AUTOMATION_START_AT` to the production activation time before enabling the schedules. Automated invoice retries, monthly invoice generation, reservation reconciliation, review reminders, booking reminders, extension nudges, extension/additional-charge expiry, and payout splits ignore records created before this stable cutoff. The signed QStash dispatcher enforces it. Do not derive it from a server start time: serverless instances start at different times and would otherwise process different record sets.
+Workers rely on existing terminal business states and delivery flags rather than a process/deployment timestamp. Before enabling production schedules for the first time, choose an explicit boundary and run the reusable cleanup in this order:
+
+```bash
+npm run qstash:close-history -- --before=2026-09-01T00:00:00.000Z
+npm run qstash:close-history -- --before=2026-09-01T00:00:00.000Z --execute
+npm run qstash:close-history -- --before=2026-09-01T00:00:00.000Z --verify
+```
+
+The first command is a dry run. The execute step is idempotent and closes only records that are still in the listed actionable states; it does not rewrite already-terminal records. Keep the same exact boundary for all three commands.
 
 ## Local QStash
 

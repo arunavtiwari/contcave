@@ -51,7 +51,7 @@ The optional `--batch-size=25` argument controls document-query batches (range `
 
 Deleting source R2 objects does not guarantee that previously cached public responses disappear immediately, which is why the CDN purge is a mandatory cutover step rather than optional cleanup.
 
-The last-four-commit deployment also replaces legacy cron endpoints with the signed QStash dispatcher. After deploying the application, set `NOTIFICATION_AUTOMATION_START_AT` to the intentional production activation timestamp and run `npm run configure:qstash` once with the production QStash credentials. This is an external scheduler setup step, not a database mutation, so it is intentionally not performed by the data migration.
+The deployment also replaces legacy cron endpoints with the signed QStash dispatcher. Before enabling schedules, run the dry-run, execute, and verify forms of `npm run qstash:close-history -- --before=<cutover-ISO-timestamp>`, then run `npm run configure:qstash` once with the production QStash credentials. The cleanup closes due historical work through existing statuses and delivery flags, preventing both recurring sweeps and already-published historical messages from acting on old records.
 
 ## Compatibility removal
 
@@ -63,7 +63,7 @@ Do not remove compatibility code in the same deployment as the data migration. F
 2. Once every sensitive database reference begins with `r2-private://`, remove the legacy public-URL branches (`url`/`pdfUrl`) from verification normalizers, stored legacy types, document readers, and the lazy public-to-private copy path. Keep the authenticated invoice, voucher, verification, and agreement download routes. Purge the old CDN paths before removing compatibility reads.
 3. Remove `scripts/migrate-production-data.ts`, the `migrate:data` package command, and the `tsx` development dependency only after production verification, CDN purge, and the rollback window are complete. Keep this document or the deployment record as an audit trail.
 4. The `CustomAmenities` Prisma model is not used by the current listing flow; owner custom values live in `Listing.otherAmenities`. The migration output reports `legacyCustomAmenities` and removes only the two explicitly confirmed test rows. Keep the `CustomAmenities` collection/model and the `User.CustomAmenities` relation while `total` or `unresolved` remains non-zero after verification. Do not copy any other record to listings without an explicit product-data decision because the legacy model contains no listing ID.
-5. Remove obsolete external GitHub cron schedules/secrets only after every expected QStash schedule ID is visible and signed deliveries are succeeding. Keep the signed `/api/cron/qstash` route, QStash credentials, schedule definitions, and `NOTIFICATION_AUTOMATION_START_AT`; they are the active system, not legacy code.
+5. Remove obsolete external GitHub cron schedules/secrets only after every expected QStash schedule ID is visible and signed deliveries are succeeding. Keep the signed `/api/cron/qstash` route, QStash credentials, schedule definitions, and the verified status-based cleanup; they are the active system, not legacy code.
 
 ### Retain
 

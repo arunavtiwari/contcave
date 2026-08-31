@@ -1,31 +1,16 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useCallback, useEffect, useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import { paymentDetailsFormSchema, PaymentDetailsFormValues } from "@/schemas/payment";
 import { PaymentProfile } from "@/types/payment";
 import { SafeUser } from "@/types/user";
-
-
-interface BankField {
-    label: string;
-    name: string;
-    type: string;
-    required: boolean;
-    maxLength?: number;
-    pattern?: string;
-}
-
-interface TaxField {
-    label: string;
-    name: string;
-    required: boolean;
-    maxLength?: number;
-    pattern?: string;
-}
-
 
 interface PaymentDetailsProps {
     profile?: SafeUser | PaymentProfile | null;
@@ -33,279 +18,121 @@ interface PaymentDetailsProps {
     onSave?: (data: FormData, isEditing?: boolean) => Promise<void>;
 }
 
-const FieldInput = React.memo<{
-    field: BankField | TaxField;
-    value: string;
-    onChange: (name: string, value: string) => void;
-    isEditing: boolean;
-    error?: string;
-}>(({ field, value, onChange, isEditing, error }) => {
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange(field.name, e.target.value);
-    }, [field.name, onChange]);
-
-    return (
-        <div className="grid gap-2 md:grid-cols-[280px_minmax(0,1fr)] md:items-center">
-            <label
-                htmlFor={field.name}
-                className="text-base font-bold text-foreground"
-            >
-                {field.label}
-                {field.required && <span className="text-destructive ml-1">*</span>}
-            </label>
-            <div className="flex flex-col">
-                <input
-                    type={('type' in field) ? field.type : 'text'}
-                    id={field.name}
-                    name={field.name}
-                    value={value}
-                    onChange={handleChange}
-                    disabled={!isEditing}
-                    required={field.required}
-                    maxLength={field.maxLength}
-                    pattern={('pattern' in field) ? field.pattern : undefined}
-                    className={`
-                        h-11
-                        w-full
-                        rounded-xl
-                        border
-                        bg-background
-                        px-4
-                        font-light
-                        outline-none
-                        transition
-                        disabled:cursor-not-allowed
-                        disabled:opacity-70
-                        ${error ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20" : "border-border focus:border-foreground focus:ring-1 focus:ring-foreground/10"}
-                    `}
-                    aria-describedby={error ? `${field.name}-error` : undefined}
-                />
-                {error && (
-                    <span
-                        id={`${field.name}-error`}
-                        className="ml-1 mt-1 text-sm text-destructive"
-                        role="alert"
-                    >
-                        {error}
-                    </span>
-                )}
-            </div>
-        </div>
-    );
-});
-
-FieldInput.displayName = 'FieldInput';
-
+const DEFAULT_LABEL_WIDTH = "sm:w-72";
 
 const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails, onSave }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [isPending, startTransition] = useTransition();
-    const [formData, setFormData] = useState<Record<string, string>>({});
-    const [originalData, setOriginalData] = useState<Record<string, string>>({});
-    const [errors, setErrors] = useState<Record<string, string>>({});
     const [hasExistingData, setHasExistingData] = useState(false);
 
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isDirty },
+    } = useForm<PaymentDetailsFormValues>({
+        resolver: zodResolver(paymentDetailsFormSchema),
+        defaultValues: {
+            accountHolderName: "",
+            bankName: "",
+            accountNumber: "",
+            reAccountNumber: "",
+            ifscCode: "",
+            companyName: "",
+            gstin: "",
+        },
+    });
 
-    const BANK_FIELDS: BankField[] = useMemo(() => [
-        {
-            label: "Account Holder Name",
-            name: "accountHolderName",
-            type: "text",
-            required: true,
-            maxLength: 100
-        },
-        {
-            label: "Bank Name",
-            name: "bankName",
-            type: "text",
-            required: true,
-            maxLength: 50
-        },
-        {
-            label: "Account Number",
-            name: "accountNumber",
-            type: "text",
-            required: true,
-            pattern: "[0-9]+"
-        },
-        {
-            label: "Re-enter Account Number",
-            name: "reAccountNumber",
-            type: "text",
-            required: true,
-            maxLength: 20,
-            pattern: "[0-9]+"
-        },
-        {
-            label: "IFSC Code (India)",
-            name: "ifscCode",
-            type: "text",
-            required: true,
-            maxLength: 11,
-            pattern: "[A-Z]{4}0[A-Z0-9]{6}"
-        },
-    ], []);
-
-    const TAX_FIELDS: TaxField[] = useMemo(() => [
-        {
-            label: "Company Name (optional)",
-            name: "companyName",
-            required: false,
-            maxLength: 100
-        },
-        {
-            label: "GSTIN (optional)",
-            name: "gstin",
-            required: false,
-            maxLength: 15,
-            pattern: "[0-9A-Z]{15}"
+    const populateForm = useCallback((data: PaymentProfile | null) => {
+        if (data) {
+            reset({
+                accountHolderName: data.accountHolderName || "",
+                bankName: data.bankName || "",
+                accountNumber: data.accountNumber || "",
+                reAccountNumber: data.accountNumber || "",
+                ifscCode: data.ifscCode || "",
+                companyName: data.companyName || "",
+                gstin: data.gstin || "",
+            });
+            setHasExistingData(Boolean(data && Object.keys(data).length > 1));
+        } else {
+            reset({
+                accountHolderName: "",
+                bankName: "",
+                accountNumber: "",
+                reAccountNumber: "",
+                ifscCode: "",
+                companyName: "",
+                gstin: "",
+            });
+            setHasExistingData(false);
         }
-    ], []);
-
-    const initializeFormData = useCallback((profileData: SafeUser | PaymentProfile | null) => {
-        const initialData: Record<string, string> = {};
-
-        [...BANK_FIELDS, ...TAX_FIELDS].forEach(field => {
-            initialData[field.name] = '';
-        });
-
-        if (profileData) {
-            const data = profileData as unknown as PaymentProfile;
-            initialData.accountHolderName = data.accountHolderName || '';
-            initialData.bankName = data.bankName || '';
-            initialData.accountNumber = data.accountNumber || '';
-            initialData.reAccountNumber = data.accountNumber || '';
-            initialData.ifscCode = data.ifscCode || '';
-            initialData.companyName = data.companyName || '';
-            initialData.gstin = data.gstin || '';
-        }
-
-        return initialData;
-    }, [BANK_FIELDS, TAX_FIELDS]);
-
+    }, [reset]);
 
     useEffect(() => {
-        const data = initializeFormData(paymentDetails || null);
-        setFormData(data);
-        setOriginalData(data);
-        setHasExistingData(!!paymentDetails && Object.keys(paymentDetails).length > 1);
-    }, [paymentDetails, initializeFormData]);
+        populateForm(paymentDetails || null);
+    }, [paymentDetails, populateForm]);
 
-
-    const handleFieldChange = useCallback((name: string, value: string) => {
-        const normalizedValue = name === "gstin" || name === "ifscCode" ? value.toUpperCase() : value;
-        setFormData(prev => ({ ...prev, [name]: normalizedValue }));
-
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: '' }));
-        }
-    }, [errors]);
-
-    const validateForm = useCallback((): boolean => {
-        const newErrors: Record<string, string> = {};
-
-
-        [...BANK_FIELDS, ...TAX_FIELDS].forEach(field => {
-            if (field.required && !formData[field.name]?.trim()) {
-                newErrors[field.name] = `${field.label} is required`;
-            }
-        });
-
-
-        if (formData.accountNumber && formData.reAccountNumber) {
-            if (formData.accountNumber !== formData.reAccountNumber) {
-                newErrors.reAccountNumber = 'Account numbers do not match';
-            }
-        }
-
-
-        if (formData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)) {
-            newErrors.ifscCode = 'Invalid IFSC code format';
-        }
-
-        if (formData.gstin && !/^[0-9A-Z]{15}$/i.test(formData.gstin)) {
-            if (formData.gstin !== originalData.gstin) {
-                if (!/^[0-9A-Z]{15}$/i.test(formData.gstin)) {
-                    newErrors.gstin = 'Invalid GSTIN format';
-                }
-            }
-        }
-
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    }, [formData, originalData.gstin, BANK_FIELDS, TAX_FIELDS]);
-
-    const hasChanges = useMemo(() => {
-        return Object.keys(formData).some(key => formData[key] !== originalData[key]);
-    }, [formData, originalData]);
-
-    const handleModify = useCallback(() => {
-        setIsEditing(true);
-    }, []);
-
-    const handleSave = useCallback(async () => {
-        if (!validateForm()) {
-            return;
-        }
-
-        if (!hasChanges) {
-            toast.info('No changes to save');
-            setIsEditing(false);
-            return;
-        }
-
+    const onSubmit = async (values: PaymentDetailsFormValues) => {
         startTransition(async () => {
             try {
                 const form = new FormData();
-
                 if (profile?.id) {
-                    form.append('userId', profile.id);
+                    form.append("userId", profile.id);
                 } else if ((profile as unknown as PaymentProfile)?.userId) {
-                    form.append('userId', (profile as unknown as PaymentProfile).userId!);
+                    form.append("userId", (profile as unknown as PaymentProfile).userId!);
                 }
 
-                const fieldsToSend = ['accountHolderName', 'bankName', 'accountNumber', 'ifscCode', 'companyName', 'gstin'];
-                fieldsToSend.forEach(key => {
-                    const val = formData[key]?.trim();
-                    if (val !== undefined && val !== '' && !val.includes('*')) {
-                        form.append(key, key === 'gstin' || key === 'ifscCode' ? val.toUpperCase() : val);
-                    }
-                });
+                form.append("accountHolderName", values.accountHolderName.trim());
+                form.append("bankName", values.bankName.trim());
 
-                form.append('updatedAt', new Date().toISOString());
+                if (values.accountNumber && !values.accountNumber.includes("*")) {
+                    form.append("accountNumber", values.accountNumber.trim());
+                }
+
+                form.append("ifscCode", values.ifscCode.toUpperCase().trim());
+
+                if (values.companyName) {
+                    form.append("companyName", values.companyName.trim());
+                }
+                if (values.gstin) {
+                    form.append("gstin", values.gstin.toUpperCase().trim());
+                }
+
+                form.append("updatedAt", new Date().toISOString());
 
                 await onSave?.(form, hasExistingData);
 
-                setOriginalData({ ...formData });
                 setIsEditing(false);
                 setHasExistingData(true);
-                toast.success('Payment details saved successfully');
+                toast.success("Payment details saved successfully");
             } catch (error) {
-                console.error('Save error:', error);
-                const errorMessage = error instanceof Error ? error.message : 'Failed to save payment details';
+                console.error("Save error:", error);
+                const errorMessage = error instanceof Error ? error.message : "Failed to save payment details";
                 toast.error(errorMessage);
             }
         });
-    }, [formData, validateForm, onSave, profile, hasChanges, hasExistingData]);
+    };
 
-    const handleCancel = useCallback(() => {
+    const handleCancel = () => {
         setIsEditing(false);
-        setErrors({});
-        setFormData({ ...originalData });
-    }, [originalData]);
+        populateForm(paymentDetails || null);
+    };
+
+    const handleModify = () => {
+        setIsEditing(true);
+    };
 
     return (
         <div className="flex flex-col w-full gap-5">
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
-
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <Heading
                         title="Bank Account Information"
                         subtitle="Provide your Bank information."
                         variant="h4"
                     />
-                    
+
                     <div className="flex h-fit gap-2 md:justify-end">
                         {isEditing ? (
                             <>
@@ -313,47 +140,89 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                                     label="Cancel"
                                     variant="secondary"
                                     disabled={isPending}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleCancel();
-                                    }}
+                                    type="button"
+                                    onClick={handleCancel}
                                 />
                                 <Button
                                     label={isPending ? "Saving..." : "Save"}
-                                    disabled={isPending || !hasChanges}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleSave();
-                                    }}
+                                    disabled={isPending || !isDirty}
+                                    type="submit"
                                 />
                             </>
                         ) : (
                             <Button
                                 label="Modify"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    handleModify();
-                                }}
+                                type="button"
+                                onClick={handleModify}
                             />
                         )}
                     </div>
                 </div>
 
-
                 <fieldset className="space-y-4 rounded-xl border border-border p-6">
                     <legend className="sr-only">Bank Account Information</legend>
-                    {BANK_FIELDS.map((field) => (
-                        <FieldInput
-                            key={field.name}
-                            field={field}
-                            value={formData[field.name] || ''}
-                            onChange={handleFieldChange}
-                            isEditing={isEditing}
-                            error={errors[field.name]}
-                        />
-                    ))}
+                    <Input
+                        id="accountHolderName"
+                        label="Account Holder Name"
+                        required
+                        variant="horizontal"
+                        labelWidth={DEFAULT_LABEL_WIDTH}
+                        size="md"
+                        disabled={!isEditing || isPending}
+                        register={register("accountHolderName")}
+                        errors={errors}
+                        placeholder="e.g. John Doe"
+                    />
+                    <Input
+                        id="bankName"
+                        label="Bank Name"
+                        required
+                        variant="horizontal"
+                        labelWidth={DEFAULT_LABEL_WIDTH}
+                        size="md"
+                        disabled={!isEditing || isPending}
+                        register={register("bankName")}
+                        errors={errors}
+                        placeholder="e.g. HDFC Bank"
+                    />
+                    <Input
+                        id="accountNumber"
+                        label="Account Number"
+                        required
+                        variant="horizontal"
+                        labelWidth={DEFAULT_LABEL_WIDTH}
+                        size="md"
+                        disabled={!isEditing || isPending}
+                        register={register("accountNumber")}
+                        errors={errors}
+                        placeholder="Enter account number"
+                    />
+                    <Input
+                        id="reAccountNumber"
+                        label="Re-enter Account Number"
+                        required
+                        variant="horizontal"
+                        labelWidth={DEFAULT_LABEL_WIDTH}
+                        size="md"
+                        disabled={!isEditing || isPending}
+                        register={register("reAccountNumber")}
+                        errors={errors}
+                        placeholder="Re-enter account number"
+                    />
+                    <Input
+                        id="ifscCode"
+                        label="IFSC Code (India)"
+                        required
+                        variant="horizontal"
+                        labelWidth={DEFAULT_LABEL_WIDTH}
+                        size="md"
+                        disabled={!isEditing || isPending}
+                        register={register("ifscCode")}
+                        errors={errors}
+                        placeholder="e.g. HDFC0001234"
+                        maxLength={11}
+                    />
                 </fieldset>
-
 
                 <Heading
                     title="Tax Information"
@@ -361,27 +230,32 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     variant="h4"
                 />
 
-
                 <fieldset className="space-y-4 rounded-xl border border-border p-6">
                     <legend className="sr-only">Tax Information</legend>
-                    {TAX_FIELDS.map((field) => (
-                        <FieldInput
-                            key={field.name}
-                            field={field}
-                            value={formData[field.name] || ''}
-                            onChange={handleFieldChange}
-                            isEditing={isEditing}
-                            error={errors[field.name]}
-                        />
-                    ))}
+                    <Input
+                        id="companyName"
+                        label="Company Name (optional)"
+                        variant="horizontal"
+                        labelWidth={DEFAULT_LABEL_WIDTH}
+                        size="md"
+                        disabled={!isEditing || isPending}
+                        register={register("companyName")}
+                        errors={errors}
+                        placeholder="e.g. Acme Studios Pvt Ltd"
+                    />
+                    <Input
+                        id="gstin"
+                        label="GSTIN (optional)"
+                        variant="horizontal"
+                        labelWidth={DEFAULT_LABEL_WIDTH}
+                        size="md"
+                        disabled={!isEditing || isPending}
+                        register={register("gstin")}
+                        errors={errors}
+                        placeholder="e.g. 07AAAAA0000A1Z5"
+                        maxLength={15}
+                    />
                 </fieldset>
-
-
-                {isEditing && hasChanges && (
-                    <div className="rounded-lg border border-border bg-muted p-3 text-sm text-foreground">
-                        You have unsaved changes
-                    </div>
-                )}
             </form>
         </div>
     );

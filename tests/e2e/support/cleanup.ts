@@ -110,6 +110,10 @@ export async function cleanupE2ERun(state: RunState) {
         { userId: { in: userIds } },
         { title: { contains: runId } },
         { slug: { contains: runId.toLowerCase() } },
+        // UI-created Rent Modal listings can be persisted before their ID is
+        // returned to the test and therefore before run-state tracking. The
+        // description is an explicit QA-only fixture marker for recovery.
+        { description: { contains: "QA staging listing created by enterprise E2E validation" } },
       ],
     },
   });

@@ -175,16 +175,23 @@ export default function SetSelector({
                             <SwiperSlide key={set.id} style={{ width: "256px" }}>
                                 <div className="py-2">
                                     <div
-                                        onClick={() => !isDisabled && handleToggle(set.id)}
                                         className={`
                                             relative w-full aspect-video rounded-xl overflow-hidden cursor-pointer group transition-all
                                             ${isSelected ? "ring-2 ring-foreground ring-offset-2" : ""}
                                             ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
                                         `}
                                     >
+                                        <button
+                                            type="button"
+                                            aria-label={`${isSelected ? "Deselect" : "Select"} ${set.name}`}
+                                            aria-pressed={isSelected}
+                                            disabled={isDisabled}
+                                            onClick={() => handleToggle(set.id)}
+                                            className="absolute inset-0 z-5"
+                                        />
                                         {set.images.length > 1 ? (
                                             <div className="absolute inset-0 z-0">
-                                                <Swiper loop speed={500} className="h-full w-full">
+                                                <Swiper loop={set.images.length > 2} speed={500} className="h-full w-full">
                                                     {set.images.map((img, idx) => (
                                                         <SwiperSlide key={idx}>
                                                             <div className="relative w-full h-full aspect-video">
@@ -208,9 +215,12 @@ export default function SetSelector({
                                         )}
 
                                         {/* Checkbox top-right */}
-                                        <div className="absolute top-2 right-2 z-10" onClick={(e) => { e.stopPropagation(); if (!isDisabled) handleToggle(set.id); }}>
+                                        <div className="absolute top-2 right-2 z-10">
                                             <Checkbox
+                                                aria-label={`${isSelected ? "Deselect" : "Select"} ${set.name}`}
                                                 checked={isSelected}
+                                                disabled={isDisabled}
+                                                onCheckedChange={() => handleToggle(set.id)}
                                                 className="data-[state=checked]:bg-success data-[state=checked]:border-success"
                                             />
                                         </div>

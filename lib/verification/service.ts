@@ -46,7 +46,7 @@ const IFSC_PATTERN = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
 
 function emailCodeSecret() {
-    const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+    const secret = process.env.AUTH_SECRET;
     if (!secret) throw new Error("Server configuration error (AUTH_SECRET)");
     return secret;
 }

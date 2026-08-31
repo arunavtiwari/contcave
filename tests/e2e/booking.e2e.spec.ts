@@ -89,6 +89,7 @@ test.describe("booking staging flow", () => {
     expect(reservation.Transaction[0]?.status).toBe("SUCCESS");
 
     const duplicate = await page.request.post("/api/payments/cashfree/process", {
+      headers: { Origin: new URL(page.url()).origin },
       data: {
         listingId: listing.id,
         startDate: formatYmd(reservation.startDate),
@@ -143,6 +144,7 @@ test.describe("booking staging flow", () => {
     await trackUserByEmail(customerAccount.email);
 
     const overQuantity = await page.request.post("/api/payments/cashfree/process", {
+      headers: { Origin: new URL(page.url()).origin },
       data: {
         listingId: listing.id,
         startDate: formatYmd(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
@@ -161,6 +163,7 @@ test.describe("booking staging flow", () => {
 
     await prisma.listing.update({ where: { id: listing.id }, data: { active: false } });
     const inactiveListing = await page.request.post("/api/payments/cashfree/process", {
+      headers: { Origin: new URL(page.url()).origin },
       data: {
         listingId: listing.id,
         startDate: formatYmd(new Date(Date.now() + 8 * 24 * 60 * 60 * 1000)),

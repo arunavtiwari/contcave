@@ -28,24 +28,6 @@ export function getBaseUrl(): string {
         return process.env.APP_URL.replace(/\/$/, "");
     }
 
-    if (process.env.NEXT_PUBLIC_APP_URL) {
-        return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
-    }
-
-    // Keep the application URL aligned with the URL variables understood by
-    // Auth.js/legacy NextAuth deployments when APP_URL is not set explicitly.
-    if (process.env.AUTH_URL) {
-        return process.env.AUTH_URL.replace(/\/$/, "");
-    }
-
-    if (process.env.NEXTAUTH_URL) {
-        return process.env.NEXTAUTH_URL.replace(/\/$/, "");
-    }
-
-    if (process.env.VERCEL_URL) {
-        return `https://${process.env.VERCEL_URL}`;
-    }
-
     return "http://localhost:3000";
 }
 

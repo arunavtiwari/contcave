@@ -65,6 +65,7 @@ const TermsAndConditionsModal = forwardRef<TermsRef, TermsProps>(({ onChange, on
                 body: JSON.stringify({
                     listingId,
                     signatureUrl: signature.url,
+                    draft: true,
                 }),
             });
 

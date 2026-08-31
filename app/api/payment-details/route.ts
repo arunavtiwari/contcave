@@ -190,8 +190,12 @@ export async function POST(request: NextRequest) {
                 });
             }
         } catch (syncError) {
-            vendorSyncFailed = true;
             console.error('[PaymentDetails] Cashfree vendor sync failed:', syncError);
+            if (process.env.NODE_ENV === "production") {
+                vendorSyncFailed = true;
+            } else {
+                console.warn('[PaymentDetails] Bypassing Cashfree vendor sync failure in non-production mode');
+            }
         }
 
         if (vendorSyncFailed) {

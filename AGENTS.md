@@ -116,7 +116,7 @@ The listing card is composed from three sub-components in `components/listing/`:
 | Cashfree | Payments + Easy Split payouts | `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`, `CASHFREE_ENV` |
 | Fixie | Outbound proxy for Cashfree IP whitelist | `FIXIE_URL` |
 | Cloudflare R2 | File storage | `CLOUDFLARE_R2_*` |
-| Ably | Real-time chat | `ABLY_API_KEY` |
+| Ably | Real-time chat | `ABLY_CHAT_API` |
 | MailerSend | Transactional email | `MAILERSEND_API_KEY` |
 | Google OAuth + Calendar | Auth + host calendar sync | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
 | MongoDB Atlas | Database | `DATABASE_URL` |
@@ -128,3 +128,13 @@ The listing card is composed from three sub-components in `components/listing/`:
 - `Calendar.tsx` (FullCalendar) is only used in the host dashboard's `SyncCalendarTab`; it is not in the public listing page bundle.
 - Secondary data fetches on `/listings/[listingId]` (reservations, user, reviews) already run in `Promise.all` — maintain this pattern when adding more.
 - The `ListingHead` desktop gallery shows 5 images above the fold; all 5 `<Image>` components have `priority` set.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

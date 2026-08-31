@@ -9,7 +9,7 @@ let lastProxyCheck: number = 0;
 const PROXY_CHECK_INTERVAL = 5 * 60 * 1000;
 
 function getFixieUrl(): string | undefined {
-    return process.env.FIXIE_URL || process.env.PROXY_URL;
+    return process.env.FIXIE_URL;
 }
 
 function validateFixieUrl(url: string): boolean {

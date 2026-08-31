@@ -127,7 +127,7 @@ export async function POST(request: Request) {
         const parsedBody = await readJsonObject(request, 1_500_000);
         if (!parsedBody.success) return parsedBody.response;
         const body = parsedBody.data;
-        const { listingId, signatureUrl } = body;
+        const { listingId, signatureUrl, draft } = body;
 
         if (typeof listingId !== "string" || typeof signatureUrl !== "string") {
             return createErrorResponse("Missing listingId or signatureUrl", 400);
@@ -152,7 +152,13 @@ export async function POST(request: Request) {
                 where: { slug: listingId },
                 select: { id: true, userId: true, archivedAt: true },
             });
-        if ((listing && (listing.userId !== currentUser.id || listing.archivedAt)) || (!listing && !isObjectId)) {
+        if (listing && (listing.userId !== currentUser.id || listing.archivedAt)) {
+            return createErrorResponse("Listing not found", 404);
+        }
+        // New-listing creation generates the signed document before the listing
+        // transaction. Only an authenticated owner, an explicit draft request,
+        // and a client-generated ObjectId may use that path.
+        if (!listing && (!isObjectId || draft !== true)) {
             return createErrorResponse("Listing not found", 404);
         }
         const actualListingId = listing?.id || listingId;

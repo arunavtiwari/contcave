@@ -50,11 +50,6 @@ function required(name: string, fallbacks: string[] = []): string {
   return value;
 }
 
-function domainFromEmail(email: string | undefined) {
-  const domain = email?.split("@")[1]?.trim();
-  return domain || undefined;
-}
-
 function parsePaymentMethod(raw: string): CashfreePaymentMethod {
   const parsed = JSON.parse(raw) as Partial<CashfreePaymentMethod>;
   if (parsed.type === "upi" && typeof parsed.vpa === "string" && parsed.vpa) {
@@ -126,7 +121,7 @@ export function getE2EConnectionEnv(): E2EConnectionEnv {
     throw new Error('E2E_ALLOW_STAGING_WRITES must be exactly "true".');
   }
 
-  const baseUrl = required("E2E_BASE_URL", ["APP_URL", "NEXTAUTH_URL"]).replace(/\/$/, "");
+  const baseUrl = required("E2E_BASE_URL").replace(/\/$/, "");
   const databaseUrl = required("E2E_DATABASE_URL");
   const expectedDatabaseName = required("E2E_EXPECTED_DATABASE_NAME");
   assertSafeBaseUrl(baseUrl);
@@ -143,7 +138,7 @@ export function getE2EConnectionEnv(): E2EConnectionEnv {
     // against the same test database. Keep an explicit E2E_RUN_ID reproducible,
     // but make automatically generated fixture namespaces collision-resistant.
     runId: process.env.E2E_RUN_ID || `qa-e2e-${Date.now()}-${randomUUID().slice(0, 8)}`,
-    emailDomain: firstDefined(["E2E_EMAIL_DOMAIN"]) || domainFromEmail(process.env.MAILERSEND_FROM_EMAIL) || required("E2E_EMAIL_DOMAIN"),
+    emailDomain: required("E2E_EMAIL_DOMAIN"),
   };
 
   return cachedConnectionEnv;

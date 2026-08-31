@@ -26,6 +26,7 @@ const AdminSidebar: React.FC = React.memo(() => {
                         alt="Contcave Logo"
                         width={120}
                         height={40}
+                        priority
                         className="h-8 w-auto"
                     />
                 </Link>

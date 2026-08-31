@@ -13,19 +13,13 @@ function toErrorMessage(error: unknown) {
 }
 
 export class PayoutService {
-    static async processDueSplits(
-        limit = 200,
-        createdAfter?: Date,
-    ): Promise<Array<{ id: string; ok: boolean; error?: string }>> {
+    static async processDueSplits(limit = 200): Promise<Array<{ id: string; ok: boolean; error?: string }>> {
         const now = new Date();
         const splitSafeCreatedAt = new Date(now.getTime() - 2 * 60 * 1000);
         const txns = await prisma.transaction.findMany({
             where: {
                 status: "SUCCESS",
-                createdAt: {
-                    ...(createdAfter ? { gte: createdAfter } : {}),
-                    lte: splitSafeCreatedAt,
-                },
+                createdAt: { lte: splitSafeCreatedAt },
                 reservationId: { not: null },
                 reservation: {
                     is: {
@@ -38,10 +32,7 @@ export class PayoutService {
                 },
                 cfOrderId: { not: null },
                 payoutDueAt: { lte: now },
-                OR: [
-                    { payoutSplitAt: null },
-                    { payoutSplitAt: { isSet: false } },
-                ],
+                OR: [{ payoutSplitAt: null }, { payoutSplitAt: { isSet: false } }],
             },
             include: {
                 reservation: {
@@ -61,6 +52,19 @@ export class PayoutService {
 
         for (const txn of txns) {
             try {
+                const stillEligible = await prisma.transaction.findFirst({
+                    where: {
+                        id: txn.id,
+                        status: "SUCCESS",
+                        OR: [{ payoutSplitAt: null }, { payoutSplitAt: { isSet: false } }],
+                    },
+                    select: { id: true },
+                });
+                if (!stillEligible) {
+                    results.push({ id: txn.id, ok: true });
+                    continue;
+                }
+
                 const payoutAmount =
                     txn.payoutAmountToOwner ??
                     Number((txn.amount * ((txn.payoutPercentToOwner ?? 88) / 100)).toFixed(2));
@@ -89,10 +93,7 @@ export class PayoutService {
                     where: {
                         id: txn.id,
                         status: "SUCCESS",
-                        OR: [
-                            { payoutSplitAt: null },
-                            { payoutSplitAt: { isSet: false } },
-                        ],
+                        OR: [{ payoutSplitAt: null }, { payoutSplitAt: { isSet: false } }],
                     },
                     data: { payoutSplitAt: completedAt, payoutDoneAt: completedAt },
                 });

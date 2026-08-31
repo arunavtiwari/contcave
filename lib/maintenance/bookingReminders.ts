@@ -1,21 +1,17 @@
 import { addDays } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 
-import { getAutomatedNotificationStart } from "@/lib/notification-activation";
 import prisma from "@/lib/prismadb";
 import { ReservationService } from "@/lib/reservation/service";
 import { WhatsappService } from "@/lib/whatsapp/service";
 
 export async function sendBookingReminderForReservation(reservationId: string) {
-    const notificationStart = getAutomatedNotificationStart();
-    if (!notificationStart) return { id: reservationId, status: "skipped" } as const;
     const reservation = await prisma.reservation.findFirst({
         where: {
             id: reservationId,
             status: "CONFIRMED",
             reminderSent: false,
             markedForDeletion: false,
-            createdAt: { gte: notificationStart },
         },
         include: { user: true, listing: true },
     });
@@ -33,13 +29,11 @@ export async function sendBookingReminderForReservation(reservationId: string) {
 }
 
 export async function sendBookingReminders() {
-    const notificationStart = getAutomatedNotificationStart();
-    if (!notificationStart) return [];
     const tomorrowStr = formatInTimeZone(addDays(new Date(), 1), "Asia/Kolkata", "yyyy-MM-dd");
     const start = new Date(`${tomorrowStr}T00:00:00.000Z`);
     const end = new Date(`${tomorrowStr}T23:59:59.999Z`);
 
     console.warn('[Maintenance] Running booking reminders (IST-aligned)', { tomorrowStr });
 
-    return await ReservationService.sendReminders(start, end, notificationStart);
+    return await ReservationService.sendReminders(start, end);
 }

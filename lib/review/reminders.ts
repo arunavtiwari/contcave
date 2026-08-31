@@ -1,5 +1,4 @@
 import { sendReviewReminderCustomer } from "@/lib/email/templates";
-import { getAutomatedNotificationStart } from "@/lib/notification-activation";
 import prisma from "@/lib/prismadb";
 import { formatReservationDate } from "@/lib/reservation/time";
 import { getValidatedBaseUrl } from "@/lib/utils";
@@ -16,8 +15,6 @@ function getReviewUrl(slug: string | null, listingId: string) {
 
 export class ReviewReminderService {
   static async sendForReservation(reservationId: string, now = new Date()): Promise<ReminderResult> {
-    const notificationStart = getAutomatedNotificationStart();
-    if (!notificationStart) return { reservationId, status: "skipped" };
     const reservation = await prisma.reservation.findUnique({
       where: { id: reservationId },
       select: {
@@ -26,7 +23,6 @@ export class ReviewReminderService {
         status: true,
         markedForDeletion: true,
         completedAt: true,
-        createdAt: true,
         reviewReminderSentAt: true,
         reviewReminderClaimedAt: true,
         startDate: true,
@@ -43,7 +39,6 @@ export class ReviewReminderService {
       || reservation.status !== "COMPLETED"
       || reservation.markedForDeletion
       || !reservation.completedAt
-      || reservation.createdAt < notificationStart
       || reservation.completedAt.getTime() + REVIEW_REMINDER_DELAY_MS > now.getTime()
       || reservation.reviewReminderSentAt
       || reservation.Review.length > 0
@@ -108,16 +103,15 @@ export class ReviewReminderService {
   }
 
   static async sendDue(limit = 100, now = new Date()): Promise<ReminderResult[]> {
-    const notificationStart = getAutomatedNotificationStart();
-    if (!notificationStart) return [];
     const dueBefore = new Date(now.getTime() - REVIEW_REMINDER_DELAY_MS);
     const reservations = await prisma.reservation.findMany({
       where: {
         status: "COMPLETED",
         markedForDeletion: false,
         completedAt: { lte: dueBefore },
-        createdAt: { gte: notificationStart },
-        OR: [{ reviewReminderSentAt: null }, { reviewReminderSentAt: { isSet: false } }],
+        AND: [
+          { OR: [{ reviewReminderSentAt: null }, { reviewReminderSentAt: { isSet: false } }] },
+        ],
       },
       select: { id: true },
       orderBy: { completedAt: "asc" },

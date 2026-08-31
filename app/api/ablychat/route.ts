@@ -19,9 +19,18 @@ const reservationTokenRequestSchema = z.object({
 
 async function getValidatedReservationId(request: NextRequest) {
   const contentType = request.headers.get("content-type") || "";
+  const declaredLength = Number(request.headers.get("content-length") || 0);
+  if (Number.isFinite(declaredLength) && declaredLength > 5_000) {
+    return reservationTokenRequestSchema.safeParse(null);
+  }
 
   if (contentType.includes("application/json")) {
-    const body = await request.json().catch(() => ({}));
+    const raw = await request.text().catch(() => "");
+    if (new TextEncoder().encode(raw).byteLength > 5_000) {
+      return reservationTokenRequestSchema.safeParse(null);
+    }
+    let body: unknown = null;
+    try { body = JSON.parse(raw); } catch { /* handled by schema */ }
     return reservationTokenRequestSchema.safeParse(body);
   }
 

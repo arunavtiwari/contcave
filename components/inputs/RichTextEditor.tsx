@@ -305,6 +305,10 @@ export default function RichTextEditor({
   align = "start",
 }: Props) {
   const [hasInitialized, setHasInitialized] = useState(false);
+  // Do not echo the initial HTML hydration through the controlled form. Doing
+  // so can cause the parent to rerender while Lexical is replacing its
+  // contenteditable node, producing a transient detached-editor race.
+  const isHydrating = useRef(Boolean(value));
   const [_isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -365,6 +369,7 @@ export default function RichTextEditor({
 
           <OnChangePlugin
             onChange={(editorState: EditorState, editor: LexicalEditor) => {
+              if (isHydrating.current) return;
               editorState.read(() => {
                 const html = $generateHtmlFromNodes(editor);
                 onChange(html);
@@ -374,7 +379,10 @@ export default function RichTextEditor({
 
           <LoadInitialValue
             value={value}
-            onInitialized={() => setHasInitialized(true)}
+            onInitialized={() => {
+              isHydrating.current = false;
+              setHasInitialized(true);
+            }}
           />
         </div>
       </LexicalComposer>

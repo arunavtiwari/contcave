@@ -575,6 +575,38 @@ test.describe("booking service payment and payout state", () => {
     expect(expiryRefundVoucher?.status).toBe("EMAIL_SENT");
   });
 
+  test("historical terminal status makes an otherwise-due booking a no-op", async () => {
+    const ReservationService = await getReservationService();
+    const fixture = await createServiceFlowFixture({
+      instantBooking: false,
+      suffix: `terminal-${Date.now()}`,
+    });
+
+    const result = await ReservationService.createFromTransaction(fixture.transaction.id);
+    const reservationId = result!.reservationId;
+    trackCreated("reservation", reservationId);
+    await prisma.reservation.update({
+      where: { id: reservationId },
+      data: { status: "CANCELLED", isApproved: 3, rejectReason: "Historical job cleanup" },
+    });
+
+    const expiryResults = await ReservationService.expirePendingApprovalReservations(
+      new Date(Date.now() + 25 * 60 * 60 * 1000),
+      reservationId,
+    );
+    expect(expiryResults).toEqual([]);
+
+    const unchanged = await prisma.reservation.findUniqueOrThrow({
+      where: { id: reservationId },
+      include: { Transaction: true },
+    });
+    expect(unchanged.status).toBe("CANCELLED");
+    expect(unchanged.Transaction[0].status).toBe("SUCCESS");
+    expect(await prisma.paymentVoucher.count({
+      where: { reservationId, voucherType: "REFUND_VOUCHER" },
+    })).toBe(0);
+  });
+
   test("local QStash delivers a signed expiry job to the application dispatcher", async () => {
     const ReservationService = await getReservationService();
     const fixture = await createServiceFlowFixture({

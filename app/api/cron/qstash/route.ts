@@ -8,7 +8,6 @@ import { sendBookingReminderForReservation, sendBookingReminders } from "@/lib/m
 import { runDueSplits } from "@/lib/maintenance/payoutSplits";
 import { autoCompleteCheckedInReservations, expireAdditionalCharges, expireExtensionRequests, sendExtensionNudges } from "@/lib/maintenance/postBooking";
 import { assertNoFailedMaintenanceResults } from "@/lib/maintenance/results";
-import { getAutomatedNotificationStart } from "@/lib/notification-activation";
 import { ReservationService } from "@/lib/reservation/service";
 import { ReviewReminderService } from "@/lib/review/reminders";
 
@@ -68,31 +67,23 @@ async function handleQstashJob(body: { job?: unknown; reservationId?: unknown; e
 
   if (body.job === "pending-approval-expiry") {
     if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
-    const notificationStart = getAutomatedNotificationStart();
-    if (!notificationStart) return NextResponse.json({ success: true, job: body.job, skipped: "Automation activation time is not configured" });
-    const results = await ReservationService.expirePendingApprovalReservations(new Date(), body.reservationId, notificationStart);
+    const results = await ReservationService.expirePendingApprovalReservations(new Date(), body.reservationId);
     assertNoFailedMaintenanceResults(results);
     return NextResponse.json({ success: true, job: body.job, results });
   }
   if (body.job === "extension-expiry") {
     if (!isObjectId(body.extensionId)) return NextResponse.json({ success: false, error: "A valid extensionId is required" }, { status: 400 });
-    const notificationStart = getAutomatedNotificationStart();
-    if (!notificationStart) return NextResponse.json({ success: true, job: body.job, skipped: "Automation activation time is not configured" });
-    const results = await expireExtensionRequests(1, body.extensionId, notificationStart);
+    const results = await expireExtensionRequests(1, body.extensionId);
     return NextResponse.json({ success: true, job: body.job, results });
   }
   if (body.job === "additional-charge-expiry") {
     if (!isObjectId(body.chargeId)) return NextResponse.json({ success: false, error: "A valid chargeId is required" }, { status: 400 });
-    const notificationStart = getAutomatedNotificationStart();
-    if (!notificationStart) return NextResponse.json({ success: true, job: body.job, skipped: "Automation activation time is not configured" });
-    const results = await expireAdditionalCharges(1, body.chargeId, notificationStart);
+    const results = await expireAdditionalCharges(1, body.chargeId);
     return NextResponse.json({ success: true, job: body.job, results });
   }
   if (body.job === "auto-complete") {
     if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
-    const notificationStart = getAutomatedNotificationStart();
-    if (!notificationStart) return NextResponse.json({ success: true, job: body.job, skipped: "Automation activation time is not configured" });
-    const results = await autoCompleteCheckedInReservations(1, body.reservationId, notificationStart);
+    const results = await autoCompleteCheckedInReservations(1, body.reservationId);
     assertNoFailedMaintenanceResults(results);
     return NextResponse.json({ success: true, job: body.job, results });
   }
@@ -116,26 +107,18 @@ async function handleQstashJob(body: { job?: unknown; reservationId?: unknown; e
 
   switch (body.job) {
     case "post-booking-fast": {
-      const notificationStart = getAutomatedNotificationStart();
-      if (!notificationStart) {
-        return NextResponse.json({ success: true, job: body.job, skipped: "Automation activation time is not configured" });
-      }
       const [nudges, extensions, charges, approvals, reviewReminders] = await Promise.all([
-        sendExtensionNudges(200, notificationStart),
-        expireExtensionRequests(200, undefined, notificationStart),
-        expireAdditionalCharges(200, undefined, notificationStart),
-        ReservationService.expirePendingApprovalReservations(new Date(), undefined, notificationStart),
+        sendExtensionNudges(200),
+        expireExtensionRequests(200),
+        expireAdditionalCharges(200),
+        ReservationService.expirePendingApprovalReservations(),
         ReviewReminderService.sendDue(),
       ]);
       assertNoFailedMaintenanceResults([...nudges, ...extensions, ...charges, ...approvals]);
       return NextResponse.json({ success: true, job: body.job, nudges, extensions, charges, approvals, reviewReminders });
     }
     case "post-booking-complete": {
-      const notificationStart = getAutomatedNotificationStart();
-      if (!notificationStart) {
-        return NextResponse.json({ success: true, job: body.job, skipped: "Automation activation time is not configured" });
-      }
-      const results = await autoCompleteCheckedInReservations(200, undefined, notificationStart);
+      const results = await autoCompleteCheckedInReservations(200);
       assertNoFailedMaintenanceResults(results);
       return NextResponse.json({ success: true, job: body.job, results });
     }
@@ -155,10 +138,6 @@ async function handleQstashJob(body: { job?: unknown; reservationId?: unknown; e
       return NextResponse.json({ success: true, job: body.job, results });
     }
     case "month-end-invoices": {
-      const notificationStart = getAutomatedNotificationStart();
-      if (!notificationStart) {
-        return NextResponse.json({ success: true, job: body.job, skipped: "Automation activation time is not configured" });
-      }
       const isMonthEndRetry = isFirstDayInIndia();
       if (!isLastDayInIndia() && !isMonthEndRetry) {
         return NextResponse.json({ success: true, job: body.job, skipped: "Not the last day of the month in Asia/Kolkata" });
@@ -167,7 +146,6 @@ async function handleQstashJob(body: { job?: unknown; reservationId?: unknown; e
       const results = await InvoiceService.processMonthlyOwnerInvoices({
         periodStart: period.start,
         periodEnd: period.end,
-        createdAfter: notificationStart,
       });
       assertNoFailedMaintenanceResults(results);
       return NextResponse.json({
@@ -222,4 +200,3 @@ export async function POST(request: Request) {
   }
   return await handleQstashJob(body);
 }
-

@@ -29,6 +29,32 @@ const ROUTES_WITH_DEDICATED_REQUEST_GUARDS = new Set([
     '/api/cron/qstash',
 ])
 
+const EXTERNAL_MUTATION_ROUTES = new Set([
+    '/api/cron/qstash',
+    '/api/payments/cashfree/return',
+    '/api/payments/cashfree/webhook',
+    '/api/whatsapp/webhook',
+])
+
+function hasSessionCookie(request: NextRequest): boolean {
+    const cookie = request.headers.get('cookie') || ''
+    return /(?:^|;\s*)(?:__Secure-)?authjs\.session-token=/.test(cookie)
+}
+
+function hasValidMutationOrigin(request: NextRequest): boolean {
+    const origin = request.headers.get('origin')
+    if (!origin) return false
+
+    try {
+        const parsed = new URL(origin)
+        const requestHost = (request.headers.get('host') || request.nextUrl.host).toLowerCase()
+        if (parsed.host.toLowerCase() !== requestHost) return false
+        return process.env.NODE_ENV !== 'production' || parsed.protocol === 'https:'
+    } catch {
+        return false
+    }
+}
+
 function hasDedicatedRequestGuard(pathname: string): boolean {
     return ROUTES_WITH_DEDICATED_REQUEST_GUARDS.has(pathname)
         || pathname.startsWith('/api/pay/charge/')
@@ -259,6 +285,23 @@ export async function proxy(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
     try {
+        const isStateChanging = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)
+        if (
+            isStateChanging
+            && pathname.startsWith('/api/')
+            && !EXTERNAL_MUTATION_ROUTES.has(pathname)
+            && hasSessionCookie(request)
+            && !hasValidMutationOrigin(request)
+        ) {
+            return finalizeResponse(
+                request,
+                createErrorResponse('Invalid request origin', 403),
+                pathname,
+                nonce,
+                start
+            )
+        }
+
         const bypassGlobalLimit = process.env.NODE_ENV !== 'production' || hasDedicatedRequestGuard(pathname)
         const rl = bypassGlobalLimit
             ? { allowed: true, remaining: RATE_LIMIT.maxRequests, resetTime: Date.now() + RATE_LIMIT.windowMs }

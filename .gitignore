@@ -32,6 +32,7 @@ yarn-error.log*
 .env*.local
 .env*
 !.env.example
+!.env.e2e.example
 .env.test
 .env.e2e
 

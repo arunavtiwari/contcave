@@ -1144,7 +1144,11 @@ export class ReservationService {
         const completedAt = new Date();
         const transitioned = await prisma.$transaction(async (tx) => {
             const update = await tx.reservation.updateMany({
-                where: { id: reservationId, status: "CHECKED_IN", checkedInAt: { not: null } },
+                where: {
+                    id: reservationId,
+                    status: "CHECKED_IN",
+                    checkedInAt: { not: null },
+                },
                 data: {
                     status: "COMPLETED",
                     isApproved: legacyApprovalFromStatus("COMPLETED"),
@@ -1747,12 +1751,10 @@ export class ReservationService {
     static async sendReminders(
         rangeStart: Date,
         rangeEnd: Date,
-        createdAfter?: Date,
     ): Promise<Array<{ id: string; status: string; error?: string }>> {
         const reservations = await prisma.reservation.findMany({
             where: {
                 startDate: { gte: rangeStart, lte: rangeEnd },
-                ...(createdAfter ? { createdAt: { gte: createdAfter } } : {}),
                 reminderSent: false,
                 status: "CONFIRMED",
                 markedForDeletion: false,
@@ -1789,7 +1791,6 @@ export class ReservationService {
     static async expirePendingApprovalReservations(
         reference = new Date(),
         onlyReservationId?: string,
-        createdAfter?: Date,
     ): Promise<Array<{ id: string; status: string; error?: string }>> {
         const cutoff = new Date(reference.getTime() - 24 * 60 * 60 * 1000);
         const reason = "Auto-rejected: host did not respond within 24 hours";
@@ -1799,7 +1800,6 @@ export class ReservationService {
                 status: "PENDING_APPROVAL",
                 createdAt: {
                     lte: cutoff,
-                    ...(createdAfter ? { gte: createdAfter } : {}),
                 },
                 markedForDeletion: false,
                 Transaction: { some: { status: "SUCCESS" } },
@@ -1812,7 +1812,10 @@ export class ReservationService {
         for (const reservation of reservations) {
             try {
                 const claim = await prisma.reservation.updateMany({
-                    where: { id: reservation.id, status: "PENDING_APPROVAL" },
+                    where: {
+                        id: reservation.id,
+                        status: "PENDING_APPROVAL",
+                    },
                     data: {
                         status: "CANCELLED",
                         isApproved: legacyApprovalFromStatus("CANCELLED"),
