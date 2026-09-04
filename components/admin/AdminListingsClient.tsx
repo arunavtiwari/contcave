@@ -13,11 +13,13 @@ import {
     FiLayers,
     FiMapPin,
     FiShield,
+    FiStar,
     FiX,
 } from "react-icons/fi";
 import { toast } from "sonner";
 
 import { type AdminListingReview, approveListingAction, markInConversationAction, rejectListingAction } from "@/app/actions/listingActions";
+import ListingReviewsModal from "@/components/admin/ListingReviewsModal";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
@@ -425,6 +427,7 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
     const [viewMode, setViewMode] = useState<ViewMode>("STANDARD");
     const [status, setStatus] = useState<"ALL" | ListingStatus>("PENDING");
     const [selected, setSelected] = useState<AdminListingReview | null>(null);
+    const [reviewsFor, setReviewsFor] = useState<{ id: string; title: string } | null>(null);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
     const [rejectReason, setRejectReason] = useState("");
     const [isPending, startTransition] = useTransition();
@@ -544,6 +547,13 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                                                     <td className="px-5 py-4 text-right">
                                                         <div className="flex items-center justify-end gap-2">
                                                             <a href={publicListingHref(listing.slug || listing.id)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">View</a>
+                                                            <button
+                                                                type="button"
+                                                                className="text-xs text-muted-foreground hover:text-foreground hover:underline underline-offset-2"
+                                                                onClick={() => setReviewsFor({ id: listing.id, title: listing.title })}
+                                                            >
+                                                                Reviews
+                                                            </button>
                                                             {!listing.inConversation && (
                                                                 <button type="button" className="text-xs text-success hover:underline"
                                                                     onClick={() => startTransition(async () => {
@@ -654,7 +664,16 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                                             {formatISTDate(listing.createdAt, { day: "numeric", month: "short", year: "numeric" })}
                                         </td>
                                         <td className="px-5 py-4 text-right">
-                                            <div className="flex justify-end">
+                                            <div className="flex justify-end gap-2">
+                                                <Button
+                                                    icon={FiStar}
+                                                    isIconOnly
+                                                    outline
+                                                    aria-label={`Manage reviews: ${listing.title}`}
+                                                    tooltip="Reviews"
+                                                    data-testid={`reviews-listing-${listing.id}`}
+                                                    onClick={() => setReviewsFor({ id: listing.id, title: listing.title })}
+                                                />
                                                 <Button
                                                     icon={FiExternalLink}
                                                     isIconOnly
@@ -679,6 +698,11 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                 onClose={() => setSelected(null)}
                 onRequestAction={setConfirmAction}
                 isMutating={isPending}
+            />
+
+            <ListingReviewsModal
+                listing={reviewsFor}
+                onClose={() => setReviewsFor(null)}
             />
 
             {selected && confirmAction && (
