@@ -8,7 +8,7 @@ test.describe("Payment Details Form E2E Tests", () => {
     const retrySuffix = `r${testInfo.retry}`;
 
     // 1. Create a verified studio owner user
-    const { account: ownerAccount, user: owner } = await createUserFixture({
+    const { account: ownerAccount } = await createUserFixture({
       role: "OWNER",
       verified: true,
       suffix: `pay-owner-${retrySuffix}`,

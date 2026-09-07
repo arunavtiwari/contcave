@@ -16,8 +16,6 @@
 		"test:e2e:staging": "playwright test --project=staging-chromium",
 		"qstash:dev": "npx @upstash/qstash-cli@latest dev",
 		"configure:qstash": "node scripts/configure-qstash-schedules.mjs",
-		"qstash:close-history": "tsx scripts/close-legacy-qstash-jobs.ts",
-		"migrate:data": "tsx scripts/migrate-production-data.ts",
 		"postinstall": "npx prisma generate"
 	},
 	"dependencies": {

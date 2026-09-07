@@ -47,6 +47,7 @@ next-env.d.ts
 .agent
 .agents
 dump
+backups/
 
 
 CLAUDE.md
