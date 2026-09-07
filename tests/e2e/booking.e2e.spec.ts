@@ -84,7 +84,7 @@ test.describe("booking staging flow", () => {
       userId: customerUser.id,
       listingId: listing.id,
     });
-    expect(reservation.isApproved).toBe(1);
+    expect(reservation.status).toBe("CONFIRMED");
     expect(reservation.totalPrice).toBeGreaterThan(0);
     expect(reservation.Transaction[0]?.status).toBe("SUCCESS");
 

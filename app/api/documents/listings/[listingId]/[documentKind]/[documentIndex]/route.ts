@@ -44,13 +44,7 @@ export async function GET(_request: Request, props: { params: Promise<Params> })
       document = asRecord(documents[index]);
     }
 
-    const ref = typeof document.storageRef === "string"
-      ? document.storageRef
-      : typeof document.pdfUrl === "string"
-        ? document.pdfUrl
-        : typeof document.url === "string"
-          ? document.url
-          : null;
+    const ref = typeof document.storageRef === "string" ? document.storageRef : null;
     if (!ref) return createErrorResponse("Document not found", 404);
 
     const filename = documentKind === "agreement"

@@ -29,7 +29,6 @@ export type SafeReservation = Omit<
     | "completedAt"
     | "noShowAt"
     | "refundRecordedAt"
-    | "isApproved"
     | "billingDetailId"
     | "billingSnapshot"
     | "extensionNudgeSentAt"

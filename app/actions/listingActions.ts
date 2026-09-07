@@ -55,7 +55,7 @@ function normalizeVerifications(value: unknown, listingId: string) {
         ? record.documents
             .map((doc, index): VerificationDocument => {
                 const item = asRecord(doc);
-                const hasStoredDocument = typeof item.storageRef === "string" || typeof item.url === "string";
+                const hasStoredDocument = typeof item.storageRef === "string";
                 return {
                     url: hasStoredDocument ? `/api/documents/listings/${listingId}/verification/${index}` : undefined,
                     name: typeof item.name === "string" ? item.name : undefined,
@@ -68,7 +68,7 @@ function normalizeVerifications(value: unknown, listingId: string) {
         : [];
 
     const agreement = asRecord(record.agreementPdf);
-    const agreementPdf: AgreementPdf | null = agreement.url || agreement.pdfUrl || agreement.storageRef
+    const agreementPdf: AgreementPdf | null = typeof agreement.storageRef === "string"
         ? {
             url: `/api/documents/listings/${listingId}/agreement/0`,
             pdfUrl: `/api/documents/listings/${listingId}/agreement/0`,

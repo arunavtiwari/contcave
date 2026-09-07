@@ -112,7 +112,6 @@ async function createInvoiceFixture(params: {
       endTime: "1:00 PM",
       totalPrice: 1180,
       totalPriceInt: 1180,
-      isApproved: 1,
       status: "CONFIRMED",
     },
   });
@@ -229,7 +228,7 @@ test.describe("enterprise invoice service", () => {
     });
     await prisma.reservation.update({
       where: { id: fixture.reservation.id },
-      data: { isApproved: 0, status: "PENDING_APPROVAL" },
+      data: { status: "PENDING_APPROVAL" },
     });
 
     await expect(

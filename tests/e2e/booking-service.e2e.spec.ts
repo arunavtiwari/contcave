@@ -207,7 +207,6 @@ test.describe("booking service payment and payout state", () => {
     trackCreated("reservation", reservation.id);
 
     const txn = withPayoutFields(reservation.Transaction[0]);
-    expect(reservation.isApproved).toBe(1);
     expect(reservation.status).toBe("CONFIRMED");
     expect(txn.status).toBe("SUCCESS");
     expect(txn.vendorId).toBeNull();
@@ -256,7 +255,6 @@ test.describe("booking service payment and payout state", () => {
     trackCreated("reservation", pendingReservation.id);
 
     let txn = withPayoutFields(pendingReservation.Transaction[0]);
-    expect(pendingReservation.isApproved).toBe(0);
     expect(pendingReservation.status).toBe("PENDING_APPROVAL");
     expect(txn.status).toBe("SUCCESS");
     expect(txn.vendorId).toBeNull();
@@ -292,7 +290,6 @@ test.describe("booking service payment and payout state", () => {
     });
     txn = withPayoutFields(approvedReservation.Transaction[0]);
 
-    expect(approvedReservation.isApproved).toBe(1);
     expect(approvedReservation.status).toBe("CONFIRMED");
     expect(txn.payoutAmountToOwner).toBe(1060);
     expect(txn.payoutDueAt).toBeNull();
@@ -464,7 +461,7 @@ test.describe("booking service payment and payout state", () => {
     });
     trackCreated("reservation", pendingReservation.id);
 
-    expect(pendingReservation.isApproved).toBe(0);
+    expect(pendingReservation.status).toBe("PENDING_APPROVAL");
     expect(await prisma.paymentVoucher.count({
       where: { reservationId: pendingReservation.id, voucherType: "RECEIPT_VOUCHER" },
     })).toBe(1);
@@ -483,7 +480,6 @@ test.describe("booking service payment and payout state", () => {
     });
     const txn = rejectedReservation.Transaction[0];
 
-    expect(rejectedReservation.isApproved).toBe(3);
     expect(rejectedReservation.status).toBe("CANCELLED");
     expect(txn.status).toBe("REFUNDED");
     expect(txn.payoutDueAt).toBeNull();
@@ -522,7 +518,7 @@ test.describe("booking service payment and payout state", () => {
       where: { id: reservationId },
       include: { Transaction: true },
     });
-    expect(cancelled.isApproved).toBe(3);
+    expect(cancelled.status).toBe("CANCELLED");
     expect(cancelled.Transaction[0].status).toBe("REFUNDED");
     expect(await prisma.reservationSlot.count({ where: { reservationId } })).toBe(0);
     expect(await prisma.invoice.count({ where: { reservationId } })).toBe(0);
@@ -558,7 +554,6 @@ test.describe("booking service payment and payout state", () => {
       where: { id: reservationId },
       include: { Transaction: true },
     });
-    expect(expired.isApproved).toBe(3);
     expect(expired.status).toBe("CANCELLED");
     expect(expired.rejectReason).toMatch(/did not respond within 24 hours/i);
     expect(expired.Transaction[0].status).toBe("REFUNDED");
@@ -587,7 +582,7 @@ test.describe("booking service payment and payout state", () => {
     trackCreated("reservation", reservationId);
     await prisma.reservation.update({
       where: { id: reservationId },
-      data: { status: "CANCELLED", isApproved: 3, rejectReason: "Historical job cleanup" },
+      data: { status: "CANCELLED", rejectReason: "Historical job cleanup" },
     });
 
     const expiryResults = await ReservationService.expirePendingApprovalReservations(

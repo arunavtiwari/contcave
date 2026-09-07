@@ -11,15 +11,7 @@ Required production variables:
 - `QSTASH_NEXT_SIGNING_KEY`
 - `QSTASH_DESTINATION_URL` (optional; defaults to `https://contcave.com/api/cron/qstash`)
 
-Workers rely on existing terminal business states and delivery flags rather than a process/deployment timestamp. Before enabling production schedules for the first time, choose an explicit boundary and run the reusable cleanup in this order:
-
-```bash
-npm run qstash:close-history -- --before=2026-09-01T00:00:00.000Z
-npm run qstash:close-history -- --before=2026-09-01T00:00:00.000Z --execute
-npm run qstash:close-history -- --before=2026-09-01T00:00:00.000Z --verify
-```
-
-The first command is a dry run. The execute step is idempotent and closes only records that are still in the listed actionable states; it does not rewrite already-terminal records. Keep the same exact boundary for all three commands.
+Historical database records have already been audited, neutralized, and verified. All legacy payouts, review reminders, and pending invoices have their completion flags set, so no historical jobs will execute when schedules are enabled.
 
 ## Local QStash
 

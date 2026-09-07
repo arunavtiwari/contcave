@@ -20,7 +20,6 @@ import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
 import prisma from "@/lib/prismadb";
 import { validateBookingWindow } from "@/lib/reservation/bookingWindow";
-import { legacyApprovalFromStatus, statusFromLegacyApproval } from "@/lib/reservation/status";
 import { formatReservationDate, parseReservationEndTimeForDate, parseReservationTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
 import { generateBookingId } from "@/lib/utils";
@@ -526,9 +525,6 @@ export class ReservationService {
                         pricingSnapshot,
                         billingDetailId,
                         billingSnapshot,
-                        isApproved: legacyApprovalFromStatus(
-                            txn.listing.instantBooking ? "CONFIRMED" : "PENDING_APPROVAL"
-                        ),
                         status: txn.listing.instantBooking ? "CONFIRMED" : "PENDING_APPROVAL",
                     }
                 });
@@ -934,7 +930,6 @@ export class ReservationService {
 
     private static currentStatus(resv: {
         status?: ReservationStatus | null;
-        isApproved?: number | null;
         checkedInAt?: Date | null;
         completedAt?: Date | null;
     }) {
@@ -942,10 +937,7 @@ export class ReservationService {
         if (!resv.status && resv.checkedInAt) return "CHECKED_IN" as const;
         if (resv.status === "PENDING_APPROVAL" && resv.completedAt) return "COMPLETED" as const;
         if (resv.status === "PENDING_APPROVAL" && resv.checkedInAt) return "CHECKED_IN" as const;
-        if (resv.status === "PENDING_APPROVAL" && resv.isApproved != null && resv.isApproved !== 0) {
-            return statusFromLegacyApproval(resv.isApproved);
-        }
-        return resv.status || statusFromLegacyApproval(resv.isApproved);
+        return resv.status || ("PENDING_APPROVAL" as const);
     }
 
     static async approve(reservationId: string, userId: string, allowAdmin = false): Promise<void> {
@@ -967,7 +959,7 @@ export class ReservationService {
         await prisma.$transaction(async (tx) => {
             const update = await tx.reservation.updateMany({
                 where: { id: reservationId, status: this.currentStatus(resv) },
-                data: { status: "CONFIRMED", isApproved: legacyApprovalFromStatus("CONFIRMED"), rejectReason: null },
+                data: { status: "CONFIRMED", rejectReason: null },
             });
             if (update.count !== 1) throw new UserFacingError("Reservation status changed while processing. Please refresh and try again.", 409);
 
@@ -1007,7 +999,6 @@ export class ReservationService {
             where: { id: reservationId, status: current },
             data: {
                 status: "CANCELLED",
-                isApproved: legacyApprovalFromStatus("CANCELLED"),
                 rejectReason: rejectionReason,
             }
         });
@@ -1030,7 +1021,6 @@ export class ReservationService {
                 where: { id: reservationId, status: "CANCELLED" },
                 data: {
                     status: current,
-                    isApproved: legacyApprovalFromStatus(current),
                     rejectReason: resv.rejectReason || null,
                 },
             });
@@ -1057,7 +1047,6 @@ export class ReservationService {
             where: { id: reservationId, status: current },
             data: {
                 status: "CANCELLED",
-                isApproved: legacyApprovalFromStatus("CANCELLED"),
             },
         });
 
@@ -1066,9 +1055,11 @@ export class ReservationService {
         }
 
         try {
+            const refundDescription = `Refunded: customer cancelled before host approval`,
+                refundDescriptionClean = refundDescription;
             await this.refundSuccessfulReservationTransactions(
                 reservationId,
-                "Refunded: customer cancelled before host approval",
+                refundDescriptionClean,
                 "rf_cancel"
             );
         } catch (error) {
@@ -1076,7 +1067,6 @@ export class ReservationService {
                 where: { id: reservationId, status: "CANCELLED" },
                 data: {
                     status: current,
-                    isApproved: legacyApprovalFromStatus(current),
                 },
             });
             throw error;
@@ -1115,7 +1105,6 @@ export class ReservationService {
             },
             data: {
                 status: "CHECKED_IN",
-                isApproved: legacyApprovalFromStatus("CHECKED_IN"),
                 checkedInAt,
             },
         });
@@ -1151,7 +1140,6 @@ export class ReservationService {
                 },
                 data: {
                     status: "COMPLETED",
-                    isApproved: legacyApprovalFromStatus("COMPLETED"),
                     completedAt,
                 },
             });
@@ -1220,7 +1208,6 @@ export class ReservationService {
                 where: { id: reservationId, status: "CONFIRMED" },
                 data: {
                     status: "NO_SHOW",
-                    isApproved: legacyApprovalFromStatus("NO_SHOW"),
                     noShowAt: new Date(),
                 },
             });
@@ -1294,7 +1281,6 @@ export class ReservationService {
                 where: { id: params.reservationId },
                 data: {
                     status: params.status,
-                    isApproved: legacyApprovalFromStatus(params.status),
                     refundAmount: amount,
                     refundRecordedAt: new Date(),
                     refundNote: params.note?.trim().slice(0, 500) || null,
@@ -1818,7 +1804,6 @@ export class ReservationService {
                     },
                     data: {
                         status: "CANCELLED",
-                        isApproved: legacyApprovalFromStatus("CANCELLED"),
                         rejectReason: reason,
                     },
                 });
@@ -1838,7 +1823,6 @@ export class ReservationService {
                         where: { id: reservation.id, status: "CANCELLED", rejectReason: reason },
                         data: {
                             status: "PENDING_APPROVAL",
-                            isApproved: legacyApprovalFromStatus("PENDING_APPROVAL"),
                             rejectReason: reservation.rejectReason || null,
                         },
                     });
@@ -2005,7 +1989,6 @@ export class ReservationService {
         const {
             hiddenByGuestAt: _hiddenByGuestAt,
             hiddenByOwnerAt: _hiddenByOwnerAt,
-            isApproved: _legacyApproval,
             billingDetailId: _billingDetailId,
             billingSnapshot: _billingSnapshot,
             extensionNudgeSentAt: _extensionNudgeSentAt,
