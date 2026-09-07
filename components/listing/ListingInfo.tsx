@@ -37,11 +37,14 @@ const Map = dynamic(() => import("../Map"), { ssr: false });
 interface Review {
   id: string;
   comment: string;
+  rating: number | null;
   createdAt: string | Date;
+  source?: "PLATFORM" | "WHATSAPP" | null;
+  guestName?: string | null;
   user: {
     name: string | null;
     image: string | null;
-  };
+  } | null;
 }
 
 type Props = {
@@ -478,10 +481,14 @@ function ListingInfo({
                     <div className="h-fit">
                       <Avatar src={rv.user?.image} size={45} />
                     </div>
-                    <div className="pl-4 flex flex-col w-full">
-                      <div className="flex justify-between items-center">
-                        <div className="text-base font-bold">{rv.user?.name}</div>
+                    <div className="pl-4 flex flex-col w-full gap-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="text-base font-bold">{rv.user?.name || rv.guestName || "Guest"}</div>
+                        {rv.source === "WHATSAPP" && (
+                          <Pill label="Shared via WhatsApp" size="xs" variant="neutral" />
+                        )}
                       </div>
+                      {rv.rating != null && <StarRating rating={rv.rating} size={13} />}
                       <div>
                         <p>{rv.comment}</p>
                       </div>

@@ -109,6 +109,7 @@ model User {
   reservations            Reservation[]
   CustomAmenities         CustomAmenities[]
   Review                  Review[]
+  reviewsAdded            Review[]          @relation("ReviewAddedBy")
   paymentDetails          PaymentDetails?   @relation("UserPaymentDetails")
   paymentDetailsId        String?           @db.ObjectId
   role                    UserRole          @default(CUSTOMER)
@@ -335,17 +336,32 @@ model CustomAmenities {
 
 
 
+enum ReviewSource {
+  PLATFORM
+  WHATSAPP
+}
+
 model Review {
-  id            String      @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String      @db.ObjectId
-  listingId     String      @db.ObjectId
-  reservationId String      @db.ObjectId
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  // Absent on pre-existing records — treat as PLATFORM in application code.
+  // No `@default` here: Mongo doesn't backfill defaults onto documents that
+  // predate this field, so a required enum would fail to deserialize them.
+  source        ReviewSource?
+  userId        String?       @db.ObjectId
+  listingId     String        @db.ObjectId
+  reservationId String?       @db.ObjectId
   rating        Float?
   comment       String
-  createdAt     DateTime    @default(now())
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listing       Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  createdAt     DateTime      @default(now())
+  // WHATSAPP-sourced reviews have no platform account behind them.
+  guestName     String?
+  guestRole     String?
+  // Admin who transcribed a WHATSAPP review.
+  addedById     String?       @db.ObjectId
+  user          User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing       Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reservation   Reservation?  @relation(fields: [reservationId], references: [id])
+  addedBy       User?         @relation("ReviewAddedBy", fields: [addedById], references: [id])
 
   @@index([userId])
   @@index([listingId])
