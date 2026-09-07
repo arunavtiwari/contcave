@@ -15,7 +15,9 @@ if (!["http:", "https:"].includes(destinationUrl.protocol) || (!devMode && desti
   throw new Error("QSTASH_DESTINATION_URL must be a valid HTTPS URL outside development");
 }
 
-const client = devMode ? new Client({ devMode: true }) : new Client({ token });
+const client = devMode
+  ? new Client({ devMode: true })
+  : new Client({ token, baseUrl: process.env.QSTASH_URL || undefined });
 
 for (const schedule of schedules) {
   const result = await client.schedules.create({

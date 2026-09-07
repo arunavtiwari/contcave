@@ -40,7 +40,9 @@ export async function scheduleQstashJob(payload: QstashJobPayload, runAt: Date) 
   // remains safe if a provider retry or reconciliation path overlaps it.
   const scheduleVersion = `-${Math.floor(runAt.getTime() / 1000)}`;
   const deduplicationId = `contcave-${payload.job}-${entityId}${scheduleVersion}`;
-  const client = devMode ? new Client({ devMode: true }) : new Client({ token: token! });
+  const client = devMode
+    ? new Client({ devMode: true })
+    : new Client({ token: token!, baseUrl: process.env.QSTASH_URL || undefined });
   try {
     return await client.publishJSON({
       url: destination,
