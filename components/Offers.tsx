@@ -20,8 +20,11 @@ type Props = {
   customAmenities?: string[];
 };
 
+const normalize = (name: string) => name.trim().toLowerCase();
+
 const getIconByName = (name: string) => {
-  const amenity = AMENITIES.find((item) => item.name === name);
+  const target = normalize(name);
+  const amenity = AMENITIES.find((item) => normalize(item.name) === target);
   return amenity ? amenity.icon : null;
 };
 
