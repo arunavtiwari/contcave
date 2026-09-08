@@ -53,4 +53,16 @@ export function loadE2EProcessEnv(projectDir = process.cwd()) {
 
   applyEnvFile(projectDir, ".env.e2e", shellEnvKeys);
   applyEnvFile(projectDir, ".env.e2e.local", shellEnvKeys);
+
+  const e2eDatabaseName = process.env.E2E_DATABASE_NAME?.trim();
+  const e2eDatabaseUrl = process.env.E2E_DATABASE_URL?.trim();
+  if (e2eDatabaseName && e2eDatabaseUrl) {
+    if (!/^[A-Za-z0-9_-]+$/.test(e2eDatabaseName)) {
+      throw new Error("E2E_DATABASE_NAME may contain only letters, numbers, underscores, and hyphens.");
+    }
+    const url = new URL(e2eDatabaseUrl);
+    url.pathname = `/${e2eDatabaseName}`;
+    process.env.E2E_DATABASE_URL = url.toString();
+    process.env.DATABASE_URL = url.toString();
+  }
 }

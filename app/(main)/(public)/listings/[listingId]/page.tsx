@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListingById from "@/app/actions/getListingById";
 import getReviewCount from "@/app/actions/getReviewCount";
-import { getReservations } from "@/app/actions/reservationActions";
+import { getPublicDayStatuses, getReservations } from "@/app/actions/reservationActions";
 import EmptyState from "@/components/EmptyState";
 import ListingSkeleton from "@/components/listing/ListingSkeleton";
 import ListingClient from "@/components/ListingClient";
@@ -118,8 +118,9 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
   }
 
   // Parallelize secondary fetches with individual catches for robustness in staging
-  const [reservations, currentUser, googleCalendarEvents, reviewCount] = await Promise.all([
+  const [reservations, dayStatuses, currentUser, googleCalendarEvents, reviewCount] = await Promise.all([
     getReservations({ listingId: listing.id }).catch(() => []),
+    getPublicDayStatuses(listing.id).catch(() => []),
     getCurrentUser().catch(() => null),
     listing.user?.googleCalendarConnected
       ? Promise.race([
@@ -351,6 +352,7 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
         listing={listing}
         currentUser={currentUser}
         reservations={reservations}
+        dayStatuses={dayStatuses}
         googleCalendarEvents={googleCalendarEvents}
         processedDescription={processedDescription}
         processedTerms={processedTerms}

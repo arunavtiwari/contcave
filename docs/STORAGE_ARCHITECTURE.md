@@ -106,44 +106,9 @@ users/{userId}/billing/invoices/{financialYear}/{documentType}/{invoiceId}/{invo
 users/{userId}/billing/vouchers/{financialYear}/{voucherType}/{voucherId}/{voucherNumber}.pdf
 ```
 
-## Cleanup and Migration
-
-The canonicalization script is:
-
-```bash
-node scripts/canonicalize-r2-storage.js
-```
-
-Dry-run mode reports stale DB references and planned object moves. Apply mode copies objects to canonical keys, verifies the target objects, updates MongoDB, and writes backups:
-
-```bash
-node scripts/canonicalize-r2-storage.js --apply
-```
-
-Cleanup mode additionally deletes obsolete source objects, but only after the DB verification step reports zero stale references:
-
-```bash
-node scripts/canonicalize-r2-storage.js --apply --cleanup
-```
-
-The same canonicalizer also audits Cloudinary references and fails if any remain.
-
-## Post-Migration State
-
-As of the canonical storage migration on 2026-05-14:
-
-- Cloudinary DB references: `0`
-- Generic `migrated/cloudinary` DB references: `0`
-- Root-level `verifications/` DB references: `0`
-- Root-level `agreements/` DB references: `0`
-- Old flat `users/{userId}/invoices` DB references: `0`
-
-Final rollback backups and URL maps are stored in `dump/cloudinary-r2-migration/`.
-
 ## Security Properties
 
 1. Tenant isolation: presigned uploads are scoped to `users/{currentUser.id}`.
 2. Listing isolation: listing-owned assets are grouped under `users/{ownerId}/listings/{listingId}`.
 3. Erasure support: deleting a user can recursively remove `users/{userId}/`.
 4. Listing cleanup: deleting a listing can recursively remove `users/{ownerId}/listings/{listingId}/`.
-5. Auditability: migration scripts write before/after JSONL backups and URL maps before cleanup.

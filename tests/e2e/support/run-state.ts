@@ -12,7 +12,8 @@ export type CreatedRecordType =
   | "voucherSequence"
   | "billingDetails"
   | "paymentDetails"
-  | "r2Key";
+  | "r2Key"
+  | "r2PrivateRef";
 
 export type RunState = {
   runId: string;
@@ -31,6 +32,7 @@ const emptyCreated: Record<CreatedRecordType, string[]> = {
   billingDetails: [],
   paymentDetails: [],
   r2Key: [],
+  r2PrivateRef: [],
 };
 
 export const runStatePath = path.join(process.cwd(), "test-results", "e2e-run-state.json");
@@ -55,6 +57,12 @@ export function readRunState(): RunState {
   }
 
   return JSON.parse(fs.readFileSync(runStatePath, "utf8")) as RunState;
+}
+
+export function clearRunState() {
+  if (fs.existsSync(runStatePath)) {
+    fs.unlinkSync(runStatePath);
+  }
 }
 
 export function updateRunState(updater: (state: RunState) => RunState): RunState {

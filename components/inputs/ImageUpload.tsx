@@ -43,7 +43,7 @@ function ImageUpload({
     "video/webm",
     "video/quicktime",
   ],
-  maxSize = 50 * 1024 * 1024,
+  maxSize = 15 * 1024 * 1024,
   uploadLabel,
   label,
   description,
@@ -104,7 +104,12 @@ function ImageUpload({
         const presignRes = await fetch("/api/upload/presign", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ filename: file.name, contentType: file.type, folder }),
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type,
+            fileSize: file.size,
+            folder,
+          }),
         });
 
         if (!presignRes.ok) {

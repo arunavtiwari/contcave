@@ -21,6 +21,7 @@ import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import useUIStore from "@/hooks/useUIStore";
 import { normalizePhone } from "@/lib/phone";
+import { istToDateOnly } from "@/lib/scheduling";
 import { Package } from "@/types/package";
 import {
   DayKey,
@@ -219,8 +220,9 @@ export default function ListingReservation({
   const selStart = (selectedTime?.[0] as TimeLabel | null) ?? null;
   const selEnd = (selectedTime?.[1] as TimeLabel | null) ?? null;
   useEffect(() => {
+    if (selectedPackage && selStart && selectedDate) return;
     setLocalTimes({ start: selStart, end: selEnd });
-  }, [selStart, selEnd]);
+  }, [selStart, selEnd, selectedPackage, selectedDate]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -242,9 +244,13 @@ export default function ListingReservation({
   );
 
   const bookingFee = useMemo(() => {
-    if (selectedPackage) return Number(selectedPackage.offeredPrice || 0);
+    if (selectedPackage) {
+      return clampRound(
+        Number(selectedPackage.offeredPrice || 0) + Number(selectedPackage.fixedAddOn || 0)
+      );
+    }
     if (hasSets && pricingResult) return pricingResult.subtotal;
-    return price * safeHours;
+    return price * Math.ceil(safeHours);
   }, [selectedPackage, hasSets, pricingResult, price, safeHours]);
 
   const addonsSum = useMemo(
@@ -295,9 +301,18 @@ export default function ListingReservation({
   );
 
   const minBookingMinutes = useMemo(
-    () => hoursToMinutes(minBookingHours, 90),
-    [minBookingHours]
+    () => Math.max(
+      hoursToMinutes(minBookingHours, 90),
+      selectedPackage ? Math.max(0, Number(selectedPackage.durationHours || 0)) * 60 : 0
+    ),
+    [minBookingHours, selectedPackage]
   );
+
+  const bookingDateRange = useMemo(() => {
+    const min = istToDateOnly(new Date());
+    const max = new Date(min.getFullYear(), min.getMonth(), min.getDate() + 90);
+    return { min, max };
+  }, []);
 
   const handleTimeSelect = useCallback(
     (value: TimeLabel | null, field: "start" | "end") => {
@@ -345,7 +360,10 @@ export default function ListingReservation({
     setPhoneSaving(true);
     setPhoneError(null);
     try {
-      await updateUser({ phone: normalized });
+      const result = await updateUser({ phone: normalized });
+      if (!result.success) {
+        throw new Error(result.error || "Failed to save mobile number.");
+      }
       setCustomerPhone(normalized);
       setShowPhoneModal(false);
       setShowSummaryModal(true);
@@ -399,11 +417,11 @@ export default function ListingReservation({
           offeredPrice: selectedPackage.offeredPrice,
           durationHours: selectedPackage.durationHours,
         };
+        payload.setPackageId = selectedPackageId || selectedPackage.id || null;
       }
 
       if (hasSets && pricingResult) {
         payload.setIds = selectedSetIds;
-        payload.setPackageId = selectedPackageId;
         payload.pricingSnapshot = pricingResult.breakdown;
       }
 
@@ -523,6 +541,8 @@ export default function ListingReservation({
       </div>
       <Calendar
         value={selectedDate ?? null}
+        minDate={bookingDateRange.min}
+        maxDate={bookingDateRange.max}
         disabledDates={disabledDates}
         allowedDays={allowedDays}
         onChange={(value) => {
@@ -542,7 +562,7 @@ export default function ListingReservation({
       {hasSets && (
         <>
           <div className="p-4">
-            {!setValidation.valid && selectedSetIds.length > 0 && (
+            {!setValidation.valid && (
               <p className="mt-2 text-sm text-destructive">{setValidation.error}</p>
             )}
           </div>
@@ -657,4 +677,3 @@ export default function ListingReservation({
     </section>
   );
 }
-

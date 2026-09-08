@@ -21,7 +21,7 @@ export async function loginAdmin(prevState: unknown, formData: FormData) {
     });
 
     if (!isAdmin(dbUser?.role)) {
-        return { error: "Unauthorized: Account lacks administrative privileges." };
+        return { error: "Invalid email or password." };
     }
 
     try {

@@ -19,6 +19,7 @@ module.exports = [
       '*.config.js',
       '*.config.mjs',
       'public/**',
+      '.agents/**',
       '.eslintrc.json',
     ],
   },

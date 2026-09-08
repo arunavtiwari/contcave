@@ -1,11 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import NextAuth from 'next-auth'
 
 import { createErrorResponse, handleRouteError } from '@/lib/api-utils'
-
-import { authConfig } from './auth.config'
-
-const { auth } = NextAuth(authConfig)
+import { getClientIp } from '@/lib/http/requestMeta'
 
 type RateRecord = {
     count: number
@@ -21,45 +17,59 @@ const RATE_LIMIT = {
 
 const rateLimitStore = new Map<string, RateRecord>()
 
-const PUBLIC_PATH_PREFIXES = [
-    '/api/auth',
-    '/api/register',
-    '/api/verify_email',
+const ROUTES_WITH_DEDICATED_REQUEST_GUARDS = new Set([
+    '/api/ablychat',
+    '/api/meta-capi',
+    '/api/notifications/token',
+    '/api/payments/cashfree/process',
+    '/api/payments/cashfree/webhook',
+    '/api/upload/presign',
+    '/api/user/verify/aadhaar',
+    '/api/whatsapp/webhook',
+    '/api/cron/qstash',
+])
+
+const EXTERNAL_MUTATION_ROUTES = new Set([
+    '/api/cron/qstash',
+    '/api/payments/cashfree/return',
     '/api/payments/cashfree/webhook',
     '/api/whatsapp/webhook',
-    '/',
-    '/about',
-    '/blog',
-    '/cancellation',
-    '/home',
-    '/listings',
-    '/payments/cashfree/return',
-    '/privacy-policy',
-    '/terms-and-conditions',
-    '/forgot-password',
-    '/reset-password'
-]
+])
 
-function isPublicPath(pathname: string): boolean {
-    return PUBLIC_PATH_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))
+function hasSessionCookie(request: NextRequest): boolean {
+    const cookie = request.headers.get('cookie') || ''
+    return /(?:^|;\s*)(?:__Secure-)?authjs\.session-token=/.test(cookie)
+}
+
+function hasValidMutationOrigin(request: NextRequest): boolean {
+    const origin = request.headers.get('origin')
+    if (!origin) return false
+
+    try {
+        const parsed = new URL(origin)
+        const requestHost = (request.headers.get('host') || request.nextUrl.host).toLowerCase()
+        if (parsed.host.toLowerCase() !== requestHost) return false
+        return process.env.NODE_ENV !== 'production' || parsed.protocol === 'https:'
+    } catch {
+        return false
+    }
+}
+
+function hasDedicatedRequestGuard(pathname: string): boolean {
+    return ROUTES_WITH_DEDICATED_REQUEST_GUARDS.has(pathname)
+        || pathname.startsWith('/api/pay/charge/')
 }
 
 function isAdminDomainHost(hostname: string): boolean {
     const host = hostname.split(':')[0]?.toLowerCase() ?? ''
-    return host === 'admin.contcave.com' || host === 'staging.admin.contcave.com' || host.startsWith('admin.') || host.includes('.admin.')
+    return host === 'admin.contcave.com'
+        || host === 'staging.admin.contcave.com'
+        || host.startsWith('admin.')
+        || host.includes('.admin.')
 }
 
 function isAuthApiPath(pathname: string): boolean {
     return pathname === '/api/auth' || pathname.startsWith('/api/auth/')
-}
-
-function getClientIP(request: NextRequest): string {
-    return (
-        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-        request.headers.get('x-real-ip') ||
-        request.headers.get('cf-connecting-ip') ||
-        'unknown'
-    )
 }
 
 function cleanupStore(now: number): void {
@@ -244,6 +254,7 @@ export async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname
     const hostname = request.headers.get('host') || request.nextUrl.hostname
     const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+    const contentSecurityPolicy = buildCSP(nonce)
 
     const isAdminDomain = isAdminDomainHost(hostname)
     if (isAdminDomain) {
@@ -254,19 +265,47 @@ export async function proxy(request: NextRequest) {
         if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next') && !isAuthApiPath(pathname)) {
             const url = new URL(request.nextUrl)
             url.pathname = `/admin${pathname === '/' ? '' : pathname}`
-            return finalizeResponse(request, NextResponse.rewrite(url), pathname, nonce, start)
+            const requestHeaders = new Headers(request.headers)
+            requestHeaders.set('x-nonce', nonce)
+            requestHeaders.set('Content-Security-Policy', contentSecurityPolicy)
+            return finalizeResponse(
+                request,
+                NextResponse.rewrite(url, { request: { headers: requestHeaders } }),
+                pathname,
+                nonce,
+                start
+            )
         }
-    } else if (pathname.startsWith('/admin')) {
+    } else if (pathname === '/admin' || pathname.startsWith('/admin/')) {
         return finalizeResponse(request, new NextResponse(null, { status: 404 }), pathname, nonce, start)
     }
 
     const method = request.method
-    const ip = getClientIP(request)
+    const ip = getClientIp(request.headers)
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
     try {
-        const isDev = process.env.NODE_ENV !== 'production'
-        const rl = isDev ? { allowed: true, remaining: RATE_LIMIT.maxRequests, resetTime: Date.now() + RATE_LIMIT.windowMs } : checkRateLimit(ip)
+        const isStateChanging = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)
+        if (
+            isStateChanging
+            && pathname.startsWith('/api/')
+            && !EXTERNAL_MUTATION_ROUTES.has(pathname)
+            && hasSessionCookie(request)
+            && !hasValidMutationOrigin(request)
+        ) {
+            return finalizeResponse(
+                request,
+                createErrorResponse('Invalid request origin', 403),
+                pathname,
+                nonce,
+                start
+            )
+        }
+
+        const bypassGlobalLimit = process.env.NODE_ENV !== 'production' || hasDedicatedRequestGuard(pathname)
+        const rl = bypassGlobalLimit
+            ? { allowed: true, remaining: RATE_LIMIT.maxRequests, resetTime: Date.now() + RATE_LIMIT.windowMs }
+            : checkRateLimit(ip)
         if (!rl.allowed) {
             logSecurityEvent('rate_limit', { path: pathname, method, ip, userAgent })
 
@@ -285,52 +324,16 @@ export async function proxy(request: NextRequest) {
             res.headers.set('X-RateLimit-Reset', String(Math.ceil(rl.resetTime / 1000)))
             if (rl.blockedUntil) res.headers.set('X-RateLimit-Blocked-Until', String(Math.ceil(rl.blockedUntil / 1000)))
 
-            applySecurityHeaders(res as unknown as NextResponse, pathname, nonce)
-            applyCors(request, res as unknown as NextResponse)
+            applySecurityHeaders(res, pathname, nonce)
+            applyCors(request, res)
             res.headers.set('X-Response-Time', `${Date.now() - start}ms`)
             return res
         }
 
-        // Auth for protected paths
-        if (!isPublicPath(pathname)) {
-            try {
-                const authResult = await (auth as unknown as (req: NextRequest) => Promise<Response | void>)(request)
-                if (authResult instanceof Response && authResult.status !== 200) {
-                    if (authResult.status === 401 || authResult.status === 403) {
-                        logSecurityEvent('auth_failure', { path: pathname, method, ip, userAgent })
-                    }
-                    return authResult
-                }
-                logSecurityEvent('auth_success', { path: pathname, method, ip })
-            } catch (e) {
-                logSecurityEvent('error', {
-                    path: pathname,
-                    method,
-                    ip,
-                    userAgent,
-                    error: e instanceof Error ? e.message : 'Unknown auth error'
-                })
-
-                if (process.env.NODE_ENV === 'production') {
-                    const res = createErrorResponse('An error occurred during authentication', 500)
-                    applySecurityHeaders(res as unknown as NextResponse, pathname, nonce)
-                    applyCors(request, res as unknown as NextResponse)
-                    res.headers.set('X-Response-Time', `${Date.now() - start}ms`)
-                    return res
-                }
-
-                throw e
-            }
-        }
-
         const requestHeaders = new Headers(request.headers)
         requestHeaders.set('x-nonce', nonce)
-
-        const res = NextResponse.next({
-            request: {
-                headers: requestHeaders,
-            },
-        })
+        requestHeaders.set('Content-Security-Policy', contentSecurityPolicy)
+        const res = NextResponse.next({ request: { headers: requestHeaders } })
 
         applySecurityHeaders(res, pathname, nonce)
         applyCors(request, res)
@@ -351,8 +354,8 @@ export async function proxy(request: NextRequest) {
         })
 
         const res = handleRouteError(err, `proxy: ${pathname}`)
-        applySecurityHeaders(res as unknown as NextResponse, pathname, nonce)
-        applyCors(request, res as unknown as NextResponse)
+        applySecurityHeaders(res, pathname, nonce)
+        applyCors(request, res)
         res.headers.set('X-Response-Time', `${Date.now() - start}ms`)
         return res
     }
@@ -362,7 +365,7 @@ export const config = {
     matcher: [
         {
             source:
-                '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:jpg|jpeg|gif|png|svg|ico|webp|woff|woff2|ttf|eot|css|js)).*)',
+                '/((?!api/auth|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:jpg|jpeg|gif|png|svg|ico|webp|woff|woff2|ttf|eot|css|js)).*)',
             missing: [
                 { type: 'header', key: 'next-router-prefetch' },
                 { type: 'header', key: 'purpose', value: 'prefetch' }

@@ -1,18 +1,17 @@
 "use server";
 
-import getCurrentUser from "@/app/actions/getCurrentUser";
+import { z } from "zod";
+
+import { createAction } from "@/lib/actions-utils";
+import { UserFacingError } from "@/lib/errors";
 import { UserService } from "@/lib/user/service";
 
-export async function deleteAccount() {
-    try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser?.id || !currentUser?.email) throw new Error("Unauthorized");
-
-        await UserService.deleteProfile(currentUser.email);
-
+export const deleteAccount = createAction(
+    z.undefined(),
+    { requireAuth: true },
+    async (_data, { user }) => {
+        if (!user?.email) throw new UserFacingError("Your account email is unavailable.");
+        await UserService.deleteProfile(user.email);
         return { success: true };
-    } catch (error) {
-        console.error('[deleteAccount] Error:', error);
-        throw error;
     }
-}
+);

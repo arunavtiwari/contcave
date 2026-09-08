@@ -1,9 +1,9 @@
-import { Prisma } from "@prisma/client";
-import { format } from "date-fns";
+import { Prisma, ReservationStatus } from "@prisma/client";
 
 import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund } from "@/lib/cashfree/cashfree";
+import { scheduleQstashJob } from "@/lib/cron/qstash";
 import {
     sendReservationCancelledOwner,
     sendReservationConfirmationCustomer,
@@ -13,23 +13,56 @@ import {
     sendReservationRefundCustomer,
     sendReservationRejectedCustomer,
 } from "@/lib/email/templates";
+import { UserFacingError } from "@/lib/errors";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
 import prisma from "@/lib/prismadb";
+import { validateBookingWindow } from "@/lib/reservation/bookingWindow";
+import { formatReservationDate, parseReservationEndTimeForDate, parseReservationTimeForDate } from "@/lib/reservation/time";
+import { asEndOfDayMinutes } from "@/lib/scheduling";
 import { generateBookingId } from "@/lib/utils";
 import { WhatsappService } from "@/lib/whatsapp/service";
+import { Addon } from "@/types/addon";
 import { safeListing } from "@/types/listing";
-import { ReservationMetadata, ReservationResult, SafeReservation } from "@/types/reservation";
+import { PublicDayStatus, PublicReservationSlot, ReservationMetadata, ReservationResult, SafeReservation } from "@/types/reservation";
 
-type FullReservationPayload = Prisma.ReservationGetPayload<{
-    include: {
-        listing: { include: { user: { include: { paymentDetails: true } } } };
-        user: true;
-        Transaction: { orderBy: { createdAt: "desc" } };
-    };
-}>;
+const fullReservationInclude = {
+    listing: { include: { user: { include: { paymentDetails: true } } } },
+    user: true,
+    extensionRequests: true,
+    additionalCharges: true,
+    invoices: true,
+    Transaction: {
+        where: { purpose: "BASE_BOOKING" },
+        orderBy: { createdAt: "asc" },
+    },
+} satisfies Prisma.ReservationInclude;
+
+type FullReservationPayload = Prisma.ReservationGetPayload<{ include: typeof fullReservationInclude }>;
+
+const safeReservationInclude = {
+    listing: {
+        include: {
+            sets: {
+                select: { id: true, name: true, description: true, price: true },
+                orderBy: { position: "asc" },
+            },
+        },
+    },
+    extensionRequests: { where: { status: "PENDING_PAYMENT" }, orderBy: { createdAt: "desc" } },
+    additionalCharges: { where: { status: "PENDING_PAYMENT" }, orderBy: { createdAt: "desc" } },
+    invoices: {
+        where: {
+            documentType: { in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"] },
+            invoiceUrl: { not: "" },
+        },
+        orderBy: { createdAt: "desc" },
+    },
+} satisfies Prisma.ReservationInclude;
+
+type SafeReservationPayload = Prisma.ReservationGetPayload<{ include: typeof safeReservationInclude }>;
 
 type DocumentAttachment = {
     kind: "invoice" | "voucher";
@@ -40,6 +73,39 @@ type DocumentAttachment = {
 
 const LISTING_WIDE_SLOT_ID = "__LISTING__";
 
+class ReservationSlotConflictError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "ReservationSlotConflictError";
+    }
+}
+
+function isReservationSlotUniqueConflict(error: unknown) {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") return false;
+    const metadata = JSON.stringify(error.meta || {}).toLowerCase();
+    return metadata.includes("reservationslot")
+        || metadata.includes("slotkey")
+        || metadata.includes("datekey");
+}
+
+function normalizeListingAddons(value: Prisma.JsonValue | null): Addon[] {
+    if (!Array.isArray(value)) return [];
+    return value.flatMap((item) => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+        const record = item as Record<string, unknown>;
+        const name = typeof record.name === "string" ? record.name.trim() : "";
+        const price = Number(record.price);
+        if (!name || !Number.isFinite(price) || price < 0) return [];
+        return [{
+            ...(typeof record.id === "string" && record.id ? { id: record.id } : {}),
+            name,
+            price,
+            imageUrl: typeof record.imageUrl === "string" ? record.imageUrl : "",
+            qty: Number.isInteger(Number(record.qty)) && Number(record.qty) > 0 ? Number(record.qty) : 1,
+        }];
+    });
+}
+
 function buildReservationSlotRows(params: {
     listingId: string;
     reservationId: string;
@@ -49,10 +115,12 @@ function buildReservationSlotRows(params: {
     setIds: string[];
 }) {
     const start = parseTimeToMinutes(params.startTime);
-    let end = parseTimeToMinutes(params.endTime);
-    if (end <= start) end = start + 60;
+    const end = asEndOfDayMinutes(parseTimeToMinutes(params.endTime));
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+        throw new Error("Reservation time range is invalid");
+    }
 
-    const dateKey = format(params.startDate, "yyyy-MM-dd");
+    const dateKey = params.startDate.toISOString().slice(0, 10);
     const slotSetIds = params.setIds.length > 0 ? Array.from(new Set(params.setIds)) : [LISTING_WIDE_SLOT_ID];
     const rows: Prisma.ReservationSlotCreateManyInput[] = [];
 
@@ -117,35 +185,16 @@ function toNotificationError(error: unknown) {
     return error instanceof Error ? error.message : String(error);
 }
 
-function parseTimeForDate(date: Date, label: string) {
-    const ymd = format(date, "yyyy-MM-dd");
-    const value = String(label || "").trim();
-    const m12 = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-    const m24 = value.match(/^(\d{1,2}):(\d{2})$/);
-
-    if (m12) {
-        let hour = Number(m12[1]);
-        const minute = Number(m12[2]);
-        const period = m12[3].toUpperCase();
-        if (period === "PM" && hour < 12) hour += 12;
-        if (period === "AM" && hour === 12) hour = 0;
-        return new Date(`${ymd}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`);
-    }
-
-    if (m24) {
-        return new Date(`${ymd}T${m24[1].padStart(2, "0")}:${m24[2]}:00`);
-    }
-
-    return null;
+function bookingReminderAt(startDate: Date) {
+    const target = new Date(`${startDate.toISOString().slice(0, 10)}T00:00:00.000Z`);
+    target.setUTCDate(target.getUTCDate() - 1);
+    return new Date(`${target.toISOString().slice(0, 10)}T06:00:00.000Z`);
 }
 
 function getPayoutDueAt(startDate: Date, endTime: string) {
-    const endAt = parseTimeForDate(startDate, endTime);
-    const dueAt = endAt || new Date(startDate);
-
-    if (!endAt) {
-        dueAt.setHours(23, 59, 0, 0);
-    }
+    const endAt = parseReservationEndTimeForDate(startDate, endTime);
+    if (!endAt) throw new Error("Cannot schedule payout because the reservation end time is invalid");
+    const dueAt = new Date(endAt);
 
     dueAt.setMinutes(dueAt.getMinutes() + 2);
 
@@ -158,25 +207,21 @@ function buildPayoutTransactionData(params: {
     amount: number;
     startDate: Date;
     endTime: string;
-    approved: boolean;
+    schedulePayout: boolean;
 }): Prisma.TransactionUncheckedUpdateInput {
     try {
         if (!params.owner.paymentDetails) return {};
 
         const paymentDetails = decryptPaymentDetailsInternal(params.owner.paymentDetails);
-        const vendorId = paymentDetails.cashfreeVendorId?.trim();
-        if (!vendorId) return {};
-
         const payoutDetails = calculatePayoutDetails(params.amount, hasValidGST(paymentDetails));
         const data: Prisma.TransactionUncheckedUpdateInput = {
-            vendorId,
             payoutAmountToOwner: payoutDetails.payoutToStudio,
             payoutPercentToOwner: payoutDetails.payoutPercentOfTotal,
             gstOwnedBy: payoutDetails.gstOwnedBy,
             baseAmountBeforeGst: payoutDetails.baseAmount,
         };
 
-        if (params.approved) {
+        if (params.schedulePayout) {
             data.payoutDueAt = getPayoutDueAt(params.startDate, params.endTime);
         }
 
@@ -234,6 +279,26 @@ async function markDocumentEmailFailed(document: DocumentAttachment | undefined,
     });
 }
 
+async function markDocumentDeliveryBlocked(document: DocumentAttachment | undefined, reason: string) {
+    if (!document) return;
+    if (document.kind === "invoice") {
+        await prisma.invoice.update({
+            where: { id: document.id },
+            data: { status: "DELIVERY_BLOCKED", emailError: reason },
+        }).catch((error) => {
+            console.error("[ReservationService] Invoice delivery-blocked status update failed:", toNotificationError(error));
+        });
+        return;
+    }
+
+    await prisma.paymentVoucher.update({
+        where: { id: document.id },
+        data: { status: "DELIVERY_BLOCKED", emailError: reason },
+    }).catch((error) => {
+        console.error("[ReservationService] Voucher delivery-blocked status update failed:", toNotificationError(error));
+    });
+}
+
 function requireDocumentAttachment(document: DocumentAttachment | undefined, label: string) {
     if (!document) {
         throw new Error(`${label} document was not generated`);
@@ -245,8 +310,8 @@ function requireDocumentAttachment(document: DocumentAttachment | undefined, lab
 }
 
 async function ensureCalendarForReservation(resv: FullReservationPayload, studioName: string) {
-    const startAt = parseTimeForDate(resv.startDate, resv.startTime);
-    const endAt = parseTimeForDate(resv.startDate, resv.endTime);
+    const startAt = parseReservationTimeForDate(resv.startDate, resv.startTime);
+    const endAt = parseReservationEndTimeForDate(resv.startDate, resv.endTime);
     if (!startAt || !endAt) return;
 
     await ensureCalendarEventForUser({
@@ -311,7 +376,6 @@ export class ReservationService {
             });
         }
     }
-
     private static async assertNoConfiguredPayoutSplit(reservationId: string) {
         const txn = await prisma.transaction.findFirst({
             where: {
@@ -336,6 +400,8 @@ export class ReservationService {
                         listing: {
                             include: {
                                 user: { include: { paymentDetails: true } },
+                                sets: { select: { id: true } },
+                                packages: { select: { id: true, isActive: true, durationHours: true } },
                             }
                         },
                         user: true
@@ -363,6 +429,68 @@ export class ReservationService {
                 const billingDetailId = typeof md.billingDetailId === "string" && /^[a-f\d]{24}$/i.test(md.billingDetailId)
                     ? md.billingDetailId
                     : null;
+                const setPackageId = typeof md.setPackageId === "string" && /^[a-f\d]{24}$/i.test(md.setPackageId)
+                    ? md.setPackageId
+                    : null;
+                const pricingRecord = pricingSnapshot && typeof pricingSnapshot === "object" && !Array.isArray(pricingSnapshot)
+                    ? pricingSnapshot as Record<string, unknown>
+                    : {};
+                const includedSetId = typeof pricingRecord.includedSetId === "string" && setIds.includes(pricingRecord.includedSetId)
+                    ? pricingRecord.includedSetId
+                    : null;
+
+                if (txn.listing.userId === txn.userId) {
+                    throw new ReservationSlotConflictError("Owners cannot book their own listings");
+                }
+
+                const startMinutes = parseTimeToMinutes(startTime);
+                const endMinutes = asEndOfDayMinutes(parseTimeToMinutes(endTime));
+                const startAt = parseReservationTimeForDate(startDate, startTime);
+                if (
+                    !Number.isFinite(startDate.getTime()) ||
+                    !Number.isFinite(startMinutes) ||
+                    !Number.isFinite(endMinutes) ||
+                    endMinutes <= startMinutes ||
+                    !startAt ||
+                    startAt.getTime() <= Date.now()
+                ) {
+                    throw new ReservationSlotConflictError("The selected booking time is no longer available");
+                }
+                if (!txn.listing.active || txn.listing.status !== "VERIFIED") {
+                    throw new ReservationSlotConflictError("This listing is no longer accepting bookings");
+                }
+                const dateKey = startDate.toISOString().slice(0, 10);
+                const dayStatus = await tx.dayStatus.findUnique({
+                    where: { listingId_date: { listingId: txn.listing.id, date: startDate } },
+                });
+                if (dayStatus && !dayStatus.listingActive) {
+                    throw new ReservationSlotConflictError("This listing is not accepting bookings on the selected date");
+                }
+                const selectedPackage = setPackageId
+                    ? txn.listing.packages.find((pkg) => pkg.id === setPackageId && pkg.isActive)
+                    : null;
+                const windowError = validateBookingWindow({
+                    startDate: dateKey,
+                    startTime,
+                    endTime,
+                    operationalDays: txn.listing.operationalDays,
+                    operationalHours: dayStatus
+                        ? { start: dayStatus.startTime, end: dayStatus.endTime }
+                        : txn.listing.operationalHours,
+                    minimumBookingHours: txn.listing.minimumBookingHours,
+                    selectedPackageDurationHours: selectedPackage?.durationHours ?? null,
+                });
+                if (windowError) throw new ReservationSlotConflictError(windowError);
+                const availableSetIds = new Set(txn.listing.sets.map((set) => set.id));
+                if (
+                    (txn.listing.hasSets && setIds.length === 0) ||
+                    setIds.some((setId) => !availableSetIds.has(setId))
+                ) {
+                    throw new ReservationSlotConflictError("One or more selected sets are no longer available");
+                }
+                if (setPackageId && !txn.listing.packages.some((pkg) => pkg.id === setPackageId && pkg.isActive)) {
+                    throw new ReservationSlotConflictError("The selected package is no longer available");
+                }
 
                 const conflict = await checkSetConflicts({
                     listingId: txn.listingId!,
@@ -375,20 +503,7 @@ export class ReservationService {
                 });
 
                 if (conflict.hasConflict) {
-                    if (!txn.cfOrderId) {
-                        await tx.transaction.update({
-                            where: { id: txnId },
-                            data: { status: "FAILED", description: `Booking failed: ${conflict.conflictDetails || "Slot taken"}` }
-                        });
-                        return null;
-                    }
-
-                    await cfCreateRefund({ order_id: txn.cfOrderId, refund_amount: txn.amount, refund_id: `rf_auto_${txnId}`, refund_note: "Conflict resolution" });
-                    await tx.transaction.update({
-                        where: { id: txnId },
-                        data: { status: "REFUNDED", description: `Refunded: ${conflict.conflictDetails || "Slot taken"}` }
-                    });
-                    return null;
+                    throw new ReservationSlotConflictError(conflict.conflictDetails || "Slot taken");
                 }
 
                 const bookingId = await generateBookingId();
@@ -404,11 +519,13 @@ export class ReservationService {
                         totalPrice: txn.amount,
                         totalPriceInt: Math.round(txn.amount),
                         setIds,
+                        includedSetId,
+                        setPackageId,
                         selectedAddons,
                         pricingSnapshot,
                         billingDetailId,
                         billingSnapshot,
-                        isApproved: txn.listing.instantBooking ? 1 : 0,
+                        status: txn.listing.instantBooking ? "CONFIRMED" : "PENDING_APPROVAL",
                     }
                 });
 
@@ -425,13 +542,12 @@ export class ReservationService {
                     await tx.reservationSlot.createMany({ data: slotRows });
                 }
 
-                const isApproved = txn.listing.instantBooking === true;
                 const payoutData = buildPayoutTransactionData({
                     owner: txn.listing.user,
                     amount: txn.amount,
                     startDate,
                     endTime,
-                    approved: isApproved,
+                    schedulePayout: false,
                 });
 
                 await tx.transaction.update({
@@ -440,6 +556,7 @@ export class ReservationService {
                         reservationId: reservation.id,
                         bookingId,
                         status: "SUCCESS",
+                        purpose: "BASE_BOOKING",
                         ...payoutData,
                     }
                 });
@@ -452,23 +569,37 @@ export class ReservationService {
                 };
             }, { maxWait: 10_000, timeout: 30_000 });
         } catch (error) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+            if (error instanceof ReservationSlotConflictError || isReservationSlotUniqueConflict(error)) {
                 const txn = await prisma.transaction.findUnique({ where: { id: txnId } });
                 if (txn?.cfOrderId && (txn.status === "PENDING" || (txn.status === "SUCCESS" && !txn.reservationId))) {
-                    await cfCreateRefund({
-                        order_id: txn.cfOrderId,
-                        refund_amount: txn.amount,
-                        refund_id: `rf_auto_${txnId}`,
-                        refund_note: "Conflict resolution",
-                    }).catch((refundError) => {
-                        console.error("[ReservationService] Auto-refund failed after slot conflict:", refundError);
-                    });
+                    try {
+                        await cfCreateRefund({
+                            order_id: txn.cfOrderId,
+                            refund_amount: txn.amount,
+                            refund_id: `rf_auto_${txnId}`,
+                            refund_note: "Conflict resolution",
+                        });
+                    } catch (refundError) {
+                        const message = toNotificationError(refundError);
+                        if (!/already|duplicate|exist/i.test(message)) {
+                            await prisma.transaction.update({
+                                where: { id: txnId },
+                                data: { description: "Slot conflict detected; automatic refund is pending retry" },
+                            }).catch(() => undefined);
+                            throw refundError;
+                        }
+                    }
                     await prisma.transaction.update({
                         where: { id: txnId },
-                        data: { status: "REFUNDED", description: "Refunded: slot was reserved by another booking" }
+                        data: { status: "REFUNDED", description: "Refunded: slot was reserved by another booking" },
                     });
                     await this.handleFailedPayment(txnId).catch((notifyError) => {
                         console.error("[ReservationService] Failed to notify customer after slot conflict:", notifyError);
+                    });
+                } else if (txn && !txn.cfOrderId) {
+                    await prisma.transaction.update({
+                        where: { id: txnId },
+                        data: { status: "FAILED", description: "Booking failed: slot was reserved by another booking" },
                     });
                 }
                 return null;
@@ -477,6 +608,25 @@ export class ReservationService {
         }
 
         if (result?.reservationId) {
+            if (result.created) {
+                const createdReservation = await prisma.reservation.findUnique({
+                    where: { id: result.reservationId },
+                    select: { createdAt: true, startDate: true, status: true },
+                });
+                if (createdReservation) {
+                    if (createdReservation.status === "PENDING_APPROVAL") {
+                        await scheduleQstashJob(
+                            { job: "pending-approval-expiry", reservationId: result.reservationId },
+                            new Date(createdReservation.createdAt.getTime() + 24 * 60 * 60 * 1000),
+                        );
+                    } else if (createdReservation.status === "CONFIRMED") {
+                        await scheduleQstashJob(
+                            { job: "booking-reminder", reservationId: result.reservationId },
+                            bookingReminderAt(createdReservation.startDate),
+                        );
+                    }
+                }
+            }
             await this.runPostReservationSideEffects(result.reservationId, txnId, Boolean(result.created));
         } else {
             const txn = await prisma.transaction.findUnique({
@@ -496,10 +646,11 @@ export class ReservationService {
     static async ensurePostReservationSideEffects(txnId: string) {
         const txn = await prisma.transaction.findUnique({
             where: { id: txnId },
-            select: { reservationId: true },
+            select: { reservationId: true, purpose: true },
         });
 
         if (!txn?.reservationId) return;
+        if (txn.purpose !== "BASE_BOOKING") return;
 
         await this.runPostReservationSideEffects(txn.reservationId, txnId, false);
     }
@@ -508,19 +659,15 @@ export class ReservationService {
         try {
             const fullResv = await prisma.reservation.findUnique({
                 where: { id: reservationId },
-                include: {
-                    user: true,
-                    listing: { include: { user: { include: { paymentDetails: true } } } },
-                    Transaction: { orderBy: { createdAt: "desc" } },
-                }
-            }) as FullReservationPayload | null;
+                include: fullReservationInclude,
+            });
 
             if (!fullResv) return;
 
             const txn = fullResv.Transaction.find((item) => item.id === txnId) || fullResv.Transaction[0];
             let document: DocumentAttachment | undefined;
             try {
-                if (fullResv.isApproved === 1) {
+                if (fullResv.status === "CONFIRMED") {
                     const invoiceRes = await ensureInvoiceWithAttachment({
                         userId: fullResv.userId,
                         reservationId,
@@ -532,7 +679,7 @@ export class ReservationService {
                         emailSentAt: invoiceRes.invoice.emailSentAt,
                         attachment: invoiceRes.attachment,
                     };
-                } else if (fullResv.isApproved === 0) {
+                } else if (fullResv.status === "PENDING_APPROVAL") {
                     const voucherRes = await PaymentVoucherService.ensureReceiptVoucherForTransaction(txnId);
                     document = {
                         kind: "voucher",
@@ -566,18 +713,22 @@ export class ReservationService {
         const listing = resv.listing;
         const md = (txn?.metadata || {}) as unknown as ReservationMetadata;
 
-        const dateStr = format(resv.startDate, "dd MMM yyyy");
+        const dateStr = formatReservationDate(resv.startDate);
         const timeSlot = `${resv.startTime} to ${resv.endTime}`;
         const studioName = listing.title;
         const location = getListingLocation(listing);
         const locationLink = getListingLocationLink(listing);
         const addons = formatSelectedAddons(md.selectedAddons);
-        const isInstant = resv.isApproved === 1 || listing.instantBooking === true;
+        const isInstant = resv.status === "CONFIRMED" || listing.instantBooking === true;
         const customerEmail = resv.user.email;
         const ownerEmail = listing.user.email;
         const customerPhone = resv.user.phone;
         const ownerPhone = listing.user.phone;
         const notificationTasks: Array<Promise<void>> = [];
+
+        if (document && !document.emailSentAt && !customerEmail) {
+            await markDocumentDeliveryBlocked(document, "Customer email is missing");
+        }
 
         if (txn?.id && customerEmail) {
             notificationTasks.push(runNotification("customer initial email", async () => {
@@ -733,149 +884,452 @@ export class ReservationService {
         await Promise.all(notificationTasks);
     }
 
-    static async updateStatus(reservationId: string, userId: string, status: number, reason?: string): Promise<void> {
+    private static async getFullReservationOrThrow(reservationId: string) {
         const resv = await prisma.reservation.findUnique({
             where: { id: reservationId },
-            include: {
-                listing: { include: { user: { include: { paymentDetails: true } } } },
-                user: true,
-                Transaction: { orderBy: { createdAt: "desc" } },
-            }
+            include: fullReservationInclude,
         });
 
-        if (!resv) throw new Error("Reservation not found");
+        if (!resv) throw new UserFacingError("Reservation not found", 404);
+        return resv;
+    }
 
+    private static assertHost(resv: FullReservationPayload, userId: string, allowAdmin = false) {
         const isHost = resv.listing.user.id === userId;
-        const isCustomer = resv.userId === userId;
+        if (!isHost && !allowAdmin) throw new UserFacingError("Only hosts can perform this action", 403);
+    }
 
-        if (!isHost && !isCustomer) throw new Error("Unauthorized");
+    private static assertCustomer(resv: FullReservationPayload, userId: string) {
+        if (resv.userId !== userId) throw new UserFacingError("Only customers can perform this action", 403);
+    }
 
-        if (status !== 1 && status !== 2 && status !== 3) {
-            throw new Error("Invalid reservation status");
+    private static async clearOpenPayouts(reservationId: string) {
+        await prisma.transaction.updateMany({
+            where: {
+                reservationId,
+                OR: [
+                    { payoutDoneAt: null },
+                    { payoutDoneAt: { isSet: false } },
+                ],
+            },
+            data: { payoutDueAt: null },
+        });
+    }
+
+    private static async writeSystemMessage(reservationId: string, text: string) {
+        await prisma.reservationChatMessage.create({
+            data: {
+                reservationId,
+                kind: "SYSTEM",
+                text,
+            },
+        }).catch((error) => {
+            console.error("[ReservationService] Failed to write system message:", toNotificationError(error));
+        });
+    }
+
+    private static currentStatus(resv: {
+        status?: ReservationStatus | null;
+        checkedInAt?: Date | null;
+        completedAt?: Date | null;
+    }) {
+        if (!resv.status && resv.completedAt) return "COMPLETED" as const;
+        if (!resv.status && resv.checkedInAt) return "CHECKED_IN" as const;
+        if (resv.status === "PENDING_APPROVAL" && resv.completedAt) return "COMPLETED" as const;
+        if (resv.status === "PENDING_APPROVAL" && resv.checkedInAt) return "CHECKED_IN" as const;
+        return resv.status || ("PENDING_APPROVAL" as const);
+    }
+
+    static async approve(reservationId: string, userId: string, allowAdmin = false): Promise<void> {
+        const resv = await this.getFullReservationOrThrow(reservationId);
+        this.assertHost(resv, userId, allowAdmin);
+
+        if (this.currentStatus(resv) !== "PENDING_APPROVAL") {
+            throw new UserFacingError("Only pending reservations can be approved");
         }
 
-        if (status === 1 || status === 2) {
-            if (!isHost) throw new Error("Only hosts can approve/reject");
-        }
-        if (status === 3) {
-            if (!isCustomer) throw new Error("Only customers can cancel");
-        }
+        const payoutData = buildPayoutTransactionData({
+            owner: resv.listing.user,
+            amount: resv.totalPrice,
+            startDate: resv.startDate,
+            endTime: resv.endTime,
+            schedulePayout: false,
+        });
 
-        const previousStatus = resv.isApproved;
+        await prisma.$transaction(async (tx) => {
+            const update = await tx.reservation.updateMany({
+                where: { id: reservationId, status: this.currentStatus(resv) },
+                data: { status: "CONFIRMED", rejectReason: null },
+            });
+            if (update.count !== 1) throw new UserFacingError("Reservation status changed while processing. Please refresh and try again.", 409);
 
-        if (previousStatus === status) {
-            if (status === 2 || status === 3) {
-                await prisma.reservationSlot.deleteMany({ where: { reservationId } });
-                await prisma.transaction.updateMany({
+            if (Object.keys(payoutData).length > 0) {
+                await tx.transaction.updateMany({
                     where: {
                         reservationId,
-                        OR: [
-                            { payoutDoneAt: null },
-                            { payoutDoneAt: { isSet: false } },
-                        ],
+                        status: "SUCCESS",
+                        purpose: "BASE_BOOKING",
+                        OR: [{ payoutDoneAt: null }, { payoutDoneAt: { isSet: false } }],
                     },
-                    data: { payoutDueAt: null },
+                    data: { ...payoutData, payoutDueAt: null },
                 });
             }
-            await this.triggerStatusNotifications(resv, status, reason);
-            return;
-        }
-
-        if ((status === 1 || status === 2) && previousStatus !== 0) {
-            throw new Error("Only pending reservations can be approved or rejected");
-        }
-
-        if (status === 3 && previousStatus !== 0) {
-            throw new Error("Confirmed bookings cannot be cancelled automatically. Contact support for cancellation and refund handling.");
-        }
-
-        if (status === 2 || status === 3) {
-            await this.assertNoConfiguredPayoutSplit(reservationId);
-        }
-
-        const updateResult = await prisma.reservation.updateMany({
-            where: {
-                id: reservationId,
-                isApproved: previousStatus,
-            },
-            data: { isApproved: status, rejectReason: reason || null }
         });
 
-        if (updateResult.count !== 1) {
-            throw new Error("Reservation status changed while processing. Please refresh and try again.");
+        await scheduleQstashJob({ job: "booking-reminder", reservationId }, bookingReminderAt(resv.startDate));
+
+        await this.triggerStatusNotifications(resv, "APPROVED");
+    }
+
+    static async decline(reservationId: string, userId: string, reason?: string, allowAdmin = false): Promise<void> {
+        const resv = await this.getFullReservationOrThrow(reservationId);
+        this.assertHost(resv, userId, allowAdmin);
+
+        if (this.currentStatus(resv) !== "PENDING_APPROVAL") {
+            throw new UserFacingError("Only pending reservations can be declined");
+        }
+
+        const rejectionReason = reason?.trim().slice(0, 500);
+        if (!rejectionReason) throw new UserFacingError("A rejection reason is required");
+
+        await this.assertNoConfiguredPayoutSplit(reservationId);
+
+        const current = this.currentStatus(resv);
+        const update = await prisma.reservation.updateMany({
+            where: { id: reservationId, status: current },
+            data: {
+                status: "CANCELLED",
+                rejectReason: rejectionReason,
+            }
+        });
+
+        if (update.count !== 1) {
+            throw new UserFacingError("Reservation status changed while processing. Please refresh and try again.", 409);
         }
 
         try {
-            if (status === 2) {
-                const refundDescription = `Refunded: host rejected booking${reason ? ` - ${reason}` : ""}`
-                    .trim()
-                    .slice(0, 500);
-                await this.refundSuccessfulReservationTransactions(
-                    reservationId,
-                    refundDescription,
-                    "rf_reject"
-                );
-            }
-
-            if (status === 3) {
-                await this.refundSuccessfulReservationTransactions(
-                    reservationId,
-                    "Refunded: customer cancelled before host approval",
-                    "rf_cancel"
-                );
-            }
+            const refundDescription = `Refunded: host rejected booking - ${rejectionReason}`
+                .trim()
+                .slice(0, 500);
+            await this.refundSuccessfulReservationTransactions(
+                reservationId,
+                refundDescription,
+                "rf_reject"
+            );
         } catch (error) {
             await prisma.reservation.updateMany({
-                where: { id: reservationId, isApproved: status },
-                data: { isApproved: previousStatus, rejectReason: resv.rejectReason || null },
+                where: { id: reservationId, status: "CANCELLED" },
+                data: {
+                    status: current,
+                    rejectReason: resv.rejectReason || null,
+                },
             });
             throw error;
         }
 
-        if (status === 2 || status === 3) {
-            await prisma.reservationSlot.deleteMany({ where: { reservationId } });
-            await prisma.transaction.updateMany({
+        await prisma.reservationSlot.deleteMany({ where: { reservationId } });
+        await this.clearOpenPayouts(reservationId);
+        await this.triggerStatusNotifications(resv, "DECLINED", rejectionReason);
+    }
+
+    static async cancel(reservationId: string, userId: string): Promise<void> {
+        const resv = await this.getFullReservationOrThrow(reservationId);
+        this.assertCustomer(resv, userId);
+
+        if (this.currentStatus(resv) !== "PENDING_APPROVAL") {
+            throw new UserFacingError("Confirmed bookings cannot be cancelled automatically. Contact support for cancellation and refund handling.", 409);
+        }
+
+        await this.assertNoConfiguredPayoutSplit(reservationId);
+
+        const current = this.currentStatus(resv);
+        const update = await prisma.reservation.updateMany({
+            where: { id: reservationId, status: current },
+            data: {
+                status: "CANCELLED",
+            },
+        });
+
+        if (update.count !== 1) {
+            throw new UserFacingError("Reservation status changed while processing. Please refresh and try again.", 409);
+        }
+
+        try {
+            const refundDescription = `Refunded: customer cancelled before host approval`,
+                refundDescriptionClean = refundDescription;
+            await this.refundSuccessfulReservationTransactions(
+                reservationId,
+                refundDescriptionClean,
+                "rf_cancel"
+            );
+        } catch (error) {
+            await prisma.reservation.updateMany({
+                where: { id: reservationId, status: "CANCELLED" },
+                data: {
+                    status: current,
+                },
+            });
+            throw error;
+        }
+
+        await prisma.reservationSlot.deleteMany({ where: { reservationId } });
+        await this.clearOpenPayouts(reservationId);
+        await this.triggerStatusNotifications(resv, "CANCELLED");
+    }
+
+    static async checkIn(reservationId: string, userId: string, options: { now?: Date; allowAdmin?: boolean } = {}): Promise<void> {
+        const resv = await this.getFullReservationOrThrow(reservationId);
+        this.assertHost(resv, userId, options.allowAdmin);
+
+        if (this.currentStatus(resv) !== "CONFIRMED") {
+            throw new UserFacingError("Only confirmed reservations can be checked in");
+        }
+
+        const startAt = parseReservationTimeForDate(resv.startDate, resv.startTime);
+        const endAt = parseReservationEndTimeForDate(resv.startDate, resv.endTime);
+        const now = options.now ?? new Date();
+        if (!startAt || !endAt) throw new UserFacingError("Reservation schedule is invalid");
+        if (now.getTime() < startAt.getTime() - 30 * 60 * 1000) {
+            throw new UserFacingError("Check-in opens 30 minutes before the scheduled start time");
+        }
+        if (now.getTime() > endAt.getTime() + 2 * 60 * 60 * 1000) {
+            throw new UserFacingError("Check-in window has closed for this booking");
+        }
+
+        const checkedInAt = now;
+        const update = await prisma.reservation.updateMany({
+            where: {
+                id: reservationId,
+                status: "CONFIRMED",
+                OR: [{ checkedInAt: null }, { checkedInAt: { isSet: false } }],
+            },
+            data: {
+                status: "CHECKED_IN",
+                checkedInAt,
+            },
+        });
+
+        if (update.count !== 1) {
+            const latest = await prisma.reservation.findUnique({ where: { id: reservationId }, select: { status: true, checkedInAt: true } });
+            if (latest?.status === "CHECKED_IN" && latest.checkedInAt) return;
+            throw new UserFacingError("Reservation could not be checked in. Please refresh and try again.", 409);
+        }
+
+        await this.writeSystemMessage(reservationId, "Host checked in the customer for this session.");
+        const completionEndAt = parseReservationEndTimeForDate(resv.startDate, resv.endTime);
+        if (completionEndAt) {
+            await scheduleQstashJob({ job: "auto-complete", reservationId }, new Date(completionEndAt.getTime() + 2 * 60 * 60 * 1000));
+        }
+    }
+
+    static async complete(reservationId: string, userId: string, options: { system?: boolean; allowAdmin?: boolean } = {}): Promise<void> {
+        const resv = await this.getFullReservationOrThrow(reservationId);
+        if (!options.system) this.assertHost(resv, userId, options.allowAdmin);
+
+        if (this.currentStatus(resv) !== "CHECKED_IN" || !resv.checkedInAt) {
+            throw new UserFacingError("Only checked-in reservations can be completed");
+        }
+
+        const completedAt = new Date();
+        const transitioned = await prisma.$transaction(async (tx) => {
+            const update = await tx.reservation.updateMany({
+                where: {
+                    id: reservationId,
+                    status: "CHECKED_IN",
+                    checkedInAt: { not: null },
+                },
+                data: {
+                    status: "COMPLETED",
+                    completedAt,
+                },
+            });
+            if (update.count !== 1) {
+                const latest = await tx.reservation.findUnique({ where: { id: reservationId }, select: { status: true } });
+                if (latest?.status === "COMPLETED") return false;
+                throw new UserFacingError("Reservation status changed while processing. Please refresh and try again.", 409);
+            }
+
+            const payoutTransactions = await tx.transaction.findMany({
                 where: {
                     reservationId,
-                    OR: [
-                        { payoutDoneAt: null },
-                        { payoutDoneAt: { isSet: false } },
-                    ],
+                    status: "SUCCESS",
+                    purpose: { in: ["BASE_BOOKING", "EXTENSION"] },
+                    OR: [{ payoutDoneAt: null }, { payoutDoneAt: { isSet: false } }],
+                },
+                select: { id: true, amount: true },
+            });
+
+            for (const transaction of payoutTransactions) {
+                const payoutData = buildPayoutTransactionData({
+                    owner: resv.listing.user,
+                    amount: transaction.amount,
+                    startDate: resv.startDate,
+                    endTime: resv.endTime,
+                    schedulePayout: true,
+                });
+                if (Object.keys(payoutData).length > 0) {
+                    await tx.transaction.update({
+                        where: { id: transaction.id },
+                        data: payoutData,
+                    });
+                }
+            }
+            return true;
+        });
+
+        if (!transitioned) return;
+
+        await this.writeSystemMessage(reservationId, options.system
+            ? "This session was automatically completed after the checked-in booking ended."
+            : "Host marked this session as completed."
+        );
+        await scheduleQstashJob(
+            { job: "review-reminder", reservationId },
+            new Date(completedAt.getTime() + 24 * 60 * 60 * 1000),
+        );
+    }
+
+    static async markNoShow(reservationId: string, userId: string, allowAdmin = false): Promise<void> {
+        const resv = await this.getFullReservationOrThrow(reservationId);
+        this.assertHost(resv, userId, allowAdmin);
+
+        if (this.currentStatus(resv) !== "CONFIRMED") {
+            throw new UserFacingError("Only confirmed reservations can be marked as no-show");
+        }
+
+        const startAt = parseReservationTimeForDate(resv.startDate, resv.startTime);
+        if (!startAt) throw new UserFacingError("Reservation schedule is invalid");
+        if (Date.now() < startAt.getTime() + 30 * 60 * 1000) {
+            throw new UserFacingError("No-show can be marked 30 minutes after the scheduled start time");
+        }
+
+        await prisma.$transaction(async (tx) => {
+            const update = await tx.reservation.updateMany({
+                where: { id: reservationId, status: "CONFIRMED" },
+                data: {
+                    status: "NO_SHOW",
+                    noShowAt: new Date(),
+                },
+            });
+            if (update.count !== 1) {
+                throw new UserFacingError("Reservation status changed while processing. Please refresh and try again.", 409);
+            }
+
+            const transactions = await tx.transaction.findMany({
+                where: {
+                    reservationId,
+                    status: "SUCCESS",
+                    purpose: "BASE_BOOKING",
+                    OR: [{ payoutDoneAt: null }, { payoutDoneAt: { isSet: false } }],
+                },
+                select: { id: true, amount: true },
+            });
+            for (const transaction of transactions) {
+                const payoutData = buildPayoutTransactionData({
+                    owner: resv.listing.user,
+                    amount: transaction.amount,
+                    startDate: resv.startDate,
+                    endTime: resv.endTime,
+                    schedulePayout: true,
+                });
+                if (Object.keys(payoutData).length > 0) {
+                    await tx.transaction.update({ where: { id: transaction.id }, data: payoutData });
+                }
+            }
+            await tx.reservationSlot.deleteMany({ where: { reservationId } });
+        });
+        await this.writeSystemMessage(reservationId, "Host marked this session as a no-show.");
+    }
+
+    static async recordRefund(params: {
+        reservationId: string;
+        adminId: string;
+        status: Extract<ReservationStatus, "REFUNDED" | "PARTIALLY_REFUNDED">;
+        amount: number;
+        note?: string;
+    }): Promise<void> {
+        const amount = Math.max(0, Math.round(params.amount));
+        if (amount <= 0) throw new UserFacingError("Refund amount must be greater than zero");
+
+        await prisma.$transaction(async (tx) => {
+            const [reservation, captured] = await Promise.all([
+                tx.reservation.findUnique({
+                    where: { id: params.reservationId },
+                    select: { status: true },
+                }),
+                tx.transaction.aggregate({
+                    where: { reservationId: params.reservationId, status: { in: ["SUCCESS", "REFUNDED"] } },
+                    _sum: { amount: true },
+                }),
+            ]);
+            if (!reservation) throw new UserFacingError("Reservation not found", 404);
+            if (reservation.status === "REFUNDED" || reservation.status === "PARTIALLY_REFUNDED") {
+                throw new UserFacingError("A refund has already been recorded for this reservation", 409);
+            }
+            const capturedAmount = Math.round(captured._sum.amount || 0);
+            if (capturedAmount <= 0 || amount > capturedAmount) {
+                throw new UserFacingError("Refund amount cannot exceed the captured payment amount");
+            }
+            if (params.status === "REFUNDED" && amount !== capturedAmount) {
+                throw new UserFacingError("A full refund must equal the captured payment amount");
+            }
+            if (params.status === "PARTIALLY_REFUNDED" && amount >= capturedAmount) {
+                throw new UserFacingError("A partial refund must be less than the captured payment amount");
+            }
+
+            await tx.reservation.update({
+                where: { id: params.reservationId },
+                data: {
+                    status: params.status,
+                    refundAmount: amount,
+                    refundRecordedAt: new Date(),
+                    refundNote: params.note?.trim().slice(0, 500) || null,
+                },
+            });
+            await tx.transaction.updateMany({
+                where: {
+                    reservationId: params.reservationId,
+                    OR: [{ payoutDoneAt: null }, { payoutDoneAt: { isSet: false } }],
                 },
                 data: { payoutDueAt: null },
             });
-        }
-
-        if (status === 1) {
-            const payoutData = buildPayoutTransactionData({
-                owner: resv.listing.user,
-                amount: resv.totalPrice,
-                startDate: resv.startDate,
-                endTime: resv.endTime,
-                approved: true,
-            });
-
-            if (Object.keys(payoutData).length > 0) {
-                await prisma.transaction.updateMany({
-                    where: {
-                        reservationId,
-                        status: "SUCCESS",
-                        OR: [
-                            { payoutDoneAt: null },
-                            { payoutDoneAt: { isSet: false } },
-                        ],
+            await tx.auditLog.create({
+                data: {
+                    userId: params.adminId,
+                    action: "BOOKING_REFUND_RECORDED",
+                    resource: "Reservation",
+                    resourceId: params.reservationId,
+                    metadata: {
+                        status: params.status,
+                        amount,
+                        note: params.note || null,
                     },
-                    data: payoutData,
-                });
-            }
-        }
+                },
+            });
+        });
 
-        await this.triggerStatusNotifications(resv, status, reason);
+        await this.writeSystemMessage(params.reservationId, `Admin recorded ${params.status === "REFUNDED" ? "a full" : "a partial"} refund of Rs. ${amount}.`);
     }
 
-    private static async triggerStatusNotifications(resv: FullReservationPayload, status: number, reason?: string) {
+    static async updateStatus(
+        reservationId: string,
+        userId: string,
+        status: Extract<ReservationStatus, "CONFIRMED" | "CANCELLED">,
+        reason?: string,
+        allowAdmin = false
+    ): Promise<void> {
+        if (status === "CONFIRMED") return this.approve(reservationId, userId, allowAdmin);
+        if (reason?.trim()) return this.decline(reservationId, userId, reason, allowAdmin);
+        return this.cancel(reservationId, userId);
+    }
+
+    private static async triggerStatusNotifications(
+        resv: FullReservationPayload,
+        event: "APPROVED" | "DECLINED" | "CANCELLED",
+        reason?: string
+    ) {
         const txn = resv.Transaction[0];
-        const dateStr = format(resv.startDate, "dd MMM yyyy");
+        const dateStr = formatReservationDate(resv.startDate);
         const timeStr = `${resv.startTime} to ${resv.endTime}`;
         const location = getListingLocation(resv.listing);
         const locationLink = getListingLocationLink(resv.listing);
@@ -885,7 +1339,7 @@ export class ReservationService {
         const ownerPhone = resv.listing.user.phone;
         const notificationTasks: Array<Promise<void>> = [];
 
-        if (status === 1) {
+        if (event === "APPROVED") {
             let invoiceDocument: DocumentAttachment | undefined;
             if (txn?.id) {
                 try {
@@ -903,6 +1357,10 @@ export class ReservationService {
                 } catch (error) {
                     console.error("[ReservationService] Approval invoice generation failed:", toNotificationError(error));
                 }
+            }
+
+            if (invoiceDocument && !invoiceDocument.emailSentAt && !customerEmail) {
+                await markDocumentDeliveryBlocked(invoiceDocument, "Customer email is missing");
             }
 
             if (txn?.id && customerEmail) {
@@ -972,7 +1430,7 @@ export class ReservationService {
                     }
                 }));
             }
-        } else if (status === 2) {
+        } else if (event === "DECLINED") {
             let refundDocument: DocumentAttachment | undefined;
             if (txn?.id) {
                 try {
@@ -1051,7 +1509,7 @@ export class ReservationService {
                     }
                 }));
             }
-        } else if (status === 3) {
+        } else if (event === "CANCELLED") {
             let refundDocument: DocumentAttachment | undefined;
             if (txn?.id) {
                 try {
@@ -1169,7 +1627,15 @@ export class ReservationService {
             if (order?.order_status) {
                 const newStatus = cfMapStatus(order.order_status);
                 if (newStatus === "SUCCESS") {
-                    await this.createFromTransaction(txn.id);
+                    if (txn.purpose === "EXTENSION") {
+                        const { PostBookingService } = await import("@/lib/post-booking/service");
+                        await PostBookingService.applyExtensionPayment(txn.id);
+                    } else if (txn.purpose === "ADDITIONAL_CHARGE") {
+                        const { PostBookingService } = await import("@/lib/post-booking/service");
+                        await PostBookingService.applyAdditionalChargePayment(txn.id);
+                    } else {
+                        await this.createFromTransaction(txn.id);
+                    }
                     return await prisma.transaction.findUnique({
                         where: { id: txn.id },
                         include: { reservation: { include: { listing: true } }, listing: true, user: true }
@@ -1184,7 +1650,15 @@ export class ReservationService {
                     });
 
                     if (newStatus === "FAILED") {
-                        await this.handleFailedPayment(txn.id);
+                        if (txn.purpose === "EXTENSION") {
+                            const { PostBookingService } = await import("@/lib/post-booking/service");
+                            await PostBookingService.markExtensionPaymentFailed(txn.id, "Cashfree reported the extension payment as failed");
+                        } else if (txn.purpose === "ADDITIONAL_CHARGE") {
+                            const { PostBookingService } = await import("@/lib/post-booking/service");
+                            await PostBookingService.markAdditionalChargePaymentFailed(txn.id, "Cashfree reported the additional payment as failed");
+                        } else {
+                            await this.handleFailedPayment(txn.id);
+                        }
                     }
                     return updatedTxn;
                 }
@@ -1224,34 +1698,52 @@ export class ReservationService {
         }
     }
 
-    static async delete(reservationId: string, userId: string): Promise<void> {
+    static async delete(reservationId: string, userId: string, allowAdmin = false): Promise<void> {
         const resv = await prisma.reservation.findUnique({
             where: { id: reservationId },
             include: { listing: { include: { user: true } } }
         });
 
-        if (!resv) throw new Error("Reservation not found");
+        if (!resv) throw new UserFacingError("Reservation not found", 404);
         const isHost = resv.listing.user.id === userId;
         const isCustomer = resv.userId === userId;
 
-        if (!isHost && !isCustomer) throw new Error("Unauthorized");
+        if (!isHost && !isCustomer && !allowAdmin) throw new UserFacingError("Unauthorized", 403);
+        if (allowAdmin && !isHost && !isCustomer) {
+            throw new UserFacingError("Administrators cannot hide a reservation from either participant", 409);
+        }
 
+        const deletableStatuses: ReservationStatus[] = [
+            "CANCELLED",
+            "COMPLETED",
+            "NO_SHOW",
+            "REFUNDED",
+            "PARTIALLY_REFUNDED",
+        ];
+        if (!deletableStatuses.includes(this.currentStatus(resv))) {
+            throw new UserFacingError("Active reservations must be cancelled or completed before they can be removed", 409);
+        }
+
+        const hiddenAt = new Date();
         await prisma.reservation.update({
             where: { id: reservationId },
             data: {
-                markedForDeletion: true,
-                markedForDeletionAt: new Date(),
+                ...(isCustomer ? { hiddenByGuestAt: hiddenAt } : {}),
+                ...(isHost ? { hiddenByOwnerAt: hiddenAt } : {}),
             }
         });
-        await prisma.reservationSlot.deleteMany({ where: { reservationId } });
     }
 
-    static async sendReminders(rangeStart: Date, rangeEnd: Date): Promise<Array<{ id: string; status: string; error?: string }>> {
+    static async sendReminders(
+        rangeStart: Date,
+        rangeEnd: Date,
+    ): Promise<Array<{ id: string; status: string; error?: string }>> {
         const reservations = await prisma.reservation.findMany({
             where: {
                 startDate: { gte: rangeStart, lte: rangeEnd },
                 reminderSent: false,
-                isApproved: 1,
+                status: "CONFIRMED",
+                markedForDeletion: false,
                 Transaction: { some: { status: "SUCCESS" } }
             },
             include: { user: true, listing: true }
@@ -1284,32 +1776,36 @@ export class ReservationService {
 
     static async expirePendingApprovalReservations(
         reference = new Date(),
-        onlyReservationId?: string
+        onlyReservationId?: string,
     ): Promise<Array<{ id: string; status: string; error?: string }>> {
         const cutoff = new Date(reference.getTime() - 24 * 60 * 60 * 1000);
         const reason = "Auto-rejected: host did not respond within 24 hours";
         const reservations = await prisma.reservation.findMany({
             where: {
                 ...(onlyReservationId ? { id: onlyReservationId } : {}),
-                isApproved: 0,
-                createdAt: { lte: cutoff },
+                status: "PENDING_APPROVAL",
+                createdAt: {
+                    lte: cutoff,
+                },
                 markedForDeletion: false,
                 Transaction: { some: { status: "SUCCESS" } },
             },
-            include: {
-                listing: { include: { user: { include: { paymentDetails: true } } } },
-                user: true,
-                Transaction: { orderBy: { createdAt: "desc" } },
-            },
+            include: fullReservationInclude,
             take: 50,
-        }) as FullReservationPayload[];
+        });
 
         const results: Array<{ id: string; status: string; error?: string }> = [];
         for (const reservation of reservations) {
             try {
                 const claim = await prisma.reservation.updateMany({
-                    where: { id: reservation.id, isApproved: 0 },
-                    data: { isApproved: 2, rejectReason: reason },
+                    where: {
+                        id: reservation.id,
+                        status: "PENDING_APPROVAL",
+                    },
+                    data: {
+                        status: "CANCELLED",
+                        rejectReason: reason,
+                    },
                 });
                 if (claim.count !== 1) {
                     results.push({ id: reservation.id, status: "skipped" });
@@ -1324,8 +1820,11 @@ export class ReservationService {
                     );
                 } catch (error) {
                     await prisma.reservation.updateMany({
-                        where: { id: reservation.id, isApproved: 2, rejectReason: reason },
-                        data: { isApproved: 0, rejectReason: reservation.rejectReason || null },
+                        where: { id: reservation.id, status: "CANCELLED", rejectReason: reason },
+                        data: {
+                            status: "PENDING_APPROVAL",
+                            rejectReason: reservation.rejectReason || null,
+                        },
                     });
                     throw error;
                 }
@@ -1343,14 +1842,10 @@ export class ReservationService {
 
                 const refreshed = await prisma.reservation.findUnique({
                     where: { id: reservation.id },
-                    include: {
-                        listing: { include: { user: { include: { paymentDetails: true } } } },
-                        user: true,
-                        Transaction: { orderBy: { createdAt: "desc" } },
-                    },
-                }) as FullReservationPayload | null;
+                    include: fullReservationInclude,
+                });
                 if (refreshed) {
-                    await this.triggerStatusNotifications(refreshed, 2, reason);
+                    await this.triggerStatusNotifications(refreshed, "DECLINED", reason);
                 }
                 results.push({ id: reservation.id, status: "expired" });
             } catch (error) {
@@ -1366,81 +1861,248 @@ export class ReservationService {
     }
 
     static async getReservations(params: {
+        reservationId?: string;
         listingId?: string;
         userId?: string;
         authorId?: string;
-        status?: number;
+        status?: ReservationStatus;
     }): Promise<SafeReservation[]> {
-        const { listingId, userId, authorId, status } = params;
-        const query: Prisma.ReservationWhereInput = { markedForDeletion: false };
-
-        if (listingId) query.listingId = listingId;
-        if (userId) query.userId = userId;
-        if (authorId) query.listing = { userId: authorId };
-        if (status !== undefined) query.isApproved = status;
-
-        const reservations = await prisma.reservation.findMany({
-            where: query,
-            include: { listing: true, user: true },
-            orderBy: { createdAt: "desc" },
-        });
-
-        return reservations.map(r => this.normalizeReservation(r as FullReservationPayload));
+        return (await this.getReservationsPage(params, { page: 1, pageSize: params.reservationId ? 1 : 100 })).reservations;
     }
 
-    private static normalizeReservation(r: FullReservationPayload): SafeReservation {
+    static async getReservationsPage(params: {
+        reservationId?: string;
+        listingId?: string;
+        userId?: string;
+        authorId?: string;
+        status?: ReservationStatus;
+    }, options: { page?: number; pageSize?: number } = {}) {
+        const { reservationId, listingId, userId, authorId, status } = params;
+        const requestedPage = typeof options.page === "number" && Number.isFinite(options.page)
+            ? Math.max(1, Math.floor(options.page))
+            : 1;
+        const pageSize = typeof options.pageSize === "number" && Number.isFinite(options.pageSize)
+            ? Math.min(100, Math.max(1, Math.floor(options.pageSize)))
+            : 50;
+        const query: Prisma.ReservationWhereInput = { markedForDeletion: false };
+        const visibilityFilters: Prisma.ReservationWhereInput[] = [];
+
+        if (reservationId) query.id = reservationId;
+        if (listingId) query.listingId = listingId;
+        if (userId) {
+            query.userId = userId;
+            visibilityFilters.push({
+                OR: [{ hiddenByGuestAt: null }, { hiddenByGuestAt: { isSet: false } }],
+            });
+        }
+        if (authorId) {
+            query.listing = { userId: authorId };
+            visibilityFilters.push({
+                OR: [{ hiddenByOwnerAt: null }, { hiddenByOwnerAt: { isSet: false } }],
+            });
+        }
+        if (visibilityFilters.length > 0) query.AND = visibilityFilters;
+        if (status) query.status = status;
+
+        const total = await prisma.reservation.count({ where: query });
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        const page = Math.min(requestedPage, totalPages);
+        const [reservations, amenityDefinitions] = await Promise.all([
+            prisma.reservation.findMany({
+                where: query,
+                include: safeReservationInclude,
+                orderBy: { createdAt: "desc" },
+                skip: (page - 1) * pageSize,
+                take: pageSize,
+            }),
+            prisma.amenities.findMany({ select: { id: true, name: true }, take: 500 }),
+        ]);
+        const amenityNamesById = new Map(amenityDefinitions.map((amenity) => [amenity.id, amenity.name]));
+
         return {
-            ...r,
+            reservations: reservations.map((reservation) => this.normalizeReservation(reservation, amenityNamesById)),
+            pagination: {
+                page,
+                pageSize,
+                total,
+                totalPages,
+            },
+        };
+    }
+
+    static async getPublicReservationSlots(listingId: string): Promise<PublicReservationSlot[]> {
+        const indiaDate = new Date(Date.now() + (5 * 60 + 30) * 60_000).toISOString().slice(0, 10);
+        const rangeStart = new Date(`${indiaDate}T00:00:00.000Z`);
+        const rangeEnd = new Date(rangeStart.getTime() + 91 * 24 * 60 * 60_000);
+        const reservations = await prisma.reservation.findMany({
+            where: {
+                listingId,
+                listing: { active: true, status: "VERIFIED" },
+                startDate: { gte: rangeStart, lt: rangeEnd },
+                markedForDeletion: false,
+                status: { in: ["PENDING_APPROVAL", "CONFIRMED", "CHECKED_IN"] },
+            },
+            select: {
+                startDate: true,
+                startTime: true,
+                endTime: true,
+                setIds: true,
+            },
+            orderBy: { startDate: "asc" },
+        });
+
+        return reservations.map((reservation) => ({
+            ...reservation,
+            startDate: reservation.startDate.toISOString(),
+        }));
+    }
+
+    static async getPublicDayStatuses(listingId: string): Promise<PublicDayStatus[]> {
+        const indiaDate = new Date(Date.now() + (5 * 60 + 30) * 60_000).toISOString().slice(0, 10);
+        const rangeStart = new Date(`${indiaDate}T00:00:00.000Z`);
+        const rangeEnd = new Date(rangeStart.getTime() + 91 * 24 * 60 * 60_000);
+        const statuses = await prisma.dayStatus.findMany({
+            where: {
+                listingId,
+                listing: { active: true, status: "VERIFIED" },
+                date: { gte: rangeStart, lt: rangeEnd },
+            },
+            select: {
+                date: true,
+                listingActive: true,
+                startTime: true,
+                endTime: true,
+            },
+            orderBy: { date: "asc" },
+        });
+
+        return statuses.map((status) => ({
+            ...status,
+            date: status.date.toISOString().slice(0, 10),
+        }));
+    }
+
+    private static normalizeReservation(
+        r: SafeReservationPayload,
+        amenityNamesById: Map<string, string> = new Map()
+    ): SafeReservation {
+        const {
+            hiddenByGuestAt: _hiddenByGuestAt,
+            hiddenByOwnerAt: _hiddenByOwnerAt,
+            billingDetailId: _billingDetailId,
+            billingSnapshot: _billingSnapshot,
+            extensionNudgeSentAt: _extensionNudgeSentAt,
+            reminderSent: _reminderSent,
+            reviewReminderSentAt: _reviewReminderSentAt,
+            reviewReminderClaimedAt: _reviewReminderClaimedAt,
+            reviewReminderAttempts: _reviewReminderAttempts,
+            unreadCountOwner: _unreadCountOwner,
+            unreadCountGuest: _unreadCountGuest,
+            lastMessageText: _lastMessageText,
+            lastMessageAt: _lastMessageAt,
+            updatedAt: _updatedAt,
+            extensionRequests,
+            additionalCharges,
+            invoices,
+            listing,
+            ...reservation
+        } = r;
+        const bookedSets = listing.sets
+            .filter((set) => r.setIds.includes(set.id))
+            .map((set) => ({
+                id: set.id,
+                name: set.name,
+                description: set.description,
+                price: set.price,
+            }));
+        const bookingAmenities = Array.from(new Set([
+            ...listing.amenities.map((amenity) => amenityNamesById.get(amenity) || amenity),
+            ...listing.otherAmenities,
+        ].filter(Boolean)));
+        const {
+            verifications: _listingVerifications,
+            reviewedAt: _listingReviewedAt,
+            reviewedById: _listingReviewedById,
+            rejectionReason: _listingRejectionReason,
+            curatedSource: _listingCuratedSource,
+            contactEmail: _listingContactEmail,
+            notifyEmailSentAt: _listingNotifyEmailSentAt,
+            notifyReminderAt: _listingNotifyReminderAt,
+            inConversation: _listingInConversation,
+            enquiryCount: _listingEnquiryCount,
+            accountDeactivatedAt: _listingAccountDeactivatedAt,
+            addons: listingAddons,
+            operationalDays: _listingOperationalDays,
+            operationalHours: _listingOperationalHours,
+            actualLocation: _listingActualLocation,
+            sets: _listingSets,
+            ...safeReservationListing
+        } = listing;
+
+        const normalizedListing: safeListing = {
+            ...safeReservationListing,
+            createdAt: listing.createdAt.toISOString(),
+            addons: normalizeListingAddons(listingAddons),
+            avgReviewRating: listing.avgReviewRating ?? undefined,
+        };
+
+        return {
+            ...reservation,
             createdAt: r.createdAt.toISOString(),
-            startDate: r.startDate,
+            startDate: r.startDate.toISOString(),
             startTime: r.startTime,
             endTime: r.endTime,
             markedForDeletionAt: r.markedForDeletionAt?.toISOString() || null,
-            listing: {
-                ...r.listing,
-                createdAt: r.listing.createdAt.toISOString(),
-            } as unknown as safeListing,
+            checkedInAt: r.checkedInAt?.toISOString() || null,
+            completedAt: r.completedAt?.toISOString() || null,
+            noShowAt: r.noShowAt?.toISOString() || null,
+            refundRecordedAt: r.refundRecordedAt?.toISOString() || null,
+            pendingExtensionCount: extensionRequests?.filter((item) => item.status === "PENDING_PAYMENT").length || 0,
+            pendingChargeCount: additionalCharges?.filter((item) => item.status === "PENDING_PAYMENT").length || 0,
+            pendingExtensions: extensionRequests?.map((item) => ({
+                id: item.id,
+                durationMinutes: item.durationMinutes,
+                extraAmount: item.extraAmount,
+                status: item.status,
+                requestedEndTime: item.requestedEndTime,
+            })) || [],
+            pendingCharges: additionalCharges?.map((item) => ({
+                id: item.id,
+                type: item.type,
+                items: item.items,
+                totalAmount: item.totalAmount,
+                status: item.status,
+                note: item.note,
+            })) || [],
+            receipts: invoices?.map((invoice) => ({
+                invoiceNumber: invoice.invoiceNumber,
+                invoiceUrl: `/api/documents/invoices/${invoice.id}`,
+            })) || [],
+            bookedSets,
+            bookingAmenities,
+            listing: normalizedListing,
         };
     }
 
     static async checkUserBooking(userId: string, listingId: string) {
         const resv = await prisma.reservation.findFirst({
-            where: { listingId, userId, isApproved: 1, markedForDeletion: false },
-            orderBy: { createdAt: 'desc' },
-            select: { id: true, startDate: true, startTime: true, endTime: true }
+            where: {
+                listingId,
+                userId,
+                status: "COMPLETED",
+                markedForDeletion: false,
+                Review: { none: { userId } },
+            },
+            orderBy: { completedAt: 'desc' },
+            select: { id: true, startDate: true, startTime: true, endTime: true, status: true }
         });
 
         if (!resv) return null;
 
-        const ymd = resv.startDate.toISOString().slice(0, 10);
-        const parseHm = (label?: string | null): { h: number, m: number } | null => {
-            if (!label) return null;
-            const s = String(label);
-            const m12 = s.match(/^\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*$/i);
-            const m24 = s.match(/^\s*(\d{1,2}):(\d{2})\s*$/);
-            if (m12) {
-                let hh = parseInt(m12[1], 10);
-                const mm = parseInt(m12[2], 10);
-                const ap = m12[3].toUpperCase();
-                if (ap === 'PM' && hh < 12) hh += 12;
-                if (ap === 'AM' && hh === 12) hh = 0;
-                return { h: hh, m: mm };
-            }
-            if (m24) return { h: parseInt(m24[1], 10), m: parseInt(m24[2], 10) };
-            return null;
-        };
-
-        const hmEnd = parseHm(resv.endTime);
-        const hmStart = parseHm(resv.startTime);
-        let endAt: Date;
-
-        if (hmEnd) endAt = new Date(`${ymd}T${String(hmEnd.h).padStart(2, '0')}:${String(hmEnd.m).padStart(2, '0')}:00`);
-        else if (hmStart) endAt = new Date(`${ymd}T${String(hmStart.h).padStart(2, '0')}:${String(hmStart.m).padStart(2, '0')}:00`);
-        else endAt = new Date(`${ymd}T23:59:00`);
-
+        const endAt = parseReservationEndTimeForDate(resv.startDate, resv.endTime);
         const now = new Date();
-        const canReview = ymd < now.toISOString().slice(0, 10) || endAt.getTime() <= now.getTime();
+        const canReview = Boolean(endAt && endAt.getTime() <= now.getTime());
 
-        return { id: resv.id, canReview, status: canReview ? "PAID" : "UPCOMING", endAt: endAt.toISOString() };
+        return { id: resv.id, canReview, status: resv.status, endAt: endAt?.toISOString() || null };
     }
 }

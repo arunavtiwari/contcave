@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { loadE2EProcessEnv } from "./load-env";
 
 export type CashfreePaymentMethod =
@@ -46,11 +48,6 @@ function required(name: string, fallbacks: string[] = []): string {
     throw new Error(`Missing required E2E environment variable: ${name}${fallbackMessage}`);
   }
   return value;
-}
-
-function domainFromEmail(email: string | undefined) {
-  const domain = email?.split("@")[1]?.trim();
-  return domain || undefined;
 }
 
 function parsePaymentMethod(raw: string): CashfreePaymentMethod {
@@ -102,28 +99,15 @@ function databaseNameFromUrl(databaseUrl: string) {
   }
 }
 
-function allowedDatabaseNames() {
-  return new Set(
-    (process.env.E2E_ALLOWED_DATABASE_NAMES || "")
-      .split(",")
-      .map((name) => name.trim())
-      .filter(Boolean)
-  );
-}
-
-function assertSafeDatabaseUrl(databaseUrl: string) {
+function assertSafeDatabaseUrl(databaseUrl: string, expectedDatabaseName: string) {
   if (!/^mongodb(\+srv)?:\/\//i.test(databaseUrl)) {
     throw new Error("E2E_DATABASE_URL must be a MongoDB connection string.");
   }
 
   const databaseName = databaseNameFromUrl(databaseUrl);
-  const hasSafeName = /(staging|stage|test|qa|e2e)/i.test(databaseUrl);
-  const hasExplicitNameAllow = databaseName && allowedDatabaseNames().has(databaseName);
-
-  if (!hasSafeName && !hasExplicitNameAllow) {
+  if (!databaseName || databaseName !== expectedDatabaseName) {
     throw new Error(
-      "Refusing staging writes: E2E_DATABASE_URL must clearly contain staging, stage, test, qa, or e2e, " +
-        "or E2E_ALLOWED_DATABASE_NAMES must include the exact staging database name."
+      `Refusing E2E writes: expected database "${expectedDatabaseName}", received "${databaseName || "<missing>"}".`
     );
   }
 }
@@ -137,10 +121,11 @@ export function getE2EConnectionEnv(): E2EConnectionEnv {
     throw new Error('E2E_ALLOW_STAGING_WRITES must be exactly "true".');
   }
 
-  const baseUrl = required("E2E_BASE_URL", ["APP_URL", "NEXTAUTH_URL"]).replace(/\/$/, "");
-  const databaseUrl = required("E2E_DATABASE_URL", ["DATABASE_URL"]);
+  const baseUrl = required("E2E_BASE_URL").replace(/\/$/, "");
+  const databaseUrl = required("E2E_DATABASE_URL");
+  const expectedDatabaseName = required("E2E_EXPECTED_DATABASE_NAME");
   assertSafeBaseUrl(baseUrl);
-  assertSafeDatabaseUrl(databaseUrl);
+  assertSafeDatabaseUrl(databaseUrl, expectedDatabaseName);
 
   process.env.E2E_BASE_URL = baseUrl;
   process.env.E2E_DATABASE_URL = databaseUrl;
@@ -149,8 +134,11 @@ export function getE2EConnectionEnv(): E2EConnectionEnv {
   cachedConnectionEnv = {
     baseUrl,
     databaseUrl,
-    runId: process.env.E2E_RUN_ID || `qa-e2e-${Date.now()}`,
-    emailDomain: firstDefined(["E2E_EMAIL_DOMAIN"]) || domainFromEmail(process.env.MAILERSEND_FROM_EMAIL) || required("E2E_EMAIL_DOMAIN"),
+    // A timestamp alone can be reused by an interrupted or closely repeated run
+    // against the same test database. Keep an explicit E2E_RUN_ID reproducible,
+    // but make automatically generated fixture namespaces collision-resistant.
+    runId: process.env.E2E_RUN_ID || `qa-e2e-${Date.now()}-${randomUUID().slice(0, 8)}`,
+    emailDomain: required("E2E_EMAIL_DOMAIN"),
   };
 
   return cachedConnectionEnv;

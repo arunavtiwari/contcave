@@ -6,11 +6,11 @@ import { useForm } from "react-hook-form";
 import { FaInfoCircle } from "react-icons/fa";
 import { toast } from "sonner";
 
-import { updateUser } from "@/app/actions/updateUser";
+import { enableOwnerAction } from "@/app/actions/updateUser";
 import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
 import { type OwnerEnableSchema, ownerEnableSchema } from "@/schemas/user";
-import { SafeUser, UserRole } from "@/types/user";
+import { SafeUser } from "@/types/user";
 
 type Props = {
   isOpen: boolean;
@@ -56,13 +56,11 @@ const OwnerEnableModal: React.FC<Props> = ({
   const onSubmit = async (data: OwnerEnableSchema) => {
     startTransition(async () => {
       try {
-        const updatedUser = await updateUser({
-          phone: data.phone,
-          role: UserRole.OWNER,
-        });
+        const result = await enableOwnerAction(data);
+        if (!result.success || !result.data) throw new Error(result.error || "Failed to register as owner.");
 
         toast.success("Successfully registered as space owner!");
-        onSuccess?.(updatedUser);
+        onSuccess?.(result.data);
         onClose();
       } catch (error) {
         console.error("Owner Registration Error:", error);
@@ -128,7 +126,6 @@ const OwnerEnableModal: React.FC<Props> = ({
 };
 
 export default OwnerEnableModal;
-
 
 
 

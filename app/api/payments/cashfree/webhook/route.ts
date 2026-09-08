@@ -10,9 +10,12 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
     try {
+        if (!process.env.CASHFREE_SECRET_KEY) {
+            return createErrorResponse("Webhook signature verification is not configured", 503);
+        }
         const ip = getClientIp(req.headers);
         const key = `cf-webhook:${ip}`;
-        const { allowed, resetAt } = rateLimit({ key, limit: 30, windowMs: 60_000 });
+        const { allowed, resetAt } = rateLimit({ key, limit: 300, windowMs: 60_000 });
         
         if (!allowed) {
             const retryAfter = formatRetryAfterMs(resetAt);
@@ -30,15 +33,19 @@ export async function POST(req: NextRequest) {
 
         let raw = "";
         try {
+            const declaredLength = Number(req.headers.get("content-length") || 0);
+            if (Number.isFinite(declaredLength) && declaredLength > 100_000) {
+                return createErrorResponse("Request body too large", 413);
+            }
             raw = await req.text();
-            if (raw.length > 100000) {
+            if (new TextEncoder().encode(raw).byteLength > 100_000) {
                 return createErrorResponse("Request body too large", 413);
             }
         } catch (error) {
             if (process.env.NODE_ENV === "development") {
                 console.error("[Webhook] Failed to read request body:", error);
             }
-            return createSuccessResponse({ ok: true }, 200);
+            return createErrorResponse("Unable to read webhook body", 500);
         }
 
         if (!raw || raw.trim().length === 0) {
@@ -57,7 +64,7 @@ export async function POST(req: NextRequest) {
         const strict = !skipVerify;
 
         if (strict && (!ts || !sig)) {
-            return createErrorResponse("Missing required webhook headers", 400);
+            return createErrorResponse("Missing required webhook headers", 401);
         }
 
         const { statusCode } = await handleCashfreeWebhook({
@@ -65,7 +72,9 @@ export async function POST(req: NextRequest) {
             headers: { timestamp: ts, signature: sig, strict },
         });
 
-        return createSuccessResponse({ ok: statusCode === 200 }, statusCode);
+        return statusCode === 200
+            ? createSuccessResponse({ ok: true })
+            : createErrorResponse(statusCode === 401 ? "Invalid webhook signature" : "Webhook processing failed", statusCode);
     } catch (error) {
         return handleRouteError(error, "POST /api/payments/cashfree/webhook");
     }

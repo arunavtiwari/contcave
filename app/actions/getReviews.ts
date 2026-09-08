@@ -3,10 +3,11 @@
 
 
 import prisma from "@/lib/prismadb";
+import { PublicReview } from "@/types/review";
 
-export default async function getReviews(listingId: string) {
+export default async function getReviews(listingId: string): Promise<PublicReview[]> {
     try {
-        if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
+        if (typeof listingId !== "string" || !/^[a-f\d]{24}$/i.test(listingId)) {
             return [];
         }
 
@@ -28,7 +29,10 @@ export default async function getReviews(listingId: string) {
             take: 100,
         });
 
-        return reviews;
+        return reviews.map((review) => ({
+            ...review,
+            createdAt: review.createdAt.toISOString(),
+        }));
     } catch (error) {
         console.error('[getReviews] Error:', error);
         return [];

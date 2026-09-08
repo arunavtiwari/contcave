@@ -20,7 +20,7 @@ const BookingBreakdown: React.FC<BookingBreakdownProps> = ({ reservation }) => {
     const addonsCharge = useMemo(() => addons.reduce((acc, value) => acc + value.qty * value.price, 0), [addons]);
     const duration = useMemo(() => calculateDurationHours(reservation.startTime, reservation.endTime), [reservation.startTime, reservation.endTime]);
     const propertyCharge = useMemo(() => Math.max(0, (reservation.totalPrice || 0) - addonsCharge), [reservation.totalPrice, addonsCharge]);
-    const bookingDateLabel = useMemo(() => formatBookingDate(reservation.startDate.toISOString()), [reservation.startDate]);
+    const bookingDateLabel = useMemo(() => formatBookingDate(reservation.startDate), [reservation.startDate]);
 
     const bookingTimeLabel = useMemo(() =>
         reservation.startTime && reservation.endTime

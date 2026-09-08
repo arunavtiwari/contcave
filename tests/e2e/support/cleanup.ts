@@ -1,5 +1,7 @@
 import { DeleteObjectsCommand } from "@aws-sdk/client-s3";
 
+import { isE2eEffectDisabled } from "../../../lib/e2e-guards";
+import { privateDocumentKey } from "../../../lib/storage/privateDocuments";
 import { r2 } from "../../../lib/storage/r2";
 import { prisma } from "./db";
 import { getE2EEnv } from "./env";
@@ -19,6 +21,16 @@ function jsonUrls(value: unknown): string[] {
   return [];
 }
 
+function jsonStrings(value: unknown): string[] {
+  if (!value) return [];
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap(jsonStrings);
+  if (typeof value === "object") {
+    return Object.values(value as Record<string, unknown>).flatMap(jsonStrings);
+  }
+  return [];
+}
+
 function keyFromPublicUrl(rawUrl: string): string | null {
   try {
     const url = new URL(rawUrl);
@@ -29,9 +41,13 @@ function keyFromPublicUrl(rawUrl: string): string | null {
   }
 }
 
-async function deleteR2Keys(keys: string[]) {
-  const bucket = process.env.CLOUDFLARE_R2_BUCKET_NAME;
-  const filtered = unique(keys).filter((key) => key.startsWith("users/"));
+function keysOwnedByTestUsers(keys: string[], userIds: string[]) {
+  const allowedPrefixes = userIds.map((userId) => `users/${userId}/`);
+  return unique(keys).filter((key) => allowedPrefixes.some((prefix) => key.startsWith(prefix)));
+}
+
+async function deleteR2Keys(bucket: string | undefined, keys: string[], userIds: string[], storage: "public" | "private") {
+  const filtered = keysOwnedByTestUsers(keys, userIds);
 
   if (!bucket || filtered.length === 0) return;
 
@@ -51,7 +67,7 @@ async function deleteR2Keys(keys: string[]) {
         break;
       } catch (error) {
         if (attempt === 3) {
-          console.warn("[e2e] R2 cleanup skipped after retries", {
+          console.warn(`[e2e] ${storage} R2 cleanup skipped after retries`, {
             count: chunk.length,
             error: error instanceof Error ? error.message : String(error),
           });
@@ -94,6 +110,10 @@ export async function cleanupE2ERun(state: RunState) {
         { userId: { in: userIds } },
         { title: { contains: runId } },
         { slug: { contains: runId.toLowerCase() } },
+        // UI-created Rent Modal listings can be persisted before their ID is
+        // returned to the test and therefore before run-state tracking. The
+        // description is an explicit QA-only fixture marker for recovery.
+        { description: { contains: "QA staging listing created by enterprise E2E validation" } },
       ],
     },
   });
@@ -165,6 +185,21 @@ export async function cleanupE2ERun(state: RunState) {
     .flatMap((url) => (url ? [url] : []))
     .map(keyFromPublicUrl)
     .filter((key): key is string => !!key);
+  const privateR2Keys = [
+    ...(state.created.r2PrivateRef || []),
+    ...listings.flatMap((listing) => jsonStrings(listing.verifications)),
+    ...invoices.map((invoice) => invoice.invoiceUrl),
+    ...vouchers.map((voucher) => voucher.voucherUrl),
+  ]
+    .flatMap((ref) => (ref ? [ref] : []))
+    .map((ref) => {
+      try {
+        return privateDocumentKey(ref);
+      } catch {
+        return null;
+      }
+    })
+    .filter((key): key is string => !!key);
 
   await prisma.paymentVoucher.deleteMany({ where: { id: { in: voucherIds } } });
   await prisma.paymentVoucherIdempotencyLock.deleteMany({
@@ -207,8 +242,14 @@ export async function cleanupE2ERun(state: RunState) {
   await prisma.customAmenities.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.account.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.listing.deleteMany({ where: { id: { in: listingIds } } });
+  // A delayed QStash delivery can create a voucher after the first collection
+  // pass above. Remove user-owned documents again immediately before users.
+  await prisma.paymentVoucher.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.user.deleteMany({ where: { id: { in: userIds } } });
-  await deleteR2Keys(r2Keys);
+  await deleteR2Keys(process.env.CLOUDFLARE_R2_BUCKET_NAME, r2Keys, userIds, "public");
+  if (!isE2eEffectDisabled("E2E_DISABLE_R2_UPLOAD")) {
+    await deleteR2Keys(process.env.CLOUDFLARE_R2_PRIVATE_BUCKET_NAME, privateR2Keys, userIds, "private");
+  }
   await prisma.$disconnect();
 
   console.warn(

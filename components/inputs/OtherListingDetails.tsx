@@ -9,10 +9,11 @@ import Select, { SelectOption } from "@/components/ui/Select";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 import { AESTHETICS, SET_FEATURES, USE_CASES, VENUE_TYPES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
+import type { DayKey } from "@/types/scheduling";
 
 export type ListingDetails = {
     carpetArea: number;
-    operationalDays: { start?: string; end?: string };
+    operationalDays: { start?: DayKey; end?: DayKey };
     operationalHours: { start?: string; end?: string };
     minimumBookingHours: number;
     maximumPax: number;
@@ -47,7 +48,7 @@ const staticTimeOptions: SelectOption[] = TIME_SLOTS.map((t) => ({
 
 const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false }) => {
     // Default values if data is undefined
-    const details = useMemo(() => data || {
+    const details = useMemo<ListingDetails>(() => data || {
         carpetArea: 0,
         operationalDays: { start: "Mon", end: "Sun" },
         operationalHours: { start: "9:00 AM", end: "9:00 PM" },
@@ -93,12 +94,12 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false
         }
     }, [details, onChange]);
 
-    const handleInputChange = useCallback((field: keyof ListingDetails, value: string | number | boolean | string[] | { start?: string; end?: string }) => {
+    const handleInputChange = useCallback((field: keyof ListingDetails, value: ListingDetails[keyof ListingDetails]) => {
         onChange({ ...details, [field]: value });
     }, [details, onChange]);
 
     const useCaseAmenities = useMemo(() =>
-        USE_CASES.map(u => ({ id: u.label, name: u.label, createdAt: new Date(), icon: null })),
+        USE_CASES.map(u => ({ id: u.label, name: u.label, createdAt: "1970-01-01T00:00:00.000Z", icon: null })),
     []);
 
 
@@ -154,7 +155,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false
                             const sel = newValue as SelectOption | null;
                             handleInputChange("operationalDays", {
                                 ...details.operationalDays,
-                                start: sel?.value || "",
+                                start: sel?.value as DayKey | undefined,
                             });
                         }}
                         placeholder="Start"
@@ -167,7 +168,7 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false
                             const sel = newValue as SelectOption | null;
                             handleInputChange("operationalDays", {
                                 ...details.operationalDays,
-                                end: sel?.value || "",
+                                end: sel?.value as DayKey | undefined,
                             });
                         }}
                         placeholder="End"
@@ -302,8 +303,8 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false
 
             <div className="border border-border rounded-xl p-4 bg-neutral-50/50">
                 <Switch
-                    label="Multiple Sets"
-                    description="Does this space have multiple sub-units?"
+                    label="Bookable Sets"
+                    description="Does this space have separately bookable sets?"
                     variant="horizontal"
                     checked={details.hasSets}
                     onChange={(checked) => handleInputChange("hasSets", !!checked)}
@@ -319,5 +320,3 @@ const OtherListingDetails: React.FC<Props> = ({ onChange, data, optional = false
 };
 
 export default OtherListingDetails;
-
-

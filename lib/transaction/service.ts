@@ -65,18 +65,17 @@ export class TransactionService {
         });
     }
 
-    static async findByRef(ref: string) {
+    static async findLatestByRef(ref: string, userId: string) {
         return await prisma.transaction.findFirst({
-            where: { cfTxnRef: ref, status: "PENDING" }
+            where: {
+                userId,
+                OR: [
+                    { cfTxnRef: ref },
+                    { cfTxnRef: { startsWith: `${ref}_` } },
+                ],
+            },
+            orderBy: { createdAt: "desc" },
         });
-    }
-
-    static async hasAnyRef(ref: string) {
-        const txn = await prisma.transaction.findFirst({
-            where: { cfTxnRef: ref },
-            select: { id: true },
-        });
-        return Boolean(txn);
     }
 
     static async findByOrderId(orderId: string) {

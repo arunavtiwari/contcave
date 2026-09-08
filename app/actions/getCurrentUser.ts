@@ -1,8 +1,6 @@
 import { auth } from "@/auth";
 import { UserService } from "@/lib/user/service";
 
-export const dynamic = "force-dynamic";
-
 export async function getSession() {
   return await auth();
 }
@@ -13,11 +11,11 @@ export default async function getCurrentUser() {
 
     if (!session?.user?.email) return null;
 
-    let user = await UserService.findByEmail(session.user.email);
+    const user = await UserService.findByEmail(session.user.email);
     if (!user) return null;
 
     if (user.markedForDeletion) {
-      user = await UserService.restoreProfile(user.id);
+      return null;
     }
 
     return UserService.serializeUser(user);
@@ -34,3 +32,4 @@ export default async function getCurrentUser() {
     return null;
   }
 }
+

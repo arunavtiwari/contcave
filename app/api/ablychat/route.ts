@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { getAblyApiKey } from "@/lib/ably-server";
 import { createErrorResponse, handleRouteError } from "@/lib/api-utils";
 import { getAuthorizedChatReservation } from "@/lib/chat/reservation";
 import { getClientIp, getUserAgent } from "@/lib/http/requestMeta";
@@ -18,9 +19,18 @@ const reservationTokenRequestSchema = z.object({
 
 async function getValidatedReservationId(request: NextRequest) {
   const contentType = request.headers.get("content-type") || "";
+  const declaredLength = Number(request.headers.get("content-length") || 0);
+  if (Number.isFinite(declaredLength) && declaredLength > 5_000) {
+    return reservationTokenRequestSchema.safeParse(null);
+  }
 
   if (contentType.includes("application/json")) {
-    const body = await request.json().catch(() => ({}));
+    const raw = await request.text().catch(() => "");
+    if (new TextEncoder().encode(raw).byteLength > 5_000) {
+      return reservationTokenRequestSchema.safeParse(null);
+    }
+    let body: unknown = null;
+    try { body = JSON.parse(raw); } catch { /* handled by schema */ }
     return reservationTokenRequestSchema.safeParse(body);
   }
 
@@ -84,14 +94,14 @@ export async function POST(request: NextRequest) {
       return createErrorResponse("Reservation not found or unauthorized", 404);
     }
 
-    const ablyApiKey = process.env.ABLY_CHAT_API;
-    if (!ablyApiKey || typeof ablyApiKey !== "string") {
+    const ablyApiKey = getAblyApiKey();
+    if (!ablyApiKey) {
       return createErrorResponse("Server configuration error", 500);
     }
 
     const client = new Ably.Rest({ key: ablyApiKey });
     const capability = JSON.stringify({
-      [`chat:${reservationId}`]: ["publish", "subscribe", "history"],
+      [`chat:${reservationId}`]: ["subscribe", "history"],
     });
 
     const tokenRequest = await client.auth.createTokenRequest({

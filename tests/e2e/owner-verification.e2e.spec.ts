@@ -1,6 +1,6 @@
 import { assertOwnerFullyVerified, createUserFixture, qaAccount, waitForUserByEmail } from "./support/db";
 import { expect, test } from "./support/test";
-import { completeOwnerVerification, loginViaUi, registerOwnerViaUi } from "./support/ui";
+import { completeOwnerVerification, gotoApp, loginViaUi, registerOwnerViaUi } from "./support/ui";
 
 test.describe.configure({ mode: "serial" });
 
@@ -27,7 +27,7 @@ test.describe("owner verification staging flow", () => {
     });
 
     await loginViaUi(page, account);
-    await page.goto("/dashboard/profile");
+    await gotoApp(page, "/dashboard/profile");
     await page.getByRole("button", { name: /start verification/i }).click();
 
     const modal = page.getByTestId("verification-modal");
@@ -37,7 +37,7 @@ test.describe("owner verification staging flow", () => {
     await expect(page.getByText(/please verify email first/i)).toBeVisible();
 
     await modal.locator("#email").fill("not-an-email");
-    await modal.getByRole("button", { name: /^verify$/i }).nth(0).click();
-    await expect(page.getByText(/email verification failed/i)).toBeVisible();
+    await modal.getByRole("button", { name: /^send code$/i }).click();
+    await expect(page.getByText(/invalid email format/i)).toBeVisible();
   });
 });

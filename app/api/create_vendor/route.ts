@@ -1,26 +1,36 @@
 import { NextRequest } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
+import { getClientIp } from "@/lib/http/requestMeta";
+import { formatRetryAfterMs, rateLimit } from "@/lib/security/rateLimit";
 import { VerificationService } from "@/lib/verification/service";
+import { UserRole } from "@/types/user";
 
 
 export async function POST(req: NextRequest) {
   try {
-    if (!req.headers.get("content-type")?.includes("application/json")) {
-      return createErrorResponse("Content-Type must be application/json", 415);
-    }
-
     const currentUser = await getCurrentUser();
     if (!currentUser?.id) {
       return createErrorResponse("Unauthorized", 401);
     }
-
-    const body = await req.json().catch(() => ({}));
-
-    if (!body || typeof body !== "object") {
-      return createErrorResponse("Request body is required and must be an object", 400);
+    if (currentUser.role !== UserRole.OWNER && currentUser.role !== UserRole.ADMIN) {
+      return createErrorResponse("Only owners and administrators can configure payouts", 403);
     }
+    const requestLimit = rateLimit({
+      key: `create-vendor:${currentUser.id}:${getClientIp(req.headers)}`,
+      limit: 5,
+      windowMs: 15 * 60_000,
+    });
+    if (!requestLimit.allowed) {
+      const response = createErrorResponse("Too many payout setup attempts. Please wait and try again.", 429);
+      response.headers.set("Retry-After", formatRetryAfterMs(requestLimit.resetAt));
+      return response;
+    }
+
+    const parsedBody = await readJsonObject(req, 10_000);
+    if (!parsedBody.success) return parsedBody.response;
+    const body = parsedBody.data;
 
     const { vendor_id, display_name, account_holder, account_number, ifsc } = body;
 
@@ -62,7 +72,7 @@ export async function POST(req: NextRequest) {
       return createErrorResponse("Invalid IFSC code format. Must be 11 characters (e.g., ABCD0123456)", 400);
     }
 
-    const data = await VerificationService.createVendor(currentUser.id, {
+    await VerificationService.createVendor(currentUser.id, {
       vendor_id: vendor_id.trim(),
       display_name: display_name.trim(),
       email: body.email,
@@ -73,7 +83,7 @@ export async function POST(req: NextRequest) {
       gstin: body.gstin,
     });
 
-    return createSuccessResponse(data);
+    return createSuccessResponse({ ensured: true });
   } catch (err: unknown) {
     return handleRouteError(err, "POST /api/create_vendor");
   }

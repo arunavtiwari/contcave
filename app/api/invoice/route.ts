@@ -1,24 +1,23 @@
 import { NextRequest } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { ensureInvoiceWithAttachment } from "@/lib/invoice/createInvoiceRecord";
 import prisma from "@/lib/prismadb";
+import { isInvoiceEligible } from "@/lib/reservation/status";
 
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
 
 export async function POST(req: NextRequest) {
   try {
-    if (!req.headers.get("content-type")?.includes("application/json")) {
-      return createErrorResponse("Content-Type must be application/json", 415);
-    }
-
     const currentUser = await getCurrentUser();
     if (!currentUser?.id) {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    const body = await req.json().catch(() => ({}));
+    const parsedBody = await readJsonObject(req, 10_000);
+    if (!parsedBody.success) return parsedBody.response;
+    const body = parsedBody.data;
     const { userId, reservationId, transactionId } = body;
 
     if (typeof userId !== "string" || !OBJECT_ID_PATTERN.test(userId.trim())) {
@@ -42,14 +41,14 @@ export async function POST(req: NextRequest) {
         id: reservationId.trim(),
         userId: currentUser.id,
       },
-      select: { isApproved: true },
+      select: { status: true },
     });
 
     if (!reservation) {
       return createErrorResponse("Reservation not found", 404);
     }
 
-    if (reservation.isApproved !== 1) {
+    if (!isInvoiceEligible({ status: reservation.status })) {
       return createErrorResponse("Tax invoice is available only after booking confirmation", 409);
     }
 
@@ -60,7 +59,7 @@ export async function POST(req: NextRequest) {
     });
 
     return createSuccessResponse({
-      invoiceUrl: invoice.invoiceUrl,
+      invoiceUrl: invoice.invoiceUrl ? `/api/documents/invoices/${invoice.id}` : "",
       invoiceId: invoice.id,
     });
   } catch (error: unknown) {
@@ -71,13 +70,11 @@ export async function POST(req: NextRequest) {
         "Reservation not found",
         "Transaction not found",
       ]);
-      const status = notFoundMessages.has(message)
-        ? 404
-        : message.includes("does not match") || message.includes("Unable to determine")
-          ? 400
-          : 500;
-
-      return createErrorResponse(message, status);
+      if (notFoundMessages.has(message)) return createErrorResponse(message, 404);
+      if (message.includes("does not match") || message.includes("Unable to determine")) {
+        return createErrorResponse(message, 400);
+      }
+      return handleRouteError(error, "POST /api/invoice");
     }
     return handleRouteError(error, "POST /api/invoice");
   }

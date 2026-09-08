@@ -51,10 +51,10 @@ function PropertiesClient({ listings, currentUser }: Props) {
     startTransition(async () => {
       const res = await deleteListingAction({ listingId: selectedId });
       if (res.success) {
-        toast.success("Listing deleted");
+        toast.success("Listing archived");
         router.refresh();
       } else {
-        toast.error(res.error || "Failed to delete listing");
+        toast.error(res.error || "Failed to archive listing");
       }
       setDeletingId("");
       setSelectedId("");
@@ -80,7 +80,7 @@ function PropertiesClient({ listings, currentUser }: Props) {
             onEdit={onEdit}
             onChat={onChat}
             disabled={deletingId === listing.id}
-            actionLabel="Delete property"
+            actionLabel="Archive property"
             currentUser={currentUser}
             allowScale={false}
           />
@@ -91,15 +91,15 @@ function PropertiesClient({ listings, currentUser }: Props) {
         isOpen={isModalOpen}
         onCloseAction={() => setIsModalOpen(false)}
         onSubmitAction={handleConfirmDelete}
-        title="Delete Property"
-        actionLabel="Delete"
+        title="Archive Property"
+        actionLabel="Archive"
         secondaryActionAction={() => setIsModalOpen(false)}
         secondaryActionLabel="Cancel"
         disabled={isPending}
         body={
           <div className="p-4">
             <p className="text-center text-neutral-600">
-              Are you sure you want to delete this property? This action cannot be undone.
+              Archive this property? It will stop accepting bookings and disappear from your active properties, while booking and payment records remain intact.
             </p>
           </div>
         }

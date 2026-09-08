@@ -1,6 +1,8 @@
 import type { AxiosInstance } from "axios";
 import axios, { AxiosError } from "axios";
 
+import { isExternalDeliveryDisabled } from "@/lib/notifications/external-delivery";
+
 /* ------------------------------------------------------------------ */
 /*  Constants & Config                                                 */
 /* ------------------------------------------------------------------ */
@@ -218,7 +220,7 @@ export const WhatsappService = {
         components = [],
         idempotencyKey,
     }: SendTemplateInput): Promise<WhatsAppSendResult> {
-        if (process.env.E2E_DISABLE_WHATSAPP_SEND === "true") {
+        if (isExternalDeliveryDisabled("whatsapp")) {
             return { success: true, messageId: null, raw: { skipped: true } };
         }
 
@@ -527,6 +529,106 @@ export const WhatsappService = {
                         { type: "text", text: params.customerName },
                         { type: "text", text: params.listingTitle },
                         { type: "text", text: params.rejectReason || "Not provided" },
+                    ],
+                },
+            ],
+        });
+    },
+
+    /**
+     * Remind host shortly before a checked-in session ends.
+     * Template must be created in WhatsApp Business Manager as "extension_nudge_host".
+     */
+    async sendExtensionNudgeHost(
+        to: string,
+        params: {
+            hostName: string;
+            customerName: string;
+            endTime: string;
+            bookingUrl: string;
+            idempotencyKey?: string;
+        }
+    ): Promise<WhatsAppSendResult> {
+        return this.sendMessage({
+            to,
+            templateName: "extension_nudge_host",
+            idempotencyKey: params.idempotencyKey,
+            components: [
+                {
+                    type: "body",
+                    parameters: [
+                        { type: "text", text: params.hostName },
+                        { type: "text", text: params.customerName },
+                        { type: "text", text: params.endTime },
+                        { type: "text", text: params.bookingUrl },
+                    ],
+                },
+            ],
+        });
+    },
+
+    /**
+     * Send customer a payment link for a checked-in session extension.
+     * Template must be created in WhatsApp Business Manager as "extension_payment_customer".
+     */
+    async sendExtensionPaymentCustomer(
+        to: string,
+        params: {
+            customerName: string;
+            listingTitle: string;
+            duration: string;
+            amount: string;
+            paymentUrl: string;
+            idempotencyKey?: string;
+        }
+    ): Promise<WhatsAppSendResult> {
+        return this.sendMessage({
+            to,
+            templateName: "extension_payment_customer",
+            idempotencyKey: params.idempotencyKey,
+            components: [
+                {
+                    type: "body",
+                    parameters: [
+                        { type: "text", text: params.customerName },
+                        { type: "text", text: params.listingTitle },
+                        { type: "text", text: params.duration },
+                        { type: "text", text: params.amount },
+                        { type: "text", text: params.paymentUrl },
+                    ],
+                },
+            ],
+        });
+    },
+
+    /**
+     * Send customer a payment link for service/damage charges.
+     * Template must be created in WhatsApp Business Manager as "additional_charge_payment_customer".
+     */
+    async sendAdditionalChargePaymentCustomer(
+        to: string,
+        params: {
+            customerName: string;
+            listingTitle: string;
+            chargeType: string;
+            amount: string;
+            paymentUrl: string;
+            idempotencyKey?: string;
+        }
+    ): Promise<WhatsAppSendResult> {
+        return this.sendMessage({
+            to,
+            templateName: "additional_charge_payment_customer",
+            idempotencyKey: params.idempotencyKey,
+            components: [
+                {
+                    type: "body",
+                    parameters: [
+                        { type: "text", text: params.customerName },
+                        { type: "text", text: params.listingTitle },
+                        { type: "text", text: params.chargeType },
+                        { type: "text", text: params.amount },
+                        { type: "text", text: params.paymentUrl },
                     ],
                 },
             ],

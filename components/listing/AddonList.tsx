@@ -27,10 +27,14 @@ const toPrice = (v: number | string | undefined) => {
   return 0;
 };
 
-const sig = (arr: Addon[]) => arr.map(a => `${a.name}|${toPrice(a.price)}|${a.qty ?? 0}`).sort().join(",");
+const addonKey = (addon: Addon) => addon.id || addon.name;
+const sig = (arr: Addon[]) => arr.map(a => `${addonKey(a)}|${toPrice(a.price)}|${a.qty ?? 0}`).sort().join(",");
 
 const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }) => {
-  const maxQty = addon.qty || Infinity;
+  const configuredQty = Number(addon.qty);
+  const maxQty = addon.qty == null || !Number.isFinite(configuredQty)
+    ? Infinity
+    : Math.max(0, Math.floor(configuredQty));
   const inc = useCallback(() => onQtyChange(Math.min(qty + 1, maxQty)), [qty, onQtyChange, maxQty]);
   const dec = useCallback(() => onQtyChange(Math.max(0, qty - 1)), [qty, onQtyChange]);
   const add = useCallback(() => onQtyChange(1), [onQtyChange]);
@@ -66,7 +70,9 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
             {addon.name}
           </p>
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="text-muted-foreground text-sm"> {toPrice(addon.price)}</p>
+            <p className="text-muted-foreground text-sm">
+              {toPrice(addon.price) === 0 ? "Free" : `₹${toPrice(addon.price)}`}
+            </p>
             {Number.isFinite(maxQty) && (
               <>
                 <span className="h-1 w-1 bg-border rounded-full shrink-0"></span>
@@ -79,8 +85,8 @@ const AddonItem: React.FC<AddonItemProps> = ({ addon, imgUrl, qty, onQtyChange }
         </div>
 
         {qty === 0 ? (
-          <button onClick={add} className="bg-foreground text-background h-8 rounded-full">
-            ADD
+          <button disabled={maxQty === 0} onClick={add} className="bg-foreground text-background h-8 rounded-full disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed">
+            {maxQty === 0 ? "UNAVAILABLE" : "ADD"}
           </button>
         ) : (
           <div className="flex items-center w-full">
@@ -119,14 +125,14 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
 
   useEffect(() => {
     const next: Record<string, number> = {};
-    addons.forEach(a => { if (a?.name) next[a.name] = 0; });
+    addons.forEach(a => { if (a?.name) next[addonKey(a)] = 0; });
     setQuantities(next);
     lastSigRef.current = "";
   }, [addons]);
 
   useEffect(() => {
-    const withQty = addons.map(a => ({ ...a, qty: quantities[a.name] ?? 0, price: toPrice(a.price) }));
-    const selected = withQty.filter(a => (a.qty ?? 0) > 0 && toPrice(a.price) > 0);
+    const withQty = addons.map(a => ({ ...a, qty: quantities[addonKey(a)] ?? 0, price: toPrice(a.price) }));
+    const selected = withQty.filter(a => (a.qty ?? 0) > 0 && toPrice(a.price) >= 0);
     const nextSig = sig(selected);
     if (nextSig !== lastSigRef.current) {
       lastSigRef.current = nextSig;
@@ -140,11 +146,11 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
   );
 
   const handleQtyChange = useCallback((addon: Addon, nextQty: number) => {
-    setQuantities(prev => ({ ...prev, [addon.name]: Math.max(0, nextQty) }));
+    setQuantities(prev => ({ ...prev, [addonKey(addon)]: Math.max(0, nextQty) }));
   }, []);
 
   const renderAddonItem = useCallback((addon: Addon) => {
-    const qty = quantities[addon.name] ?? 0;
+    const qty = quantities[addonKey(addon)] ?? 0;
     const imgUrl = findImg(addon.name);
     return (
       <AddonItem
@@ -204,5 +210,3 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
 };
 
 export default AddonsList;
-
-

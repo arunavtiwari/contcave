@@ -1,5 +1,5 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { ListingService } from "@/lib/listing/service";
 import { isOwner } from "@/lib/user/permissions";
 
@@ -9,10 +9,6 @@ import { isOwner } from "@/lib/user/permissions";
  */
 export async function POST(request: Request) {
   try {
-    if (!request.headers.get("content-type")?.includes("application/json")) {
-      return createErrorResponse("Content-Type must be application/json", 415);
-    }
-
     const currentUser = await getCurrentUser();
     if (!currentUser?.id) {
       return createErrorResponse("Authentication required", 401);
@@ -22,7 +18,9 @@ export async function POST(request: Request) {
       return createErrorResponse("Only owners can create listings", 403);
     }
 
-    const body = await request.json().catch(() => ({}));
+    const parsedBody = await readJsonObject(request, 1_000_000);
+    if (!parsedBody.success) return parsedBody.response;
+    const body = parsedBody.data;
 
     // Logic centralized in ListingService
     const listing = await ListingService.createListing(currentUser.id, body);

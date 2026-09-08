@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { Agent } from "https";
 import { HttpsProxyAgent } from "https-proxy-agent";
 
@@ -5,6 +7,10 @@ let proxyAgent: Agent | null = null;
 let proxyAgentError: Error | null = null;
 let lastProxyCheck: number = 0;
 const PROXY_CHECK_INTERVAL = 5 * 60 * 1000;
+
+function getFixieUrl(): string | undefined {
+    return process.env.FIXIE_URL;
+}
 
 function validateFixieUrl(url: string): boolean {
     try {
@@ -24,26 +30,23 @@ function validateFixieUrl(url: string): boolean {
     }
 }
 
-export function getFixieProxyAgent(): Agent | undefined {
-    const fixieUrl = process.env.PROXY_URL;
+export function getFixieProxyAgent(): Agent {
+    const fixieUrl = getFixieUrl();
 
     if (!fixieUrl) {
-        if (process.env.NODE_ENV === "development") {
-            console.warn("[Fixie Proxy] PROXY_URL not set, requests will not use proxy");
-        }
-        return undefined;
+        throw new Error("FIXIE_URL is required for Cashfree requests");
     }
 
     if (!validateFixieUrl(fixieUrl)) {
         const now = Date.now();
         if (now - lastProxyCheck > PROXY_CHECK_INTERVAL) {
             console.error(
-                "[Fixie Proxy] Invalid PROXY_URL format. Expected: http(s)://user:pass@host:port"
+                "[Fixie Proxy] Invalid FIXIE_URL format. Expected: http(s)://user:pass@host:port"
             );
             lastProxyCheck = now;
         }
-        proxyAgentError = new Error("Invalid PROXY_URL format");
-        return undefined;
+        proxyAgentError = new Error("Invalid FIXIE_URL format");
+        throw proxyAgentError;
     }
 
     if (proxyAgent && !proxyAgentError) {
@@ -52,7 +55,7 @@ export function getFixieProxyAgent(): Agent | undefined {
 
     const now = Date.now();
     if (proxyAgentError && now - lastProxyCheck < PROXY_CHECK_INTERVAL) {
-        return undefined;
+        throw proxyAgentError;
     }
 
     try {
@@ -77,12 +80,16 @@ export function getFixieProxyAgent(): Agent | undefined {
 
         console.error("[Fixie Proxy] Failed to create proxy agent:", err.message);
 
-        return undefined;
+        throw err;
     }
 }
 
 export function isProxyAvailable(): boolean {
-    return !!process.env.PROXY_URL && !!getFixieProxyAgent();
+    try {
+        return Boolean(getFixieUrl() && getFixieProxyAgent());
+    } catch {
+        return false;
+    }
 }
 
 export function resetProxyAgent(): void {

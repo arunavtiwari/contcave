@@ -2,6 +2,8 @@ import { google } from "googleapis";
 
 import prisma from "@/lib/prismadb";
 
+import { getGoogleClientCredentials, isGoogleCalendarAuthError, refreshGoogleCalendarAccessToken } from "./oauth";
+
 type GoogleCalendarEvent = {
     summary?: string;
     start: { date?: string; dateTime?: string; timeZone?: string };
@@ -15,25 +17,6 @@ type CalendarListItem = {
     [key: string]: unknown;
 };
 
-async function refreshAccessToken(refreshToken: string) {
-    const url = "https://oauth2.googleapis.com/token";
-    const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-            client_id: process.env.GOOGLE_CLIENT_ID || "",
-            client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
-            grant_type: "refresh_token",
-            refresh_token: refreshToken,
-        }),
-    });
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error("Failed to refresh token: " + JSON.stringify(data));
-    }
-    return data as { access_token: string; expires_in?: number; scope?: string; token_type?: string };
-}
-
 export async function createCalendarEventForUser(params: {
     userId: string;
     title: string;
@@ -44,9 +27,7 @@ export async function createCalendarEventForUser(params: {
         throw new Error("Missing required parameters: userId, title, startIso, endIso");
     }
 
-    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-        throw new Error("Server configuration error: missing Google client credentials");
-    }
+    const { clientId, clientSecret } = getGoogleClientCredentials();
 
     const acct = await prisma.account.findFirst({
         where: { userId: params.userId, provider: "google-calendar" },
@@ -55,8 +36,8 @@ export async function createCalendarEventForUser(params: {
     if (!acct || (!acct.refresh_token && !acct.access_token)) return null;
 
     const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID || "",
-        process.env.GOOGLE_CLIENT_SECRET || ""
+        clientId,
+        clientSecret
     );
     oauth2Client.setCredentials({
         access_token: acct.access_token || undefined,
@@ -79,24 +60,22 @@ export async function createCalendarEventForUser(params: {
     try {
         return await attemptInsert();
     } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "";
-        const errorWithCode = err as { code?: unknown; status?: unknown; message?: string };
-        const status = Number(errorWithCode.code || errorWithCode.status || 0);
-        const isAuthError = msg.includes("Invalid Credentials") || status === 401;
+        const isAuthError = isGoogleCalendarAuthError(err);
         if (isAuthError && acct.refresh_token) {
-            const refreshed = await refreshAccessToken(acct.refresh_token);
-            await prisma.account.update({ where: { id: acct.id }, data: { access_token: refreshed.access_token } });
-            oauth2Client.setCredentials({ access_token: refreshed.access_token, refresh_token: acct.refresh_token });
+            const refreshed = await refreshGoogleCalendarAccessToken(acct.id, acct.refresh_token);
+            oauth2Client.setCredentials({ access_token: refreshed.access_token, refresh_token: refreshed.refresh_token });
 
             try {
                 return await attemptInsert();
             } catch (e2: unknown) {
-
                 err = e2;
             }
         }
 
-        const retryable = status === 0 || status === 429 || (status >= 500 && status < 600) || /rate limit|quota|backend error/i.test(msg);
+        const retryCandidate = err as { code?: unknown; status?: unknown; message?: unknown };
+        const retryStatus = Number(retryCandidate.code || retryCandidate.status || 0);
+        const retryMessage = typeof retryCandidate.message === "string" ? retryCandidate.message : "";
+        const retryable = retryStatus === 0 || retryStatus === 429 || (retryStatus >= 500 && retryStatus < 600) || /rate limit|quota|backend error/i.test(retryMessage);
         if (retryable) {
             const maxAttempts = 3;
             for (let i = 1; i <= maxAttempts; i++) {
@@ -131,10 +110,8 @@ export async function ensureCalendarEventForUser(params: {
     });
     if (!acct || (!acct.refresh_token && !acct.access_token)) return null;
 
-    const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID || "",
-        process.env.GOOGLE_CLIENT_SECRET || ""
-    );
+    const { clientId, clientSecret } = getGoogleClientCredentials();
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
     oauth2Client.setCredentials({
         access_token: acct.access_token || undefined,
         refresh_token: acct.refresh_token || undefined,
@@ -144,8 +121,7 @@ export async function ensureCalendarEventForUser(params: {
 
     const timeMin = toIsoMs(params.startIso);
     const timeMax = toIsoMs(params.endIso);
-    try {
-        const listed = await calendar.events.list({
+    const listMatchingEvents = () => calendar.events.list({
             calendarId: "primary",
             timeMin,
             timeMax,
@@ -153,8 +129,18 @@ export async function ensureCalendarEventForUser(params: {
             q: params.title,
             orderBy: "startTime",
         });
+    try {
+        let listed;
+        try {
+            listed = await listMatchingEvents();
+        } catch (error) {
+            if (!acct.refresh_token || !isGoogleCalendarAuthError(error)) throw error;
+            const refreshed = await refreshGoogleCalendarAccessToken(acct.id, acct.refresh_token);
+            oauth2Client.setCredentials({ access_token: refreshed.access_token, refresh_token: refreshed.refresh_token });
+            listed = await listMatchingEvents();
+        }
         const items = listed.data.items || [];
-        const exists = items.some((ev) => {
+        const existingEvent = items.find((ev) => {
             const evItem = ev as CalendarListItem;
             const evStart = evItem?.start?.dateTime || evItem?.start?.date || "";
             const evEnd = evItem?.end?.dateTime || evItem?.end?.date || "";
@@ -162,9 +148,9 @@ export async function ensureCalendarEventForUser(params: {
                 (evStart.startsWith(params.startIso) || params.startIso.startsWith(evStart)) &&
                 (evEnd.startsWith(params.endIso) || params.endIso.startsWith(evEnd));
         });
-        if (exists) return items[0];
-    } catch {
-
+        if (existingEvent) return existingEvent;
+    } catch (error) {
+        throw new Error("Unable to verify the Google Calendar event", { cause: error });
     }
 
     return await createCalendarEventForUser(params);

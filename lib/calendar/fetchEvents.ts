@@ -2,27 +2,12 @@ import { calendar_v3, google } from "googleapis";
 
 import prisma from "@/lib/prismadb";
 
-async function refreshCalendarAccessToken(account: {
-    refresh_token: string;
-}): Promise<{ access_token: string; expires_in?: number; refresh_token?: string }> {
-    const url = "https://oauth2.googleapis.com/token";
-    const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-            client_id: process.env.GOOGLE_CLIENT_ID!,
-            client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-            grant_type: "refresh_token",
-            refresh_token: account.refresh_token,
-        }),
-    });
+import { getGoogleClientCredentials, isGoogleCalendarAuthError, refreshGoogleCalendarAccessToken } from "./oauth";
 
-    const refreshedTokens = await response.json();
-    if (!response.ok) throw new Error(refreshedTokens.error || "Unknown error");
-    if (!refreshedTokens.access_token) throw new Error("missing access_token");
-
-    return refreshedTokens;
-}
+type PublicCalendarBusyEvent = {
+    start: { date?: string; dateTime?: string };
+    end: { date?: string; dateTime?: string };
+};
 
 export async function fetchListingCalendarEvents(listingId: string) {
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
@@ -36,7 +21,10 @@ export async function fetchListingCalendarEvents(listingId: string) {
             user: {
                 select: {
                     googleCalendarConnected: true,
-                    accounts: true,
+                    accounts: {
+                        where: { provider: "google-calendar" },
+                        select: { id: true, provider: true, access_token: true, refresh_token: true },
+                    },
                 },
             },
         },
@@ -49,13 +37,14 @@ export async function fetchListingCalendarEvents(listingId: string) {
         (a) => a.provider === "google-calendar"
     );
 
-    if (!googleAccount || !googleAccount.access_token) return [];
+    if (!googleAccount || (!googleAccount.access_token && !googleAccount.refresh_token)) return [];
 
+    const { clientId, clientSecret } = getGoogleClientCredentials();
     let accessToken = googleAccount.access_token;
-    const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET
-    );
+    if (!accessToken && googleAccount.refresh_token) {
+        accessToken = (await refreshGoogleCalendarAccessToken(googleAccount.id, googleAccount.refresh_token)).access_token;
+    }
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
 
     oauth2Client.setCredentials({ access_token: accessToken });
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
@@ -63,7 +52,7 @@ export async function fetchListingCalendarEvents(listingId: string) {
     const timeMin = new Date();
     timeMin.setMonth(timeMin.getMonth() - 1);
     const timeMax = new Date();
-    timeMax.setMonth(timeMax.getMonth() + 2);
+    timeMax.setDate(timeMax.getDate() + 91);
 
     let responseData: calendar_v3.Schema$Event[] = [];
 
@@ -79,12 +68,7 @@ export async function fetchListingCalendarEvents(listingId: string) {
     } catch (error: unknown) {
         const err = error as { code?: number; status?: number; message?: string };
         const normalizedMessage = (err.message || "").toLowerCase();
-        const isInvalidCredentials =
-            err.code === 401 ||
-            err.status === 401 ||
-            (normalizedMessage.includes("invalid credentials") ||
-                normalizedMessage.includes("invalid_grant") ||
-                normalizedMessage.includes("unauthorized"));
+        const isInvalidCredentials = isGoogleCalendarAuthError(error);
         const isInsufficientScope =
             err.code === 403 ||
             err.status === 403 ||
@@ -97,19 +81,7 @@ export async function fetchListingCalendarEvents(listingId: string) {
 
         if (isInvalidCredentials && googleAccount.refresh_token) {
             try {
-                const refreshedTokens = await refreshCalendarAccessToken({
-                    refresh_token: googleAccount.refresh_token,
-                });
-
-                await prisma.account.update({
-                    where: { id: googleAccount.id },
-                    data: {
-                        access_token: refreshedTokens.access_token,
-                        expires_at: refreshedTokens.expires_in
-                            ? Math.floor(Date.now() / 1000) + refreshedTokens.expires_in
-                            : null,
-                    },
-                });
+                const refreshedTokens = await refreshGoogleCalendarAccessToken(googleAccount.id, googleAccount.refresh_token);
 
                 accessToken = refreshedTokens.access_token;
                 oauth2Client.setCredentials({ access_token: accessToken });
@@ -130,5 +102,25 @@ export async function fetchListingCalendarEvents(listingId: string) {
         }
     }
 
-    return responseData;
+    return responseData
+        .map((event): PublicCalendarBusyEvent | null => {
+            const startDate = typeof event.start?.date === "string" ? event.start.date : null;
+            const startDateTime = typeof event.start?.dateTime === "string" ? event.start.dateTime : null;
+            const endDate = typeof event.end?.date === "string" ? event.end.date : null;
+            const endDateTime = typeof event.end?.dateTime === "string" ? event.end.dateTime : null;
+
+            if ((!startDate && !startDateTime) || (!endDate && !endDateTime)) return null;
+
+            return {
+                start: {
+                    ...(startDate ? { date: startDate } : {}),
+                    ...(startDateTime ? { dateTime: startDateTime } : {}),
+                },
+                end: {
+                    ...(endDate ? { date: endDate } : {}),
+                    ...(endDateTime ? { dateTime: endDateTime } : {}),
+                },
+            };
+        })
+        .filter((event): event is PublicCalendarBusyEvent => event !== null);
 }

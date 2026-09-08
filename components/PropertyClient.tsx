@@ -1,6 +1,5 @@
 "use client";
 
-import { Amenities } from "@prisma/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
@@ -10,6 +9,7 @@ import { deleteListingAction } from "@/app/actions/listingActions";
 import DeletePropertyModal from "@/components/modals/DeletePropertyModal";
 import { usePropertyEdit } from "@/hooks/usePropertyEdit";
 import { Addon } from "@/types/addon";
+import type { SafeAmenity } from "@/types/amenity";
 import { FullListing } from "@/types/listing";
 
 import EditPropertyTab from "./property/EditPropertyTab";
@@ -20,7 +20,7 @@ import SyncCalendarTab from "./property/SyncCalendarTab";
 
 type Props = {
     listing: FullListing;
-    predefinedAmenities: Amenities[];
+    predefinedAmenities: SafeAmenity[];
     predefinedAddons: Addon[];
 };
 
@@ -57,7 +57,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
     const handleDeleteProperty = useCallback(async () => {
         setIsDeleting(true);
         try {
-            const res = await deleteListingAction(initialListing.id);
+            const res = await deleteListingAction({ listingId: initialListing.id });
             if (res.error) throw new Error(res.error);
             toast.info("Property deleted successfully", { id: "Listing_Deleted" });
             router.push("/dashboard/properties");

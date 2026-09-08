@@ -1,20 +1,30 @@
 import crypto from "crypto";
 import { NextRequest } from "next/server";
 
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { sendEmail } from "@/lib/email/mailer";
 import { getResetPasswordTemplate } from "@/lib/email/templates";
+import { formatRetryAfterMs, rateLimitRequest } from "@/lib/security/rateLimit";
 import { UserService } from "@/lib/user/service";
-import { getBaseUrl } from "@/lib/utils";
+import { getValidatedBaseUrl } from "@/lib/utils";
 import { emailVerificationSchema } from "@/schemas/verification";
 
 export async function POST(request: NextRequest) {
     try {
-        if (!request.headers.get("content-type")?.includes("application/json")) {
-            return createErrorResponse("Content-Type must be application/json", 415);
+        const requestLimit = rateLimitRequest(request.headers, {
+            scope: "password-reset-request",
+            limit: 5,
+            windowMs: 15 * 60 * 1000,
+        });
+        if (!requestLimit.allowed) {
+            const response = createErrorResponse("Too many reset attempts. Please try again later.", 429);
+            response.headers.set("Retry-After", formatRetryAfterMs(requestLimit.resetAt));
+            return response;
         }
 
-        const body = await request.json().catch(() => ({}));
+        const parsedBody = await readJsonObject(request, 10_000);
+        if (!parsedBody.success) return parsedBody.response;
+        const body = parsedBody.data;
         const validation = emailVerificationSchema.safeParse(body);
         if (!validation.success) return createErrorResponse(validation.error.issues[0].message, 400);
 
@@ -31,10 +41,7 @@ export async function POST(request: NextRequest) {
 
         await UserService.createResetToken(user.id, resetToken, resetTokenExpiry);
 
-        const appUrl = getBaseUrl();
-        if (!appUrl.startsWith("http")) {
-            return createErrorResponse("Server configuration error", 500);
-        }
+        const appUrl = getValidatedBaseUrl();
 
         const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
 
@@ -46,9 +53,9 @@ export async function POST(request: NextRequest) {
                 subject: "Reset your password",
                 html,
             });
-        } catch (_emailError) {
+        } catch (emailError) {
             await UserService.clearResetToken(user.id).catch(() => { });
-            return createErrorResponse("Failed to send reset email. Please try again later.", 500);
+            console.error("[PasswordReset] Failed to send reset email", emailError);
         }
 
         return createSuccessResponse({ message: "If an account exists, a reset email has been sent." }, 200);

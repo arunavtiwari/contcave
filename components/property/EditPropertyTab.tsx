@@ -1,6 +1,5 @@
 "use client";
 
-import { Amenities } from "@prisma/client";
 import React from "react";
 import { IoMdClose } from "react-icons/io";
 import { TbVideoPlus } from "react-icons/tb";
@@ -27,6 +26,7 @@ import { TIME_SLOTS } from "@/constants/timeSlots";
 import { slugify } from "@/lib/strings";
 import { AESTHETICS, SET_FEATURES, USE_CASE_LABELS, VENUE_TYPES } from "@/lib/taxonomy";
 import { Addon } from "@/types/addon";
+import type { SafeAmenity } from "@/types/amenity";
 import { FullListing } from "@/types/listing";
 import { Package as ListingPackage } from "@/types/package";
 
@@ -34,7 +34,7 @@ interface EditPropertyTabProps {
   initialListing: FullListing;
   handleInputChange: (field: string, value: unknown) => void;
   handleAmenitiesChange: (v: { predefined: { [key: string]: boolean }; custom: string[] }) => void;
-  amenities: Amenities[];
+  amenities: SafeAmenity[];
   addons: Addon[];
   setAddons: (addons: Addon[]) => void;
   handleAddonChange: (v: Addon[]) => void;
@@ -352,6 +352,8 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         variant="horizontal"
         checked={Boolean(initialListing.instantBooking)}
         onChange={(checked) => handleInputChange("instantBooking", checked)}
+        styleVariant="bolt"
+        size="sm"
       />
 
       <div className="border-t border-border/40 pt-8 mt-4 flex flex-col gap-6">

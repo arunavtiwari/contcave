@@ -24,6 +24,7 @@ function HeartButton({ listingId, currentUser }: Props) {
         toggleFavorite(e);
       }}
       className=" relative hover:opacity-80 transition cursor-pointer"
+      data-testid="heart-button"
     >
       <AiOutlineHeart
         size={28}

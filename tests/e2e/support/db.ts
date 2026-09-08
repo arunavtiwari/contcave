@@ -211,6 +211,7 @@ export async function createActiveListingFixture(ownerId: string, suffix: string
       imageSrc: ["https://assets.contcave.com/e2e/placeholder-studio.png"],
       category: "Indoor Studio",
       locationValue: "Delhi",
+      propertyStateCode: "07",
       actualLocation: {
         latlng: [28.62868, 77.21905],
         label: "Delhi",
@@ -330,12 +331,11 @@ export async function createReviewListingFixture(params: {
             original_filename: "ownership-proof.pdf",
             bytes: 2048,
             format: "pdf",
-            url: "https://assets.contcave.com/e2e/ownership-proof.pdf",
+            storageRef: `r2-private://users/${params.ownerId}/listings/e2e-fixture/compliance/verification/ownership-proof.pdf`,
           },
         ],
         agreementPdf: {
-          url: "https://assets.contcave.com/e2e/agreement.pdf",
-          pdfUrl: "https://assets.contcave.com/e2e/agreement.pdf",
+          storageRef: `r2-private://users/${params.ownerId}/listings/e2e-fixture/compliance/agreements/agreement-fixture/signed.pdf`,
           public_id: "agreement-fixture",
         },
       },

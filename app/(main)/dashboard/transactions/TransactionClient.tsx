@@ -10,9 +10,10 @@ import { SafeUser } from "@/types/user";
 interface TransactionClientProps {
   currentUser: SafeUser | null;
   transactions?: Transaction[];
+  pagination?: { page: number; totalPages: number; total: number };
 }
 
-const TransactionClient: React.FC<TransactionClientProps> = ({ currentUser, transactions = [] }) => {
+const TransactionClient: React.FC<TransactionClientProps> = ({ currentUser, transactions = [], pagination }) => {
   return (
     <div className="flex flex-col w-full gap-8">
       {currentUser && isOwner(currentUser.role) && (
@@ -28,6 +29,24 @@ const TransactionClient: React.FC<TransactionClientProps> = ({ currentUser, tran
       <div>
         <TransactionHistory transactions={transactions} />
       </div>
+      {pagination && pagination.totalPages > 1 && (
+        <nav className="flex items-center justify-between gap-4" aria-label="Transaction pages">
+          <span className="text-sm text-muted-foreground">{pagination.total} transactions</span>
+          <div className="flex items-center gap-2">
+            {pagination.page > 1 && (
+              <Link className="rounded-full border px-4 py-2 text-sm" href={`/dashboard/transactions?page=${pagination.page - 1}`}>
+                Previous
+              </Link>
+            )}
+            <span className="text-sm">Page {pagination.page} of {pagination.totalPages}</span>
+            {pagination.page < pagination.totalPages && (
+              <Link className="rounded-full border px-4 py-2 text-sm" href={`/dashboard/transactions?page=${pagination.page + 1}`}>
+                Next
+              </Link>
+            )}
+          </div>
+        </nav>
+      )}
     </div>
   );
 };

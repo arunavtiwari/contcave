@@ -40,7 +40,7 @@ const originalLoader = (require.extensions as any)[".tsx"];
 
 loadE2EProcessEnv();
 
-const baseURL = (process.env.E2E_BASE_URL || process.env.APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000").replace(
+const baseURL = (process.env.E2E_BASE_URL || "http://localhost:3000").replace(
   /\/$/,
   ""
 );
@@ -60,6 +60,11 @@ if (isLocalBaseUrl && !useRealCashfree) {
 
 const shouldStartLocalServer =
   process.env.E2E_START_LOCAL_SERVER === "true" && isLocalBaseUrl;
+if (shouldStartLocalServer) {
+  // Keep the E2E cache stable. A process-id-specific directory causes Next to
+  // append a new generated-types path to tsconfig.json on every test run.
+  process.env.NEXT_DIST_DIR = ".next/e2e";
+}
 const webServerEnv = Object.fromEntries(
   Object.entries(process.env).filter((entry): entry is [string, string] => typeof entry[1] === "string")
 );

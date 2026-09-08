@@ -17,6 +17,7 @@ export interface VerificationDocument {
     version?: number;
     thumbnail?: string;
     url?: string;
+    storageRef?: string;
 }
 
 export interface VerificationPayload {
@@ -145,6 +146,7 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
                                 deferUpload
                                 onFilesChange={handleFilesChange}
                                 allowedTypes={['application/pdf']}
+                                maxSize={10 * 1024 * 1024}
                                 uploadLabel="Click to upload PDF"
                                 icon={BsFileEarmarkPdf}
                                 className="w-full h-full min-h-50 p-4 border border-border"
@@ -193,4 +195,3 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
 };
 
 export default SpaceVerification;
-

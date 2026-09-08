@@ -45,6 +45,9 @@ function verifySignature(rawBody: string, signatureHeader: string): boolean {
 
 export async function GET(request: Request) {
     try {
+        if (!VERIFY_TOKEN) {
+            return createErrorResponse("Webhook verification is not configured", 503);
+        }
         const { searchParams } = new URL(request.url);
         const mode = searchParams.get("hub.mode");
         const token = searchParams.get("hub.verify_token");
@@ -102,7 +105,19 @@ type WhatsAppWebhookPayload = {
 
 export async function POST(request: Request) {
     try {
+        const allowUnsignedDev = process.env.NODE_ENV !== "production";
+        if (!APP_SECRET && !allowUnsignedDev) {
+            return createErrorResponse("Webhook signature verification is not configured", 503);
+        }
+
+        const contentLength = Number(request.headers.get("content-length") || 0);
+        if (Number.isFinite(contentLength) && contentLength > 100_000) {
+            return createErrorResponse("Request body too large", 413);
+        }
         const rawBody = await request.text();
+        if (new TextEncoder().encode(rawBody).byteLength > 100_000) {
+            return createErrorResponse("Request body too large", 413);
+        }
 
         // Signature verification (skip in dev if APP_SECRET not set)
         if (APP_SECRET) {
@@ -134,7 +149,6 @@ export async function POST(request: Request) {
                             console.warn("[WhatsApp Webhook] Status update", {
                                 messageId: status.id,
                                 status: status.status,
-                                recipientId: status.recipient_id,
                                 timestamp: status.timestamp,
                                 errors: status.errors,
                             });
@@ -146,9 +160,7 @@ export async function POST(request: Request) {
                         for (const message of value.messages) {
                             console.warn("[WhatsApp Webhook] Incoming message", {
                                 messageId: message.id,
-                                from: message.from,
                                 type: message.type,
-                                text: message.text?.body,
                                 timestamp: message.timestamp,
                             });
                         }

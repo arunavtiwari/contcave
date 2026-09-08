@@ -3,19 +3,18 @@ import { z } from "zod";
 import { UserRole } from "@/types/user";
 
 export const userUpdateSchema = z.object({
-    name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name is too long (max 100 characters)").optional(),
-    description: z.string().max(1000, "Description is too long (max 1000 characters)").optional(),
-    location: z.string().max(200, "Location is too long (max 200 characters)").optional(),
+    name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name is too long (max 100 characters)").optional(),
+    description: z.string().trim().max(1000, "Description is too long (max 1000 characters)").optional(),
+    location: z.string().trim().max(200, "Location is too long (max 200 characters)").optional(),
     languages: z
         .array(
-            z.string().min(1, "Language cannot be empty").max(50, "Language name is too long")
+            z.string().trim().min(1, "Language cannot be empty").max(50, "Language name is too long")
         )
         .max(10, "Cannot exceed 10 languages")
         .optional(),
-    title: z.string().max(100, "Title is too long (max 100 characters)").optional(),
+    title: z.string().trim().max(100, "Title is too long (max 100 characters)").optional(),
     profileImage: z.string().url("Invalid URL").max(500, "Profile image URL is too long").nullable().optional(),
     phone: z.string().regex(/^\d{10}$/, "Enter a valid 10-digit mobile number").optional(),
-    role: z.enum(["CUSTOMER", "OWNER", "ADMIN"]).optional(),
 });
 
 export const phoneUpdateSchema = z.object({
@@ -26,7 +25,7 @@ export type UserUpdateSchema = z.infer<typeof userUpdateSchema>;
 export type PhoneUpdateSchema = z.infer<typeof phoneUpdateSchema>;
 
 export const ownerEnableSchema = z.object({
-    email: z.string().email("Please enter a valid email address").min(1, "Email is required"),
+    email: z.string().trim().toLowerCase().email("Please enter a valid email address").max(254),
     phone: z.string().regex(/^\d{10}$/, "Please enter a valid 10-digit mobile number").min(1, "Phone number is required"),
 });
 

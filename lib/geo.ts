@@ -1,10 +1,5 @@
 import { safeListing } from "@/types/listing";
 
-export type LocationData = {
-    latlng?: unknown;
-    [key: string]: unknown;
-};
-
 export const toRadians = (value: number) => (value * Math.PI) / 180;
 
 /**
@@ -27,7 +22,7 @@ export const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2
  * Prioritizes privacy-safe jittered coordinates over exact values.
  */
 export const getListingLatLng = (listing: safeListing): [number, number] | null => {
-    const actualLocation = listing.actualLocation as LocationData | null | undefined;
+    const actualLocation = listing.actualLocation;
     if (!actualLocation || typeof actualLocation !== "object") return null;
 
     // Prefer privacy-safe jittered latlng if available
@@ -38,13 +33,6 @@ export const getListingLatLng = (listing: safeListing): [number, number] | null 
         if (Number.isFinite(jLat) && Number.isFinite(jLng)) {
             return [jLat, jLng];
         }
-    }
-
-    // Fallback to exact lat/lng for legacy listings
-    const exactLat = Number(actualLocation.lat);
-    const exactLng = Number(actualLocation.lng);
-    if (Number.isFinite(exactLat) && Number.isFinite(exactLng)) {
-        return [exactLat, exactLng];
     }
 
     return null;

@@ -71,6 +71,7 @@ export default function CalendarComponent({
     }, []);
 
     useEffect(() => {
+        let cancelled = false;
         const fetchData = async () => {
             const formattedDate = format(selectedDate, "yyyy-MM-dd");
             if (lastFetchedDate.current === formattedDate) return;
@@ -78,16 +79,27 @@ export default function CalendarComponent({
             setLoading(true);
             try {
                 const data = await getDayStatusAction(listingId, formattedDate);
+                if (cancelled) return;
                 setIsListingActive(data?.listingActive ?? true);
                 setStartTime(formatTime(data?.startTime ?? defaultStartTime, "AM"));
                 setEndTime(formatTime(data?.endTime ?? defaultEndTime, "PM"));
             } catch (e) {
                 console.error("[ManageTimings] Failed to fetch day status", e);
+                if (!cancelled) {
+                    lastFetchedDate.current = "";
+                    setIsListingActive(true);
+                    setStartTime(formatTime(defaultStartTime, "AM"));
+                    setEndTime(formatTime(defaultEndTime, "PM"));
+                    toast.error("Failed to load timings for the selected date");
+                }
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
-        fetchData();
+        void fetchData();
+        return () => {
+            cancelled = true;
+        };
     }, [selectedDate, listingId, defaultStartTime, defaultEndTime]);
 
     const handleDateChange = (newDate: Date | null) => {
@@ -200,5 +212,4 @@ export default function CalendarComponent({
         </div>
     );
 }
-
 

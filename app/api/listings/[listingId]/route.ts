@@ -1,5 +1,5 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { ListingService } from "@/lib/listing/service";
 
 interface IParams { listingId?: string }
@@ -9,10 +9,6 @@ interface IParams { listingId?: string }
  */
 export async function PATCH(request: Request, props: { params: Promise<IParams> }) {
   try {
-    if (!request.headers.get("content-type")?.includes("application/json")) {
-      return createErrorResponse("Content-Type must be application/json", 415);
-    }
-
     const { listingId } = await props.params;
     const currentUser = await getCurrentUser();
 
@@ -24,7 +20,9 @@ export async function PATCH(request: Request, props: { params: Promise<IParams> 
       return createErrorResponse("Invalid listing ID", 400);
     }
 
-    const body = await request.json().catch(() => ({}));
+    const parsedBody = await readJsonObject(request, 1_000_000);
+    if (!parsedBody.success) return parsedBody.response;
+    const body = parsedBody.data;
 
     // Logic centralized in ListingService
     const updated = await ListingService.updateListing(currentUser.id, listingId, body);

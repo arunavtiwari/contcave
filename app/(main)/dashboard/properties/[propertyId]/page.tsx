@@ -14,15 +14,14 @@ const EditPropertyComponent = async (props: { params: Promise<IParams> }) => {
   const params = await props.params;
   const currentUser = await getCurrentUser();
   const listing = await getListingById({ listingId: params.propertyId });
-  const amenitiesData = await getAmenities();
-  const addonsData = await getAddons();
 
-  if (!listing) {
-    return <EmptyState />;
-  }
   if (!currentUser) {
     return <EmptyState title="Unauthorized" subtitle="Please login" />;
   }
+  if (!listing || (listing.userId !== currentUser.id && currentUser.role !== "ADMIN")) {
+    return <EmptyState />;
+  }
+  const [amenitiesData, addonsData] = await Promise.all([getAmenities(), getAddons()]);
   return (
     <PropertyClient listing={listing} predefinedAmenities={amenitiesData} predefinedAddons={addonsData}></PropertyClient>
   );

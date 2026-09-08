@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { PaymentDetails } from '@prisma/client';
 
 import prisma from "@/lib/prismadb";
@@ -9,8 +11,8 @@ export interface PaymentDetailsData {
     bankName: string;
     accountNumber?: string;
     ifscCode: string;
-    companyName?: string;
-    gstin?: string;
+    companyName?: string | null;
+    gstin?: string | null;
     cashfreeVendorId?: string;
     accountNumberIV?: string;
     gstinIV?: string;
@@ -25,8 +27,8 @@ export interface UpsertPaymentDetailsInput {
     bankName?: string;
     accountNumber?: string;
     ifscCode?: string;
-    companyName?: string;
-    gstin?: string;
+    companyName?: string | null;
+    gstin?: string | null;
     cashfreeVendorId?: string;
 }
 
@@ -41,8 +43,8 @@ export interface SanitizedPaymentDetails {
     companyName?: string | null;
     gstin?: string | null;
     cashfreeVendorId?: string | null;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface PaymentDetailsResponse {
@@ -143,8 +145,8 @@ export function decryptAndSanitizePaymentDetails(paymentDetails: PaymentDetails)
         companyName: decrypted.companyName,
         gstin: decrypted.gstin ? maskGstin(decrypted.gstin) : null,
         cashfreeVendorId: decrypted.cashfreeVendorId ? encryptionService.mask(decrypted.cashfreeVendorId) : null,
-        createdAt: decrypted.createdAt,
-        updatedAt: decrypted.updatedAt,
+        createdAt: decrypted.createdAt.toISOString(),
+        updatedAt: decrypted.updatedAt.toISOString(),
     };
 }
 
@@ -283,12 +285,21 @@ export async function upsertPaymentDetailsSafe(input: UpsertPaymentDetailsInput)
             ifscCodeIV = result.iv;
         }
 
-        let encryptedGstin = undefined;
-        let gstinIV = undefined;
-        if (gstin && !String(gstin).includes('*')) {
-            const result = encryptionService.encrypt(String(gstin).trim().toUpperCase());
-            encryptedGstin = result.encrypted;
-            gstinIV = result.iv;
+        let encryptedGstin: string | null | undefined = undefined;
+        let gstinIV: string | null | undefined = undefined;
+        if (gstin !== undefined && gstin !== null && !String(gstin).includes('*')) {
+            const normalizedGstin = String(gstin).trim().toUpperCase();
+            if (normalizedGstin) {
+                const result = encryptionService.encrypt(normalizedGstin);
+                encryptedGstin = result.encrypted;
+                gstinIV = result.iv;
+            } else {
+                encryptedGstin = null;
+                gstinIV = null;
+            }
+        } else if (gstin === null) {
+            encryptedGstin = null;
+            gstinIV = null;
         }
 
         let encryptedVendorId = undefined;
@@ -310,7 +321,7 @@ export async function upsertPaymentDetailsSafe(input: UpsertPaymentDetailsInput)
                 accountNumber: encryptedAccountNumber,
                 accountNumberIV: accountNumberIV
             } : {}),
-            ...(encryptedGstin ? {
+            ...(gstin !== undefined ? {
                 gstin: encryptedGstin,
                 gstinIV: gstinIV
             } : {}),
@@ -340,4 +351,3 @@ export async function deletePaymentDetailsSafe(userId: string): Promise<DeleteRe
         return { success: false, error: 'Failed to delete payment details' };
     }
 }
-

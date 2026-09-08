@@ -30,6 +30,7 @@ export const parseLabel = (label: string) => {
     if (!m) return { hours: 0, minutes: 0 };
     let h = parseInt(m[1], 10);
     const min = parseInt(m[2], 10);
+    if (h < 1 || h > 12 || min < 0 || min > 59) return { hours: 0, minutes: 0 };
     const period = m[3].toUpperCase();
     if (period === "PM" && h < 12) h += 12;
     if (period === "AM" && h === 12) h = 0;
@@ -59,6 +60,7 @@ export const ampmToMinutes = (label: string): number => {
     if (!m) return NaN;
     let h = Number(m[1]);
     const min = Number(m[2]);
+    if (h < 1 || h > 12) return NaN;
     const period = m[3].toUpperCase();
     if (period === "PM" && h < 12) h += 12;
     if (period === "AM" && h === 12) h = 0;
@@ -69,7 +71,7 @@ export const labelToMinutes = (s?: string | null): number => {
     if (!s) return NaN;
     const m12 = ampmToMinutes(s);
     if (!Number.isNaN(m12)) return m12;
-    const m24 = s.match(/^(\d{1,2}):([0-5]\d)$/);
+    const m24 = s.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
     return m24 ? Number(m24[1]) * 60 + Number(m24[2]) : NaN;
 };
 
@@ -77,11 +79,16 @@ export const labelToMinutes = (s?: string | null): number => {
 export const asEndOfDayMinutes = (minutes: number): number =>
     minutes === 0 ? 1440 : minutes;
 
-export const getRoundedNowIST_HHMM = (): TimeHM => {
+/** Rounded-up IST minute of day. Returns 1440 when rounding crosses into tomorrow. */
+export const getRoundedNowISTMinutes = (): number => {
     const parts = toISTDateParts(new Date());
-    const roundUp = (15 - (parts.mm % 15)) % 15;
-    const hh = (parts.hh + Math.floor((parts.mm + roundUp) / 60)) % 24;
-    const mm = (parts.mm + roundUp) % 60;
+    return parts.hh * 60 + parts.mm + (15 - (parts.mm % 15));
+};
+
+export const getRoundedNowIST_HHMM = (): TimeHM => {
+    const roundedMinutes = getRoundedNowISTMinutes();
+    const hh = Math.floor((roundedMinutes % 1440) / 60);
+    const mm = roundedMinutes % 60;
     return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}` as TimeHM;
 };
 
@@ -100,6 +107,7 @@ export const toHHMM = (input: unknown): TimeHM | null => {
             let h = parseInt(twelve[1], 10);
             const m = twelve[2];
             const ap = twelve[3].toUpperCase();
+            if (h < 1 || h > 12) return null;
             if (ap === "PM" && h < 12) h += 12;
             if (ap === "AM" && h === 12) h = 0;
             return `${String(h).padStart(2, "0")}:${m}` as TimeHM;

@@ -14,7 +14,7 @@ type Props = {
 const INDIA_CENTER: [number, number] = [20.5937, 78.9629];
 
 const TILE_URL =
-  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 function MapViewportController({
   center,

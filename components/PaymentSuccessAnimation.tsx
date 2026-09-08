@@ -10,9 +10,8 @@ export default function PaymentAnimation({ status }: { status: PaymentStatus }) 
   const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
-    // Keep flipping automatically every 3 seconds
-    const timer = setInterval(() => setFlipped((prev) => !prev), 3000);
-    return () => clearInterval(timer);
+    const timer = setTimeout(() => setFlipped(true), 1000);
+    return () => clearTimeout(timer);
   }, []);
 
   return (

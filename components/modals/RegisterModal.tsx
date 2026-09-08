@@ -16,7 +16,7 @@ import Button from "@/components/ui/Button";
 import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
 import useUIStore from "@/hooks/useUIStore";
-import { getAuthErrorMessage } from "@/lib/auth-errors";
+import { getAuthErrorMessage } from "@/lib/errors";
 import { RegisterSchema, registerSchema } from "@/schemas/auth";
 
 function RegisterModal() {
@@ -181,5 +181,4 @@ function RegisterModal() {
 }
 
 export default RegisterModal;
-
 

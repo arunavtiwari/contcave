@@ -19,27 +19,22 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
 
     const { listingId } = params;
 
-    if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
+    if (!listingId || !/^[a-f\d]{24}$/i.test(listingId)) {
       return createErrorResponse("Invalid Listing ID", 400);
     }
 
-    try {
-      const result = await ReservationService.checkUserBooking(currentUser.id, listingId);
-      if (!result) {
-        return createSuccessResponse({ canReview: false, message: "No reservations found" });
-      }
-
-      return createSuccessResponse({
-        message: 'Reservation found',
-        canReview: result.canReview,
-        latestReservationId: result.id,
-        endAt: result.endAt,
-        now: new Date().toISOString(),
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to check booking";
-      return createErrorResponse(message, 400);
+    const result = await ReservationService.checkUserBooking(currentUser.id, listingId);
+    if (!result) {
+      return createSuccessResponse({ canReview: false, message: "No reservations found" });
     }
+
+    return createSuccessResponse({
+      message: 'Reservation found',
+      canReview: result.canReview,
+      latestReservationId: result.id,
+      endAt: result.endAt,
+      now: new Date().toISOString(),
+    });
   } catch (error) {
     return handleRouteError(error, "GET /api/checkbooking/[listingId]");
   }

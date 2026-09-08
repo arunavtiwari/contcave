@@ -1,5 +1,4 @@
 import { type ClassValue, clsx } from "clsx";
-import * as crypto from "crypto";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -12,10 +11,8 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function generateBookingId(): string {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let result = "";
-    for (let i = 0; i < 8; i++) {
-        result += chars.charAt(crypto.randomInt(0, chars.length));
-    }
+    const randomBytes = globalThis.crypto.getRandomValues(new Uint8Array(8));
+    const result = Array.from(randomBytes, (byte) => chars.charAt(byte % chars.length)).join("");
     return "BKG-" + result;
 }
 
@@ -31,15 +28,25 @@ export function getBaseUrl(): string {
         return process.env.APP_URL.replace(/\/$/, "");
     }
 
-    if (process.env.NEXT_PUBLIC_APP_URL) {
-        return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
-    }
-
-    if (process.env.VERCEL_URL) {
-        return `https://${process.env.VERCEL_URL}`;
-    }
-
     return "http://localhost:3000";
+}
+
+export function getValidatedBaseUrl(): string {
+    let parsed: URL;
+    try {
+        parsed = new URL(getBaseUrl());
+    } catch {
+        throw new Error("Application URL is not configured correctly");
+    }
+
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        throw new Error("Application URL must use HTTP or HTTPS");
+    }
+    if (process.env.NODE_ENV === "production" && parsed.protocol !== "https:") {
+        throw new Error("Application URL must use HTTPS in production");
+    }
+
+    return parsed.origin;
 }
 
 /**
@@ -108,14 +115,4 @@ export function formatISTTime(
         timeZone: "Asia/Kolkata",
         ...options,
     });
-}
-
-/**
- * Parses a string input to a safe integer, removing all non-digit characters.
- * Useful for standardized numeric inputs (carpetArea, price, etc.)
- */
-export function parseNumericInput(value: string, defaultValue = 0): number {
-    const onlyDigits = value.replace(/\D/g, "");
-    const val = parseInt(onlyDigits, 10);
-    return isNaN(val) ? defaultValue : val;
 }

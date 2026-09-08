@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { cfHeaders, cfSplitBaseURL } from "@/lib/cashfree/cashfree";
+import { cfPgHeaders, cfSplitBaseURL } from "@/lib/cashfree/cashfree";
 import { getFixieProxyAgent } from "@/lib/fixie-proxy";
 
 type SplitItem = {
@@ -26,8 +26,30 @@ export class CashfreeEasySplitAPIError extends Error {
 
 export async function createOrderSplit(input: CreateOrderSplitInput): Promise<void> {
     const { orderId, split, idempotencyKey, disable_split } = input;
+    const normalizedOrderId = orderId.trim();
+    const normalizedIdempotencyKey = idempotencyKey.trim();
 
-    const url = `${cfSplitBaseURL()}/orders/${encodeURIComponent(orderId)}/split`;
+    if (!normalizedOrderId) throw new Error("Order ID is required");
+    if (!normalizedIdempotencyKey) throw new Error("Easy Split idempotency key is required");
+    if (!Array.isArray(split) || split.length === 0) throw new Error("At least one split item is required");
+    for (const item of split) {
+        if (!item.vendor_id?.trim()) throw new Error("Every split item requires a vendor ID");
+        const percentage = item.percentage;
+        const amount = item.amount;
+        const hasPercentage = percentage != null;
+        const hasAmount = amount != null;
+        if (hasPercentage === hasAmount) {
+            throw new Error("Every split item must specify exactly one of percentage or amount");
+        }
+        if (percentage != null && (!Number.isFinite(percentage) || percentage <= 0 || percentage > 100)) {
+            throw new Error("Split percentage must be greater than zero and at most 100");
+        }
+        if (amount != null && (!Number.isFinite(amount) || amount <= 0)) {
+            throw new Error("Split amount must be greater than zero");
+        }
+    }
+
+    const url = `${cfSplitBaseURL()}/orders/${encodeURIComponent(normalizedOrderId)}/split`;
 
     const body: Record<string, unknown> = { split };
     if (typeof disable_split === "boolean") {
@@ -35,13 +57,11 @@ export async function createOrderSplit(input: CreateOrderSplitInput): Promise<vo
     }
 
     const headers: Record<string, string> = {
-        ...cfHeaders(),
+        ...cfPgHeaders(),
         "x-api-version": "2025-01-01",
     };
 
-    if (idempotencyKey) {
-        headers["x-idempotency-key"] = idempotencyKey;
-    }
+    headers["x-idempotency-key"] = normalizedIdempotencyKey;
 
     try {
         await axios.post(url, body, {
