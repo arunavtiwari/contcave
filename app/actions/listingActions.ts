@@ -2,14 +2,18 @@
 
 import { PaymentDetails } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import { createAction } from "@/lib/actions-utils";
+import { UserFacingError } from "@/lib/errors";
 import { ListingService } from "@/lib/listing/service";
 import { decryptAndSanitizePaymentDetails } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
+import { rateLimitRequest } from "@/lib/security/rateLimit";
+import { objectIdSchema } from "@/schemas/common";
 import { dayStatusSchema } from "@/schemas/dayStatus";
 import {
     approveListingSchema,
@@ -45,14 +49,15 @@ function asRecord(value: unknown): Record<string, unknown> {
     return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
-function normalizeVerifications(value: unknown) {
+function normalizeVerifications(value: unknown, listingId: string) {
     const record = asRecord(value);
     const documents = Array.isArray(record.documents)
         ? record.documents
-            .map((doc): VerificationDocument => {
+            .map((doc, index): VerificationDocument => {
                 const item = asRecord(doc);
+                const hasStoredDocument = typeof item.storageRef === "string";
                 return {
-                    url: typeof item.url === "string" ? item.url : undefined,
+                    url: hasStoredDocument ? `/api/documents/listings/${listingId}/verification/${index}` : undefined,
                     name: typeof item.name === "string" ? item.name : undefined,
                     original_filename: typeof item.original_filename === "string" ? item.original_filename : undefined,
                     bytes: typeof item.bytes === "number" ? item.bytes : undefined,
@@ -63,11 +68,10 @@ function normalizeVerifications(value: unknown) {
         : [];
 
     const agreement = asRecord(record.agreementPdf);
-    const agreementPdf: AgreementPdf | null = agreement.url || agreement.pdfUrl
+    const agreementPdf: AgreementPdf | null = typeof agreement.storageRef === "string"
         ? {
-            url: typeof agreement.url === "string" ? agreement.url : undefined,
-            pdfUrl: typeof agreement.pdfUrl === "string" ? agreement.pdfUrl : undefined,
-            public_id: typeof agreement.public_id === "string" ? agreement.public_id : undefined,
+            url: `/api/documents/listings/${listingId}/agreement/0`,
+            pdfUrl: `/api/documents/listings/${listingId}/agreement/0`,
         }
         : null;
 
@@ -84,22 +88,54 @@ import getAmenities from "@/app/actions/getAmenities";
 
 export type AdminListingReview = Awaited<ReturnType<typeof getAdminListingReviews>>[number];
 
-export async function getAdminListingReviews(status?: AdminListingStatus) {
+export type AdminListingReviewSummary = {
+    id: string;
+    slug: string | null;
+    title: string;
+    imageSrc: string[];
+    category: string;
+    locationValue: string;
+    price: number | null;
+    status: AdminListingStatus;
+    createdAt: string;
+    listingType: "STANDARD" | "CURATED";
+    enquiryCount: number | null;
+    inConversation: boolean;
+    notifyEmailSentAt: string | null;
+    notifyReminderAt: string | null;
+    user: {
+        name: string | null;
+        email: string | null;
+        is_verified: boolean;
+    } | null;
+};
+
+export type AdminListingReviewPage = {
+    listings: AdminListingReviewSummary[];
+    page: number;
+    pageSize: number;
+    total: number;
+    counts: Record<"ALL" | AdminListingStatus, number>;
+    curatedTotal: number;
+};
+
+export async function getAdminListingReviews(status?: AdminListingStatus, listingId?: string) {
     try {
         const currentUser = await getCurrentUser();
         if (!currentUser || currentUser.role !== "ADMIN") {
-            return [];
+            throw new UserFacingError("Unauthorized", 403);
         }
 
-        const hydratableIds = await ListingService.getHydratableListingIds(
-            status ? { status } : {}
-        );
+        const hydratableIds = listingId
+            ? [listingId]
+            : await ListingService.getHydratableListingIds(status ? { status } : {});
         if (hydratableIds.length === 0) return [];
 
         const [listings, allAmenities] = await Promise.all([
             prisma.listing.findMany({
                 where: {
                     ...(status ? { status } : {}),
+                    OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }],
                     id: { in: hydratableIds },
                 },
                 include: {
@@ -123,7 +159,7 @@ export async function getAdminListingReviews(status?: AdminListingStatus) {
                     console.error(`[AdminListings] Failed to decrypt payment details for listing ${listing.id}:`, error);
                 }
             }
-            const verifications = normalizeVerifications(listing.verifications);
+            const verifications = normalizeVerifications(listing.verifications, listing.id);
 
             return {
                 id: listing.id,
@@ -217,8 +253,95 @@ export async function getAdminListingReviews(status?: AdminListingStatus) {
         });
     } catch (error) {
         console.error("[getAdminListingReviews] Error:", error);
-        return [];
+        throw error;
     }
+}
+
+export async function getAdminListingReviewPage(params: {
+    page?: number;
+    pageSize?: number;
+    status?: AdminListingStatus;
+    listingType?: "STANDARD" | "CURATED";
+} = {}): Promise<AdminListingReviewPage> {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== "ADMIN") throw new UserFacingError("Unauthorized", 403);
+
+    const page = typeof params.page === "number" && Number.isFinite(params.page)
+        ? Math.max(1, Math.floor(params.page))
+        : 1;
+    const pageSize = typeof params.pageSize === "number" && Number.isFinite(params.pageSize)
+        ? Math.min(100, Math.max(10, Math.floor(params.pageSize)))
+        : 20;
+    const listingType = params.listingType || "STANDARD";
+    const [pageData, countData, curatedCountData] = await Promise.all([
+        ListingService.getHydratableListingPage({ page, pageSize, status: params.status, listingType }),
+        ListingService.getHydratableListingPage({ page: 1, pageSize: 1, listingType: "STANDARD" }),
+        ListingService.getHydratableListingPage({ page: 1, pageSize: 1, listingType: "CURATED" }),
+    ]);
+    if (pageData.ids.length === 0) {
+        return {
+            listings: [], page, pageSize, total: pageData.total,
+            counts: {
+                ALL: Object.values(countData.statusCounts).reduce((sum, count) => sum + count, 0),
+                PENDING: countData.statusCounts.PENDING || 0,
+                VERIFIED: countData.statusCounts.VERIFIED || 0,
+                REJECTED: countData.statusCounts.REJECTED || 0,
+            },
+            curatedTotal: curatedCountData.total,
+        };
+    }
+
+    const listings = await prisma.listing.findMany({
+        where: { id: { in: pageData.ids } },
+        select: {
+            id: true, slug: true, title: true, imageSrc: true, category: true, locationValue: true,
+            price: true, status: true, createdAt: true, listingType: true, enquiryCount: true,
+            inConversation: true, notifyEmailSentAt: true, notifyReminderAt: true,
+            user: { select: { name: true, email: true, is_verified: true } },
+        },
+    });
+    const position = new Map(pageData.ids.map((id, index) => [id, index]));
+    const ordered = listings.sort((a, b) => (position.get(a.id) || 0) - (position.get(b.id) || 0));
+
+    return {
+        listings: ordered.map((listing) => ({
+            id: listing.id,
+            slug: listing.slug,
+            title: listing.title,
+            imageSrc: listing.imageSrc,
+            category: listing.category,
+            locationValue: listing.locationValue,
+            price: listing.price,
+            status: listing.status,
+            createdAt: listing.createdAt.toISOString(),
+            listingType: listing.listingType,
+            enquiryCount: listing.enquiryCount,
+            inConversation: listing.inConversation,
+            notifyEmailSentAt: listing.notifyEmailSentAt?.toISOString() ?? null,
+            notifyReminderAt: listing.notifyReminderAt?.toISOString() ?? null,
+            user: listing.user ? {
+                name: listing.user.name,
+                email: listing.user.email,
+                is_verified: listing.user.is_verified,
+            } : null,
+        })),
+        page,
+        pageSize,
+        total: pageData.total,
+        counts: {
+            ALL: Object.values(countData.statusCounts).reduce((sum, count) => sum + count, 0),
+            PENDING: countData.statusCounts.PENDING || 0,
+            VERIFIED: countData.statusCounts.VERIFIED || 0,
+            REJECTED: countData.statusCounts.REJECTED || 0,
+        },
+        curatedTotal: curatedCountData.total,
+    };
+}
+
+export async function getAdminListingReviewDetail(listingId: string) {
+    if (!/^[a-f\d]{24}$/i.test(listingId)) throw new Error("Invalid listing ID");
+    const listings = await getAdminListingReviews(undefined, listingId);
+    return listings[0] || null;
 }
 
 export async function getPendingListings() {
@@ -227,27 +350,48 @@ export async function getPendingListings() {
 
 export async function getBlocksAction(listingId: string) {
     try {
+        if (!/^[a-f\d]{24}$/i.test(listingId)) return [];
+        const user = await getCurrentUser();
+        if (!user) return [];
+        const listing = await prisma.listing.findUnique({
+            where: { id: listingId },
+            select: { userId: true },
+        });
+        if (!listing || (listing.userId !== user.id && user.role !== "ADMIN")) return [];
         return await ListingService.getBlocks(listingId);
     } catch (error) {
         console.error("[getBlocksAction] Error:", error);
-        return [];
+        throw new Error("Failed to load availability blocks");
     }
 }
 
 export async function getDayStatusAction(listingId: string, date: string) {
     try {
-        if (!listingId || !date) return null;
-        const parsedDate = new Date(date);
-        if (isNaN(parsedDate.getTime())) return null;
+        if (!/^[a-f\d]{24}$/i.test(listingId) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+        const user = await getCurrentUser();
+        if (!user) return null;
+        const listing = await prisma.listing.findUnique({
+            where: { id: listingId },
+            select: { userId: true },
+        });
+        if (!listing || (listing.userId !== user.id && user.role !== "ADMIN")) return null;
+        const parsedDate = new Date(`${date}T00:00:00.000Z`);
+        if (!Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== date) return null;
 
-        return await prisma.dayStatus.findUnique({
+        const dayStatus = await prisma.dayStatus.findUnique({
             where: {
                 listingId_date: { listingId, date: parsedDate }
             },
         });
+        return dayStatus ? {
+            ...dayStatus,
+            date: dayStatus.date.toISOString(),
+            createdAt: dayStatus.createdAt.toISOString(),
+            updatedAt: dayStatus.updatedAt.toISOString(),
+        } : null;
     } catch (error) {
         console.error("[getDayStatusAction] Error:", error);
-        return null;
+        throw new Error("Failed to load day status");
     }
 }
 
@@ -259,13 +403,14 @@ export const createListingAction = createAction(
     listingSchema,
     { requireAuth: true, allowedRoles: ["OWNER", "ADMIN"] },
     async (data, { user }) => {
-        const listing = await ListingService.createListing(user!.id, data);
+        const listing = await ListingService.createListing(user.id, data, user.role === "ADMIN");
         revalidatePath("/properties");
+        revalidatePath("/dashboard/properties");
         return listing;
     }
 );
 
-const listingUpdateActionSchema = z.object({ id: z.string().min(1) }).passthrough().transform((input, ctx) => {
+const listingUpdateActionSchema = z.object({ id: z.string().regex(/^[a-f\d]{24}$/i, "Invalid listing ID") }).passthrough().transform((input, ctx) => {
     const listingKeys = new Set(
         Object.keys(listingBaseSchema.shape).filter((key) => key !== "id" && key !== "agreementSignature")
     );
@@ -295,7 +440,7 @@ export const updateListingAction = createAction(
     { requireAuth: true, allowedRoles: ["OWNER", "ADMIN"] },
     async (data, { user }) => {
         const { id, ...updateData } = data;
-        const listing = await ListingService.updateListing(user!.id, id, updateData);
+        const listing = await ListingService.updateListing(user.id, id, updateData, user.role === "ADMIN");
 
         revalidatePath(`/listings/${id}`);
         revalidatePath("/properties");
@@ -309,7 +454,7 @@ export const deleteListingAction = createAction(
     deleteListingSchema,
     { requireAuth: true, allowedRoles: ["OWNER", "ADMIN"] },
     async (data, { user }) => {
-        await ListingService.deleteListing(user!.id, data.listingId);
+        await ListingService.deleteListing(user.id, data.listingId, user.role === "ADMIN");
         revalidatePath("/properties");
         revalidatePath("/dashboard/properties");
         return { success: true };
@@ -348,7 +493,7 @@ export const createBlockAction = createAction(
     { requireAuth: true, allowedRoles: ["OWNER", "ADMIN"] },
     async (data, { user }) => {
         const { listingId, ...blockData } = data;
-        await ListingService.createBlock(user!.id, listingId, blockData);
+        await ListingService.createBlock(user.id, listingId, blockData, user.role === "ADMIN");
         revalidatePath(`/listings/${listingId}`);
         return { success: true };
     }
@@ -358,7 +503,7 @@ export const deleteBlockAction = createAction(
     deleteBlockSchema,
     { requireAuth: true, allowedRoles: ["OWNER", "ADMIN"] },
     async (data, { user }) => {
-        await ListingService.deleteBlock(user!.id, data.listingId, data.blockId);
+        await ListingService.deleteBlock(user.id, data.listingId, data.blockId, user.role === "ADMIN");
         revalidatePath(`/listings/${data.listingId}`);
         return { success: true };
     }
@@ -369,15 +514,15 @@ export const updateDayStatusAction = createAction(
     { requireAuth: true, allowedRoles: ["OWNER", "ADMIN"] },
     async (data, { user }) => {
         const { listingId, date, listingActive, startTime, endTime } = data;
-        const parsedDate = new Date(date);
+        const parsedDate = new Date(`${date}T00:00:00.000Z`);
 
         const listing = await prisma.listing.findUnique({
             where: { id: listingId },
             select: { userId: true },
         });
 
-        if (!listing || (listing.userId !== user!.id && user!.role !== "ADMIN")) {
-            throw new Error("Permission denied or listing not found");
+        if (!listing || (listing.userId !== user.id && user.role !== "ADMIN")) {
+            throw new UserFacingError("Permission denied or listing not found", 403);
         }
 
         await prisma.dayStatus.upsert({
@@ -401,22 +546,34 @@ export const updateDayStatusAction = createAction(
     }
 );
 
-// ─── Curated Listing Actions ─────────────────────────────────────────────────
+// â”€â”€â”€ Curated Listing Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+const curatedHttpUrlSchema = (maxLength: number) => z.string().url().max(maxLength).refine((value) => {
+    try {
+        const protocol = new URL(value).protocol;
+        return protocol === "http:" || protocol === "https:";
+    } catch {
+        return false;
+    }
+}, "URL must use HTTP or HTTPS");
 
 const curatedListingSchema = z.object({
     title: z.string().min(2).max(200),
     description: z.string().min(10).max(5000),
-    category: z.string().min(1),
-    locationValue: z.string().min(1),
+    category: z.string().trim().min(1).max(100),
+    locationValue: z.string().trim().min(1).max(300),
     propertyStateCode: z.string().regex(/^\d{2}$/).optional().nullable(),
-    imageSrc: z.array(z.string().url()).min(1),
-    mapsUrl: z.string().url().optional().or(z.literal("")),
-    websiteUrl: z.string().url().optional().or(z.literal("")),
-    instagramHandle: z.string().optional(),
+    imageSrc: z.array(curatedHttpUrlSchema(500)).min(1).max(30),
+    mapsUrl: curatedHttpUrlSchema(1000).optional().or(z.literal("")),
+    websiteUrl: curatedHttpUrlSchema(1000).optional().or(z.literal("")),
+    instagramHandle: z.string().trim().regex(/^@?[A-Za-z0-9._]{1,30}$/, "Invalid Instagram handle").optional(),
     priceRangeMin: z.number().int().positive().optional(),
     priceRangeMax: z.number().int().positive().optional(),
     contactEmail: z.string().email().optional().or(z.literal("")),
-    curatedSource: z.string().optional(),
+    curatedSource: z.string().trim().max(500).optional(),
+}).refine((data) => data.priceRangeMin == null || data.priceRangeMax == null || data.priceRangeMin <= data.priceRangeMax, {
+    message: "Minimum price cannot exceed maximum price",
+    path: ["priceRangeMax"],
 });
 
 export const createCuratedListingAction = createAction(
@@ -441,7 +598,7 @@ export const createCuratedListingAction = createAction(
                 listingType: "CURATED",
                 status: "VERIFIED",
                 active: true,
-                userId: user!.id,
+                userId: user.id,
                 amenities: [],
                 otherAmenities: [],
                 type: [],
@@ -473,7 +630,7 @@ export const createCuratedListingAction = createAction(
 );
 
 export const markInConversationAction = createAction(
-    z.object({ listingId: z.string(), inConversation: z.boolean() }),
+    z.object({ listingId: objectIdSchema, inConversation: z.boolean() }),
     { requireAuth: true, allowedRoles: ["ADMIN"] },
     async ({ listingId, inConversation }) => {
         await prisma.listing.update({
@@ -488,11 +645,24 @@ export const markInConversationAction = createAction(
 export async function trackEnquiryAction(listingId: string): Promise<void> {
     "use server";
     try {
-        await prisma.listing.update({
-            where: { id: listingId },
+        if (!/^[a-f\d]{24}$/i.test(listingId)) return;
+        const requestLimit = rateLimitRequest(await headers(), {
+            scope: `curated-enquiry:${listingId}`,
+            limit: 10,
+            windowMs: 60 * 60_000,
+        });
+        if (!requestLimit.allowed) return;
+        await prisma.listing.updateMany({
+            where: {
+                id: listingId,
+                listingType: "CURATED",
+                status: "VERIFIED",
+                active: true,
+                OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }],
+            },
             data: { enquiryCount: { increment: 1 } },
         });
     } catch {
-        // Non-critical — don't surface to user
+        // Non-critical â€” don't surface to user
     }
 }

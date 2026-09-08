@@ -1,26 +1,24 @@
 import { NextRequest } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { isOwner } from "@/lib/user/permissions";
+import { UserRole } from "@/types/user";
 
 export async function POST(request: NextRequest) {
   try {
-    if (!request.headers.get("content-type")?.includes("application/json")) {
-      return createErrorResponse("Content-Type must be application/json", 415);
-    }
-
     const currentUser = await getCurrentUser();
     if (!currentUser?.id) {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    if (!isOwner(currentUser.role) && !currentUser.is_verified) {
-      return createErrorResponse("Only verified owners can create amenities", 403);
+    if (currentUser.role !== UserRole.ADMIN) {
+      return createErrorResponse("Only administrators can create default amenities", 403);
     }
 
-    const body = await request.json().catch(() => ({}));
+    const parsedBody = await readJsonObject(request, 5_000);
+    if (!parsedBody.success) return parsedBody.response;
+    const body = parsedBody.data;
     const { name } = body;
 
     if (!name || typeof name !== "string") {

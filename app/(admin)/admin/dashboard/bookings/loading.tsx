@@ -21,6 +21,7 @@ function RowSkeleton() {
       <td className="px-3 py-3"><Skeleton className="ml-auto h-4 w-16" /></td>
       <td className="px-3 py-3"><Skeleton className="mx-auto h-6 w-24 rounded-full" /></td>
       <td className="px-3 py-3"><Skeleton className="mx-auto h-6 w-24 rounded-full" /></td>
+      <td className="px-3 py-3"><Skeleton className="mx-auto h-6 w-28 rounded-full" /></td>
       <td className="px-3 py-3"><Skeleton className="ml-auto h-9 w-9 rounded-lg" /></td>
     </tr>
   );
@@ -37,14 +38,14 @@ export default function AdminBookingsLoading() {
         <Skeleton className="h-10 w-28 rounded-lg" />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-        {Array.from({ length: 6 }).map((_, index) => (
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
           <StatSkeleton key={index} />
         ))}
       </div>
 
       <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-background p-2">
-        {Array.from({ length: 5 }).map((_, index) => (
+        {Array.from({ length: 6 }).map((_, index) => (
           <Skeleton key={index} className="h-9 w-28 rounded-xl" />
         ))}
       </div>
@@ -54,12 +55,12 @@ export default function AdminBookingsLoading() {
           <table className="min-w-[1120px] table-fixed divide-y divide-border xl:min-w-full">
             <thead className="bg-muted/40">
               <tr>
-                {["Booking", "Studio", "Customer", "Owner", "GST", "Date", "Amount", "Status", "Invoice", "Actions"].map((heading) => (
+                {["Booking", "Studio", "Customer", "Owner", "GST", "Date", "Amount", "Status", "Invoice", "Receipts & Refunds", "Actions"].map((heading) => (
                   <th
                     key={heading}
-                    className={`px-3 py-3 ${["GST", "Status", "Invoice"].includes(heading) ? "text-center" : heading === "Amount" || heading === "Actions" ? "text-right" : "text-left"}`}
+                    className={`px-3 py-3 ${["GST", "Status", "Invoice", "Receipts & Refunds"].includes(heading) ? "text-center" : heading === "Amount" || heading === "Actions" ? "text-right" : "text-left"}`}
                   >
-                    <Skeleton className={`h-3 w-16 ${["GST", "Status", "Invoice"].includes(heading) ? "mx-auto" : heading === "Amount" || heading === "Actions" ? "ml-auto" : ""}`} />
+                    <Skeleton className={`h-3 w-16 ${["GST", "Status", "Invoice", "Receipts & Refunds"].includes(heading) ? "mx-auto" : heading === "Amount" || heading === "Actions" ? "ml-auto" : ""}`} />
                   </th>
                 ))}
               </tr>

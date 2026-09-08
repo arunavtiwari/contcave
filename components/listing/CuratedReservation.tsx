@@ -5,7 +5,7 @@ import { useTransition } from "react";
 import { IoLogoWhatsapp } from "react-icons/io";
 
 import { trackEnquiryAction } from "@/app/actions/listingActions";
-import { buildWhatsAppUrl, curatedEnquiryMessage } from "@/lib/whatsapp";
+import { buildWhatsAppUrl, curatedEnquiryMessage } from "@/lib/whatsapp/urls";
 
 import CuratedListingBanner from "./CuratedListingBanner";
 

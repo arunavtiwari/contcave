@@ -1,23 +1,15 @@
 "use server";
 
-
-
-import getCurrentUser from "@/app/actions/getCurrentUser";
+import { createAction } from "@/lib/actions-utils";
 import { ReviewService } from "@/lib/review/service";
+import { createReviewSchema } from "@/schemas/review";
 
-export default async function createReview(data: {
-    listingId: string;
-    reservationId: string;
-    rating: number;
-    comment: string;
-}) {
-    try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser?.id) throw new Error("Unauthorized");
-
-        return await ReviewService.createReview(currentUser.id, data);
-    } catch (error) {
-        console.error('[createReview] Error:', error);
-        throw error;
+const createReview = createAction(
+    createReviewSchema,
+    { requireAuth: true },
+    async (data, { user }) => {
+        return await ReviewService.createReview(user.id, data);
     }
-}
+);
+
+export default createReview;

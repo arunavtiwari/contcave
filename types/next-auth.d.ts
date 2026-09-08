@@ -13,11 +13,6 @@ declare module "next-auth" {
       phone?: string | null;
       is_verified?: boolean;
     } & DefaultSession["user"];
-    accessToken?: string;
-    calendarAccessToken?: string;
-    calendarRefreshToken?: string;
-    calendarAccessTokenExpires?: number;
-    error?: string;
   }
 
   interface User {

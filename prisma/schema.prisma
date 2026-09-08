@@ -20,6 +20,49 @@ enum TransactionStatus {
   EXPIRED
 }
 
+enum TransactionPurpose {
+  BASE_BOOKING
+  EXTENSION
+  ADDITIONAL_CHARGE
+}
+
+enum ReservationStatus {
+  PENDING_APPROVAL
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum ExtensionRequestStatus {
+  PENDING_PAYMENT
+  PAID
+  EXPIRED
+  CANCELLED
+  PAYMENT_REVIEW_REQUIRED
+}
+
+enum AdditionalChargeType {
+  SERVICE
+  DAMAGE
+}
+
+enum AdditionalChargeStatus {
+  PENDING_PAYMENT
+  PAID
+  CANCELLED
+  REJECTED
+  PAYMENT_REVIEW_REQUIRED
+}
+
+enum ReservationChatMessageKind {
+  USER
+  SYSTEM
+}
+
 enum ListingStatus {
   PENDING
   VERIFIED
@@ -101,12 +144,15 @@ model User {
   hashedPassword          String?
   resetToken              String?
   resetTokenExpiry        DateTime?
+  emailVerificationCodeHash   String?
+  emailVerificationCodeExpiry DateTime?
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
   favoriteIds             String[]          @db.ObjectId
   accounts                Account[]
   listings                Listing[]
   reservations            Reservation[]
+  chatMessages            ReservationChatMessage[]
   CustomAmenities         CustomAmenities[]
   Review                  Review[]
   reviewsAdded            Review[]          @relation("ReviewAddedBy")
@@ -189,6 +235,9 @@ model Listing {
   packages                 Package[]
   status                   ListingStatus             @default(PENDING)
   active                   Boolean                   @default(false)
+  archivedAt               DateTime?
+  archivedById             String?                   @db.ObjectId
+  accountDeactivatedAt     DateTime?
   reviewedAt               DateTime?
   reviewedById             String?                   @db.ObjectId
   rejectionReason          String?
@@ -223,6 +272,9 @@ model Listing {
 
   @@index([userId])
   @@index([listingType])
+  @@index([listingType, status, createdAt])
+  @@index([active, status, createdAt])
+  @@index([userId, archivedAt])
 }
 
 model Package {
@@ -272,9 +324,19 @@ model Reservation {
   user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   listing             Listing         @relation(fields: [listingId], references: [id], onDelete: Cascade)
   Review              Review[]
-  isApproved          Int?
+  status              ReservationStatus @default(PENDING_APPROVAL)
+  checkedInAt         DateTime?
+  completedAt         DateTime?
+  noShowAt            DateTime?
+  refundAmount        Int?
+  refundRecordedAt    DateTime?
+  refundNote          String?
+  extensionNudgeSentAt DateTime?
   rejectReason        String?
   Transaction         Transaction[]
+  extensionRequests   ExtensionRequest[]
+  additionalCharges   AdditionalCharge[]
+  chatMessages        ReservationChatMessage[]
   invoices            Invoice[]
   paymentVouchers     PaymentVoucher[]
   billingDetailId     String?         @db.ObjectId
@@ -282,12 +344,17 @@ model Reservation {
   billingSnapshot      Json?
   markedForDeletion   Boolean         @default(false)
   markedForDeletionAt DateTime?
+  hiddenByGuestAt     DateTime?
+  hiddenByOwnerAt     DateTime?
   setIds              String[]        @db.ObjectId
   includedSetId       String?         @db.ObjectId
   setPackageId        String?         @db.ObjectId
   pricingSnapshot     Json?
   totalPriceInt       Int?
   reminderSent        Boolean         @default(false)
+  reviewReminderSentAt DateTime?
+  reviewReminderClaimedAt DateTime?
+  reviewReminderAttempts Int           @default(0)
 
   unreadCountOwner Int @default(0)
   unreadCountGuest Int @default(0)
@@ -301,6 +368,13 @@ model Reservation {
   @@index([listingId])
   @@index([billingDetailId])
   @@index([startDate])
+  @@index([status])
+  @@index([checkedInAt])
+  @@index([completedAt])
+  @@index([status, completedAt])
+  @@index([reviewReminderSentAt])
+  @@index([userId, hiddenByGuestAt])
+  @@index([listingId, hiddenByOwnerAt])
 }
 
 model ReservationSlot {
@@ -319,7 +393,7 @@ model ReservationSlot {
 
 model Amenities {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
+  name      String   @unique
   icon      Json?
   createdAt DateTime @default(now())
 }
@@ -366,6 +440,7 @@ model Review {
   @@index([userId])
   @@index([listingId])
   @@index([reservationId])
+  @@unique([reservationId, userId])
 }
 
 model PaymentDetails {
@@ -402,6 +477,9 @@ model BillingDetails {
   user         User          @relation(fields: [userId], references: [id])
   reservations Reservation[]
   invoices     Invoice[]
+
+  @@unique([userId, gstin])
+  @@index([userId])
 }
 
 model Transaction {
@@ -413,10 +491,13 @@ model Transaction {
   amount        Float
   currency      String            @default("INR")
   status        TransactionStatus @default(PENDING)
+  purpose       TransactionPurpose @default(BASE_BOOKING)
   description   String?
   paymentMethod String            @default("Cashfree")
   invoices      Invoice[]
   paymentVouchers PaymentVoucher[]
+  extensionRequestId String?       @db.ObjectId
+  additionalChargeId String?       @db.ObjectId
 
   // -------- Cashfree PG fields ----------
   cfOrderId            String?
@@ -457,13 +538,87 @@ model Transaction {
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   reservation Reservation? @relation(fields: [reservationId], references: [id])
   listing     Listing?     @relation(fields: [listingId], references: [id])
+  extensionRequest ExtensionRequest? @relation(fields: [extensionRequestId], references: [id])
+  additionalCharge AdditionalCharge? @relation(fields: [additionalChargeId], references: [id])
 
   @@index([userId])
   @@index([reservationId])
   @@index([listingId])
+  @@index([extensionRequestId])
+  @@index([additionalChargeId])
+  @@index([purpose])
   @@index([status])
   @@index([payoutDueAt])
   @@index([payoutSplitAt])
+}
+
+model ExtensionRequest {
+  id                String                 @id @default(auto()) @map("_id") @db.ObjectId
+  reservationId     String                 @db.ObjectId
+  reservation       Reservation            @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  durationMinutes   Int
+  oldEndTime        String
+  requestedEndTime  String
+  extraAmount       Int
+  listingRateAtTime Int?
+  status            ExtensionRequestStatus @default(PENDING_PAYMENT)
+  cfOrderId         String?
+  cfPaymentId       String?
+  paymentTokenHash  String?
+  expiresAt         DateTime
+  paidAt            DateTime?
+  appliedAt         DateTime?
+  cancelledAt       DateTime?
+  expiredAt         DateTime?
+  failureReason     String?
+  transactions      Transaction[]
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@index([reservationId])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([paymentTokenHash])
+}
+
+model AdditionalCharge {
+  id               String                 @id @default(auto()) @map("_id") @db.ObjectId
+  reservationId    String                 @db.ObjectId
+  reservation      Reservation            @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  type             AdditionalChargeType
+  items            Json
+  totalAmount      Int
+  note             String?
+  status           AdditionalChargeStatus @default(PENDING_PAYMENT)
+  cfOrderId        String?
+  cfPaymentId      String?
+  paymentTokenHash String?
+  paidAt           DateTime?
+  rejectedAt       DateTime?
+  cancelledAt      DateTime?
+  failureReason    String?
+  transactions     Transaction[]
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@index([reservationId])
+  @@index([type])
+  @@index([status])
+  @@index([paymentTokenHash])
+}
+
+model ReservationChatMessage {
+  id            String                     @id @default(auto()) @map("_id") @db.ObjectId
+  reservationId String                     @db.ObjectId
+  reservation   Reservation                @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  senderId      String?                    @db.ObjectId
+  sender        User?                      @relation(fields: [senderId], references: [id])
+  kind          ReservationChatMessageKind @default(USER)
+  text          String
+  createdAt     DateTime                   @default(now())
+
+  @@index([reservationId, createdAt])
+  @@index([senderId])
 }
 
 model Invoice {
@@ -641,4 +796,3 @@ model ListingBlock {
 
   @@index([listingId, date])
 }
-

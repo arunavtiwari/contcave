@@ -96,7 +96,7 @@ function resolveOperationalRange(ops?: ReservationOperationalTimings) {
         startIdx = 0;
         endIdx = labelMinutes.length - 1;
     }
-    return { startIdx, endIdx };
+    return { startIdx, endIdx, endMin };
 }
 
 const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
@@ -130,7 +130,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
         return out;
     }, [disabledStartTimes, disabledEndTimes]);
 
-    const { startIdx, endIdx } = useMemo(
+    const { startIdx, endIdx, endMin: operationalEndMin } = useMemo(
         () => resolveOperationalRange(operationalTimings),
         [operationalTimings]
     );
@@ -145,7 +145,11 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
             if (Number.isNaN(m)) return false;
 
             if (activeSegment === "start") {
-                return disabledIntervals.some(({ s, e }) => m >= s && m < e);
+                const requiredEnd = m + Math.max(0, minBookingMinutes);
+                if (requiredEnd > operationalEndMin) return true;
+                return disabledIntervals.some(
+                    ({ s, e }) => Math.max(m, s) < Math.min(requiredEnd, e)
+                );
             } else {
                 const startM = toMinutes(to12hLabel(selectedStart));
                 if (Number.isNaN(startM)) return false;
@@ -156,7 +160,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                 return disabledIntervals.some(({ s, e }) => Math.max(startM, s) < Math.min(endM, e));
             }
         },
-        [activeSegment, disabledIntervals, selectedStart, minBookingMinutes]
+        [activeSegment, disabledIntervals, selectedStart, minBookingMinutes, operationalEndMin]
     );
 
     const normStart = to12hLabel(selectedStart);

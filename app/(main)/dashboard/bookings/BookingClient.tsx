@@ -6,7 +6,12 @@ import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import { toast } from "sonner";
 
-import { deleteReservationAction, updateReservationAction } from "@/app/actions/reservationActions";
+import {
+  createChargePaymentLinkAction,
+  createExtensionPaymentLinkAction,
+  deleteReservationAction,
+  updateReservationAction
+} from "@/app/actions/reservationActions";
 import ListingCard from "@/components/listing/ListingCard";
 import Modal from "@/components/modals/Modal";
 import ReservationDetailModal from "@/components/modals/ReservationDetailModal";
@@ -22,13 +27,11 @@ type Props = {
 function BookingClient({ reservations, currentUser }: Props) {
   const router = useRouter();
   const [deletingId, setDeletingId] = useState("");
-
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalAction, setModalAction] = useState<"cancel" | "delete" | "">("");
   const [selectedId, setSelectedId] = useState("");
   const [isRefundOpen, setRefundOpen] = useState(false);
   const [refundReservationId, setRefundReservationId] = useState<string>("");
-
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
   const [infoReservation, setInfoReservation] = useState<SafeReservation | null>(null);
 
@@ -68,23 +71,31 @@ function BookingClient({ reservations, currentUser }: Props) {
     window.open(`/dashboard/chat/${id}`, "_blank");
   }, []);
 
+  const openExtensionPayment = useCallback(async (extensionRequestId: string) => {
+    const res = await createExtensionPaymentLinkAction({ extensionRequestId });
+    if (res.success && res.data?.paymentUrl) window.open(res.data.paymentUrl, "_self");
+    else toast.error(res.error || "Unable to open payment link");
+  }, []);
+
+  const openChargePayment = useCallback(async (additionalChargeId: string) => {
+    const res = await createChargePaymentLinkAction({ additionalChargeId });
+    if (res.success && res.data?.paymentUrl) window.open(res.data.paymentUrl, "_self");
+    else toast.error(res.error || "Unable to open payment link");
+  }, []);
+
   const handleConfirmAction = useCallback(() => {
-    if (!selectedId) {
-      return toast.error("No reservation selected.");
-    }
+    if (!selectedId) return toast.error("No reservation selected.");
 
     if (modalAction === "cancel") {
       setDeletingId(selectedId);
-      updateReservationAction({ reservationId: selectedId, isApproved: 3 })
+      updateReservationAction({ reservationId: selectedId, status: "CANCELLED" })
         .then((res: { success?: boolean; error?: string }) => {
           if (res.success) {
             toast.success("Reservation cancelled", { id: "Reservation_Cancelled" });
             setRefundReservationId(selectedId);
             setRefundOpen(true);
             router.refresh();
-          } else {
-            toast.error(res.error || "Something went wrong cancelling the reservation.", { id: "Reservation_Error_2" });
-          }
+          } else toast.error(res.error || "Something went wrong cancelling the reservation.", { id: "Reservation_Error_2" });
         })
         .catch((error: unknown) => {
           const msg = error instanceof Error ? error.message : "Something went wrong cancelling the reservation.";
@@ -101,9 +112,7 @@ function BookingClient({ reservations, currentUser }: Props) {
           if (res.success) {
             toast.info("Reservation deleted", { id: "Reservation_Deleted" });
             router.refresh();
-          } else {
-            toast.error(res.error || "Something went wrong deleting the reservation.", { id: "Reservation_Error_1" });
-          }
+          } else toast.error(res.error || "Something went wrong deleting the reservation.", { id: "Reservation_Error_1" });
         })
         .catch((error: unknown) => {
           const msg = error instanceof Error ? error.message : "Something went wrong deleting the reservation.";
@@ -120,44 +129,26 @@ function BookingClient({ reservations, currentUser }: Props) {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {reservations.map((reservation) => (
-          <ListingCard
-            key={reservation.id}
-            data={reservation.listing}
-            reservation={reservation}
-            actionId={reservation.id}
-            onCancel={handleCancelModal}
-            onChat={onChat}
-            onDelete={handleDeleteModal}
-            onShowInfo={handleShowInfo}
-            disabled={deletingId === reservation.id}
-            currentUser={currentUser}
-            allowScale={false}
-            isHost={false}
-          />
+          <div key={reservation.id} className="space-y-3">
+            {(reservation.pendingExtensions?.length || 0) > 0 && (
+              <button className="w-full rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-left text-sm font-medium text-foreground" onClick={() => openExtensionPayment(reservation.pendingExtensions![0].id)}>
+                Pending extension payment: Rs. {reservation.pendingExtensions![0].extraAmount}
+              </button>
+            )}
+            {(reservation.pendingCharges?.length || 0) > 0 && (
+              <button className="w-full rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-left text-sm font-medium text-foreground" onClick={() => openChargePayment(reservation.pendingCharges![0].id)}>
+                Pending {reservation.pendingCharges![0].type === "DAMAGE" ? "damage" : "service"} charge: Rs. {reservation.pendingCharges![0].totalAmount}
+              </button>
+            )}
+            <ListingCard data={reservation.listing} reservation={reservation} actionId={reservation.id} onCancel={handleCancelModal} onChat={onChat} onDelete={handleDeleteModal} onShowInfo={handleShowInfo} disabled={deletingId === reservation.id} currentUser={currentUser} allowScale={false} isHost={false} />
+          </div>
         ))}
       </div>
 
-      <ReservationDetailModal
-        isOpen={isInfoModalOpen}
-        onCloseAction={() => setInfoModalOpen(false)}
-        reservation={infoReservation}
-      />
+      <ReservationDetailModal isOpen={isInfoModalOpen} onCloseAction={() => setInfoModalOpen(false)} reservation={infoReservation} />
 
       {isModalOpen && (
-        <Modal
-          isOpen={isModalOpen}
-          onCloseAction={() => !deletingId && setModalOpen(false)}
-          onSubmitAction={handleConfirmAction}
-          title={modalAction === "cancel" ? "Cancel Reservation" : "Delete Reservation"}
-          body={
-            <p className="text-center">
-              Are you sure you want to {modalAction === "cancel" ? "cancel" : "delete"} this reservation?
-            </p>
-          }
-          actionLabel={modalAction === "cancel" ? "Cancel Reservation" : "Delete Reservation"}
-          secondaryActionAction={() => !deletingId && setModalOpen(false)}
-          secondaryActionLabel="Close"
-        />
+        <Modal isOpen={isModalOpen} onCloseAction={() => !deletingId && setModalOpen(false)} onSubmitAction={handleConfirmAction} title={modalAction === "cancel" ? "Cancel Reservation" : "Delete Reservation"} body={<p className="text-center">Are you sure you want to {modalAction === "cancel" ? "cancel" : "delete"} this reservation?</p>} actionLabel={modalAction === "cancel" ? "Cancel Reservation" : "Delete Reservation"} secondaryActionAction={() => !deletingId && setModalOpen(false)} secondaryActionLabel="Close" />
       )}
 
       {isRefundOpen && (
@@ -169,15 +160,7 @@ function BookingClient({ reservations, currentUser }: Props) {
           body={(() => {
             const r = reservations.find((x) => x.id === refundReservationId);
             const studioName = r?.listing?.title || "this studio";
-            return (
-              <div className="space-y-4">
-                <p>We're sorry to hear you couldn't go ahead with your booking at {studioName}.</p>
-                <p>
-                  Your refund has been initiated to the original payment method. Tap below to contact support if you
-                  need help tracking it.
-                </p>
-              </div>
-            );
+            return <div className="space-y-4"><p>We&apos;re sorry to hear you couldn&apos;t go ahead with your booking at {studioName}.</p><p>Refunds are handled by the ContCave team according to the booking policy. Tap below to contact support so they can review and record the refund outcome.</p></div>;
           })()}
           actionLabel="Contact Support on WhatsApp"
         />

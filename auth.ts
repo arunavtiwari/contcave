@@ -4,13 +4,11 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 
+import { getClientIp } from "@/lib/http/requestMeta";
 import prisma from "@/lib/prismadb";
+import { rateLimit } from "@/lib/security/rateLimit";
 
 import { authConfig } from "./auth.config";
-
-// Note: AUTH_URL / NEXTAUTH_URL are intentionally not deleted here.
-// Removing env vars at module level mutates process.env globally and can
-// cause subtle bugs in other modules that read these values.
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma),
@@ -45,12 +43,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials) {
+            async authorize(credentials, request) {
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error("Invalid credentials");
                 }
 
                 const email = String(credentials.email).trim().toLowerCase();
+                const ip = getClientIp(request.headers);
+                const ipLimit = rateLimit({
+                    key: `auth:credentials:ip:${ip}`,
+                    limit: 20,
+                    windowMs: 15 * 60 * 1000,
+                });
+                const identityLimit = rateLimit({
+                    key: `auth:credentials:identity:${ip}:${email}`,
+                    limit: 8,
+                    windowMs: 15 * 60 * 1000,
+                });
+                if (!ipLimit.allowed || !identityLimit.allowed) {
+                    throw new Error("Invalid credentials");
+                }
+
                 const user = await prisma.user.findUnique({
                     where: { email },
                 });
@@ -74,6 +87,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ],
     events: {
         async signIn(message) {
+            await prisma.$transaction(async (tx) => {
+                const restored = await tx.user.updateMany({
+                    where: { id: message.user.id, markedForDeletion: true },
+                    data: { markedForDeletion: false, markedForDeletionAt: null },
+                });
+                if (restored.count === 1) {
+                    await tx.listing.updateMany({
+                        where: { userId: message.user.id, accountDeactivatedAt: { not: null } },
+                        data: { active: true, accountDeactivatedAt: null },
+                    });
+                }
+            });
             if (message.account?.provider === "google-calendar") {
                 try {
                     // Only mark the calendar as connected — never touch role here.

@@ -3,9 +3,19 @@ import { AiOutlineCar } from "react-icons/ai";
 import { BiCctv } from "react-icons/bi";
 import { BsFillCameraVideoFill,BsFire } from "react-icons/bs";
 import { FaChair, FaFireExtinguisher, FaLightbulb, FaPlus, FaSun, FaWifi } from "react-icons/fa";
-import { GiButterflyFlower } from "react-icons/gi";
+import { GiButterflyFlower, GiSteam } from "react-icons/gi";
 import { GrWorkshop } from "react-icons/gr";
-import { MdOutlineBathtub, MdOutlineCoffeeMaker, MdTableRestaurant, MdTableRows } from "react-icons/md";
+import {
+    MdCheckroom,
+    MdElevator,
+    MdOutlineBathtub,
+    MdOutlineBlindsClosed,
+    MdOutlineCoffeeMaker,
+    MdTableRestaurant,
+    MdTableRows,
+    MdWallpaper,
+    MdWc,
+} from "react-icons/md";
 import { PiProjectorScreenFill } from "react-icons/pi";
 import { RiSafeLine } from "react-icons/ri";
 import { TbAirConditioning } from "react-icons/tb";
@@ -17,6 +27,10 @@ export interface Amenity {
     createdAt?: string;
 }
 
+// Name -> icon lookup for the "What this space offers" section (components/Offers.tsx).
+// Matching is case-insensitive/trimmed, but keep `name` here identical to the amenity's
+// `name` in the database (see app/actions/getAmenities.ts) whenever possible so a rename
+// there doesn't silently drop an icon again.
 export const AMENITIES: Amenity[] = [
     {
         "id": "65b2ac4116d8d0003b5c6e12",
@@ -27,13 +41,13 @@ export const AMENITIES: Amenity[] = [
     {
         "id": "65b2ac9616d8d0003b5c6e13",
         "name": "Blackout blinds",
-        "icon": FaPlus,
+        "icon": MdOutlineBlindsClosed,
         "createdAt": "2024-01-25T18:46:46.102Z"
     },
     {
         "id": "65b2aca316d8d0003b5c6e14",
         "name": "White Backdrop",
-        "icon": FaPlus,
+        "icon": MdWallpaper,
         "createdAt": "2024-01-25T18:46:59.811Z"
     },
     {
@@ -81,7 +95,7 @@ export const AMENITIES: Amenity[] = [
     {
         "id": "65b2ad2016d8d0003b5c6e1c",
         "name": "Steamer",
-        "icon": FaPlus,
+        "icon": GiSteam,
         "createdAt": "2024-01-25T18:49:04.352Z"
     },
     {
@@ -93,7 +107,7 @@ export const AMENITIES: Amenity[] = [
     {
         "id": "65b2ad3c16d8d0003b5c6e1e",
         "name": "Restrooms",
-        "icon": TbAirConditioning,
+        "icon": MdWc,
         "createdAt": "2024-01-25T18:49:32.544Z"
     },
     {
@@ -140,5 +154,58 @@ export const AMENITIES: Amenity[] = [
         "id": 11,
         "name": "Fire extinguisher",
         "icon": FaFireExtinguisher,
+    },
+    // Entries below match the current amenity names seeded/used in
+    // app/actions/getAmenities.ts (FALLBACK_AMENITIES) and production data that
+    // had no counterpart above, which is why their icons were missing.
+    {
+        "id": 12,
+        "name": "Air Conditioner",
+        "icon": TbAirConditioning,
+    },
+    {
+        "id": 13,
+        "name": "Changing Room",
+        "icon": MdCheckroom,
+    },
+    {
+        "id": 14,
+        "name": "Coffee Machine",
+        "icon": MdOutlineCoffeeMaker,
+    },
+    {
+        "id": 15,
+        "name": "Lift",
+        "icon": MdElevator,
+    },
+    {
+        "id": 16,
+        "name": "Nearby Parking",
+        "icon": AiOutlineCar,
+    },
+    {
+        "id": 17,
+        "name": "Restroom",
+        "icon": MdWc,
+    },
+    {
+        "id": 18,
+        "name": "Security Cameras",
+        "icon": BiCctv,
+    },
+    {
+        "id": 19,
+        "name": "Table",
+        "icon": MdTableRestaurant,
+    },
+    {
+        "id": 20,
+        "name": "Well Lit Space",
+        "icon": FaLightbulb,
+    },
+    {
+        "id": 21,
+        "name": "Wifi",
+        "icon": FaWifi,
     },
 ];

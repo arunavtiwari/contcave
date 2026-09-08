@@ -90,7 +90,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
     priority = true,
     sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
   ) => (
-    <div className={`relative w-full h-full cursor-pointer overflow-hidden ${extraClasses} ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
+    <button type="button" aria-label={`Open photo ${index + 1}`} className={`relative block w-full h-full cursor-pointer overflow-hidden ${extraClasses} ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
       <Image
         src={src}
         alt={`image-${index}`}
@@ -100,7 +100,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
         onLoad={() => handleImageLoad(index)}
         className={`${imageClasses} ${imageOpacityClasses(index)}`}
       />
-    </div>
+    </button>
   );
 
   const modalContent = (
@@ -108,7 +108,9 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
       {imageSrc.map((url, index) => {
         const isFeatured = index % 3 === 0;
         return (
-          <div
+          <button
+            type="button"
+            aria-label={`Open photo ${index + 1}`}
             key={index}
             className={`relative ${isFeatured ? "col-span-2" : ""} h-75 cursor-pointer group overflow-hidden rounded-lg ${skeletonClasses(index)}`}
             onClick={() => handleModalImageClick(index)}
@@ -121,7 +123,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               onLoad={() => handleImageLoad(index)}
               className={`object-cover group-hover:brightness-90 ${imageOpacityClasses(index)}`}
             />
-          </div>
+          </button>
         );
       })}
     </div>
@@ -131,7 +133,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
     <div className="relative group">
       <Swiper
         modules={[Navigation]}
-        loop={true}
+        loop={imageSrc.length > 1}
         speed={500}
         navigation={{
           nextEl: '.swiper-button-next-custom',
@@ -142,7 +144,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
       >
         {imageSrc.map((url, index) => (
           <SwiperSlide key={index}>
-            <div className={`w-full h-full relative cursor-pointer overflow-hidden ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
+            <button type="button" aria-label={`Open photo ${index + 1}`} className={`block w-full h-full relative cursor-pointer overflow-hidden ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
               <Image
                 src={url}
                 alt={`image-${index}`}
@@ -152,17 +154,17 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                 onLoad={() => handleImageLoad(index)}
                 className={`object-cover w-full ${imageOpacityClasses(index)}`}
               />
-            </div>
+            </button>
           </SwiperSlide>
         ))}
       </Swiper>
 
-      <div className="swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100">
+      <button type="button" aria-label="Previous photo" className="swiper-button-prev-custom absolute top-1/2 left-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100">
         <HiOutlineChevronLeft className="text-background" size={24} />
-      </div>
-      <div className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100">
+      </button>
+      <button type="button" aria-label="Next photo" className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100">
         <HiOutlineChevronRight className="text-background" size={24} />
-      </div>
+      </button>
     </div>
   );
 
@@ -182,7 +184,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
       ) : (
         <>
           <div className="hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
-            <div className={`relative h-113.75 cursor-pointer overflow-hidden rounded-l-lg ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
+            <button type="button" aria-label="Open photo 1" className={`relative block h-113.75 w-full cursor-pointer overflow-hidden rounded-l-lg ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
               {imageSrc[0] && (
                 <Image
                   src={imageSrc[0]}
@@ -194,7 +196,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                   className={`object-cover hover:brightness-90 ${imageOpacityClasses(0)}`}
                 />
               )}
-            </div>
+            </button>
 
             <div className="grid grid-rows-2 grid-cols-2 gap-1 h-113.75">
               {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
@@ -210,9 +212,9 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                     sizes="(max-width: 768px) 100vw, 33vw"
                     onLoad={() => handleImageLoad(4)}
                     className={`object-cover hover:brightness-90 ${imageOpacityClasses(4)} cursor-pointer`}
-                    onClick={() => handleImageClick(4)}
                   />
-                  <div className="absolute bottom-4 right-4 flex gap-2">
+                  <button type="button" aria-label="Open photo 5" className="absolute inset-0" onClick={() => handleImageClick(4)} />
+                  <div className="absolute bottom-4 right-4 z-10 flex gap-2">
                     <Button
                       label="Show all photos"
                       onClick={handleShowAllPhotos}
@@ -266,7 +268,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
       )}
 
       {isLightboxOpen && (
-        <div className="fixed inset-0 z-9999 bg-foreground/70 backdrop-blur-md flex flex-col items-center justify-center">
+        <div role="dialog" aria-modal="true" aria-label="Photo gallery" className="fixed inset-0 z-9999 bg-foreground/70 backdrop-blur-md flex flex-col items-center justify-center">
           <div className="absolute top-0 inset-x-0 h-20 px-6 md:px-10 flex items-center justify-between z-50 bg-linear-to-b from-foreground/80 to-transparent">
             <Button
               onClick={() => setIsLightboxOpen(false)}
@@ -288,7 +290,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               <Swiper
                 modules={[Navigation, Keyboard]}
                 keyboard={{ enabled: true }}
-                loop={true}
+                loop={imageSrc.length > 1}
                 initialSlide={selectedImageIndex}
                 className="h-full"
                 navigation={{
@@ -318,10 +320,10 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               </Swiper>
             </div>
 
-            <button className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-all hidden md:flex items-center justify-center active:scale-90">
+            <button type="button" aria-label="Previous photo" className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center active:scale-90">
               <HiOutlineChevronLeft size={20} />
             </button>
-            <button className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-all hidden md:flex items-center justify-center active:scale-90">
+            <button type="button" aria-label="Next photo" className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center active:scale-90">
               <HiOutlineChevronRight size={20} />
             </button>
           </div>

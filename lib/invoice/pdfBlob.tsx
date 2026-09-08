@@ -30,7 +30,6 @@ export type InvoiceParty = {
   phone?: string | null;
   email?: string | null;
   gstin?: string | null;
-  pan?: string | null;
   label?: string;
 };
 
@@ -339,7 +338,6 @@ function partyBlock(title: string, party: InvoiceParty) {
       {party.phone ? <Text style={styles.value}>Phone: {party.phone}</Text> : null}
       {party.email ? <Text style={styles.value}>Email: {party.email}</Text> : null}
       {party.gstin ? <Text style={styles.valueBold}>GSTIN: {party.gstin}</Text> : null}
-      {party.pan && !party.gstin ? <Text style={styles.value}>PAN: {party.pan}</Text> : null}
     </View>
   );
 }

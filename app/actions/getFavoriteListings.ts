@@ -3,7 +3,7 @@
 
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import prisma from "@/lib/prismadb";
+import { ListingService } from "@/lib/listing/service";
 
 export default async function getFavoriteListings() {
   try {
@@ -13,21 +13,9 @@ export default async function getFavoriteListings() {
       return [];
     }
 
-    const favorites = await prisma.listing.findMany({
-      where: {
-        id: {
-          in: [...(currentUser.favoriteIds || [])],
-        },
-      },
-    });
-
-    const safeFavorites = favorites.map((favorite) => ({
-      ...favorite,
-      createdAt: favorite.createdAt.toString(),
-    }));
-
-    return safeFavorites;
+    return await ListingService.getFavoriteListings(currentUser.favoriteIds || []);
   } catch (error: unknown) {
-    throw new Error(error instanceof Error ? error.message : "An unknown error occurred");
+    console.error("[getFavoriteListings] Failed to load favorites", error);
+    return [];
   }
 }

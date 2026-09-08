@@ -1,10 +1,10 @@
-import { Amenities } from '@prisma/client';
 import React, { useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 
 import Input from '@/components/inputs/Input';
 import Button from '@/components/ui/Button';
 import Pill from '@/components/ui/Pill';
+import type { SafeAmenity } from '@/types/amenity';
 
 export interface AmenitiesData {
   predefined: { [key: number | string]: boolean };
@@ -14,7 +14,7 @@ export interface AmenitiesData {
 import FormField from './FormField';
 
 interface AmenitiesCheckboxProps {
-  amenities: Amenities[];
+  amenities: SafeAmenity[];
   checked?: string[];
   customAmenities?: string[];
   onChange: (updatedAmenities: AmenitiesData) => void;

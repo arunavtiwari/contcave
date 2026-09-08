@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import getTransactions from "@/app/actions/getTransactions";
+import { getTransactionsPage } from "@/app/actions/getTransactions";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { isOwner } from "@/lib/user/permissions";
 
@@ -12,7 +12,7 @@ export async function GET(
     try {
         const { profileId } = await context.params;
 
-        if (!profileId || typeof profileId !== "string" || profileId.trim().length === 0) {
+        if (!profileId || !/^[a-f\d]{24}$/i.test(profileId)) {
             return createErrorResponse("Invalid profile ID", 400);
         }
 
@@ -25,11 +25,15 @@ export async function GET(
             return createErrorResponse("You can only view your own transactions", 403);
         }
 
-        const transactions = await getTransactions(profileId, {
+        const requestedPage = Number(request.nextUrl.searchParams.get("page") || 1);
+        const requestedLimit = Number(request.nextUrl.searchParams.get("limit") || 50);
+        const result = await getTransactionsPage(profileId, {
             ownerView: isOwner(currentUser.role),
+            page: Number.isFinite(requestedPage) ? requestedPage : 1,
+            limit: Number.isFinite(requestedLimit) ? requestedLimit : 50,
         });
 
-        return createSuccessResponse({ transactions });
+        return createSuccessResponse(result);
     } catch (error) {
         return handleRouteError(error, "GET /api/transactions/[profileId]");
     }

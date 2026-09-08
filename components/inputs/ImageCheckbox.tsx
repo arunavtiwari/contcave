@@ -38,7 +38,7 @@ const ImageCheckbox = ({
   className
 }: Props) => {
   const [isChecked, setIsChecked] = useState(checked);
-  const [price, setPrice] = useState<number | ''>(addon?.price && addon.price > 0 ? addon.price : '');
+  const [price, setPrice] = useState<number | ''>(addon?.price != null && addon.price >= 0 ? addon.price : '');
   const [qty, setQty] = useState<number | ''>(addon?.qty && addon.qty > 0 ? addon.qty : 1);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ const ImageCheckbox = ({
   }, [checked]);
 
   useEffect(() => {
-    if (addon?.price && addon.price > 0) setPrice(addon.price);
+    if (addon?.price != null && addon.price >= 0) setPrice(addon.price);
     setQty(addon?.qty && addon.qty > 0 ? addon.qty : 1);
   }, [addon?.price, addon?.qty]);
 

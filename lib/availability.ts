@@ -2,27 +2,29 @@ import { Prisma, PrismaClient } from "@prisma/client";
 
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import prisma from "@/lib/prismadb";
+import { asEndOfDayMinutes } from "@/lib/scheduling";
 
 
 export function parseTimeToMinutes(timeStr: string): number {
-    if (!timeStr) return 0;
+    if (!timeStr) return Number.NaN;
 
     const m12 = timeStr.match(/^\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*$/i);
     if (m12) {
         let h = parseInt(m12[1], 10);
         const min = parseInt(m12[2], 10);
         const period = m12[3].toUpperCase();
+        if (h < 1 || h > 12 || min < 0 || min > 59) return Number.NaN;
         if (period === "PM" && h < 12) h += 12;
         if (period === "AM" && h === 12) h = 0;
         return h * 60 + min;
     }
 
-    const m24 = timeStr.match(/^\s*(\d{1,2}):(\d{2})\s*$/);
+    const m24 = timeStr.match(/^\s*([01]?\d|2[0-3]):([0-5]\d)\s*$/);
     if (m24) {
         return parseInt(m24[1], 10) * 60 + parseInt(m24[2], 10);
     }
 
-    return 0;
+    return Number.NaN;
 }
 
 
@@ -67,21 +69,20 @@ export async function checkSetConflicts(
     const db = tx || prisma;
 
     const requestedStart = parseTimeToMinutes(startTime);
-    const requestedEnd = parseTimeToMinutes(endTime);
+    const requestedEnd = asEndOfDayMinutes(parseTimeToMinutes(endTime));
+    if (!Number.isFinite(date.getTime()) || !Number.isFinite(requestedStart) || !Number.isFinite(requestedEnd) || requestedEnd <= requestedStart) {
+        return { hasConflict: true, conflictType: "block", conflictDetails: "Invalid booking time range." };
+    }
 
     const dateStart = new Date(date);
-    dateStart.setHours(0, 0, 0, 0);
+    dateStart.setUTCHours(0, 0, 0, 0);
     const dateEnd = new Date(date);
-    dateEnd.setHours(23, 59, 59, 999);
+    dateEnd.setUTCHours(23, 59, 59, 999);
 
     const ymd = date.toISOString().slice(0, 10);
-    const reqSH = String(Math.floor(requestedStart / 60)).padStart(2, "0");
-    const reqSM = String(requestedStart % 60).padStart(2, "0");
-    const reqEH = String(Math.floor(requestedEnd / 60)).padStart(2, "0");
-    const reqEM = String(requestedEnd % 60).padStart(2, "0");
-
-    const reqStartAbs = new Date(`${ymd}T${reqSH}:${reqSM}:00+05:30`).getTime();
-    const reqEndAbs = new Date(`${ymd}T${reqEH}:${reqEM}:00+05:30`).getTime();
+    const bookingDayStartAbs = new Date(`${ymd}T00:00:00+05:30`).getTime();
+    const reqStartAbs = bookingDayStartAbs + requestedStart * 60_000;
+    const reqEndAbs = bookingDayStartAbs + requestedEnd * 60_000;
 
     const listing = await db.listing.findUnique({
         where: { id: listingId },
@@ -100,7 +101,7 @@ export async function checkSetConflicts(
                 listingId,
                 startDate: { gte: dateStart, lte: dateEnd },
                 markedForDeletion: false,
-                OR: [{ isApproved: 0 }, { isApproved: 1 }, { isApproved: null }],
+                status: { in: ["PENDING_APPROVAL", "CONFIRMED", "CHECKED_IN"] },
                 ...(excludeReservationId ? { id: { not: excludeReservationId } } : {}),
             },
             select: {
@@ -114,18 +115,25 @@ export async function checkSetConflicts(
 
     for (const block of blocks) {
         const blockStart = parseTimeToMinutes(block.startTime);
-        const blockEnd = parseTimeToMinutes(block.endTime);
+        const blockEnd = asEndOfDayMinutes(parseTimeToMinutes(block.endTime));
+        if (!Number.isFinite(blockStart) || !Number.isFinite(blockEnd) || blockEnd <= blockStart) {
+            return {
+                hasConflict: true,
+                conflictType: "block",
+                conflictDetails: "This date has an invalid availability block. The host must correct it before booking.",
+            };
+        }
 
         if (!checkTimeOverlap(blockStart, blockEnd, requestedStart, requestedEnd)) {
             continue;
         }
 
-        const isListingWide = !block.setIds || block.setIds.length === 0;
+        const isListingWide = !listing?.hasSets || !block.setIds || block.setIds.length === 0;
         if (isListingWide) {
             return {
                 hasConflict: true,
                 conflictType: "block",
-                conflictDetails: block.reason || "This time slot is blocked.",
+                conflictDetails: "This time slot is blocked.",
             };
         }
 
@@ -133,14 +141,21 @@ export async function checkSetConflicts(
             return {
                 hasConflict: true,
                 conflictType: "block",
-                conflictDetails: block.reason || "Selected sets are blocked during this time.",
+                conflictDetails: "Selected sets are blocked during this time.",
             };
         }
     }
 
     for (const reservation of reservations) {
         const resStart = parseTimeToMinutes(reservation.startTime);
-        const resEnd = parseTimeToMinutes(reservation.endTime);
+        const resEnd = asEndOfDayMinutes(parseTimeToMinutes(reservation.endTime));
+        if (!Number.isFinite(resStart) || !Number.isFinite(resEnd) || resEnd <= resStart) {
+            return {
+                hasConflict: true,
+                conflictType: "reservation",
+                conflictDetails: "This date has an existing booking with invalid timing data. Please contact support.",
+            };
+        }
 
         if (!checkTimeOverlap(resStart, resEnd, requestedStart, requestedEnd)) {
             continue;
@@ -203,163 +218,5 @@ export async function checkSetConflicts(
     }
 
     return { hasConflict: false };
-}
-
-
-export async function getBlockedSlots(
-    listingId: string,
-    date: Date,
-    setIds?: string[]
-): Promise<Array<{ startTime: string; endTime: string; reason?: string | null }>> {
-    const dateStart = new Date(date);
-    dateStart.setHours(0, 0, 0, 0);
-    const dateEnd = new Date(date);
-    dateEnd.setHours(23, 59, 59, 999);
-
-    const [blocks, reservations] = await Promise.all([
-        prisma.listingBlock.findMany({
-            where: {
-                listingId,
-                date: { gte: dateStart, lte: dateEnd },
-            },
-        }),
-        prisma.reservation.findMany({
-            where: {
-                listingId,
-                startDate: { gte: dateStart, lte: dateEnd },
-                markedForDeletion: false,
-                OR: [{ isApproved: 0 }, { isApproved: 1 }, { isApproved: null }],
-            },
-            select: {
-                startTime: true,
-                endTime: true,
-                setIds: true,
-            },
-        }),
-    ]);
-
-    const blockedSlots: Array<{ startTime: string; endTime: string; reason?: string | null }> = [];
-
-    for (const block of blocks) {
-        const isListingWide = !block.setIds || block.setIds.length === 0;
-        const affectsRequestedSets =
-            setIds && setIds.length > 0 && hasSetIntersection(block.setIds, setIds);
-
-        if (isListingWide || affectsRequestedSets) {
-            blockedSlots.push({
-                startTime: block.startTime,
-                endTime: block.endTime,
-                reason: block.reason,
-            });
-        }
-    }
-
-    for (const reservation of reservations) {
-        const resSetIds = reservation.setIds || [];
-        const isLegacyReservation = resSetIds.length === 0;
-        const affectsRequestedSets =
-            setIds && setIds.length > 0 && hasSetIntersection(resSetIds, setIds);
-
-        if (isLegacyReservation || !setIds || setIds.length === 0 || affectsRequestedSets) {
-            blockedSlots.push({
-                startTime: reservation.startTime,
-                endTime: reservation.endTime,
-                reason: null,
-            });
-        }
-    }
-
-    return blockedSlots;
-}
-
-
-export async function getAvailableSets(
-    listingId: string,
-    date: Date,
-    startTime: string,
-    endTime: string
-): Promise<string[]> {
-    const listing = await prisma.listing.findUnique({
-        where: { id: listingId },
-        include: { sets: true },
-    });
-
-    if (!listing || !listing.hasSets || !listing.sets || listing.sets.length === 0) {
-        return [];
-    }
-
-    const allSets = listing.sets;
-    const requestedStart = parseTimeToMinutes(startTime);
-    const requestedEnd = parseTimeToMinutes(endTime);
-
-    const dateStart = new Date(date);
-    dateStart.setHours(0, 0, 0, 0);
-    const dateEnd = new Date(date);
-    dateEnd.setHours(23, 59, 59, 999);
-
-    const [blocks, reservations] = await Promise.all([
-        prisma.listingBlock.findMany({
-            where: {
-                listingId,
-                date: { gte: dateStart, lte: dateEnd },
-            },
-        }),
-        prisma.reservation.findMany({
-            where: {
-                listingId,
-                startDate: { gte: dateStart, lte: dateEnd },
-                markedForDeletion: false,
-                OR: [{ isApproved: 0 }, { isApproved: 1 }, { isApproved: null }],
-            },
-            select: {
-                startTime: true,
-                endTime: true,
-                setIds: true,
-            },
-        }),
-    ]);
-
-    const availableSets: string[] = [];
-
-    for (const set of allSets) {
-        let hasConflict = false;
-
-
-        for (const block of blocks) {
-            const blockStart = parseTimeToMinutes(block.startTime);
-            const blockEnd = parseTimeToMinutes(block.endTime);
-
-            if (checkTimeOverlap(blockStart, blockEnd, requestedStart, requestedEnd)) {
-                const isListingWide = !block.setIds || block.setIds.length === 0;
-                if (isListingWide || block.setIds.includes(set.id)) {
-                    hasConflict = true;
-                    break;
-                }
-            }
-        }
-
-        if (hasConflict) continue;
-
-
-        for (const res of reservations) {
-            const resStart = parseTimeToMinutes(res.startTime);
-            const resEnd = parseTimeToMinutes(res.endTime);
-
-            if (checkTimeOverlap(resStart, resEnd, requestedStart, requestedEnd)) {
-                const resSetIds = res.setIds || [];
-                const isLegacy = resSetIds.length === 0;
-                if (isLegacy || resSetIds.includes(set.id)) {
-                    hasConflict = true;
-                    break;
-                }
-            }
-        }
-
-        if (!hasConflict) {
-            availableSets.push(set.id);
-        }
-    }
-
-    return availableSets;
 }
 

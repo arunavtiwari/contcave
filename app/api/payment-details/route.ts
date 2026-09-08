@@ -3,10 +3,11 @@ import { z } from 'zod';
 
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import { createErrorResponse, createSuccessResponse, handleRouteError } from '@/lib/api-utils';
-import { cfUpdateVendor } from '@/lib/cashfree/cashfree';
-import { upsertPaymentDetailsSafe } from '@/lib/payment-details';
+import { CashfreeVendorNotFoundError, cfEnsureVendor, cfUpdateVendor } from '@/lib/cashfree/cashfree';
+import { decryptPaymentDetailsInternal, upsertPaymentDetailsSafe } from '@/lib/payment-details';
 import prisma from '@/lib/prismadb';
 import { encryptionService } from '@/lib/security/encryption';
+import { isOwner } from '@/lib/user/permissions';
 import { paymentDetailsSchema, paymentDetailsUpdateSchema } from '@/schemas/payment';
 
 const createSchema = paymentDetailsSchema.extend({
@@ -23,14 +24,24 @@ export async function POST(request: NextRequest) {
         if (!currentUser?.id) {
             return createErrorResponse("Unauthorized", 401);
         }
+        if (!isOwner(currentUser.role)) {
+            return createErrorResponse("Only owners can manage payment details", 403);
+        }
 
         const contentType = request.headers.get('content-type') || '';
 
         if (!contentType.includes('multipart/form-data')) {
             return createErrorResponse('Expected multipart/form-data', 415);
         }
+        const contentLength = Number(request.headers.get('content-length') || 0);
+        if (Number.isFinite(contentLength) && contentLength > 50_000) {
+            return createErrorResponse('Request body too large', 413);
+        }
 
         const form = await request.formData();
+        if (Array.from(form.keys()).length > 20 || Array.from(form.values()).some(value => typeof value !== 'string')) {
+            return createErrorResponse('Invalid payment details form', 400);
+        }
 
         const rawData: Record<string, string> = {};
         form.forEach((val, key) => {
@@ -43,8 +54,11 @@ export async function POST(request: NextRequest) {
 
         rawData.userId = currentUser.id;
 
-        const isUpdate = !rawData.accountNumber?.trim().match(/^\d+$/);
-        const schema = isUpdate ? updateSchema : createSchema;
+        const existingDetails = await prisma.paymentDetails.findUnique({
+            where: { userId: currentUser.id },
+            select: { id: true },
+        });
+        const schema = existingDetails ? updateSchema : createSchema;
 
         const validated = schema.parse(rawData);
 
@@ -54,36 +68,42 @@ export async function POST(request: NextRequest) {
             bankName: validated.bankName,
             accountNumber: validated.accountNumber,
             ifscCode: validated.ifscCode,
-            companyName: validated.companyName || undefined,
-            gstin: validated.gstin || undefined,
+            companyName: validated.companyName === '' ? null : validated.companyName || undefined,
+            gstin: validated.gstin === '' ? null : validated.gstin || undefined,
         });
 
         if (!result.success) {
             return createErrorResponse(result.error || 'Failed to save payment details', 500);
         }
 
-        // Sync changes to Cashfree vendor (best-effort, don't fail the save)
+        let vendorSyncFailed = false;
         try {
             const paymentRecord = await prisma.paymentDetails.findUnique({
                 where: { userId: currentUser.id },
-                select: {
-                    cashfreeVendorId: true,
-                    vendorIdIV: true,
-                    accountNumber: true,
-                    accountNumberIV: true,
-                    ifscCode: true,
-                    ifscCodeIV: true,
-                    gstin: true,
-                    gstinIV: true,
-                    accountHolderName: true,
-                },
             });
+            const decryptedPaymentRecord = paymentRecord
+                ? decryptPaymentDetailsInternal(paymentRecord)
+                : null;
 
-            if (paymentRecord?.cashfreeVendorId && paymentRecord?.vendorIdIV) {
-                const decryptedVendorId = encryptionService.decrypt({
-                    encrypted: paymentRecord.cashfreeVendorId,
-                    iv: paymentRecord.vendorIdIV,
-                });
+            const payoutVerificationComplete = Boolean(
+                currentUser.email_verified
+                && currentUser.phone_verified
+                && currentUser.aadhaar_verified
+                && currentUser.bank_verified
+                && currentUser.email
+                && currentUser.phone
+            );
+
+            if (!payoutVerificationComplete) {
+                return createSuccessResponse(
+                    result.data,
+                    200,
+                    'Payment details saved. Complete identity and bank verification before Cashfree payout onboarding.'
+                );
+            }
+
+            if (decryptedPaymentRecord?.cashfreeVendorId) {
+                const decryptedVendorId = decryptedPaymentRecord.cashfreeVendorId;
 
                 // Build update payload with only the fields that were submitted
                 const updatePayload: Parameters<typeof cfUpdateVendor>[1] = {};
@@ -92,13 +112,9 @@ export async function POST(request: NextRequest) {
                 // Cashfree requires ALL three fields together, so fill missing ones from DB
                 if (validated.accountNumber || validated.ifscCode || validated.accountHolderName) {
                     // Decrypt existing values as fallbacks
-                    const existingAccNum = paymentRecord.accountNumber && paymentRecord.accountNumberIV
-                        ? encryptionService.decrypt({ encrypted: paymentRecord.accountNumber, iv: paymentRecord.accountNumberIV })
-                        : undefined;
-                    const existingIfsc = paymentRecord.ifscCode && paymentRecord.ifscCodeIV
-                        ? encryptionService.decrypt({ encrypted: paymentRecord.ifscCode, iv: paymentRecord.ifscCodeIV })
-                        : undefined;
-                    const existingHolder = paymentRecord.accountHolderName || undefined;
+                    const existingAccNum = decryptedPaymentRecord.accountNumber || undefined;
+                    const existingIfsc = decryptedPaymentRecord.ifscCode || undefined;
+                    const existingHolder = decryptedPaymentRecord.accountHolderName || undefined;
 
                     const accountHolder = validated.accountHolderName || existingHolder;
                     const accountNumber = validated.accountNumber || existingAccNum;
@@ -115,20 +131,78 @@ export async function POST(request: NextRequest) {
                 }
 
                 if (validated.gstin !== undefined) {
+                    const effectiveGstin = validated.gstin === undefined
+                        ? decryptedPaymentRecord.gstin
+                        : validated.gstin || null;
                     updatePayload.kyc_details = {
-                        account_type: "BUSINESS",
-                        business_type: "B2B",
-                        ...(validated.gstin ? { gst: validated.gstin.toUpperCase() } : {}),
+                        account_type: effectiveGstin ? "BUSINESS" : "INDIVIDUAL",
+                        business_type: effectiveGstin ? "B2B" : "Miscellaneous",
+                        ...(effectiveGstin ? { gst: effectiveGstin.toUpperCase() } : {}),
                     };
                 }
 
                 if (Object.keys(updatePayload).length > 0) {
-                    await cfUpdateVendor(decryptedVendorId, updatePayload);
-                }
+                    try {
+                        await cfUpdateVendor(decryptedVendorId, updatePayload);
+                    } catch (error) {
+                        if (!(error instanceof CashfreeVendorNotFoundError)) throw error;
 
+                        const ensuredVendorId = await cfEnsureVendor({
+                            vendor_id: decryptedVendorId,
+                            display_name: currentUser.name || decryptedPaymentRecord.accountHolderName,
+                            email: currentUser.email || undefined,
+                            phone: currentUser.phone || undefined,
+                            account_holder: decryptedPaymentRecord.accountHolderName,
+                            account_number: decryptedPaymentRecord.accountNumber,
+                            ifsc: decryptedPaymentRecord.ifscCode,
+                            gstin: validated.gstin === undefined ? decryptedPaymentRecord.gstin || undefined : validated.gstin || undefined,
+                        });
+                        const encryptedVendorId = encryptionService.encrypt(ensuredVendorId);
+                        await prisma.paymentDetails.update({
+                            where: { userId: currentUser.id },
+                            data: {
+                                cashfreeVendorId: encryptedVendorId.encrypted,
+                                vendorIdIV: encryptedVendorId.iv,
+                                encryptionVersion: encryptionService.getKeyVersion(),
+                            },
+                        });
+                    }
+                }
+            } else if (decryptedPaymentRecord) {
+                const vendorId = await cfEnsureVendor({
+                    vendor_id: `v_${currentUser.id}`,
+                    display_name: currentUser.name || decryptedPaymentRecord.accountHolderName,
+                    email: currentUser.email || undefined,
+                    phone: currentUser.phone || undefined,
+                    account_holder: decryptedPaymentRecord.accountHolderName,
+                    account_number: decryptedPaymentRecord.accountNumber,
+                    ifsc: decryptedPaymentRecord.ifscCode,
+                    gstin: decryptedPaymentRecord.gstin || undefined,
+                });
+                const encryptedVendorId = encryptionService.encrypt(vendorId);
+                await prisma.paymentDetails.update({
+                    where: { userId: currentUser.id },
+                    data: {
+                        cashfreeVendorId: encryptedVendorId.encrypted,
+                        vendorIdIV: encryptedVendorId.iv,
+                        encryptionVersion: encryptionService.getKeyVersion(),
+                    },
+                });
             }
         } catch (syncError) {
-            console.error('[PaymentDetails] Cashfree vendor sync failed (non-blocking):', syncError);
+            console.error('[PaymentDetails] Cashfree vendor sync failed:', syncError);
+            if (process.env.NODE_ENV === "production") {
+                vendorSyncFailed = true;
+            } else {
+                console.warn('[PaymentDetails] Bypassing Cashfree vendor sync failure in non-production mode');
+            }
+        }
+
+        if (vendorSyncFailed) {
+            return createErrorResponse(
+                'Bank details were saved, but payout-provider synchronization failed. Please retry before accepting bookings.',
+                502
+            );
         }
 
         return createSuccessResponse(

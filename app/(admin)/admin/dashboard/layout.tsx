@@ -22,7 +22,10 @@ export default async function AdminLayout({
 }) {
     const currentUser = await getCurrentUser();
 
-    if (!currentUser || !isAdmin(currentUser.role)) {
+    if (!currentUser) {
+        redirect("/admin");
+    }
+    if (!isAdmin(currentUser.role)) {
         redirect("/");
     }
 

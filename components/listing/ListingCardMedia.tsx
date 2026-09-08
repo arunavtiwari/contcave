@@ -26,7 +26,7 @@ interface ListingCardMediaProps {
     currentUser?: SafeUser | null;
     onEdit?: boolean;
     allowScale?: boolean;
-    reservationStatus?: number;
+    reservationLifecycleStatus?: string;
     totalPrice?: number;
     priority?: boolean;
     showListingBadge?: boolean;
@@ -48,7 +48,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
     currentUser,
     onEdit,
     allowScale = true,
-    reservationStatus,
+    reservationLifecycleStatus,
     totalPrice,
     priority = false,
     showListingBadge = false,
@@ -172,7 +172,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                 </>
             )}
 
-            {showListingBadge && reservationStatus === undefined && (listingType === "CURATED" || isVerified) && (
+            {showListingBadge && !reservationLifecycleStatus && (listingType === "CURATED" || isVerified) && (
                 <div className="absolute left-3 top-3 z-20">
                     {listingType === "CURATED" ? (
                         <Pill
@@ -192,22 +192,20 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                 </div>
             )}
 
-            {reservationStatus !== undefined && (
+            {reservationLifecycleStatus && (
                 <div className={`absolute left-3 top-3 z-20 transition-transform ${allowScale ? "group-hover:scale-110" : ""}`}>
                     <Pill
                         label={
-                            reservationStatus === 1 ? "Approved" :
-                                reservationStatus === 0 ? "Pending" :
-                                    reservationStatus === 2 ? "Rejected" : "Cancelled"
+                            reservationLifecycleStatus.replaceAll("_", " ")
                         }
                         variant={
-                            reservationStatus === 1 ? "success" :
-                                reservationStatus === 0 ? "warning" : "destructive"
+                            reservationLifecycleStatus === "COMPLETED" || reservationLifecycleStatus === "CHECKED_IN" || reservationLifecycleStatus === "CONFIRMED" ? "success" :
+                                reservationLifecycleStatus === "PENDING_APPROVAL" ? "warning" : "destructive"
                         }
                         size="xs"
                         className={`bg-background/80 backdrop-blur-md font-semibold text-[11px] px-3 border shadow-sm ${
-                            reservationStatus === 1 ? "text-success border-success/30" :
-                                reservationStatus === 0 ? "text-warning border-warning/30" : "text-destructive border-destructive/30"
+                            reservationLifecycleStatus === "COMPLETED" || reservationLifecycleStatus === "CHECKED_IN" || reservationLifecycleStatus === "CONFIRMED" ? "text-success border-success/30" :
+                                reservationLifecycleStatus === "PENDING_APPROVAL" ? "text-warning border-warning/30" : "text-destructive border-destructive/30"
                         }`}
                     />
                 </div>

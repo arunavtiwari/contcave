@@ -1,34 +1,28 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createKnownErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { normalizePhone } from "@/lib/phone";
 import { UserService } from "@/lib/user/service";
 import { phoneUpdateSchema, userUpdateSchema } from "@/schemas/user";
 
 export async function PUT(request: Request) {
   try {
-    if (!request.headers.get("content-type")?.includes("application/json")) {
-      return createErrorResponse("Content-Type must be application/json", 415);
-    }
-
     const currentUser = await getCurrentUser();
     if (!currentUser?.id || !currentUser?.email) {
       return createErrorResponse("Unauthorized", 401);
     }
 
-    const body = await request.json().catch(() => ({}));
+    const parsedBody = await readJsonObject(request, 25_000);
+    if (!parsedBody.success) return parsedBody.response;
 
-
-
-    const validation = userUpdateSchema.safeParse(body);
+    const validation = userUpdateSchema.safeParse(parsedBody.data);
     if (!validation.success) {
       return createErrorResponse(validation.error.issues[0].message, 400);
     }
-
     const updatedUser = await UserService.updateProfile(currentUser.email, validation.data);
     return createSuccessResponse(updatedUser);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to update profile";
-    if (message === "User not found") return createErrorResponse(message, 404);
+    const knownResponse = createKnownErrorResponse(error);
+    if (knownResponse) return knownResponse;
     return handleRouteError(error, "PUT /api/user");
   }
 }
@@ -38,12 +32,9 @@ export async function PATCH(request: Request) {
     const currentUser = await getCurrentUser();
     if (!currentUser) return createErrorResponse("Unauthorized", 401);
 
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return createErrorResponse("Invalid JSON", 400);
-    }
+    const parsedBody = await readJsonObject(request, 5_000);
+    if (!parsedBody.success) return parsedBody.response;
+    const body = parsedBody.data;
 
     const phone = body?.phone;
     if (typeof phone !== "string") {
@@ -66,6 +57,8 @@ export async function PATCH(request: Request) {
     const updated = await UserService.updateProfile(currentUser.email, { phone: normalized });
     return createSuccessResponse({ ok: true, phone: updated.phone });
   } catch (error) {
+    const knownResponse = createKnownErrorResponse(error);
+    if (knownResponse) return knownResponse;
     return handleRouteError(error, "PATCH /api/user");
   }
 }
@@ -82,6 +75,8 @@ export async function DELETE() {
 
     return createSuccessResponse({ ok: true });
   } catch (error) {
+    const knownResponse = createKnownErrorResponse(error);
+    if (knownResponse) return knownResponse;
     return handleRouteError(error, "DELETE /api/user");
   }
 }

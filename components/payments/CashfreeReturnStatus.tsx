@@ -22,8 +22,8 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
         );
     }
 
-    const transaction = await getTransaction({ tid });
-    const reservation = transaction?.reservation ?? (await getReservation({ tid }));
+    const transaction = await getTransaction({ tid }).catch(() => null);
+    const reservation = transaction?.reservation ?? (await getReservation({ tid }).catch(() => null));
 
     const txStatus = String(transaction?.status ?? "PENDING").toUpperCase();
     const listingId =
@@ -33,21 +33,7 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
         transaction?.listingId ||
         "";
 
-    const serializedReservation = reservation
-        ? {
-              ...reservation,
-              startDate: reservation.startDate instanceof Date ? reservation.startDate.toISOString() : reservation.startDate,
-              createdAt: reservation.createdAt instanceof Date ? reservation.createdAt.toISOString() : reservation.createdAt,
-              updatedAt: reservation.updatedAt instanceof Date ? reservation.updatedAt.toISOString() : reservation.updatedAt,
-              markedForDeletionAt: reservation.markedForDeletionAt instanceof Date ? reservation.markedForDeletionAt.toISOString() : reservation.markedForDeletionAt,
-              listing: reservation.listing
-                  ? {
-                        ...reservation.listing,
-                        createdAt: reservation.listing.createdAt instanceof Date ? reservation.listing.createdAt.toISOString() : reservation.listing.createdAt,
-                    }
-                  : null,
-          }
-        : null;
+    const serializedReservation = reservation;
 
     return (
         <CashfreeReturnStatusClient

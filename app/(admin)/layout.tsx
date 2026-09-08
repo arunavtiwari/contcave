@@ -8,9 +8,6 @@ import ClientOnly from "@/components/ClientOnly";
 import ToastContainerBar from "@/components/ToastContainerBar";
 import { BRAND_NAME, SITE_URL } from "@/lib/seo";
 
-// Using Geist instead of Montserrat for consistency with the main app
-
-
 export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),
     title: {

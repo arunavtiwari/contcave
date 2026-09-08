@@ -26,8 +26,9 @@ const ProfileSettings = ({ profile }: Props) => {
   const handleDeleteRequest = async () => {
     setIsSubmitting(true);
     try {
-      await deleteAccount();
-      toast.success("Account scheduled for deletion. Log in again to cancel.");
+      const result = await deleteAccount(undefined);
+      if (!result.success) throw new Error(result.error || "Unable to update account status.");
+      toast.success("Account deactivated. Sign in again to restore it.");
       setShowConfirmModal(false);
       await signOut({ callbackUrl: "/" });
     } catch (error: unknown) {
@@ -76,19 +77,19 @@ const ProfileSettings = ({ profile }: Props) => {
         </div>
         <div className="bg-destructive/5 p-6 rounded-2xl border border-destructive/20">
           <Heading title="Danger Zone" variant="h5" className="mb-4 text-destructive" />
-          <p className="text-destructive text-base font-bold mb-1">Delete Account</p>
+          <p className="text-destructive text-base font-bold mb-1">Deactivate Account</p>
           <p className="text-muted-foreground font-medium text-sm">
-            <span className="italic">Warning:</span> Deleting your account will permanently remove all
-            your data and cannot be undone.
+            Deactivation signs you out and hides your active listings. Your account and records are retained,
+            and signing in again restores the account and listings that were active when you deactivated it.
           </p>
 
           {profile?.markedForDeletion && (
             <div className="mt-4 rounded-xl border border-dashed border-destructive/30 bg-background p-4 text-sm text-destructive">
-              Account deletion requested
+              Account deactivation requested
               {markedForDeletionAt ? (
                 <>
                   {" "}
-                  on <span className="font-semibold">{markedForDeletionAt}</span>. Re-login to cancel.
+                  on <span className="font-semibold">{markedForDeletionAt}</span>. Sign in again to restore it.
                 </>
               ) : (
                 "."
@@ -97,7 +98,7 @@ const ProfileSettings = ({ profile }: Props) => {
           )}
 
           <Button
-            label="DELETE ACCOUNT"
+            label="DEACTIVATE ACCOUNT"
             onClick={() => setShowConfirmModal(true)}
             disabled={isSubmitting}
             variant="destructive"
@@ -111,8 +112,8 @@ const ProfileSettings = ({ profile }: Props) => {
         isOpen={showConfirmModal}
         onCloseAction={() => (isSubmitting ? null : setShowConfirmModal(false))}
         onSubmitAction={handleDeleteRequest}
-        title="Confirm deletion"
-        actionLabel={isSubmitting ? "Processing..." : "Yes, delete my account"}
+        title="Confirm deactivation"
+        actionLabel={isSubmitting ? "Processing..." : "Yes, deactivate my account"}
         secondaryActionAction={() => setShowConfirmModal(false)}
         secondaryActionLabel="Cancel"
         disabled={isSubmitting}
@@ -120,12 +121,12 @@ const ProfileSettings = ({ profile }: Props) => {
         body={
           <div className="space-y-3 text-sm text-muted-foreground">
             <p>
-              Are you sure you want to delete your ContCave account? Your listings, reservations, and
-              billing records will be permanently removed once the deletion request is processed.
+              Are you sure you want to deactivate your ContCave account? You will be signed out and your
+              active listings will be hidden, while reservations and billing records remain retained.
             </p>
             <p>
-              You can undo this later by simply logging back in before the deletion is finalized. This
-              will automatically cancel the request.
+              You can restore the account later by signing in again. Listings that were active when the
+              account was deactivated will be restored automatically.
             </p>
           </div>
         }
@@ -135,4 +136,3 @@ const ProfileSettings = ({ profile }: Props) => {
 };
 
 export default ProfileSettings;
-

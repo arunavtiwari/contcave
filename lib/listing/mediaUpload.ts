@@ -24,12 +24,32 @@ type UploadedSet<TSet> = Omit<TSet, "id" | "images" | "position"> & {
 const shouldUploadString = (value: string): boolean =>
   value.startsWith("blob:") || value.startsWith("data:");
 
+async function mapWithConcurrency<T, TResult>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<TResult>,
+): Promise<TResult[]> {
+  const results = new Array<TResult>(items.length);
+  let cursor = 0;
+  const workers = Array.from(
+    { length: Math.min(Math.max(1, concurrency), items.length) },
+    async () => {
+      while (cursor < items.length) {
+        const index = cursor;
+        cursor += 1;
+        results[index] = await mapper(items[index], index);
+      }
+    },
+  );
+  await Promise.all(workers);
+  return results;
+}
+
 const uploadMediaItems = async (
   items: (string | File)[],
   folder: string
 ): Promise<string[]> => {
-  const urls = await Promise.all(
-    items.map(async (item) => {
+  const urls = await mapWithConcurrency(items, 4, async (item) => {
       if (typeof item === "string" && !shouldUploadString(item)) {
         return item;
       }
@@ -39,8 +59,7 @@ const uploadMediaItems = async (
         throw new Error("Failed to upload media");
       }
       return uploadedUrl;
-    })
-  );
+    });
 
   return urls;
 };
@@ -77,8 +96,10 @@ export async function uploadListingMedia<
 
   // 3. Upload Sets Images
   const finalSets = media.sets
-    ? await Promise.all(
-        media.sets.map(async (s, i) => {
+    ? await mapWithConcurrency(
+        media.sets,
+        3,
+        async (s, i) => {
           const existingSetId = s.id && /^[0-9a-fA-F]{24}$/.test(s.id) ? s.id : undefined;
           const setId = existingSetId || (media.createMissingSetIds === false ? undefined : createObjectId());
           const uploadFolderSetId = setId || `set-${i}`;
@@ -96,14 +117,16 @@ export async function uploadListingMedia<
               : [],
             position: i,
           } as UploadedSet<TSet>;
-        })
+        },
       )
     : [];
 
   // 4. Upload Addons Images
   const finalAddons: Addon[] = media.addons
-    ? await Promise.all(
-        media.addons.map(async (addon, i) => {
+    ? await mapWithConcurrency(
+        media.addons,
+        4,
+        async (addon, i) => {
           const addonId = addon.id || (media.createMissingAddonIds === false ? undefined : createObjectId());
           const uploadFolderAddonId = addonId || `addon-${i}`;
           let imageUrl = addon.imageUrl ?? "";
@@ -116,7 +139,7 @@ export async function uploadListingMedia<
             ...(addonId ? { id: addonId } : {}),
             imageUrl,
           };
-        })
+        },
       )
     : [];
 

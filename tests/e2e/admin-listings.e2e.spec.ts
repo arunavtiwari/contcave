@@ -1,4 +1,4 @@
-import { type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import {
   createAdminUserFixture,
@@ -8,6 +8,7 @@ import {
 } from "./support/db";
 import { getE2EConnectionEnv } from "./support/env";
 import { expect, test } from "./support/test";
+import { gotoApp } from "./support/ui";
 
 function adminBaseUrl() {
   const base = new URL(getE2EConnectionEnv().baseUrl);
@@ -26,11 +27,11 @@ function adminBaseUrl() {
 }
 
 async function loginAdmin(page: Page, email: string, password: string) {
-  await page.goto(`${adminBaseUrl()}/admin`);
+  await gotoApp(page, `${adminBaseUrl()}/admin`);
   await page.getByLabel(/email address/i).fill(email);
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/admin\/dashboard\/listings/);
+  await expect(page).toHaveURL(/\/admin\/dashboard\/listings/, { timeout: 60_000 });
 }
 
 function reviewButtonFor(page: Page, listingTitle: string) {
@@ -40,10 +41,33 @@ function reviewButtonFor(page: Page, listingTitle: string) {
 async function openReviewModal(page: Page, listingTitle: string) {
   const reviewButton = reviewButtonFor(page, listingTitle);
   await expect(reviewButton).toBeVisible({ timeout: 60_000 });
+
+  const modal = page.getByTestId("admin-listing-review-modal");
+  // Click the review button once
   await reviewButton.click();
+
+  // Wait for the modal to be visible. If it doesn't open (due to click-before-hydration lag), click again.
+  try {
+    await modal.waitFor({ state: "visible", timeout: 5000 });
+  } catch {
+    // Retry clicking once
+    await reviewButton.click();
+    await modal.waitFor({ state: "visible", timeout: 15_000 });
+  }
 }
 
 test.describe("admin listing moderation", () => {
+  test("opens the Listings tab from the admin navigation", async ({ page }, testInfo) => {
+    const { account } = await createAdminUserFixture(`navigation-r${testInfo.retry}`);
+
+    await loginAdmin(page, account.email, account.password);
+    await page.getByRole("link", { name: "Bookings" }).click();
+    await expect(page).toHaveURL(/\/admin\/dashboard\/bookings/);
+    await page.getByRole("link", { name: "Listings" }).click();
+    await expect(page).toHaveURL(/\/admin\/dashboard\/listings/);
+    await expect(page.getByRole("heading", { name: "Listing Review" })).toBeVisible();
+  });
+
   test("loads status tabs and opens the enterprise review modal with KYC and documents", async ({ page }, testInfo) => {
     const { account } = await createAdminUserFixture(`review-open-r${testInfo.retry}`);
     const { user: owner } = await createUserFixture({

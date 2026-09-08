@@ -1,4 +1,4 @@
-import { getBaseUrl } from "@/lib/utils";
+import { getValidatedBaseUrl } from "@/lib/utils";
 
 import { escapeEmailHtml } from "./html";
 import { AttachmentInput, sendEmail } from "./mailer";
@@ -24,6 +24,7 @@ function buildReservationEmailHtml(input: {
   addons?: string | null;
   studioLocation?: string;
   nextSteps?: string[];
+  cta?: { label: string; url: string };
 }) {
   const hasAddons = Boolean(input.addons?.trim());
   const detailRows = [
@@ -46,7 +47,7 @@ function buildReservationEmailHtml(input: {
             <tr>
               <td style="font-size:15px;line-height:1.6;">
                 <div style="margin-bottom:24px;text-align:left;">
-                  <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                  <img src="${getValidatedBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
                 </div>
                 <p>Hi ${escapeEmailHtml(input.greetingName)},</p>
                 <p>${escapeEmailHtml(input.intro)}</p>
@@ -65,6 +66,11 @@ function buildReservationEmailHtml(input: {
                     ${input.nextSteps.map((step) => `<li>${escapeEmailHtml(step)}</li>`).join("")}
                   </ul>
                 ` : ""}
+                ${input.cta ? `
+                  <p style="text-align:center;margin:28px 0 0;">
+                    <a href="${escapeEmailHtml(input.cta.url)}" style="background:#111827;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block;">${escapeEmailHtml(input.cta.label)}</a>
+                  </p>
+                ` : ""}
                 <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
                 <p style="font-size:13px;color:#9ca3af;line-height:1.6;margin:0;">ContCave by Arkanet Ventures LLP.</p>
               </td>
@@ -76,6 +82,27 @@ function buildReservationEmailHtml(input: {
   </body>
   </html>
   `;
+}
+
+export function getEmailVerificationCodeTemplate(name: string, code: string): string {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head><meta charset="UTF-8" /><title>Verify your ContCave email</title></head>
+  <body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#374151;">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 16px;">
+      <table width="100%" style="max-width:480px;background:#ffffff;border-radius:8px;padding:32px;"><tr><td style="font-size:15px;line-height:1.6;">
+        <div style="margin-bottom:24px;"><img src="${getValidatedBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" /></div>
+        <p>Hi ${escapeEmailHtml(name || "there")},</p>
+        <p>Enter this code in ContCave to confirm that this email address belongs to you:</p>
+        <p style="margin:28px 0;text-align:center;font-size:30px;letter-spacing:8px;font-weight:700;color:#111827;">${escapeEmailHtml(code)}</p>
+        <p style="font-size:14px;color:#6b7280;">This code expires in 10 minutes. If you did not request it, you can safely ignore this email.</p>
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
+        <p style="font-size:13px;color:#9ca3af;margin:0;">ContCave by Arkanet Ventures LLP.</p>
+      </td></tr></table>
+    </td></tr></table>
+  </body>
+  </html>`;
 }
 
 export function getResetPasswordTemplate(name: string, resetUrl: string): string {
@@ -94,7 +121,7 @@ export function getResetPasswordTemplate(name: string, resetUrl: string): string
             <tr>
               <td style="color:#374151;font-size:15px;line-height:1.6;">
                 <div style="margin-bottom:24px;text-align:left;">
-                  <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                  <img src="${getValidatedBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
                 </div>
                 <p>Hi ${escapeEmailHtml(name || "there")},</p>
                 <p>We received a request to reset your password. Click the button below to choose a new one:</p>
@@ -120,7 +147,7 @@ export function getResetPasswordTemplate(name: string, resetUrl: string): string
 }
 
 export function getHostOnboardingTemplate(name: string): string {
-  const ctaUrl = `${getBaseUrl()}/dashboard/properties`;
+  const ctaUrl = `${getValidatedBaseUrl()}/dashboard/properties`;
   return `
   <!DOCTYPE html>
   <html>
@@ -140,7 +167,7 @@ export function getHostOnboardingTemplate(name: string): string {
             <tr>
               <td style="color:#374151;font-size:15px;line-height:1.6;">
                 <div style="margin-bottom:24px;text-align:left;">
-                  <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                  <img src="${getValidatedBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
                 </div>
                 <p>Hi ${escapeEmailHtml(name)},</p>
                 <p>Welcome to <strong>ContCave</strong>! We're thrilled to have you join our ecosystem as a host.</p>
@@ -169,7 +196,7 @@ export function getHostOnboardingTemplate(name: string): string {
 }
 
 export function getCustomerOnboardingTemplate(name: string): string {
-  const ctaUrl = `${getBaseUrl()}/home`;
+  const ctaUrl = `${getValidatedBaseUrl()}/home`;
   return `
   <!DOCTYPE html>
   <html>
@@ -189,7 +216,7 @@ export function getCustomerOnboardingTemplate(name: string): string {
             <tr>
               <td style="color:#374151;font-size:15px;line-height:1.6;">
                 <div style="margin-bottom:24px;text-align:left;">
-                  <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                  <img src="${getValidatedBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
                 </div>
                 <p>Hi ${escapeEmailHtml(name)},</p>
                 <p>Welcome to <strong>ContCave</strong>! We're thrilled to have you join our ecosystem for India's growing creator economy.</p>
@@ -257,6 +284,40 @@ export async function sendReservationConfirmationCustomer(input: {
   });
 }
 
+export async function sendCustomerPaymentInvoice(input: {
+  toEmail: string;
+  toName?: string;
+  studioName: string;
+  bookingId: string;
+  paymentLabel: string;
+  startDate: string;
+  startTime: string;
+  endTime: string;
+  amount: number;
+  studioLocation?: string;
+  attachments: AttachmentInput[];
+}) {
+  await sendEmail({
+    toEmail: input.toEmail,
+    toName: input.toName || "",
+    subject: `Your ContCave tax invoice: ${input.paymentLabel}`,
+    html: buildReservationEmailHtml({
+      greetingName: input.toName || "there",
+      intro: `Your tax invoice for ${input.paymentLabel} at ${input.studioName} is attached for your records.`,
+      studioName: input.studioName,
+      startDate: input.startDate,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      totalPrice: input.amount,
+      amountLabel: "Amount paid",
+      detailsHeading: "Payment Details",
+      studioLocation: input.studioLocation,
+      nextSteps: ["Keep this tax invoice for your records.", "Contact ContCave support if you need help with this payment."],
+    }),
+    attachments: input.attachments,
+  });
+}
+
 export async function sendReservationReceivedCustomer(input: {
   toEmail: string;
   toName?: string;
@@ -290,6 +351,36 @@ export async function sendReservationReceivedCustomer(input: {
       ],
     }),
     attachments: input.attachments,
+  });
+}
+
+export async function sendReviewReminderCustomer(input: {
+  toEmail: string;
+  toName?: string;
+  studioName: string;
+  startDate: string;
+  startTime: string;
+  endTime: string;
+  totalPrice: number;
+  studioLocation?: string;
+  reviewUrl: string;
+}) {
+  await sendEmail({
+    toEmail: input.toEmail,
+    toName: input.toName || "",
+    subject: `How was ${input.studioName}?`,
+    html: buildReservationEmailHtml({
+      greetingName: input.toName || "there",
+      intro: `Your session at ${input.studioName} has been completed. Share a short review to help other creators choose the right space.`,
+      studioName: input.studioName,
+      startDate: input.startDate,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      totalPrice: input.totalPrice,
+      studioLocation: input.studioLocation,
+      detailsHeading: "Completed Booking",
+      cta: { label: "Leave a review", url: input.reviewUrl },
+    }),
   });
 }
 
@@ -356,7 +447,7 @@ export async function sendReservationRejectedCustomer(input: {
       totalPrice: input.totalPrice,
       nextSteps: [
         input.rejectReason ? `Reason provided: ${input.rejectReason}` : "Reason provided: Not specified.",
-        "Refunds usually reflect within 5-7 business days, depending on your bank or payment provider.",
+        "Contact ContCave support if you need help with refund eligibility or status.",
       ],
     }),
     attachments: input.attachments,
@@ -380,7 +471,7 @@ export async function sendReservationCancelledOwner(input: {
     subject: `Booking request cancelled: ${input.studioName}`,
     html: buildReservationEmailHtml({
       greetingName: input.toName || "there",
-      intro: `${input.customerName || "The customer"} cancelled their pending booking request for ${input.studioName}. The slot has been released and the refund has been initiated.`,
+      intro: `${input.customerName || "The customer"} cancelled their pending booking request for ${input.studioName}. The slot has been released. Any refund must be reviewed and recorded by the ContCave team according to the booking policy.`,
       studioName: input.studioName,
       startDate: input.startDate,
       startTime: input.startTime,
@@ -492,7 +583,7 @@ export async function sendCuratedOutreachEmail(input: {
 }) {
   const waNumber = process.env.NEXT_PUBLIC_CONTCAVE_WHATSAPP ?? "";
   const contactEmail = process.env.MAILERSEND_FROM_EMAIL ?? "info@contcave.com";
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://contcave.com";
+  const baseUrl = getValidatedBaseUrl();
 
   const html = `<!DOCTYPE html>
 <html>
@@ -541,14 +632,14 @@ export function getReservationFailedTemplate(name: string, orderId: string): str
             <tr>
               <td style="color:#374151;font-size:15px;line-height:1.6;">
                 <div style="margin-bottom:24px;text-align:left;">
-                  <img src="${getBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
+                  <img src="${getValidatedBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
                 </div>
                 <p>Hi ${escapeEmailHtml(name)},</p>
                 <p>We were unable to process payment for your booking request (Order ID: <strong>${escapeEmailHtml(orderId)}</strong>).</p>
                 <p>If your bank shows a debit for this attempt, the amount will be reversed or refunded to your original payment method. Processing times vary by bank and payment provider.</p>
                 <p>You can return to ContCave to try the booking again.</p>
                 <div style="text-align:center;margin:32px 0;">
-                  <a href="${getBaseUrl()}/home" 
+                  <a href="${getValidatedBaseUrl()}/home"
                      style="background:#000000;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block;">
                     Try Booking Again
                   </a>

@@ -1,21 +1,11 @@
 "use server";
 
-import getCurrentUser from "@/app/actions/getCurrentUser";
+import { createAction } from "@/lib/actions-utils";
 import { BillingService } from "@/lib/billing/service";
+import { billingSchema } from "@/schemas/billing";
 
-export async function saveBillingInfo(data: {
-    companyName: string;
-    gstin: string;
-    billingAddress: string;
-    isDefault?: boolean;
-}) {
-    try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser?.id) throw new Error("Unauthorized");
-
-        return await BillingService.upsertRecord(currentUser.id, data);
-    } catch (error) {
-        console.error("[saveBillingInfo] Error:", error);
-        throw error;
-    }
-}
+export const saveBillingInfo = createAction(
+    billingSchema,
+    { requireAuth: true },
+    async (data, { user }) => await BillingService.upsertRecord(user.id, data)
+);

@@ -1,23 +1,31 @@
 "use server";
 
+import { z } from "zod";
+
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
 
 interface IParams {
   tid: string;
 }
 
-export default async function getReservation(params: IParams) {
-  const { tid } = params || ({} as IParams);
+const transactionReferenceSchema = z.string().trim().min(1).max(200);
 
-  if (!tid) {
-    throw new Error("tid (cfOrderId) is required");
-  }
+export default async function getReservation(params: IParams) {
+  const parsed = transactionReferenceSchema.safeParse(params?.tid);
+  if (!parsed.success) return null;
+  const tid = parsed.data;
 
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser?.id) return null;
+
     const reservation = await prisma.reservation.findFirst({
       where: {
+        userId: currentUser.id,
         Transaction: {
           some: {
+            userId: currentUser.id,
             OR: [
               { cfOrderId: tid },
               { cfTxnRef: tid },
@@ -25,6 +33,9 @@ export default async function getReservation(params: IParams) {
           },
         },
         markedForDeletion: false,
+        AND: [{
+          OR: [{ hiddenByGuestAt: null }, { hiddenByGuestAt: { isSet: false } }],
+        }],
       },
       include: {
         listing: true,

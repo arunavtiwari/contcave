@@ -27,7 +27,22 @@ async function dismissCookieBanner(page: Page) {
 }
 
 async function waitForAppToSettle(page: Page) {
-  await page.waitForLoadState("load", { timeout: 5_000 }).catch(() => undefined);
+  await page.waitForLoadState("domcontentloaded", { timeout: 5_000 }).catch(() => undefined);
+}
+
+export async function gotoApp(page: Page, url: string) {
+  // Next App Router responses can keep streaming while external media/fonts fail.
+  // Commit verifies the HTTP response; each flow then waits for its actual UI landmark.
+  const response = await page.goto(url, { waitUntil: "commit" });
+  if (response) {
+    expect(response.status(), `Navigation to ${url} should succeed`).toBeLessThan(400);
+  }
+  await page.waitForFunction(
+    () => document.documentElement?.dataset.appHydrated === "true",
+    undefined,
+    { timeout: 30_000 }
+  );
+  return response;
 }
 
 async function modalByTestIdOrDialog(page: Page, testId: string, name: RegExp) {
@@ -76,8 +91,14 @@ export async function openUserMenu(page: Page) {
 
   const labelledMenuButton = page.getByRole("button", { name: "Open user menu" });
   if (await labelledMenuButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
-    await labelledMenuButton.click();
-    return;
+    const menuContent = page.getByText(/^(Login|My Bookings)$/i).first();
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      if (await menuContent.isVisible().catch(() => false)) return;
+      await labelledMenuButton.click();
+      if (await menuContent.isVisible({ timeout: 1_500 }).catch(() => false)) return;
+      await page.waitForTimeout(500);
+    }
+    throw new Error("User menu did not open after the application hydrated.");
   }
 
   await page.getByRole("button", { name: /city date/i }).locator("xpath=following::button[1]").click();
@@ -85,7 +106,7 @@ export async function openUserMenu(page: Page) {
 
 export async function loginViaUi(page: Page, account: Pick<QAAccount, "email" | "password">) {
   await seedCookieConsent(page);
-  await page.goto("/");
+  await gotoApp(page, "/");
   await openUserMenu(page);
   await page.getByRole("button", { name: /login/i }).click();
   const modal = await modalByTestIdOrDialog(page, "login-modal", /^login$/i);
@@ -98,7 +119,7 @@ export async function loginViaUi(page: Page, account: Pick<QAAccount, "email" | 
 
 export async function registerOwnerViaUi(page: Page, account: QAAccount) {
   await seedCookieConsent(page);
-  await page.goto("/");
+  await gotoApp(page, "/");
   await openUserMenu(page);
   await page.getByRole("button", { name: /sign up/i }).click();
   const registerModal = await modalByTestIdOrDialog(page, "register-modal", /^register$/i);
@@ -117,7 +138,7 @@ export async function registerOwnerViaUi(page: Page, account: QAAccount) {
 
 export async function registerCustomerViaUi(page: Page, account: QAAccount) {
   await seedCookieConsent(page);
-  await page.goto("/");
+  await gotoApp(page, "/");
   await openUserMenu(page);
   await page.getByRole("button", { name: /sign up/i }).click();
   const modal = await modalByTestIdOrDialog(page, "register-modal", /^register$/i);
@@ -165,29 +186,39 @@ export async function selectAddressOption(page: Page, search: string, optionName
 }
 
 export async function fillRichText(page: Page, testId: string, value: string) {
-  const editor = page.getByTestId(testId);
-  await expect(editor).toBeVisible();
-  await editor.click();
+  // Lexical can replace the contenteditable during the initial form-state
+  // update. Resolve a fresh locator for each attempt so a transient detach
+  // does not fail an otherwise valid flow.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const editor = page.getByTestId(testId);
+    await expect(editor).toBeVisible();
+    try {
+      await editor.click({ timeout: 5_000 });
+      break;
+    } catch (error) {
+      if (attempt === 2) throw error;
+      await page.waitForTimeout(250);
+    }
+  }
   await page.keyboard.insertText(value);
 }
 
 export async function completeOwnerVerification(page: Page, account: QAAccount) {
   await seedCookieConsent(page);
-  await page.goto("/dashboard/profile");
+  await gotoApp(page, "/dashboard/profile");
   await dismissCookieBanner(page);
   await page.getByRole("button", { name: /start verification/i }).click();
   const modal = page.getByTestId("verification-modal");
   await expect(modal).toBeVisible();
 
   await modal.locator("#email").fill(account.email);
-  await modal.getByRole("button", { name: /^verify$/i }).nth(0).click();
+  await modal.getByRole("button", { name: /^send code$/i }).click();
+  await modal.locator("#emailVerificationCode").fill(process.env.E2E_EMAIL_VERIFICATION_CODE || "000000");
+  await modal.getByRole("button", { name: /^confirm$/i }).click();
   await expect(modal.getByRole("button", { name: /^verified$/i }).first()).toBeVisible({ timeout: 60_000 });
 
   await dismissCookieBanner(page);
   await modal.locator("#phone").fill(account.phone);
-  await modal.getByRole("button", { name: /^verify$/i }).click();
-  await expect(modal.getByRole("button", { name: /^verified$/i }).nth(1)).toBeVisible({ timeout: 30_000 });
-
   await modal.getByTestId("verification-modal-primary-action").click();
   await expect(page.getByTestId("verification-step-2")).toBeVisible();
 
@@ -206,7 +237,7 @@ export async function completeOwnerVerification(page: Page, account: QAAccount) 
 
 export async function createListingViaRentModal(page: Page, title: string) {
   await seedCookieConsent(page);
-  await page.goto("/");
+  await gotoApp(page, "/");
   await openUserMenu(page);
   await page.getByText("List your space").click();
   await expect(page.getByTestId("rent-modal")).toBeVisible();
@@ -283,9 +314,34 @@ export async function createListingViaRentModal(page: Page, title: string) {
 
 export async function completeCashfreeCheckout(page: Page) {
   const method = getE2EEnv().cashfreePaymentMethod;
-  await page.waitForURL(/cashfree|payments\/cashfree/i, { timeout: 60_000 });
+  const completedBooking = page.getByRole("heading", {
+    name: /^(?:your )?reservation (?:has been confirmed|request has been sent)/i,
+  });
 
-  if (/payments\/cashfree\/return/i.test(page.url())) return;
+  // The guarded local simulator completes payment before performing a full
+  // document navigation to the normal Cashfree return route. In dev mode that
+  // route can need a first-time compile, so use the same allowance as a real
+  // Cashfree redirect instead of treating it as an external checkout page.
+  if (process.env.NEXT_PUBLIC_E2E_BYPASS_CASHFREE_CHECKOUT === "true") {
+    await page.waitForURL(/\/payments\/cashfree\/return(?:\?|$)/i, { timeout: 180_000 });
+    await expect(completedBooking).toBeVisible({ timeout: 60_000 });
+    return;
+  }
+
+  // The local simulator can complete and render the return page before this
+  // helper resumes after the summary-modal click. Do not wait for a navigation
+  // event that has already happened.
+  if (
+    /payments\/cashfree\/return/i.test(page.url())
+    || await completedBooking.isVisible().catch(() => false)
+  ) return;
+
+  await expect.poll(
+    async () => /cashfree|payments\/cashfree/i.test(page.url()) || await completedBooking.isVisible().catch(() => false),
+    { timeout: 180_000, message: "Cashfree checkout should open or complete" }
+  ).toBe(true);
+
+  if (/payments\/cashfree\/return/i.test(page.url()) || await completedBooking.isVisible().catch(() => false)) return;
 
   if (method.type === "upi") {
     await page.getByRole("link", { name: /pay by upi id/i }).click({ timeout: 30_000 });
@@ -347,6 +403,6 @@ export async function completeCashfreeCheckout(page: Page) {
 
   const returnedUrl = new URL(page.url());
   if (returnedUrl.pathname === "/" && returnedUrl.searchParams.has("tid")) {
-    await page.goto(`/payments/cashfree/return?tid=${encodeURIComponent(returnedUrl.searchParams.get("tid") || "")}`);
+    await gotoApp(page, `/payments/cashfree/return?tid=${encodeURIComponent(returnedUrl.searchParams.get("tid") || "")}`);
   }
 }

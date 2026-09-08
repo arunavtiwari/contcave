@@ -1,0 +1,16 @@
+export const DEFAULT_AMENITIES = [
+  { id: "65b2aca316d8d0003b5c6e14", name: "Air Conditioner" },
+  { id: "65b2ac9616d8d0003b5c6e13", name: "Blackout blinds" },
+  { id: "65b2acd616d8d0003b5c6e17", name: "Chairs" },
+  { id: "65b2acf116d8d0003b5c6e19", name: "Changing Room" },
+  { id: "65b2ad2016d8d0003b5c6e1c", name: "Coffee Machine" },
+  { id: "65b2acb316d8d0003b5c6e15", name: "Lift" },
+  { id: "65b2ad2e16d8d0003b5c6e1d", name: "Natural Light" },
+  { id: "65b2ace316d8d0003b5c6e18", name: "Nearby Parking" },
+  { id: "65b2ad3c16d8d0003b5c6e1e", name: "Restroom" },
+  { id: "65e09cdbfb2b11bc2cbe02c3", name: "Security Cameras" },
+  { id: "65b2acc816d8d0003b5c6e16", name: "Table" },
+  { id: "65b2acff16d8d0003b5c6e1a", name: "Wardrobe Rack" },
+  { id: "65b2ac4116d8d0003b5c6e12", name: "Well Lit Space" },
+  { id: "68aafdb5e2853bc5f5c45cd9", name: "Wifi" },
+] as const;

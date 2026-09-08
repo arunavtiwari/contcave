@@ -12,6 +12,7 @@ type Props = {
   disabledDates?: Date[];
   allowedDays?: DayKey[] | OperationalDays;
   minDate?: Date;
+  maxDate?: Date;
 };
 
 const DAY_ORDER: DayKey[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -59,6 +60,7 @@ export default function Calendar({
   disabledDates = [],
   allowedDays,
   minDate,
+  maxDate,
 }: Props) {
   const normalized = React.useMemo(() => normalizeAllowed(allowedDays), [allowedDays]);
 
@@ -95,6 +97,7 @@ export default function Calendar({
         showDateDisplay={false}
         showMonthAndYearPickers={false}
         minDate={minDate ?? new Date()}
+        maxDate={maxDate}
         disabledDates={disabledDates}
         disabledDay={isDayDisabled}
         color="#000000"

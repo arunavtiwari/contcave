@@ -1,5 +1,6 @@
 "use server";
 
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import { ListingService } from "@/lib/listing/service";
 
 export interface IListingsParams {
@@ -17,6 +18,13 @@ export interface IListingsParams {
 
 export default async function getListings(params: IListingsParams) {
   try {
+    if (params.userId) {
+      const currentUser = await getCurrentUser();
+      if (!currentUser || (currentUser.id !== params.userId && currentUser.role !== "ADMIN")) {
+        return [];
+      }
+    }
+
     const safeListings = await ListingService.getListings({
       ...params,
       hasSets: params.hasSets === "true",

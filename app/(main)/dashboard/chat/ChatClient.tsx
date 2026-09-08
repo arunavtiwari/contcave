@@ -6,7 +6,7 @@ import { FC, useEffect, useRef, useState } from "react";
 import { IoSend } from "react-icons/io5";
 
 import Heading from "@/components/ui/Heading";
-import { incrementUnreadCount,markAsRead } from "@/lib/chat/actions";
+import { markAsRead, sendChatMessage } from "@/lib/chat/actions";
 import {
   calculateDurationHours,
   formatBookingDate,
@@ -28,14 +28,15 @@ const MAX_MESSAGE_LENGTH = 2000;
 interface Message {
   id: string;
   text: string;
-  email: string;
+  senderId: string | null;
   name: string;
   timestamp: string;
 }
 
 interface AblyMessageData {
+  id?: string;
   text?: string;
-  email?: string;
+  senderId?: string | null;
   name?: string;
   timestamp?: string;
 }
@@ -46,8 +47,8 @@ interface AblyMessageLike {
   data?: AblyMessageData;
 }
 
-function buildMessageId(message: Pick<Message, "text" | "email" | "timestamp">) {
-  return `${message.timestamp}:${message.email}:${message.text}`;
+function buildMessageId(message: Pick<Message, "text" | "senderId" | "timestamp">) {
+  return `${message.timestamp}:${message.senderId || "system"}:${message.text}`;
 }
 
 function toChatMessage(message: AblyMessageLike): Message | null {
@@ -55,9 +56,9 @@ function toChatMessage(message: AblyMessageLike): Message | null {
     return null;
   }
 
-  const { text, email, name, timestamp } = message.data;
+  const { id, text, senderId, name, timestamp } = message.data;
 
-  if (typeof text !== "string" || typeof email !== "string") {
+  if (typeof text !== "string" || (senderId !== null && typeof senderId !== "string")) {
     return null;
   }
 
@@ -67,18 +68,21 @@ function toChatMessage(message: AblyMessageLike): Message | null {
       : typeof message.timestamp === "number"
         ? new Date(message.timestamp).toISOString()
         : new Date().toISOString();
-
-  return {
-    id:
-      typeof message.id === "string" && message.id.length > 0
+  const messageId =
+    typeof id === "string" && id.length > 0
+      ? id
+      : typeof message.id === "string" && message.id.length > 0
         ? message.id
         : buildMessageId({
           text,
-          email,
+          senderId: senderId || null,
           timestamp: normalizedTimestamp,
-        }),
+        });
+
+  return {
+    id: messageId,
     text,
-    email,
+    senderId: senderId || null,
     name: typeof name === "string" && name.trim().length > 0 ? name : "Anonymous",
     timestamp: normalizedTimestamp,
   };
@@ -106,8 +110,6 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
   const channelRef = useRef<Ably.RealtimeChannel | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userId = profile?.id ?? null;
-  const userEmail = profile?.email ?? null;
-  const userName = profile?.name ?? "Anonymous";
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -117,7 +119,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
   }, [messages, reservationId]);
 
   useEffect(() => {
-    if (!reservationId || !userId || !userEmail) {
+    if (!reservationId || !userId) {
       setIsChannelReady(false);
       setError("Authentication is required to access this chat.");
       return;
@@ -150,7 +152,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
     const initialize = async () => {
       try {
         setError(null);
-        setMessages([]);
+        setMessages(initialBooking.messages || []);
         setIsChannelReady(false);
 
         const ably = new Ably.Realtime({
@@ -227,20 +229,21 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
 
         if (connectionState !== "closed" && connectionState !== "closing") {
           try {
-            currentAbly.close();
+            void Promise.resolve(currentAbly.close()).catch((closeError) => {
+              console.warn("[ChatClient] Ignored asynchronous Ably close error during cleanup:", closeError);
+            });
           } catch (closeError) {
             console.warn("[ChatClient] Ignored Ably close error during cleanup:", closeError);
           }
         }
       }
     };
-  }, [reservationId, userEmail, userId]);
+  }, [initialBooking.messages, reservationId, userId]);
 
   const handleSend = async () => {
-    const channel = channelRef.current;
     const trimmedMessage = newMessage.trim();
 
-    if (!trimmedMessage || !channel || !userEmail || isSending || !isChannelReady) {
+    if (!trimmedMessage || !userId || isSending || initialBooking.readOnly) {
       return;
     }
 
@@ -254,13 +257,13 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
     setNewMessage("");
 
     try {
-      await channel.publish("chat", {
-        text: trimmedMessage,
-        email: userEmail,
-        name: userName,
-        timestamp: new Date().toISOString(),
-      });
-      void incrementUnreadCount(reservationId, trimmedMessage);
+      const result = await sendChatMessage(reservationId, trimmedMessage);
+      if (!result.success) {
+        throw new Error(result.error || "Message could not be sent");
+      }
+      if (result.data) {
+        setMessages((previousMessages) => mergeMessages(previousMessages, [result.data]));
+      }
     } catch (err) {
       console.error("[ChatClient] Send message error:", err);
       setNewMessage(trimmedMessage);
@@ -301,11 +304,11 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                 messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex ${message.email === userEmail ? "justify-end" : "justify-start"}`}
+                    className={`flex ${message.senderId === userId ? "justify-end" : "justify-start"}`}
                   >
                     <div className="max-w-[85%] md:max-w-sm">
                       <div
-                        className={`p-3 rounded-2xl px-4 text-sm ${message.email === userEmail
+                        className={`p-3 rounded-2xl px-4 text-sm ${message.senderId === userId
                           ? "bg-foreground text-background rounded-tr-none"
                           : "border border-border bg-background text-foreground rounded-tl-none"
                           }`}
@@ -325,13 +328,13 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
 
           <div className="flex-none p-4 border-t border-border bg-background">
             <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between font-medium">
-              <span>{isChannelReady ? "Connected" : "Connecting..."}</span>
+              <span>{initialBooking.readOnly ? "Read-only" : isChannelReady ? "Connected" : "Connecting..."}</span>
               <span>{newMessage.length}/{MAX_MESSAGE_LENGTH}</span>
             </div>
             <div className="flex items-center w-full bg-background border border-border rounded-xl focus-within:border-foreground transition-all duration-200 h-12 px-2 gap-2">
               <input
                 type="text"
-                placeholder="Type a message..."
+                placeholder={initialBooking.readOnly ? "This chat is read-only." : "Type a message..."}
                 className="grow bg-transparent border-none outline-none focus:ring-0 text-sm text-foreground px-2 h-full min-w-0"
                 value={newMessage}
                 onChange={(event) => {
@@ -344,16 +347,18 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
                     void handleSend();
                   }
                 }}
-                disabled={isSending}
+                disabled={isSending || initialBooking.readOnly}
                 maxLength={MAX_MESSAGE_LENGTH}
+                data-testid="chat-input"
               />
               <button
                 className="flex items-center justify-center w-8 h-8 rounded-lg bg-foreground text-background transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground shrink-0 cursor-pointer"
                 onClick={() => {
                   void handleSend();
                 }}
-                disabled={!newMessage.trim() || isSending || !isChannelReady}
+                disabled={!newMessage.trim() || isSending || !isChannelReady || initialBooking.readOnly}
                 aria-label="Send message"
+                data-testid="chat-send-button"
               >
                 <IoSend size={14} />
               </button>

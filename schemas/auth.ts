@@ -2,7 +2,7 @@ import { z } from "zod";
 
 
 export const resetPasswordSchema = z.object({
-  token: z.string().min(1, "Token is required"),
+  token: z.string().trim().min(1, "Token is required").max(128, "Invalid reset token"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters long")
@@ -15,24 +15,32 @@ export const resetPasswordSchema = z.object({
 export const loginSchema = z.object({
   email: z
     .string()
+    .trim()
+    .toLowerCase()
     .min(1, "Email is required")
-    .email("Enter a valid email address"),
+    .email("Enter a valid email address")
+    .max(254, "Email address is too long"),
   password: z
     .string()
     .min(1, "Password is required")
-    .min(6, "Password must be at least 6 characters"),
+    .min(6, "Password must be at least 6 characters")
+    .max(128, "Password must be less than 128 characters"),
 });
 
 export const registerSchema = z.object({
   name: z
     .string()
+    .trim()
     .min(1, "Username is required")
     .min(3, "Username must be at least 3 characters")
     .max(20, "Username cannot exceed 20 characters"),
   email: z
     .string()
+    .trim()
+    .toLowerCase()
     .min(1, "Email is required")
-    .email("Enter a valid email address"),
+    .email("Enter a valid email address")
+    .max(254, "Email address is too long"),
   password: z
     .string()
     .min(1, "Password is required")
@@ -46,13 +54,17 @@ export const registerSchema = z.object({
 export const ownerRegisterSchema = z.object({
   name: z
     .string()
+    .trim()
     .min(1, "Full name is required")
     .min(2, "Name must be at least 2 characters long")
     .max(50, "Name must be less than 50 characters"),
   email: z
     .string()
+    .trim()
+    .toLowerCase()
     .min(1, "Email is required")
-    .email("Please enter a valid email"),
+    .email("Please enter a valid email")
+    .max(254, "Email address is too long"),
   phone: z
     .string()
     .min(1, "Phone number is required")

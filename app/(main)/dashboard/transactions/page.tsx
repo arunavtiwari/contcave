@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import TransactionClient from "@/app/(main)/dashboard/transactions/TransactionClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import getTransactions from "@/app/actions/getTransactions";
+import { getTransactionsPage } from "@/app/actions/getTransactions";
 import EmptyState from "@/components/EmptyState";
 import { isOwner } from "@/lib/user/permissions";
 export const dynamic = "force-dynamic";
@@ -21,18 +21,18 @@ import { Suspense } from "react";
 import BookingGridSkeleton from "@/components/listing/BookingGridSkeleton";
 import Heading from "@/components/ui/Heading";
 
-const ProfileTransaction = () => {
+const ProfileTransaction = ({ searchParams }: { searchParams: Promise<{ page?: string }> }) => {
   return (
     <div className="space-y-8">
       <Heading title="Transactions" subtitle="Your earnings and payouts" />
       <Suspense fallback={<BookingGridSkeleton count={6} />}>
-        <TransactionContent />
+        <TransactionContent searchParams={searchParams} />
       </Suspense>
     </div>
   );
 };
 
-async function TransactionContent() {
+async function TransactionContent({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -47,10 +47,15 @@ async function TransactionContent() {
     );
   }
 
-  const transactions = await getTransactions(currentUser.id, { ownerView: true });
+  const rawPage = Number((await searchParams).page || 1);
+  const result = await getTransactionsPage(currentUser.id, {
+    ownerView: true,
+    page: Number.isFinite(rawPage) ? rawPage : 1,
+    limit: 50,
+  });
 
   return (
-    <TransactionClient currentUser={currentUser} transactions={transactions} />
+    <TransactionClient currentUser={currentUser} transactions={result.transactions} pagination={result.pagination} />
   );
 }
 

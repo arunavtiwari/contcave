@@ -1,6 +1,6 @@
 import { createActiveListingFixture, createUserFixture, prisma } from "./support/db";
 import { expect, test } from "./support/test";
-import { loginViaUi } from "./support/ui";
+import { gotoApp, loginViaUi } from "./support/ui";
 
 async function waitForEditedListing(params: {
   listingId: string;
@@ -50,7 +50,7 @@ test.describe("edit property flow", () => {
     const updatedTitle = `${account.name} Edited Studio`;
 
     await loginViaUi(page, account);
-    await page.goto(`/dashboard/properties/${listing.id}`);
+    await gotoApp(page, `/dashboard/properties/${listing.id}`);
 
     await expect(page.getByRole("heading", { name: /edit property/i })).toBeVisible({ timeout: 30_000 });
 

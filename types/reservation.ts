@@ -1,13 +1,49 @@
-import { Prisma, Reservation } from "@prisma/client";
+import type { Prisma, Reservation } from "@prisma/client";
 
-import { safeListing } from "@/types/listing";
+import type { safeListing } from "@/types/listing";
+
+export type PublicReservationSlot = {
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    setIds: string[];
+};
+
+export type PublicDayStatus = {
+    date: string;
+    listingActive: boolean;
+    startTime: string;
+    endTime: string;
+};
 
 export type SafeReservation = Omit<
     Reservation,
-    "createdAt" | "startDate" | "listing" | "markedForDeletionAt" | "pricingSnapshot"
+    | "createdAt"
+    | "startDate"
+    | "listing"
+    | "markedForDeletionAt"
+    | "hiddenByGuestAt"
+    | "hiddenByOwnerAt"
+    | "pricingSnapshot"
+    | "checkedInAt"
+    | "completedAt"
+    | "noShowAt"
+    | "refundRecordedAt"
+    | "billingDetailId"
+    | "billingSnapshot"
+    | "extensionNudgeSentAt"
+    | "reminderSent"
+    | "reviewReminderSentAt"
+    | "reviewReminderClaimedAt"
+    | "reviewReminderAttempts"
+    | "unreadCountOwner"
+    | "unreadCountGuest"
+    | "lastMessageText"
+    | "lastMessageAt"
+    | "updatedAt"
 > & {
     createdAt: string;
-    startDate: Date;
+    startDate: string;
     startTime: string;
     endTime: string;
     listing: safeListing;
@@ -16,8 +52,43 @@ export type SafeReservation = Omit<
     setIds?: string[];
     includedSetId?: string | null;
     setPackageId?: string | null;
+    bookedSets?: Array<{
+        id: string;
+        name: string;
+        description?: string | null;
+        price: number;
+    }>;
+    bookingAmenities?: string[];
     pricingSnapshot?: Prisma.JsonValue | null;
     totalPriceInt?: number | null;
+    status: Reservation["status"];
+    checkedInAt?: string | null;
+    completedAt?: string | null;
+    noShowAt?: string | null;
+    refundAmount?: number | null;
+    refundRecordedAt?: string | null;
+    refundNote?: string | null;
+    pendingExtensionCount?: number;
+    pendingChargeCount?: number;
+    pendingCharges?: Array<{
+        id: string;
+        type: "SERVICE" | "DAMAGE";
+        items?: Prisma.JsonValue;
+        totalAmount: number;
+        status: string;
+        note?: string | null;
+    }>;
+    pendingExtensions?: Array<{
+        id: string;
+        durationMinutes: number;
+        extraAmount: number;
+        status: string;
+        requestedEndTime: string;
+    }>;
+    receipts?: Array<{
+        invoiceNumber: string;
+        invoiceUrl: string;
+    }>;
 };
 
 export type ReservationResult = {
@@ -36,4 +107,5 @@ export interface ReservationMetadata {
     pricingSnapshot?: Prisma.JsonValue | string;
     billingDetailId?: string | null;
     billingSnapshot?: Prisma.JsonValue | string | null;
+    setPackageId?: string | null;
 }

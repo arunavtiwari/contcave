@@ -1,21 +1,67 @@
+import type { Prisma } from "@prisma/client";
 import axios from "axios";
+import crypto from "crypto";
 
-import { cfEnsureVendor, cfVerificationBaseURL } from "@/lib/cashfree/cashfree";
+import { cfEnsureVendor, cfSecureIdHeaders, cfVerificationBaseURL } from "@/lib/cashfree/cashfree";
+import { getNonProductionEmailVerificationCode } from "@/lib/e2e-guards";
 import { sendEmail } from "@/lib/email/mailer";
-import { getHostOnboardingTemplate } from "@/lib/email/templates";
+import { getEmailVerificationCodeTemplate, getHostOnboardingTemplate } from "@/lib/email/templates";
+import { UserFacingError } from "@/lib/errors";
 import { getFixieProxyAgent } from "@/lib/fixie-proxy";
 import { upsertPaymentDetailsSafe } from "@/lib/payment-details";
 import { normalizePhone } from "@/lib/phone";
 import prisma from "@/lib/prismadb";
-import { emailVerificationSchema } from "@/schemas/verification";
 import { UserRole } from "@/types/user";
 
-const httpsAgent = getFixieProxyAgent();
-const AADHAAR_OCR_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-const AADHAAR_OCR_PDF_MAX_BYTES = 5 * 1024 * 1024;
+const verificationUserSelect = {
+    id: true,
+    name: true,
+    email: true,
+    phone: true,
+    role: true,
+    image: true,
+    profileImage: true,
+    phone_verified: true,
+    email_verified: true,
+    aadhaar_verified: true,
+    bank_verified: true,
+    bank_verified_name: true,
+    is_verified: true,
+    verified_at: true,
+} as const;
+
+type VerificationUserRecord = Prisma.UserGetPayload<{ select: typeof verificationUserSelect }>;
+
+function serializeVerificationUser(user: VerificationUserRecord) {
+    return {
+        ...user,
+        verified_at: user.verified_at?.toISOString() || null,
+    };
+}
+
+const AADHAAR_OCR_MAX_BYTES = 5 * 1024 * 1024;
 const AADHAAR_OCR_ALLOWED_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "application/pdf"]);
 const CASHFREE_SMART_OCR_API_VERSION = "2024-12-01";
 const IFSC_PATTERN = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
+
+function emailCodeSecret() {
+    const secret = process.env.AUTH_SECRET;
+    if (!secret) throw new Error("Server configuration error (AUTH_SECRET)");
+    return secret;
+}
+
+function hashEmailCode(userId: string, email: string, code: string) {
+    return crypto.createHmac("sha256", emailCodeSecret())
+        .update(`${userId}:${email.toLowerCase()}:${code}`)
+        .digest("hex");
+}
+
+function secureCodeMatches(expectedHex: string, actualHex: string) {
+    const expected = Buffer.from(expectedHex, "hex");
+    const actual = Buffer.from(actualHex, "hex");
+    return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+}
 
 type SmartOcrResponse = {
     verification_id?: string;
@@ -37,14 +83,18 @@ function assertAadhaarOcrFile(file: File) {
         throw new Error("Upload a JPG, PNG, or PDF Aadhaar document");
     }
 
-    const maxBytes = file.type === "application/pdf" ? AADHAAR_OCR_PDF_MAX_BYTES : AADHAAR_OCR_IMAGE_MAX_BYTES;
-    if (file.size > maxBytes) {
-        throw new Error(file.type === "application/pdf" ? "Aadhaar PDF must be 1 MB or smaller" : "Aadhaar image must be 5 MB or smaller");
+    if (file.size > AADHAAR_OCR_MAX_BYTES) {
+        throw new Error("Aadhaar document is too large. Upload a file up to 5 MB");
     }
 }
 
 function sanitizeVerificationId(userId: string) {
     return `aadhaar_${userId}_${Date.now()}`.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 50);
+}
+
+function safeAadhaarFilename(verificationId: string, fileType: string) {
+    const extension = fileType === "application/pdf" ? "pdf" : fileType === "image/png" ? "png" : "jpg";
+    return `${verificationId.replace(/[^a-zA-Z0-9_-]/g, "_")}.${extension}`;
 }
 
 function valueStrings(input: unknown): string[] {
@@ -96,10 +146,22 @@ function cashfreeOcrError(error: unknown) {
     });
 
     if (status === 401 || status === 403 || status === 404) {
-        return new Error("Cashfree Smart OCR is not enabled or credentials are not authorized");
+        return new Error("Aadhaar verification is temporarily unavailable. Please contact support if this continues");
     }
 
-    return new Error(data?.message || "Aadhaar OCR verification failed");
+    if (status === 413) {
+        return new Error("Aadhaar document is too large. Upload a file up to 5 MB");
+    }
+
+    if (status === 429) {
+        return new Error("Aadhaar verification is busy. Please wait a moment and try again");
+    }
+
+    if (!status || status >= 500 || error.code === "ECONNABORTED") {
+        return new Error("Aadhaar verification service is temporarily unavailable. Please try again");
+    }
+
+    return new Error("Aadhaar OCR verification failed. Check the document and try again");
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -129,7 +191,7 @@ function normalizeVendorPayload(userId: string, payload: Record<string, unknown>
     if (!IFSC_PATTERN.test(ifsc)) throw new Error("Invalid IFSC code");
 
     return {
-        vendor_id: trimmedString(payload.vendor_id) || `v_${userId}`.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50),
+        vendor_id: `v_${userId}`.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50),
         display_name: trimmedString(payload.display_name) || trimmedString(payload.name) || user.name || accountHolder,
         email: trimmedString(payload.email) || user.email || undefined,
         phone: phone || undefined,
@@ -141,46 +203,133 @@ function normalizeVendorPayload(userId: string, payload: Record<string, unknown>
 }
 
 export class VerificationService {
-    static async validateEmail(email: string) {
-        const validation = emailVerificationSchema.safeParse({ email });
-        if (!validation.success) throw new Error(validation.error.issues[0].message);
+    static async requestEmailVerificationCode(userId: string, email: string) {
+        const normalizedEmail = email.trim().toLowerCase();
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, email: true, name: true, email_verified: true },
+        });
+        if (!user) throw new UserFacingError("User not found", 404);
+        if (!user.email || user.email.toLowerCase() !== normalizedEmail) {
+            throw new UserFacingError("Verify the email address associated with your account.");
+        }
+        if (user.email_verified) {
+            const verifiedUser = await prisma.user.findUniqueOrThrow({
+                where: { id: user.id },
+                select: verificationUserSelect,
+            });
+            return { alreadyVerified: true, user: serializeVerificationUser(verifiedUser) };
+        }
 
-        const authKey = process.env.MSG91_AUTH_KEY;
-        if (!authKey) throw new Error("Server configuration error (MSG91)");
+        const nonProductionCode = getNonProductionEmailVerificationCode();
+        const code = nonProductionCode || crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
+        const codeHash = hashEmailCode(user.id, normalizedEmail, code);
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                emailVerificationCodeHash: codeHash,
+                emailVerificationCodeExpiry: new Date(Date.now() + EMAIL_CODE_TTL_MS),
+            },
+        });
 
-        const resp = await axios.post(
-            "https://control.msg91.com/api/v5/email/validate",
-            { email: email.trim().toLowerCase() },
-            {
-                headers: { accept: "application/json", "content-type": "application/json", authkey: authKey },
-                httpsAgent,
-                timeout: 30000,
-            }
-        );
-        return resp.data;
+        try {
+            await sendEmail({
+                toEmail: normalizedEmail,
+                toName: user.name || "",
+                subject: "Your ContCave email verification code",
+                html: getEmailVerificationCodeTemplate(user.name || "there", code),
+            });
+        } catch (error) {
+            await prisma.user.updateMany({
+                where: { id: user.id, emailVerificationCodeHash: codeHash },
+                data: { emailVerificationCodeHash: null, emailVerificationCodeExpiry: null },
+            }).catch(() => undefined);
+            throw error;
+        }
+
+        return {
+            alreadyVerified: false,
+            ...(nonProductionCode ? { developmentCode: code } : {}),
+        };
+    }
+
+    static async confirmEmailVerificationCode(userId: string, code: string) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                email_verified: true,
+                emailVerificationCodeHash: true,
+                emailVerificationCodeExpiry: true,
+                verification_stage: true,
+            },
+        });
+        if (!user) throw new UserFacingError("User not found", 404);
+        if (user.email_verified) {
+            const verifiedUser = await prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: verificationUserSelect });
+            return serializeVerificationUser(verifiedUser);
+        }
+        if (!user.email || !user.emailVerificationCodeHash || !user.emailVerificationCodeExpiry) {
+            throw new UserFacingError("Request a new verification code first.");
+        }
+        if (user.emailVerificationCodeExpiry.getTime() <= Date.now()) {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { emailVerificationCodeHash: null, emailVerificationCodeExpiry: null },
+            });
+            throw new UserFacingError("The verification code has expired. Request a new code.");
+        }
+
+        const candidateHash = hashEmailCode(user.id, user.email, code.trim());
+        if (!secureCodeMatches(user.emailVerificationCodeHash, candidateHash)) {
+            throw new UserFacingError("The verification code is incorrect.");
+        }
+
+        const confirmed = await prisma.user.updateMany({
+            where: {
+                id: user.id,
+                email_verified: false,
+                emailVerificationCodeHash: user.emailVerificationCodeHash,
+            },
+            data: {
+                email_verified: true,
+                emailVerified: new Date(),
+                emailVerificationCodeHash: null,
+                emailVerificationCodeExpiry: null,
+                verified_via: { push: "email_otp" },
+                verification_stage: Math.max(user.verification_stage || 0, 1),
+            },
+        });
+        if (confirmed.count !== 1) {
+            const latest = await prisma.user.findUnique({ where: { id: user.id }, select: { email_verified: true } });
+            if (!latest?.email_verified) throw new UserFacingError("Request a new verification code and try again.");
+        }
+        const updated = await prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: verificationUserSelect });
+        return await this.finalizeVerificationIfComplete(user.id, updated);
     }
 
     static async verifyAadhaarOcr(userId: string, file: File) {
         assertAadhaarOcrFile(file);
 
-        const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
-        if (!user) throw new Error("User not found");
-
-        const clientId = process.env.CASHFREE_CLIENT_ID;
-        const clientSecret = process.env.CASHFREE_CLIENT_SECRET;
-        if (!clientId || !clientSecret) throw new Error("Server configuration error (Cashfree)");
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, role: true, email_verified: true, phone_verified: true },
+        });
+        if (!user) throw new UserFacingError("User not found", 404);
+        if (user.role !== UserRole.OWNER && user.role !== UserRole.ADMIN) {
+            throw new UserFacingError("Only owners and administrators can complete Aadhaar verification", 403);
+        }
+        if (!user.email_verified || !user.phone_verified) {
+            throw new UserFacingError("Verify your email and save your phone number before Aadhaar verification.");
+        }
 
         const verificationId = sanitizeVerificationId(userId);
         const body = new FormData();
-        const buffer = await file.arrayBuffer();
         body.append("verification_id", verificationId);
         body.append("document_type", "AADHAAR");
         body.append("do_verification", "false");
-        body.append(
-            "file",
-            new Blob([new Uint8Array(buffer)], { type: file.type }),
-            file.name || "aadhaar-document"
-        );
+        body.append("file", file, safeAadhaarFilename(verificationId, file.type));
 
         let response: SmartOcrResponse;
         try {
@@ -188,12 +337,8 @@ export class VerificationService {
                 `${cfVerificationBaseURL()}/bharat-ocr`,
                 body,
                 {
-                    headers: {
-                        "x-client-id": clientId,
-                        "x-client-secret": clientSecret,
-                        "x-api-version": CASHFREE_SMART_OCR_API_VERSION,
-                    },
-                    httpsAgent,
+                    headers: cfSecureIdHeaders(CASHFREE_SMART_OCR_API_VERSION),
+                    httpsAgent: getFixieProxyAgent(),
                     timeout: 45000,
                 }
             );
@@ -209,8 +354,6 @@ export class VerificationService {
 
         return {
             user: updatedUser,
-            referenceId,
-            last4,
             status: response.status,
         };
     }
@@ -218,9 +361,23 @@ export class VerificationService {
     static async createVendor(userId: string, payload: Record<string, unknown>) {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { name: true, email: true, phone: true },
+            select: {
+                name: true,
+                email: true,
+                phone: true,
+                role: true,
+                email_verified: true,
+                phone_verified: true,
+                aadhaar_verified: true,
+            },
         });
-        if (!user) throw new Error("User not found");
+        if (!user) throw new UserFacingError("User not found", 404);
+        if (user.role !== UserRole.OWNER && user.role !== UserRole.ADMIN) {
+            throw new UserFacingError("Only owners and administrators can configure payouts", 403);
+        }
+        if (!user.email_verified || !user.phone_verified || !user.aadhaar_verified) {
+            throw new UserFacingError("Complete contact and Aadhaar verification before configuring payouts.");
+        }
 
         const normalized = normalizeVendorPayload(userId, payload, user);
         const vendorId = await cfEnsureVendor(normalized);
@@ -241,19 +398,7 @@ export class VerificationService {
                 verified_via: { push: "aadhaar_smart_ocr" },
                 verification_stage: Math.max(user.verification_stage || 0, 2),
             },
-            select: {
-                id: true,
-                phone_verified: true,
-                email_verified: true,
-                aadhaar_verified: true,
-                bank_verified: true,
-                is_verified: true,
-                verification_stage: true,
-                aadhaar_last4: true,
-                phone: true,
-                email: true,
-                role: true,
-            }
+            select: verificationUserSelect,
         });
 
         return await this.finalizeVerificationIfComplete(userId, updated);
@@ -261,44 +406,55 @@ export class VerificationService {
 
     static async updateStep(userId: string, data: Record<string, unknown>) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) throw new Error("User not found");
+        if (!user) throw new UserFacingError("User not found", 404);
+        if (user.role !== UserRole.OWNER && user.role !== UserRole.ADMIN) {
+            throw new UserFacingError("Only owners and administrators can complete host verification", 403);
+        }
 
         const updates: Record<string, unknown> = {};
 
-        if (data.step === "email") {
-            updates.email_verified = true;
-            updates.verified_via = { push: "email_verification_msg91" };
-        }
-
-        if (data.step === "phone" && data.phone) {
-            updates.phone_verified = true;
+        if (data.step === "phone") {
+            if (!user.email_verified) {
+                throw new UserFacingError("Verify your email before saving your phone number.");
+            }
             const normalized = normalizePhone(data.phone as string);
-            if (normalized) updates.phone = normalized;
-            updates.verified_via = { push: "phone_profile_verification" };
+            if (!normalized) throw new UserFacingError("Enter a valid 10-digit phone number.");
+            updates.phone = normalized;
+            updates.phone_verified = true;
+            updates.verified_via = { push: "phone_profile_capture" };
         }
 
         if (data.step === "aadhaar") {
             throw new Error("Aadhaar verification must be completed through Smart OCR");
         }
 
-        if (data.step === "bank" && data.bankVerifiedName && data.accountNumber && data.ifscCode) {
+        if (data.step === "bank") {
+            if (!user.email_verified || !user.phone_verified || !user.aadhaar_verified) {
+                throw new UserFacingError("Complete contact and Aadhaar verification before configuring payouts.");
+            }
+            const bankVerifiedName = trimmedString(data.bankVerifiedName);
+            const accountNumber = trimmedString(data.accountNumber).replace(/\D/g, "");
+            const ifscCode = trimmedString(data.ifscCode).toUpperCase();
+            if (!bankVerifiedName) throw new UserFacingError("Account holder name is required.");
+            if (!/^\d{9,20}$/.test(accountNumber)) throw new UserFacingError("Account number must be between 9 and 20 digits.");
+            if (!IFSC_PATTERN.test(ifscCode)) throw new UserFacingError("Invalid IFSC code.");
             const vendorId = trimmedString(data.vendorId);
             if (!vendorId) {
-                throw new Error("Payout setup did not complete. Please try bank verification again.");
+                throw new UserFacingError("Payout setup did not complete. Please try bank verification again.");
             }
 
             updates.bank_verified = true;
-            updates.bank_verified_name = (data.bankVerifiedName as string).trim();
+            updates.bank_verified_name = bankVerifiedName;
             updates.verified_via = { push: "bank_verification" };
             const gstin = trimmedString(data.gstin);
             const companyName = trimmedString(data.companyName);
 
             const paymentResult = await upsertPaymentDetailsSafe({
                 userId,
-                accountHolderName: (data.bankVerifiedName as string).trim(),
+                accountHolderName: bankVerifiedName,
                 bankName: (data.bankName as string) || "Unknown",
-                accountNumber: (data.accountNumber as string).trim(),
-                ifscCode: (data.ifscCode as string).trim(),
+                accountNumber,
+                ifscCode,
                 companyName: companyName || undefined,
                 gstin: gstin || undefined,
                 cashfreeVendorId: vendorId,
@@ -307,42 +463,29 @@ export class VerificationService {
             if (!paymentResult.success) throw new Error(paymentResult.error || "Failed to save payment details");
         }
 
+        if (data.step !== "phone" && data.step !== "bank") {
+            throw new UserFacingError("Unsupported verification step.");
+        }
+
         const currentStage = user.verification_stage || 0;
-        if (data.step === "email" || data.step === "phone") updates.verification_stage = Math.max(currentStage, 1);
+        if (data.step === "phone") updates.verification_stage = Math.max(currentStage, 1);
         else if (data.step === "bank") updates.verification_stage = Math.max(currentStage, 3);
 
         const updated = await prisma.user.update({
             where: { id: userId },
             data: updates,
-            select: {
-                id: true,
-                phone_verified: true,
-                email_verified: true,
-                aadhaar_verified: true,
-                bank_verified: true,
-                is_verified: true,
-                verification_stage: true,
-                aadhaar_last4: true,
-                phone: true,
-                email: true,
-                role: true,
-            }
+            select: verificationUserSelect,
         });
 
         return await this.finalizeVerificationIfComplete(userId, updated);
     }
 
-    private static async finalizeVerificationIfComplete(userId: string, updated: {
-        phone_verified: boolean;
-        email_verified: boolean;
-        aadhaar_verified: boolean;
-        bank_verified: boolean;
-        is_verified: boolean;
-    }) {
+    private static async finalizeVerificationIfComplete(userId: string, updated: VerificationUserRecord) {
         if (updated.phone_verified && updated.email_verified && updated.aadhaar_verified && updated.bank_verified && !updated.is_verified) {
             const finalUser = await prisma.user.update({
                 where: { id: userId },
-                data: { is_verified: true, verified_at: new Date() }
+                data: { is_verified: true, verified_at: new Date() },
+                select: verificationUserSelect,
             });
 
             if (finalUser.role === UserRole.OWNER || finalUser.role === UserRole.ADMIN) {
@@ -354,9 +497,9 @@ export class VerificationService {
                 }).catch(err => console.error("[Verification] Failed to send onboarding email:", err));
             }
 
-            return finalUser;
+            return serializeVerificationUser(finalUser);
         }
 
-        return updated;
+        return serializeVerificationUser(updated);
     }
 }

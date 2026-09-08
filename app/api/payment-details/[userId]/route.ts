@@ -4,6 +4,7 @@ import { z } from 'zod';
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { getPaymentDetailsSafe } from '@/lib/payment-details';
+import { isOwner } from '@/lib/user/permissions';
 import { userIdSchema } from '@/schemas/common';
 
 interface RouteParams {
@@ -15,6 +16,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         const currentUser = await getCurrentUser();
         if (!currentUser?.id) {
             return createErrorResponse("Unauthorized", 401);
+        }
+        if (!isOwner(currentUser.role)) {
+            return createErrorResponse("Only owners can view payment details", 403);
         }
 
         const resolvedParams = await params;

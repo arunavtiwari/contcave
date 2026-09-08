@@ -1,17 +1,22 @@
 "use server";
 
-import { Prisma } from "@prisma/client";
 import Ably from "ably";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { getAblyApiKey } from "@/lib/ably-server";
+import { getClientIp } from "@/lib/http/requestMeta";
 import prisma from "@/lib/prismadb";
+import { ACTIVE_RESERVATION_STATUSES, isChatReadOnly } from "@/lib/reservation/status";
+import { rateLimit } from "@/lib/security/rateLimit";
 
 /**
  * Resets the unread count for the current user in a specific reservation chat.
  */
 export async function markAsRead(reservationId: string) {
     try {
+        if (!/^[a-f\d]{24}$/i.test(reservationId)) return { success: false, error: "Invalid reservation" };
         const currentUser = await getCurrentUser();
         if (!currentUser) return { success: false, error: "Not authenticated" };
 
@@ -26,16 +31,16 @@ export async function markAsRead(reservationId: string) {
         const isGuest = reservation.userId === currentUser.id;
 
         if (isOwner) {
-            await prisma.reservation.update({
-                where: { id: reservationId },
+            await prisma.reservation.updateMany({
+                where: { id: reservationId, lastMessageAt: reservation.lastMessageAt },
                 data: { unreadCountOwner: 0 }
             });
         } else if (isGuest) {
-            await prisma.reservation.update({
-                where: { id: reservationId },
+            await prisma.reservation.updateMany({
+                where: { id: reservationId, lastMessageAt: reservation.lastMessageAt },
                 data: { unreadCountGuest: 0 }
             });
-        }
+        } else return { success: false, error: "Reservation not found" };
 
         revalidatePath("/dashboard/chat");
         revalidatePath("/");
@@ -46,14 +51,22 @@ export async function markAsRead(reservationId: string) {
     }
 }
 
-/**
- * Increments the unread count for the recipient when a new message is sent.
- * Now also stores the last message snippet for previews.
- */
-export async function incrementUnreadCount(reservationId: string, text?: string) {
+export async function sendChatMessage(reservationId: string, text: string) {
     try {
         const currentUser = await getCurrentUser();
-        if (!currentUser) return { success: false, error: "Not authenticated" };
+        if (!currentUser?.id) return { success: false, error: "Not authenticated" };
+        if (!/^[a-f\d]{24}$/i.test(reservationId)) return { success: false, error: "Invalid reservation" };
+
+        const messageLimit = rateLimit({
+            key: `chat-message:${currentUser.id}:${reservationId}:${getClientIp(await headers())}`,
+            limit: 30,
+            windowMs: 60_000,
+        });
+        if (!messageLimit.allowed) return { success: false, error: "Too many messages. Please wait a moment." };
+
+        const trimmed = text.trim();
+        if (!trimmed) return { success: false, error: "Message is required" };
+        if (trimmed.length > 2000) return { success: false, error: "Message is too long" };
 
         const reservation = await prisma.reservation.findUnique({
             where: { id: reservationId },
@@ -61,47 +74,70 @@ export async function incrementUnreadCount(reservationId: string, text?: string)
         });
 
         if (!reservation) return { success: false, error: "Reservation not found" };
-
         const isOwner = reservation.listing.userId === currentUser.id;
         const isGuest = reservation.userId === currentUser.id;
+        if (!isOwner && !isGuest) return { success: false, error: "Unauthorized" };
+        if (isChatReadOnly(reservation.status)) return { success: false, error: "This chat is read-only because the booking is complete." };
 
-        const updateData: Prisma.ReservationUpdateInput = {
-            lastMessageText: text || null,
-            lastMessageAt: new Date()
-        };
+        const recipientId = isOwner ? reservation.userId : reservation.listing.userId;
+        const message = await prisma.$transaction(async (tx) => {
+            const updated = await tx.reservation.updateMany({
+                where: { id: reservationId, status: { in: ACTIVE_RESERVATION_STATUSES } },
+                data: {
+                    lastMessageText: trimmed,
+                    lastMessageAt: new Date(),
+                    ...(isOwner
+                        ? { unreadCountGuest: { increment: 1 } }
+                        : { unreadCountOwner: { increment: 1 } }),
+                },
+            });
+            if (updated.count !== 1) throw new Error("Chat became read-only");
 
-        // Increment for the RECIPIENT
-        let recipientId: string | null = null;
-        if (isOwner) {
-            // Owner sent message, increment Guest count
-            updateData.unreadCountGuest = { increment: 1 };
-            recipientId = reservation.userId;
-        } else if (isGuest) {
-            // Guest sent message, increment Owner count
-            updateData.unreadCountOwner = { increment: 1 };
-            recipientId = reservation.listing.userId;
-        }
-
-        await prisma.reservation.update({
-            where: { id: reservationId },
-            data: updateData
+            return await tx.reservationChatMessage.create({
+                data: {
+                    reservationId,
+                    senderId: currentUser.id,
+                    kind: "USER",
+                    text: trimmed,
+                },
+                select: { id: true, createdAt: true },
+            });
         });
 
-        // Notify recipient via Ably
-        if (recipientId) {
-            const ablyApiKey = process.env.ABLY_CHAT_API;
-            if (ablyApiKey) {
-                const ably = new Ably.Rest({ key: ablyApiKey });
-                const channel = ably.channels.get(`notifications:${recipientId}`);
-                await channel.publish("new_message", { reservationId });
-            }
+        const ablyApiKey = getAblyApiKey();
+        if (ablyApiKey) {
+            const ably = new Ably.Rest({ key: ablyApiKey });
+            await Promise.allSettled([
+                ably.channels.get(`chat:${reservationId}`).publish("chat", {
+                    id: message.id,
+                    text: trimmed,
+                    senderId: currentUser.id,
+                    email: currentUser.email || currentUser.id,
+                    name: currentUser.name || "User",
+                    timestamp: message.createdAt.toISOString(),
+                }),
+                ably.channels.get(`notifications:${recipientId}`).publish("new_message", { reservationId }),
+            ]);
         }
 
         revalidatePath("/dashboard/chat");
-        revalidatePath("/");
-        return { success: true };
+
+        return {
+            success: true,
+            data: {
+                id: message.id,
+                text: trimmed,
+                senderId: currentUser.id,
+                email: currentUser.email || currentUser.id,
+                name: currentUser.name || "User",
+                timestamp: message.createdAt.toISOString(),
+            }
+        };
     } catch (error) {
-        console.error("[incrementUnreadCount] Error:", error);
+        console.error("[sendChatMessage] Error:", error);
+        if (error instanceof Error && error.message === "Chat became read-only") {
+            return { success: false, error: "This chat is read-only." };
+        }
         return { success: false, error: "Internal server error" };
     }
 }
@@ -116,9 +152,18 @@ export async function getUnreadNotifications() {
 
         const reservations = await prisma.reservation.findMany({
             where: {
+                markedForDeletion: false,
                 OR: [
-                    { userId: currentUser.id, unreadCountGuest: { gt: 0 } },
-                    { listing: { userId: currentUser.id }, unreadCountOwner: { gt: 0 } }
+                    {
+                        userId: currentUser.id,
+                        unreadCountGuest: { gt: 0 },
+                        AND: [{ OR: [{ hiddenByGuestAt: null }, { hiddenByGuestAt: { isSet: false } }] }],
+                    },
+                    {
+                        listing: { userId: currentUser.id },
+                        unreadCountOwner: { gt: 0 },
+                        AND: [{ OR: [{ hiddenByOwnerAt: null }, { hiddenByOwnerAt: { isSet: false } }] }],
+                    }
                 ]
             },
             include: {

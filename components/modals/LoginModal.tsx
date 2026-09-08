@@ -15,7 +15,7 @@ import Button from "@/components/ui/Button";
 import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
 import useUIStore from "@/hooks/useUIStore";
-import { getAuthErrorMessage } from "@/lib/auth-errors";
+import { getAuthErrorMessage } from "@/lib/errors";
 import { type LoginSchema, loginSchema } from "@/schemas/auth";
 
 function LoginModal() {
@@ -151,4 +151,3 @@ function LoginModal() {
 }
 
 export default LoginModal;
-

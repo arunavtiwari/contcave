@@ -1,14 +1,14 @@
 "use client";
 
-import { Amenities } from "@prisma/client";
 import React from "react";
 
 import AmenitiesCheckbox from "@/components/inputs/AmenitySelection";
 import Heading from "@/components/ui/Heading";
+import type { SafeAmenity } from "@/types/amenity";
 
 interface AmenitiesStepProps {
   amenities: string[];
-  amenitiesData: Amenities[];
+  amenitiesData: SafeAmenity[];
   otherAmenities: string[];
   handleAmenitiesChange: (v: { predefined: { [key: string]: boolean }; custom: string[] }) => void;
 }

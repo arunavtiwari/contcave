@@ -68,9 +68,13 @@ export default function BookingSummaryModal({
           isDefault: true,
         });
 
+        if (!billingRecord.success || !billingRecord.data) {
+          throw new Error(billingRecord.error || "Unable to save billing information");
+        }
+
         setGstDetailsAction({ ...gstDetails });
 
-        onConfirmAction(billingRecord?.id || null);
+        onConfirmAction(billingRecord.data.id || null);
       } catch (err: unknown) {
         console.error(err);
         if (err instanceof Error) {

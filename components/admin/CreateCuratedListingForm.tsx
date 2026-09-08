@@ -169,7 +169,7 @@ export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: ()
 
             <div className="flex justify-end pt-2">
                 <Button label={isPending ? "Publishing…" : "Publish Curated Listing"}
-                    disabled={isPending} loading={isPending} />
+                    type="submit" disabled={isPending} loading={isPending} />
             </div>
         </form>
     );

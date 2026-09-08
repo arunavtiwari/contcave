@@ -18,10 +18,18 @@ import {
 } from "react-icons/fi";
 import { toast } from "sonner";
 
-import { type AdminListingReview, approveListingAction, markInConversationAction, rejectListingAction } from "@/app/actions/listingActions";
+import {
+    type AdminListingReview,
+    type AdminListingReviewSummary,
+    approveListingAction,
+    getAdminListingReviewDetail,
+    markInConversationAction,
+    rejectListingAction,
+} from "@/app/actions/listingActions";
 import ListingReviewsModal from "@/components/admin/ListingReviewsModal";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
+import DashboardPagination from "@/components/ui/DashboardPagination";
 import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
 import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
@@ -290,7 +298,7 @@ function ReviewModal({
                             )) : (
                                 <DocumentLink title="Verification documents" />
                             )}
-                            <DocumentLink href={agreementUrl} title="Signed agreement PDF" meta={listing.verifications.agreementPdf?.public_id} />
+                            <DocumentLink href={agreementUrl} title="Signed agreement PDF" meta="Private document" />
                         </div>
                     </Section>
 
@@ -422,36 +430,62 @@ function ReviewModal({
     );
 }
 
-export default function AdminListingsClient({ listings }: { listings: AdminListingReview[] }) {
+type AdminListingsClientProps = {
+    listings: AdminListingReviewSummary[];
+    selectedStatus: "ALL" | ListingStatus;
+    listingType: ViewMode;
+    page: number;
+    pageSize: number;
+    total: number;
+    counts: Record<"ALL" | ListingStatus, number>;
+    curatedTotal: number;
+};
+
+export default function AdminListingsClient({
+    listings,
+    selectedStatus,
+    listingType,
+    page,
+    pageSize,
+    total,
+    counts,
+    curatedTotal,
+}: AdminListingsClientProps) {
     const router = useRouter();
-    const [viewMode, setViewMode] = useState<ViewMode>("STANDARD");
-    const [status, setStatus] = useState<"ALL" | ListingStatus>("PENDING");
+    const viewMode = listingType;
+    const status = selectedStatus;
     const [selected, setSelected] = useState<AdminListingReview | null>(null);
     const [reviewsFor, setReviewsFor] = useState<{ id: string; title: string } | null>(null);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
     const [rejectReason, setRejectReason] = useState("");
     const [isPending, startTransition] = useTransition();
 
-    const standardListings = useMemo(() => listings.filter(l => l.listingType !== "CURATED"), [listings]);
-    const curatedListings = useMemo(() => listings.filter(l => l.listingType === "CURATED"), [listings]);
+    const standardListings = useMemo(() => viewMode === "STANDARD" ? listings : [], [listings, viewMode]);
+    const curatedListings = useMemo(() => viewMode === "CURATED" ? listings : [], [listings, viewMode]);
+    const visibleListings = standardListings;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-    const counts = useMemo(() => ({
-        ALL: standardListings.length,
-        PENDING: standardListings.filter((listing) => listing.status === "PENDING").length,
-        VERIFIED: standardListings.filter((listing) => listing.status === "VERIFIED").length,
-        REJECTED: standardListings.filter((listing) => listing.status === "REJECTED").length,
-    }), [standardListings]);
-
-    const visibleListings = useMemo(
-        () => status === "ALL" ? standardListings : standardListings.filter((listing) => listing.status === status),
-        [standardListings, status]
-    );
-
-    const outreachLabel = (listing: AdminListingReview) => {
+    const outreachLabel = (listing: AdminListingReviewSummary) => {
         if (listing.inConversation) return { label: "In Conversation", variant: "success" as const };
         if (listing.notifyReminderAt) return { label: "Reminder Sent", variant: "info" as const };
         if (listing.notifyEmailSentAt) return { label: "Email Sent", variant: "warning" as const };
         return { label: "Not Sent", variant: "neutral" as const };
+    };
+
+    const openReview = (listingId: string) => {
+        startTransition(async () => {
+            const detail = await getAdminListingReviewDetail(listingId);
+            if (!detail) {
+                toast.error("Listing review details are unavailable");
+                return;
+            }
+            setSelected(detail);
+        });
+    };
+
+    const navigate = (nextView: ViewMode, nextStatus = status, nextPage = 1) => {
+        const search = new URLSearchParams({ view: nextView, status: nextStatus, page: String(nextPage) });
+        router.push(`/admin/dashboard/listings?${search.toString()}`);
     };
 
     const resetConfirm = () => {
@@ -495,10 +529,10 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                     <div className="flex rounded-xl border border-border bg-background p-1">
                         {(["STANDARD", "CURATED"] as ViewMode[]).map(m => (
                             <button key={m} type="button"
-                                onClick={() => setViewMode(m)}
+                                onClick={() => navigate(m, m === "CURATED" ? "ALL" : status)}
                                 className={cn("h-8 rounded-lg px-4 text-xs font-semibold transition",
                                     viewMode === m ? "bg-neutral-100 text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                                {m === "STANDARD" ? `Verified (${counts.ALL})` : `Curated (${curatedListings.length})`}
+                                {m === "STANDARD" ? `Verified (${counts.ALL})` : `Curated (${curatedTotal})`}
                             </button>
                         ))}
                     </div>
@@ -557,7 +591,12 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                                                             {!listing.inConversation && (
                                                                 <button type="button" className="text-xs text-success hover:underline"
                                                                     onClick={() => startTransition(async () => {
-                                                                        await markInConversationAction({ listingId: listing.id, inConversation: true });
+                                                                        const result = await markInConversationAction({ listingId: listing.id, inConversation: true });
+                                                                        if (!result.success) {
+                                                                            toast.error(result.error || "Failed to update outreach status");
+                                                                            return;
+                                                                        }
+                                                                        toast.success("Listing marked in conversation");
                                                                         router.refresh();
                                                                     })}>
                                                                     Mark In Conversation
@@ -590,7 +629,7 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                         type="button"
                         role="tab"
                         aria-selected={status === option.value}
-                        onClick={() => setStatus(option.value)}
+                        onClick={() => navigate("STANDARD", option.value)}
                         className={cn(
                             "h-9 rounded-xl px-4 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20",
                             status === option.value
@@ -681,7 +720,8 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                                                     aria-label={`Open listing review: ${listing.title}`}
                                                     tooltip="Open review"
                                                     data-testid={`review-listing-${listing.id}`}
-                                                    onClick={() => setSelected(listing)}
+                                                    onClick={() => openReview(listing.id)}
+                                                    disabled={isPending}
                                                 />
                                             </div>
                                         </td>
@@ -692,6 +732,14 @@ export default function AdminListingsClient({ listings }: { listings: AdminListi
                     </div>
                 </div>
             )}
+
+            <DashboardPagination
+                page={page}
+                totalPages={totalPages}
+                total={total}
+                itemLabel="listings"
+                hrefForPage={(nextPage) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}`}
+            />
 
             <ReviewModal
                 listing={selected}

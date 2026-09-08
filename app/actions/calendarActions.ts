@@ -2,38 +2,37 @@
 
 import { google } from "googleapis";
 
-import { auth } from "@/auth";
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import { getGoogleClientCredentials, isGoogleCalendarAuthError, refreshGoogleCalendarAccessToken } from "@/lib/calendar/oauth";
 import prisma from "@/lib/prismadb";
 
 function isObjectId(value: string) {
     return /^[0-9a-fA-F]{24}$/.test(value);
 }
 
-async function refreshCalendarAccessToken(account: {
-    refresh_token: string;
-}): Promise<{ access_token: string; expires_in?: number; refresh_token?: string }> {
-    const url = "https://oauth2.googleapis.com/token";
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-            client_id: process.env.GOOGLE_CLIENT_ID!,
-            client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-            grant_type: "refresh_token",
-            refresh_token: account.refresh_token,
-        }),
+function toOwnerCalendarEvents(events: Array<{
+    id?: string | null;
+    summary?: string | null;
+    description?: string | null;
+    start?: { date?: string | null; dateTime?: string | null } | null;
+    end?: { date?: string | null; dateTime?: string | null } | null;
+}>) {
+    return events.flatMap((event) => {
+        if (!event.id || (!event.start?.date && !event.start?.dateTime)) return [];
+        return [{
+            id: event.id,
+            summary: event.summary || undefined,
+            description: event.description || undefined,
+            start: {
+                ...(event.start?.date ? { date: event.start.date } : {}),
+                ...(event.start?.dateTime ? { dateTime: event.start.dateTime } : {}),
+            },
+            end: {
+                ...(event.end?.date ? { date: event.end.date } : {}),
+                ...(event.end?.dateTime ? { dateTime: event.end.dateTime } : {}),
+            },
+        }];
     });
-
-    const refreshedTokens = await response.json();
-
-    if (!response.ok) {
-        throw new Error(`Failed to refresh token: ${refreshedTokens.error || "Unknown error"}`);
-    }
-
-    return refreshedTokens;
 }
 
 /**
@@ -41,6 +40,9 @@ async function refreshCalendarAccessToken(account: {
  */
 export async function getCalendarEventsAction(listingId?: string) {
     try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser?.id) return [];
+
         let accessToken: string | null = null;
         let googleAccount: {
             id: string;
@@ -50,40 +52,59 @@ export async function getCalendarEventsAction(listingId?: string) {
         } | null | undefined = null;
 
         if (listingId) {
+            const normalizedListingId = listingId.trim();
+            if (!normalizedListingId || normalizedListingId.length > 200) return [];
             let listing;
-            if (isObjectId(listingId)) {
+            if (isObjectId(normalizedListingId)) {
                 listing = await prisma.listing.findUnique({
-                    where: { id: listingId },
-                    include: { user: { include: { accounts: true } } },
+                    where: { id: normalizedListingId },
+                    select: { userId: true, user: { select: { accounts: { select: {
+                        id: true, refresh_token: true, access_token: true, provider: true,
+                    } } } } },
                 });
             } else {
                 listing = await prisma.listing.findUnique({
-                    where: { slug: listingId },
-                    include: { user: { include: { accounts: true } } },
+                    where: { slug: normalizedListingId },
+                    select: { userId: true, user: { select: { accounts: { select: {
+                        id: true, refresh_token: true, access_token: true, provider: true,
+                    } } } } },
                 });
             }
 
-            if (!listing || !listing.user) return [];
+            if (!listing || listing.userId !== currentUser.id) return [];
 
             const owner = listing.user;
             googleAccount = owner.accounts.find(
                 (account) => account.provider === "google-calendar"
             );
 
-            if (!googleAccount || !googleAccount.access_token) return [];
+            if (!googleAccount || (!googleAccount.access_token && !googleAccount.refresh_token)) return [];
 
             accessToken = googleAccount.access_token;
         } else {
-            const session = await auth();
-            if (!session || !session.calendarAccessToken) return [];
-            accessToken = session.calendarAccessToken;
+            googleAccount = await prisma.account.findFirst({
+                where: { userId: currentUser.id, provider: "google-calendar" },
+                select: {
+                    id: true,
+                    refresh_token: true,
+                    access_token: true,
+                    provider: true,
+                },
+            });
+            if (!googleAccount || (!googleAccount.access_token && !googleAccount.refresh_token)) return [];
+            accessToken = googleAccount.access_token;
         }
 
+        if (!googleAccount) return [];
+        if (!accessToken && googleAccount.refresh_token) {
+            accessToken = (await refreshGoogleCalendarAccessToken(googleAccount.id, googleAccount.refresh_token)).access_token;
+        }
         if (!accessToken) return [];
+        const { clientId, clientSecret } = getGoogleClientCredentials();
 
         const oauth2Client = new google.auth.OAuth2(
-            process.env.GOOGLE_CLIENT_ID,
-            process.env.GOOGLE_CLIENT_SECRET
+            clientId,
+            clientSecret
         );
 
         oauth2Client.setCredentials({ access_token: accessToken });
@@ -108,32 +129,12 @@ export async function getCalendarEventsAction(listingId?: string) {
                 orderBy: "startTime",
             });
 
-            return response.data.items || [];
+            return toOwnerCalendarEvents(response.data.items || []);
         } catch (error: unknown) {
-            const err = error as { code?: number; status?: number; message?: string };
-            const isInvalidCredentials =
-                err.code === 401 ||
-                err.status === 401 ||
-                (err.message && (
-                    err.message.toLowerCase().includes("invalid credentials") ||
-                    err.message.includes("invalid_grant") ||
-                    err.message.toLowerCase().includes("unauthorized")
-                ));
+            const isInvalidCredentials = isGoogleCalendarAuthError(error);
 
             if (isInvalidCredentials && googleAccount && googleAccount.refresh_token) {
-                const refreshedTokens = await refreshCalendarAccessToken({
-                    refresh_token: googleAccount.refresh_token,
-                });
-
-                await prisma.account.update({
-                    where: { id: googleAccount.id },
-                    data: {
-                        access_token: refreshedTokens.access_token,
-                        expires_at: refreshedTokens.expires_in
-                            ? Math.floor(Date.now() / 1000) + refreshedTokens.expires_in
-                            : null,
-                    },
-                });
+                const refreshedTokens = await refreshGoogleCalendarAccessToken(googleAccount.id, googleAccount.refresh_token);
 
                 oauth2Client.setCredentials({ access_token: refreshedTokens.access_token });
                 const retryResponse = await calendar.events.list({
@@ -143,7 +144,7 @@ export async function getCalendarEventsAction(listingId?: string) {
                     singleEvents: true,
                     orderBy: "startTime",
                 });
-                return retryResponse.data.items || [];
+                return toOwnerCalendarEvents(retryResponse.data.items || []);
             }
             throw error;
         }
@@ -156,3 +157,4 @@ export async function getCalendarEventsAction(listingId?: string) {
         return [];
     }
 }
+

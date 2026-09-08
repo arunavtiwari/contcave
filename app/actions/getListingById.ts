@@ -1,5 +1,6 @@
 "use server";
 
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import { ListingService } from "@/lib/listing/service";
 import { FullListing } from "@/types/listing";
 
@@ -15,7 +16,21 @@ export default async function getListingById(params: IParams): Promise<FullListi
       return null;
     }
 
-    return await ListingService.findById(listingId);
+    const currentUser = await getCurrentUser();
+    const listing = await ListingService.findById(listingId, currentUser
+      ? { id: currentUser.id, role: currentUser.role }
+      : undefined);
+    if (!listing) return null;
+
+    if (listing.active && (listing.status === "VERIFIED" || listing.listingType === "CURATED")) {
+      return listing;
+    }
+
+    if (currentUser && (currentUser.role === "ADMIN" || listing.userId === currentUser.id)) {
+      return listing;
+    }
+
+    return null;
   } catch (error: unknown) {
     console.error(
       "[getListingById] Error:",
@@ -24,3 +39,4 @@ export default async function getListingById(params: IParams): Promise<FullListi
     return null;
   }
 }
+

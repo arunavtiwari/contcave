@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import type { User } from "@prisma/client";
 
 export type UserRole = "CUSTOMER" | "OWNER" | "ADMIN";
 export const UserRole = {
@@ -9,7 +9,22 @@ export const UserRole = {
 
 export type SafeUser = Omit<
     User,
-    "createdAt" | "updatedAt" | "emailVerified" | "verified_at" | "markedForDeletionAt" | "role"
+    | "createdAt"
+    | "updatedAt"
+    | "emailVerified"
+    | "verified_at"
+    | "markedForDeletionAt"
+    | "role"
+    | "hashedPassword"
+    | "resetToken"
+    | "resetTokenExpiry"
+    | "emailVerificationCodeHash"
+    | "emailVerificationCodeExpiry"
+    | "paymentDetailsId"
+    | "aadhaar_ref_id"
+    | "aadhaar_last4"
+    | "verified_via"
+    | "verification_stage"
 > & {
     createdAt: string;
     updatedAt: string;
@@ -18,6 +33,17 @@ export type SafeUser = Omit<
     markedForDeletionAt: string | null;
     role: UserRole;
 };
+
+export type PublicUser = Pick<
+    SafeUser,
+    | "id"
+    | "name"
+    | "image"
+    | "profileImage"
+    | "role"
+    | "is_verified"
+    | "googleCalendarConnected"
+>;
 
 export interface RegisterData {
     email: string;

@@ -1,6 +1,6 @@
 "use server";
 
-import { InvoiceDocumentType, InvoiceStatus, PaymentVoucherStatus, PaymentVoucherType, TransactionStatus } from "@prisma/client";
+import { InvoiceDocumentType, InvoiceStatus, PaymentVoucherStatus, PaymentVoucherType, Prisma, ReservationStatus, TransactionStatus } from "@prisma/client";
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
@@ -8,10 +8,12 @@ import { createAction } from "@/lib/actions-utils";
 import { InvoiceService } from "@/lib/invoice/service";
 import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import prisma from "@/lib/prismadb";
+import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isAdmin } from "@/lib/user/permissions";
 import { UserRole } from "@/types/user";
 
 type AdminGstModel = "GST_STUDIO_AGENT" | "NON_GST_PRINCIPAL" | "UNKNOWN";
+export type AdminBookingTab = "bookings" | "ownerInvoices" | "vouchers" | "payouts" | "failures" | "audit";
 
 export type AdminBookingDetail = {
   startTime: string;
@@ -53,6 +55,13 @@ export type AdminBookingDetail = {
     payoutSplitAt?: string | null;
     payoutDoneAt?: string | null;
   } | null;
+  postBookingPayments: Array<{
+    id: string;
+    kind: "EXTENSION" | "SERVICE" | "DAMAGE";
+    status: string;
+    amount: number;
+    detail?: string | null;
+  }>;
 };
 
 export type AdminBookingRow = {
@@ -63,14 +72,25 @@ export type AdminBookingRow = {
   studioName: string;
   amount: number;
   startDate: string;
-  approvalStatus: number | null;
+  lifecycleStatus: ReservationStatus;
+  checkedInAt?: string | null;
+  completedAt?: string | null;
+  noShowAt?: string | null;
+  refundAmount?: number | null;
+  refundRecordedAt?: string | null;
+  unverifiedPast: boolean;
+  reviewRequiredPaymentCount: number;
+  pendingPostBookingPaymentCount: number;
   paymentStatus: TransactionStatus | "NO_PAYMENT";
   gstModel: AdminGstModel;
   gstOwner?: string | null;
   customerInvoiceNumber?: string | null;
+  customerInvoiceId?: string | null;
   customerInvoiceStatus?: InvoiceStatus | null;
   customerInvoiceUrl?: string | null;
   customerInvoiceEmailSentAt?: string | null;
+  customerInvoiceEmailError?: string | null;
+  customerInvoiceRetryCount?: number | null;
   vouchers: AdminVoucherRow[];
   detail: AdminBookingDetail;
 };
@@ -113,7 +133,7 @@ export type AdminPayoutRow = {
   bookingId?: string | null;
   ownerName: string;
   studioName: string;
-  vendorId?: string | null;
+  vendorConfigured: boolean;
   amount: number;
   payoutAmount?: number | null;
   payoutSplitAt?: string | null;
@@ -143,15 +163,61 @@ function readBillingSnapshot(value: unknown) {
   };
 }
 
-export async function getAdminBookingOperations() {
+export async function getAdminBookingOperations(
+  params: { page?: number; pageSize?: number; tab?: AdminBookingTab } = {}
+) {
   const currentUser = await getCurrentUser();
   if (!currentUser || !isAdmin(currentUser.role)) {
     throw new Error("Unauthorized");
   }
 
-  const [reservations, invoices, payouts, paymentVouchers, audits] = await Promise.all([
-    prisma.reservation.findMany({
-      where: { markedForDeletion: false },
+  const page = typeof params.page === "number" && Number.isFinite(params.page)
+    ? Math.max(1, Math.floor(params.page))
+    : 1;
+  const pageSize = typeof params.pageSize === "number" && Number.isFinite(params.pageSize)
+    ? Math.min(100, Math.max(10, Math.floor(params.pageSize)))
+    : 20;
+  const tab = params.tab || "bookings";
+  const ownerInvoiceWhere: Prisma.InvoiceWhereInput = {
+    documentType: { in: ["OWNER_MONTHLY_COMMISSION_INVOICE", "OWNER_MONTHLY_BILL_OF_SUPPLY"] },
+  };
+  const visibleFailureWhere: Prisma.InvoiceWhereInput = {
+    OR: [
+      { status: { in: ["EMAIL_FAILED", "DELIVERY_BLOCKED", "RETRYING"] } },
+      { emailError: { not: null } },
+    ],
+  };
+  const payoutWhere: Prisma.TransactionWhereInput = {
+    OR: [
+      { payoutAmountToOwner: { not: null } },
+      { payoutSplitAt: { not: null } },
+      { payoutDoneAt: { not: null } },
+    ],
+  };
+  const visibleVoucherWhere: Prisma.PaymentVoucherWhereInput = {};
+  const auditWhere: Prisma.AuditLogWhereInput = { resource: { in: ["Invoice", "PaymentVoucher"] } };
+  const customerInvoiceWhere: Prisma.InvoiceWhereInput = {
+    documentType: { in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"] },
+  };
+  const invoiceWhere = tab === "ownerInvoices" ? ownerInvoiceWhere : visibleFailureWhere;
+  const skip = (page - 1) * pageSize;
+
+  const [
+    reservations,
+    bookingTotal,
+    invoices,
+    payouts,
+    paymentVouchers,
+    audits,
+    ownerInvoiceTotal,
+    voucherTotal,
+    payoutTotal,
+    failureTotal,
+    auditTotal,
+    customerInvoiceTotal,
+    pendingCustomerInvoiceTotal,
+  ] = await Promise.all([
+    tab === "bookings" ? prisma.reservation.findMany({
       select: {
         id: true,
         bookingId: true,
@@ -160,7 +226,12 @@ export async function getAdminBookingOperations() {
         startTime: true,
         endTime: true,
         createdAt: true,
-        isApproved: true,
+        status: true,
+        checkedInAt: true,
+        completedAt: true,
+        noShowAt: true,
+        refundAmount: true,
+        refundRecordedAt: true,
         rejectReason: true,
         selectedAddons: true,
         pricingSnapshot: true,
@@ -205,6 +276,7 @@ export async function getAdminBookingOperations() {
           },
         },
         Transaction: {
+          where: { purpose: "BASE_BOOKING" },
           orderBy: { createdAt: "desc" },
           take: 1,
           select: {
@@ -219,19 +291,40 @@ export async function getAdminBookingOperations() {
             payoutDoneAt: true,
           },
         },
+        extensionRequests: {
+          select: {
+            id: true,
+            status: true,
+            extraAmount: true,
+            requestedEndTime: true,
+          },
+        },
+        additionalCharges: {
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            totalAmount: true,
+            note: true,
+          },
+        },
         invoices: {
           where: {
             documentType: {
               in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"],
             },
+            transaction: { is: { purpose: "BASE_BOOKING" } },
           },
           orderBy: { createdAt: "desc" },
           take: 1,
           select: {
+            id: true,
             invoiceNumber: true,
             status: true,
             invoiceUrl: true,
             emailSentAt: true,
+            emailError: true,
+            retryCount: true,
           },
         },
         paymentVouchers: {
@@ -252,9 +345,12 @@ export async function getAdminBookingOperations() {
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 200,
-    }),
-    prisma.invoice.findMany({
+      skip,
+      take: pageSize,
+    }) : Promise.resolve([]),
+    prisma.reservation.count(),
+    (tab === "ownerInvoices" || tab === "failures") ? prisma.invoice.findMany({
+      where: invoiceWhere,
       select: {
         id: true,
         invoiceNumber: true,
@@ -271,20 +367,14 @@ export async function getAdminBookingOperations() {
         reservation: { select: { bookingId: true, markedForDeletion: true } },
       },
       orderBy: { createdAt: "desc" },
-      take: 200,
-    }),
-    prisma.transaction.findMany({
-      where: {
-        OR: [
-          { payoutAmountToOwner: { not: null } },
-          { payoutSplitAt: { not: null } },
-          { payoutDoneAt: { not: null } },
-        ],
-      },
+      skip,
+      take: pageSize,
+    }) : Promise.resolve([]),
+    tab === "payouts" ? prisma.transaction.findMany({
+      where: payoutWhere,
       select: {
         id: true,
         bookingId: true,
-        vendorId: true,
         amount: true,
         payoutAmountToOwner: true,
         payoutSplitAt: true,
@@ -296,16 +386,24 @@ export async function getAdminBookingOperations() {
             listing: {
               select: {
                 title: true,
-                user: { select: { name: true, email: true } },
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                    paymentDetails: { select: { cashfreeVendorId: true, vendorIdIV: true } },
+                  },
+                },
               },
             },
           },
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 200,
-    }),
-    prisma.paymentVoucher.findMany({
+      skip,
+      take: pageSize,
+    }) : Promise.resolve([]),
+    tab === "vouchers" ? prisma.paymentVoucher.findMany({
+      where: visibleVoucherWhere,
       select: {
         id: true,
         voucherNumber: true,
@@ -321,10 +419,11 @@ export async function getAdminBookingOperations() {
         reservation: { select: { bookingId: true, markedForDeletion: true } },
       },
       orderBy: { createdAt: "desc" },
-      take: 200,
-    }),
-    prisma.auditLog.findMany({
-      where: { resource: { in: ["Invoice", "PaymentVoucher"] } },
+      skip,
+      take: pageSize,
+    }) : Promise.resolve([]),
+    tab === "audit" ? prisma.auditLog.findMany({
+      where: auditWhere,
       select: {
         id: true,
         action: true,
@@ -333,7 +432,20 @@ export async function getAdminBookingOperations() {
         metadata: true,
       },
       orderBy: { createdAt: "desc" },
-      take: 100,
+      skip,
+      take: pageSize,
+    }) : Promise.resolve([]),
+    prisma.invoice.count({ where: ownerInvoiceWhere }),
+    prisma.paymentVoucher.count({ where: visibleVoucherWhere }),
+    prisma.transaction.count({ where: payoutWhere }),
+    prisma.invoice.count({ where: visibleFailureWhere }),
+    prisma.auditLog.count({ where: auditWhere }),
+    prisma.invoice.count({ where: customerInvoiceWhere }),
+    prisma.invoice.count({
+      where: {
+        ...customerInvoiceWhere,
+        OR: [{ emailSentAt: null }, { emailSentAt: { isSet: false } }],
+      },
     }),
   ]);
 
@@ -341,6 +453,29 @@ export async function getAdminBookingOperations() {
     const transaction = reservation.Transaction[0];
     const customerInvoice = reservation.invoices[0];
     const billing = readBillingSnapshot(reservation.billingSnapshot) || reservation.billingDetail;
+    const endAt = parseReservationEndTimeForDate(reservation.startDate, reservation.endTime);
+    const unverifiedPast =
+      reservation.status === "CONFIRMED" &&
+      !reservation.checkedInAt &&
+      Boolean(endAt && endAt.getTime() + 2 * 60 * 60 * 1000 <= Date.now());
+    const postBookingPayments = [
+      ...reservation.extensionRequests.map((extension) => ({
+        id: extension.id,
+        kind: "EXTENSION" as const,
+        status: extension.status,
+        amount: extension.extraAmount,
+        detail: `Until ${extension.requestedEndTime}`,
+      })),
+      ...reservation.additionalCharges.map((charge) => ({
+        id: charge.id,
+        kind: charge.type,
+        status: charge.status,
+        amount: charge.totalAmount,
+        detail: charge.note,
+      })),
+    ];
+    const reviewRequiredPaymentCount = postBookingPayments.filter((payment) => payment.status === "PAYMENT_REVIEW_REQUIRED").length;
+    const pendingPostBookingPaymentCount = postBookingPayments.filter((payment) => payment.status === "PENDING_PAYMENT").length;
     const gstModel: AdminGstModel =
       transaction?.gstOwnedBy === "STUDIO"
         ? "GST_STUDIO_AGENT"
@@ -356,14 +491,25 @@ export async function getAdminBookingOperations() {
       studioName: reservation.listing.title,
       amount: reservation.totalPrice,
       startDate: reservation.startDate.toISOString(),
-      approvalStatus: reservation.isApproved,
+      lifecycleStatus: reservation.status,
+      checkedInAt: iso(reservation.checkedInAt),
+      completedAt: iso(reservation.completedAt),
+      noShowAt: iso(reservation.noShowAt),
+      refundAmount: reservation.refundAmount,
+      refundRecordedAt: iso(reservation.refundRecordedAt),
+      unverifiedPast,
+      reviewRequiredPaymentCount,
+      pendingPostBookingPaymentCount,
       paymentStatus: transaction?.status || "NO_PAYMENT",
       gstModel,
       gstOwner: transaction?.gstOwnedBy,
+      customerInvoiceId: customerInvoice?.id,
       customerInvoiceNumber: customerInvoice?.invoiceNumber,
       customerInvoiceStatus: customerInvoice?.status,
-      customerInvoiceUrl: customerInvoice?.invoiceUrl,
+      customerInvoiceUrl: customerInvoice?.invoiceUrl ? `/api/documents/invoices/${customerInvoice.id}` : undefined,
       customerInvoiceEmailSentAt: iso(customerInvoice?.emailSentAt),
+      customerInvoiceEmailError: customerInvoice?.emailError,
+      customerInvoiceRetryCount: customerInvoice?.retryCount,
       vouchers: reservation.paymentVouchers.map((voucher) => ({
         id: voucher.id,
         voucherNumber: voucher.voucherNumber,
@@ -376,7 +522,7 @@ export async function getAdminBookingOperations() {
         emailSentAt: iso(voucher.emailSentAt),
         emailError: voucher.emailError,
         retryCount: voucher.retryCount,
-        voucherUrl: voucher.voucherUrl,
+        voucherUrl: voucher.voucherUrl ? `/api/documents/vouchers/${voucher.id}` : "",
         reservationMarkedForDeletion: false,
       })),
       detail: {
@@ -418,6 +564,7 @@ export async function getAdminBookingOperations() {
             payoutDoneAt: iso(transaction.payoutDoneAt),
           }
           : null,
+        postBookingPayments,
       },
     };
   });
@@ -436,7 +583,7 @@ export async function getAdminBookingOperations() {
     emailSentAt: iso(invoice.emailSentAt),
     emailError: invoice.emailError,
     retryCount: invoice.retryCount,
-    invoiceUrl: invoice.invoiceUrl,
+    invoiceUrl: invoice.invoiceUrl ? `/api/documents/invoices/${invoice.id}` : "",
   }));
 
   const voucherRows: AdminVoucherRow[] = paymentVouchers.map((voucher) => ({
@@ -452,7 +599,7 @@ export async function getAdminBookingOperations() {
     emailSentAt: iso(voucher.emailSentAt),
     emailError: voucher.emailError,
     retryCount: voucher.retryCount,
-    voucherUrl: voucher.voucherUrl,
+    voucherUrl: voucher.voucherUrl ? `/api/documents/vouchers/${voucher.id}` : "",
   }));
 
   const payoutRows: AdminPayoutRow[] = payouts.map((txn) => ({
@@ -460,7 +607,10 @@ export async function getAdminBookingOperations() {
     bookingId: txn.bookingId || txn.reservation?.bookingId,
     ownerName: txn.reservation?.listing.user.name || txn.reservation?.listing.user.email || "Owner",
     studioName: txn.reservation?.listing.title || "Studio",
-    vendorId: txn.vendorId,
+    vendorConfigured: Boolean(
+      txn.reservation?.listing.user.paymentDetails?.cashfreeVendorId
+      && txn.reservation.listing.user.paymentDetails.vendorIdIV
+    ),
     amount: txn.amount,
     payoutAmount: txn.payoutAmountToOwner,
     payoutSplitAt: iso(txn.payoutSplitAt),
@@ -490,7 +640,31 @@ export async function getAdminBookingOperations() {
   });
 
   return {
+    activeTab: tab,
+    operationPage: page,
+    operationPageSize: pageSize,
+    operationTotal: {
+      bookings: bookingTotal,
+      ownerInvoices: ownerInvoiceTotal,
+      vouchers: voucherTotal,
+      payouts: payoutTotal,
+      failures: failureTotal,
+      audit: auditTotal,
+    }[tab],
+    tabCounts: {
+      bookings: bookingTotal,
+      ownerInvoices: ownerInvoiceTotal,
+      vouchers: voucherTotal,
+      payouts: payoutTotal,
+      failures: failureTotal,
+      audit: auditTotal,
+    },
+    customerInvoiceTotal,
+    pendingCustomerInvoiceTotal,
     bookings: bookingRows,
+    bookingPage: page,
+    bookingPageSize: pageSize,
+    bookingTotal,
     customerInvoices: activeBookingCustomerInvoices,
     ownerInvoices: ownerInvoiceRows,
     vouchers: voucherRows.filter((voucher) => voucher.reservationMarkedForDeletion !== true),

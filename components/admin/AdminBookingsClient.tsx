@@ -14,13 +14,23 @@ import {
   retryAdminInvoiceEmailAction,
   retryAdminVoucherEmailAction,
 } from "@/app/actions/adminBookingActions";
+import AdminTablePagination from "@/components/admin/AdminTablePagination";
+import AdminTabs from "@/components/admin/AdminTabs";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
-import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
+import { formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
 
 type Props = {
   bookings: AdminBookingRow[];
+  bookingTotal: number;
+  activeTab: Tab;
+  operationPage: number;
+  operationPageSize: number;
+  operationTotal: number;
+  tabCounts: Record<Tab, number>;
+  customerInvoiceTotal: number;
+  pendingCustomerInvoiceTotal: number;
   ownerInvoices: AdminInvoiceRow[];
   vouchers: AdminVoucherRow[];
   failures: AdminInvoiceRow[];
@@ -46,10 +56,7 @@ function statusVariant(status: string) {
 }
 
 function bookingStatus(booking: AdminBookingRow) {
-  if (booking.approvalStatus === 2) return { label: "Rejected", variant: "destructive" as const };
-  if (booking.approvalStatus === 3) return { label: "Cancelled", variant: "destructive" as const };
   if (booking.paymentStatus === "FAILED") return { label: "Payment Failed", variant: "destructive" as const };
-  if (booking.paymentStatus === "SUCCESS" && booking.approvalStatus === 1) return { label: "Confirmed", variant: "success" as const };
   if (booking.paymentStatus === "SUCCESS") return { label: "Paid Pending Approval", variant: "warning" as const };
   if (booking.paymentStatus === "NO_PAYMENT") return { label: "Payment Missing", variant: "secondary" as const };
   return { label: "Payment Pending", variant: "warning" as const };
@@ -418,6 +425,13 @@ function BookingDetailModal({
 
 export default function AdminBookingsClient({
   bookings,
+  activeTab: tab,
+  operationPage,
+  operationPageSize,
+  operationTotal,
+  tabCounts,
+  customerInvoiceTotal,
+  pendingCustomerInvoiceTotal,
   ownerInvoices,
   vouchers,
   failures,
@@ -425,17 +439,10 @@ export default function AdminBookingsClient({
   audits,
 }: Props) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("bookings");
   const [pendingInvoiceId, setPendingInvoiceId] = useState<string | null>(null);
   const [pendingVoucherId, setPendingVoucherId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<AdminBookingRow | null>(null);
   const [isPending, startTransition] = useTransition();
-  const generatedCustomerInvoiceCount = useMemo(
-    () => bookings.filter((booking) => Boolean(booking.customerInvoiceNumber)).length,
-    [bookings]
-  );
-  const pendingCustomerInvoiceCount = bookings.length - generatedCustomerInvoiceCount;
-
   const activeRows = useMemo(() => {
     if (tab === "bookings") return bookings;
     if (tab === "ownerInvoices") return ownerInvoices;
@@ -444,15 +451,6 @@ export default function AdminBookingsClient({
     if (tab === "failures") return failures;
     return audits;
   }, [audits, bookings, failures, ownerInvoices, payouts, tab, vouchers]);
-
-  const tabCounts = useMemo<Record<Tab, number>>(() => ({
-    bookings: bookings.length,
-    ownerInvoices: ownerInvoices.length,
-    vouchers: vouchers.length,
-    payouts: payouts.length,
-    failures: failures.length,
-    audit: audits.length,
-  }), [audits.length, bookings.length, failures.length, ownerInvoices.length, payouts.length, vouchers.length]);
 
   const retryInvoice = (invoiceId: string) => {
     setPendingInvoiceId(invoiceId);
@@ -502,33 +500,24 @@ export default function AdminBookingsClient({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-        <Stat label="Bookings" value={bookings.length} />
-        <Stat label="Customer Invoices" value={generatedCustomerInvoiceCount} />
-        <Stat label="Pending Invoices" value={pendingCustomerInvoiceCount} />
-        <Stat label="Owner Invoices" value={ownerInvoices.length} />
-        <Stat label="Receipts & Refunds" value={vouchers.length} />
-        <Stat label="Payouts" value={payouts.length} />
+        <Stat label="Bookings" value={tabCounts.bookings} />
+        <Stat label="Customer Invoices" value={customerInvoiceTotal} />
+        <Stat label="Pending Invoices" value={pendingCustomerInvoiceTotal} />
+        <Stat label="Owner Invoices" value={tabCounts.ownerInvoices} />
+        <Stat label="Receipts & Refunds" value={tabCounts.vouchers} />
+        <Stat label="Payouts" value={tabCounts.payouts} />
       </div>
 
-      <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-background p-2" role="tablist" aria-label="Booking operations views">
-        {TABS.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            role="tab"
-            aria-selected={tab === item.key}
-            onClick={() => setTab(item.key)}
-            className={cn(
-              "h-9 rounded-xl px-4 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20",
-              tab === item.key
-                ? "bg-neutral-50 text-foreground ring-1 ring-border"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            {item.label} <span className="ml-1 text-xs text-muted-foreground">{tabCounts[item.key]}</span>
-          </button>
-        ))}
-      </div>
+      <AdminTabs
+        activeId={tab}
+        ariaLabel="Booking operations views"
+        items={TABS.map((item) => ({
+          id: item.key,
+          label: item.label,
+          count: tabCounts[item.key],
+          href: `/admin/dashboard/bookings?tab=${item.key}&page=1`,
+        }))}
+      />
 
       {tab === "bookings" && (
         bookings.length ? (
@@ -805,7 +794,7 @@ export default function AdminBookingsClient({
                     <td className="px-4 py-3 font-mono text-xs">{payout.bookingId || payout.id}</td>
                     <td className="px-4 py-3"><div className="truncate" title={payout.ownerName}>{payout.ownerName}</div></td>
                     <td className="px-4 py-3"><div className="truncate" title={payout.studioName}>{payout.studioName}</div></td>
-                    <td className="px-4 py-3 font-mono text-xs">{payout.vendorId || <MutedDash title="Vendor ID unavailable" />}</td>
+                    <td className="px-4 py-3 text-xs">{payout.vendorConfigured ? "Configured" : <MutedDash title="Vendor is not configured" />}</td>
                     <td className="px-4 py-3 text-right">{formatINR(payout.payoutAmount || 0)}</td>
                     <td className="px-4 py-3 text-center">
                       <CompactPill label={payout.payoutDoneAt ? "Done" : payout.payoutSplitAt ? "Split" : "Pending"} variant={payout.payoutDoneAt ? "success" : "warning"} />
@@ -836,6 +825,13 @@ export default function AdminBookingsClient({
           </div>
         ) : <EmptyTable label="No document audit events found." />
       )}
+
+      <AdminTablePagination
+        page={operationPage}
+        pageSize={operationPageSize}
+        total={operationTotal}
+        hrefForPage={(page) => `/admin/dashboard/bookings?tab=${tab}&page=${page}`}
+      />
 
       <BookingDetailModal
         booking={selectedBooking}

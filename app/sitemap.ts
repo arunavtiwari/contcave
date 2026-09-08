@@ -24,7 +24,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const listings = await prisma.listing.findMany({
       where: {
         status: "VERIFIED",
-        active: true
+        active: true,
+        OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }],
       },
       select: { id: true, createdAt: true, slug: true },
       take: 5000,

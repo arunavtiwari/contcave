@@ -2,12 +2,7 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
     serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
-    allowedDevOrigins: ['192.168.1.3'],
-    experimental: {
-        serverActions: {
-            bodySizeLimit: "6mb",
-        },
-    },
+    allowedDevOrigins: ['192.168.1.3', 'admin.localhost', '*.localhost'],
     images: {
         loader: 'custom',
         loaderFile: './lib/cloudflare-image-loader.ts',
@@ -23,7 +18,9 @@ const nextConfig: NextConfig = {
             { protocol: 'https', hostname: 'www.elinchrom.com' },
             { protocol: 'https', hostname: 'cdn-icons-png.flaticon.com' },
             { protocol: 'https', hostname: 'assets.contcave.com' },
-            { protocol: 'http', hostname: '127.0.0.1' }
+            ...(process.env.NODE_ENV !== 'production'
+                ? [{ protocol: 'http' as const, hostname: '127.0.0.1' }]
+                : [])
         ],
         formats: ['image/avif', 'image/webp'],
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -63,4 +60,3 @@ const nextConfig: NextConfig = {
 }
 
 export default nextConfig
-

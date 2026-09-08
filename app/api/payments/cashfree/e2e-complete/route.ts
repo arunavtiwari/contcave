@@ -9,7 +9,7 @@ import { TransactionService } from "@/lib/transaction/service";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  if (process.env.E2E_ENABLE_CASHFREE_SIMULATOR !== "true") {
+  if (process.env.NODE_ENV === "production" || process.env.E2E_ENABLE_CASHFREE_SIMULATOR !== "true") {
     return createErrorResponse("Not found", 404);
   }
 
@@ -24,12 +24,17 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    if (!req.headers.get("content-type")?.includes("application/json")) {
+      return createErrorResponse("Content-Type must be application/json", 415);
+    }
     const currentUser = await getCurrentUser();
     if (!currentUser?.id) return createErrorResponse("Unauthorized", 401);
 
     const body = (await req.json().catch(() => ({}))) as { tid?: string };
     const tid = body.tid?.trim();
-    if (!tid) return createErrorResponse("Missing transaction id", 400);
+    if (!tid || !/^tid_[A-Za-z0-9_]{1,80}$/.test(tid)) {
+      return createErrorResponse("Invalid transaction id", 400);
+    }
 
     const txn = await prisma.transaction.findFirst({
       where: { cfTxnRef: tid },
@@ -37,6 +42,9 @@ export async function POST(req: NextRequest) {
     });
     if (!txn) return createErrorResponse("Transaction not found", 404);
     if (txn.userId !== currentUser.id) return createErrorResponse("Forbidden", 403);
+    if (!txn.cfOrderId?.startsWith("e2e_order_") || !txn.cfPaymentSessionId?.startsWith("e2e_session_")) {
+      return createErrorResponse("Transaction is not an E2E simulator order", 409);
+    }
     if (txn.status !== "PENDING" && txn.status !== "SUCCESS") {
       return createErrorResponse(`Cannot complete transaction in ${txn.status} state`, 409);
     }

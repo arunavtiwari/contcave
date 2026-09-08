@@ -23,7 +23,7 @@ All email logic is centralized in `lib/email/templates.ts`. We utilize a **Premi
 
 ### Onboarding
 To maintain role-specific experiences, onboarding is split by lifecycle events:
-*   **Guests**: Triggered immediately upon registration in `api/register/route.ts`.
+*   **Guests**: Triggered immediately by `registerUserAction` in `app/actions/authActions.ts`.
 *   **Hosts**: Triggered only after **Full Verification** (Email, Phone, Aadhaar, Bank) is marked as `is_verified` in `lib/verification/service.ts`.
 
 ### Reservation Confirmations & Failures
@@ -42,7 +42,7 @@ To maintain role-specific experiences, onboarding is split by lifecycle events:
 > To ensure architectural consistency, follow these governance rules:
 
 *   **HTML Design**: Edit the raw strings in `lib/email/templates.ts` for all email layouts.
-*   **Redirects**: Always use `process.env.NEXTAUTH_URL` to ensure CTAs work across Staging and Production.
+*   **Redirects**: Always use `getValidatedBaseUrl()` from `lib/utils.ts` so CTAs use the validated canonical application origin across staging and production.
 
 ---
 

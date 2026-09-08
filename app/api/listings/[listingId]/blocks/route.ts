@@ -1,6 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
+import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
+import { listingBlockSchema } from "@/schemas/listing";
 
 export const runtime = "nodejs";
 
@@ -8,20 +9,33 @@ interface IParams {
     listingId?: string;
 }
 
+function serializeBlock<T extends { date: Date; createdAt: Date }>(block: T) {
+    return {
+        ...block,
+        date: block.date.toISOString(),
+        createdAt: block.createdAt.toISOString(),
+    };
+}
+
 export async function GET(request: Request, props: { params: Promise<IParams> }) {
     try {
         const { listingId } = await props.params;
+        const currentUser = await getCurrentUser();
 
-        if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
+        if (!currentUser?.id) {
+            return createErrorResponse("Authentication required", 401);
+        }
+
+        if (!listingId || !/^[a-f\d]{24}$/i.test(listingId)) {
             return createErrorResponse("Invalid listing ID", 400);
         }
 
         const listing = await prisma.listing.findUnique({
             where: { id: listingId },
-            select: { id: true },
+            select: { id: true, userId: true },
         });
 
-        if (!listing) {
+        if (!listing || (listing.userId !== currentUser.id && currentUser.role !== "ADMIN")) {
             return createErrorResponse("Listing not found", 404);
         }
 
@@ -30,7 +44,7 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
             orderBy: [{ date: "asc" }, { startTime: "asc" }],
         });
 
-        return createSuccessResponse(blocks);
+        return createSuccessResponse(blocks.map(serializeBlock));
     } catch (error) {
         return handleRouteError(error, "GET /api/listings/[listingId]/blocks");
     }
@@ -38,10 +52,6 @@ export async function GET(request: Request, props: { params: Promise<IParams> })
 
 export async function POST(request: Request, props: { params: Promise<IParams> }) {
     try {
-        if (!request.headers.get("content-type")?.includes("application/json")) {
-            return createErrorResponse("Content-Type must be application/json", 415);
-        }
-
         const { listingId } = await props.params;
         const currentUser = await getCurrentUser();
 
@@ -49,61 +59,50 @@ export async function POST(request: Request, props: { params: Promise<IParams> }
             return createErrorResponse("Authentication required", 401);
         }
 
-        if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
+        if (!listingId || !/^[a-f\d]{24}$/i.test(listingId)) {
             return createErrorResponse("Invalid listing ID", 400);
         }
 
         const listing = await prisma.listing.findUnique({
             where: { id: listingId },
-            select: { userId: true },
+            select: { userId: true, archivedAt: true, sets: { select: { id: true } } },
         });
 
         if (!listing) {
             return createErrorResponse("Listing not found", 404);
         }
 
-        if (listing.userId !== currentUser.id) {
+        if (listing.userId !== currentUser.id && currentUser.role !== "ADMIN") {
             return createErrorResponse("You don't have permission to manage blocks for this listing", 403);
         }
-
-        const body = await request.json().catch(() => ({}));
-        const { date, startTime, endTime, setIds, reason } = body;
-
-        if (!date || typeof date !== "string") {
-            return createErrorResponse("date is required and must be a string (YYYY-MM-DD)", 400);
+        if (listing.archivedAt) {
+            return createErrorResponse("Archived listings cannot be modified", 409);
         }
 
-        const parsedDate = new Date(date);
-        if (isNaN(parsedDate.getTime())) {
-            return createErrorResponse("Invalid date format. Use YYYY-MM-DD", 400);
+        const parsedBody = await readJsonObject(request, 25_000);
+        if (!parsedBody.success) return parsedBody.response;
+        const validation = listingBlockSchema.safeParse({ ...parsedBody.data, listingId });
+        if (!validation.success) {
+            return createErrorResponse(validation.error.issues[0].message, 400);
         }
-
-        if (!startTime || typeof startTime !== "string") {
-            return createErrorResponse("startTime is required and must be a string", 400);
+        const { date, startTime, endTime, setIds, reason } = validation.data;
+        const validSetIds = new Set(listing.sets.map((set) => set.id));
+        if (setIds.some((setId) => !validSetIds.has(setId))) {
+            return createErrorResponse("One or more sets do not belong to this listing", 400);
         }
-
-        if (!endTime || typeof endTime !== "string") {
-            return createErrorResponse("endTime is required and must be a string", 400);
-        }
-
-        const sanitizedSetIds = Array.isArray(setIds)
-            ? setIds.filter((id: unknown) => typeof id === "string" && id.trim().length > 0)
-            : [];
-
-        const sanitizedReason = typeof reason === "string" ? reason.trim().slice(0, 500) : null;
 
         const block = await prisma.listingBlock.create({
             data: {
                 listingId,
-                date: parsedDate,
-                startTime: startTime.trim(),
-                endTime: endTime.trim(),
-                setIds: sanitizedSetIds,
-                reason: sanitizedReason,
+                date: new Date(`${date}T00:00:00.000Z`),
+                startTime,
+                endTime,
+                setIds,
+                reason: reason?.trim() || null,
             },
         });
 
-        return createSuccessResponse(block, 201, "Block created successfully");
+        return createSuccessResponse(serializeBlock(block), 201, "Block created successfully");
     } catch (error) {
         return handleRouteError(error, "POST /api/listings/[listingId]/blocks");
     }
@@ -118,28 +117,31 @@ export async function DELETE(request: Request, props: { params: Promise<IParams>
             return createErrorResponse("Authentication required", 401);
         }
 
-        if (!listingId || typeof listingId !== "string" || listingId.trim().length === 0) {
+        if (!listingId || !/^[a-f\d]{24}$/i.test(listingId)) {
             return createErrorResponse("Invalid listing ID", 400);
         }
 
         const url = new URL(request.url);
         const blockId = url.searchParams.get("blockId");
 
-        if (!blockId || typeof blockId !== "string" || blockId.trim().length === 0) {
+        if (!blockId || !/^[a-f\d]{24}$/i.test(blockId)) {
             return createErrorResponse("blockId query parameter is required", 400);
         }
 
         const block = await prisma.listingBlock.findUnique({
             where: { id: blockId },
-            include: { listing: { select: { userId: true } } },
+            include: { listing: { select: { userId: true, archivedAt: true } } },
         });
 
         if (!block) {
             return createErrorResponse("Block not found", 404);
         }
 
-        if (block.listing.userId !== currentUser.id) {
+        if (block.listing.userId !== currentUser.id && currentUser.role !== "ADMIN") {
             return createErrorResponse("You don't have permission to delete this block", 403);
+        }
+        if (block.listing.archivedAt) {
+            return createErrorResponse("Archived listings cannot be modified", 409);
         }
 
         if (block.listingId !== listingId) {

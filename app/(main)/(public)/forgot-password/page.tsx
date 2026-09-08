@@ -66,9 +66,9 @@ const ForgotPasswordPage = () => {
                         />
 
                         <Button
+                            type="submit"
                             disabled={isLoading}
                             label="Send Reset Link"
-                            onClick={handleSubmit(onSubmit)}
                         />
                     </form>
                 </div>
@@ -78,4 +78,3 @@ const ForgotPasswordPage = () => {
 };
 
 export default ForgotPasswordPage;
-

@@ -1,19 +1,20 @@
-import { TransactionStatus } from '@prisma/client';
+import type { TransactionStatus } from '@prisma/client';
+
+export type TransactionDisplayStatus = 'Pending' | 'Successful' | 'Failed' | 'Refunded';
 
 export interface Transaction {
     id: string;
     businessName?: string;
     merchant?: string;
-    date: string | Date;
+    date: string;
     guestName?: string;
     customerName?: string;
     amount: number;
     currency?: string;
-    status: TransactionStatus | 'Pending' | 'Successful' | 'Success' | 'Failed' | 'Failure' | 'Refunded';
+    status: TransactionDisplayStatus;
     description?: string;
     paymentMethod?: string;
     merchantTransactionId?: string;
-    phonePeTransactionId?: string;
     reservationId?: string;
     bookingId?: string;
     listingId?: string;

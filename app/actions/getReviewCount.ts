@@ -1,8 +1,10 @@
+import "server-only";
+
 import prisma from "@/lib/prismadb";
 
 export default async function getReviewCount(listingId: string) {
     try {
-        if (!listingId) {
+        if (!/^[a-f\d]{24}$/i.test(listingId)) {
             return 0;
         }
 

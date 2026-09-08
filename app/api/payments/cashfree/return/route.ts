@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
+import { getValidatedBaseUrl } from "@/lib/utils";
 import { UserRole } from "@/types/user";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,10 @@ async function resolveTid(req: NextRequest): Promise<string> {
 
   if (!tid) {
     try {
+      const declaredLength = Number(req.headers.get("content-length") || 0);
+      if (Number.isFinite(declaredLength) && declaredLength > 10_000) return "";
       const text = await req.text();
+      if (new TextEncoder().encode(text).byteLength > 10_000) return "";
       if (text) {
         try {
           const body = JSON.parse(text);
@@ -27,7 +31,7 @@ async function resolveTid(req: NextRequest): Promise<string> {
     }
   }
 
-  if (tid) {
+  if (tid && /^[A-Za-z0-9_-]{1,100}$/.test(tid.trim())) {
     return tid.trim();
   }
 
@@ -37,6 +41,8 @@ async function resolveTid(req: NextRequest): Promise<string> {
       const latestTxn = await prisma.transaction.findFirst({
         where: {
           userId: currentUser.id,
+          cfTxnRef: { not: null },
+          status: { in: ["PENDING", "SUCCESS"] },
           createdAt: {
             gte: new Date(Date.now() - 10 * 60 * 1000),
           },
@@ -73,27 +79,27 @@ async function getFallbackUrl(): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  const url = new URL(req.url);
+  const appUrl = getValidatedBaseUrl();
   const tid = await resolveTid(req);
 
   if (!tid) {
     const fallback = await getFallbackUrl();
-    return NextResponse.redirect(new URL(fallback, url.origin), 303);
+    return NextResponse.redirect(new URL(fallback, appUrl), 303);
   }
 
-  const redirectUrl = `${url.origin}/payments/cashfree/return?tid=${encodeURIComponent(tid)}`;
+  const redirectUrl = `${appUrl}/payments/cashfree/return?tid=${encodeURIComponent(tid)}`;
   return NextResponse.redirect(redirectUrl, 303);
 }
 
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
+  const appUrl = getValidatedBaseUrl();
   const tid = await resolveTid(req);
 
   if (!tid) {
     const fallback = await getFallbackUrl();
-    return NextResponse.redirect(new URL(fallback, url.origin), 307);
+    return NextResponse.redirect(new URL(fallback, appUrl), 307);
   }
 
-  const redirectUrl = `${url.origin}/payments/cashfree/return?tid=${encodeURIComponent(tid)}`;
+  const redirectUrl = `${appUrl}/payments/cashfree/return?tid=${encodeURIComponent(tid)}`;
   return NextResponse.redirect(redirectUrl, 307);
 }

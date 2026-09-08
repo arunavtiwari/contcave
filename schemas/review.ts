@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+export const createReviewSchema = z.object({
+    listingId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid listing ID"),
+    reservationId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid reservation ID"),
+    rating: z.coerce.number().int().min(1).max(5),
+    comment: z.string().trim().min(10, "Review must be at least 10 characters").max(2000),
+});
+
 export const whatsAppReviewSchema = z.object({
     listingId: z.string().min(1, "Listing ID is required"),
     guestName: z.string().trim().min(2, "Guest name is required").max(80),
@@ -13,5 +20,7 @@ export const deleteReviewSchema = z.object({
     listingId: z.string().min(1, "Listing ID is required"),
 });
 
+export type CreateReviewSchema = z.infer<typeof createReviewSchema>;
 export type WhatsAppReviewSchema = z.infer<typeof whatsAppReviewSchema>;
 export type DeleteReviewSchema = z.infer<typeof deleteReviewSchema>;
+

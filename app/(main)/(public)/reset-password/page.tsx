@@ -105,9 +105,9 @@ const ResetPasswordContent = () => {
                         />
 
                         <Button
+                            type="submit"
                             disabled={isLoading}
                             label="Reset Password"
-                            onClick={handleSubmit(onSubmit)}
                         />
                     </form>
                 </div>
@@ -125,4 +125,3 @@ const ResetPasswordPage = () => {
 };
 
 export default ResetPasswordPage;
-
