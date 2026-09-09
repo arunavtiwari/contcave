@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import CuratedReservation from "@/components/listing/CuratedReservation";
 import ListingHead from "@/components/listing/ListingHead";
 import ListingInfo from "@/components/listing/ListingInfo";

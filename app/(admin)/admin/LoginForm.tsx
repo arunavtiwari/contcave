@@ -3,9 +3,9 @@
 import React, { useActionState } from "react";
 
 import { loginAdmin } from "@/app/actions/loginAdmin";
-import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import Input from "@/components/ui/Input";
 
 export default function LoginForm() {
     const [state, formAction, isPending] = useActionState(loginAdmin, { error: "" });

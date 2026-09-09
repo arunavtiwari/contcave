@@ -7,9 +7,9 @@ import qs from "query-string";
 import { Suspense, useCallback, useMemo, useState } from "react";
 
 import Calendar from "@/components/inputs/Calendar";
-import Checkbox from "@/components/inputs/Checkbox";
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import Modal from "@/components/modals/Modal";
+import Checkbox from "@/components/ui/Checkbox";
 import Heading from "@/components/ui/Heading";
 import useUIStore from "@/hooks/useUIStore";
 
@@ -32,7 +32,7 @@ function SearchModalContent({ }: Props) {
 
   const Map = useMemo(
     () =>
-      dynamic(() => import("../Map"), {
+      dynamic(() => import("@/components/shared/Map"), {
         ssr: false,
       }),
     []

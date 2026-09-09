@@ -1,11 +1,11 @@
 import React, { useCallback, useMemo } from "react";
 
 import AmenitiesCheckbox from "@/components/inputs/AmenitySelection";
-import FormField from "@/components/inputs/FormField";
-import Input from "@/components/inputs/Input";
-import Switch from "@/components/inputs/Switch";
 import TaxonomyPillSelect from "@/components/inputs/TaxonomyPillSelect";
+import FormField from "@/components/ui/FormField";
+import Input from "@/components/ui/Input";
 import Select, { SelectOption } from "@/components/ui/Select";
+import Switch from "@/components/ui/Switch";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 import { AESTHETICS, SET_FEATURES, USE_CASES, VENUE_TYPES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";

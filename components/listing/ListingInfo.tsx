@@ -12,18 +12,18 @@ import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import getReviews from "@/app/actions/getReviews";
 import { checkBookingAction } from "@/app/actions/reservationActions";
-import Textarea from "@/components/inputs/Textarea";
 import AddonsList from "@/components/listing/AddonList";
 import ListingCategory from "@/components/listing/ListingCategory";
+import Offers from "@/components/listing/Offers";
 import PackageList from "@/components/listing/PackageList";
 import SetSelector from "@/components/listing/SetSelector";
-import Offers from "@/components/Offers";
 import Avatar from "@/components/ui/Avatar";
 import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
 import StarRating from "@/components/ui/StarRating";
+import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hooks/useCities";
 import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
 import { formatISTDate } from "@/lib/utils";
@@ -33,7 +33,7 @@ import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
 import { PublicUser } from "@/types/user";
 
-const Map = dynamic(() => import("../Map"), { ssr: false });
+const Map = dynamic(() => import("@/components/shared/Map"), { ssr: false });
 
 interface Review {
   id: string;

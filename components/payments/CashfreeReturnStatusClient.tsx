@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 import getTransaction from "@/app/actions/getTransaction";
-import PaymentAnimation from "@/components/PaymentSuccessAnimation";
+import PaymentAnimation from "@/components/payments/PaymentSuccessAnimation";
 import Button from "@/components/ui/Button";
 
 interface SerializedListing {

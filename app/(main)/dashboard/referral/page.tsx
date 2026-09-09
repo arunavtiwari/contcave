@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import EmptyState from "@/components/EmptyState";
 import ShareAndRefer from "@/components/profile/ShareAndRefer";
+import EmptyState from "@/components/shared/EmptyState";
 
 export const metadata: Metadata = {
     title: "Referral",

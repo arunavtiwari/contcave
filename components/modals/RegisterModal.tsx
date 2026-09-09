@@ -10,11 +10,11 @@ import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
 import { registerUserAction } from "@/app/actions/authActions";
-import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
+import Input from "@/components/ui/Input";
 import useUIStore from "@/hooks/useUIStore";
 import { getAuthErrorMessage } from "@/lib/errors";
 import { RegisterSchema, registerSchema } from "@/schemas/auth";

@@ -6,7 +6,7 @@ import Link from "next/link";
 import React, { useRef, useState } from "react";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 
-import HeartButton from "@/components/HeartButton";
+import HeartButton from "@/components/listing/HeartButton";
 import Pill from "@/components/ui/Pill";
 import { SafeUser } from "@/types/user";
 

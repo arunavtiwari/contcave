@@ -7,16 +7,15 @@ import { toast } from "sonner";
 
 import { deleteListingAction } from "@/app/actions/listingActions";
 import DeletePropertyModal from "@/components/modals/DeletePropertyModal";
+import EditPropertyTab from "@/components/property/EditPropertyTab";
+import ManageBlocksTab from "@/components/property/ManageBlocksTab";
+import ManageTimingsTab from "@/components/property/ManageTimingsTab";
+import SettingsTab from "@/components/property/SettingsTab";
+import SyncCalendarTab from "@/components/property/SyncCalendarTab";
 import { usePropertyEdit } from "@/hooks/usePropertyEdit";
 import { Addon } from "@/types/addon";
 import type { SafeAmenity } from "@/types/amenity";
 import { FullListing } from "@/types/listing";
-
-import EditPropertyTab from "./property/EditPropertyTab";
-import ManageBlocksTab from "./property/ManageBlocksTab";
-import ManageTimingsTab from "./property/ManageTimingsTab";
-import SettingsTab from "./property/SettingsTab";
-import SyncCalendarTab from "./property/SyncCalendarTab";
 
 type Props = {
     listing: FullListing;

@@ -6,11 +6,10 @@ import React, { useEffect, useState } from 'react';
 import { IconType } from 'react-icons';
 import { FiImage } from 'react-icons/fi';
 
+import Checkbox from "@/components/ui/Checkbox";
+import Input from "@/components/ui/Input";
 import { cn } from '@/lib/utils';
 import { Addon } from "@/types/addon";
-
-import Checkbox from './Checkbox';
-import Input from './Input';
 
 type Props = {
   imageUrl?: string;

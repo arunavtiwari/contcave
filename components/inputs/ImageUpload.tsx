@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { IconType } from "react-icons";
 import { TbPhotoPlus } from "react-icons/tb";
 
-import FormField from "./FormField";
+import FormField from "@/components/ui/FormField";
 
 type Props = {
   onChange: (value: string[]) => void;

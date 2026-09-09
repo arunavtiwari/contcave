@@ -8,10 +8,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { getDayStatusAction, updateDayStatusAction } from "@/app/actions/listingActions";
-import Input from "@/components/inputs/Input";
-import Switch from "@/components/inputs/Switch";
 import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import Skeleton from "@/components/ui/Skeleton";
+import Switch from "@/components/ui/Switch";
 
 const dayNameToIndex: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
 

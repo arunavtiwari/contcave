@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 
 import ChatClient from "@/app/(main)/dashboard/chat/ChatClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import ClientOnly from "@/components/ClientOnly";
-import EmptyState from "@/components/EmptyState";
+import ClientOnly from "@/components/shared/ClientOnly";
+import EmptyState from "@/components/shared/EmptyState";
 import { getAuthorizedChatReservation } from "@/lib/chat/reservation";
 
 export const metadata: Metadata = {

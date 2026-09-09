@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 import { IoClose, IoLocateOutline, IoLocationOutline } from "react-icons/io5";
 
-import AutoComplete from "@/components/inputs/AutoComplete";
+import AutoComplete from "@/components/ui/AutoComplete";
 import Button from "@/components/ui/Button";
 import { useLocationSearch } from "@/hooks/useLocationSearch";
 import { useLocationSort } from "@/hooks/useLocationSort";

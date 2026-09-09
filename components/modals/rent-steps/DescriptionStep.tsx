@@ -3,9 +3,9 @@
 import React from "react";
 import { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from "react-hook-form";
 
-import Input from "@/components/inputs/Input";
 import LexicalEditor from "@/components/inputs/RichTextEditor";
 import Heading from "@/components/ui/Heading";
+import Input from "@/components/ui/Input";
 import { ListingSchema } from "@/schemas/listing";
 
 type RentModalFormValues = ListingSchema;

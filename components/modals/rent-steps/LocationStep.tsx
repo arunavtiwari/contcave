@@ -3,12 +3,12 @@
 import dynamic from "next/dynamic";
 import React from "react";
 
-import AutoComplete, { AutoCompleteValue } from "@/components/inputs/AutoComplete";
 import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
-import Input from "@/components/inputs/Input";
+import AutoComplete, { AutoCompleteValue } from "@/components/ui/AutoComplete";
 import Heading from "@/components/ui/Heading";
+import Input from "@/components/ui/Input";
 
-const Map = dynamic(() => import("../../Map"), { ssr: false });
+const Map = dynamic(() => import("@/components/shared/Map"), { ssr: false });
 
 import { LocationSchema } from "@/schemas/listing";
 

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import DashboardSidebarWrapper from "@/components/DashboardSidebarWrapper";
+import DashboardSidebarWrapper from "@/components/layout/DashboardSidebarWrapper";
 import { isOwner } from "@/lib/user/permissions";
 
 export default async function AppLayout({

@@ -439,15 +439,18 @@ export default function AdminBookingsClient({
     });
   };
 
+  const paginationFooter = (
+    <AdminTablePagination
+      page={operationPage}
+      pageSize={operationPageSize}
+      total={operationTotal}
+      hrefForPage={(page) => `/admin/dashboard/bookings?tab=${tab}&page=${page}`}
+    />
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground">Bookings Operations</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Monitor bookings, document delivery, payouts, and document audit history.
-          </p>
-        </div>
+      <div className="flex items-center justify-end">
         <Button
           label="Export CSV"
           icon={FiDownload}
@@ -480,7 +483,7 @@ export default function AdminBookingsClient({
 
       {tab === "bookings" && (
         bookings.length ? (
-          <TableShell>
+          <TableShell footer={paginationFooter}>
             <table className="min-w-310 table-fixed divide-y divide-border text-[13px] xl:min-w-full">
               <colgroup>
                 <col className="w-26.25" />
@@ -565,7 +568,7 @@ export default function AdminBookingsClient({
 
       {(tab === "ownerInvoices" || tab === "failures") && (
         activeRows.length ? (
-          <TableShell>
+          <TableShell footer={paginationFooter}>
             <table className="min-w-245 table-fixed divide-y divide-border text-sm">
               <colgroup>
                 <col className="w-45" />
@@ -646,7 +649,7 @@ export default function AdminBookingsClient({
 
       {tab === "vouchers" && (
         vouchers.length ? (
-          <TableShell>
+          <TableShell footer={paginationFooter}>
             <table className="min-w-220 table-fixed divide-y divide-border text-sm">
               <colgroup>
                 <col className="w-45" />
@@ -727,7 +730,7 @@ export default function AdminBookingsClient({
 
       {tab === "payouts" && (
         payouts.length ? (
-          <TableShell>
+          <TableShell footer={paginationFooter}>
             <table className="min-w-215 table-fixed divide-y divide-border text-sm">
               <colgroup>
                 <col className="w-40" />
@@ -768,29 +771,27 @@ export default function AdminBookingsClient({
 
       {tab === "audit" && (
         audits.length ? (
-          <div className="space-y-2">
-            {audits.map((audit) => (
-              <div key={audit.id} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
-                <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-neutral-50">
-                  <FiFileText size={16} />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              {audits.map((audit) => (
+                <div key={audit.id} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
+                  <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-neutral-50">
+                    <FiFileText size={16} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-foreground">{audit.action}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{formatISTDateTime(audit.createdAt)} | {audit.resourceId || "No resource"}</div>
+                    {audit.metadata ? <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-muted p-2 text-xs">{JSON.stringify(audit.metadata, null, 2)}</pre> : null}
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-foreground">{audit.action}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{formatISTDateTime(audit.createdAt)} | {audit.resourceId || "No resource"}</div>
-                  {audit.metadata ? <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-muted p-2 text-xs">{JSON.stringify(audit.metadata, null, 2)}</pre> : null}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="overflow-hidden rounded-xl border border-border bg-card">
+              {paginationFooter}
+            </div>
           </div>
         ) : <EmptyTable label="No document audit events found." />
       )}
-
-      <AdminTablePagination
-        page={operationPage}
-        pageSize={operationPageSize}
-        total={operationTotal}
-        hrefForPage={(page) => `/admin/dashboard/bookings?tab=${tab}&page=${page}`}
-      />
 
       <BookingDetailModal
         booking={selectedBooking}

@@ -6,10 +6,10 @@ import { IconType } from "react-icons";
 import { IoMdClose } from "react-icons/io";
 import { LuCheck, LuCookie, LuSettings, LuShieldCheck } from "react-icons/lu";
 
-import Switch from "@/components/inputs/Switch";
 import { useConsent } from "@/components/providers/ConsentProvider";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import Switch from "@/components/ui/Switch";
 import { cn } from "@/lib/utils";
 
 const CookieConsentBanner = () => {

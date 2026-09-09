@@ -5,7 +5,7 @@ import { MdInfoOutline } from "react-icons/md";
 
 import { cn } from "@/lib/utils";
 
-interface FormFieldProps {
+export interface FormFieldProps {
     id?: string;
     label?: string;
     description?: string;
@@ -69,7 +69,7 @@ const FormField = ({
                             <span
                                 id={tooltipId}
                                 role="tooltip"
-                                className="pointer-events-none absolute left-1/2 top-full z-50 mt-2.5 w-max max-w-64 -translate-x-1/2 rounded-xl border border-border/60 bg-background/40 px-3 py-2 text-xs font-normal leading-5 text-foreground opacity-0 backdrop-blur-xl transition duration-150 ease-out before:absolute before:-top-1 before:left-1/2 before:block before:h-2 before:w-2 before:-translate-x-1/2 before:rotate-45 before:border-l before:border-t before:border-border/60 before:bg-background/40 before:backdrop-blur-xl before:content-[''] group-hover/help:translate-y-0 group-hover/help:opacity-100 group-focus-visible/help:translate-y-0 group-focus-visible/help:opacity-100"
+                                className="pointer-events-none absolute left-1/2 top-full z-50 mt-2.5 w-max max-w-64 -translate-x-1/2 rounded-xl border border-border bg-background px-3 py-2 text-xs font-normal leading-5 text-foreground opacity-0 shadow-sm transition duration-150 ease-out before:absolute before:-top-1 before:left-1/2 before:block before:h-2 before:w-2 before:-translate-x-1/2 before:rotate-45 before:border-l before:border-t before:border-border before:bg-background before:content-[''] group-hover/help:translate-y-0 group-hover/help:opacity-100 group-focus-visible/help:translate-y-0 group-focus-visible/help:opacity-100"
                             >
                                 {description}
                             </span>

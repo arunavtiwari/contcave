@@ -8,7 +8,7 @@ import { FaArrowUpRightDots } from "react-icons/fa6";
 import Button from "@/components/ui/Button";
 import { MAIN_SIDEBAR_ITEMS, PROFILE_SIDEBAR_ITEMS } from "@/constants/navigation";
 
-interface SidebarProps {
+export interface SidebarProps {
     listingId?: string;
     menuType?: "main" | "profile";
     isOwner?: boolean;

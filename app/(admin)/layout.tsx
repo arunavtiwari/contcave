@@ -4,8 +4,8 @@ import { GeistSans } from "geist/font/sans";
 import { Metadata, Viewport } from "next";
 import React from "react";
 
-import ClientOnly from "@/components/ClientOnly";
-import ToastContainerBar from "@/components/ToastContainerBar";
+import ClientOnly from "@/components/shared/ClientOnly";
+import ToastContainerBar from "@/components/shared/ToastContainerBar";
 import { BRAND_NAME, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {

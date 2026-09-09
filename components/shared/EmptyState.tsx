@@ -25,7 +25,7 @@ function EmptyState({
       transition={{ duration: 0.5 }}
       className="h-[60vh] flex flex-col items-center justify-center text-center px-6"
     >
-      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted border border-border">
+      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-border">
         <FiSearch className="h-8 w-8 text-muted-foreground" />
       </div>
 

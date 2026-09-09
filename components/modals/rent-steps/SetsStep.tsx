@@ -2,10 +2,10 @@
 
 import React from "react";
 
-import FormField from "@/components/inputs/FormField";
 import SetsEditor from "@/components/inputs/SetsEditor";
 import { SetEditorItem } from "@/components/inputs/SetsEditor";
 import Button from "@/components/ui/Button";
+import FormField from "@/components/ui/FormField";
 import Heading from "@/components/ui/Heading";
 import { AdditionalSetPricingType } from "@/types/set";
 

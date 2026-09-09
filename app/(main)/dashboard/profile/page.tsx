@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import EmptyState from "@/components/EmptyState";
 import MyProfile from "@/components/profile/MyProfile";
+import EmptyState from "@/components/shared/EmptyState";
 
 export const dynamic = "force-dynamic";
 

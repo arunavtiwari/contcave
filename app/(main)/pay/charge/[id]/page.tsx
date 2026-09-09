@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import EmptyState from "@/components/EmptyState";
 import PostBookingPaymentClient from "@/components/payments/PostBookingPaymentClient";
+import EmptyState from "@/components/shared/EmptyState";
 import { PostBookingService } from "@/lib/post-booking/service";
 
 export const dynamic = "force-dynamic";

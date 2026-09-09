@@ -5,7 +5,6 @@ import { useState } from "react";
 import { FiDownload, FiEye, FiFilter, FiRefreshCw } from "react-icons/fi";
 
 import type { AdminJobLogRow, AdminJobLogStats } from "@/app/actions/adminJobLogActions";
-import AdminTablePagination from "@/components/admin/AdminTablePagination";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
@@ -18,6 +17,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
+  TablePagination,
   TableRow,
 } from "@/components/ui/Table";
 import { downloadCustomCsv } from "@/lib/csv";
@@ -144,32 +144,23 @@ export default function AdminJobLogsClient({
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground">Background Job Logs</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Tracks executions from all 6 Upstash QStash recurring maintenance schedules and one-off queues.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            label="Refresh"
-            icon={FiRefreshCw}
-            fit
-            size="sm"
-            outline
-            onClick={() => router.refresh()}
-          />
-          <Button
-            label="Export CSV"
-            icon={FiDownload}
-            fit
-            size="sm"
-            onClick={() => handleExportCsv(logs)}
-            disabled={logs.length === 0}
-          />
-        </div>
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          label="Refresh"
+          icon={FiRefreshCw}
+          fit
+          size="sm"
+          outline
+          onClick={() => router.refresh()}
+        />
+        <Button
+          label="Export CSV"
+          icon={FiDownload}
+          fit
+          size="sm"
+          onClick={() => handleExportCsv(logs)}
+          disabled={logs.length === 0}
+        />
       </div>
 
       {/* Aggregate Statistics */}
@@ -254,79 +245,82 @@ export default function AdminJobLogsClient({
 
       {/* Table Component */}
       {logs.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-border bg-background">
-          <Table className="min-w-230 table-fixed" containerClassName="border-0 rounded-none">
-            <colgroup>
-              <col className="w-50" />
-              <col className="w-27.5" />
-              <col className="w-80" />
-              <col className="w-25" />
-              <col className="w-40" />
-              <col className="w-20" />
-            </colgroup>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Schedule / Job</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead>Summary of Changes</TableHead>
-                <TableHead className="text-center">Modified</TableHead>
-                <TableHead>Executed At</TableHead>
-                <TableHead className="text-right">Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {logs.map((job) => {
-                const isSuccess = job.status === "SUCCESS";
-                const isFailed = job.status === "FAILED";
-                const variant = isSuccess ? "success" : isFailed ? "destructive" : "warning";
+        <Table
+          className="min-w-230 table-fixed"
+          footer={
+            <TablePagination
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              hrefForPage={hrefForPage}
+              label="logs"
+            />
+          }
+        >
+          <colgroup>
+            <col className="w-50" />
+            <col className="w-27.5" />
+            <col className="w-80" />
+            <col className="w-25" />
+            <col className="w-40" />
+            <col className="w-20" />
+          </colgroup>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Schedule / Job</TableHead>
+              <TableHead className="text-center">Status</TableHead>
+              <TableHead>Summary of Changes</TableHead>
+              <TableHead className="text-center">Modified</TableHead>
+              <TableHead>Executed At</TableHead>
+              <TableHead className="text-right">Details</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {logs.map((job) => {
+              const isSuccess = job.status === "SUCCESS";
+              const isFailed = job.status === "FAILED";
+              const variant = isSuccess ? "success" : isFailed ? "destructive" : "warning";
 
-                return (
-                  <TableRow key={job.id} className="align-top">
-                    <TableCell>
-                      <div className="font-mono text-xs font-semibold text-foreground">{job.jobName}</div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">{job.durationMs}ms</div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <CompactPill label={job.status} variant={variant} />
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-xs font-medium text-foreground">{job.summary}</div>
-                      {job.error ? (
-                        <div className="mt-1 truncate text-xs text-destructive" title={job.error}>
-                          {job.error}
-                        </div>
-                      ) : null}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-mono text-xs font-medium text-foreground">
-                        {job.itemsModified}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {formatISTDateTime(job.createdAt)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        icon={FiEye}
-                        isIconOnly
-                        outline
-                        aria-label="View job mutation details"
-                        tooltip="View Details"
-                        onClick={() => setSelectedLog(job)}
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-          <AdminTablePagination
-            page={page}
-            pageSize={pageSize}
-            total={total}
-            hrefForPage={hrefForPage}
-          />
-        </div>
+              return (
+                <TableRow key={job.id} className="align-top">
+                  <TableCell>
+                    <div className="font-mono text-xs font-semibold text-foreground">{job.jobName}</div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">{job.durationMs}ms</div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <CompactPill label={job.status} variant={variant} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-xs font-medium text-foreground">{job.summary}</div>
+                    {job.error ? (
+                      <div className="mt-1 truncate text-xs text-destructive" title={job.error}>
+                        {job.error}
+                      </div>
+                    ) : null}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-mono text-xs font-medium text-foreground">
+                      {job.itemsModified}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {formatISTDateTime(job.createdAt)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      icon={FiEye}
+                      isIconOnly
+                      outline
+                      aria-label="View job mutation details"
+                      tooltip="View Details"
+                      onClick={() => setSelectedLog(job)}
+                    />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       ) : (
         <EmptyTable label="No job logs recorded yet." />
       )}

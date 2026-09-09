@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import BookingClient from "@/app/(main)/dashboard/bookings/BookingClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getReservationsPageAction } from "@/app/actions/reservationActions";
-import EmptyState from "@/components/EmptyState";
 import BookingGridSkeleton from "@/components/listing/BookingGridSkeleton";
+import EmptyState from "@/components/shared/EmptyState";
 import DashboardPagination from "@/components/ui/DashboardPagination";
 export const dynamic = "force-dynamic";
 

@@ -10,7 +10,7 @@ import { IoClose } from "react-icons/io5";
 import { Keyboard, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-import HeartButton from "@/components/HeartButton";
+import HeartButton from "@/components/listing/HeartButton";
 import Modal from "@/components/modals/Modal";
 import VideoTourModal from "@/components/modals/VideoTourModal";
 import Button from "@/components/ui/Button";
