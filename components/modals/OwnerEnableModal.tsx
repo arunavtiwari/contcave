@@ -7,8 +7,8 @@ import { FaInfoCircle } from "react-icons/fa";
 import { toast } from "sonner";
 
 import { enableOwnerAction } from "@/app/actions/updateUser";
-import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
+import Input from "@/components/ui/Input";
 import { type OwnerEnableSchema, ownerEnableSchema } from "@/schemas/user";
 import { SafeUser } from "@/types/user";
 

@@ -19,6 +19,9 @@ import AdminTabs from "@/components/admin/AdminTabs";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
+import StatCard from "@/components/ui/StatCard";
+import { EmptyTable, TableShell } from "@/components/ui/Table";
+import { downloadCsv } from "@/lib/csv";
 import { formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
 
 type Props = {
@@ -46,7 +49,7 @@ const TABS: Array<{ key: Tab; label: string }> = [
   { key: "vouchers", label: "Receipts & Refunds" },
   { key: "payouts", label: "Payouts" },
   { key: "failures", label: "Failures" },
-  { key: "audit", label: "Audit" },
+  { key: "audit", label: "Document Audit" },
 ];
 
 function statusVariant(status: string) {
@@ -130,42 +133,6 @@ function formatDateTimeRange(booking: AdminBookingRow) {
   return `${formatISTDate(booking.startDate)} | ${booking.detail.startTime} - ${booking.detail.endTime}`;
 }
 
-function csvEscape(value: unknown) {
-  return `"${String(value ?? "").replace(/"/g, '""')}"`;
-}
-
-function downloadCsv(filename: string, rows: Array<Record<string, unknown>>) {
-  const headers = Object.keys(rows[0] || {});
-  const csv = [
-    headers.join(","),
-    ...rows.map((row) => headers.map((header) => csvEscape(row[header])).join(",")),
-  ].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-lg border border-border bg-background p-4">
-      <div className="text-2xl font-semibold text-foreground">{value}</div>
-      <div className="mt-1 text-xs font-semibold uppercase text-muted-foreground">{label}</div>
-    </div>
-  );
-}
-
-function EmptyTable({ label }: { label: string }) {
-  return (
-    <div className="rounded-lg border border-dashed border-border bg-background p-8 text-center text-sm text-muted-foreground">
-      {label}
-    </div>
-  );
-}
-
 function MutedDash({ title = "Unavailable" }: { title?: string }) {
   return (
     <span title={title} className="text-muted-foreground">
@@ -191,14 +158,6 @@ function CompactPill({
       title={title}
       className="tracking-normal"
     />
-  );
-}
-
-function TableShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="overflow-hidden rounded-lg border border-border bg-background">
-      <div className="overflow-x-auto">{children}</div>
-    </div>
   );
 }
 
@@ -480,15 +439,18 @@ export default function AdminBookingsClient({
     });
   };
 
+  const paginationFooter = (
+    <AdminTablePagination
+      page={operationPage}
+      pageSize={operationPageSize}
+      total={operationTotal}
+      hrefForPage={(page) => `/admin/dashboard/bookings?tab=${tab}&page=${page}`}
+    />
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground">Bookings Operations</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Monitor bookings, document delivery, payouts, and document audit history.
-          </p>
-        </div>
+      <div className="flex items-center justify-end">
         <Button
           label="Export CSV"
           icon={FiDownload}
@@ -500,12 +462,12 @@ export default function AdminBookingsClient({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-        <Stat label="Bookings" value={tabCounts.bookings} />
-        <Stat label="Customer Invoices" value={customerInvoiceTotal} />
-        <Stat label="Pending Invoices" value={pendingCustomerInvoiceTotal} />
-        <Stat label="Owner Invoices" value={tabCounts.ownerInvoices} />
-        <Stat label="Receipts & Refunds" value={tabCounts.vouchers} />
-        <Stat label="Payouts" value={tabCounts.payouts} />
+        <StatCard label="Bookings" value={tabCounts.bookings} />
+        <StatCard label="Customer Invoices" value={customerInvoiceTotal} />
+        <StatCard label="Pending Invoices" value={pendingCustomerInvoiceTotal} />
+        <StatCard label="Owner Invoices" value={tabCounts.ownerInvoices} />
+        <StatCard label="Receipts & Refunds" value={tabCounts.vouchers} />
+        <StatCard label="Payouts" value={tabCounts.payouts} />
       </div>
 
       <AdminTabs
@@ -521,20 +483,20 @@ export default function AdminBookingsClient({
 
       {tab === "bookings" && (
         bookings.length ? (
-          <TableShell>
-            <table className="min-w-[1240px] table-fixed divide-y divide-border text-[13px] xl:min-w-full">
+          <TableShell footer={paginationFooter}>
+            <table className="min-w-310 table-fixed divide-y divide-border text-[13px] xl:min-w-full">
               <colgroup>
-                <col className="w-[105px]" />
-                <col className="w-[240px]" />
-                <col className="w-[140px]" />
-                <col className="w-[140px]" />
-                <col className="w-[85px]" />
-                <col className="w-[95px]" />
-                <col className="w-[95px]" />
-                <col className="w-[130px]" />
-                <col className="w-[135px]" />
-                <col className="w-[150px]" />
-                <col className="w-[55px]" />
+                <col className="w-26.25" />
+                <col className="w-60" />
+                <col className="w-35" />
+                <col className="w-35" />
+                <col className="w-21.25" />
+                <col className="w-23.75" />
+                <col className="w-23.75" />
+                <col className="w-32.5" />
+                <col className="w-33.75" />
+                <col className="w-37.5" />
+                <col className="w-13.75" />
               </colgroup>
               <thead className="bg-muted/40 text-left text-[11px] uppercase text-muted-foreground">
                 <tr>
@@ -606,16 +568,16 @@ export default function AdminBookingsClient({
 
       {(tab === "ownerInvoices" || tab === "failures") && (
         activeRows.length ? (
-          <TableShell>
-            <table className="min-w-[980px] table-fixed divide-y divide-border text-sm">
+          <TableShell footer={paginationFooter}>
+            <table className="min-w-245 table-fixed divide-y divide-border text-sm">
               <colgroup>
-                <col className="w-[180px]" />
-                <col className="w-[190px]" />
-                <col className="w-[190px]" />
-                <col className="w-[160px]" />
-                <col className="w-[120px]" />
-                <col className="w-[170px]" />
-                <col className="w-[100px]" />
+                <col className="w-45" />
+                <col className="w-47.5" />
+                <col className="w-47.5" />
+                <col className="w-40" />
+                <col className="w-30" />
+                <col className="w-42.5" />
+                <col className="w-25" />
               </colgroup>
               <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
                 <tr>
@@ -687,16 +649,16 @@ export default function AdminBookingsClient({
 
       {tab === "vouchers" && (
         vouchers.length ? (
-          <TableShell>
-            <table className="min-w-[880px] table-fixed divide-y divide-border text-sm">
+          <TableShell footer={paginationFooter}>
+            <table className="min-w-220 table-fixed divide-y divide-border text-sm">
               <colgroup>
-                <col className="w-[180px]" />
-                <col className="w-[160px]" />
-                <col className="w-[190px]" />
-                <col className="w-[160px]" />
-                <col className="w-[120px]" />
-                <col className="w-[170px]" />
-                <col className="w-[100px]" />
+                <col className="w-45" />
+                <col className="w-40" />
+                <col className="w-47.5" />
+                <col className="w-40" />
+                <col className="w-30" />
+                <col className="w-42.5" />
+                <col className="w-25" />
               </colgroup>
               <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
                 <tr>
@@ -768,15 +730,15 @@ export default function AdminBookingsClient({
 
       {tab === "payouts" && (
         payouts.length ? (
-          <TableShell>
-            <table className="min-w-[860px] table-fixed divide-y divide-border text-sm">
+          <TableShell footer={paginationFooter}>
+            <table className="min-w-215 table-fixed divide-y divide-border text-sm">
               <colgroup>
-                <col className="w-[160px]" />
-                <col className="w-[180px]" />
-                <col className="w-[240px]" />
-                <col className="w-[150px]" />
-                <col className="w-[120px]" />
-                <col className="w-[110px]" />
+                <col className="w-40" />
+                <col className="w-45" />
+                <col className="w-60" />
+                <col className="w-37.5" />
+                <col className="w-30" />
+                <col className="w-27.5" />
               </colgroup>
               <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
                 <tr>
@@ -809,29 +771,27 @@ export default function AdminBookingsClient({
 
       {tab === "audit" && (
         audits.length ? (
-          <div className="space-y-2">
-            {audits.map((audit) => (
-              <div key={audit.id} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
-                <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-neutral-50">
-                  <FiFileText size={16} />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              {audits.map((audit) => (
+                <div key={audit.id} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
+                  <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-neutral-50">
+                    <FiFileText size={16} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-foreground">{audit.action}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{formatISTDateTime(audit.createdAt)} | {audit.resourceId || "No resource"}</div>
+                    {audit.metadata ? <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-muted p-2 text-xs">{JSON.stringify(audit.metadata, null, 2)}</pre> : null}
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-foreground">{audit.action}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{formatISTDateTime(audit.createdAt)} | {audit.resourceId || "No resource"}</div>
-                  {audit.metadata ? <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-muted p-2 text-xs">{JSON.stringify(audit.metadata, null, 2)}</pre> : null}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="overflow-hidden rounded-xl border border-border bg-card">
+              {paginationFooter}
+            </div>
           </div>
         ) : <EmptyTable label="No document audit events found." />
       )}
-
-      <AdminTablePagination
-        page={operationPage}
-        pageSize={operationPageSize}
-        total={operationTotal}
-        hrefForPage={(page) => `/admin/dashboard/bookings?tab=${tab}&page=${page}`}
-      />
 
       <BookingDetailModal
         booking={selectedBooking}

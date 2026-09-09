@@ -796,3 +796,20 @@ model ListingBlock {
 
   @@index([listingId, date])
 }
+
+model MaintenanceJobLog {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  jobName        String
+  status         String   // SUCCESS | FAILED | PARTIAL
+  itemsProcessed Int      @default(0)
+  itemsModified  Int      @default(0)
+  summary        String
+  details        Json?
+  error          String?
+  durationMs     Int
+  createdAt      DateTime @default(now())
+
+  @@index([jobName, createdAt])
+  @@index([status, createdAt])
+  @@index([createdAt])
+}

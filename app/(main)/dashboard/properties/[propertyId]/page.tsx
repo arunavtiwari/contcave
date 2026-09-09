@@ -3,8 +3,8 @@ import getAddons from '@/app/actions/getAddons';
 import getAmenities from '@/app/actions/getAmenities';
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import getListingById from '@/app/actions/getListingById';
-import EmptyState from '@/components/EmptyState';
-import PropertyClient from '@/components/PropertyClient';
+import PropertyClient from '@/components/property/PropertyClient';
+import EmptyState from '@/components/shared/EmptyState';
 export const dynamic = "force-dynamic"
 
 interface IParams {

@@ -5,12 +5,12 @@ import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings, { IListingsParams } from "@/app/actions/getListings";
-import Container from "@/components/Container";
-import EmptyState from "@/components/EmptyState";
+import Container from "@/components/layout/Container";
 import ListingFeed from "@/components/listing/ListingFeed";
 import ListingFeedHeader from "@/components/listing/ListingFeedHeader";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
 import Categories from "@/components/navbar/Categories";
+import EmptyState from "@/components/shared/EmptyState";
 import { LocationSortProvider } from "@/hooks/useLocationSort";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";

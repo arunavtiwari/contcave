@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { FiArrowRight, FiCheck, FiX } from "react-icons/fi";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
 

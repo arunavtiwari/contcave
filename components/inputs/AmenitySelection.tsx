@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 
-import Input from '@/components/inputs/Input';
 import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 import Pill from '@/components/ui/Pill';
 import type { SafeAmenity } from '@/types/amenity';
 
@@ -11,7 +11,7 @@ export interface AmenitiesData {
   custom: string[];
 }
 
-import FormField from './FormField';
+import FormField from "@/components/ui/FormField";
 
 interface AmenitiesCheckboxProps {
   amenities: SafeAmenity[];

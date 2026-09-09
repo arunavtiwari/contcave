@@ -8,8 +8,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
-import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
+import Input from "@/components/ui/Input";
 import useUIStore from "@/hooks/useUIStore";
 
 const customAddonSchema = z.object({

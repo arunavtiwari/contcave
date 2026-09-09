@@ -1,13 +1,15 @@
+"use client";
+
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { FieldErrors, UseFormRegisterReturn } from "react-hook-form";
 import { FaIndianRupeeSign } from "react-icons/fa6";
 
-import FormField from "@/components/inputs/FormField";
+import FormField from "@/components/ui/FormField";
 import { cn } from "@/lib/utils";
 
 const inputVariants = cva(
-    "flex items-center w-full bg-background border border-border rounded-xl transition overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed text-foreground group",
+    "flex items-center w-full bg-background border border-border rounded-xl transition-all duration-150 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed text-foreground group",
     {
         variants: {
             size: {
@@ -15,8 +17,8 @@ const inputVariants = cva(
                 md: "h-11 text-sm",
             },
             error: {
-                true: "border-destructive focus-within:border-destructive",
-                false: "border-border focus-within:border-foreground",
+                true: "border-destructive focus-within:border-destructive focus-within:ring-1 focus-within:ring-destructive/20",
+                false: "border-border hover:border-foreground/40 focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground/20",
             },
         },
         defaultVariants: {
@@ -26,7 +28,7 @@ const inputVariants = cva(
     }
 );
 
-interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange">, VariantProps<typeof inputVariants> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange">, VariantProps<typeof inputVariants> {
     label?: string;
     description?: string;
     register?: UseFormRegisterReturn;
@@ -97,14 +99,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     className
                 )}>
                     {customLeftContent && (
-                        <div className="pl-4 pr-1 flex items-center justify-center pointer-events-none text-muted-foreground text-sm select-none shrink-0">
+                        <div className="pl-3.5 pr-1 flex items-center justify-center pointer-events-none text-muted-foreground text-sm select-none shrink-0">
                             {customLeftContent}
                         </div>
                     )}
 
                     {formatPrice && (
-                        <div className="pl-4 pr-1 flex items-center justify-center pointer-events-none text-muted-foreground shrink-0">
-                            <FaIndianRupeeSign size={size === "sm" ? 14 : 18} />
+                        <div className="pl-3.5 pr-1 flex items-center justify-center pointer-events-none text-muted-foreground shrink-0">
+                            <FaIndianRupeeSign size={size === "sm" ? 13 : 15} />
                         </div>
                     )}
 
@@ -113,8 +115,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         type={renderedType}
                         inputMode={inputMode}
                         className={cn(
-                            "flex-1 bg-transparent border-none focus:ring-0 outline-none h-full w-full pr-4 min-w-0 text-sm",
-                            (!customLeftContent && !formatPrice) && "pl-4"
+                            "flex-1 bg-transparent border-none focus:ring-0 focus:outline-none outline-none h-full w-full pr-3.5 min-w-0 text-sm placeholder:text-muted-foreground/70",
+                            (!customLeftContent && !formatPrice) && "pl-3.5"
                         )}
                         ref={ref}
                         required={required}
@@ -141,4 +143,3 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 export default Input;
-

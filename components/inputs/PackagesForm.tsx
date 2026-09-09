@@ -3,14 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { IoAdd, IoClose, IoTrashOutline } from "react-icons/io5";
 
-import Checkbox from "@/components/inputs/Checkbox";
-import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
+import Checkbox from "@/components/ui/Checkbox";
+import FormField from "@/components/ui/FormField";
+import Input from "@/components/ui/Input";
 import Pill from "@/components/ui/Pill";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
-
-import FormField from "./FormField";
 
 interface PackagesFormProps {
   value: Package[];

@@ -6,8 +6,8 @@ import { IoAdd, IoCalendarOutline, IoTimeOutline, IoTrashOutline } from "react-i
 import { toast } from "sonner";
 
 import { createBlockAction, deleteBlockAction, getBlocksAction } from "@/app/actions/listingActions";
-import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import Select, { SelectOption } from "@/components/ui/Select";
 export interface ListingBlock {
     id: string;

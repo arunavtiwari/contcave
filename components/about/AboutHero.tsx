@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 

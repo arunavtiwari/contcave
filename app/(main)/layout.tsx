@@ -7,10 +7,7 @@ import Script from "next/script";
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
-import ClientOnly from "@/components/ClientOnly";
-import ConsentAwareTracking from "@/components/ConsentAwareTracking";
-import CookieConsent from "@/components/CookieConsentBanner";
-import GlobalScrollFix from "@/components/GlobalScrollFix";
+import GlobalScrollFix from "@/components/layout/GlobalScrollFix";
 import LoginModal from "@/components/modals/LoginModal";
 import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
@@ -18,9 +15,12 @@ import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import GlobalProviders from "@/components/providers/GlobalProviders";
-import ToastContainerBar from "@/components/ToastContainerBar";
+import ClientOnly from "@/components/shared/ClientOnly";
+import ConsentAwareTracking from "@/components/shared/ConsentAwareTracking";
+import CookieConsent from "@/components/shared/CookieConsentBanner";
+import ToastContainerBar from "@/components/shared/ToastContainerBar";
+import WhatsAppFloatingButton from "@/components/shared/WhatsAppFloatingButton";
 import ScrollToTop from "@/components/ui/ScrollToTop";
-import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import {
     BRAND_DESCRIPTION,

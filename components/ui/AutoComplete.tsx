@@ -4,6 +4,7 @@ import { Libraries, useLoadScript } from '@react-google-maps/api';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiMapPin } from 'react-icons/fi';
 
+import FormField from '@/components/ui/FormField';
 import Select, { SelectOption } from '@/components/ui/Select';
 import { cn } from '@/lib/utils';
 
@@ -16,7 +17,7 @@ export interface AutoCompleteValue {
   latlng: LatLngTuple;
 }
 
-interface AutoCompleteProps {
+export interface AutoCompleteProps {
   value?: string;
   onChange: (value: AutoCompleteValue) => void;
   placeholder?: string;
@@ -29,13 +30,11 @@ interface AutoCompleteProps {
   error?: string;
 }
 
-interface PlaceOption extends SelectOption {
+export interface PlaceOption extends SelectOption {
   place_id: string;
   main_text: string;
   secondary_text: string;
 }
-
-import FormField from './FormField';
 
 export default function AutoComplete({
   value,

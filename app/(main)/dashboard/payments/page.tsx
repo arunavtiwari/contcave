@@ -2,8 +2,8 @@ import { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getTransactions from "@/app/actions/getTransactions";
-import EmptyState from "@/components/EmptyState";
 import ManagePayments from "@/components/profile/ManagePayments/ManagePayments";
+import EmptyState from "@/components/shared/EmptyState";
 import { getPaymentDetailsSafe } from "@/lib/payment-details";
 import { isOwner } from "@/lib/user/permissions";
 import { PaymentProfile } from "@/types/payment";

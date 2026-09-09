@@ -3,10 +3,10 @@
 import * as React from "react";
 import { FieldErrors } from "react-hook-form";
 
-import FormField from "@/components/inputs/FormField";
+import FormField from "@/components/ui/FormField";
 import { cn } from "@/lib/utils";
 
-interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
     label?: string;
     description?: string;
     id: string;
@@ -20,8 +20,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         const error = errors?.[id]?.message as string;
 
         const sizeClasses = {
-            sm: "text-sm p-2.5 min-h-[80px]",
-            md: "text-sm p-3 min-h-[100px]",
+            sm: "text-sm p-3 min-h-[80px]",
+            md: "text-sm p-3.5 min-h-[100px]",
         };
 
         return (
@@ -36,11 +36,11 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                 <textarea
                     id={id}
                     className={cn(
-                        "w-full font-normal bg-background border rounded-xl transition outline-none disabled:opacity-70 disabled:cursor-not-allowed text-foreground",
+                        "w-full font-normal bg-background border rounded-xl transition-all duration-150 outline-none disabled:opacity-50 disabled:cursor-not-allowed text-foreground placeholder:text-muted-foreground/70 focus:ring-0",
                         sizeClasses[size],
                         error
-                            ? "border-destructive focus:border-destructive"
-                            : "border-border hover:border-border/80 focus:border-foreground",
+                            ? "border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20"
+                            : "border-border hover:border-foreground/40 focus:border-foreground focus:ring-1 focus:ring-foreground/20",
                         className
                     )}
                     ref={ref}
@@ -53,4 +53,3 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 Textarea.displayName = "Textarea";
 
 export default Textarea;
-

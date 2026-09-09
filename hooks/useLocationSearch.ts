@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 
-import { AutoCompleteValue } from "@/components/inputs/AutoComplete";
+import { AutoCompleteValue } from "@/components/ui/AutoComplete";
 
 import { useLocationSort } from "./useLocationSort";
 

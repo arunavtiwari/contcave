@@ -10,9 +10,8 @@ import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { getCalendarEventsAction } from "@/app/actions/calendarActions";
+import Modal from '@/components/modals/Modal';
 import { formatISTDate } from '@/lib/utils';
-
-import Modal from './modals/Modal';
 
 interface Event {
     id: string;

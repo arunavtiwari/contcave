@@ -4,9 +4,9 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import React from "react";
 
-import MetaPixelScript from "@/components/MetaPixelScript";
-import MetaPixelTracker from "@/components/MetaPixelTracker";
 import { useConsent } from "@/components/providers/ConsentProvider";
+import MetaPixelScript from "@/components/shared/MetaPixelScript";
+import MetaPixelTracker from "@/components/shared/MetaPixelTracker";
 
 interface Props {
     nonce?: string;

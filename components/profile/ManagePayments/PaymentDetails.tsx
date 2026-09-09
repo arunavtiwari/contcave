@@ -5,9 +5,9 @@ import React, { useCallback, useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import Input from "@/components/inputs/Input";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import Input from "@/components/ui/Input";
 import { paymentDetailsFormSchema, PaymentDetailsFormValues } from "@/schemas/payment";
 import { PaymentProfile } from "@/types/payment";
 import { SafeUser } from "@/types/user";

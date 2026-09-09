@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import React from "react";
 
-import Container from "@/components/Container";
-import EmailShield from "@/components/EmailShield";
+import Container from "@/components/layout/Container";
+import EmailShield from "@/components/shared/EmailShield";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 const DESCRIPTION =

@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import Container from "@/components/Container";
-import EmailShield from "@/components/EmailShield";
-import Logo from "@/components/navbar/Logo"
+import Container from "@/components/layout/Container";
+import Logo from "@/components/navbar/Logo";
+import EmailShield from "@/components/shared/EmailShield";
 
 function Footer() {
   return (
@@ -15,7 +15,9 @@ function Footer() {
             {/* Logo & Description */}
             <div className="flex flex-col items-center md:items-start w-full gap-2 max-w-md">
               <Logo />
-              <p className="text-sm text-muted-foreground text-center md:text-left ">ContCave helps creators discover, compare, and book verified studios and production-ready spaces across India.</p>
+              <p className="text-sm text-muted-foreground text-center md:text-left">
+                ContCave helps creators discover, compare, and book verified studios and production-ready spaces across India.
+              </p>
             </div>
 
             {/* Follow Us */}
@@ -97,4 +99,3 @@ function Footer() {
 }
 
 export default Footer;
-

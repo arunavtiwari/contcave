@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import ReservationsClient from "@/app/(main)/dashboard/reservations/ReservationsClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getReservationsPageAction } from "@/app/actions/reservationActions";
-import EmptyState from "@/components/EmptyState";
+import EmptyState from "@/components/shared/EmptyState";
 import DashboardPagination from "@/components/ui/DashboardPagination";
 export const dynamic = "force-dynamic";
 

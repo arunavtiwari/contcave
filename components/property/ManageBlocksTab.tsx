@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import BlocksManager from "@/components/BlocksManager";
+import BlocksManager from "@/components/property/BlocksManager";
 import Heading from "@/components/ui/Heading";
 import { ListingSet } from "@/types/set";
 

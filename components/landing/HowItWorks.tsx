@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import Heading from "@/components/ui/Heading";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { STEPS } from "@/constants/how-it-works";

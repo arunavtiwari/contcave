@@ -52,12 +52,6 @@ function TableRowSkeleton() {
 export default function TableSkeleton() {
     return (
         <div className="w-full space-y-6" aria-label="Loading admin listing review dashboard">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                <div className="space-y-2">
-                    <Skeleton className="h-9 w-48" />
-                    <Skeleton className="h-4 w-96 max-w-full" />
-                </div>
-            </div>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, index) => (

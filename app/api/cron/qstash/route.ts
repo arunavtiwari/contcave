@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { isE2eEffectDisabled } from "@/lib/e2e-guards";
 import { getCurrentMonthToDatePeriod, getPreviousMonthPeriod, InvoiceService } from "@/lib/invoice/service";
 import { sendBookingReminderForReservation, sendBookingReminders } from "@/lib/maintenance/bookingReminders";
+import { processAndRecordMaintenanceJob } from "@/lib/maintenance/logger";
 import { runDueSplits } from "@/lib/maintenance/payoutSplits";
 import { autoCompleteCheckedInReservations, expireAdditionalCharges, expireExtensionRequests, sendExtensionNudges } from "@/lib/maintenance/postBooking";
 import { assertNoFailedMaintenanceResults } from "@/lib/maintenance/results";
@@ -65,96 +66,114 @@ async function handleQstashJob(body: { job?: unknown; reservationId?: unknown; e
     return NextResponse.json({ success: false, error: "Unknown QStash job" }, { status: 400 });
   }
 
-  if (body.job === "pending-approval-expiry") {
-    if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
-    const results = await ReservationService.expirePendingApprovalReservations(new Date(), body.reservationId);
-    assertNoFailedMaintenanceResults(results);
-    return NextResponse.json({ success: true, job: body.job, results });
-  }
-  if (body.job === "extension-expiry") {
-    if (!isObjectId(body.extensionId)) return NextResponse.json({ success: false, error: "A valid extensionId is required" }, { status: 400 });
-    const results = await expireExtensionRequests(1, body.extensionId);
-    return NextResponse.json({ success: true, job: body.job, results });
-  }
-  if (body.job === "additional-charge-expiry") {
-    if (!isObjectId(body.chargeId)) return NextResponse.json({ success: false, error: "A valid chargeId is required" }, { status: 400 });
-    const results = await expireAdditionalCharges(1, body.chargeId);
-    return NextResponse.json({ success: true, job: body.job, results });
-  }
-  if (body.job === "auto-complete") {
-    if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
-    const results = await autoCompleteCheckedInReservations(1, body.reservationId);
-    assertNoFailedMaintenanceResults(results);
-    return NextResponse.json({ success: true, job: body.job, results });
-  }
-  if (body.job === "booking-reminder") {
-    if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
-    return NextResponse.json({ success: true, job: body.job, result: await sendBookingReminderForReservation(body.reservationId) });
-  }
-  if (body.job === "review-reminder") {
-    if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
-    return NextResponse.json({ success: true, job: body.job, result: await ReviewReminderService.sendForReservation(body.reservationId) });
-  }
+  const startTime = Date.now();
+  let rawResult: unknown = null;
+  let executionError: unknown = null;
 
-  // E2E exercises one-off, signed deliveries without allowing a local recurring
-  // scheduler to mutate the shared test database between assertions.
-  if (
-    isE2eEffectDisabled("E2E_DISABLE_RECURRING_QSTASH")
-    || isE2eEffectDisabled("E2E_DISABLE_EMAIL_SEND")
-  ) {
-    return NextResponse.json({ success: true, job: body.job, skipped: "Recurring QStash jobs are disabled for E2E isolation" });
-  }
-
-  switch (body.job) {
-    case "post-booking-fast": {
-      const [nudges, extensions, charges, approvals, reviewReminders] = await Promise.all([
-        sendExtensionNudges(200),
-        expireExtensionRequests(200),
-        expireAdditionalCharges(200),
-        ReservationService.expirePendingApprovalReservations(),
-        ReviewReminderService.sendDue(),
-      ]);
-      assertNoFailedMaintenanceResults([...nudges, ...extensions, ...charges, ...approvals]);
-      return NextResponse.json({ success: true, job: body.job, nudges, extensions, charges, approvals, reviewReminders });
-    }
-    case "post-booking-complete": {
-      const results = await autoCompleteCheckedInReservations(200);
+  try {
+    if (body.job === "pending-approval-expiry") {
+      if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
+      const results = await ReservationService.expirePendingApprovalReservations(new Date(), body.reservationId);
       assertNoFailedMaintenanceResults(results);
-      return NextResponse.json({ success: true, job: body.job, results });
-    }
-    case "booking-reminders": {
-      const results = await sendBookingReminders();
+      rawResult = results;
+    } else if (body.job === "extension-expiry") {
+      if (!isObjectId(body.extensionId)) return NextResponse.json({ success: false, error: "A valid extensionId is required" }, { status: 400 });
+      const results = await expireExtensionRequests(1, body.extensionId);
+      rawResult = results;
+    } else if (body.job === "additional-charge-expiry") {
+      if (!isObjectId(body.chargeId)) return NextResponse.json({ success: false, error: "A valid chargeId is required" }, { status: 400 });
+      const results = await expireAdditionalCharges(1, body.chargeId);
+      rawResult = results;
+    } else if (body.job === "auto-complete") {
+      if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
+      const results = await autoCompleteCheckedInReservations(1, body.reservationId);
       assertNoFailedMaintenanceResults(results);
-      return NextResponse.json({ success: true, job: body.job, results });
-    }
-    case "payout-splits": {
-      const results = await runDueSplits();
-      assertNoFailedMaintenanceResults(results);
-      return NextResponse.json({ success: true, job: body.job, results });
-    }
-    case "invoice-retry": {
-      const results = await InvoiceService.retryPendingInvoiceEmails(100);
-      assertNoFailedMaintenanceResults(results);
-      return NextResponse.json({ success: true, job: body.job, results });
-    }
-    case "month-end-invoices": {
-      const isMonthEndRetry = isFirstDayInIndia();
-      if (!isLastDayInIndia() && !isMonthEndRetry) {
-        return NextResponse.json({ success: true, job: body.job, skipped: "Not the last day of the month in Asia/Kolkata" });
+      rawResult = results;
+    } else if (body.job === "booking-reminder") {
+      if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
+      rawResult = await sendBookingReminderForReservation(body.reservationId);
+    } else if (body.job === "review-reminder") {
+      if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
+      rawResult = await ReviewReminderService.sendForReservation(body.reservationId);
+    } else if (
+      isE2eEffectDisabled("E2E_DISABLE_RECURRING_QSTASH")
+      || isE2eEffectDisabled("E2E_DISABLE_EMAIL_SEND")
+    ) {
+      return NextResponse.json({ success: true, job: body.job, skipped: "Recurring QStash jobs are disabled for E2E isolation" });
+    } else {
+      switch (body.job) {
+        case "post-booking-fast": {
+          const [nudges, extensions, charges, approvals, reviewReminders] = await Promise.all([
+            sendExtensionNudges(200),
+            expireExtensionRequests(200),
+            expireAdditionalCharges(200),
+            ReservationService.expirePendingApprovalReservations(),
+            ReviewReminderService.sendDue(),
+          ]);
+          assertNoFailedMaintenanceResults([...nudges, ...extensions, ...charges, ...approvals]);
+          rawResult = { nudges, extensions, charges, approvals, reviewReminders };
+          break;
+        }
+        case "post-booking-complete": {
+          const results = await autoCompleteCheckedInReservations(200);
+          assertNoFailedMaintenanceResults(results);
+          rawResult = results;
+          break;
+        }
+        case "booking-reminders": {
+          const results = await sendBookingReminders();
+          assertNoFailedMaintenanceResults(results);
+          rawResult = results;
+          break;
+        }
+        case "payout-splits": {
+          const results = await runDueSplits();
+          assertNoFailedMaintenanceResults(results);
+          rawResult = results;
+          break;
+        }
+        case "invoice-retry": {
+          const results = await InvoiceService.retryPendingInvoiceEmails(100);
+          assertNoFailedMaintenanceResults(results);
+          rawResult = results;
+          break;
+        }
+        case "month-end-invoices": {
+          const isMonthEndRetry = isFirstDayInIndia();
+          if (!isLastDayInIndia() && !isMonthEndRetry) {
+            return NextResponse.json({ success: true, job: body.job, skipped: "Not the last day of the month in Asia/Kolkata" });
+          }
+          const period = isMonthEndRetry ? getPreviousMonthPeriod() : getCurrentMonthToDatePeriod();
+          const results = await InvoiceService.processMonthlyOwnerInvoices({
+            periodStart: period.start,
+            periodEnd: period.end,
+          });
+          assertNoFailedMaintenanceResults(results);
+          rawResult = results;
+          break;
+        }
       }
-      const period = isMonthEndRetry ? getPreviousMonthPeriod() : getCurrentMonthToDatePeriod();
-      const results = await InvoiceService.processMonthlyOwnerInvoices({
-        periodStart: period.start,
-        periodEnd: period.end,
-      });
-      assertNoFailedMaintenanceResults(results);
-      return NextResponse.json({
-        success: true,
-        job: body.job,
-        results,
-      });
     }
+  } catch (err) {
+    executionError = err;
   }
+
+  const summary = await processAndRecordMaintenanceJob(body.job, startTime, rawResult, executionError);
+
+  if (!summary.success) {
+    return NextResponse.json(
+      {
+        ...summary,
+        raw: rawResult,
+      },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({
+    ...summary,
+    raw: rawResult,
+  });
 }
 
 export async function POST(request: Request) {
