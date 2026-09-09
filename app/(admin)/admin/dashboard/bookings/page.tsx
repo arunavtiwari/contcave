@@ -30,6 +30,9 @@ export default async function AdminBookingsPage({
   if (!isAdmin(currentUser.role)) redirect("/");
 
   const { page, tab: requestedTab } = await searchParams;
+  if (requestedTab === "jobLogs") {
+    redirect("/admin/dashboard/logs");
+  }
   const tab = ADMIN_BOOKING_TABS.has(requestedTab as AdminBookingTab)
     ? requestedTab as AdminBookingTab
     : "bookings";
