@@ -1,9 +1,12 @@
 "use client";
 
 import React from "react";
+import { FiAlertCircle } from "react-icons/fi";
 import { MdInfoOutline } from "react-icons/md";
 
 import { cn } from "@/lib/utils";
+
+import Tooltip from "./Tooltip";
 
 export interface FormFieldProps {
     id?: string;
@@ -33,7 +36,6 @@ const FormField = ({
     childWidth = "full",
 }: FormFieldProps) => {
     const isHorizontal = variant === "horizontal";
-    const tooltipId = id && description ? `${id}-description` : undefined;
 
     return (
         <div className={cn(
@@ -49,9 +51,8 @@ const FormField = ({
             {label && (
                 <div
                     className={cn(
-                        "flex min-h-5 items-center gap-1.5 text-sm font-medium leading-5 transition-colors",
-                        isHorizontal ? cn(labelWidth, "text-foreground") : "text-foreground",
-                        error ? "text-destructive" : ""
+                        "flex min-h-5 items-center gap-1.5 text-sm font-medium leading-5 transition-colors text-foreground",
+                        isHorizontal && labelWidth
                     )}
                 >
                     <label htmlFor={id} className="inline-flex h-5 min-w-0 items-center leading-5">
@@ -59,37 +60,36 @@ const FormField = ({
                         {required && <span className="text-destructive ml-1">*</span>}
                     </label>
                     {description && (
-                        <span
-                            aria-label={description}
-                            aria-describedby={tooltipId}
-                            className="group/help relative inline-flex h-5 w-5 shrink-0 cursor-help items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:text-foreground [&>svg]:block"
-                            tabIndex={0}
-                        >
-                            <MdInfoOutline aria-hidden="true" size={16} />
-                            <span
-                                id={tooltipId}
-                                role="tooltip"
-                                className="pointer-events-none absolute left-1/2 top-full z-50 mt-2.5 w-max max-w-64 -translate-x-1/2 rounded-xl border border-border bg-background px-3 py-2 text-xs font-normal leading-5 text-foreground opacity-0 shadow-sm transition duration-150 ease-out before:absolute before:-top-1 before:left-1/2 before:block before:h-2 before:w-2 before:-translate-x-1/2 before:rotate-45 before:border-l before:border-t before:border-border before:bg-background before:content-[''] group-hover/help:translate-y-0 group-hover/help:opacity-100 group-focus-visible/help:translate-y-0 group-focus-visible/help:opacity-100"
+                        <Tooltip content={description} side="top" sideOffset={6}>
+                            <button
+                                type="button"
+                                aria-label={description}
+                                className="inline-flex h-5 w-5 shrink-0 cursor-help items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:text-foreground [&>svg]:block"
                             >
-                                {description}
-                            </span>
-                        </span>
+                                <MdInfoOutline aria-hidden="true" size={16} />
+                            </button>
+                        </Tooltip>
                     )}
                 </div>
             )}
 
             <div className={cn(
-                "flex",
+                "flex flex-col items-stretch",
                 isHorizontal
-                    ? cn("items-center", childWidth === "auto" ? "sm:w-auto shrink-0 sm:justify-end" : "flex-1 w-full")
-                    : "flex-1 w-full flex-col items-stretch"
+                    ? cn(childWidth === "auto" ? "sm:w-auto shrink-0 sm:items-end" : "flex-1 w-full")
+                    : "flex-1 w-full"
             )}>
                 {children}
 
                 {error && (
-                    <p className="text-xs font-medium text-destructive mt-1.5 animate-in fade-in slide-in-from-top-1">
-                        {error}
-                    </p>
+                    <div
+                        role="alert"
+                        aria-live="polite"
+                        className="flex items-center gap-1.5 mt-1.5 text-xs font-medium text-destructive animate-in fade-in-50 slide-in-from-top-0.5 duration-150"
+                    >
+                        <FiAlertCircle className="size-3.5 shrink-0 stroke-[2.25]" aria-hidden="true" />
+                        <span>{error}</span>
+                    </div>
                 )}
             </div>
         </div>

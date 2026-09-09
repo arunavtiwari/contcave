@@ -2,6 +2,7 @@
 
 import { AnimatePresence, type HTMLMotionProps, motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -64,7 +65,7 @@ export function Tabs({
         layoutId: effectiveLayoutId,
       }}
     >
-      <div className={cn("flex flex-col gap-4", className)} {...props}>
+      <div className={cn("w-fit flex flex-col items-start gap-4", className)} {...props}>
         {children}
       </div>
     </TabsContext.Provider>
@@ -82,7 +83,7 @@ export const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(
         ref={ref}
         role="tablist"
         className={cn(
-          "inline-flex flex-wrap items-center gap-1 rounded-xl border border-border bg-muted/40 p-1 text-muted-foreground",
+          "inline-flex w-fit flex-nowrap items-center gap-1 rounded-xl border border-border bg-muted/40 p-1 text-muted-foreground",
           className
         )}
         {...props}
@@ -116,8 +117,8 @@ export const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>
         disabled={disabled}
         onClick={() => onValueChange(value)}
         className={cn(
-          "relative inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
-          isActive ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground",
+          "relative inline-flex shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:scale-100! active:transform-none!",
+          isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
           className
         )}
         {...props}
@@ -135,7 +136,7 @@ export const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>
           {typeof count === "number" && (
             <span
               className={cn(
-                "rounded-full px-1.5 py-0.2 text-[10px] tabular-nums font-semibold transition-colors",
+                "rounded-full px-1.5 py-0.2 text-[10px] tabular-nums font-medium transition-colors",
                 isActive
                   ? "bg-muted text-foreground"
                   : "bg-background/80 text-muted-foreground"
@@ -192,11 +193,12 @@ export interface NavTabItem {
   icon?: React.ComponentType<{ className?: string; size?: number }>;
 }
 
-export interface NavTabsProps extends React.HTMLAttributes<HTMLElement> {
+export interface NavTabsProps extends Omit<React.HTMLAttributes<HTMLElement>, "onSelect"> {
   activeId: string;
   items: NavTabItem[];
   ariaLabel?: string;
   layoutId?: string;
+  onSelect?: (id: string) => void;
 }
 
 export function NavTabs({
@@ -205,22 +207,33 @@ export function NavTabs({
   ariaLabel = "Navigation tabs",
   layoutId,
   className,
+  onSelect,
   ...props
 }: NavTabsProps) {
+  const router = useRouter();
+  const [, startTransition] = React.useTransition();
+  const [optimisticActiveId, setOptimisticActiveId] = React.useState(activeId);
+  const [prevActiveId, setPrevActiveId] = React.useState(activeId);
+
+  if (activeId !== prevActiveId) {
+    setPrevActiveId(activeId);
+    setOptimisticActiveId(activeId);
+  }
+
   const instanceLayoutId = React.useId();
   const effectiveLayoutId = layoutId || `nav-tabs-indicator-${instanceLayoutId}`;
 
   return (
     <nav
       className={cn(
-        "inline-flex flex-wrap items-center gap-1 rounded-xl border border-border bg-muted/40 p-1 select-none",
+        "inline-flex flex-nowrap items-center gap-1 rounded-xl border border-border bg-muted/40 p-1 select-none",
         className
       )}
       aria-label={ariaLabel}
       {...props}
     >
       {items.map((item) => {
-        const isActive = item.id === activeId;
+        const isActive = item.id === optimisticActiveId;
         const Icon = item.icon;
 
         return (
@@ -228,9 +241,21 @@ export function NavTabs({
             key={item.id}
             href={item.href}
             aria-current={isActive ? "page" : undefined}
+            onClick={(e) => {
+              if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+              e.preventDefault();
+              setOptimisticActiveId(item.id);
+              if (onSelect) {
+                onSelect(item.id);
+              } else {
+                startTransition(() => {
+                  router.push(item.href);
+                });
+              }
+            }}
             className={cn(
-              "relative inline-flex min-h-8 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-              isActive ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
+              "relative inline-flex shrink-0 whitespace-nowrap min-h-8 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer active:scale-100! active:transform-none!",
+              isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             )}
           >
             {isActive && (
@@ -246,7 +271,7 @@ export function NavTabs({
               {typeof item.count === "number" && (
                 <span
                   className={cn(
-                    "rounded-full px-1.5 py-0.2 text-[10px] tabular-nums font-semibold transition-colors",
+                    "rounded-full px-1.5 py-0.2 text-[10px] tabular-nums font-medium transition-colors",
                     isActive
                       ? "bg-muted text-foreground"
                       : "bg-background/80 text-muted-foreground"

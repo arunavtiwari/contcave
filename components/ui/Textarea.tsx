@@ -10,14 +10,15 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
     label?: string;
     description?: string;
     id: string;
+    error?: string;
     errors?: FieldErrors;
     variant?: "vertical" | "horizontal";
     size?: "sm" | "md";
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-    ({ className, label, description, id, required, errors, variant = "vertical", size = "sm", ...props }, ref) => {
-        const error = errors?.[id]?.message as string;
+    ({ className, label, description, id, required, error: propError, errors, variant = "vertical", size = "sm", ...props }, ref) => {
+        const error = (errors?.[id]?.message as string) || propError;
 
         const sizeClasses = {
             sm: "text-sm p-3 min-h-[80px]",

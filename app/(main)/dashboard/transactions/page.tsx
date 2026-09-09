@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import TransactionClient from "@/app/(main)/dashboard/transactions/TransactionClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getTransactionsPage } from "@/app/actions/getTransactions";
-import EmptyState from "@/components/shared/EmptyState";
+import EmptyState from "@/components/ui/EmptyState";
 import { isOwner } from "@/lib/user/permissions";
 export const dynamic = "force-dynamic";
 

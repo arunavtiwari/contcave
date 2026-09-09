@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useActionState } from "react";
+import { FiAlertCircle } from "react-icons/fi";
 
 import { loginAdmin } from "@/app/actions/loginAdmin";
 import Button from "@/components/ui/Button";
@@ -34,8 +35,9 @@ export default function LoginForm() {
                     </div>
 
                     {state?.error && (
-                        <div className="p-4 mb-6 text-sm text-destructive bg-destructive/5 border border-destructive/10 rounded-xl font-medium">
-                            {state.error}
+                        <div role="alert" className="p-3.5 mb-6 text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-xl font-medium flex items-center gap-2.5">
+                            <FiAlertCircle className="size-4 shrink-0 stroke-[2.25]" />
+                            <span>{state.error}</span>
                         </div>
                     )}
 

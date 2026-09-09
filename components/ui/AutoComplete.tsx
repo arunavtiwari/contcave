@@ -2,11 +2,10 @@
 
 import { Libraries, useLoadScript } from '@react-google-maps/api';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FiMapPin } from 'react-icons/fi';
+import { FiCheck, FiMapPin } from 'react-icons/fi';
+import { components, type OptionProps } from "react-select";
 
-import FormField from '@/components/ui/FormField';
 import Select, { SelectOption } from '@/components/ui/Select';
-import { cn } from '@/lib/utils';
 
 const LIBRARIES: Libraries = ['places'];
 
@@ -28,6 +27,7 @@ export interface AutoCompleteProps {
   required?: boolean;
   variant?: "vertical" | "horizontal";
   error?: string;
+  size?: "xs" | "sm" | "md" | "lg";
 }
 
 export interface PlaceOption extends SelectOption {
@@ -47,6 +47,7 @@ export default function AutoComplete({
   required,
   variant = "vertical",
   error,
+  size = "sm",
 }: AutoCompleteProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API || '';
   const [currentValue, setCurrentValue] = useState<PlaceOption | null>(null);
@@ -135,67 +136,75 @@ export default function AutoComplete({
   if (loadError) return <div className="text-sm text-destructive">Google Maps failed to load.</div>;
 
   return (
-    <FormField
+    <Select<PlaceOption>
       id="autocomplete-input"
       label={label}
       description={description}
       required={required}
       error={error}
       variant={variant}
-    >
-      <div className={cn("w-full", className)}>
-        <Select<PlaceOption>
-          isAsync
-          cacheOptions
-          defaultOptions
-          loadOptions={loadOptions}
-          value={currentValue}
-          onChange={handleSelect}
-          placeholder={placeholder}
-          isDisabled={disabled || !isLoaded}
-          error={error}
-          isSearchable={true}
-          components={{
-            DropdownIndicator: () => null,
-            IndicatorSeparator: () => null,
-            Option: (props) => {
-              const { innerProps, isFocused, isSelected, data } = props;
-              return (
-                <div
-                  {...innerProps}
-                  className={cn(
-                    "px-4 py-3 cursor-pointer flex items-start gap-3 transition-colors",
-                    isFocused ? "bg-muted" : "transparent",
-                    isSelected && "bg-foreground text-background"
-                  )}
-                >
-                  <div className={cn(
-                    "mt-0.5 shrink-0 w-8 h-8 rounded-lg bg-muted flex items-center justify-center transition-colors",
-                    isFocused && "bg-foreground text-background"
-                  )}>
-                    <FiMapPin size={14} />
+      size={size}
+      className={className}
+      isAsync
+      cacheOptions
+      defaultOptions
+      loadOptions={loadOptions}
+      value={currentValue}
+      onChange={handleSelect}
+      placeholder={placeholder}
+      isDisabled={disabled || !isLoaded}
+      isSearchable={true}
+      components={{
+        DropdownIndicator: () => null,
+        IndicatorSeparator: () => null,
+        Option: (props: OptionProps<PlaceOption, false>) => {
+          const { data, isSelected } = props;
+          return (
+            <components.Option {...props}>
+              <div className="flex items-center justify-between w-full gap-3 py-0.5">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                    <FiMapPin size={13} className="stroke-[2.25]" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">
+                  <div className="flex flex-col min-w-0 flex-1 text-left">
+                    <span className="truncate text-sm font-medium text-foreground">
                       {data.main_text}
-                    </div>
-                    <div className={cn(
-                      "text-sm truncate italic",
-                      isSelected ? "text-background/70" : "text-muted-foreground"
-                    )}>
-                      {data.secondary_text}
-                    </div>
+                    </span>
+                    {data.secondary_text && (
+                      <span className="truncate text-xs text-muted-foreground font-normal mt-0.5">
+                        {data.secondary_text}
+                      </span>
+                    )}
                   </div>
                 </div>
-              );
-            }
-          }}
-          noOptionsMessage={({ inputValue }) =>
-            inputValue.length >= 3 ? "No locations found" : "Type at least 3 characters to search"
-          }
-          loadingMessage={() => "Searching locations..."}
-        />
-      </div>
-    </FormField>
+
+                {isSelected && (
+                  <FiCheck
+                    size={14}
+                    className="text-foreground shrink-0 ml-auto"
+                  />
+                )}
+              </div>
+            </components.Option>
+          );
+        },
+        NoOptionsMessage: (props) => (
+          <components.NoOptionsMessage {...props}>
+            <span className="text-xs text-muted-foreground py-2 block">
+              {props.selectProps.inputValue?.length >= 3
+                ? "No locations found"
+                : "Type at least 3 characters to search"}
+            </span>
+          </components.NoOptionsMessage>
+        ),
+        LoadingMessage: (props) => (
+          <components.LoadingMessage {...props}>
+            <span className="text-xs text-muted-foreground py-2 block">
+              Searching locations...
+            </span>
+          </components.LoadingMessage>
+        ),
+      }}
+    />
   );
 }

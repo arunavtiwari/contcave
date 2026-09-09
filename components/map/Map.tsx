@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 
 import L from "leaflet";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 
 type Props = {
@@ -28,10 +28,25 @@ function MapViewportController({
   animated: boolean;
 }) {
   const map = useMap();
+  const prevCenterRef = useRef<[number, number] | null>(null);
+  const prevZoomRef = useRef<number | null>(null);
 
   useEffect(() => {
     const targetCenter = shouldFocus ? center : INDIA_CENTER;
     const targetZoom = shouldFocus ? zoom : 4;
+
+    const isSameTarget =
+      prevCenterRef.current !== null &&
+      Math.abs(prevCenterRef.current[0] - targetCenter[0]) < 0.000001 &&
+      Math.abs(prevCenterRef.current[1] - targetCenter[1]) < 0.000001 &&
+      prevZoomRef.current === targetZoom;
+
+    if (isSameTarget) {
+      return;
+    }
+
+    prevCenterRef.current = [targetCenter[0], targetCenter[1]];
+    prevZoomRef.current = targetZoom;
 
     if (!animated) {
       map.setView(targetCenter, targetZoom);
@@ -50,19 +65,22 @@ function MapViewportController({
 }
 
 function Map({ center, animated = false }: Props) {
+  const lat = center?.[0];
+  const lng = center?.[1];
+
   const isValidCenter = useMemo(() => {
     return (
       Array.isArray(center) &&
       center.length === 2 &&
-      Number.isFinite(center[0]) &&
-      Number.isFinite(center[1])
+      Number.isFinite(lat) &&
+      Number.isFinite(lng)
     );
-  }, [center]);
+  }, [center, lat, lng]);
 
   const mapCenter = useMemo<[number, number]>(() => {
-    if (!isValidCenter || !center) return INDIA_CENTER;
-    return [center[0], center[1]];
-  }, [center, isValidCenter]);
+    if (!isValidCenter || lat === undefined || lng === undefined) return INDIA_CENTER;
+    return [lat, lng];
+  }, [isValidCenter, lat, lng]);
 
   const customIcon = useMemo(() => {
     return L.icon({

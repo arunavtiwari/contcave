@@ -33,7 +33,7 @@ import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
 import { PublicUser } from "@/types/user";
 
-const Map = dynamic(() => import("@/components/shared/Map"), { ssr: false });
+const Map = dynamic(() => import("@/components/map/Map"), { ssr: false });
 
 interface Review {
   id: string;

@@ -13,8 +13,10 @@ const inputVariants = cva(
     {
         variants: {
             size: {
-                sm: "h-10 text-sm",
-                md: "h-11 text-sm",
+                xs: "h-8 text-xs rounded-lg",
+                sm: "h-10 text-sm rounded-xl",
+                md: "h-11 text-sm rounded-xl",
+                lg: "h-12 text-base rounded-xl",
             },
             error: {
                 true: "border-destructive focus-within:border-destructive focus-within:ring-1 focus-within:ring-destructive/20",
@@ -28,11 +30,14 @@ const inputVariants = cva(
     }
 );
 
-export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange">, VariantProps<typeof inputVariants> {
+export interface InputProps
+    extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange">,
+        Omit<VariantProps<typeof inputVariants>, "error"> {
     label?: string;
     description?: string;
     register?: UseFormRegisterReturn;
     id: string;
+    error?: string;
     errors?: FieldErrors;
     customLeftContent?: React.ReactNode;
     customRightContent?: React.ReactNode;
@@ -53,6 +58,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         register,
         id,
         required,
+        error,
         errors,
         customLeftContent,
         customRightContent,
@@ -63,8 +69,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         onChange,
         ...props
     }, ref) => {
-        const errorMsg = errors?.[id]?.message as string;
-        const hasError = !!errorMsg;
+        const errorMsg = (errors?.[id]?.message as string) || error;
+        const hasError = Boolean(errorMsg);
 
         const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             if (type === "number") {
@@ -115,8 +121,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         type={renderedType}
                         inputMode={inputMode}
                         className={cn(
-                            "flex-1 bg-transparent border-none focus:ring-0 focus:outline-none outline-none h-full w-full pr-3.5 min-w-0 text-sm placeholder:text-muted-foreground/70",
-                            (!customLeftContent && !formatPrice) && "pl-3.5"
+                            "flex-1 bg-transparent border-none focus:ring-0 focus:outline-none outline-none h-full w-full min-w-0 placeholder:text-muted-foreground/70",
+                            size === "xs" ? "text-xs pr-2" : size === "lg" ? "text-base pr-4" : "text-sm pr-3.5",
+                            (!customLeftContent && !formatPrice) && (size === "xs" ? "pl-2" : size === "lg" ? "pl-4" : "pl-3.5")
                         )}
                         ref={ref}
                         required={required}

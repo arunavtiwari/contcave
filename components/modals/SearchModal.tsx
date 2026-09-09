@@ -32,7 +32,7 @@ function SearchModalContent({ }: Props) {
 
   const Map = useMemo(
     () =>
-      dynamic(() => import("@/components/shared/Map"), {
+      dynamic(() => import("@/components/map/Map"), {
         ssr: false,
       }),
     []

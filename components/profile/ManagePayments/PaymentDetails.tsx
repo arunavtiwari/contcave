@@ -3,11 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useCallback, useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
+import Skeleton from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 import { paymentDetailsFormSchema, PaymentDetailsFormValues } from "@/schemas/payment";
 import { PaymentProfile } from "@/types/payment";
 import { SafeUser } from "@/types/user";
@@ -260,5 +261,52 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         </div>
     );
 };
+
+export function PaymentDetailsSkeleton() {
+    return (
+        <div className="flex flex-col w-full gap-5">
+            <div className="space-y-5">
+                {/* Bank Account Information Header */}
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="flex flex-col gap-1.5">
+                        <Skeleton className="h-6 w-52 rounded-lg" />
+                        <Skeleton className="h-4 w-60 rounded-md" />
+                    </div>
+                    <Skeleton className="h-9 w-20 rounded-xl" />
+                </div>
+
+                {/* Bank Account Information Fields */}
+                <div className="space-y-4 rounded-xl border border-border p-6">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="flex flex-col sm:flex-row sm:gap-10 sm:items-center w-full gap-1">
+                            <div className={`flex min-h-5 items-center ${DEFAULT_LABEL_WIDTH}`}>
+                                <Skeleton className="h-4 w-36 rounded-md" />
+                            </div>
+                            <Skeleton className="h-11 flex-1 w-full rounded-xl" />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Tax Information Header */}
+                <div className="flex flex-col gap-1.5 pt-2">
+                    <Skeleton className="h-6 w-36 rounded-lg" />
+                    <Skeleton className="h-4 w-52 rounded-md" />
+                </div>
+
+                {/* Tax Information Fields */}
+                <div className="space-y-4 rounded-xl border border-border p-6">
+                    {Array.from({ length: 2 }).map((_, i) => (
+                        <div key={i} className="flex flex-col sm:flex-row sm:gap-10 sm:items-center w-full gap-1">
+                            <div className={`flex min-h-5 items-center ${DEFAULT_LABEL_WIDTH}`}>
+                                <Skeleton className="h-4 w-36 rounded-md" />
+                            </div>
+                            <Skeleton className="h-11 flex-1 w-full rounded-xl" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default PaymentDetails;

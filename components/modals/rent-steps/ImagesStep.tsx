@@ -24,7 +24,7 @@ const ImagesStep: React.FC<ImagesStepProps> = ({
   return (
     <div className="flex flex-col gap-4">
       <Heading title="Add some photos of your space" subtitle="Show creators what your space looks like!" variant="h5" />
-      <FormField label="Images" description="(Max 30)" align="start">
+      <FormField label="Images" description="(Max 30)" align="start" error={imageError}>
         <div className="w-full flex flex-col gap-4">
           <ImageUpload
             uid="rent-modal-upload"
@@ -57,7 +57,6 @@ const ImagesStep: React.FC<ImagesStepProps> = ({
           )}
         </div>
       </FormField>
-      {imageError && <p className="text-destructive text-sm mt-1">{imageError}</p>}
     </div>
   );
 };

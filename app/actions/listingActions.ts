@@ -271,7 +271,7 @@ export async function getAdminListingReviewPage(params: {
         : 1;
     const pageSize = typeof params.pageSize === "number" && Number.isFinite(params.pageSize)
         ? Math.min(100, Math.max(10, Math.floor(params.pageSize)))
-        : 20;
+        : 10;
     const listingType = params.listingType || "STANDARD";
     const [pageData, countData, curatedCountData] = await Promise.all([
         ListingService.getHydratableListingPage({ page, pageSize, status: params.status, listingType }),

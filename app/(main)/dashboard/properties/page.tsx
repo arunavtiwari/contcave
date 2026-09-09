@@ -5,7 +5,7 @@ import PropertiesClient from "@/app/(main)/dashboard/properties/PropertiesClient
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings from "@/app/actions/getListings";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
-import EmptyState from "@/components/shared/EmptyState";
+import EmptyState from "@/components/ui/EmptyState";
 import { safeListing } from "@/types/listing";
 
 export const metadata: Metadata = {

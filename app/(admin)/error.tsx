@@ -2,33 +2,31 @@
 
 import React, { useEffect } from "react";
 
-import Button from "@/components/ui/Button";
-import Heading from "@/components/ui/Heading";
+import ErrorState from "@/components/ui/ErrorState";
 
-export default function Error({
-    error,
-    reset,
+export default function AdminError({
+  error,
+  reset,
 }: {
-    error: Error & { digest?: string };
-    reset: () => void;
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
-    useEffect(() => {
-        console.error("Admin Error:", error);
-    }, [error]);
+  useEffect(() => {
+    console.error("[Admin System Error]", {
+      message: error.message,
+      digest: error.digest,
+      stack: error.stack,
+    });
+  }, [error]);
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
-            <Heading
-                title="Admin System Error"
-                subtitle="An unexpected error occurred while processing this management route."
-                center
-            />
-            <div className="w-48">
-                <Button
-                    label="Try Again"
-                    onClick={() => reset()}
-                />
-            </div>
-        </div>
-    );
+  return (
+    <ErrorState
+      title="Admin System Error"
+      subtitle="An unexpected issue occurred while processing this administrative section. Please retry or navigate back to the dashboard."
+      error={error}
+      reset={reset}
+      homeHref="/admin/dashboard"
+      homeLabel="Admin Dashboard"
+    />
+  );
 }

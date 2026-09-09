@@ -10,7 +10,7 @@ import ListingFeed from "@/components/listing/ListingFeed";
 import ListingFeedHeader from "@/components/listing/ListingFeedHeader";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
 import Categories from "@/components/navbar/Categories";
-import EmptyState from "@/components/shared/EmptyState";
+import EmptyState from "@/components/ui/EmptyState";
 import { LocationSortProvider } from "@/hooks/useLocationSort";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
