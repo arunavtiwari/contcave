@@ -15,16 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 12 | Green Screen Studio Rental: When You Need Chroma & What It Costs | green screen studio near me | studio-guides | creators |
-| 13 | How to Plan a Fashion Lookbook Shoot (Shot List Included) | lookbook shoot planning | content-creation | brands |
-| 14 | Studio Lighting Basics: Natural Light vs Artificial Setups | studio lighting for beginners | content-creation | creators |
-| 15 | Ecommerce Catalogue Shoots: How Many SKUs Can You Shoot Per Hour? | ecommerce product shoot | content-creation | brands |
-| 16 | Podcast Recording Checklist for First-Time Podcasters | how to record a podcast in a studio | content-creation | creators |
-| 17 | Food Photography Studios: Shooting Menus, Packaging & Reels | food photography studio | studio-guides | brands |
-| 18 | Dance & Choreography Studio Rentals for Reels and Covers | dance studio on rent | studio-guides | creators |
-| 19 | Talking-Head Video Setups: Interviews, Courses & Founder Content | interview video setup | content-creation | brands, creators |
-| 20 | How Tier-2 City Creators Can Access Pro Studios Affordably | affordable studios for creators india | creator-economy | creators |
-| 21 | Music Video Shoot on a Budget in Delhi NCR | music video shoot budget india | content-creation | creators |
 | 22 | Turning Your Property into a Bookable Shoot Space | rent my space for shoots | host-guides | hosts |
 | 23 | Corporate Video Production: Renting a Studio vs Hiring an Agency | corporate video production cost | creator-economy | brands |
 | 24 | Studio Etiquette: Rules Every Renter Should Know | studio rental rules | booking-tips | creators |
@@ -65,3 +55,13 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-07-31 | 9 | studio-booking-checklist |
 | 2026-08-03 | 10 | studio-rental-price-per-hour |
 | 2026-08-05 | 11 | pre-wedding-shoot-locations-delhi-ncr |
+| 2026-08-07 | 12 | green-screen-studio-rental-delhi-ncr |
+| 2026-08-10 | 13 | lookbook-shoot-planning |
+| 2026-08-12 | 14 | studio-lighting-for-beginners |
+| 2026-08-17 | 16 | how-to-record-a-podcast-in-a-studio |
+| 2026-08-19 | 15 | ecommerce-product-shoot-skus-per-hour |
+| 2026-08-21 | 17 | food-photography-studio-delhi-ncr |
+| 2026-08-31 | 18 | dance-studio-on-rent |
+| 2026-09-02 | 19 | interview-video-setup |
+| 2026-09-04 | 20 | affordable-studios-for-creators-india |
+| 2026-09-07 | 21 | music-video-shoot-budget-india |

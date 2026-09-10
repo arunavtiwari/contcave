@@ -1,0 +1,279 @@
+{
+  "id": "interview-video-setup",
+  "title": "Interview Video Setup: Studio Guide for Founders & Courses",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Content Creation", "id": "bc-content-creation" }
+      ],
+      "createdAt": "2026-09-02T00:00:00Z",
+      "updatedAt": "2026-09-02T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-09-02T04:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A good interview video setup is mostly about lighting, mic count, and framing, not expensive gear — here's what founders, course creators, and brand teams actually need to book, and what it costs in Delhi NCR."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "slug": "interview-video-setup",
+  "meta": {
+    "title": "Interview Video Setup: Studio Guide for Founders & Courses",
+    "description": "Planning an interview video setup for a founder story or course? Compare lighting, camera, and mic options across studios and book instantly on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-09-02T04:00:00Z",
+  "updatedAt": "2026-09-02T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "Interview Video Setup: Studio Guide for Founders & Courses"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "A founder recording a fundraise story, a coach filming a course module, or a brand shooting a customer testimonial all need the same thing: a clean interview video setup that makes the speaker look credible and sound clear. The mistake most people make is treating this as a gear problem — buying lights and mics — when it's really a room problem. A home office has echo, mismatched light, and a background that's either cluttered or a plain wall that reads as amateur. This guide covers what an interview video setup actually needs, one camera vs two, how to mic two people cleanly, and what it costs to book a studio built for exactly this in Delhi NCR."
+    },
+    {
+      "id": "h-why",
+      "blockType": "heading",
+      "content": "Why a Studio Beats a Home Office or Boardroom"
+    },
+    {
+      "id": "p-why",
+      "blockType": "paragraph",
+      "content": "Talking-head content lives or dies on three things a home setup rarely gets right: consistent light on the face, audio without room echo, and a background that doesn't distract from the speaker. A boardroom has fluorescent overhead light that flattens the face and a glass wall that bounces reflections into frame. A home office has soft furnishings that help audio but a bookshelf-and-cable background that looks improvised on camera. A studio built for interviews solves all three before you even walk in — pre-hung diffused lighting, acoustic treatment on the walls, and a backdrop or set that's designed to be shot, not just lived in."
+    },
+    {
+      "id": "list-why",
+      "blockType": "list",
+      "items": [
+        "Soft, even key light already rigged instead of a desk lamp casting hard shadows",
+        "Acoustic treatment that kills the room echo a phone or laptop mic always picks up",
+        "A backdrop or set built to be filmed — not a Zoom-call bookshelf in frame",
+        "Enough ceiling height and floor space for a proper three-point light rig and a second camera angle"
+      ]
+    },
+    {
+      "id": "h-setup",
+      "blockType": "heading",
+      "content": "The Standard Interview Video Setup: Lighting, Camera & Audio"
+    },
+    {
+      "id": "p-setup",
+      "blockType": "paragraph",
+      "content": "Almost every professional talking-head or interview video uses some version of the same base setup, and it's worth knowing the pieces so you can check a studio actually has them before booking."
+    },
+    {
+      "id": "list-setup",
+      "blockType": "list",
+      "items": [
+        "Three-point lighting — a key light at roughly 45 degrees to the subject, a softer fill on the opposite side, and a back or hair light to separate the subject from the background",
+        "Eye-level camera height with the subject's eyes near the top third of the frame, not looking down or up into the lens",
+        "A shallow depth of field (wide aperture) so the background is softly out of focus and the speaker stays sharp",
+        "Clean, close-mic'd audio — a lavalier or shotgun mic near the speaker, never the camera's built-in mic",
+        "A plain or lightly dressed background that doesn't compete with the speaker for attention"
+      ]
+    },
+    {
+      "id": "h-cameras",
+      "blockType": "heading",
+      "content": "One Camera vs Two Cameras: What You Actually Need"
+    },
+    {
+      "id": "p-cameras",
+      "blockType": "paragraph",
+      "content": "A single camera, framed head-and-shoulders, is enough for most founder clips, testimonials, and short course lessons — it's simpler to shoot, faster to edit, and perfectly normal for social and website content. A second camera earns its cost when the video is longer than a couple of minutes, since cutting between a wide and a close angle keeps a five-to-fifteen-minute interview watchable and hides the natural pauses and stumbles of a real conversation. For a two-person interview (host and guest, or founder and interviewer), two cameras are close to standard practice — one wide two-shot and one tighter angle on whoever's speaking, so the edit can cut on reactions instead of jump-cutting the same static frame."
+    },
+    {
+      "id": "h-mics",
+      "blockType": "heading",
+      "content": "Mic'ing a Two-Person Interview Without Muddy Audio"
+    },
+    {
+      "id": "p-mics",
+      "blockType": "paragraph",
+      "content": "Audio is where most self-shot interview videos fall apart, and the fix is simpler than it sounds: give every speaker their own microphone, recorded on a separate channel. A single shared mic on a stand between two people always makes whoever's further away sound thin and distant, and there's no way to fix that cleanly in post. For a founder-plus-interviewer or coach-plus-guest setup, two matching lavalier or clip-on mics — one per person — feeding into a recorder or camera with two audio inputs is the standard, low-fuss solution. Matching mic models also matters more than people expect; two different mic types have different tonal character, and balancing that in the edit is far more work than just booking a studio that already has a matched pair."
+    },
+    {
+      "id": "quote-rule",
+      "blockType": "quote",
+      "content": "Rule of thumb: one mic per speaker, always. A shared mic is the single most common reason a self-shot interview sounds amateur, even when the lighting and camera work look professional."
+    },
+    {
+      "id": "h-cost",
+      "blockType": "heading",
+      "content": "What an Interview Video Setup Costs to Rent in Delhi NCR"
+    },
+    {
+      "id": "p-cost",
+      "blockType": "paragraph",
+      "content": "Interview and talking-head studios in Delhi NCR are generally more affordable than a full product or fashion shoot studio, since the requirement is a controlled room and a pre-lit setup rather than elaborate sets or props. As a conservative, broad range, expect roughly ₹1,000-3,500 per hour for a studio with pre-rigged three-point lighting and a plain or branded backdrop, with pricing rising toward the top end for studios that include a second camera angle, teleprompter, or a dressed set for corporate or course content. Booking a half-day block is usually more cost-efficient per hour than single-hour slots if you're recording multiple segments or course modules in one sitting."
+    },
+    {
+      "id": "list-cost",
+      "blockType": "list",
+      "items": [
+        "Basic talking-head setup (single camera, plain backdrop, pre-lit) — the most affordable option, suited to short founder clips and testimonials",
+        "Two-camera interview setup with matched lav mics — a step up in cost, worth it for longer or two-person interviews",
+        "Full corporate or course studio with dressed set, teleprompter, and multi-camera coverage — priced highest, best for a full day of module recording"
+      ]
+    },
+    {
+      "id": "h-planning",
+      "blockType": "heading",
+      "content": "Planning a Founder or Course Shoot Day"
+    },
+    {
+      "id": "p-planning",
+      "blockType": "paragraph",
+      "content": "Interview shoots are far more efficient when the content is scripted or at least outlined before the studio clock starts — figuring out what to say while the meter is running wastes expensive studio time. For a single founder clip or testimonial, 45-60 minutes is usually enough once lighting checks and a couple of retakes are counted. For a course, plan on roughly 3-5 recorded modules per hour once you're warmed up and the setup is dialled in, though pauses to reset framing or swap slides will slow that down — build in buffer rather than booking the exact runtime. If you're recording several modules or segments back to back, group similar setups (same outfit, same backdrop, same lighting) together so you're not re-lighting between every clip."
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Interview Video Setups"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "What is the best lighting setup for an interview video?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "Three-point lighting is the standard: a key light at about 45 degrees to the subject as the main light source, a softer fill light on the opposite side to reduce harsh shadows, and a back or hair light behind the subject to separate them from the background. Most interview studios have this pre-rigged, so you're checking for it rather than setting it up yourself."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "Do I need two cameras for an interview video?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "Not always. A single camera, framed head-and-shoulders, is enough for short clips and single-speaker content. Two cameras become worthwhile once the interview runs longer than a couple of minutes or involves two people talking, since cutting between angles keeps the edit watchable and covers natural pauses."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "How much does an interview video studio cost per hour in Delhi NCR?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "As a conservative range, expect roughly ₹1,000-3,500 per hour depending on whether the studio offers a single pre-lit setup or a full two-camera, multi-mic configuration with a dressed set. Booking a half-day block usually works out cheaper per hour if you're recording multiple segments."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "How do you mic two people for an interview without echo or imbalance?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Give each speaker their own lavalier or clip-on mic, recorded on a separate audio channel, rather than sharing a single mic between them. Matching mic models also helps, since two different mic types have a different tonal character that's harder to balance cleanly in the edit."
+    },
+    {
+      "id": "h-faq5",
+      "blockType": "heading",
+      "content": "What background works best for a founder or course video?"
+    },
+    {
+      "id": "p-faq5",
+      "blockType": "paragraph",
+      "content": "A plain wall, a softly out-of-focus set, or a lightly branded backdrop all work well — the goal is a background that doesn't compete with the speaker for attention. Avoid busy bookshelves, visible cables, or anything with text that pulls the eye away from the face."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Why Book Your Interview Video Studio with ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave lists interview and talking-head studios across Delhi NCR with lighting rig, camera count, and mic setup listed upfront, so you can compare studios before you commit instead of finding out on arrival that there's no second mic input. Pricing is shown transparently by the hour, and booking is instant — no back-and-forth over calls or WhatsApp just to confirm whether a studio has a second camera angle."
+    },
+    {
+      "id": "list-contcave",
+      "blockType": "list",
+      "items": [
+        "Compare lighting rigs, camera count, and mic setup across studios before booking",
+        "See transparent hourly pricing with no hidden call-and-ask quotes",
+        "Book instantly for the exact slot you need, from a 45-minute founder clip to a full-day course recording block"
+      ]
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "A strong interview video setup comes down to consistent light, a mic per speaker, and a room that isn't fighting your audio — none of which requires owning expensive gear if you book the right studio. Confirm the details below before you lock in a slot."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Confirm the studio has pre-rigged three-point lighting, not just a ring light",
+        "Decide one camera vs two based on the video's length and whether it's a single speaker or a two-person interview",
+        "Book one lavalier or clip-on mic per speaker on separate channels — never share one mic",
+        "Outline or script the content before the studio clock starts to avoid wasting paid time",
+        "Group similar setups (same outfit, backdrop, lighting) together if recording multiple segments in one session"
+      ]
+    }
+  ],
+  "tags": [
+    "interview video setup",
+    "interview video setup india",
+    "talking head video setup",
+    "talking head studio rental",
+    "founder interview video setup",
+    "course video shoot setup",
+    "interview studio delhi",
+    "interview studio delhi ncr",
+    "interview video studio gurugram",
+    "interview video studio noida",
+    "interview studio south delhi",
+    "two camera interview setup",
+    "interview video lighting setup",
+    "interview video mic setup",
+    "talking head studio near me",
+    "interview video studio cost",
+    "interview video studio price per hour",
+    "book interview video studio",
+    "hourly studio booking for interviews",
+    "course creator studio",
+    "founder content studio",
+    "corporate interview video studio",
+    "youtuber interview studio",
+    "podcast style interview studio",
+    "studio for talking head videos",
+    "three point lighting studio rental",
+    "interview video setup 2026",
+    "studio for course creators india",
+    "interview video setup for brands",
+    "ContCave"
+  ]
+}
