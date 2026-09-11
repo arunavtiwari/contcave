@@ -7,6 +7,7 @@ import Script from "next/script";
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import ConsentAwareTracking from "@/components/analytics/ConsentAwareTracking";
 import CookieConsent from "@/components/layout/CookieConsentBanner";
 import GlobalScrollFix from "@/components/layout/GlobalScrollFix";
@@ -214,9 +215,10 @@ export default async function RootLayout({
     const headerList = await headers();
     const nonce = headerList.get("x-nonce") ?? undefined;
 
-    const [amenitiesData, addonsData] = await Promise.all([
+    const [amenitiesData, addonsData, currentUser] = await Promise.all([
         getAmenities(),
         getAddons(),
+        getCurrentUser(),
     ]);
 
     return (
@@ -243,7 +245,7 @@ export default async function RootLayout({
                         <RegisterModal />
                         <LoginModal />
                         <OwnerRegisterModal />
-                        <RentModal predefinedAmenities={amenitiesData} predefinedAddons={addonsData} />
+                        <RentModal currentUser={currentUser} predefinedAmenities={amenitiesData} predefinedAddons={addonsData} />
                         <CookieConsent />
                     </ClientOnly>
                     {children}
