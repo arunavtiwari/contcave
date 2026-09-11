@@ -8,6 +8,7 @@ import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 
 import HeartButton from "@/components/listing/HeartButton";
 import Pill from "@/components/ui/Pill";
+import { cn } from "@/lib/utils";
 import { SafeUser } from "@/types/user";
 
 interface ListingCardMediaProps {
@@ -54,6 +55,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
     showListingBadge = false,
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
     const slideshowInterval = useRef<NodeJS.Timeout | null>(null);
     const touchStartX = useRef<number | null>(null);
 
@@ -110,12 +112,20 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
 
     return (
         <div
-            className="relative mb-3 overflow-hidden rounded-xl aspect-4/3 bg-neutral-100 border border-foreground/5"
+            className="relative mb-3 overflow-hidden rounded-2xl aspect-4/3 bg-muted/40 border border-foreground/5"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
         >
+            {/* Image shimmer loading state */}
+            <div
+                className={cn(
+                    "absolute inset-0 z-0 bg-muted/70 transition-opacity duration-500 pointer-events-none",
+                    isImageLoaded ? "opacity-0" : "animate-pulse opacity-100"
+                )}
+            />
+
             <Link href={cardHref} className="block h-full w-full relative">
                 <AnimatePresence mode="popLayout" initial={false}>
                     <motion.div
@@ -133,6 +143,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                             src={images[currentIndex]}
                             alt={displayTitle}
                             priority={priority && currentIndex === 0}
+                            onLoad={() => setIsImageLoaded(true)}
                         />
                     </motion.div>
                 </AnimatePresence>

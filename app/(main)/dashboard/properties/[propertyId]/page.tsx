@@ -4,7 +4,7 @@ import getAmenities from '@/app/actions/getAmenities';
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import getListingById from '@/app/actions/getListingById';
 import PropertyClient from '@/components/property/PropertyClient';
-import EmptyState from '@/components/shared/EmptyState';
+import EmptyState from "@/components/ui/EmptyState";
 export const dynamic = "force-dynamic"
 
 interface IParams {

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import Container from "@/components/layout/Container";
 import Logo from "@/components/navbar/Logo";
-import EmailShield from "@/components/shared/EmailShield";
+import EmailShield from "@/components/ui/EmailShield";
 
 function Footer() {
   return (

@@ -3,8 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useMemo, useState, useTransition } from "react";
-import type { IconType } from "react-icons";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
     FiCheck,
     FiClock,
@@ -23,14 +22,17 @@ import {
     type AdminListingReviewSummary,
     approveListingAction,
     getAdminListingReviewDetail,
+    getAdminListingReviewPage,
     markInConversationAction,
     rejectListingAction,
 } from "@/app/actions/listingActions";
+import { AdminListingSkeletonRows, CuratedListingSkeletonRows } from "@/components/admin/AdminListingSkeletonRows";
 import ListingReviewsModal from "@/components/admin/ListingReviewsModal";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
+import StatCard from "@/components/ui/StatCard";
 import {
     EmptyTable,
     Table,
@@ -96,20 +98,6 @@ function publicListingHref(slugOrId: string) {
     url.search = "";
     url.hash = "";
     return url.toString();
-}
-
-function StatCard({ label, value, icon: Icon }: { label: string; value: number; icon: IconType }) {
-    return (
-        <div className="flex items-center gap-4 rounded-xl border border-border bg-background p-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-neutral-50 text-foreground">
-                <Icon size={19} />
-            </div>
-            <div className="min-w-0">
-                <div className="text-2xl font-semibold leading-none text-foreground">{value}</div>
-                <div className="mt-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
-            </div>
-        </div>
-    );
 }
 
 function KycPill({ verified, size }: { verified: boolean; size?: "xs" | "sm" | "md" }) {
@@ -462,16 +450,52 @@ export default function AdminListingsClient({
     curatedTotal,
 }: AdminListingsClientProps) {
     const router = useRouter();
-    const viewMode = listingType;
-    const status = selectedStatus;
+    const [pageData, setPageData] = useState({
+        listings,
+        total,
+        counts,
+        curatedTotal,
+        page,
+        pageSize,
+    });
+
+    const [prevProps, setPrevProps] = useState({ listings, total, counts, curatedTotal, page, pageSize });
+    if (
+        listings !== prevProps.listings ||
+        page !== prevProps.page ||
+        total !== prevProps.total ||
+        curatedTotal !== prevProps.curatedTotal
+    ) {
+        setPrevProps({ listings, total, counts, curatedTotal, page, pageSize });
+        setPageData({ listings, total, counts, curatedTotal, page, pageSize });
+    }
+
+    const [optimisticView, setOptimisticView] = useState<ViewMode>(listingType);
+    const [optimisticStatus, setOptimisticStatus] = useState<"ALL" | ListingStatus>(selectedStatus);
+    const [isNavigating, startNavTransition] = useTransition();
+
+    const [prevListingType, setPrevListingType] = useState(listingType);
+    if (listingType !== prevListingType) {
+        setPrevListingType(listingType);
+        setOptimisticView(listingType);
+    }
+
+    const [prevSelectedStatus, setPrevSelectedStatus] = useState(selectedStatus);
+    if (selectedStatus !== prevSelectedStatus) {
+        setPrevSelectedStatus(selectedStatus);
+        setOptimisticStatus(selectedStatus);
+    }
+
+    const viewMode = optimisticView;
+    const status = optimisticStatus;
     const [selected, setSelected] = useState<AdminListingReview | null>(null);
     const [reviewsFor, setReviewsFor] = useState<{ id: string; title: string } | null>(null);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
     const [rejectReason, setRejectReason] = useState("");
     const [isPending, startTransition] = useTransition();
 
-    const standardListings = useMemo(() => viewMode === "STANDARD" ? listings : [], [listings, viewMode]);
-    const curatedListings = useMemo(() => viewMode === "CURATED" ? listings : [], [listings, viewMode]);
+    const standardListings = useMemo(() => viewMode === "STANDARD" ? pageData.listings : [], [pageData.listings, viewMode]);
+    const curatedListings = useMemo(() => viewMode === "CURATED" ? pageData.listings : [], [pageData.listings, viewMode]);
     const visibleListings = standardListings;
 
     const outreachLabel = (listing: AdminListingReviewSummary) => {
@@ -492,10 +516,131 @@ export default function AdminListingsClient({
         });
     };
 
-    const navigate = (nextView: ViewMode, nextStatus = status, nextPage = 1) => {
-        const search = new URLSearchParams({ view: nextView, status: nextStatus, page: String(nextPage) });
-        router.push(`/admin/dashboard/listings?${search.toString()}`);
+    const [sortField, setSortField] = useState<string | null>(null);
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc" | false>(false);
+
+    const handleSort = (field: string) => {
+        if (sortField === field) {
+            if (sortDirection === "asc") {
+                setSortDirection("desc");
+            } else if (sortDirection === "desc") {
+                setSortField(null);
+                setSortDirection(false);
+            }
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
     };
+
+    const sortedVisibleListings = useMemo(() => {
+        if (!sortField || !sortDirection) return visibleListings;
+        return [...visibleListings].sort((a, b) => {
+            let cmp = 0;
+            if (sortField === "title") {
+                cmp = (a.title || "").localeCompare(b.title || "");
+            } else if (sortField === "host") {
+                cmp = (a.user?.name || "").localeCompare(b.user?.name || "");
+            } else if (sortField === "status") {
+                cmp = (a.status || "").localeCompare(b.status || "");
+            } else if (sortField === "price") {
+                cmp = (a.price || 0) - (b.price || 0);
+            } else if (sortField === "createdAt") {
+                cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            }
+            return sortDirection === "asc" ? cmp : -cmp;
+        });
+    }, [visibleListings, sortField, sortDirection]);
+
+    const sortedCuratedListings = useMemo(() => {
+        if (!sortField || !sortDirection) return curatedListings;
+        return [...curatedListings].sort((a, b) => {
+            let cmp = 0;
+            if (sortField === "title") {
+                cmp = (a.title || "").localeCompare(b.title || "");
+            } else if (sortField === "city") {
+                cmp = (a.locationValue || "").localeCompare(b.locationValue || "");
+            } else if (sortField === "enquiries") {
+                cmp = (a.enquiryCount || 0) - (b.enquiryCount || 0);
+            }
+            return sortDirection === "asc" ? cmp : -cmp;
+        });
+    }, [curatedListings, sortField, sortDirection]);
+
+    const navigate = (
+        nextView: ViewMode,
+        nextStatus = optimisticStatus,
+        nextPage = 1,
+        nextPageSize = pageData.pageSize
+    ) => {
+        setOptimisticView(nextView);
+        setOptimisticStatus(nextStatus);
+
+        const search = new URLSearchParams({
+            view: nextView,
+            status: nextStatus,
+            page: String(nextPage),
+            pageSize: String(nextPageSize),
+        });
+        window.history.pushState(null, "", `/admin/dashboard/listings?${search.toString()}`);
+
+        startNavTransition(async () => {
+            try {
+                const res = await getAdminListingReviewPage({
+                    page: nextPage,
+                    pageSize: nextPageSize,
+                    status: nextStatus === "ALL" ? undefined : nextStatus,
+                    listingType: nextView,
+                });
+                setPageData({
+                    listings: res.listings,
+                    total: res.total,
+                    counts: res.counts,
+                    curatedTotal: res.curatedTotal,
+                    page: res.page,
+                    pageSize: res.pageSize,
+                });
+            } catch {
+                toast.error("Failed to load listings");
+            }
+        });
+    };
+
+    useEffect(() => {
+        const handlePopState = () => {
+            const params = new URLSearchParams(window.location.search);
+            const view = params.get("view") === "CURATED" ? "CURATED" : "STANDARD";
+            const s = ["ALL", "PENDING", "VERIFIED", "REJECTED"].includes(params.get("status") || "")
+                ? params.get("status") as "ALL" | ListingStatus
+                : "PENDING";
+            const p = Number(params.get("page")) || 1;
+            const ps = Number(params.get("pageSize")) || pageData.pageSize;
+            setOptimisticView(view);
+            setOptimisticStatus(s);
+            startNavTransition(async () => {
+                try {
+                    const res = await getAdminListingReviewPage({
+                        page: p,
+                        pageSize: ps,
+                        status: s === "ALL" ? undefined : s,
+                        listingType: view,
+                    });
+                    setPageData({
+                        listings: res.listings,
+                        total: res.total,
+                        counts: res.counts,
+                        curatedTotal: res.curatedTotal,
+                        page: res.page,
+                        pageSize: res.pageSize,
+                    });
+                } catch {
+                    toast.error("Failed to load listings");
+                }
+            });
+        };
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, [pageData.pageSize]);
 
     const resetConfirm = () => {
         setConfirmAction(null);
@@ -518,7 +663,24 @@ export default function AdminListingsClient({
                 toast.success(confirmAction === "approve" ? "Listing approved" : "Listing rejected");
                 resetConfirm();
                 setSelected(null);
-                router.refresh();
+                try {
+                    const res = await getAdminListingReviewPage({
+                        page: pageData.page,
+                        pageSize: pageData.pageSize,
+                        status: optimisticStatus === "ALL" ? undefined : optimisticStatus,
+                        listingType: optimisticView,
+                    });
+                    setPageData({
+                        listings: res.listings,
+                        total: res.total,
+                        counts: res.counts,
+                        curatedTotal: res.curatedTotal,
+                        page: res.page,
+                        pageSize: res.pageSize,
+                    });
+                } catch {
+                    router.refresh();
+                }
             } else {
                 toast.error(result.error || "Failed to update listing");
             }
@@ -527,26 +689,27 @@ export default function AdminListingsClient({
 
     return (
         <div className="w-full space-y-6">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-4">
                 <Tabs
                     value={viewMode}
                     onValueChange={(m) => navigate(m as ViewMode, m === "CURATED" ? "ALL" : status)}
-                    className="gap-0"
+                    className="w-fit gap-0"
                 >
-                    <TabsList className="bg-background">
-                        <TabsTrigger value="STANDARD" count={counts.ALL}>
+                    <TabsList>
+                        <TabsTrigger value="STANDARD" count={pageData.counts.ALL}>
                             Verified
                         </TabsTrigger>
-                        <TabsTrigger value="CURATED" count={curatedTotal}>
+                        <TabsTrigger value="CURATED" count={pageData.curatedTotal}>
                             Curated
                         </TabsTrigger>
                     </TabsList>
                 </Tabs>
                 {viewMode === "CURATED" && (
-                    <Button label="+ New Curated" href="/admin/dashboard/listings/curated" size="sm" />
+                    <Button label="+ New Curated" href="/admin/dashboard/listings/curated" size="sm" fit />
                 )}
             </div>
 
+            <div className="space-y-6">
             {viewMode === "CURATED" ? (
                 <>
                     {curatedListings.length === 0 ? (
@@ -558,28 +721,50 @@ export default function AdminListingsClient({
                     ) : (
                         <Table
                             footer={
-                                curatedTotal > pageSize ? (
-                                    <TablePagination
-                                        page={page}
-                                        pageSize={pageSize}
-                                        total={curatedTotal}
-                                        label="curated listings"
-                                        hrefForPage={(nextPage) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}`}
-                                    />
-                                ) : undefined
+                                <TablePagination
+                                    page={pageData.page}
+                                    pageSize={pageData.pageSize}
+                                    total={pageData.curatedTotal}
+                                    pageSizeOptions={[10, 20, 50]}
+                                    onPageSizeChange={(newSize) => navigate(viewMode, status, 1, newSize)}
+                                    label="curated listings"
+                                    hrefForPage={(nextPage, nextSize) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}&pageSize=${nextSize || pageData.pageSize}`}
+                                    onPageChange={(nextPage) => navigate(viewMode, status, nextPage, pageData.pageSize)}
+                                />
                             }
                         >
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Studio</TableHead>
-                                    <TableHead>City</TableHead>
-                                    <TableHead>Enquiries</TableHead>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "title" ? sortDirection : false}
+                                        onSort={() => handleSort("title")}
+                                    >
+                                        Studio
+                                    </TableHead>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "city" ? sortDirection : false}
+                                        onSort={() => handleSort("city")}
+                                    >
+                                        City
+                                    </TableHead>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "enquiries" ? sortDirection : false}
+                                        onSort={() => handleSort("enquiries")}
+                                    >
+                                        Enquiries
+                                    </TableHead>
                                     <TableHead>Outreach Status</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {curatedListings.map(listing => {
+                                {isNavigating ? (
+                                    <CuratedListingSkeletonRows count={Math.min(pageData.pageSize, pageData.curatedTotal || 5)} />
+                                ) : (
+                                    sortedCuratedListings.map(listing => {
                                     const { label, variant } = outreachLabel(listing);
                                     const isHighPriority = (listing.enquiryCount ?? 0) >= 3;
                                     return (
@@ -623,7 +808,7 @@ export default function AdminListingsClient({
                                             </TableCell>
                                         </TableRow>
                                     );
-                                })}
+                                }))}
                             </TableBody>
                         </Table>
                     )}
@@ -631,24 +816,23 @@ export default function AdminListingsClient({
             ) : (
             <>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <StatCard label="All Listings" value={counts.ALL} icon={FiLayers} />
-                <StatCard label="Pending" value={counts.PENDING} icon={FiClock} />
-                <StatCard label="Verified" value={counts.VERIFIED} icon={FiCheck} />
-                <StatCard label="Rejected" value={counts.REJECTED} icon={FiX} />
+                <StatCard label="All Listings" value={pageData.counts?.ALL} icon={FiLayers} />
+                <StatCard label="Pending" value={pageData.counts?.PENDING} icon={FiClock} />
+                <StatCard label="Verified" value={pageData.counts?.VERIFIED} icon={FiCheck} />
+                <StatCard label="Rejected" value={pageData.counts?.REJECTED} icon={FiX} />
             </div>
 
             <Tabs
                 value={status}
                 onValueChange={(val) => navigate("STANDARD", val as "ALL" | ListingStatus)}
-                className="gap-0"
+                className="w-fit gap-0"
             >
-                <TabsList className="w-full justify-start bg-background p-1.5" aria-label="Listing status filters">
+                <TabsList aria-label="Listing status filters">
                     {STATUS_OPTIONS.map((option) => (
                         <TabsTrigger
                             key={option.value}
                             value={option.value}
-                            count={counts[option.value]}
-                            className="text-sm"
+                            count={pageData.counts[option.value]}
                         >
                             {option.label}
                         </TabsTrigger>
@@ -656,7 +840,7 @@ export default function AdminListingsClient({
                 </TabsList>
             </Tabs>
 
-            {visibleListings.length === 0 ? (
+            {visibleListings.length === 0 && !isNavigating ? (
                 <EmptyTable
                     icon={FiShield}
                     label="No listings in this view"
@@ -666,26 +850,62 @@ export default function AdminListingsClient({
                 <Table
                     footer={
                         <TablePagination
-                            page={page}
-                            pageSize={pageSize}
-                            total={total}
+                            page={pageData.page}
+                            pageSize={pageData.pageSize}
+                            total={pageData.total}
+                            pageSizeOptions={[10, 20, 50]}
+                            onPageSizeChange={(newSize) => navigate(viewMode, status, 1, newSize)}
                             label="listings"
-                            hrefForPage={(nextPage) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}`}
+                            hrefForPage={(nextPage, nextSize) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}&pageSize=${nextSize || pageData.pageSize}`}
+                            onPageChange={(nextPage) => navigate(viewMode, status, nextPage, pageData.pageSize)}
                         />
                     }
                 >
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Listing</TableHead>
-                            <TableHead>Host</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Price</TableHead>
-                            <TableHead>Submitted</TableHead>
+                            <TableHead
+                                sortable
+                                sortDirection={sortField === "title" ? sortDirection : false}
+                                onSort={() => handleSort("title")}
+                            >
+                                Listing
+                            </TableHead>
+                            <TableHead
+                                sortable
+                                sortDirection={sortField === "host" ? sortDirection : false}
+                                onSort={() => handleSort("host")}
+                            >
+                                Host
+                            </TableHead>
+                            <TableHead
+                                sortable
+                                sortDirection={sortField === "status" ? sortDirection : false}
+                                onSort={() => handleSort("status")}
+                            >
+                                Status
+                            </TableHead>
+                            <TableHead
+                                sortable
+                                sortDirection={sortField === "price" ? sortDirection : false}
+                                onSort={() => handleSort("price")}
+                            >
+                                Price
+                            </TableHead>
+                            <TableHead
+                                sortable
+                                sortDirection={sortField === "createdAt" ? sortDirection : false}
+                                onSort={() => handleSort("createdAt")}
+                            >
+                                Submitted
+                            </TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {visibleListings.map((listing) => (
+                        {isNavigating ? (
+                            <AdminListingSkeletonRows count={Math.min(pageData.pageSize, pageData.total || 6)} />
+                        ) : (
+                            sortedVisibleListings.map((listing) => (
                             <TableRow key={listing.id}>
                                 <TableCell>
                                     <div className="flex min-w-72 items-center gap-3">
@@ -744,7 +964,7 @@ export default function AdminListingsClient({
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        )))}
                     </TableBody>
                 </Table>
             )}
@@ -806,6 +1026,7 @@ export default function AdminListingsClient({
             )}
             </>
             )}
+            </div>
         </div>
     );
 }

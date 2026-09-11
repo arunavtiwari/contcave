@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import ProfileSettings from "@/components/profile/ProfileSettings";
-import EmptyState from "@/components/shared/EmptyState";
+import EmptyState from "@/components/ui/EmptyState";
 
 export const metadata: Metadata = {
     title: "Settings",

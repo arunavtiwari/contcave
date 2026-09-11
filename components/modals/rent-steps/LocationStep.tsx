@@ -8,7 +8,7 @@ import AutoComplete, { AutoCompleteValue } from "@/components/ui/AutoComplete";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 
-const Map = dynamic(() => import("@/components/shared/Map"), { ssr: false });
+const Map = dynamic(() => import("@/components/map/Map"), { ssr: false });
 
 import { LocationSchema } from "@/schemas/listing";
 
@@ -33,6 +33,15 @@ const LocationStep: React.FC<LocationStepProps> = ({
   setAddressError,
   isLoading,
 }) => {
+  const lat = actualLocation?.latlng?.[0];
+  const lng = actualLocation?.latlng?.[1];
+
+  const mapCenter = React.useMemo<[number, number] | undefined>(() => {
+    if (lat === undefined || lng === undefined) return undefined;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return undefined;
+    return [lat, lng];
+  }, [lat, lng]);
+
   return (
     <div className="flex flex-col gap-4">
       <Heading title="Where is your space?" subtitle="Help creators find you" variant="h5" />
@@ -41,6 +50,7 @@ const LocationStep: React.FC<LocationStepProps> = ({
         required
         value={actualLocation as unknown as CitySelectValue | undefined}
         locationValue={locationValue}
+        error={cityError}
         onChange={(v) => {
           setCustomValue("actualLocation", {
             ...actualLocation,
@@ -49,11 +59,11 @@ const LocationStep: React.FC<LocationStepProps> = ({
           setCityError("");
         }}
       />
-      {cityError && <p className="text-destructive text-sm mt-1">{cityError}</p>}
       <AutoComplete
         label="Address"
         required
         value={actualLocation?.display_name || ""}
+        error={addressError}
         onChange={(sel: AutoCompleteValue) => {
           setCustomValue("actualLocation", {
             ...actualLocation,
@@ -63,7 +73,6 @@ const LocationStep: React.FC<LocationStepProps> = ({
           setAddressError("");
         }}
       />
-      {addressError && <p className="text-destructive text-sm mt-1">{addressError}</p>}
       <div className="w-full">
         <Input
           id="additionalInfo"
@@ -81,7 +90,7 @@ const LocationStep: React.FC<LocationStepProps> = ({
           }}
         />
       </div>
-      <Map center={actualLocation?.latlng as [number, number] | undefined} animated />
+      <Map center={mapCenter} animated />
     </div>
   );
 };

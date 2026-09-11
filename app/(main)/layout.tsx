@@ -7,7 +7,11 @@ import Script from "next/script";
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import ConsentAwareTracking from "@/components/analytics/ConsentAwareTracking";
+import CookieConsent from "@/components/layout/CookieConsentBanner";
 import GlobalScrollFix from "@/components/layout/GlobalScrollFix";
+import WhatsAppFloatingButton from "@/components/layout/WhatsAppFloatingButton";
 import LoginModal from "@/components/modals/LoginModal";
 import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
@@ -15,12 +19,9 @@ import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import GlobalProviders from "@/components/providers/GlobalProviders";
-import ClientOnly from "@/components/shared/ClientOnly";
-import ConsentAwareTracking from "@/components/shared/ConsentAwareTracking";
-import CookieConsent from "@/components/shared/CookieConsentBanner";
-import ToastContainerBar from "@/components/shared/ToastContainerBar";
-import WhatsAppFloatingButton from "@/components/shared/WhatsAppFloatingButton";
+import ClientOnly from "@/components/ui/ClientOnly";
 import ScrollToTop from "@/components/ui/ScrollToTop";
+import { Toaster } from "@/components/ui/Toast";
 import { safeJsonLd } from "@/lib/safeJsonLd";
 import {
     BRAND_DESCRIPTION,
@@ -214,9 +215,10 @@ export default async function RootLayout({
     const headerList = await headers();
     const nonce = headerList.get("x-nonce") ?? undefined;
 
-    const [amenitiesData, addonsData] = await Promise.all([
+    const [amenitiesData, addonsData, currentUser] = await Promise.all([
         getAmenities(),
         getAddons(),
+        getCurrentUser(),
     ]);
 
     return (
@@ -238,12 +240,12 @@ export default async function RootLayout({
                     <NavbarWrapper />
                     <ConsentAwareTracking nonce={nonce} />
                     <ClientOnly>
-                        <ToastContainerBar />
+                        <Toaster />
                         <SearchModal />
                         <RegisterModal />
                         <LoginModal />
                         <OwnerRegisterModal />
-                        <RentModal predefinedAmenities={amenitiesData} predefinedAddons={addonsData} />
+                        <RentModal currentUser={currentUser} predefinedAmenities={amenitiesData} predefinedAddons={addonsData} />
                         <CookieConsent />
                     </ClientOnly>
                     {children}

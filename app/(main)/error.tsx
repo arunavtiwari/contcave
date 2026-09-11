@@ -2,28 +2,31 @@
 
 import { useEffect } from "react";
 
-import EmptyState from "@/components/shared/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
 
-type Props = {
-    error: Error;
-};
-
-function ErrorState({ error }: Props) {
-    useEffect(() => {
-        const isProduction = process.env.NODE_ENV === "production";
-
-        if (isProduction) {
-            console.error("[Error Boundary]", {
-                message: error.message,
-                stack: error.stack,
-                name: error.name,
-            });
-        } else {
-            console.error("🚀 Error boundary caught an error:", error);
-        }
-    }, [error]);
-
-    return <EmptyState title="Uh Oh" subtitle="Something went wrong!" />;
+interface Props {
+  error: Error & { digest?: string };
+  reset: () => void;
 }
 
-export default ErrorState;
+export default function GlobalMainError({ error, reset }: Props) {
+  useEffect(() => {
+    console.error("[Application Error Boundary]", {
+      message: error.message,
+      digest: error.digest,
+      stack: error.stack,
+      name: error.name,
+    });
+  }, [error]);
+
+  return (
+    <ErrorState
+      title="Something went wrong"
+      subtitle="We encountered an unexpected error while rendering this page. You can try refreshing or returning home."
+      error={error}
+      reset={reset}
+      homeHref="/"
+      homeLabel="Go to Homepage"
+    />
+  );
+}

@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import * as React from "react";
 import { FiChevronLeft, FiChevronRight, FiInbox } from "react-icons/fi";
+import { LuArrowDown, LuArrowUp, LuArrowUpDown } from "react-icons/lu";
 
+import Select, { type SelectOption } from "@/components/ui/Select";
+import Skeleton from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 
 interface TableShellProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -128,19 +133,61 @@ const TableRow = React.forwardRef<
 ));
 TableRow.displayName = "TableRow";
 
-const TableHead = React.forwardRef<
-  HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
-  <th
-    ref={ref}
-    className={cn(
-      "h-10 px-4 py-3 text-left align-middle font-semibold text-xs text-muted-foreground select-none",
-      className
-    )}
-    {...props}
-  />
-));
+export type SortDirection = "asc" | "desc" | false | null;
+
+export interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
+  sortable?: boolean;
+  sortDirection?: SortDirection;
+  onSort?: (direction: "asc" | "desc") => void;
+}
+
+const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
+  ({ className, children, sortable = false, sortDirection = false, onSort, onClick, ...props }, ref) => {
+    const handleSortClick = (e: React.MouseEvent<HTMLTableCellElement>) => {
+      onClick?.(e);
+      if (sortable && onSort) {
+        onSort(sortDirection === "asc" ? "desc" : "asc");
+      }
+    };
+
+    return (
+      <th
+        ref={ref}
+        aria-sort={
+          sortDirection === "asc"
+            ? "ascending"
+            : sortDirection === "desc"
+            ? "descending"
+            : undefined
+        }
+        onClick={handleSortClick}
+        className={cn(
+          "h-10 px-4 py-3 text-left align-middle font-semibold text-xs text-muted-foreground select-none",
+          sortable && "cursor-pointer hover:text-foreground transition-colors group",
+          className
+        )}
+        {...props}
+      >
+        {sortable ? (
+          <div className="inline-flex items-center gap-1.5">
+            <span>{children}</span>
+            <span className="inline-flex shrink-0">
+              {sortDirection === "asc" ? (
+                <LuArrowUp className="size-3.5 text-foreground" />
+              ) : sortDirection === "desc" ? (
+                <LuArrowDown className="size-3.5 text-foreground" />
+              ) : (
+                <LuArrowUpDown className="size-3.5 text-muted-foreground/50 transition-opacity group-hover:text-foreground group-hover:opacity-100" />
+              )}
+            </span>
+          </div>
+        ) : (
+          children
+        )}
+      </th>
+    );
+  }
+);
 TableHead.displayName = "TableHead";
 
 const TableCell = React.forwardRef<
@@ -154,6 +201,38 @@ const TableCell = React.forwardRef<
   />
 ));
 TableCell.displayName = "TableCell";
+
+export interface TableSkeletonRowsProps {
+  rows?: number;
+  columns?: number;
+  cellWidths?: string[];
+  className?: string;
+}
+
+export function TableSkeletonRows({
+  rows = 5,
+  columns = 5,
+  cellWidths,
+  className,
+}: TableSkeletonRowsProps) {
+  return (
+    <>
+      {Array.from({ length: rows }).map((_, rowIndex) => (
+        <TableRow key={rowIndex} className={cn("hover:bg-transparent", className)}>
+          {Array.from({ length: columns }).map((_, colIndex) => {
+            const defaultWidth = colIndex === 0 ? "w-4/5" : colIndex === columns - 1 ? "w-1/2 ml-auto" : "w-2/3";
+            const width = cellWidths?.[colIndex] || defaultWidth;
+            return (
+              <TableCell key={colIndex} className={colIndex === columns - 1 ? "text-right" : ""}>
+                <Skeleton className={cn("h-4 rounded-md", width)} />
+              </TableCell>
+            );
+          })}
+        </TableRow>
+      ))}
+    </>
+  );
+}
 
 const TableCaption = React.forwardRef<
   HTMLTableCaptionElement,
@@ -171,7 +250,9 @@ export interface TablePaginationProps {
   page: number;
   pageSize: number;
   total: number;
-  hrefForPage?: (page: number) => string;
+  pageSizeOptions?: number[];
+  onPageSizeChange?: (size: number) => void;
+  hrefForPage?: (page: number, pageSize?: number) => string;
   onPageChange?: (page: number) => void;
   className?: string;
   label?: string;
@@ -181,6 +262,8 @@ function TablePagination({
   page,
   pageSize,
   total,
+  pageSizeOptions,
+  onPageSizeChange,
   hrefForPage,
   onPageChange,
   className,
@@ -198,7 +281,7 @@ function TablePagination({
   const isNextDisabled = currentPage >= pageCount;
 
   const buttonBaseClass =
-    "inline-flex items-center justify-center size-8 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-40 disabled:pointer-events-none cursor-pointer select-none";
+    "inline-flex items-center justify-center size-8 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-40 disabled:pointer-events-none cursor-pointer select-none active:scale-100! active:transform-none!";
 
   const renderButton = (
     _direction: "prev" | "next",
@@ -223,9 +306,15 @@ function TablePagination({
     if (hrefForPage) {
       return (
         <Link
-          href={hrefForPage(targetPage)}
+          href={hrefForPage(targetPage, pageSize)}
           className={buttonBaseClass}
           aria-label={text}
+          onClick={(e) => {
+            if (onPageChange && !e.defaultPrevented && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+              e.preventDefault();
+              onPageChange(targetPage);
+            }
+          }}
         >
           {icon}
           <span className="sr-only">{text}</span>
@@ -260,7 +349,31 @@ function TablePagination({
         <span className="font-medium text-foreground">{total}</span> {label}
       </div>
 
-      <div className="flex items-center gap-3 self-end sm:self-auto">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 self-end sm:self-auto">
+        {pageSizeOptions && pageSizeOptions.length > 0 && onPageSizeChange && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Rows:</span>
+            <div className="w-17">
+              <Select<SelectOption>
+                size="xs"
+                isSearchable={false}
+                value={{ value: String(pageSize), label: String(pageSize) }}
+                options={pageSizeOptions.map((opt) => ({
+                  value: String(opt),
+                  label: String(opt),
+                }))}
+                onChange={(option) => {
+                  const selected = option as SelectOption | null;
+                  if (selected) {
+                    onPageSizeChange(Number(selected.value));
+                  }
+                }}
+                menuPlacement="auto"
+              />
+            </div>
+          </div>
+        )}
+
         <span className="text-xs font-medium text-foreground tabular-nums">
           Page {currentPage} of {pageCount}
         </span>

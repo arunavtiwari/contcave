@@ -5,7 +5,7 @@ import FavoritesClient from "@/app/(main)/dashboard/favorites/FavoritesClient";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getFavoriteListings from "@/app/actions/getFavoriteListings";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
-import EmptyState from "@/components/shared/EmptyState";
+import EmptyState from "@/components/ui/EmptyState";
 import { safeListing } from "@/types/listing";
 export const dynamic = "force-dynamic";
 

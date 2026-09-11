@@ -29,7 +29,7 @@ export interface CustomSelectProps<
   Group extends GroupBase<Option> = GroupBase<Option>
 > extends ReactSelectProps<Option, IsMulti, Group> {
   variant?: "vertical" | "horizontal";
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   error?: string;
   className?: string;
   isAsync?: boolean;
@@ -48,10 +48,11 @@ const CustomDropdownIndicator = <
 >(
   props: DropdownIndicatorProps<Option, IsMulti, Group>
 ) => {
+  const isXs = (props.selectProps as CustomSelectProps<Option, IsMulti, Group>).size === "xs";
   return (
     <components.DropdownIndicator {...props}>
       <FiChevronDown
-        size={15}
+        size={isXs ? 12 : 15}
         className={cn(
           "text-muted-foreground transition-transform duration-200",
           props.selectProps.menuIsOpen && "rotate-180 text-foreground"
@@ -68,11 +69,12 @@ const CustomClearIndicator = <
 >(
   props: ClearIndicatorProps<Option, IsMulti, Group>
 ) => {
+  const isXs = (props.selectProps as CustomSelectProps<Option, IsMulti, Group>).size === "xs";
   return (
     <components.ClearIndicator {...props}>
       <FiX
-        size={14}
-        className="text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+        size={isXs ? 12 : 14}
+        className="text-muted-foreground hover:text-foreground transition-colors"
       />
     </components.ClearIndicator>
   );
@@ -87,7 +89,7 @@ const CustomMultiValueRemove = <
 ) => {
   return (
     <components.MultiValueRemove {...props}>
-      <FiX size={12} className="hover:text-destructive transition-colors" />
+      <FiX size={12} className="text-muted-foreground hover:text-foreground" />
     </components.MultiValueRemove>
   );
 };
@@ -99,129 +101,143 @@ const CustomOption = <
 >(
   props: OptionProps<Option, IsMulti, Group>
 ) => {
+  const isXs = (props.selectProps as CustomSelectProps<Option, IsMulti, Group>).size === "xs";
   return (
     <components.Option {...props}>
-      <div className="flex w-full items-center justify-between gap-2">
-        <span
-          className={cn(
-            "truncate text-xs md:text-sm",
-            props.isSelected ? "font-semibold text-foreground" : "font-normal text-foreground"
-          )}
-        >
-          {props.children}
-        </span>
+      <div className={cn("flex items-center justify-between w-full gap-2", isXs ? "text-xs" : "text-sm")}>
+        <span className="truncate">{props.label}</span>
         {props.isSelected && (
-          <FiCheck size={14} className="shrink-0 text-foreground" />
+          <FiCheck
+            size={isXs ? 12 : 14}
+            className="text-foreground shrink-0"
+          />
         )}
       </div>
     </components.Option>
   );
 };
 
-export const getSelectStyles = <
+const getSelectDimensions = (size: "xs" | "sm" | "md" | "lg") => {
+  switch (size) {
+    case "xs":
+      return { height: "32px", radius: "0.5rem", fontSize: "0.75rem", padding: "0 8px" };
+    case "md":
+      return { height: "44px", radius: "0.75rem", fontSize: "0.875rem", padding: "0 14px" };
+    case "lg":
+      return { height: "48px", radius: "0.75rem", fontSize: "1rem", padding: "0 16px" };
+    case "sm":
+    default:
+      return { height: "40px", radius: "0.75rem", fontSize: "0.875rem", padding: "0 14px" };
+  }
+};
+
+export function getSelectStyles<
   Option = SelectOption,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >(
-  size: "sm" | "md" | "lg" = "sm",
+  size: "xs" | "sm" | "md" | "lg" = "sm",
   error?: string
-): StylesConfig<Option, IsMulti, Group> => ({
-  control: (provided, state) => ({
-    ...provided,
-    backgroundColor: "var(--color-background)",
-    borderWidth: "1px",
-    borderColor: error
-      ? "var(--color-destructive)"
-      : state.isFocused
-      ? "var(--color-foreground)"
-      : "var(--color-border)",
-    borderRadius: "0.5rem",
-    padding: "0",
-    boxShadow: state.isFocused
-      ? error
-        ? "0 0 0 1px var(--color-destructive)"
-        : "0 0 0 1px var(--color-foreground)"
-      : "none",
-    minHeight: size === "sm" ? "36px" : size === "lg" ? "44px" : "40px",
-    height: size === "sm" ? "36px" : size === "lg" ? "44px" : "40px",
-    fontSize: size === "sm" ? "0.8125rem" : "0.875rem",
-    cursor: "pointer",
-    transition: "border-color 0.15s ease, box-shadow 0.15s ease",
-    "&:hover": {
+): StylesConfig<Option, IsMulti, Group> {
+  const dims = getSelectDimensions(size);
+
+  return {
+    control: (provided, state) => ({
+      ...provided,
+      backgroundColor: "var(--color-background)",
+      borderWidth: "1px",
       borderColor: error
         ? "var(--color-destructive)"
         : state.isFocused
         ? "var(--color-foreground)"
-        : "rgba(0, 0, 0, 0.35)",
-    },
-  }),
-  input: (provided) => ({
-    ...provided,
-    fontSize: size === "sm" ? "0.8125rem" : "0.875rem",
-    margin: 0,
-    padding: 0,
-    color: "var(--color-foreground)",
-    fontWeight: 400,
-  }),
-  valueContainer: (provided) => ({
-    ...provided,
-    padding: "0 10px",
-    gap: "4px",
-  }),
-  singleValue: (provided) => ({
-    ...provided,
-    margin: 0,
-    fontSize: size === "sm" ? "0.8125rem" : "0.875rem",
-    fontWeight: 400,
-    color: "var(--color-foreground)",
-  }),
-  placeholder: (provided) => ({
-    ...provided,
-    margin: 0,
-    fontSize: size === "sm" ? "0.8125rem" : "0.875rem",
-    fontWeight: 400,
-    color: "var(--color-muted-foreground)",
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    cursor: "pointer",
-    fontSize: size === "sm" ? "0.8125rem" : "0.875rem",
-    padding: "7px 10px",
-    borderRadius: "0.375rem",
-    backgroundColor: state.isSelected
-      ? "var(--color-muted)"
-      : state.isFocused
-      ? "var(--color-muted)"
-      : "transparent",
-    color: "var(--color-foreground)",
-    transition: "background-color 0.12s ease",
-    ":active": {
-      backgroundColor: "var(--color-muted)",
-    },
-  }),
+        : "var(--color-border)",
+      borderRadius: dims.radius,
+      padding: "0",
+      boxShadow: state.isFocused
+        ? error
+          ? "0 0 0 1px var(--color-destructive)"
+          : "0 0 0 1px var(--color-foreground)"
+        : "none",
+      minHeight: dims.height,
+      height: dims.height,
+      fontSize: dims.fontSize,
+      cursor: "pointer",
+      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+      "&:hover": {
+        borderColor: error
+          ? "var(--color-destructive)"
+          : state.isFocused
+          ? "var(--color-foreground)"
+          : "rgba(0, 0, 0, 0.35)",
+      },
+    }),
+    input: (provided) => ({
+      ...provided,
+      fontSize: dims.fontSize,
+      margin: 0,
+      padding: 0,
+      color: "var(--color-foreground)",
+      fontWeight: 400,
+    }),
+    valueContainer: (provided) => ({
+      ...provided,
+      padding: dims.padding,
+      gap: size === "xs" ? "2px" : "4px",
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      margin: 0,
+      fontSize: dims.fontSize,
+      fontWeight: 400,
+      color: "var(--color-foreground)",
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      margin: 0,
+      fontSize: dims.fontSize,
+      fontWeight: 400,
+      color: "var(--color-muted-foreground)",
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      cursor: "pointer",
+      fontSize: dims.fontSize,
+      padding: size === "xs" ? "4px 8px" : "7px 10px",
+      borderRadius: "0.375rem",
+      backgroundColor: state.isSelected
+        ? "var(--color-muted)"
+        : state.isFocused
+        ? "var(--color-muted)"
+        : "transparent",
+      color: "var(--color-foreground)",
+      transition: "background-color 0.12s ease",
+      ":active": {
+        backgroundColor: "var(--color-muted)",
+      },
+    }),
   menu: (provided) => ({
     ...provided,
-    borderRadius: "0.75rem",
+    borderRadius: size === "xs" ? "0.5rem" : "0.75rem",
     overflow: "hidden",
     marginTop: "4px",
     boxShadow: "none",
     border: "1px solid var(--color-border)",
     backgroundColor: "var(--color-background)",
-    padding: "4px",
+    padding: "3px",
     zIndex: 9999,
   }),
   menuList: (provided) => ({
     ...provided,
-    padding: "2px",
+    padding: "1px",
     display: "flex",
     flexDirection: "column",
-    gap: "2px",
+    gap: "1px",
   }),
   menuPortal: (base) => ({ ...base, zIndex: 99999 }),
   indicatorSeparator: () => ({ display: "none" }),
   dropdownIndicator: (provided) => ({
     ...provided,
-    padding: "0 8px",
+    padding: size === "xs" ? "0 4px" : "0 8px",
     cursor: "pointer",
   }),
   clearIndicator: (provided) => ({
@@ -246,7 +262,8 @@ export const getSelectStyles = <
     fontSize: "0.75rem",
     fontWeight: 500,
   }),
-});
+  };
+};
 
 function Select<
   Option = SelectOption,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { FiDownload, FiExternalLink, FiEye, FiFileText, FiRefreshCw } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -11,16 +11,27 @@ import {
   AdminInvoiceRow,
   AdminPayoutRow,
   AdminVoucherRow,
+  getAdminBookingOperations,
   retryAdminInvoiceEmailAction,
   retryAdminVoucherEmailAction,
 } from "@/app/actions/adminBookingActions";
-import AdminTablePagination from "@/components/admin/AdminTablePagination";
 import AdminTabs from "@/components/admin/AdminTabs";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import StatCard from "@/components/ui/StatCard";
-import { EmptyTable, TableShell } from "@/components/ui/Table";
+import {
+  EmptyTable,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TablePagination,
+  TableRow,
+  TableSkeletonRows,
+} from "@/components/ui/Table";
+import Tooltip from "@/components/ui/Tooltip";
 import { downloadCsv } from "@/lib/csv";
 import { formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
 
@@ -135,9 +146,11 @@ function formatDateTimeRange(booking: AdminBookingRow) {
 
 function MutedDash({ title = "Unavailable" }: { title?: string }) {
   return (
-    <span title={title} className="text-muted-foreground">
-      -
-    </span>
+    <Tooltip content={title}>
+      <span className="cursor-default text-muted-foreground">
+        -
+      </span>
+    </Tooltip>
   );
 }
 
@@ -150,15 +163,18 @@ function CompactPill({
   variant: React.ComponentProps<typeof Pill>["variant"];
   title?: string;
 }) {
-  return (
+  const pill = (
     <Pill
       label={<span className="whitespace-nowrap">{label}</span>}
       variant={variant}
       size="xs"
-      title={title}
       className="tracking-normal"
     />
   );
+  if (title) {
+    return <Tooltip content={title}>{pill}</Tooltip>;
+  }
+  return pill;
 }
 
 function InvoiceSummary({ booking }: { booking: AdminBookingRow }) {
@@ -188,27 +204,9 @@ function InvoiceSummary({ booking }: { booking: AdminBookingRow }) {
           isIconOnly
           outline
           aria-label="View customer invoice"
-          tooltip="View invoice"
+          tooltip="View invoice PDF"
         />
       ) : null}
-    </div>
-  );
-}
-
-function ReceiptRefundSummary({ booking }: { booking: AdminBookingRow }) {
-  if (booking.vouchers.length === 0) {
-    return <CompactPill label="None" variant="secondary" />;
-  }
-
-  return (
-    <div className="flex flex-col gap-1">
-      {booking.vouchers.slice(0, 2).map((voucher) => (
-        <div key={voucher.id} className="flex items-center justify-between gap-2">
-          <span className="truncate font-mono text-xs">{voucher.voucherNumber}</span>
-          <CompactPill label={voucher.voucherType === "REFUND_VOUCHER" ? "Refund" : "Receipt"} variant={statusVariant(voucher.status)} />
-        </div>
-      ))}
-      {booking.vouchers.length > 2 ? <span className="text-xs text-muted-foreground">+{booking.vouchers.length - 2} more</span> : null}
     </div>
   );
 }
@@ -259,7 +257,7 @@ function BookingDetailModal({
           <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/20 p-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <div className="font-mono text-xs text-muted-foreground">{booking.bookingId}</div>
-              <div className="mt-1 truncate text-lg font-semibold text-foreground" title={booking.studioName}>{booking.studioName}</div>
+              <div className="mt-1 truncate text-lg font-semibold text-foreground">{booking.studioName}</div>
               <div className="mt-1 text-sm text-muted-foreground">{formatDateTimeRange(booking)}</div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -269,32 +267,125 @@ function BookingDetailModal({
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <DetailSection title="Parties">
+            <DetailSection title="Parties & Studio Location">
               <div className="grid gap-3 sm:grid-cols-2">
                 <DetailItem label="Customer" value={booking.customerName} />
-                <DetailItem label="Owner" value={booking.ownerName} />
-                <DetailItem label="Location" value={`${booking.detail.listing.locationValue}${booking.detail.listing.propertyStateCode ? ` (${booking.detail.listing.propertyStateCode})` : ""}`} />
+                <DetailItem label="Studio Host / Owner" value={booking.ownerName} />
+                <DetailItem label="Studio Name" value={booking.studioName} />
+                <DetailItem
+                  label="Studio Location"
+                  value={`${booking.detail.listing.locationValue}${booking.detail.listing.propertyStateCode ? ` (${booking.detail.listing.propertyStateCode})` : ""}`}
+                />
               </div>
             </DetailSection>
 
-            <DetailSection title="Payment & Documents">
+            <DetailSection title="Payment & Invoicing">
               <div className="grid gap-3 sm:grid-cols-2">
-                <DetailItem label="Total" value={formatINR(booking.amount)} />
+                <DetailItem label="Total Booking Value" value={<span className="font-semibold text-foreground">{formatINR(booking.amount)}</span>} />
                 <DetailItem label="Payment Method" value={booking.detail.transaction?.paymentMethod || <MutedDash />} />
-                <DetailItem label="Transaction Ref" value={booking.detail.transaction?.cfTxnRef || <MutedDash />} />
+                <DetailItem label="Transaction Reference" value={booking.detail.transaction?.cfTxnRef || <MutedDash />} />
                 <DetailItem
                   label="Customer Invoice"
                   value={booking.customerInvoiceNumber ? (
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-xs">{booking.customerInvoiceNumber}</span>
-                      {booking.customerInvoiceStatus ? <CompactPill label={booking.customerInvoiceStatus} variant={statusVariant(booking.customerInvoiceStatus)} /> : null}
+                      {booking.customerInvoiceStatus ? (
+                        <CompactPill label={booking.customerInvoiceStatus} variant={statusVariant(booking.customerInvoiceStatus)} />
+                      ) : null}
+                      {booking.customerInvoiceUrl ? (
+                        <Button
+                          href={booking.customerInvoiceUrl}
+                          target="_blank"
+                          icon={FiEye}
+                          isIconOnly
+                          outline
+                          size="sm"
+                          aria-label="View invoice PDF"
+                          tooltip="View invoice PDF"
+                        />
+                      ) : null}
                     </div>
                   ) : <CompactPill label="Pending" variant="warning" />}
                 />
-                <DetailItem label="Receipts & Refunds" value={<ReceiptRefundSummary booking={booking} />} />
               </div>
             </DetailSection>
           </div>
+
+          {/* Tax & GST Section - details moved from table column */}
+          <DetailSection title="Tax & GST Information">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <DetailItem
+                label="GST Model"
+                value={
+                  <div className="flex items-center gap-2">
+                    <CompactPill label={gstModelLabel(booking.gstModel)} variant={gstModelVariant(booking.gstModel)} />
+                    <span className="text-xs text-muted-foreground">
+                      {booking.gstModel === "GST_STUDIO_AGENT" ? "Agent (18% platform fee)" : "Principal (Non-GST)"}
+                    </span>
+                  </div>
+                }
+              />
+              <DetailItem label="Registered Tax Entity" value={booking.gstOwner || "ContCave Marketplace / Standard"} />
+              <DetailItem label="Billing Company" value={booking.detail.billingCompany || <MutedDash title="No company provided" />} />
+              <DetailItem label="Billing GSTIN" value={booking.detail.billingGstin || <MutedDash title="No GSTIN provided" />} />
+              <div className="sm:col-span-2">
+                <DetailItem label="Billing Address" value={booking.detail.billingAddress || <MutedDash title="No billing address provided" />} />
+              </div>
+            </div>
+          </DetailSection>
+
+          {/* Receipts & Refunds - details moved from table column */}
+          <DetailSection title="Receipts & Refund Vouchers">
+            {booking.vouchers.length > 0 ? (
+              <div className="overflow-hidden rounded-lg border border-border">
+                <table className="w-full text-left text-xs">
+                  <thead className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2">Voucher #</th>
+                      <th className="px-3 py-2">Document Type</th>
+                      <th className="px-3 py-2 text-right">Amount</th>
+                      <th className="px-3 py-2 text-center">Status</th>
+                      <th className="px-3 py-2">Issued</th>
+                      <th className="px-3 py-2 text-right">PDF</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {booking.vouchers.map((voucher) => (
+                      <tr key={voucher.id} className="hover:bg-muted/20">
+                        <td className="px-3 py-2 font-mono text-foreground">{voucher.voucherNumber}</td>
+                        <td className="px-3 py-2">{voucherTypeLabel(voucher.voucherType)}</td>
+                        <td className="px-3 py-2 text-right font-medium text-foreground">{formatINR(voucher.amount)}</td>
+                        <td className="px-3 py-2 text-center">
+                          <CompactPill label={voucher.status} variant={statusVariant(voucher.status)} />
+                        </td>
+                        <td className="px-3 py-2 text-muted-foreground">
+                          {voucher.issuedAt ? formatISTDateTime(voucher.issuedAt) : "—"}
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          {voucher.voucherUrl ? (
+                            <Button
+                              href={voucher.voucherUrl}
+                              target="_blank"
+                              icon={FiEye}
+                              isIconOnly
+                              outline
+                              size="sm"
+                              aria-label="View voucher PDF"
+                              tooltip="View PDF"
+                            />
+                          ) : (
+                            <MutedDash />
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="py-2 text-sm text-muted-foreground">No payment vouchers or refunds issued for this booking.</div>
+            )}
+          </DetailSection>
 
           <DetailSection title="Booking Composition">
             <div className="grid gap-4 lg:grid-cols-3">
@@ -359,11 +450,8 @@ function BookingDetailModal({
           </DetailSection>
 
           <div className="grid gap-4">
-            <DetailSection title="Billing & Operational Notes">
+            <DetailSection title="Operational Notes & Pricing Snapshot">
               <div className="grid gap-3">
-                <DetailItem label="Billing Company" value={booking.detail.billingCompany || <MutedDash />} />
-                <DetailItem label="Billing GSTIN" value={booking.detail.billingGstin || <MutedDash />} />
-                <DetailItem label="Billing Address" value={booking.detail.billingAddress || <MutedDash />} />
                 {booking.detail.rejectReason ? <DetailItem label="Reject Reason" value={booking.detail.rejectReason} /> : null}
                 {hasPricingSnapshot ? (
                   <div>
@@ -372,7 +460,9 @@ function BookingDetailModal({
                       {JSON.stringify(pricingSnapshot, null, 2)}
                     </pre>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="text-sm text-muted-foreground">No additional operational notes.</div>
+                )}
               </div>
             </DetailSection>
           </div>
@@ -398,18 +488,131 @@ export default function AdminBookingsClient({
   audits,
 }: Props) {
   const router = useRouter();
+  const [data, setData] = useState({
+    bookings,
+    bookingTotal: bookings.length,
+    activeTab: tab,
+    operationPage,
+    operationPageSize,
+    operationTotal,
+    tabCounts,
+    customerInvoiceTotal,
+    pendingCustomerInvoiceTotal,
+    ownerInvoices,
+    vouchers,
+    failures,
+    payouts,
+    audits,
+  });
+
+  const [prevProps, setPrevProps] = useState({
+    bookings,
+    activeTab: tab,
+    operationPage,
+    operationPageSize,
+    operationTotal,
+  });
+
+  if (
+    bookings !== prevProps.bookings ||
+    tab !== prevProps.activeTab ||
+    operationPage !== prevProps.operationPage ||
+    operationPageSize !== prevProps.operationPageSize ||
+    operationTotal !== prevProps.operationTotal
+  ) {
+    setPrevProps({
+      bookings,
+      activeTab: tab,
+      operationPage,
+      operationPageSize,
+      operationTotal,
+    });
+    setData({
+      bookings,
+      bookingTotal: bookings.length,
+      activeTab: tab,
+      operationPage,
+      operationPageSize,
+      operationTotal,
+      tabCounts,
+      customerInvoiceTotal,
+      pendingCustomerInvoiceTotal,
+      ownerInvoices,
+      vouchers,
+      failures,
+      payouts,
+      audits,
+    });
+  }
+
+  const [optimisticTab, setOptimisticTab] = useState<Tab>(tab);
+  const [prevTab, setPrevTab] = useState<Tab>(tab);
+  if (tab !== prevTab) {
+    setPrevTab(tab);
+    setOptimisticTab(tab);
+  }
+
+  const [isNavigating, startNavTransition] = useTransition();
   const [pendingInvoiceId, setPendingInvoiceId] = useState<string | null>(null);
   const [pendingVoucherId, setPendingVoucherId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<AdminBookingRow | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const navigateTab = (
+    nextTab: Tab,
+    nextPage = 1,
+    nextPageSize = data.operationPageSize
+  ) => {
+    setOptimisticTab(nextTab);
+    const search = new URLSearchParams({
+      tab: nextTab,
+      page: String(nextPage),
+      pageSize: String(nextPageSize),
+    });
+    window.history.pushState(null, "", `/admin/dashboard/bookings?${search.toString()}`);
+
+    startNavTransition(async () => {
+      try {
+        const res = await getAdminBookingOperations({
+          tab: nextTab,
+          page: nextPage,
+          pageSize: nextPageSize,
+        });
+        setData(res);
+      } catch {
+        toast.error("Failed to load booking operations");
+      }
+    });
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const t = (params.get("tab") as Tab) || "bookings";
+      const p = Number(params.get("page")) || 1;
+      const ps = Number(params.get("pageSize")) || data.operationPageSize;
+      setOptimisticTab(t);
+      startNavTransition(async () => {
+        try {
+          const res = await getAdminBookingOperations({ tab: t, page: p, pageSize: ps });
+          setData(res);
+        } catch {
+          toast.error("Failed to load booking operations");
+        }
+      });
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [data.operationPageSize]);
+
   const activeRows = useMemo(() => {
-    if (tab === "bookings") return bookings;
-    if (tab === "ownerInvoices") return ownerInvoices;
-    if (tab === "vouchers") return vouchers;
-    if (tab === "payouts") return payouts;
-    if (tab === "failures") return failures;
-    return audits;
-  }, [audits, bookings, failures, ownerInvoices, payouts, tab, vouchers]);
+    if (optimisticTab === "bookings") return data.bookings;
+    if (optimisticTab === "ownerInvoices") return data.ownerInvoices;
+    if (optimisticTab === "vouchers") return data.vouchers;
+    if (optimisticTab === "payouts") return data.payouts;
+    if (optimisticTab === "failures") return data.failures;
+    return data.audits;
+  }, [data.audits, data.bookings, data.failures, data.ownerInvoices, data.payouts, data.vouchers, optimisticTab]);
 
   const retryInvoice = (invoiceId: string) => {
     setPendingInvoiceId(invoiceId);
@@ -440,11 +643,15 @@ export default function AdminBookingsClient({
   };
 
   const paginationFooter = (
-    <AdminTablePagination
-      page={operationPage}
-      pageSize={operationPageSize}
-      total={operationTotal}
-      hrefForPage={(page) => `/admin/dashboard/bookings?tab=${tab}&page=${page}`}
+    <TablePagination
+      page={data.operationPage}
+      pageSize={data.operationPageSize}
+      total={data.operationTotal}
+      pageSizeOptions={[10, 20, 50]}
+      label={optimisticTab === "bookings" ? "bookings" : optimisticTab === "payouts" ? "payouts" : "records"}
+      hrefForPage={(page, size) => `/admin/dashboard/bookings?tab=${optimisticTab}&page=${page}&pageSize=${size || data.operationPageSize}`}
+      onPageSizeChange={(newSize) => navigateTab(optimisticTab, 1, newSize)}
+      onPageChange={(page) => navigateTab(optimisticTab, page, data.operationPageSize)}
     />
   );
 
@@ -456,164 +663,158 @@ export default function AdminBookingsClient({
           icon={FiDownload}
           fit
           size="sm"
-          onClick={() => downloadCsv(`contcave-${tab}.csv`, activeRows as Array<Record<string, unknown>>)}
-          disabled={activeRows.length === 0}
+          onClick={() => downloadCsv(`contcave-${optimisticTab}.csv`, activeRows as Array<Record<string, unknown>>)}
+          disabled={activeRows.length === 0 || isNavigating}
         />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-        <StatCard label="Bookings" value={tabCounts.bookings} />
-        <StatCard label="Customer Invoices" value={customerInvoiceTotal} />
-        <StatCard label="Pending Invoices" value={pendingCustomerInvoiceTotal} />
-        <StatCard label="Owner Invoices" value={tabCounts.ownerInvoices} />
-        <StatCard label="Receipts & Refunds" value={tabCounts.vouchers} />
-        <StatCard label="Payouts" value={tabCounts.payouts} />
+        <StatCard label="Bookings" value={data.tabCounts.bookings} />
+        <StatCard label="Customer Invoices" value={data.customerInvoiceTotal} />
+        <StatCard label="Pending Invoices" value={data.pendingCustomerInvoiceTotal} />
+        <StatCard label="Owner Invoices" value={data.tabCounts.ownerInvoices} />
+        <StatCard label="Receipts & Refunds" value={data.tabCounts.vouchers} />
+        <StatCard label="Payouts" value={data.tabCounts.payouts} />
       </div>
 
       <AdminTabs
-        activeId={tab}
+        activeId={optimisticTab}
         ariaLabel="Booking operations views"
+        onSelect={(nextTab) => navigateTab(nextTab as Tab, 1, data.operationPageSize)}
         items={TABS.map((item) => ({
           id: item.key,
           label: item.label,
-          count: tabCounts[item.key],
+          count: data.tabCounts[item.key],
           href: `/admin/dashboard/bookings?tab=${item.key}&page=1`,
         }))}
       />
 
-      {tab === "bookings" && (
-        bookings.length ? (
-          <TableShell footer={paginationFooter}>
-            <table className="min-w-310 table-fixed divide-y divide-border text-[13px] xl:min-w-full">
-              <colgroup>
-                <col className="w-26.25" />
-                <col className="w-60" />
-                <col className="w-35" />
-                <col className="w-35" />
-                <col className="w-21.25" />
-                <col className="w-23.75" />
-                <col className="w-23.75" />
-                <col className="w-32.5" />
-                <col className="w-33.75" />
-                <col className="w-37.5" />
-                <col className="w-13.75" />
-              </colgroup>
-              <thead className="bg-muted/40 text-left text-[11px] uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-3">Booking</th>
-                  <th className="px-3 py-3">Studio</th>
-                  <th className="px-3 py-3">Customer</th>
-                  <th className="px-3 py-3">Owner</th>
-                  <th className="px-3 py-3 text-center">GST</th>
-                  <th className="px-3 py-3">Date</th>
-                  <th className="px-3 py-3 text-right">Amount</th>
-                  <th className="px-3 py-3 text-center">Status</th>
-                  <th className="px-3 py-3 text-center">Invoice</th>
-                  <th className="px-3 py-3 text-center">Receipts & Refunds</th>
-                  <th className="px-3 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {bookings.map((booking) => {
+      {optimisticTab === "bookings" && (
+        data.bookings.length > 0 || isNavigating ? (
+          <Table footer={paginationFooter}>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Booking</TableHead>
+                <TableHead>Studio</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Host</TableHead>
+                <TableHead>Schedule</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center">Invoice</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isNavigating ? (
+                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={9} />
+              ) : (
+                data.bookings.map((booking) => {
                   const status = bookingStatus(booking);
 
                   return (
-                    <tr key={booking.id} className="align-middle hover:bg-muted/20">
-                      <td className="whitespace-nowrap px-3 py-3 font-mono text-[11px] leading-5">{booking.bookingId}</td>
-                      <td className="px-3 py-3">
-                        <div className="truncate font-medium" title={booking.studioName}>{booking.studioName}</div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="truncate" title={booking.customerName}>{booking.customerName}</div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="truncate" title={booking.ownerName}>{booking.ownerName}</div>
-                      </td>
-                      <td className="px-3 py-3 text-center">
-                        <CompactPill label={gstModelLabel(booking.gstModel)} variant={gstModelVariant(booking.gstModel)} />
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-3">{formatISTDate(booking.startDate)}</td>
-                      <td className="whitespace-nowrap px-3 py-3 text-right font-medium tabular-nums">{formatINR(booking.amount)}</td>
-                      <td className="px-3 py-3 text-center">
+                    <TableRow key={booking.id}>
+                      <TableCell className="whitespace-nowrap font-mono text-xs font-semibold text-foreground">
+                        {booking.bookingId}
+                      </TableCell>
+                      <TableCell className="max-w-50">
+                        <Tooltip content={booking.studioName}>
+                          <div className="truncate font-medium text-foreground">{booking.studioName}</div>
+                        </Tooltip>
+                        <div className="truncate text-xs text-muted-foreground">{booking.detail.listing.locationValue}</div>
+                      </TableCell>
+                      <TableCell className="max-w-40">
+                        <Tooltip content={booking.customerName}>
+                          <div className="truncate font-medium text-foreground">{booking.customerName}</div>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="max-w-40">
+                        <Tooltip content={booking.ownerName}>
+                          <div className="truncate text-muted-foreground">{booking.ownerName}</div>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {formatDateTimeRange(booking)}
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap font-medium text-foreground">
+                        {formatINR(booking.amount)}
+                      </TableCell>
+                      <TableCell className="text-center whitespace-nowrap">
                         <CompactPill label={status.label} variant={status.variant} />
-                      </td>
-                      <td className="px-3 py-3">
+                      </TableCell>
+                      <TableCell className="text-center whitespace-nowrap">
                         <div className="flex justify-center">
                           <InvoiceSummary booking={booking} />
                         </div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <ReceiptRefundSummary booking={booking} />
-                      </td>
-                      <td className="px-3 py-3">
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
                         <div className="flex justify-end">
                           <Button
                             icon={FiExternalLink}
                             isIconOnly
                             outline
-                            aria-label="Open booking details"
-                            tooltip="Open details"
+                            aria-label="View booking details"
+                            tooltip="View details"
                             onClick={() => setSelectedBooking(booking)}
                           />
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
-                })}
-              </tbody>
-            </table>
-          </TableShell>
+                })
+              )}
+            </TableBody>
+          </Table>
         ) : <EmptyTable label="No bookings found." />
       )}
 
-      {(tab === "ownerInvoices" || tab === "failures") && (
-        activeRows.length ? (
-          <TableShell footer={paginationFooter}>
-            <table className="min-w-245 table-fixed divide-y divide-border text-sm">
-              <colgroup>
-                <col className="w-45" />
-                <col className="w-47.5" />
-                <col className="w-47.5" />
-                <col className="w-40" />
-                <col className="w-30" />
-                <col className="w-42.5" />
-                <col className="w-25" />
-              </colgroup>
-              <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Invoice</th>
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">Recipient</th>
-                  <th className="px-4 py-3">Issued</th>
-                  <th className="px-4 py-3 text-right">Total</th>
-                  <th className="px-4 py-3 text-center">Delivery</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {(activeRows as AdminInvoiceRow[]).map((invoice) => {
+      {(optimisticTab === "ownerInvoices" || optimisticTab === "failures") && (
+        activeRows.length > 0 || isNavigating ? (
+          <Table footer={paginationFooter}>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Invoice</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Recipient</TableHead>
+                <TableHead>Issued</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-center">Delivery</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isNavigating ? (
+                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={7} />
+              ) : (
+                (activeRows as AdminInvoiceRow[]).map((invoice) => {
                   const delivery = documentDelivery(invoice);
                   const retryDisabled = Boolean(invoice.emailSentAt) || (isPending && pendingInvoiceId !== invoice.id);
 
                   return (
-                    <tr key={invoice.id} className="align-top hover:bg-muted/20">
-                      <td className="px-4 py-3">
+                    <TableRow key={invoice.id} className="align-top">
+                      <TableCell>
                         <div className="truncate font-mono text-xs" title={invoice.invoiceNumber}>{invoice.invoiceNumber}</div>
                         {invoice.bookingId ? <div className="mt-1 truncate text-xs text-muted-foreground">{invoice.bookingId}</div> : null}
-                      </td>
-                      <td className="px-4 py-3">{invoiceTypeLabel(invoice.documentType)}</td>
-                      <td className="px-4 py-3">
-                        <div className="truncate" title={invoice.recipientName}>{invoice.recipientName}</div>
-                      </td>
-                      <td className="px-4 py-3">{invoice.issuedAt ? formatISTDateTime(invoice.issuedAt) : <MutedDash title="Invoice issue date unavailable" />}</td>
-                      <td className="px-4 py-3 text-right">{formatINR(invoice.totalAmount)}</td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell>{invoiceTypeLabel(invoice.documentType)}</TableCell>
+                      <TableCell>
+                        <Tooltip content={invoice.recipientName}>
+                          <div className="truncate">{invoice.recipientName}</div>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>{invoice.issuedAt ? formatISTDateTime(invoice.issuedAt) : <MutedDash title="Invoice issue date unavailable" />}</TableCell>
+                      <TableCell className="text-right">{formatINR(invoice.totalAmount)}</TableCell>
+                      <TableCell className="text-center">
                         <div className="flex flex-col items-center gap-1 text-center">
                           <CompactPill label={delivery.label} variant={delivery.variant} />
-                          {invoice.emailError ? <span className="truncate text-xs text-destructive" title={invoice.emailError}>{invoice.emailError}</span> : null}
+                          {invoice.emailError ? (
+                            <Tooltip content={invoice.emailError}>
+                              <span className="truncate max-w-30 text-xs text-destructive">{invoice.emailError}</span>
+                            </Tooltip>
+                          ) : null}
                         </div>
-                      </td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {invoice.invoiceUrl ? (
                             <Button
@@ -637,64 +838,63 @@ export default function AdminBookingsClient({
                             onClick={() => retryInvoice(invoice.id)}
                           />
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
-                })}
-              </tbody>
-            </table>
-          </TableShell>
+                })
+              )}
+            </TableBody>
+          </Table>
         ) : <EmptyTable label="No invoices found for this view." />
       )}
 
-      {tab === "vouchers" && (
-        vouchers.length ? (
-          <TableShell footer={paginationFooter}>
-            <table className="min-w-220 table-fixed divide-y divide-border text-sm">
-              <colgroup>
-                <col className="w-45" />
-                <col className="w-40" />
-                <col className="w-47.5" />
-                <col className="w-40" />
-                <col className="w-30" />
-                <col className="w-42.5" />
-                <col className="w-25" />
-              </colgroup>
-              <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Document</th>
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">Recipient</th>
-                  <th className="px-4 py-3">Issued</th>
-                  <th className="px-4 py-3 text-right">Amount</th>
-                  <th className="px-4 py-3 text-center">Delivery</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {vouchers.map((voucher) => {
+      {optimisticTab === "vouchers" && (
+        data.vouchers.length > 0 || isNavigating ? (
+          <Table footer={paginationFooter}>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Document</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Recipient</TableHead>
+                <TableHead>Issued</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="text-center">Delivery</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isNavigating ? (
+                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={7} />
+              ) : (
+                data.vouchers.map((voucher) => {
                   const delivery = documentDelivery(voucher);
                   const retryDisabled = Boolean(voucher.emailSentAt) || (isPending && pendingVoucherId !== voucher.id);
 
                   return (
-                    <tr key={voucher.id} className="align-top hover:bg-muted/20">
-                      <td className="px-4 py-3">
+                    <TableRow key={voucher.id} className="align-top">
+                      <TableCell>
                         <div className="truncate font-mono text-xs" title={voucher.voucherNumber}>{voucher.voucherNumber}</div>
                         {voucher.bookingId ? <div className="mt-1 truncate text-xs text-muted-foreground">{voucher.bookingId}</div> : null}
-                      </td>
-                      <td className="px-4 py-3">{voucherTypeLabel(voucher.voucherType)}</td>
-                      <td className="px-4 py-3">
-                        <div className="truncate" title={voucher.recipientName}>{voucher.recipientName}</div>
-                      </td>
-                      <td className="px-4 py-3">{voucher.issuedAt ? formatISTDateTime(voucher.issuedAt) : <MutedDash title="Document issue date unavailable" />}</td>
-                      <td className="px-4 py-3 text-right">{formatINR(voucher.amount)}</td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell>{voucherTypeLabel(voucher.voucherType)}</TableCell>
+                      <TableCell>
+                        <Tooltip content={voucher.recipientName}>
+                          <div className="truncate">{voucher.recipientName}</div>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>{voucher.issuedAt ? formatISTDateTime(voucher.issuedAt) : <MutedDash title="Document issue date unavailable" />}</TableCell>
+                      <TableCell className="text-right">{formatINR(voucher.amount)}</TableCell>
+                      <TableCell className="text-center">
                         <div className="flex flex-col items-center gap-1 text-center">
                           <CompactPill label={delivery.label} variant={delivery.variant} />
-                          {voucher.emailError ? <span className="truncate text-xs text-destructive" title={voucher.emailError}>{voucher.emailError}</span> : null}
+                          {voucher.emailError ? (
+                            <Tooltip content={voucher.emailError}>
+                              <span className="truncate max-w-30 text-xs text-destructive">{voucher.emailError}</span>
+                            </Tooltip>
+                          ) : null}
                         </div>
-                      </td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {voucher.voucherUrl ? (
                             <Button
@@ -718,73 +918,87 @@ export default function AdminBookingsClient({
                             onClick={() => retryVoucher(voucher.id)}
                           />
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
-                })}
-              </tbody>
-            </table>
-          </TableShell>
+                })
+              )}
+            </TableBody>
+          </Table>
         ) : <EmptyTable label="No receipts or refunds found." />
       )}
 
-      {tab === "payouts" && (
-        payouts.length ? (
-          <TableShell footer={paginationFooter}>
-            <table className="min-w-215 table-fixed divide-y divide-border text-sm">
-              <colgroup>
-                <col className="w-40" />
-                <col className="w-45" />
-                <col className="w-60" />
-                <col className="w-37.5" />
-                <col className="w-30" />
-                <col className="w-27.5" />
-              </colgroup>
-              <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Booking</th>
-                  <th className="px-4 py-3">Owner</th>
-                  <th className="px-4 py-3">Studio</th>
-                  <th className="px-4 py-3">Vendor</th>
-                  <th className="px-4 py-3 text-right">Payout</th>
-                  <th className="px-4 py-3 text-center">Split</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {payouts.map((payout) => (
-                  <tr key={payout.id} className="align-top hover:bg-muted/20">
-                    <td className="px-4 py-3 font-mono text-xs">{payout.bookingId || payout.id}</td>
-                    <td className="px-4 py-3"><div className="truncate" title={payout.ownerName}>{payout.ownerName}</div></td>
-                    <td className="px-4 py-3"><div className="truncate" title={payout.studioName}>{payout.studioName}</div></td>
-                    <td className="px-4 py-3 text-xs">{payout.vendorConfigured ? "Configured" : <MutedDash title="Vendor is not configured" />}</td>
-                    <td className="px-4 py-3 text-right">{formatINR(payout.payoutAmount || 0)}</td>
-                    <td className="px-4 py-3 text-center">
+      {optimisticTab === "payouts" && (
+        data.payouts.length > 0 || isNavigating ? (
+          <Table footer={paginationFooter}>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Booking</TableHead>
+                <TableHead>Owner</TableHead>
+                <TableHead>Studio</TableHead>
+                <TableHead>Vendor</TableHead>
+                <TableHead className="text-right">Payout</TableHead>
+                <TableHead className="text-center">Split</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isNavigating ? (
+                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={6} />
+              ) : (
+                data.payouts.map((payout) => (
+                  <TableRow key={payout.id} className="align-top">
+                    <TableCell className="font-mono text-xs">{payout.bookingId || payout.id}</TableCell>
+                    <TableCell>
+                      <Tooltip content={payout.ownerName}>
+                        <div className="truncate">{payout.ownerName}</div>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip content={payout.studioName}>
+                        <div className="truncate">{payout.studioName}</div>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell className="text-xs">{payout.vendorConfigured ? "Configured" : <MutedDash title="Vendor is not configured" />}</TableCell>
+                    <TableCell className="text-right">{formatINR(payout.payoutAmount || 0)}</TableCell>
+                    <TableCell className="text-center">
                       <CompactPill label={payout.payoutDoneAt ? "Done" : payout.payoutSplitAt ? "Split" : "Pending"} variant={payout.payoutDoneAt ? "success" : "warning"} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </TableShell>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         ) : <EmptyTable label="No payouts found." />
       )}
 
-      {tab === "audit" && (
-        audits.length ? (
+      {optimisticTab === "audit" && (
+        data.audits.length > 0 || isNavigating ? (
           <div className="space-y-4">
             <div className="space-y-2">
-              {audits.map((audit) => (
-                <div key={audit.id} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
-                  <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-neutral-50">
-                    <FiFileText size={16} />
+              {isNavigating ? (
+                Array.from({ length: Math.min(data.operationPageSize, 6) }).map((_, i) => (
+                  <div key={i} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4 animate-pulse">
+                    <div className="h-9 w-9 rounded-lg bg-muted shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-48 rounded bg-muted" />
+                      <div className="h-3 w-64 rounded bg-muted" />
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium text-foreground">{audit.action}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">{formatISTDateTime(audit.createdAt)} | {audit.resourceId || "No resource"}</div>
-                    {audit.metadata ? <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-muted p-2 text-xs">{JSON.stringify(audit.metadata, null, 2)}</pre> : null}
+                ))
+              ) : (
+                data.audits.map((audit) => (
+                  <div key={audit.id} className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
+                    <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-neutral-50">
+                      <FiFileText size={16} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-foreground">{audit.action}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{formatISTDateTime(audit.createdAt)} | {audit.resourceId || "No resource"}</div>
+                      {audit.metadata ? <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-muted p-2 text-xs">{JSON.stringify(audit.metadata, null, 2)}</pre> : null}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
             <div className="overflow-hidden rounded-xl border border-border bg-card">
               {paginationFooter}

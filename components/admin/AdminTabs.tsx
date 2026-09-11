@@ -7,9 +7,10 @@ export type AdminTabsProps = {
   ariaLabel: string;
   items: AdminTabItem[];
   className?: string;
+  onSelect?: (id: string) => void;
 };
 
-export default function AdminTabs({ activeId, ariaLabel, items, className }: AdminTabsProps) {
+export default function AdminTabs({ activeId, ariaLabel, items, className, onSelect }: AdminTabsProps) {
   return (
     <NavTabs
       activeId={activeId}
@@ -17,6 +18,7 @@ export default function AdminTabs({ activeId, ariaLabel, items, className }: Adm
       items={items}
       className={className}
       layoutId="admin-bookings-tab"
+      onSelect={onSelect}
     />
   );
 }

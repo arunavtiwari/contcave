@@ -9,7 +9,7 @@ import getReviewCount from "@/app/actions/getReviewCount";
 import { getPublicDayStatuses, getReservations } from "@/app/actions/reservationActions";
 import ListingClient from "@/components/listing/ListingClient";
 import ListingSkeleton from "@/components/listing/ListingSkeleton";
-import EmptyState from "@/components/shared/EmptyState";
+import EmptyState from "@/components/ui/EmptyState";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import { getPlainTextFromHTML } from "@/lib/richText";
 import { safeJsonLd } from "@/lib/safeJsonLd";

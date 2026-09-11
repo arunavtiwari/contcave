@@ -8,6 +8,9 @@ import { getListingLatLng, haversineDistance } from "@/lib/geo";
 import { safeListing } from "@/types/listing";
 import { SafeUser } from "@/types/user";
 
+const INITIAL_BATCH_SIZE = 12;
+const BATCH_INCREMENT = 8;
+
 type Props = {
   listings: safeListing[];
   currentUser?: SafeUser | null;
@@ -15,14 +18,17 @@ type Props = {
 
 function ListingFeed({ listings, currentUser }: Props) {
   const [sortedListings, setSortedListings] = useState(listings);
-  const { setSortedByLocation, registerPrioritize } = useLocationSort();
+  const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
+  const { setSortedByLocation, registerPrioritize } = useLocationSort();
   const listingsRef = useRef(listings);
 
   useEffect(() => {
     listingsRef.current = listings;
     setSortedListings(listings);
     setSortedByLocation(false);
+    setVisibleCount(INITIAL_BATCH_SIZE);
   }, [listings, setSortedByLocation]);
 
   const prioritizeListings = useCallback((userLat: number, userLng: number) => {
@@ -52,11 +58,33 @@ function ListingFeed({ listings, currentUser }: Props) {
     registerPrioritize(prioritizeListings);
   }, [registerPrioritize, prioritizeListings]);
 
+  const hasMore = visibleCount < sortedListings.length;
+
+  useEffect(() => {
+    if (!hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + BATCH_INCREMENT, sortedListings.length));
+        }
+      },
+      { rootMargin: "600px" }
+    );
+
+    const el = sentinelRef.current;
+    if (el) observer.observe(el);
+
+    return () => {
+      if (el) observer.unobserve(el);
+      observer.disconnect();
+    };
+  }, [hasMore, sortedListings.length]);
+
   return (
     <div className="space-y-6">
-
       <div className="pb-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 overflow-x-hidden">
-        {sortedListings.map((item: safeListing, index: number) => (
+        {sortedListings.slice(0, visibleCount).map((item: safeListing, index: number) => (
           <ListingCard
             key={item.id}
             data={item}
@@ -66,6 +94,8 @@ function ListingFeed({ listings, currentUser }: Props) {
           />
         ))}
       </div>
+
+      {hasMore && <div ref={sentinelRef} className="h-1 w-full pointer-events-none" />}
     </div>
   );
 }
