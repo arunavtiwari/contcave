@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { BsPatchCheckFill } from "react-icons/bs";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
 import StarRating from "@/components/ui/StarRating";
 import { reviews } from "@/constants/testimonials";

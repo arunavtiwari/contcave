@@ -3,8 +3,8 @@
 import { useSearchParams } from "next/navigation";
 import { memo, Suspense, useMemo } from "react";
 
-import CategoryBox from "@/components/CategoryBox";
 import FilterModal from "@/components/modals/FilterModal";
+import CategoryBox from "@/components/navbar/CategoryBox";
 import Button from "@/components/ui/Button";
 
 import { categories } from "./categoriesData";

@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import ManageTimings from "@/components/ManageTimings";
+import ManageTimings from "@/components/property/ManageTimings";
 import Heading from "@/components/ui/Heading";
 
 interface ManageTimingsTabProps {

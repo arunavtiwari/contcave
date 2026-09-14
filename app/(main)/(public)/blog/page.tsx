@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import PageBanner from "@/components/ui/PageBanner";
 import { getSortedPostsData, groupPostsByCategory } from "@/lib/posts";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";

@@ -4,8 +4,8 @@ import React from "react";
 import { IoMdClose } from "react-icons/io";
 import { TbVideoPlus } from "react-icons/tb";
 
-import FormField from "@/components/inputs/FormField";
 import ImageUpload from "@/components/inputs/ImageUpload";
+import FormField from "@/components/ui/FormField";
 import Heading from "@/components/ui/Heading";
 
 interface VideoStepProps {

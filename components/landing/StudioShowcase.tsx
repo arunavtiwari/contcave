@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { memo, useEffect, useRef, useState } from "react";
 import { FiChevronRight } from "react-icons/fi";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import ListingCard from "@/components/listing/ListingCard";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";

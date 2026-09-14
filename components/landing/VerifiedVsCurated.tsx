@@ -6,7 +6,7 @@ import { FaCheckCircle, FaShieldAlt } from "react-icons/fa";
 import { FiCheck } from "react-icons/fi";
 import { IoInformationCircleOutline } from "react-icons/io5";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";

@@ -6,10 +6,11 @@ import React from "react";
 import { IconType } from "react-icons";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
+import Tooltip from "@/components/ui/Tooltip";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative flex cursor-pointer items-center justify-center gap-2 border font-medium transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20",
+  "relative flex cursor-pointer items-center justify-center gap-2 border font-medium transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -135,7 +136,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
 
     const commonProps = {
       ...props,
-      title: tooltip || title,
+      title: tooltip ? undefined : title,
     };
 
     const button = href ? (
@@ -161,6 +162,16 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
         {content}
       </button>
     );
+
+    if (tooltip) {
+      return (
+        <Tooltip content={tooltip}>
+          <span className={cn("inline-flex", computedFit ? "w-fit" : "w-full")}>
+            {button}
+          </span>
+        </Tooltip>
+      );
+    }
 
     return button;
   }

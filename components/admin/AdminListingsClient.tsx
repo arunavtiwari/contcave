@@ -3,8 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useMemo, useState, useTransition } from "react";
-import type { IconType } from "react-icons";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
     FiCheck,
     FiClock,
@@ -23,16 +22,29 @@ import {
     type AdminListingReviewSummary,
     approveListingAction,
     getAdminListingReviewDetail,
+    getAdminListingReviewPage,
     markInConversationAction,
     rejectListingAction,
 } from "@/app/actions/listingActions";
+import { AdminListingSkeletonRows, CuratedListingSkeletonRows } from "@/components/admin/AdminListingSkeletonRows";
 import ListingReviewsModal from "@/components/admin/ListingReviewsModal";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
-import DashboardPagination from "@/components/ui/DashboardPagination";
 import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
-import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
+import StatCard from "@/components/ui/StatCard";
+import {
+    EmptyTable,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TablePagination,
+    TableRow,
+} from "@/components/ui/Table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
 
 type ListingStatus = "PENDING" | "VERIFIED" | "REJECTED";
 type ConfirmAction = "approve" | "reject" | null;
@@ -86,20 +98,6 @@ function publicListingHref(slugOrId: string) {
     url.search = "";
     url.hash = "";
     return url.toString();
-}
-
-function StatCard({ label, value, icon: Icon }: { label: string; value: number; icon: IconType }) {
-    return (
-        <div className="flex items-center gap-4 rounded-xl border border-border bg-background p-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-neutral-50 text-foreground">
-                <Icon size={19} />
-            </div>
-            <div className="min-w-0">
-                <div className="text-2xl font-semibold leading-none text-foreground">{value}</div>
-                <div className="mt-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
-            </div>
-        </div>
-    );
 }
 
 function KycPill({ verified, size }: { verified: boolean; size?: "xs" | "sm" | "md" }) {
@@ -452,18 +450,53 @@ export default function AdminListingsClient({
     curatedTotal,
 }: AdminListingsClientProps) {
     const router = useRouter();
-    const viewMode = listingType;
-    const status = selectedStatus;
+    const [pageData, setPageData] = useState({
+        listings,
+        total,
+        counts,
+        curatedTotal,
+        page,
+        pageSize,
+    });
+
+    const [prevProps, setPrevProps] = useState({ listings, total, counts, curatedTotal, page, pageSize });
+    if (
+        listings !== prevProps.listings ||
+        page !== prevProps.page ||
+        total !== prevProps.total ||
+        curatedTotal !== prevProps.curatedTotal
+    ) {
+        setPrevProps({ listings, total, counts, curatedTotal, page, pageSize });
+        setPageData({ listings, total, counts, curatedTotal, page, pageSize });
+    }
+
+    const [optimisticView, setOptimisticView] = useState<ViewMode>(listingType);
+    const [optimisticStatus, setOptimisticStatus] = useState<"ALL" | ListingStatus>(selectedStatus);
+    const [isNavigating, startNavTransition] = useTransition();
+
+    const [prevListingType, setPrevListingType] = useState(listingType);
+    if (listingType !== prevListingType) {
+        setPrevListingType(listingType);
+        setOptimisticView(listingType);
+    }
+
+    const [prevSelectedStatus, setPrevSelectedStatus] = useState(selectedStatus);
+    if (selectedStatus !== prevSelectedStatus) {
+        setPrevSelectedStatus(selectedStatus);
+        setOptimisticStatus(selectedStatus);
+    }
+
+    const viewMode = optimisticView;
+    const status = optimisticStatus;
     const [selected, setSelected] = useState<AdminListingReview | null>(null);
     const [reviewsFor, setReviewsFor] = useState<{ id: string; title: string } | null>(null);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
     const [rejectReason, setRejectReason] = useState("");
     const [isPending, startTransition] = useTransition();
 
-    const standardListings = useMemo(() => viewMode === "STANDARD" ? listings : [], [listings, viewMode]);
-    const curatedListings = useMemo(() => viewMode === "CURATED" ? listings : [], [listings, viewMode]);
+    const standardListings = useMemo(() => viewMode === "STANDARD" ? pageData.listings : [], [pageData.listings, viewMode]);
+    const curatedListings = useMemo(() => viewMode === "CURATED" ? pageData.listings : [], [pageData.listings, viewMode]);
     const visibleListings = standardListings;
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     const outreachLabel = (listing: AdminListingReviewSummary) => {
         if (listing.inConversation) return { label: "In Conversation", variant: "success" as const };
@@ -483,10 +516,131 @@ export default function AdminListingsClient({
         });
     };
 
-    const navigate = (nextView: ViewMode, nextStatus = status, nextPage = 1) => {
-        const search = new URLSearchParams({ view: nextView, status: nextStatus, page: String(nextPage) });
-        router.push(`/admin/dashboard/listings?${search.toString()}`);
+    const [sortField, setSortField] = useState<string | null>(null);
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc" | false>(false);
+
+    const handleSort = (field: string) => {
+        if (sortField === field) {
+            if (sortDirection === "asc") {
+                setSortDirection("desc");
+            } else if (sortDirection === "desc") {
+                setSortField(null);
+                setSortDirection(false);
+            }
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
     };
+
+    const sortedVisibleListings = useMemo(() => {
+        if (!sortField || !sortDirection) return visibleListings;
+        return [...visibleListings].sort((a, b) => {
+            let cmp = 0;
+            if (sortField === "title") {
+                cmp = (a.title || "").localeCompare(b.title || "");
+            } else if (sortField === "host") {
+                cmp = (a.user?.name || "").localeCompare(b.user?.name || "");
+            } else if (sortField === "status") {
+                cmp = (a.status || "").localeCompare(b.status || "");
+            } else if (sortField === "price") {
+                cmp = (a.price || 0) - (b.price || 0);
+            } else if (sortField === "createdAt") {
+                cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            }
+            return sortDirection === "asc" ? cmp : -cmp;
+        });
+    }, [visibleListings, sortField, sortDirection]);
+
+    const sortedCuratedListings = useMemo(() => {
+        if (!sortField || !sortDirection) return curatedListings;
+        return [...curatedListings].sort((a, b) => {
+            let cmp = 0;
+            if (sortField === "title") {
+                cmp = (a.title || "").localeCompare(b.title || "");
+            } else if (sortField === "city") {
+                cmp = (a.locationValue || "").localeCompare(b.locationValue || "");
+            } else if (sortField === "enquiries") {
+                cmp = (a.enquiryCount || 0) - (b.enquiryCount || 0);
+            }
+            return sortDirection === "asc" ? cmp : -cmp;
+        });
+    }, [curatedListings, sortField, sortDirection]);
+
+    const navigate = (
+        nextView: ViewMode,
+        nextStatus = optimisticStatus,
+        nextPage = 1,
+        nextPageSize = pageData.pageSize
+    ) => {
+        setOptimisticView(nextView);
+        setOptimisticStatus(nextStatus);
+
+        const search = new URLSearchParams({
+            view: nextView,
+            status: nextStatus,
+            page: String(nextPage),
+            pageSize: String(nextPageSize),
+        });
+        window.history.pushState(null, "", `/admin/dashboard/listings?${search.toString()}`);
+
+        startNavTransition(async () => {
+            try {
+                const res = await getAdminListingReviewPage({
+                    page: nextPage,
+                    pageSize: nextPageSize,
+                    status: nextStatus === "ALL" ? undefined : nextStatus,
+                    listingType: nextView,
+                });
+                setPageData({
+                    listings: res.listings,
+                    total: res.total,
+                    counts: res.counts,
+                    curatedTotal: res.curatedTotal,
+                    page: res.page,
+                    pageSize: res.pageSize,
+                });
+            } catch {
+                toast.error("Failed to load listings");
+            }
+        });
+    };
+
+    useEffect(() => {
+        const handlePopState = () => {
+            const params = new URLSearchParams(window.location.search);
+            const view = params.get("view") === "CURATED" ? "CURATED" : "STANDARD";
+            const s = ["ALL", "PENDING", "VERIFIED", "REJECTED"].includes(params.get("status") || "")
+                ? params.get("status") as "ALL" | ListingStatus
+                : "PENDING";
+            const p = Number(params.get("page")) || 1;
+            const ps = Number(params.get("pageSize")) || pageData.pageSize;
+            setOptimisticView(view);
+            setOptimisticStatus(s);
+            startNavTransition(async () => {
+                try {
+                    const res = await getAdminListingReviewPage({
+                        page: p,
+                        pageSize: ps,
+                        status: s === "ALL" ? undefined : s,
+                        listingType: view,
+                    });
+                    setPageData({
+                        listings: res.listings,
+                        total: res.total,
+                        counts: res.counts,
+                        curatedTotal: res.curatedTotal,
+                        page: res.page,
+                        pageSize: res.pageSize,
+                    });
+                } catch {
+                    toast.error("Failed to load listings");
+                }
+            });
+        };
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, [pageData.pageSize]);
 
     const resetConfirm = () => {
         setConfirmAction(null);
@@ -509,7 +663,24 @@ export default function AdminListingsClient({
                 toast.success(confirmAction === "approve" ? "Listing approved" : "Listing rejected");
                 resetConfirm();
                 setSelected(null);
-                router.refresh();
+                try {
+                    const res = await getAdminListingReviewPage({
+                        page: pageData.page,
+                        pageSize: pageData.pageSize,
+                        status: optimisticStatus === "ALL" ? undefined : optimisticStatus,
+                        listingType: optimisticView,
+                    });
+                    setPageData({
+                        listings: res.listings,
+                        total: res.total,
+                        counts: res.counts,
+                        curatedTotal: res.curatedTotal,
+                        page: res.page,
+                        pageSize: res.pageSize,
+                    });
+                } catch {
+                    router.refresh();
+                }
             } else {
                 toast.error(result.error || "Failed to update listing");
             }
@@ -518,228 +689,285 @@ export default function AdminListingsClient({
 
     return (
         <div className="w-full space-y-6">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                <div>
-                    <h1 className="font-serif text-3xl font-semibold tracking-tight text-foreground">Listing Review</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Review host submissions, verification evidence, and publishing decisions.
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex rounded-xl border border-border bg-background p-1">
-                        {(["STANDARD", "CURATED"] as ViewMode[]).map(m => (
-                            <button key={m} type="button"
-                                onClick={() => navigate(m, m === "CURATED" ? "ALL" : status)}
-                                className={cn("h-8 rounded-lg px-4 text-xs font-semibold transition",
-                                    viewMode === m ? "bg-neutral-100 text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                                {m === "STANDARD" ? `Verified (${counts.ALL})` : `Curated (${curatedTotal})`}
-                            </button>
-                        ))}
-                    </div>
-                    {viewMode === "CURATED" && (
-                        <Button label="+ New Curated" href="/admin/dashboard/listings/curated" size="sm" />
-                    )}
-                </div>
+            <div className="flex items-center justify-between gap-4">
+                <Tabs
+                    value={viewMode}
+                    onValueChange={(m) => navigate(m as ViewMode, m === "CURATED" ? "ALL" : status)}
+                    className="w-fit gap-0"
+                >
+                    <TabsList>
+                        <TabsTrigger value="STANDARD" count={pageData.counts.ALL}>
+                            Verified
+                        </TabsTrigger>
+                        <TabsTrigger value="CURATED" count={pageData.curatedTotal}>
+                            Curated
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+                {viewMode === "CURATED" && (
+                    <Button label="+ New Curated" href="/admin/dashboard/listings/curated" size="sm" fit />
+                )}
             </div>
 
+            <div className="space-y-6">
             {viewMode === "CURATED" ? (
                 <>
                     {curatedListings.length === 0 ? (
-                        <div className="flex min-h-72 flex-col items-center justify-center rounded-xl border border-border bg-background px-6 py-14 text-center">
-                            <FiLayers className="mb-4 h-8 w-8 text-muted-foreground" />
-                            <div className="text-sm font-semibold text-foreground">No curated listings yet</div>
-                            <p className="mt-1 text-sm text-muted-foreground">Create one using the button above.</p>
-                        </div>
+                        <EmptyTable
+                            icon={FiLayers}
+                            label="No curated listings yet"
+                            description="Create one using the button above."
+                        />
                     ) : (
-                        <div className="overflow-hidden rounded-xl border border-border bg-background">
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-border">
-                                    <thead className="bg-muted/70">
-                                        <tr>
-                                            {["Studio", "City", "Enquiries", "Outreach Status", "Actions"].map(h => (
-                                                <th key={h} scope="col" className={cn("px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground", h === "Actions" && "text-right")}>{h}</th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border">
-                                        {curatedListings.map(listing => {
-                                            const { label, variant } = outreachLabel(listing);
-                                            const isHighPriority = (listing.enquiryCount ?? 0) >= 3;
-                                            return (
-                                                <tr key={listing.id} className="hover:bg-muted/30">
-                                                    <td className="px-5 py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-medium text-sm text-foreground">{listing.title}</span>
-                                                            {isHighPriority && <Pill label="High Priority" variant="destructive" size="xs" />}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-5 py-4 text-sm text-muted-foreground">{listing.locationValue}</td>
-                                                    <td className="px-5 py-4 text-sm font-semibold text-foreground">{listing.enquiryCount ?? 0}</td>
-                                                    <td className="px-5 py-4">
-                                                        <Pill label={label} variant={variant} size="xs" />
-                                                    </td>
-                                                    <td className="px-5 py-4 text-right">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            <a href={publicListingHref(listing.slug || listing.id)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">View</a>
-                                                            <button
-                                                                type="button"
-                                                                className="text-xs text-muted-foreground hover:text-foreground hover:underline underline-offset-2"
-                                                                onClick={() => setReviewsFor({ id: listing.id, title: listing.title })}
-                                                            >
-                                                                Reviews
-                                                            </button>
-                                                            {!listing.inConversation && (
-                                                                <button type="button" className="text-xs text-success hover:underline"
-                                                                    onClick={() => startTransition(async () => {
-                                                                        const result = await markInConversationAction({ listingId: listing.id, inConversation: true });
-                                                                        if (!result.success) {
-                                                                            toast.error(result.error || "Failed to update outreach status");
-                                                                            return;
-                                                                        }
-                                                                        toast.success("Listing marked in conversation");
-                                                                        router.refresh();
-                                                                    })}>
-                                                                    Mark In Conversation
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <Table
+                            footer={
+                                <TablePagination
+                                    page={pageData.page}
+                                    pageSize={pageData.pageSize}
+                                    total={pageData.curatedTotal}
+                                    pageSizeOptions={[10, 20, 50]}
+                                    onPageSizeChange={(newSize) => navigate(viewMode, status, 1, newSize)}
+                                    label="curated listings"
+                                    hrefForPage={(nextPage, nextSize) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}&pageSize=${nextSize || pageData.pageSize}`}
+                                    onPageChange={(nextPage) => navigate(viewMode, status, nextPage, pageData.pageSize)}
+                                />
+                            }
+                        >
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "title" ? sortDirection : false}
+                                        onSort={() => handleSort("title")}
+                                    >
+                                        Studio
+                                    </TableHead>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "city" ? sortDirection : false}
+                                        onSort={() => handleSort("city")}
+                                    >
+                                        City
+                                    </TableHead>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "enquiries" ? sortDirection : false}
+                                        onSort={() => handleSort("enquiries")}
+                                    >
+                                        Enquiries
+                                    </TableHead>
+                                    <TableHead>Outreach Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {isNavigating ? (
+                                    <CuratedListingSkeletonRows count={Math.min(pageData.pageSize, pageData.curatedTotal || 5)} />
+                                ) : (
+                                    sortedCuratedListings.map(listing => {
+                                    const { label, variant } = outreachLabel(listing);
+                                    const isHighPriority = (listing.enquiryCount ?? 0) >= 3;
+                                    return (
+                                        <TableRow key={listing.id}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium text-sm text-foreground">{listing.title}</span>
+                                                    {isHighPriority && <Pill label="High Priority" variant="destructive" size="xs" />}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-sm text-muted-foreground">{listing.locationValue}</TableCell>
+                                            <TableCell className="text-sm font-semibold text-foreground">{listing.enquiryCount ?? 0}</TableCell>
+                                            <TableCell>
+                                                <Pill label={label} variant={variant} size="xs" />
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <a href={publicListingHref(listing.slug || listing.id)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">View</a>
+                                                    <button
+                                                        type="button"
+                                                        className="text-xs text-muted-foreground hover:text-foreground hover:underline underline-offset-2 cursor-pointer"
+                                                        onClick={() => setReviewsFor({ id: listing.id, title: listing.title })}
+                                                    >
+                                                        Reviews
+                                                    </button>
+                                                    {!listing.inConversation && (
+                                                        <button type="button" className="text-xs text-success hover:underline cursor-pointer"
+                                                            onClick={() => startTransition(async () => {
+                                                                const result = await markInConversationAction({ listingId: listing.id, inConversation: true });
+                                                                if (!result.success) {
+                                                                    toast.error(result.error || "Failed to update outreach status");
+                                                                    return;
+                                                                }
+                                                                toast.success("Listing marked in conversation");
+                                                                router.refresh();
+                                                            })}>
+                                                            Mark In Conversation
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                }))}
+                            </TableBody>
+                        </Table>
                     )}
                 </>
             ) : (
             <>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <StatCard label="All Listings" value={counts.ALL} icon={FiLayers} />
-                <StatCard label="Pending" value={counts.PENDING} icon={FiClock} />
-                <StatCard label="Verified" value={counts.VERIFIED} icon={FiCheck} />
-                <StatCard label="Rejected" value={counts.REJECTED} icon={FiX} />
+                <StatCard label="All Listings" value={pageData.counts?.ALL} icon={FiLayers} />
+                <StatCard label="Pending" value={pageData.counts?.PENDING} icon={FiClock} />
+                <StatCard label="Verified" value={pageData.counts?.VERIFIED} icon={FiCheck} />
+                <StatCard label="Rejected" value={pageData.counts?.REJECTED} icon={FiX} />
             </div>
 
-            <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-background p-2" role="tablist" aria-label="Listing status filters">
-                {STATUS_OPTIONS.map((option) => (
-                    <button
-                        key={option.value}
-                        type="button"
-                        role="tab"
-                        aria-selected={status === option.value}
-                        onClick={() => navigate("STANDARD", option.value)}
-                        className={cn(
-                            "h-9 rounded-xl px-4 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20",
-                            status === option.value
-                                ? "bg-neutral-50 text-foreground ring-1 ring-border"
-                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        )}
-                    >
-                        {option.label} <span className="ml-1 text-xs text-muted-foreground">{counts[option.value]}</span>
-                    </button>
-                ))}
-            </div>
+            <Tabs
+                value={status}
+                onValueChange={(val) => navigate("STANDARD", val as "ALL" | ListingStatus)}
+                className="w-fit gap-0"
+            >
+                <TabsList aria-label="Listing status filters">
+                    {STATUS_OPTIONS.map((option) => (
+                        <TabsTrigger
+                            key={option.value}
+                            value={option.value}
+                            count={pageData.counts[option.value]}
+                        >
+                            {option.label}
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+            </Tabs>
 
-            {visibleListings.length === 0 ? (
-                <div className="flex min-h-72 flex-col items-center justify-center rounded-xl border border-border bg-background px-6 py-14 text-center">
-                    <FiShield className="mb-4 h-8 w-8 text-muted-foreground" />
-                    <div className="text-sm font-semibold text-foreground">No listings in this view</div>
-                    <p className="mt-1 text-sm text-muted-foreground">Change the status filter to review another queue.</p>
-                </div>
+            {visibleListings.length === 0 && !isNavigating ? (
+                <EmptyTable
+                    icon={FiShield}
+                    label="No listings in this view"
+                    description="Change the status filter to review another queue."
+                />
             ) : (
-                <div className="overflow-hidden rounded-xl border border-border bg-background">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-border">
-                            <thead className="bg-muted/70">
-                                <tr>
-                                    {["Listing", "Host", "Status", "Price", "Submitted", "Actions"].map((heading) => (
-                                        <th
-                                            key={heading}
-                                            scope="col"
-                                            className={cn(
-                                                "px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
-                                                heading === "Actions" && "text-right"
-                                            )}
-                                        >
-                                            {heading}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                {visibleListings.map((listing) => (
-                                    <tr key={listing.id} className="transition hover:bg-muted/35">
-                                        <td className="px-5 py-4">
-                                            <div className="flex min-w-72 items-center gap-3">
-                                                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
-                                                    <Image
-                                                        src={listing.imageSrc[0] || "/assets/listing-image-default.png"}
-                                                        alt={listing.title}
-                                                        fill
-                                                        sizes="48px"
-                                                        className="object-cover"
-                                                    />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <div className="truncate text-sm font-semibold text-foreground">{listing.title}</div>
-                                                    <div className="truncate text-xs text-muted-foreground">{listing.category} • {listing.locationValue}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            <div className="min-w-52 space-y-1">
-                                                <div className="truncate text-sm font-medium text-foreground">{listing.user?.name || "Unknown host"}</div>
-                                                <div className="truncate text-xs text-muted-foreground">{listing.user?.email || "No email"}</div>
-                                                <KycPill verified={Boolean(listing.user?.is_verified)} size="xs" />
-                                            </div>
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            <Pill label={listing.status} variant={statusVariant(listing.status)} size="xs" />
-                                        </td>
-                                        <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-foreground">{listing.price != null ? formatINR(listing.price) : "—"}</td>
-                                        <td className="whitespace-nowrap px-5 py-4 text-sm text-muted-foreground">
-                                            {formatISTDate(listing.createdAt, { day: "numeric", month: "short", year: "numeric" })}
-                                        </td>
-                                        <td className="px-5 py-4 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    icon={FiStar}
-                                                    isIconOnly
-                                                    outline
-                                                    aria-label={`Manage reviews: ${listing.title}`}
-                                                    tooltip="Reviews"
-                                                    data-testid={`reviews-listing-${listing.id}`}
-                                                    onClick={() => setReviewsFor({ id: listing.id, title: listing.title })}
-                                                />
-                                                <Button
-                                                    icon={FiExternalLink}
-                                                    isIconOnly
-                                                    outline
-                                                    aria-label={`Open listing review: ${listing.title}`}
-                                                    tooltip="Open review"
-                                                    data-testid={`review-listing-${listing.id}`}
-                                                    onClick={() => openReview(listing.id)}
-                                                    disabled={isPending}
-                                                />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <Table
+                    footer={
+                        <TablePagination
+                            page={pageData.page}
+                            pageSize={pageData.pageSize}
+                            total={pageData.total}
+                            pageSizeOptions={[10, 20, 50]}
+                            onPageSizeChange={(newSize) => navigate(viewMode, status, 1, newSize)}
+                            label="listings"
+                            hrefForPage={(nextPage, nextSize) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}&pageSize=${nextSize || pageData.pageSize}`}
+                            onPageChange={(nextPage) => navigate(viewMode, status, nextPage, pageData.pageSize)}
+                        />
+                    }
+                >
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead
+                                sortable
+                                sortDirection={sortField === "title" ? sortDirection : false}
+                                onSort={() => handleSort("title")}
+                            >
+                                Listing
+                            </TableHead>
+                            <TableHead
+                                sortable
+                                sortDirection={sortField === "host" ? sortDirection : false}
+                                onSort={() => handleSort("host")}
+                            >
+                                Host
+                            </TableHead>
+                            <TableHead
+                                sortable
+                                sortDirection={sortField === "status" ? sortDirection : false}
+                                onSort={() => handleSort("status")}
+                            >
+                                Status
+                            </TableHead>
+                            <TableHead
+                                sortable
+                                sortDirection={sortField === "price" ? sortDirection : false}
+                                onSort={() => handleSort("price")}
+                            >
+                                Price
+                            </TableHead>
+                            <TableHead
+                                sortable
+                                sortDirection={sortField === "createdAt" ? sortDirection : false}
+                                onSort={() => handleSort("createdAt")}
+                            >
+                                Submitted
+                            </TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isNavigating ? (
+                            <AdminListingSkeletonRows count={Math.min(pageData.pageSize, pageData.total || 6)} />
+                        ) : (
+                            sortedVisibleListings.map((listing) => (
+                            <TableRow key={listing.id}>
+                                <TableCell>
+                                    <div className="flex min-w-72 items-center gap-3">
+                                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
+                                            <Image
+                                                src={listing.imageSrc[0] || "/assets/listing-image-default.png"}
+                                                alt={listing.title}
+                                                fill
+                                                sizes="48px"
+                                                className="object-cover"
+                                            />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="truncate text-sm font-semibold text-foreground">{listing.title}</div>
+                                            <div className="truncate text-xs text-muted-foreground">{listing.category} • {listing.locationValue}</div>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="min-w-52 space-y-1">
+                                        <div className="truncate text-sm font-medium text-foreground">{listing.user?.name || "Unknown host"}</div>
+                                        <div className="truncate text-xs text-muted-foreground">{listing.user?.email || "No email"}</div>
+                                        <KycPill verified={Boolean(listing.user?.is_verified)} size="xs" />
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <Pill label={listing.status} variant={statusVariant(listing.status)} size="xs" />
+                                </TableCell>
+                                <TableCell className="whitespace-nowrap text-sm font-semibold text-foreground">
+                                    {listing.price != null ? formatINR(listing.price) : "—"}
+                                </TableCell>
+                                <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                                    {formatISTDate(listing.createdAt, { day: "numeric", month: "short", year: "numeric" })}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <div className="flex justify-end gap-2">
+                                        <Button
+                                            icon={FiStar}
+                                            isIconOnly
+                                            outline
+                                            aria-label={`Manage reviews: ${listing.title}`}
+                                            tooltip="Reviews"
+                                            data-testid={`reviews-listing-${listing.id}`}
+                                            onClick={() => setReviewsFor({ id: listing.id, title: listing.title })}
+                                        />
+                                        <Button
+                                            icon={FiExternalLink}
+                                            isIconOnly
+                                            outline
+                                            aria-label={`Open listing review: ${listing.title}`}
+                                            tooltip="Open review"
+                                            data-testid={`review-listing-${listing.id}`}
+                                            onClick={() => openReview(listing.id)}
+                                            disabled={isPending}
+                                        />
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )))}
+                    </TableBody>
+                </Table>
             )}
-
-            <DashboardPagination
-                page={page}
-                totalPages={totalPages}
-                total={total}
-                itemLabel="listings"
-                hrefForPage={(nextPage) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}`}
-            />
 
             <ReviewModal
                 listing={selected}
@@ -798,6 +1026,7 @@ export default function AdminListingsClient({
             )}
             </>
             )}
+            </div>
         </div>
     );
 }

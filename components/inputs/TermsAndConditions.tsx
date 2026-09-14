@@ -1,8 +1,8 @@
 import Image from 'next/image';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
-import Checkbox from '@/components/inputs/Checkbox';
 import Button from '@/components/ui/Button';
+import Checkbox from '@/components/ui/Checkbox';
 
 export type AgreementPdfMeta = { storageRef: string; public_id: string };
 export type TermsRef = { generateAndUploadPdf: (listingId: string) => Promise<AgreementPdfMeta> };

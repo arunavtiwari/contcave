@@ -5,14 +5,13 @@ import { useCallback, useState } from "react";
 import { IoAdd, IoClose, IoTrash } from "react-icons/io5";
 
 import ImageUpload from "@/components/inputs/ImageUpload";
-import Input from "@/components/inputs/Input";
 import TaxonomyPillSelect from "@/components/inputs/TaxonomyPillSelect";
-import Textarea from "@/components/inputs/Textarea";
 import Button from "@/components/ui/Button";
+import FormField from "@/components/ui/FormField";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
 import { AESTHETICS, SET_FEATURES } from "@/lib/taxonomy";
 import { AdditionalSetPricingType } from "@/types/set";
-
-import FormField from "./FormField";
 
 interface SetsEditorProps {
     sets: SetEditorItem[];

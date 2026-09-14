@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import React from "react";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import PageBanner from "@/components/ui/PageBanner";
 
 interface ContentLayoutProps {

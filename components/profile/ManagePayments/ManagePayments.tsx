@@ -1,15 +1,15 @@
 "use client";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
+import { FiClock, FiCreditCard } from "react-icons/fi";
 
-import PaymentDetails from "@/components/profile/ManagePayments/PaymentDetails";
+import PaymentDetails, { PaymentDetailsSkeleton } from "@/components/profile/ManagePayments/PaymentDetails";
 import TransactionHistory from "@/components/profile/ManagePayments/TransactionHistory";
 import Heading from "@/components/ui/Heading";
+import Skeleton from "@/components/ui/Skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { PaymentProfile } from "@/types/payment";
 import { Transaction } from "@/types/transaction";
 import { SafeUser } from "@/types/user";
-
-
-
 
 interface Props {
     profile: SafeUser | null;
@@ -19,8 +19,7 @@ interface Props {
     onPaymentDetailsUpdate?: (newPaymentDetails: PaymentProfile) => void;
 }
 
-const TABS = ["Transaction History", "Payment Details"] as const;
-type TabType = typeof TABS[number];
+type TabType = "Transaction History" | "Payment Details";
 
 const ManagePayments: React.FC<Props> = ({
     profile,
@@ -30,9 +29,6 @@ const ManagePayments: React.FC<Props> = ({
     onPaymentDetailsUpdate
 }) => {
     const [selectedTab, setSelectedTab] = useState<TabType>("Payment Details");
-    const [panelMinHeight, setPanelMinHeight] = useState(0);
-    const transactionPanelRef = useRef<HTMLDivElement | null>(null);
-    const paymentPanelRef = useRef<HTMLDivElement | null>(null);
 
     const apiCall = useCallback(async (url: string, options: RequestInit = {}) => {
         const response = await fetch(url, {
@@ -144,48 +140,6 @@ const ManagePayments: React.FC<Props> = ({
         }
     }, [profile?.id, apiCall, onPaymentDetailsUpdate]);
 
-    const updatePanelMinHeight = useCallback(() => {
-        const transactionHeight = transactionPanelRef.current?.scrollHeight ?? 0;
-        const paymentHeight = paymentPanelRef.current?.scrollHeight ?? 0;
-        const maxHeight = Math.max(transactionHeight, paymentHeight);
-
-        if (maxHeight > 0) {
-            setPanelMinHeight((prev) => (prev === maxHeight ? prev : maxHeight));
-        }
-    }, []);
-
-    useEffect(() => {
-        updatePanelMinHeight();
-    }, [updatePanelMinHeight, selectedTab, propTransactions, propPaymentDetails, paymentDataLoading]);
-
-    useEffect(() => {
-        if (typeof ResizeObserver === "undefined") {
-            return;
-        }
-
-        const observer = new ResizeObserver(() => {
-            updatePanelMinHeight();
-        });
-
-        if (transactionPanelRef.current) {
-            observer.observe(transactionPanelRef.current);
-        }
-        if (paymentPanelRef.current) {
-            observer.observe(paymentPanelRef.current);
-        }
-
-        return () => {
-            observer.disconnect();
-        };
-    }, [updatePanelMinHeight]);
-
-    const tabIndicatorStyles = useMemo(() => ({
-        left: selectedTab === "Transaction History" ? "0.25rem" : "50%",
-        right: selectedTab === "Transaction History" ? "50%" : "0.25rem",
-    }), [selectedTab]);
-
-    const getTabSlug = useCallback((tab: TabType) => tab.toLowerCase().replace(/\s+/g, '-'), []);
-
     if (paymentDataLoading) {
         return (
             <div className="flex flex-col w-full gap-8">
@@ -193,10 +147,8 @@ const ManagePayments: React.FC<Props> = ({
                     title="Manage Payments"
                     subtitle="View your payment details and past transactions."
                 />
-                <div className="flex justify-center items-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
-                    <span className="ml-2 text-muted-foreground">Loading payment data...</span>
-                </div>
+                <PaymentTabsSkeleton />
+                <PaymentDetailsSkeleton />
             </div>
         );
     }
@@ -208,80 +160,52 @@ const ManagePayments: React.FC<Props> = ({
                 subtitle="View your payment details and past transactions."
             />
 
-
-            <nav
-                className="relative flex bg-muted rounded-full p-1 w-full max-w-[320px] sm:max-w-100 self-center border border-border"
-                role="tablist"
-                aria-label="Payment management tabs"
+            <Tabs
+                value={selectedTab}
+                onValueChange={(val) => handleTabChange(val as TabType)}
+                className="w-full gap-6"
             >
+                <TabsList>
+                    <TabsTrigger value="Payment Details" icon={FiCreditCard}>
+                        Payment Details
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="Transaction History"
+                        icon={FiClock}
+                        count={propTransactions && propTransactions.length > 0 ? propTransactions.length : undefined}
+                    >
+                        Transaction History
+                    </TabsTrigger>
+                </TabsList>
 
-                <div
-                    className="absolute top-1 bottom-1 rounded-full bg-background transition-all duration-300 ease-in-out"
-                    style={tabIndicatorStyles}
-                    aria-hidden="true"
-                />
+                <TabsContent value="Payment Details" className="w-full">
+                    <PaymentDetails
+                        profile={profile}
+                        paymentDetails={propPaymentDetails}
+                        onSave={handleSave}
+                    />
+                </TabsContent>
 
-
-                {TABS.map((tab) => {
-                    const tabSlug = getTabSlug(tab);
-
-                    return (
-                        <button
-                            key={tab}
-                            id={`${tabSlug}-tab`}
-                            type="button"
-                            role="tab"
-                            aria-selected={selectedTab === tab}
-                            aria-controls={`${tabSlug}-panel`}
-                            className={`relative z-10 w-1/2 rounded-full py-2.5 sm:py-3 text-xs sm:text-sm font-semibold transition-colors duration-200 text-center whitespace-nowrap ${selectedTab === tab
-                                ? "text-foreground"
-                                : "text-muted-foreground hover:text-foreground"
-                                }`}
-                            onClick={() => handleTabChange(tab)}
-                        >
-                            {tab}
-                        </button>
-                    );
-                })}
-            </nav>
-
-
-            <main
-                className="relative w-full"
-                style={panelMinHeight > 0 ? { minHeight: `${panelMinHeight}px` } : undefined}
-            >
-                <section
-                    id="transaction-history-panel"
-                    role="tabpanel"
-                    aria-labelledby="transaction-history-tab"
-                    aria-hidden={selectedTab !== "Transaction History"}
-                    ref={transactionPanelRef}
-                    className={selectedTab === "Transaction History" ? "relative" : "pointer-events-none invisible absolute inset-0"}
-                >
+                <TabsContent value="Transaction History" className="w-full">
                     <TransactionHistory
                         transactions={propTransactions || []}
                         loading={paymentDataLoading || false}
                         error={null}
                         onRetry={() => { }}
                     />
-                </section>
-                <section
-                    id="payment-details-panel"
-                    role="tabpanel"
-                    aria-labelledby="payment-details-tab"
-                    aria-hidden={selectedTab !== "Payment Details"}
-                    ref={paymentPanelRef}
-                    className={selectedTab === "Payment Details" ? "relative" : "pointer-events-none invisible absolute inset-0"}
-                >
-                    <PaymentDetails
-                        profile={profile}
-                        paymentDetails={propPaymentDetails}
-                        onSave={handleSave}
-                    />
-                </section>
-            </main>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 };
+
+export function PaymentTabsSkeleton() {
+    return (
+        <div className="inline-flex w-fit flex-nowrap items-center gap-1 rounded-xl border border-border bg-muted/40 p-1">
+            <Skeleton className="h-7 w-32 rounded-lg" />
+            <Skeleton className="h-7 w-38 rounded-lg" />
+        </div>
+    );
+}
 
 export default ManagePayments;

@@ -21,9 +21,10 @@ type Props = {
   label?: string;
   required?: boolean;
   variant?: "vertical" | "horizontal";
+  error?: string;
 };
 
-function CitySelect({ value, locationValue, onChange, size = "sm", label, required, variant = "vertical" }: Props) {
+function CitySelect({ value, locationValue, onChange, size = "sm", label, required, variant = "vertical", error }: Props) {
   const { getAll } = useIndianCities();
 
   const options = getAll();
@@ -44,6 +45,7 @@ function CitySelect({ value, locationValue, onChange, size = "sm", label, requir
       label={label}
       required={required}
       variant={variant}
+      error={error}
       formatOptionLabel={(data) => {
         const option = data as unknown as CitySelectValue;
         return (

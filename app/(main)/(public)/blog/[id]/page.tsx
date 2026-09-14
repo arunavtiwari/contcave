@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import Image from "next/image";
 import Script from "next/script";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import PageBanner from "@/components/ui/PageBanner";
 import { getBlogGradient } from "@/lib/blogGradient";
 import { getPostData, getSortedPostsData } from "@/lib/posts";

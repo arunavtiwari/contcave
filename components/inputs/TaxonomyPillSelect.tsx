@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import FormField from "@/components/inputs/FormField";
+import FormField from "@/components/ui/FormField";
 import Pill from "@/components/ui/Pill";
 import { TaxonomyItem } from "@/lib/taxonomy";
 

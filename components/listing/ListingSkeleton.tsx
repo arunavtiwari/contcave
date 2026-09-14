@@ -1,4 +1,4 @@
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import ListingHeadSkeleton from "@/components/listing/ListingHeadSkeleton";
 import ListingInfoSkeleton from "@/components/listing/ListingInfoSkeleton";
 import ListingReservationSkeleton from "@/components/listing/ListingReservationSkeleton";

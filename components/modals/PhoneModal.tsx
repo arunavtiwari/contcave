@@ -1,5 +1,5 @@
-import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
+import Input from "@/components/ui/Input";
 
 type PhoneModalProps = {
     isOpen: boolean;

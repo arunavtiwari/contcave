@@ -275,7 +275,7 @@ function LoadInitialValue({ value, onInitialized }: { value?: string; onInitiali
 
 /* ---------------- MAIN EDITOR ---------------- */
 
-import FormField from "./FormField";
+import FormField from "@/components/ui/FormField";
 
 interface Props {
   value?: string;

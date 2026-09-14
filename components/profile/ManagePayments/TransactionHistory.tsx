@@ -1,16 +1,14 @@
-﻿"use client";
+"use client";
 import React from "react";
 
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
+import Skeleton from "@/components/ui/Skeleton";
 import { formatINR, formatISTDate, formatISTTime } from "@/lib/utils";
 import { Transaction } from "@/types/transaction";
 
-
-
 interface TransactionHistoryProps {
-
     transactions?: Transaction[];
     loading?: boolean;
     error?: string | null;
@@ -18,7 +16,6 @@ interface TransactionHistoryProps {
 }
 
 const TransactionHistory: React.FC<TransactionHistoryProps> = ({
-
     transactions = [],
     loading = false,
     error = null,
@@ -57,17 +54,8 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         return transaction.customerName || 'N/A';
     };
 
-
     if (loading) {
-        return (
-            <div className="flex flex-col w-full gap-5">
-                <Heading title="Transaction History" subtitle="View your past transactions." variant="h4"></Heading>
-                <div className="text-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
-                    <p className="text-muted-foreground mt-4">Loading transactions...</p>
-                </div>
-            </div>
-        );
+        return <TransactionHistorySkeleton />;
     }
 
 
@@ -164,6 +152,51 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
     );
 };
 
+export interface TransactionHistorySkeletonProps {
+    count?: number;
+}
+
+export function TransactionHistorySkeleton({ count = 3 }: TransactionHistorySkeletonProps) {
+    return (
+        <div className="flex flex-col w-full gap-5">
+            {/* Header */}
+            <div className="flex flex-col gap-1.5">
+                <Skeleton className="h-6 w-44 rounded-lg" />
+                <Skeleton className="h-4 w-56 rounded-md" />
+            </div>
+
+            {/* List of Transaction Cards */}
+            <div className="space-y-6">
+                {Array.from({ length: count }).map((_, i) => (
+                    <div
+                        key={i}
+                        className="flex flex-col gap-5 rounded-xl border border-border p-5 lg:flex-row lg:items-center"
+                    >
+                        {/* Business info & date */}
+                        <div className="w-full min-w-0 lg:basis-[42%] flex flex-col gap-2">
+                            <Skeleton className="h-4 w-40 rounded-md" />
+                            <Skeleton className="h-4 w-28 rounded-md" />
+                        </div>
+
+                        {/* Transaction metrics */}
+                        <div className="w-full lg:basis-[58%]">
+                            <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+                                {Array.from({ length: 4 }).map((_, idx) => (
+                                    <div key={idx} className="min-w-0 text-left lg:text-center flex flex-col gap-1.5 items-center">
+                                        <Skeleton className="h-3.5 w-16 rounded-md" />
+                                        <Skeleton className="h-4 w-20 rounded-md" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 export default TransactionHistory;
+
 
 

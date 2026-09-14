@@ -10,10 +10,10 @@ import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
 import { registerOwnerAction } from "@/app/actions/authActions";
-import Input from "@/components/inputs/Input";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import Input from "@/components/ui/Input";
 import useUIStore from "@/hooks/useUIStore";
 import { getAuthErrorMessage } from "@/lib/errors";
 import { type OwnerRegisterSchema, ownerRegisterSchema } from "@/schemas/auth";

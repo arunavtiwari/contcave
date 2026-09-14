@@ -1,4 +1,4 @@
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
 import { categories } from "@/components/navbar/categoriesData";
 import Skeleton from "@/components/ui/Skeleton";

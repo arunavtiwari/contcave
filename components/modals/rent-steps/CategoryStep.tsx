@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { FiAlertCircle } from "react-icons/fi";
 
 import CategoryInput from "@/components/inputs/CategoryInput";
 import { categories } from "@/components/navbar/categoriesData";
@@ -43,7 +44,12 @@ const CategoryStep: React.FC<CategoryStepProps> = ({
           />
         ))}
       </div>
-      {categoryError && <p className="text-destructive text-sm">{categoryError}</p>}
+      {categoryError && (
+        <div role="alert" className="flex items-center gap-1.5 text-xs font-medium text-destructive animate-in fade-in-50 slide-in-from-top-0.5">
+          <FiAlertCircle className="size-3.5 shrink-0 stroke-[2.25]" />
+          <span>{categoryError}</span>
+        </div>
+      )}
     </div>
   );
 };

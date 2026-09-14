@@ -182,7 +182,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
   const listingAddonItems = chargeType === "SERVICE" ? getListingAddonItems(chargeReservation) : [];
 
   return <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
       {reservations.map((reservation) => <div key={reservation.id} className="space-y-3">
         {(reservation.pendingExtensions || []).map((extension) => <div key={extension.id} className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm">
           <div className="font-medium text-foreground">Extension pending payment: Rs. {extension.extraAmount}, until {extension.requestedEndTime}</div>

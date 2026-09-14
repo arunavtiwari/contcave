@@ -4,10 +4,10 @@ import Link from "next/link";
 import React, { useState } from "react";
 
 import { saveBillingInfo } from "@/app/actions/billingActions";
-import Checkbox from "@/components/inputs/Checkbox";
-import Input from "@/components/inputs/Input";
-import Textarea from "@/components/inputs/Textarea";
 import Modal from "@/components/modals/Modal";
+import Checkbox from "@/components/ui/Checkbox";
+import Input from "@/components/ui/Input";
+import Textarea from "@/components/ui/Textarea";
 import { billingSchema } from "@/schemas/billing";
 
 type GSTDetails = {

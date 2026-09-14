@@ -87,7 +87,7 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
                 <Heading
                     title={displayTitle}
                     variant="h6"
-                    className="text-sm leading-snug line-clamp-2"
+                    className="text-[13px] leading-snug line-clamp-2 min-h-9"
                 />
             </Link>
 

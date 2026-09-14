@@ -37,6 +37,7 @@
 	--color-info: #2563EB;
 	--color-info-foreground: var(--color-white);
 
+	--color-accent: var(--color-black);
 	--tracking-wide: 0.1em;
 	--tracking-widest: 0.25em;
 
@@ -80,8 +81,8 @@
 		transition: background-color 5000s ease-in-out 0s;
 	}
 
-	button:active,
-	.button-active:active {
+	button:not(:disabled):active,
+	.button-active:not(:disabled):active {
 		transform: scale(0.98);
 		transition: transform 0.1s ease;
 	}
@@ -94,19 +95,50 @@ select,
 	--tw-ring-color: transparent !important;
 }
 
-/* Utilities Refinement */
+/* Scrollbar */
+*,
+*::before,
+*::after {
+	--scrollbar-thumb-color: transparent;
+}
+
+*:hover,
+*:focus-within {
+	--scrollbar-thumb-color: var(--color-accent);
+}
+
 ::-webkit-scrollbar {
 	width: 6px;
 	height: 6px;
 }
 
+::-webkit-scrollbar-button {
+	display: none !important;
+	width: 0 !important;
+	height: 0 !important;
+}
+
 ::-webkit-scrollbar-track {
-	background-color: transparent;
+	background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-	background-color: var(--color-black);
-	border-radius: 10px;
+	background-color: var(--scrollbar-thumb-color);
+	border-radius: 30px;
+}
+
+.scrollbar-gutter-stable {
+	scrollbar-gutter: stable;
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar {
+	-ms-overflow-style: none;
+	scrollbar-width: none !important;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+	display: none !important;
 }
 
 

@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import { FiAlertCircle } from "react-icons/fi";
 
-import FormField from "@/components/inputs/FormField";
 import SetsEditor from "@/components/inputs/SetsEditor";
 import { SetEditorItem } from "@/components/inputs/SetsEditor";
 import Button from "@/components/ui/Button";
+import FormField from "@/components/ui/FormField";
 import Heading from "@/components/ui/Heading";
 import { AdditionalSetPricingType } from "@/types/set";
 
@@ -107,7 +107,12 @@ const SetsStep: React.FC<SetsStepProps> = ({
         uniformPrice={unifiedSetPrice}
         onUniformPriceChange={(p) => setCustomValue("unifiedSetPrice", p)}
       />
-      {setsError && <p className="text-destructive text-sm mt-1">{setsError}</p>}
+      {setsError && (
+        <div role="alert" className="flex items-center gap-1.5 text-xs font-medium text-destructive animate-in fade-in-50 slide-in-from-top-0.5">
+          <FiAlertCircle className="size-3.5 shrink-0 stroke-[2.25]" />
+          <span>{setsError}</span>
+        </div>
+      )}
     </div>
   );
 };

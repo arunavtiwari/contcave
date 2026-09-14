@@ -4,7 +4,7 @@ import Image from "next/image";
 import { signIn } from "next-auth/react";
 import React from "react";
 
-import Calendar from "@/components/Calendar";
+import Calendar from "@/components/property/Calendar";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 

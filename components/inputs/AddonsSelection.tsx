@@ -4,12 +4,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 
 import ImageCheckbox from '@/components/inputs/ImageCheckbox';
+import FormField from "@/components/ui/FormField";
 import Heading from '@/components/ui/Heading';
 import useUIStore from '@/hooks/useUIStore';
 import { cn } from '@/lib/utils';
 import { Addon } from "@/types/addon";
-
-import FormField from './FormField';
 
 interface AddonsCheckboxProps {
     addons: Addon[];

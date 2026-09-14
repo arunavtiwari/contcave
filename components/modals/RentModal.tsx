@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 import React, {
   useCallback,
   useEffect,
@@ -9,7 +10,6 @@ import React, {
   useState,
 } from "react";
 import { FieldPath, Resolver, SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { createListingAction } from "@/app/actions/listingActions";
 import { ListingDetails } from "@/components/inputs/OtherListingDetails";
@@ -17,6 +17,7 @@ import { SetEditorItem } from "@/components/inputs/SetsEditor";
 import { VerificationDocument, VerificationPayload } from "@/components/inputs/SpaceVerification";
 import { SignatureMeta, TermsRef } from "@/components/inputs/TermsAndConditions";
 import Modal from "@/components/modals/Modal";
+import { toast } from "@/components/ui/Toast";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useUIStore from "@/hooks/useUIStore";
 import { uploadListingMedia } from "@/lib/listing/mediaUpload";
@@ -31,6 +32,7 @@ import { Addon } from "@/types/addon";
 import type { SafeAmenity } from "@/types/amenity";
 import { Package } from "@/types/package";
 import type { DayKey } from "@/types/scheduling";
+import type { SafeUser } from "@/types/user";
 
 import AddonsStep from "./rent-steps/AddonsStep";
 import AmenitiesStep from "./rent-steps/AmenitiesStep";
@@ -81,10 +83,10 @@ const STEP_TEST_IDS: Record<STEPS, string> = {
   [STEPS.TERMS]: "terms",
 };
 
-const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED") => {
+const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED", isContcave: boolean) => {
   if (listingType === "CURATED") {
     return [
-      STEPS.LISTING_TYPE,
+      ...(isContcave ? [STEPS.LISTING_TYPE] : []),
       STEPS.CATEGORY,
       STEPS.LOCATION,
       STEPS.IMAGES,
@@ -92,8 +94,8 @@ const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED") =
       STEPS.OTHERDETAILS,
     ];
   }
-  const base = [
-    STEPS.LISTING_TYPE,
+  return [
+    ...(isContcave ? [STEPS.LISTING_TYPE] : []),
     STEPS.CATEGORY,
     STEPS.LOCATION,
     STEPS.IMAGES,
@@ -108,7 +110,6 @@ const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED") =
     STEPS.VERIFICATION,
     STEPS.TERMS,
   ];
-  return base;
 };
 
 type RentModalFormValues = ListingSchema;
@@ -164,14 +165,23 @@ type StepDefinition = {
 };
 
 interface RentModalProps {
+  currentUser?: SafeUser | null;
   predefinedAmenities?: SafeAmenity[];
   predefinedAddons?: Addon[];
 }
 
-export default function RentModal({ predefinedAmenities = [], predefinedAddons = [] }: RentModalProps) {
+export default function RentModal({
+  currentUser,
+  predefinedAmenities = [],
+  predefinedAddons = [],
+}: RentModalProps) {
   const uiStore = useUIStore();
+  const { data: session } = useSession();
 
-  const [step, setStep] = useState(STEPS.LISTING_TYPE);
+  const userEmail = (currentUser?.email || session?.user?.email || "").toLowerCase().trim();
+  const isContcave = userEmail === "contcave@gmail.com";
+
+  const [step, setStep] = useState(isContcave ? STEPS.LISTING_TYPE : STEPS.CATEGORY);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [, setAgreementPdf] = useState<unknown>(null);
@@ -284,6 +294,16 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     setFeatures: Array.isArray(setFeatures) ? setFeatures : [],
     hasSets: Boolean(hasSets),
   }), [carpetArea, operationalDays, operationalHours, minimumBookingHours, maximumPax, instantBooking, type, venueTypes, aesthetics, setFeatures, hasSets]);
+
+  const [prevContcave, setPrevContcave] = useState(isContcave);
+  if (prevContcave !== isContcave) {
+    setPrevContcave(isContcave);
+    if (!isContcave) {
+      setValue("listingType", "STANDARD");
+    }
+    setStep(isContcave ? STEPS.LISTING_TYPE : STEPS.CATEGORY);
+  }
+
   const [categoryError, setCategoryError] = useState<string>("");
   const [cityError, setCityError] = useState<string>("");
   const [addressError, setAddressError] = useState<string>("");
@@ -308,7 +328,10 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     [setValue]
   );
 
-  const activeSteps = useMemo(() => getActiveSteps(Boolean(hasSets), listingType), [hasSets, listingType]);
+  const activeSteps = useMemo(
+    () => getActiveSteps(Boolean(hasSets), listingType, isContcave),
+    [hasSets, listingType, isContcave]
+  );
 
   const currentStepIndex = activeSteps.indexOf(step);
 
@@ -669,8 +692,8 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       },
       [STEPS.OTHERDETAILS]: {
         id: STEPS.OTHERDETAILS,
-        modalTitle: "List Your Space",
-        actionLabel: "Next",
+        modalTitle: isCurated ? "List Curated Space" : "List Your Space",
+        actionLabel: isCurated ? "Publish Curated Space" : "Next",
         validate: validateOtherDetailsStep,
         render: () => (
           <OtherDetailsStep
@@ -804,10 +827,11 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       verifications,
       videoSrc,
       watch,
+      isCurated,
     ]
   );
 
-  const currentStepDefinition = stepDefinitions[step];
+  const currentStepDefinition = stepDefinitions[step] || stepDefinitions[STEPS.CATEGORY];
 
   const onNext = async () => {
     resetStepErrors();
@@ -828,9 +852,48 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
     setIsLoading(false);
     setIsSubmitting(false);
 
-    reset();
-    setStep(STEPS.LISTING_TYPE);
-  }, [reset]);
+    reset({
+      listingType: "STANDARD",
+      category: "",
+      locationValue: "",
+      actualLocation: null,
+      imageSrc: [],
+      videoSrc: null,
+      title: "",
+      description: "",
+      price: 0,
+      priceRangeMin: null,
+      priceRangeMax: null,
+      mapsUrl: "",
+      websiteUrl: "",
+      instagramHandle: "",
+      contactEmail: "",
+      amenities: [],
+      otherAmenities: [],
+      addons: [],
+      type: [],
+      venueTypes: [],
+      aesthetics: [],
+      setFeatures: [],
+      instantBooking: false,
+      hasSets: false,
+      setsHaveSamePrice: false,
+      unifiedSetPrice: null,
+      sets: [],
+      additionalSetPricingType: null,
+      packages: [],
+      carpetArea: 0,
+      operationalDays: { start: "Mon", end: "Sun" },
+      operationalHours: { start: "9:00 AM", end: "9:00 PM" },
+      minimumBookingHours: 0,
+      maximumPax: 0,
+      verifications: null,
+      terms: false,
+      agreementSignature: null,
+      customTerms: "",
+    });
+    setStep(isContcave ? STEPS.LISTING_TYPE : STEPS.CATEGORY);
+  }, [reset, isContcave]);
 
   useEffect(() => {
     if (!uiStore.modals.rent && !isSubmitting && !showSuccessModal) {
@@ -1016,7 +1079,7 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
       }
 
       setShowSuccessModal(true);
-      toast.success("Listing created successfully!");
+      toast.success(isCurated ? "Curated space created successfully!" : "Listing created successfully!");
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Something went wrong while creating the listing.";
       toast.error(errorMessage);
@@ -1029,7 +1092,9 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
 
 
   const isLastStep = currentStepIndex === activeSteps.length - 1;
-  const actionLabel = isLastStep ? "Create Listing" : currentStepDefinition.actionLabel;
+  const actionLabel = isLastStep
+    ? (isCurated ? "Publish Curated Space" : "Create Listing")
+    : currentStepDefinition.actionLabel;
 
   const secondActionLabel = currentStepIndex <= 0 ? undefined : "Back";
 
@@ -1048,13 +1113,13 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         isOpen={uiStore.modals.rent}
         testId="rent-modal"
         disableOverlayClose={true}
-        title={currentStepDefinition.modalTitle}
+        title={isCurated ? "List Curated Space" : currentStepDefinition.modalTitle}
         actionLabel={actionLabel}
         onSubmitAction={() => {
           const isLastStep = currentStepIndex === activeSteps.length - 1;
           if (isLastStep) {
             handleSubmit(onSubmit, (errors) => {
-              if (errors.terms || !signature?.url) {
+              if (!isCurated && (errors.terms || !signature?.url)) {
                 toast.error("Please accept the terms and conditions and provide your signature");
               } else {
                 toast.error("Please ensure all requirements in previous steps are correctly filled.");
@@ -1113,12 +1178,12 @@ export default function RentModal({ predefinedAmenities = [], predefinedAddons =
         testId="rent-modal-success"
         onCloseAction={() => { setShowSuccessModal(false); }}
         onSubmitAction={() => { setShowSuccessModal(false); }}
-        title="Listing Submitted 🎉"
+        title={isCurated ? "Curated Space Submitted 🎉" : "Listing Submitted 🎉"}
         customHeight="h-auto"
         actionLabel="Close"
         body={
           <div className="flex flex-col gap-3 text-muted-foreground text-center">
-            <p>Thank you for submitting your studio!</p>
+            <p>{isCurated ? "Thank you for submitting your curated space!" : "Thank you for submitting your studio!"}</p>
             <p>Our team will review and verify your listing shortly.</p>
             <p>We&apos;ll notify you once it&apos;s live on ContCave.</p>
           </div>

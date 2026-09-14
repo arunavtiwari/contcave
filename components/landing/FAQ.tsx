@@ -4,9 +4,9 @@ import Script from "next/script";
 import { useState } from "react";
 import { HiArrowRight } from "react-icons/hi";
 
-import Container from "@/components/Container";
 import faqData from "@/components/landing/faqData";
 import FAQItem from "@/components/landing/FAQItem";
+import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
 

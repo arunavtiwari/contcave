@@ -3,7 +3,7 @@ import React from "react";
 
 import AboutContent from "@/components/about/AboutContent";
 import AboutHero from "@/components/about/AboutHero";
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 const DESCRIPTION =

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import React from "react";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import Heading from "@/components/ui/Heading";
 
 interface PageBannerProps {

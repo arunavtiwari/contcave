@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 
-import Container from "@/components/Container";
+import Container from "@/components/layout/Container";
 import Logo from "@/components/navbar/Logo";
 import NotificationMenu from "@/components/navbar/NotificationMenu";
 import Search from "@/components/navbar/Search";
