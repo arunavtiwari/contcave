@@ -1,0 +1,327 @@
+{
+  "id": "food-photography-studio-delhi-ncr",
+  "title": "Food Photography Studios: Shooting Menus, Packaging & Reels",
+  "categories": [
+    {
+      "id": "studio-guides",
+      "title": "Studio Guides",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Studio Guides",
+          "id": "bc-studio-guides"
+        }
+      ],
+      "createdAt": "2026-08-21T00:00:00Z",
+      "updatedAt": "2026-08-21T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-08-21T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A practical guide to booking a food photography studio for menu shoots, packaging shots, and reels — what setup each needs, typical Delhi NCR pricing, and what to check before you book."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "Food Photography Studios: Shooting Menus, Packaging & Reels"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "Restaurants, D2C food brands, and creators searching for a food photography studio are usually solving three different problems that look similar on the surface: a menu that needs every dish shot cleanly, a packaged product that needs a hero shot for the listing page, and a recipe reel that needs to move fast and look appetising in the first two seconds. Each of those needs a slightly different studio setup, and knowing the difference before you book saves you a wasted slot and a reshoot. This guide covers what to shoot for menus, packaging, and reels, what a studio actually needs to have for food work specifically, and what it costs in Delhi NCR."
+    },
+    {
+      "id": "h-different",
+      "blockType": "heading",
+      "content": "Why Food Photography Needs a Different Studio Setup"
+    },
+    {
+      "id": "p-different",
+      "blockType": "paragraph",
+      "content": "A generic photo studio with a backdrop and a couple of softboxes isn't automatically food-ready. Food shoots involve heat, steam, melting, and wilting on a clock, so the studio itself needs to support the kitchen work happening right up to the moment the shutter fires, not just the lighting after it."
+    },
+    {
+      "id": "list-different",
+      "blockType": "list",
+      "items": [
+        "A working kitchen or prep counter close to the set — plating cold or reheated food after a 10-minute walk from the nearest kitchen shows in the shot",
+        "A surface and backdrop bank suited to food — wood, marble, stone, and fabric options, since one backdrop rarely works for both a fine-dining plate and a packaged snack",
+        "Props on hand or rentable — cutlery, napkins, garnish tools, and simple crockery, so you're not carrying a prop kit to every booking",
+        "Enough bench space to hold backups of the same dish, since food styling almost always needs a second or third plate ready when the first one starts to look tired"
+      ]
+    },
+    {
+      "id": "h-menu",
+      "blockType": "heading",
+      "content": "Shooting a Restaurant Menu: What to Plan For"
+    },
+    {
+      "id": "p-menu",
+      "blockType": "paragraph",
+      "content": "A full menu shoot is a volume job — you're often photographing 20 to 40 dishes in a single studio booking, so the plan matters more than any individual shot. Build a shot list in the same order as the kitchen can plate the dishes, not the order they appear on the menu, and group by garnish or sauce so the styling table doesn't get reset for every plate."
+    },
+    {
+      "id": "list-menu",
+      "blockType": "list",
+      "items": [
+        "Shoot hero dishes and anything that wilts fast (salads, ice cream, anything with foam or froth) first, while the kitchen and stylist are freshest",
+        "Standardise the angle and crop early — most menu photography works best as a straight-on 45-degree or top-down shot, and mixing angles across dishes looks inconsistent online",
+        "Plan for roughly 10-15 minutes per dish once plating and reheating are counted, so 30 dishes realistically needs a 5-6 hour studio slot, not a 2-hour one",
+        "Keep one consistent backdrop and light setup for the whole menu — a menu page where every third photo looks like a different studio undermines trust"
+      ]
+    },
+    {
+      "id": "h-packaging",
+      "blockType": "heading",
+      "content": "Packaging and Product Shots: A Different Job Entirely"
+    },
+    {
+      "id": "p-packaging",
+      "blockType": "paragraph",
+      "content": "Packaging photography for a D2C food brand — sauces, snacks, beverages, ready-to-eat products — is closer to product photography than to menu photography. The food itself is often secondary to the pack, and the priority shifts to clean, even lighting, sharp label legibility, and a background that won't compete with the brand's own colours on the listing page or Amazon storefront."
+    },
+    {
+      "id": "list-packaging",
+      "blockType": "list",
+      "items": [
+        "Plan for a white or seamless background set for the primary listing shot, plus one or two lifestyle setups if the brief calls for context (a bowl, a table, a hand holding the pack)",
+        "Bring backup units of the packaging — labels crease, seals peel, and condensation forms fast under studio lights, especially on chilled products",
+        "Ask if the studio can do a wet-pour or splash shot if the brief needs one; this usually needs extra lighting and a protected surface, so flag it when booking, not on arrival",
+        "Book a studio with strobe or flash lighting rather than continuous light for packaging — it freezes any motion (a pour, a steam wisp) far better than a continuous LED kit"
+      ]
+    },
+    {
+      "id": "h-reels",
+      "blockType": "heading",
+      "content": "Shooting Food Reels and Recipe Videos in a Studio"
+    },
+    {
+      "id": "p-reels",
+      "blockType": "paragraph",
+      "content": "Recipe reels and short-form food video live or die in the first couple of seconds, so the studio setup needs to support fast, repeatable action shots — a pour, a slice, a garnish drop — more than a single perfect still. Overhead (top-down) rigs are the default for this kind of content because they show hands and ingredients clearly without a person stepping into frame."
+    },
+    {
+      "id": "list-reels",
+      "blockType": "list",
+      "items": [
+        "Ask if the studio has an overhead camera arm or mount already set up — building one from scratch on the day eats into your booked hours",
+        "Pre-chop and pre-portion every ingredient before the clock starts; a reel studio slot is not the place to be dicing onions on camera time",
+        "Use continuous lighting, not strobe, for video — you need the light on and consistent for the whole take, not firing per frame",
+        "Plan multiple short takes of each action (pour, sizzle, plate) rather than one long unbroken shot — it's easier to edit and gives you options if one take has a spill or a shadow"
+      ]
+    },
+    {
+      "id": "quote-rule",
+      "blockType": "quote",
+      "content": "Rule of thumb for food shoots: budget one backup plate for every hero dish, and one extra 30 minutes on top of your shot-list estimate for reheating and re-plating. Food is the one subject in a studio that actively works against you the longer the shoot runs."
+    },
+    {
+      "id": "h-cost",
+      "blockType": "heading",
+      "content": "What Food Photography Studios Cost in Delhi NCR"
+    },
+    {
+      "id": "p-cost",
+      "blockType": "paragraph",
+      "content": "Pricing for a food-ready studio (kitchen access, food-safe surfaces, prop bank) tends to sit above a plain photo studio because of the extra setup and cleanup involved. As a typical range across Delhi, Gurugram, and Noida, basic kitchen-and-prep studios run roughly ₹1,500-2,500 per hour, while a fully-styled studio with an in-house prop and crockery bank can run ₹2,500-4,000+ per hour. Longer bookings (4-8 hours for a full menu or catalogue shoot) are usually cheaper per hour than a short 2-hour slot, since setup and cleanup time gets spread across more shooting time."
+    },
+    {
+      "id": "list-cost",
+      "blockType": "list",
+      "items": [
+        "Confirm whether props, crockery, and backdrops are included in the hourly rate or charged as add-ons — this is the single biggest source of surprise costs on a food shoot",
+        "Ask if kitchen gas, induction, and basic cookware are included, or if you need to bring your own",
+        "Factor in a stylist or assistant separately if the studio doesn't provide one — many food-specific studios in Delhi NCR can recommend one, but it's rarely bundled into the room rate",
+        "Longer slots (half-day, full-day) usually bring the effective hourly cost down for a big menu or catalogue job"
+      ]
+    },
+    {
+      "id": "h-checklist",
+      "blockType": "heading",
+      "content": "Before You Book: A Quick Checklist"
+    },
+    {
+      "id": "p-checklist",
+      "blockType": "paragraph",
+      "content": "A few questions before you confirm a slot avoid most of the problems that show up mid-shoot."
+    },
+    {
+      "id": "list-checklist",
+      "blockType": "list",
+      "items": [
+        "Is there a working kitchen or prep counter, and how far is it from the shooting set?",
+        "What surfaces and backdrops does the studio stock, and do any of them suit the cuisine or product you're shooting?",
+        "Is the lighting continuous, strobe, or both — and does that match whether you're shooting stills, video, or both in one session?",
+        "Are props, crockery, and garnish tools included, or do you need to bring your own?",
+        "How many hours does the studio recommend for your dish count or SKU count, based on past food bookings?"
+      ]
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Food Photography Studios"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "How much does a food photography studio cost per hour in Delhi NCR?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "Basic kitchen-and-prep studios typically run around ₹1,500-2,500 per hour, while fully-styled studios with an in-house prop and crockery bank can run ₹2,500-4,000+ per hour. Longer half-day or full-day bookings usually work out cheaper per hour than a short 2-hour slot."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "Do I need a food stylist for a studio shoot?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "Not always — a lot of restaurant menu shoots and simple reels are shot without a dedicated stylist, especially if the kitchen team can plate consistently. For packaging hero shots or a shoot with a tight brand brief, a stylist makes a visible difference and is worth the extra cost, since small placement and garnish choices are what separate an average product shot from a scroll-stopping one."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "How many dishes can I shoot in one studio session?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "As a rough planning number, budget 10-15 minutes per dish once plating, styling, and shooting are all counted, which puts a 4-hour slot at roughly 15-20 dishes and a full-day slot at 30-40. Dishes that wilt or melt fast (salads, ice cream, anything foamed) take longer per shot than something plated and stable, so weight your estimate toward the harder dishes."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "What's the difference between shooting for a menu and shooting for packaging?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Menu photography is about the food itself looking appetising and consistent across many dishes, usually shot at a 45-degree or top-down angle with a natural or lightly styled background. Packaging photography is closer to product photography — the priority is a clean, evenly lit shot where the pack and label are sharp and legible, often on a white or seamless background rather than a styled food scene."
+    },
+    {
+      "id": "h-faq5",
+      "blockType": "heading",
+      "content": "Can I shoot both photos and a recipe reel in the same studio session?"
+    },
+    {
+      "id": "p-faq5",
+      "blockType": "paragraph",
+      "content": "Yes, and it's common to batch both in one booking to make the most of plated food before it's discarded — but plan the order carefully. Shoot the hero stills first while the plate is freshest, then use the same or a backup portion for the reel's action shots, since video can tolerate a slightly less pristine plate than a still hero image."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Why Book Your Food Shoot with ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave lists food-ready studios across Delhi NCR with what's actually in the room — kitchen access, prop and crockery availability, and lighting type — listed up front, so you can shortlist studios by what your menu, packaging, or reel shoot actually needs instead of finding out on arrival. Compare studios side by side on transparent hourly pricing and book the slot instantly, without back-and-forth over email or calls to confirm basics like whether a stove is included."
+    },
+    {
+      "id": "list-contcave",
+      "blockType": "list",
+      "items": [
+        "Filter studios by kitchen access, prop availability, and lighting type before you book",
+        "Compare hourly pricing across Delhi, Gurugram, and Noida in one place",
+        "Book instantly with transparent pricing, no hidden add-on surprises"
+      ]
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "A food photography studio is only the right fit if it's set up for the specific job — menu, packaging, or reels — not just a room with nice light. Match the studio and your shot list to the job before you book, and build in more time than you think plating will need."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Confirm kitchen access, surfaces, and props before booking, not after you arrive",
+        "Build your shot list by plating difficulty, shooting the fastest-wilting dishes first",
+        "Use strobe lighting for packaging hero shots, continuous lighting for reels and video",
+        "Budget roughly 10-15 minutes per dish and add extra time for reheating and re-plating",
+        "Batch stills and reels in one booking when you can, shooting stills first while food is freshest"
+      ]
+    }
+  ],
+  "slug": "food-photography-studio-delhi-ncr",
+  "meta": {
+    "title": "Food Photography Studios: Shooting Menus, Packaging & Reels",
+    "description": "Planning a food photography studio shoot? See what menu, packaging and reels sessions need, typical Delhi NCR pricing, and how to book on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-08-21T04:00:00Z",
+  "updatedAt": "2026-08-21T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "food photography studio",
+    "food photography studio delhi",
+    "food photography studio near me",
+    "food styling studio rental",
+    "kitchen studio rental india",
+    "food photography studio gurugram",
+    "food photography studio noida",
+    "food photography studio south delhi",
+    "menu photography studio",
+    "packaging photography studio",
+    "food reel shoot studio",
+    "recipe video studio setup",
+    "food photography studio price",
+    "food photography studio cost",
+    "hourly food studio rental",
+    "book food photography studio",
+    "food styling for menu shoot",
+    "d2c food packaging photography",
+    "restaurant menu photography india",
+    "food photography for brands",
+    "food photography for restaurants",
+    "food photography for food bloggers",
+    "kitchen studio with props",
+    "top-down food video setup",
+    "studio for food packaging shoot",
+    "food photography studio delhi ncr",
+    "food photography studio 2026",
+    "how to book a food photography studio",
+    "food styling tips india",
+    "ContCave"
+  ]
+}

@@ -1,0 +1,241 @@
+{
+  "id": "rent-your-property-for-shoots-india",
+  "title": "Rent Your Property for Shoots: A 2026 Host's Guide",
+  "categories": [
+    {
+      "id": "host-guides",
+      "title": "Host Guides",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Host Guides", "id": "bc-host-guides" }
+      ],
+      "createdAt": "2026-09-14T00:00:00Z",
+      "updatedAt": "2026-09-14T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-09-14T04:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "Production teams don't only want equipped studios — they also want real homes, rooftops, and unusual rooms. Here's how to rent your property for shoots without turning it into a full-time studio."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "Rent Your Property for Shoots: A 2026 Host's Guide"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "If you're looking into how to rent your property for shoots, the good news is you don't need to own a purpose-built studio to start earning from it. A furnished apartment with good light, a terrace with a skyline view, a heritage-style living room, or even a quirky office can be exactly what a brand, filmmaker, or content creator is scouting for — because production teams increasingly want locations that look lived-in, not a bare studio set. This guide walks through what makes a property shoot-ready, how to price and protect it, and what actually happens once a booking comes in."
+    },
+    {
+      "id": "h-why",
+      "blockType": "heading",
+      "content": "Why Production Teams Want Real Locations, Not Just Studios"
+    },
+    {
+      "id": "p-why",
+      "blockType": "paragraph",
+      "content": "A studio gives a production full control over lighting and backdrop, but it also looks like a studio — flat walls, seamless paper, no personality. For a growing share of shoots, that's the opposite of what's needed. Fashion and lifestyle brands want a home that looks like someone actually lives there. YouTubers and podcasters filming a 'day in the life' segment need a real kitchen, not a set built to resemble one. Ad agencies scouting for a festive campaign look for a specific kind of balcony, staircase, or courtyard that can't be replicated on a soundstage. This demand sits alongside, not instead of, demand for equipped studios — and it's why property owners who'd never think of themselves as 'studio hosts' can still list successfully as location hosts."
+    },
+    {
+      "id": "h-ready",
+      "blockType": "heading",
+      "content": "What Makes a Property Shoot-Ready"
+    },
+    {
+      "id": "p-ready",
+      "blockType": "paragraph",
+      "content": "You don't need to renovate anything to start, but a few basics decide whether your property gets booked or scrolled past."
+    },
+    {
+      "id": "list-ready",
+      "blockType": "list",
+      "items": [
+        "Good natural light in at least one or two rooms, ideally with large windows or an open terrace",
+        "A distinct look or feature — a specific colour palette, an unusual staircase, exposed brick, a rooftop view — that makes the space memorable rather than generic",
+        "Clear, decluttered rooms in the photos you list; production teams need to visualise their own set dressing, not work around yours",
+        "Enough floor space and door width for a small crew to move around with basic equipment, even if it's not a full film unit",
+        "A functioning washroom, parking access nearby, and reliable power — unglamorous, but the details that get a location shortlisted over a prettier one that lacks them"
+      ]
+    },
+    {
+      "id": "h-price",
+      "blockType": "heading",
+      "content": "Pricing Your Property for Shoot Bookings"
+    },
+    {
+      "id": "p-price",
+      "blockType": "paragraph",
+      "content": "Location pricing works a little differently from studio pricing, because you're renting a space that also happens to be your home or office, not a set built purely for shoots. Start with a half-day and full-day rate rather than a per-hour one — most location shoots run 4-8 hours once setup and breakdown are counted, and production teams generally plan around blocks of time rather than single hours. In Delhi NCR, a well-photographed residential space with strong natural light typically rents in the ₹3,000-8,000 range for a half-day, with distinctive or larger properties — a styled bungalow, a rooftop with a skyline view, a heritage-style interior — commanding more. Factor in a cleaning and reset charge separately, and decide upfront whether furniture moves, wall fixtures, or minor set changes are allowed, and at what extra cost, since these are the requests location hosts get asked most often."
+    },
+    {
+      "id": "h-permissions",
+      "blockType": "heading",
+      "content": "Permissions, Paperwork & Protecting Your Property"
+    },
+    {
+      "id": "p-permissions",
+      "blockType": "paragraph",
+      "content": "Because you're renting living or working space rather than a dedicated commercial studio, it's worth being deliberate about paperwork before your first booking. Check your housing society or building rules on short-term commercial use — some societies require advance notice or a no-objection letter for a shoot with a crew and equipment. Get a simple written agreement for every booking that covers the date, hours, headcount, what's included, and what happens if the shoot overruns; a platform's booking confirmation can often serve this purpose if it captures these details. It's also sensible to ask about a refundable security deposit for larger productions, and to walk the property with the production coordinator before and after the shoot so any damage is flagged immediately rather than disputed later."
+    },
+    {
+      "id": "quote-tip",
+      "blockType": "quote",
+      "content": "Location hosts don't compete with studios on lighting control — they win on character. A space that looks like nowhere else in your listing feed will get scouted long before a generic 'clean and bright' room does."
+    },
+    {
+      "id": "h-day",
+      "blockType": "heading",
+      "content": "Preparing for Shoot Day: What to Expect"
+    },
+    {
+      "id": "p-day",
+      "blockType": "paragraph",
+      "content": "A location shoot brings more moving parts than a typical studio booking — expect a small crew, some equipment cases, and occasionally a stylist or set dresser arriving before the talent. Set a realistic load-in and load-out window so the crew isn't rushing to pack up at your billed end time, and agree in advance on which rooms are off-limits versus available for the shoot. If you're renting out your primary home, plan to be present or have someone you trust on-site during the booking, both for peace of mind and because production teams often have quick questions about switches, water, or access that only someone familiar with the property can answer fast. Keep valuables and personal documents put away regardless of how professional the production seems — it's a basic precaution, not a judgement on any specific crew."
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Renting Your Property for Shoots"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "How much can I earn renting my property for shoots in India?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "It depends heavily on your property's look, size, and location. A distinctive residential space in Delhi NCR with strong natural light and a few bookings a month can add a meaningful side income on top of the property's regular use, while a larger or more unusual property — a styled bungalow, farmhouse, or rooftop — can command a higher day rate. Treat any figure you see online as a broad range rather than a guarantee, since demand varies by season and how well your listing photos represent the space."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "Do I need permission to rent out my home for a shoot?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "If you own the property outright, you generally don't need external permission, but you should check your housing society or RWA's rules on commercial activity and crew access, since some buildings ask for advance notice. If you're a tenant, confirm with your landlord or lease terms before listing, because most leases restrict commercial use of a rented home without the owner's consent."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "What kind of properties work best as shoot locations?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "Homes with strong natural light, distinctive interiors, rooftops or terraces with a view, and larger properties like farmhouses or bungalows all do well, because production teams are specifically looking for character a studio can't offer. A plain, undecorated room is less likely to get booked than a smaller space with a clear visual identity, since the look of the property is the main reason it gets scouted in the first place."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "Do I need insurance to rent my property for shoots?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "It's worth checking your existing home or building insurance policy to see whether it covers commercial activity like a paid shoot, since some policies exclude it by default. For larger or higher-value productions, it's reasonable to ask the production team whether they carry their own equipment and liability insurance, and to agree on a security deposit as an added layer of protection for smaller bookings."
+    },
+    {
+      "id": "h-faq5",
+      "blockType": "heading",
+      "content": "How is renting a property for shoots different from listing a studio?"
+    },
+    {
+      "id": "p-faq5",
+      "blockType": "paragraph",
+      "content": "A studio is built and equipped specifically for shoots, with lighting, backdrops, and a set that's meant to be reused for many different bookings. A property listed for shoots is usually someone's actual home, office, or land, being rented for its real character rather than its equipment — which means pricing tends to run by the half-day or day instead of the hour, and hosts typically need to think more about access, privacy, and protecting personal belongings than a dedicated studio owner would."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Why List Your Property with ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave is a studio booking marketplace built for exactly this kind of matching — creators and brand teams across Delhi NCR searching for photography, video, podcast, and event spaces with transparent hourly or day pricing and clear inclusion details. Listing your property means it shows up to guests who are already searching for a space like yours, without you having to build your own booking process, chase payments, or field enquiries one DM at a time."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "Renting your property for shoots doesn't require turning it into a full-time studio — it requires good light, a distinct look, clear ground rules, and a listing that shows off what makes the space different."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Check your society, RWA, or lease terms for commercial-use rules before listing",
+        "Photograph the space decluttered and in daylight so its character is obvious at a glance",
+        "Price by the half-day or full day, not the hour, and add a separate cleaning or reset charge",
+        "Put booking details — hours, headcount, inclusions, damage terms — in writing for every shoot",
+        "List on ContCave to reach creators and brand teams already searching for a distinctive space in your city"
+      ]
+    }
+  ],
+  "slug": "rent-your-property-for-shoots-india",
+  "meta": {
+    "title": "Rent Your Property for Shoots: A 2026 Host's Guide",
+    "description": "Learn how to rent your property for shoots in India — pricing, permissions, and what makes a home or rooftop shoot-ready, plus how to list with ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-09-14T04:00:00Z",
+  "updatedAt": "2026-09-14T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "rent your property for shoots",
+    "rent my space for shoots",
+    "rent my house for a shoot",
+    "rent property for photo shoots india",
+    "list your property for shoots",
+    "location for shoots near me",
+    "shoot location rental india",
+    "rent your home for shoots",
+    "property for shoots delhi",
+    "property for shoots gurugram",
+    "property for shoots noida",
+    "location rental delhi ncr",
+    "rooftop for shoots delhi",
+    "farmhouse for shoots delhi ncr",
+    "how much to charge for a shoot location",
+    "shoot location pricing india",
+    "location shoot permission india",
+    "list property for filming india",
+    "list property for photography",
+    "earn renting property for shoots",
+    "become a shoot location host",
+    "location host guide india",
+    "studio vs location shoot",
+    "shoot location for brands",
+    "shoot location for creators",
+    "shoot location for youtubers",
+    "shoot location for ads",
+    "rent house for content shoot",
+    "location scouting india",
+    "ContCave"
+  ]
+}

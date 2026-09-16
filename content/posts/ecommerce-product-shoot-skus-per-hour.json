@@ -1,0 +1,271 @@
+{
+  "id": "ecommerce-product-shoot-skus-per-hour",
+  "title": "Ecommerce Product Shoot: How Many SKUs Can You Shoot Per Hour?",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Content Creation", "id": "bc-content-creation" }
+      ],
+      "createdAt": "2026-08-19T00:00:00Z",
+      "updatedAt": "2026-08-19T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-08-19T04:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "Booking a studio for a catalogue shoot means paying by the hour — so how many SKUs you actually get through that hour decides whether the session was worth it. Here's how to plan the math before you book."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "Ecommerce Product Shoot: How Many SKUs Can You Shoot Per Hour?"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "Before booking an ecommerce product shoot, most brands ask the same question once they see hourly studio pricing: how many SKUs can actually get shot in that time? The honest answer is that it depends entirely on the shot type — a simple white-background flat lay moves far faster than a styled lifestyle image or an on-model shot — and on how prepped your products are before the camera even turns on. This guide breaks down realistic per-hour throughput for different shot types, what an ecommerce shoot studio costs in Delhi NCR, where shoot days actually lose time, and how to build a shot list that keeps a catalogue session moving instead of stalling on setup changes."
+    },
+    {
+      "id": "h-throughput",
+      "blockType": "heading",
+      "content": "How Many SKUs You Can Realistically Shoot in an Hour"
+    },
+    {
+      "id": "p-throughput",
+      "blockType": "paragraph",
+      "content": "Throughput depends on shot complexity more than anything else, and it's worth planning around ranges rather than a single number since studio setup, product type, and photographer speed all shift it."
+    },
+    {
+      "id": "list-throughput",
+      "blockType": "list",
+      "items": [
+        "Simple white-background, single-angle flat lay (once lighting is dialled in): roughly 20-35 SKUs per hour",
+        "White-background, multi-angle set (front, back, side, detail — 4-5 shots per SKU): roughly 8-15 SKUs per hour",
+        "Flat lay or ghost-mannequin apparel shots: roughly 10-20 SKUs per hour depending on styling and fabric handling",
+        "Styled lifestyle or context shots (product placed in a scene, not on plain background): roughly 4-8 looks per hour",
+        "On-model shots (a model wearing or holding the product): roughly 4-6 looks per hour once hair, makeup, and changes are factored in"
+      ]
+    },
+    {
+      "id": "p-throughput-note",
+      "blockType": "paragraph",
+      "content": "These are planning ranges, not guarantees — a photographer working through a well-organised batch of similar products (say, 40 t-shirts on the same background) will consistently land at the faster end, while a mixed batch of oddly shaped products that each need repositioning will run slower even within the same shot type."
+    },
+    {
+      "id": "h-why-differs",
+      "blockType": "heading",
+      "content": "White Background vs Styled Shots: Why Speed Differs So Much"
+    },
+    {
+      "id": "p-why-differs",
+      "blockType": "paragraph",
+      "content": "A white-background shot is fast because the setup never changes — same lighting, same backdrop, same camera position, product in and product out. A styled or lifestyle shot resets that every time: a new prop arrangement, a different surface, sometimes a full scene change. That's why brands running large catalogues (50-200+ SKUs) usually shoot every product on white background first to hit marketplace requirements, then book a separate, shorter session for a smaller set of hero styled shots used on the brand's own site and social pages. Mixing both shot types in one continuous session is one of the most common reasons catalogue shoots run over their booked hours."
+    },
+    {
+      "id": "h-cost",
+      "blockType": "heading",
+      "content": "What an Ecommerce Product Shoot Studio Costs in Delhi NCR (2026)"
+    },
+    {
+      "id": "list-cost",
+      "blockType": "list",
+      "items": [
+        "Basic equipped studio (strobes or continuous lights, seamless white backdrop, 1-2 hour minimum): roughly ₹1,000-2,500 per hour",
+        "Larger studio with multiple backdrops and a styling area for lifestyle sets: roughly ₹2,500-4,500 per hour",
+        "Half-day package (4-5 hours), suited to a 100-150 SKU white-background batch: roughly ₹8,000-16,000",
+        "Full-day package (8-10 hours), suited to mixed white-background plus styled shoots: roughly ₹15,000-30,000",
+        "A photographer or retoucher, when not bundled into the studio rate, is usually billed separately per SKU or per hour"
+      ]
+    },
+    {
+      "id": "p-cost-note",
+      "blockType": "paragraph",
+      "content": "Studio hire and photography are often billed separately in India — the studio rate covers the space, backdrops, and lighting equipment, while the photographer's fee (per SKU, per hour, or per day) covers the actual shooting and editing. Always confirm which one a quoted rate is covering before comparing prices across studios."
+    },
+    {
+      "id": "h-prep",
+      "blockType": "heading",
+      "content": "Prepping Products Before the Shoot: Where Most Time Gets Wasted"
+    },
+    {
+      "id": "p-prep",
+      "blockType": "paragraph",
+      "content": "The single biggest lever on SKU throughput isn't the photographer's speed — it's whether products arrive at the studio shoot-ready. Wrinkled apparel that needs steaming, packaging with fingerprints or dust, tangled jewellery, or products missing their intended styling props all eat into shooting time that was booked and paid for. A batch of products cleaned, steamed, and pre-sorted by shot type before the session starts routinely saves 30-60 minutes on a half-day shoot — time that translates directly into extra SKUs shot rather than extra minutes billed."
+    },
+    {
+      "id": "quote-prep",
+      "blockType": "quote",
+      "content": "An hour spent steaming and sorting products the night before a shoot is an hour of studio time saved the next day — and studio time is the more expensive of the two."
+    },
+    {
+      "id": "h-marketplace",
+      "blockType": "heading",
+      "content": "Amazon, Flipkart & Meesho: Photo Requirements to Plan Around"
+    },
+    {
+      "id": "p-marketplace",
+      "blockType": "paragraph",
+      "content": "Most Indian marketplaces enforce a pure white background (RGB 255,255,255) for the primary listing image, with the product filling most of the frame and minimum resolutions around 2000x2000 pixels for zoom to work correctly. Apparel categories on several marketplaces require the garment shown on a model or via a ghost-mannequin effect rather than a flat lay for the main image, though flat lays are often acceptable for accessories and smaller items. Knowing which platforms your SKUs are going to before the shoot — and what each one actually requires for the hero image versus secondary images — avoids a costly reshoot later for a marketplace-compliance miss."
+    },
+    {
+      "id": "h-shotlist",
+      "blockType": "heading",
+      "content": "Building a Shot List That Keeps the Session Moving"
+    },
+    {
+      "id": "list-shotlist",
+      "blockType": "list",
+      "items": [
+        "Group products by shot type first — all white-background flat lays together, all styled shots together — so the studio setup only changes once, not repeatedly",
+        "List the exact angles required per SKU (front, back, detail, tag) so the photographer isn't deciding on the spot for each product",
+        "Note any product-specific handling needs upfront — glass, reflective packaging, fabric that creases easily — so the crew isn't troubleshooting mid-batch",
+        "Bring backup units of fragile or hero SKUs in case a reshoot is needed without eating into the next product's time",
+        "Assign someone to steam, sort, and hand off products in the order they'll be shot, rather than leaving the photographer to search through boxes"
+      ]
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Ecommerce Product Shoots"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "How many SKUs can I shoot in a 4-hour studio session?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "For simple single-angle white-background shots, a well-prepped batch can realistically get through 80-140 SKUs in 4 hours. If you need multiple angles per SKU or a mix of white-background and styled shots, plan for closer to 30-60 SKUs in the same window."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "How much does an ecommerce product shoot studio cost in Delhi NCR?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "A basic equipped studio with seamless white backdrop and lighting typically runs ₹1,000-2,500 per hour. Half-day packages suited to a large white-background batch generally fall between ₹8,000-16,000, while full-day sessions mixing white-background and styled shots run ₹15,000-30,000."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "Should I shoot white-background and lifestyle images in the same session?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "It's usually more efficient not to. White-background shots move fastest when the setup never changes, and switching to styled or lifestyle shots resets props, surfaces, and sometimes lighting each time. Most brands with large catalogues book a dedicated white-background session first, then a separate, shorter session for a smaller set of styled hero images."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "What are Amazon and Flipkart's photo requirements for product listings?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Both generally require a pure white background for the main listing image, the product filling most of the frame, and a minimum resolution around 2000x2000 pixels so zoom works correctly on the listing page. Apparel categories often require the garment on a model or ghost mannequin rather than a flat lay for the main image — check the specific category guidelines before the shoot to avoid a reshoot."
+    },
+    {
+      "id": "h-faq5",
+      "blockType": "heading",
+      "content": "How can I speed up a large catalogue shoot?"
+    },
+    {
+      "id": "p-faq5",
+      "blockType": "paragraph",
+      "content": "Group products by shot type before the session, pre-steam and clean everything, and hand the photographer a clear shot list with the exact angles needed per SKU. Most of the time lost in catalogue shoots comes from prep and decision-making mid-session, not from the actual camera work."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Why Book with ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave lists product and ecommerce photography studios across Delhi NCR with transparent hourly pricing and clear listing details on backdrop options, lighting setup, and available styling space. Instead of calling around to check whether a studio can handle a 150-SKU white-background batch in one session, you can compare studios by size and setup, check minimum booking hours, and lock in a half-day or full-day slot instantly."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "SKU throughput on an ecommerce shoot comes down to shot type and preparation far more than the studio itself. Plan the shot list and prep work before booking, and the hours you pay for go toward shooting products, not figuring out logistics on the day."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Budget roughly 20-35 SKUs per hour for simple white-background shots, and 4-8 per hour for styled lifestyle looks",
+        "Separate white-background and styled shoots into different sessions rather than mixing them in one booking",
+        "Pre-steam, clean, and sort products by shot type before you arrive — it can save 30-60 minutes on a half-day shoot",
+        "Check your marketplace's photo requirements (background, resolution, flat lay vs model) before the shoot, not after",
+        "Compare ecommerce-ready studios across Delhi NCR on ContCave and book the hours that match your actual SKU count"
+      ]
+    }
+  ],
+  "slug": "ecommerce-product-shoot-skus-per-hour",
+  "meta": {
+    "title": "Ecommerce Product Shoot: How Many SKUs Can You Shoot Per Hour?",
+    "description": "Planning an ecommerce product shoot? See realistic SKUs-per-hour throughput, studio costs in Delhi NCR, and prep tips, then book on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-08-19T04:00:00Z",
+  "updatedAt": "2026-08-19T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "ecommerce product shoot",
+    "ecommerce product photography studio",
+    "product catalogue shoot",
+    "ecommerce photography studio near me",
+    "product shoot studio delhi",
+    "ecommerce photography studio delhi ncr",
+    "product shoot studio noida",
+    "product shoot studio gurugram",
+    "white background product photography",
+    "flat lay product photography studio",
+    "product photography studio cost",
+    "product shoot price per hour",
+    "sku photography cost india",
+    "book product photography studio",
+    "catalogue shoot studio booking",
+    "amazon product photography india",
+    "flipkart product photography guidelines",
+    "meesho product photography",
+    "ecommerce shoot 2026",
+    "product photography for d2c brands",
+    "product photography for online sellers",
+    "bulk product photography india",
+    "product shoot studio for brands",
+    "ecommerce catalogue photography india",
+    "delhi ncr",
+    "gurugram",
+    "noida",
+    "ContCave"
+  ]
+}
