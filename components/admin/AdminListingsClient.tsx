@@ -53,7 +53,7 @@ type ViewMode = "STANDARD" | "CURATED";
 const STATUS_OPTIONS: Array<{ value: "ALL" | ListingStatus; label: string }> = [
     { value: "ALL", label: "All" },
     { value: "PENDING", label: "Pending" },
-    { value: "VERIFIED", label: "Verified" },
+    { value: "VERIFIED", label: "Approved" },
     { value: "REJECTED", label: "Rejected" },
 ];
 
@@ -61,6 +61,12 @@ function statusVariant(status: ListingStatus) {
     if (status === "VERIFIED") return "success";
     if (status === "REJECTED") return "destructive";
     return "warning";
+}
+
+function statusLabel(status: ListingStatus) {
+    if (status === "VERIFIED") return "Approved";
+    if (status === "REJECTED") return "Rejected";
+    return "Pending";
 }
 
 function yesNo(value: boolean | null | undefined) {
@@ -254,7 +260,7 @@ function ReviewModal({
                         </div>
                         <div className="space-y-4">
                             <div className="flex flex-wrap items-center gap-2">
-                                <Pill label={listing.status} variant={statusVariant(listing.status)} size="sm" />
+                                <Pill label={statusLabel(listing.status)} variant={statusVariant(listing.status)} size="sm" />
                                 {listing.listingType === "CURATED" && (
                                     <Pill label="ContCave Curated" variant="warning" size="sm" />
                                 )}
@@ -746,7 +752,7 @@ export default function AdminListingsClient({
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                     <StatCard label={viewMode === "CURATED" ? "All Curated" : "All Listings"} value={activeCounts?.ALL} icon={FiLayers} />
                     <StatCard label="Pending" value={activeCounts?.PENDING} icon={FiClock} />
-                    <StatCard label="Verified" value={activeCounts?.VERIFIED} icon={FiCheck} />
+                    <StatCard label="Approved" value={activeCounts?.VERIFIED} icon={FiCheck} />
                     <StatCard label="Rejected" value={activeCounts?.REJECTED} icon={FiX} />
                 </div>
 
@@ -842,7 +848,7 @@ export default function AdminListingsClient({
                                                 <TableCell className="text-sm text-muted-foreground">{listing.locationValue}</TableCell>
                                                 <TableCell className="text-sm font-semibold text-foreground">{listing.enquiryCount ?? 0}</TableCell>
                                                 <TableCell>
-                                                    <Pill label={listing.status} variant={statusVariant(listing.status)} size="xs" />
+                                                    <Pill label={statusLabel(listing.status)} variant={statusVariant(listing.status)} size="xs" />
                                                 </TableCell>
                                                 <TableCell>
                                                     <Pill label={label} variant={variant} size="xs" />
@@ -863,8 +869,8 @@ export default function AdminListingsClient({
                                                             icon={FiExternalLink}
                                                             isIconOnly
                                                             outline
-                                                            aria-label={`Open listing review: ${listing.title}`}
-                                                            tooltip="Open review"
+                                                            aria-label={`Open listing details: ${listing.title}`}
+                                                            tooltip="Open details"
                                                             data-testid={`review-curated-${listing.id}`}
                                                             onClick={() => openReview(listing.id)}
                                                             disabled={isPending}
@@ -985,7 +991,7 @@ export default function AdminListingsClient({
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Pill label={listing.status} variant={statusVariant(listing.status)} size="xs" />
+                                                <Pill label={statusLabel(listing.status)} variant={statusVariant(listing.status)} size="xs" />
                                             </TableCell>
                                             <TableCell className="whitespace-nowrap text-sm font-semibold text-foreground">
                                                 {listing.price != null ? formatINR(listing.price) : "—"}
@@ -1008,8 +1014,8 @@ export default function AdminListingsClient({
                                                         icon={FiExternalLink}
                                                         isIconOnly
                                                         outline
-                                                        aria-label={`Open listing review: ${listing.title}`}
-                                                        tooltip="Open review"
+                                                        aria-label={`Open listing details: ${listing.title}`}
+                                                        tooltip="Open details"
                                                         data-testid={`review-listing-${listing.id}`}
                                                         onClick={() => openReview(listing.id)}
                                                         disabled={isPending}
