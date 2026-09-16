@@ -116,6 +116,7 @@ export type AdminListingReviewPage = {
     pageSize: number;
     total: number;
     counts: Record<"ALL" | AdminListingStatus, number>;
+    curatedCounts: Record<"ALL" | AdminListingStatus, number>;
     curatedTotal: number;
 };
 
@@ -278,16 +279,28 @@ export async function getAdminListingReviewPage(params: {
         ListingService.getHydratableListingPage({ page: 1, pageSize: 1, listingType: "STANDARD" }),
         ListingService.getHydratableListingPage({ page: 1, pageSize: 1, listingType: "CURATED" }),
     ]);
+    const counts = {
+        ALL: Object.values(countData.statusCounts).reduce((sum, count) => sum + count, 0),
+        PENDING: countData.statusCounts.PENDING || 0,
+        VERIFIED: countData.statusCounts.VERIFIED || 0,
+        REJECTED: countData.statusCounts.REJECTED || 0,
+    };
+    const curatedCounts = {
+        ALL: Object.values(curatedCountData.statusCounts).reduce((sum, count) => sum + count, 0),
+        PENDING: curatedCountData.statusCounts.PENDING || 0,
+        VERIFIED: curatedCountData.statusCounts.VERIFIED || 0,
+        REJECTED: curatedCountData.statusCounts.REJECTED || 0,
+    };
+
     if (pageData.ids.length === 0) {
         return {
-            listings: [], page, pageSize, total: pageData.total,
-            counts: {
-                ALL: Object.values(countData.statusCounts).reduce((sum, count) => sum + count, 0),
-                PENDING: countData.statusCounts.PENDING || 0,
-                VERIFIED: countData.statusCounts.VERIFIED || 0,
-                REJECTED: countData.statusCounts.REJECTED || 0,
-            },
-            curatedTotal: curatedCountData.total,
+            listings: [],
+            page,
+            pageSize,
+            total: pageData.total,
+            counts,
+            curatedCounts,
+            curatedTotal: curatedCounts.ALL,
         };
     }
 
@@ -328,13 +341,9 @@ export async function getAdminListingReviewPage(params: {
         page,
         pageSize,
         total: pageData.total,
-        counts: {
-            ALL: Object.values(countData.statusCounts).reduce((sum, count) => sum + count, 0),
-            PENDING: countData.statusCounts.PENDING || 0,
-            VERIFIED: countData.statusCounts.VERIFIED || 0,
-            REJECTED: countData.statusCounts.REJECTED || 0,
-        },
-        curatedTotal: curatedCountData.total,
+        counts,
+        curatedCounts,
+        curatedTotal: curatedCounts.ALL,
     };
 }
 

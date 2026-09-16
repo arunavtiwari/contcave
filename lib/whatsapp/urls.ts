@@ -1,5 +1,5 @@
 export function getNormalizedWhatsAppNumber(): string {
-    const raw = (process.env.NEXT_PUBLIC_CONTCAVE_WHATSAPP || process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(/\D/g, "");
+    const raw = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(/\D/g, "");
     if (!raw) return "";
     return raw.length === 10 ? `91${raw}` : raw;
 }
