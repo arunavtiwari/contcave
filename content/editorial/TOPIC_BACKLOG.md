@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 23 | Corporate Video Production: Renting a Studio vs Hiring an Agency | corporate video production cost | creator-economy | brands |
 | 24 | Studio Etiquette: Rules Every Renter Should Know | studio rental rules | booking-tips | creators |
 | 25 | GST, Invoices & Payments: Studio Booking Paperwork Explained | gst on studio rental | booking-tips | brands, hosts |
 | 26 | Best Natural-Light Studios & the Right Time Slots to Book Them | natural light studio | studio-guides | creators |
@@ -65,3 +64,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-09-04 | 20 | affordable-studios-for-creators-india |
 | 2026-09-07 | 21 | music-video-shoot-budget-india |
 | 2026-09-14 | 22 | rent-your-property-for-shoots-india |
+| 2026-09-16 | 23 | corporate-video-production-cost-india |
