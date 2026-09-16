@@ -65,9 +65,11 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
   update,
   isUpdating,
 }) => {
+  const isCurated = initialListing.listingType === "CURATED";
+
   return (
     <div className="flex flex-col gap-5 sm:gap-8">
-      <Heading title="Edit Property" />
+      <Heading title={isCurated ? "Edit Curated Property" : "Edit Property"} />
       <Input
         id="listingName"
         label="Name"
@@ -94,12 +96,14 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         onChange={(html) => handleInputChange("description", html)}
       />
 
-      <RichTextEditor
-        label="Terms & Conditions by Host"
-        variant="horizontal"
-        value={initialListing.customTerms ?? ""}
-        onChange={(html) => handleInputChange("customTerms", html)}
-      />
+      {!isCurated && (
+        <RichTextEditor
+          label="Terms & Conditions by Host"
+          variant="horizontal"
+          value={initialListing.customTerms ?? ""}
+          onChange={(html) => handleInputChange("customTerms", html)}
+        />
+      )}
 
       <TaxonomyPillSelect
         label="Venue Type"
@@ -154,16 +158,77 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         </div>
       </FormField>
 
-      <Input
-        id="listingPrice"
-        label="Price"
-        variant="horizontal"
-        type="number"
-        formatPrice
-        placeholder="Price"
-        value={Number.isFinite(initialListing.price ?? undefined) ? (initialListing.price as number) : ""}
-        onNumberChange={(val) => handleInputChange("price", val)}
-      />
+      {isCurated ? (
+        <>
+          <FormField label="Price Range (₹/hr)" variant="horizontal" align="start">
+            <div className="flex items-center gap-3 w-full">
+              <Input
+                id="priceRangeMin"
+                type="number"
+                placeholder="Min Price"
+                value={Number.isFinite(initialListing.priceRangeMin ?? undefined) ? (initialListing.priceRangeMin as number) : ""}
+                onNumberChange={(val) => handleInputChange("priceRangeMin", val)}
+              />
+              <div className={propertyFieldSeparatorClassName}>to</div>
+              <Input
+                id="priceRangeMax"
+                type="number"
+                placeholder="Max Price"
+                value={Number.isFinite(initialListing.priceRangeMax ?? undefined) ? (initialListing.priceRangeMax as number) : ""}
+                onNumberChange={(val) => handleInputChange("priceRangeMax", val)}
+              />
+            </div>
+          </FormField>
+
+          <Input
+            id="instagramHandle"
+            label="Instagram Handle"
+            variant="horizontal"
+            placeholder="e.g. @contcave_studios"
+            value={initialListing.instagramHandle ?? ""}
+            onChange={(e) => handleInputChange("instagramHandle", e.target.value)}
+          />
+
+          <Input
+            id="mapsUrl"
+            label="Google Maps URL"
+            variant="horizontal"
+            placeholder="https://maps.google.com/..."
+            value={initialListing.mapsUrl ?? ""}
+            onChange={(e) => handleInputChange("mapsUrl", e.target.value)}
+          />
+
+          <Input
+            id="websiteUrl"
+            label="Website URL"
+            variant="horizontal"
+            placeholder="https://..."
+            value={initialListing.websiteUrl ?? ""}
+            onChange={(e) => handleInputChange("websiteUrl", e.target.value)}
+          />
+
+          <Input
+            id="contactEmail"
+            label="Contact Email"
+            variant="horizontal"
+            type="email"
+            placeholder="contact@studio.com"
+            value={initialListing.contactEmail ?? ""}
+            onChange={(e) => handleInputChange("contactEmail", e.target.value)}
+          />
+        </>
+      ) : (
+        <Input
+          id="listingPrice"
+          label="Price"
+          variant="horizontal"
+          type="number"
+          formatPrice
+          placeholder="Price"
+          value={Number.isFinite(initialListing.price ?? undefined) ? (initialListing.price as number) : ""}
+          onNumberChange={(val) => handleInputChange("price", val)}
+        />
+      )}
 
       <CitySelect
         label="City"
@@ -218,64 +283,68 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         </div>
       </FormField>
 
-      <FormField label="Video tour (Optional)" variant="horizontal" align="start">
-        <div className="w-full">
-          <ImageUpload
-            uid="property-video-upload"
-            uploadLabel="Upload Video Tour"
-            onChange={(v) => handleInputChange("videoSrc", v[0] || null)}
-            values={initialListing.videoSrc ? [initialListing.videoSrc] : []}
-            allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
-            maxSize={100 * 1024 * 1024}
-            icon={TbVideoPlus}
-            className="w-full h-48 p-4 border border-border rounded-xl"
-          />
-          {initialListing.videoSrc && (
-            <div className="mt-4 relative group w-full max-w-md">
-              <video src={initialListing.videoSrc} controls className="w-full h-48 rounded-xl object-cover border border-border" />
-              <button
-                onClick={() => handleInputChange("videoSrc", null)}
-                className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
-              >
-                <IoMdClose size={18} />
-              </button>
+      {!isCurated && (
+        <>
+          <FormField label="Video tour (Optional)" variant="horizontal" align="start">
+            <div className="w-full">
+              <ImageUpload
+                uid="property-video-upload"
+                uploadLabel="Upload Video Tour"
+                onChange={(v) => handleInputChange("videoSrc", v[0] || null)}
+                values={initialListing.videoSrc ? [initialListing.videoSrc] : []}
+                allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
+                maxSize={100 * 1024 * 1024}
+                icon={TbVideoPlus}
+                className="w-full h-48 p-4 border border-border rounded-xl"
+              />
+              {initialListing.videoSrc && (
+                <div className="mt-4 relative group w-full max-w-md">
+                  <video src={initialListing.videoSrc} controls className="w-full h-48 rounded-xl object-cover border border-border" />
+                  <button
+                    onClick={() => handleInputChange("videoSrc", null)}
+                    className="absolute top-2 right-2 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full w-6 h-6 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center z-10"
+                  >
+                    <IoMdClose size={18} />
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </FormField>
+          </FormField>
 
-      <AmenitiesCheckbox
-        label="Amenities"
-        variant="horizontal"
-        checked={Array.isArray(initialListing.amenities) ? initialListing.amenities : []}
-        amenities={amenities}
-        onChange={handleAmenitiesChange}
-        customAmenities={initialListing.otherAmenities}
-      />
+          <AmenitiesCheckbox
+            label="Amenities"
+            variant="horizontal"
+            checked={Array.isArray(initialListing.amenities) ? initialListing.amenities : []}
+            amenities={amenities}
+            onChange={handleAmenitiesChange}
+            customAmenities={initialListing.otherAmenities}
+          />
 
-      <AddonsSelection
-        label="Addons"
-        variant="horizontal"
-        initialSelectedAddons={initialListing.addons}
-        addons={addons}
-        onSelectedAddonsChange={handleAddonChange}
-      />
-      <div className="flex justify-end -mt-8">
-        <CustomAddonModal
-          save={(value) => {
-            const updated = [...addons, { ...value, price: 0, qty: 0, imageUrl: value.imageUrl ?? "" }];
-            setAddons(updated);
-          }}
-        />
-      </div>
+          <AddonsSelection
+            label="Addons"
+            variant="horizontal"
+            initialSelectedAddons={initialListing.addons}
+            addons={addons}
+            onSelectedAddonsChange={handleAddonChange}
+          />
+          <div className="flex justify-end -mt-8">
+            <CustomAddonModal
+              save={(value) => {
+                const updated = [...addons, { ...value, price: 0, qty: 0, imageUrl: value.imageUrl ?? "" }];
+                setAddons(updated);
+              }}
+            />
+          </div>
 
-      <PackagesForm
-        label="Packages"
-        variant="horizontal"
-        value={initialListing.packages ?? []}
-        onChange={handlePackagesChange}
-        availableSets={initialListing.hasSets ? (initialListing.sets ?? []) : []}
-      />
+          <PackagesForm
+            label="Packages"
+            variant="horizontal"
+            value={initialListing.packages ?? []}
+            onChange={handlePackagesChange}
+            availableSets={initialListing.hasSets ? (initialListing.sets ?? []) : []}
+          />
+        </>
+      )}
 
       <Input
         id="carpetArea"
@@ -285,56 +354,6 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         placeholder="Enter the carpet area"
         value={initialListing.carpetArea ?? 0}
         onNumberChange={(val) => handleInputChange("carpetArea", val)}
-      />
-
-      <FormField label="Operational Days" variant="horizontal" align="start">
-        <div className="flex items-center gap-3 w-full">
-          <Select
-            className="w-full"
-            options={dayOptionsPrepared}
-            value={dayOptionsPrepared.find((d) => d.value === initialListing.operationalDays?.start)}
-            onChange={(sel) => handleInputChange("operationalDays.start", (sel as SelectOption).value)}
-            placeholder="Start Day"
-          />
-          <div className={propertyFieldSeparatorClassName}>to</div>
-          <Select
-            className="w-full"
-            options={dayOptionsPrepared}
-            value={dayOptionsPrepared.find((d) => d.value === initialListing.operationalDays?.end)}
-            onChange={(sel) => handleInputChange("operationalDays.end", (sel as SelectOption).value)}
-            placeholder="End Day"
-          />
-        </div>
-      </FormField>
-
-      <FormField label="Operational Hours" variant="horizontal" align="start">
-        <div className="flex items-center gap-3 w-full">
-          <Select
-            className="w-full"
-            options={timeOptionsPrepared}
-            value={timeOptionsPrepared.find((t) => t.value === initialListing.operationalHours?.start)}
-            onChange={(sel) => handleInputChange("operationalHours.start", (sel as SelectOption).value)}
-            placeholder="Start Time"
-          />
-          <div className={propertyFieldSeparatorClassName}>to</div>
-          <Select
-            className="w-full"
-            options={timeOptionsPrepared}
-            value={timeOptionsPrepared.find((t) => t.value === initialListing.operationalHours?.end)}
-            onChange={(sel) => handleInputChange("operationalHours.end", (sel as SelectOption).value)}
-            placeholder="End Time"
-          />
-        </div>
-      </FormField>
-
-      <Input
-        id="minimumBookingHours"
-        label="Min Booking Hours"
-        variant="horizontal"
-        type="number"
-        placeholder="e.g. 2"
-        value={initialListing.minimumBookingHours ?? 0}
-        onNumberChange={(val) => handleInputChange("minimumBookingHours", val)}
       />
 
       <Input
@@ -347,97 +366,151 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         onNumberChange={(val) => handleInputChange("maximumPax", val)}
       />
 
-      <Switch
-        label="Instant Booking"
-        variant="horizontal"
-        checked={Boolean(initialListing.instantBooking)}
-        onChange={(checked) => handleInputChange("instantBooking", checked)}
-        styleVariant="bolt"
-        size="sm"
-      />
+      {!isCurated && (
+        <>
+          <FormField label="Operational Days" variant="horizontal" align="start">
+            <div className="flex items-center gap-3 w-full">
+              <Select
+                className="w-full"
+                options={dayOptionsPrepared}
+                value={dayOptionsPrepared.find((d) => d.value === initialListing.operationalDays?.start)}
+                onChange={(sel) => handleInputChange("operationalDays.start", (sel as SelectOption).value)}
+                placeholder="Start Day"
+              />
+              <div className={propertyFieldSeparatorClassName}>to</div>
+              <Select
+                className="w-full"
+                options={dayOptionsPrepared}
+                value={dayOptionsPrepared.find((d) => d.value === initialListing.operationalDays?.end)}
+                onChange={(sel) => handleInputChange("operationalDays.end", (sel as SelectOption).value)}
+                placeholder="End Day"
+              />
+            </div>
+          </FormField>
 
-      <div className="border-t border-border/40 pt-8 mt-4 flex flex-col gap-6">
-        <Heading title="Sets Management" subtitle="Manage your bookable sets and pricing" variant="h5" />
-        <FormField label="Enable Sets" variant="horizontal">
-          <div className="w-full flex items-center">
-            <Switch
-              checked={Boolean(initialListing.hasSets)}
-              onChange={(checked) => handleInputChange("hasSets", checked)}
-            />
-          </div>
-        </FormField>
+          <FormField label="Operational Hours" variant="horizontal" align="start">
+            <div className="flex items-center gap-3 w-full">
+              <Select
+                className="w-full"
+                options={timeOptionsPrepared}
+                value={timeOptionsPrepared.find((t) => t.value === initialListing.operationalHours?.start)}
+                onChange={(sel) => handleInputChange("operationalHours.start", (sel as SelectOption).value)}
+                placeholder="Start Time"
+              />
+              <div className={propertyFieldSeparatorClassName}>to</div>
+              <Select
+                className="w-full"
+                options={timeOptionsPrepared}
+                value={timeOptionsPrepared.find((t) => t.value === initialListing.operationalHours?.end)}
+                onChange={(sel) => handleInputChange("operationalHours.end", (sel as SelectOption).value)}
+                placeholder="End Time"
+              />
+            </div>
+          </FormField>
 
-        {initialListing.hasSets && (
-          <div className="flex flex-col gap-6 pl-4">
-            <FormField label="Pricing Type" variant="horizontal" align="start">
-              <div className="flex gap-4 w-full">
-                <Button
-                  onClick={() => handleInputChange("additionalSetPricingType", "FIXED")}
-                  variant={initialListing.additionalSetPricingType === "FIXED" ? "default" : "outline"}
-                  label="Fixed Add-on"
-                  fit
-                  className="flex-1"
-                />
-                <Button
-                  onClick={() => handleInputChange("additionalSetPricingType", "HOURLY")}
-                  variant={initialListing.additionalSetPricingType === "HOURLY" ? "default" : "outline"}
-                  label="Hourly Add-on"
-                  fit
-                  className="flex-1"
+          <Input
+            id="minimumBookingHours"
+            label="Min Booking Hours"
+            variant="horizontal"
+            type="number"
+            placeholder="e.g. 2"
+            value={initialListing.minimumBookingHours ?? 0}
+            onNumberChange={(val) => handleInputChange("minimumBookingHours", val)}
+          />
+
+          <Switch
+            label="Instant Booking"
+            variant="horizontal"
+            checked={Boolean(initialListing.instantBooking)}
+            onChange={(checked) => handleInputChange("instantBooking", checked)}
+            styleVariant="bolt"
+            size="sm"
+          />
+
+          <div className="border-t border-border/40 pt-8 mt-4 flex flex-col gap-6">
+            <Heading title="Sets Management" subtitle="Manage your bookable sets and pricing" variant="h5" />
+            <FormField label="Enable Sets" variant="horizontal">
+              <div className="w-full flex items-center">
+                <Switch
+                  checked={Boolean(initialListing.hasSets)}
+                  onChange={(checked) => handleInputChange("hasSets", checked)}
                 />
               </div>
             </FormField>
 
-            <FormField label="Will all sets have the same price?" variant="horizontal" align="start">
-              <div className="flex gap-4 w-full">
-                <label
-                  className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${
-                    setsHaveSamePrice === true
-                      ? "border-foreground bg-muted ring-1 ring-foreground/10"
-                      : "border-border hover:border-border/80"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="priceConsistency"
-                    checked={setsHaveSamePrice === true}
-                    onChange={() => setSetsHaveSamePrice(true)}
-                    className="hidden"
-                  />
-                  <div className="font-medium text-center">Yes, same price</div>
-                </label>
-                <label
-                  className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${
-                    setsHaveSamePrice === false
-                      ? "border-foreground bg-muted ring-1 ring-foreground/10"
-                      : "border-border hover:border-border/80"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="priceConsistency"
-                    checked={setsHaveSamePrice === false}
-                    onChange={() => setSetsHaveSamePrice(false)}
-                    className="hidden"
-                  />
-                  <div className="font-medium text-center">No, different prices</div>
-                </label>
-              </div>
-            </FormField>
+            {initialListing.hasSets && (
+              <div className="flex flex-col gap-6 pl-4">
+                <FormField label="Pricing Type" variant="horizontal" align="start">
+                  <div className="flex gap-4 w-full">
+                    <Button
+                      onClick={() => handleInputChange("additionalSetPricingType", "FIXED")}
+                      variant={initialListing.additionalSetPricingType === "FIXED" ? "default" : "outline"}
+                      label="Fixed Add-on"
+                      fit
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={() => handleInputChange("additionalSetPricingType", "HOURLY")}
+                      variant={initialListing.additionalSetPricingType === "HOURLY" ? "default" : "outline"}
+                      label="Hourly Add-on"
+                      fit
+                      className="flex-1"
+                    />
+                  </div>
+                </FormField>
 
-            <SetsEditor
-              label="Manage Sets"
-              variant="horizontal"
-              sets={initialListing.sets ?? []}
-              onChange={(updated) => handleInputChange("sets", updated)}
-              pricingType={initialListing.additionalSetPricingType || null}
-              isPricingUniform={setsHaveSamePrice ?? undefined}
-              uniformPrice={unifiedSetPrice}
-              onUniformPriceChange={setUnifiedSetPrice}
-            />
+                <FormField label="Will all sets have the same price?" variant="horizontal" align="start">
+                  <div className="flex gap-4 w-full">
+                    <label
+                      className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${
+                        setsHaveSamePrice === true
+                          ? "border-foreground bg-muted ring-1 ring-foreground/10"
+                          : "border-border hover:border-border/80"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="priceConsistency"
+                        checked={setsHaveSamePrice === true}
+                        onChange={() => setSetsHaveSamePrice(true)}
+                        className="hidden"
+                      />
+                      <div className="font-medium text-center">Yes, same price</div>
+                    </label>
+                    <label
+                      className={`flex-1 p-3 border rounded-xl cursor-pointer transition ${
+                        setsHaveSamePrice === false
+                          ? "border-foreground bg-muted ring-1 ring-foreground/10"
+                          : "border-border hover:border-border/80"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="priceConsistency"
+                        checked={setsHaveSamePrice === false}
+                        onChange={() => setSetsHaveSamePrice(false)}
+                        className="hidden"
+                      />
+                      <div className="font-medium text-center">No, different prices</div>
+                    </label>
+                  </div>
+                </FormField>
+
+                <SetsEditor
+                  label="Manage Sets"
+                  variant="horizontal"
+                  sets={initialListing.sets ?? []}
+                  onChange={(updated) => handleInputChange("sets", updated)}
+                  pricingType={initialListing.additionalSetPricingType || null}
+                  isPricingUniform={setsHaveSamePrice ?? undefined}
+                  uniformPrice={unifiedSetPrice}
+                  onUniformPriceChange={setUnifiedSetPrice}
+                />
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
 
       <div className="col-span-3 pt-5 flex justify-end">
         <Button label={isUpdating ? "Saving..." : "Save"} onClick={update} fit className="px-8" disabled={isUpdating} />

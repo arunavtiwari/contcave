@@ -83,6 +83,7 @@ function PropertiesClient({ listings, currentUser }: Props) {
             actionLabel="Archive property"
             currentUser={currentUser}
             allowScale={false}
+            showListingBadge={true}
           />
         ))}
       </div>
