@@ -612,7 +612,7 @@ export class InvoiceService {
       ? {
         name: studioPayment?.companyName || owner.name || "Studio Partner",
         legalName: studioPayment?.companyName || owner.name || "Studio Partner",
-        address: location || listing.locationValue,
+        address: studioPayment?.companyAddress || location || listing.locationValue,
         phone: owner.phone,
         email: owner.email,
         gstin: studioGstin,
@@ -915,6 +915,7 @@ export class InvoiceService {
     const ownerParty: InvoiceParty = {
       name: studioPayment?.companyName || owner.name || "Studio Owner",
       legalName: studioPayment?.companyName || owner.name || "Studio Owner",
+      address: studioPayment?.companyAddress || owner.location || undefined,
       email: owner.email,
       phone: owner.phone,
       gstin: ownerGstinForCommission,

@@ -204,6 +204,8 @@ function KycGrid({ listing }: { listing: AdminListingReview }) {
                 <Detail label="Account" value={user?.paymentDetails?.accountNumber} />
                 <Detail label="IFSC" value={user?.paymentDetails?.ifscCode} />
                 <Detail label="GSTIN" value={user?.paymentDetails?.gstin} />
+                <Detail label="Company Name" value={user?.paymentDetails?.companyName} />
+                <Detail label="Company Address" value={user?.paymentDetails?.companyAddress} />
                 <Detail label="Cashfree Vendor" value={user?.paymentDetails?.cashfreeVendorId} />
             </div>
         </div>
