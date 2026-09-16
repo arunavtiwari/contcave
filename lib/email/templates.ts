@@ -581,7 +581,8 @@ export async function sendCuratedOutreachEmail(input: {
   city: string;
   listingId: string;
 }) {
-  const waNumber = process.env.NEXT_PUBLIC_CONTCAVE_WHATSAPP ?? "";
+  const rawWa = (process.env.NEXT_PUBLIC_CONTCAVE_WHATSAPP || process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(/\D/g, "");
+  const waNumber = rawWa.length === 10 ? `91${rawWa}` : rawWa;
   const contactEmail = process.env.MAILERSEND_FROM_EMAIL ?? "info@contcave.com";
   const baseUrl = getValidatedBaseUrl();
 
