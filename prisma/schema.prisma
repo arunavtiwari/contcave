@@ -451,6 +451,7 @@ model PaymentDetails {
   accountNumber           String
   ifscCode                String
   companyName             String?
+  companyAddress          String?
   gstin                   String?
   cashfreeVendorId        String?
   accountNumberIV         String?

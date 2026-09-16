@@ -246,6 +246,7 @@ export async function getAdminListingReviews(status?: AdminListingStatus, listin
                         accountNumber: paymentDetails.accountNumber,
                         ifscCode: maskReference(paymentDetails.ifscCode, 3),
                         companyName: paymentDetails.companyName,
+                        companyAddress: paymentDetails.companyAddress,
                         gstin: paymentDetails.gstin,
                         cashfreeVendorId: paymentDetails.cashfreeVendorId,
                     } : null,
