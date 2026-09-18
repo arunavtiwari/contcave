@@ -18,24 +18,108 @@ Delhi NCR. Every post must be genuinely useful to one of these readers:
 A post earns its place only if a reader finishes it knowing exactly what to do next.
 No filler, no generic "content marketing" prose.
 
+## Voice & stance
+
+You are not a photographer, and you don't write as one. You are also not
+ContCave's founder — don't write in a founder's first-person voice unless a specific
+post is explicitly bylined to them by name, with their approval.
+
+The voice is: **the person who actually called the studios.** You called the
+owners, asked what the ceiling height is, found out the good light stops at
+2pm, learned which places have parking and which ones make you carry a
+C-stand up three flights. That is the entire source of authority for this
+blog, and it is enough on its own — no post needs to reach for anything
+grander than that.
+
+What this means in practice:
+
+- **Write about rooms, not about photography.** Never advise a reader on
+  lighting technique, lens choice, exposure, or how to direct a model or
+  subject. A working photographer reads one sentence of that and closes the
+  tab. Write about what's physically in the room, what it costs, when to use
+  it, and how to get gear into and out of it.
+- **"I called and asked" is the strongest sentence available.** Use it.
+  "The listed rate is ₹X, but the base room is ₹Y — lights are extra" beats
+  three paragraphs of adjectives, and no competitor page has it because
+  they're aggregating from Instagram instead of calling anyone.
+- **When you don't know something, say so — never fabricate a plausible
+  number.** If a post needs a ceiling height, a rate, a parking answer, or a
+  timing detail that hasn't been verified, insert a placeholder in the draft:
+  `[NEED: ceiling height for <studio/listing>]`. Flag every `[NEED: ...]` in
+  the PR description. One invented spec that a reader catches costs the
+  reader and the studio relationship — never guess to fill a gap.
+- **ContCave belongs in the post as a fact, not a pitch.** Don't bolt on a
+  "Why Book with ContCave" section that could be pasted onto any studio-rental
+  blog on earth. Mention ContCave only where it's the actual answer to
+  something the post just raised — e.g. naming it as where to compare the
+  specific rooms just discussed, or as the source of a rate/availability
+  detail — and only when there is real inventory to point to. If there isn't
+  enough real inventory for a topic to link anywhere useful, the topic
+  doesn't belong in the queue (see "Topic selection" below).
+
+### Banned words and phrases
+
+Never use: *game-changer, seamless, one-stop, elevate, unlock, curated
+experience, dive into, delve, in today's fast-paced world, look no further,
+revolutionise/revolutionize, transform your, the perfect, whether you're a
+... or a ..., it's important to note, boasts, nestled, plethora.*
+
+If a sentence needs one of these to work, the sentence has nothing in it.
+Cut it and write the fact instead.
+
+**The test:** would a photographer who has booked forty studios roll their
+eyes at this sentence? If yes, it's out. Read the full draft against this
+test before it ships.
+
 ## Cadence
 
 - **3 posts per week: Monday, Wednesday, Friday** (published ~9:30 AM IST).
-- One post per publishing run. Pick the next topic from
-  `content/editorial/TOPIC_BACKLOG.md` (see "Topic selection" below).
+- One post per publishing run.
 
 ## Topic selection
 
-1. Open `content/editorial/TOPIC_BACKLOG.md` and take the **first topic in the
-   Queue** section.
-2. Skip a topic if it is already covered by:
-   - an existing file in `content/posts/`, or
-   - an open pull request whose title starts with `blog:`.
-3. Before writing, spend a few minutes validating the angle (web search if
-   available): confirm the primary keyword is how people actually phrase the query
-   in India, and pull 2–4 "People also ask"-style questions for the FAQ section.
-4. After publishing, move the topic from **Queue** to **Published** in the backlog
-   file (add date + slug) in the same commit as the post.
+Topics are no longer picked autonomously from a raw brainstorm list. The
+backlog file (`content/editorial/TOPIC_BACKLOG.md`) has two sections:
+
+- **Approved Queue** — topics that have been reviewed and explicitly approved
+  by the ContCave team, with the verified data (or `[NEED: ...]` gaps) already
+  attached. The automated routine may only pick from here, in order.
+- **Proposed — needs approval** — candidate topics awaiting sign-off. The
+  automated routine must never write from this section. Move a topic to the
+  Approved Queue only after the team has said yes.
+
+Every topic, before it can move into the Approved Queue, must clear three
+bars:
+
+1. **It maps to a query someone actually types.** Evidence is a real SERP
+   observation or search-behavior signal (e.g. "People also ask" questions,
+   autocomplete, competitor pages ranking for the exact phrase) — not a
+   hunch. Cite what was checked.
+2. **It can link to real ContCave inventory.** State how many active listings
+   it can point to and where that count came from. A topic with nowhere to
+   send the reader doesn't go in the queue, however good the keyword looks.
+3. **It contains at least one number that can be verified** — a rate, a
+   ceiling height, an opening/closing time, a metro/parking distance. Generic
+   advice with no verifiable specific ranks for nothing; a thousand identical
+   pages already exist for it.
+
+Checklist- and etiquette-style topics ("10 things to bring to a shoot",
+"studio rules every renter should know") are explicitly out — they compete
+with every generic blog on the internet and convert nobody. Prefer a matrix
+of **studio type × city/micro-market × use case** (e.g. "cyclorama studios in
+Gurugram," "daylight studios for lookbook shoots in South Delhi," "where to
+record a podcast near Cyber Hub," "pre-wedding shoot locations in Noida under
+₹15,000") over broad city-level or generic-advice topics that are already
+covered.
+
+Selection steps once a topic is in the Approved Queue:
+
+1. Take the first Approved Queue topic not already covered by a file in
+   `content/posts/` or an open PR titled `blog: ...`.
+2. Re-verify the query phrasing and pull 2–4 real "People also ask"-style
+   questions for the FAQ section (a few minutes of web search).
+3. After publishing, move the topic from Approved Queue to Published (date +
+   slug) in the same commit as the post.
 
 ## File format
 
@@ -56,7 +140,8 @@ Rules:
   e.g. `"2026-07-06T04:00:00Z"`.
 - `_status`: `"published"`, `enablePremiumContent`: `false`, `premiumContent`: `[]`.
 - `authors`: `["ContCave Editorial"]`,
-  `populatedAuthors`: `[{ "id": "author-cc-edit", "name": "ContCave Editorial" }]`.
+  `populatedAuthors`: `[{ "id": "author-cc-edit", "name": "ContCave Editorial" }]`,
+  unless the post is explicitly bylined to a named person with their approval.
 - `categories`: exactly one, from the fixed set below, with breadcrumbs shaped like
   existing posts (see any file in `content/posts/` for the shape).
 - **Never invent new ids.** The only new identifier a post introduces is its own
@@ -87,16 +172,21 @@ Block `id`s must be unique within the post (`h-intro`, `p-intro`, `list-x`, …)
 2. **Intro paragraph** — state the reader's problem and what the post delivers,
    with the primary keyword in the first 100 words.
 3. **4–7 H2 sections** — each a `heading` block followed by paragraphs/lists.
-   Use secondary keywords naturally in H2s. Prefer concrete, India-specific
-   detail: ₹ price ranges, city areas, hourly-slot math, realistic shot counts.
-4. **At least one `quote` block** — a stat, rule of thumb, or pro tip.
+   Every section is about the room and the logistics of using it (space,
+   equipment on site, access, timing, cost), never about photography
+   technique. Prefer concrete, India-specific detail: ₹ price ranges, city
+   micro-markets, hourly-slot math, metro/parking distance — and mark
+   anything unverified with `[NEED: ...]` rather than inventing it.
+4. **At least one `quote` block** — a verified fact or direct answer from an
+   actual call to a studio/host, not a generic "rule of thumb." If nothing
+   verified is available yet, mark it `[NEED: verified quote/stat]`.
 5. **FAQ section** — a heading `"FAQs: <topic>"` followed by 3–5 question
    headings, each answered in 1–2 short paragraphs. Source questions from real
    search queries ("People also ask").
-6. **"Why book with ContCave" or equivalent CTA section** — one short section
-   tying the topic back to what ContCave does (compare studios, transparent
-   hourly pricing, instant booking). Plain text only — the renderer does not
-   support inline links, so name ContCave rather than linking.
+6. **ContCave mention** — one or two sentences, placed wherever it's the
+   natural answer to something the post just raised (not a separate bolted-on
+   "Why Book with ContCave" section with marketing language). Name ContCave
+   rather than linking — the renderer doesn't support inline links.
 7. **Final takeaways** — a short paragraph + a 3–5 item action list.
 
 Target length: **1,200–1,800 words** across all blocks. Long enough to rank,
@@ -120,9 +210,10 @@ short enough to stay useful.
   - lowercase except proper nouns; no duplicates; no tag stuffing beyond 30.
   Tags are rendered as a "Related Topics" section at the end of the article and
   emitted as `keywords` metadata + Article JSON-LD, so they must read naturally.
-- **Honesty rule**: never invent named studios, fake statistics, or fake reviews.
-  Price ranges and stats must be conservative, clearly framed as typical ranges.
-  When citing a trend, phrase it as an observable pattern, not a fabricated study.
+- **Honesty rule**: never invent named studios, fake statistics, or fake
+  reviews. Every rate, dimension, or timing claim is either verified (say how)
+  or marked `[NEED: ...]` — never a plausible-sounding guess. When citing a
+  trend, phrase it as an observable pattern, not a fabricated study.
 
 ## Validation before publishing
 
@@ -131,9 +222,12 @@ node -e "JSON.parse(require('fs').readFileSync('content/posts/<slug>.json','utf8
 npm run type-check
 ```
 
-Both must pass. Also confirm the new file appears via
-`node -e "const{getSortedPostsData}=require('./lib/posts');..."` is unnecessary —
-JSON parse + type-check is sufficient since posts are read dynamically.
+Both must pass. Also grep the draft against the banned-words list above and
+against the voice test ("would a photographer who's booked forty studios roll
+their eyes at this sentence?") before committing. Also confirm the new file
+appears via `node -e "const{getSortedPostsData}=require('./lib/posts');..."`
+is unnecessary — JSON parse + type-check is sufficient since posts are read
+dynamically.
 
 ## Publishing flow (automated routine)
 
@@ -162,9 +256,28 @@ to the same branch/PR until someone merges it.
      short PR comment noting the newly added post is a nice-to-have.
    - If none is open (first run, or the last one was merged/closed), open a
      new PR titled `blog: <post title>` with a body summarizing the topic,
-     primary keyword, and tag count.
+     primary keyword, tag count, and any `[NEED: ...]` gaps still open.
 6. Do not merge the PR yourself unless explicitly authorized.
+7. If the Approved Queue is empty, stop and report that rather than writing
+   from the Proposed section or inventing a topic.
 
 Note: this branch strategy applies only to the recurring post routine. One-off
 infra/editorial changes (like updates to this playbook itself) should still use
 their own short-lived branch as normal.
+
+## Backward pass (existing posts)
+
+Existing posts are re-evaluated using Search Console data (last 90 days per
+URL: impressions, clicks, average position), bucketed as:
+
+- **Impressions and clicks** — leave the structure alone; only add
+  specificity (real rates, real specs, links to actual listings) where it's
+  missing.
+- **Impressions, no clicks** — rewrite fully in the voice above. The query is
+  there; the page isn't earning it.
+- **No impressions after 90 days** — don't rewrite. Delete the post or merge
+  its content into a stronger page. A rewritten post nobody searches for is
+  still a post nobody searches for.
+
+This pass needs a human to supply the Search Console export — it is not
+something the automated routine can run on its own.

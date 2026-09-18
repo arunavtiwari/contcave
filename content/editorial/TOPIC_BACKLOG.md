@@ -1,27 +1,44 @@
 # ContCave Blog Topic Backlog
 
-Ordered queue of upcoming posts, built from top-searched topics in India's
-studio-rental and creator-economy space (studio "near me" queries, pricing/cost
-queries, platform-growth topics like reels/podcasts/D2C shoots, and host-side
-"earn from your space" queries).
+Two working sections now, per the voice/topic overhaul in `BLOG_PLAYBOOK.md`:
 
-**How to use:** take the first topic in the Queue that isn't already covered by a
-file in `content/posts/` or an open `blog:` PR. After publishing, move it to the
-Published section with the date and slug. See `BLOG_PLAYBOOK.md` for everything
-else. When the queue runs low (< 6 topics), research current top searches and
-append a fresh batch at the bottom, keeping this file's format.
+- **Approved Queue** — topics the team has explicitly signed off on, each
+  cleared against the three bars in `BLOG_PLAYBOOK.md` (real search query,
+  real ContCave inventory to link to, at least one verifiable number). The
+  automated routine may only pick from here, in order, and only takes a topic
+  not already covered by a file in `content/posts/` or an open `blog:` PR.
+- **Proposed — needs approval** — candidate topics awaiting sign-off. The
+  automated routine must never write from this section; it only moves into
+  Approved Queue once a human says yes.
 
-## Queue
+After publishing, move the topic from Approved Queue to Published (date +
+slug) in the same commit as the post.
+
+**2026-09-18 cleanup:** four old Queue topics were removed outright rather
+than carried forward — #25 (GST/invoices paperwork), #27 (content calendar),
+#28 (UGC creators), #30 (host bookings tips). All four were generic-advice /
+checklist-style topics with no specific studio-type-and-city angle and no
+clear inventory to link to; they fail the new topic bars and were explicitly
+the kind of post the "kill checklist/etiquette posts" directive targets. #26
+and #29 were reframed into micro-market-specific versions and moved to
+Proposed (below) pending real inventory/rate data. #24 (studio-rental-rules,
+an etiquette-style post) is not listed here — it's already written and is
+part of open PR #83; whether it gets rewritten or dropped is a pending call,
+tracked in that PR/conversation, not in this file.
+
+## Approved Queue
+
+*(empty — nothing has cleared the new three-bar approval process yet)*
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 24 | Studio Etiquette: Rules Every Renter Should Know | studio rental rules | booking-tips | creators |
-| 25 | GST, Invoices & Payments: Studio Booking Paperwork Explained | gst on studio rental | booking-tips | brands, hosts |
-| 26 | Best Natural-Light Studios & the Right Time Slots to Book Them | natural light studio | studio-guides | creators |
-| 27 | Build a Monthly Content Calendar Around One Studio Day | content calendar for creators | content-creation | creators |
-| 28 | UGC Creators: Delivering Brand Content with Studio Shoots | ugc creator india | creator-economy | creators |
-| 29 | Renting Event Spaces for Workshops, Pop-Ups & Launches | event space on rent delhi | studio-guides | brands |
-| 30 | How Hosts Can Get More Bookings: Photos, Pricing & Reviews | get more studio bookings | host-guides | hosts |
+
+## Proposed — needs approval
+
+| # | Working title | Primary keyword | Category | Listings to link | Data needed |
+|---|---|---|---|---|---|
+| 26 | Daylight & Natural-Light Studios in South Delhi: Best Time Slots to Book | natural light studio south delhi | studio-guides | `[NEED: count of South Delhi listings tagged natural-light/daylight]` | Confirmed studio names/areas, actual golden-hour/window-light cutoff times per listing, base hourly rate |
+| 29 | Event Spaces for Workshops & Pop-Ups Near Cyber Hub, Gurugram | event space on rent cyber hub gurugram | studio-guides | `[NEED: count of Gurugram event-space listings]` | Max capacity, hourly/day rate, parking situation, confirmed via call |
 
 ## Published
 
