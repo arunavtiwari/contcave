@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 24 | Studio Etiquette: Rules Every Renter Should Know | studio rental rules | booking-tips | creators |
 | 25 | GST, Invoices & Payments: Studio Booking Paperwork Explained | gst on studio rental | booking-tips | brands, hosts |
 | 26 | Best Natural-Light Studios & the Right Time Slots to Book Them | natural light studio | studio-guides | creators |
 | 27 | Build a Monthly Content Calendar Around One Studio Day | content calendar for creators | content-creation | creators |
@@ -65,3 +64,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-09-07 | 21 | music-video-shoot-budget-india |
 | 2026-09-14 | 22 | rent-your-property-for-shoots-india |
 | 2026-09-16 | 23 | corporate-video-production-cost-india |
+| 2026-09-18 | 24 | studio-rental-rules |

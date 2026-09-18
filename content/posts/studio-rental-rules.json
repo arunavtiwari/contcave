@@ -1,0 +1,279 @@
+{
+  "id": "studio-rental-rules",
+  "title": "Studio Rental Rules: Etiquette Every Renter Should Know",
+  "categories": [
+    {
+      "id": "booking-tips",
+      "title": "Booking Tips",
+      "breadcrumbs": [
+        { "doc": "home", "label": "Home", "id": "bc-home" },
+        { "doc": "blogs", "label": "Blogs", "id": "bc-blogs" },
+        { "doc": "category", "label": "Booking Tips", "id": "bc-booking-tips" }
+      ],
+      "createdAt": "2026-09-18T00:00:00Z",
+      "updatedAt": "2026-09-18T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-09-18T04:00:00Z",
+  "authors": ["ContCave Editorial"],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "The studio rental rules and etiquette that keep bookings dispute-free — scheduling, backdrops and props, equipment, guest limits, and who pays for damage."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-intro",
+      "blockType": "heading",
+      "content": "Studio Rental Rules: Etiquette Every Renter Should Know"
+    },
+    {
+      "id": "p-intro",
+      "blockType": "paragraph",
+      "content": "Studio rental rules exist for a simple reason: dozens of different renters use the same backdrops, lights, and floor between bookings, and the space only stays shoot-ready if everyone treats it the same way. Whether you're renting a photography studio, a podcast room, or a full production space in Delhi NCR, most disputes with hosts don't come from bad studios — they come from renters who assumed the rules rather than asking. This guide walks through the etiquette that actually matters: scheduling and arrival, how to treat backdrops and props, what equipment you can touch without asking, guest and noise limits, and who pays when something breaks — so your booking goes smoothly for you and for the next creator who walks in after you."
+    },
+    {
+      "id": "h-time",
+      "blockType": "heading",
+      "content": "Before You Book: Time & Scheduling Rules"
+    },
+    {
+      "id": "p-time",
+      "blockType": "paragraph",
+      "content": "Most studio rental disputes start with the clock, not the camera. Your booked slot typically includes your setup and breakdown time, not just the minutes you spend actually shooting. Arriving even 10-15 minutes late still eats into your booked start time; arriving 10 minutes early to start unpacking gear is the safer habit. If a shoot needs more setup than usual — multiple outfit changes, a product table, a full lighting rig — book a longer slot upfront rather than assuming the studio will let you run over for free."
+    },
+    {
+      "id": "list-time",
+      "blockType": "list",
+      "items": [
+        "Treat your booked hours as inclusive of setup and breakdown, not just camera-rolling time",
+        "Arrive 10-15 minutes early rather than exactly on time",
+        "Confirm the overtime rate before you book, not after you run long",
+        "Message the host in advance if your shoot needs extra time for changes or a bigger crew"
+      ]
+    },
+    {
+      "id": "h-space",
+      "blockType": "heading",
+      "content": "Respecting the Space, Backdrops & Props"
+    },
+    {
+      "id": "p-space",
+      "blockType": "paragraph",
+      "content": "A studio's backdrops, paper rolls, and props are shared inventory, not disposable set pieces. Walking a paper roll in outdoor shoes, dragging heavy stands across it, or leaving marks that the next renter's camera will catch is the fastest way to get flagged for a cleaning or repair charge. The same goes for furniture and props styled into your shot — move them back to where you found them once you're done, rather than leaving the studio's team to reset the whole space between back-to-back bookings."
+    },
+    {
+      "id": "list-space",
+      "blockType": "list",
+      "items": [
+        "Change into clean indoor shoes before stepping onto paper backdrops or cyc walls",
+        "Return furniture, props, and backdrops to their original position after the shoot",
+        "Ask before cutting, taping over, or otherwise altering a backdrop",
+        "Report any existing damage or wear the moment you notice it, before you start shooting"
+      ]
+    },
+    {
+      "id": "h-equipment",
+      "blockType": "heading",
+      "content": "Equipment Rules: What's Off-Limits Without Asking"
+    },
+    {
+      "id": "p-equipment",
+      "blockType": "paragraph",
+      "content": "Lighting kits, mic setups, and grip equipment are usually included in your rate, but included doesn't mean unsupervised. Unplugging power cords to free up an outlet, repositioning a strobe's settings, or swapping in your own modifier without checking can trip a breaker or leave the next renter with a light that no longer holds its calibration. If a piece of gear isn't behaving the way you expect, the studio's team can usually fix it in under a minute — flag it rather than troubleshooting it yourself."
+    },
+    {
+      "id": "list-equipment",
+      "blockType": "list",
+      "items": [
+        "Ask before adjusting light stands, modifiers, or camera-mount gear you didn't bring",
+        "Never unplug studio equipment to make room for your own — ask for an extra outlet instead",
+        "Get any equipment you plan to bring in, such as extra lights or smoke effects, pre-approved",
+        "Report anything that isn't working as soon as you notice it, rather than working around it"
+      ]
+    },
+    {
+      "id": "h-guests",
+      "blockType": "heading",
+      "content": "Guest Count, Noise & Conduct Rules"
+    },
+    {
+      "id": "p-guests",
+      "blockType": "paragraph",
+      "content": "Every studio rate is priced around an expected headcount, and a crew twice the size of what you booked changes the wear on the space and the noise in a shared building. Most hosts are fine with a reasonable number of guests, models, or crew, but a rate quoted for four people usually isn't meant to absorb ten — expect a footfall charge, or a request to rebook at a higher tier, if your numbers change on the day. The same applies to noise and conduct: shared buildings mean neighbouring offices or studios are affected by loud music, shouting, or a large group spilling into the corridor."
+    },
+    {
+      "id": "list-guests",
+      "blockType": "list",
+      "items": [
+        "Confirm your expected headcount when booking, and flag it early if the number grows",
+        "Expect a per-person footfall charge beyond the studio's stated guest limit",
+        "Keep music and noise at a level that doesn't disturb neighbouring units",
+        "Smoking, alcohol, and open flame are typically not allowed without prior approval — always ask"
+      ]
+    },
+    {
+      "id": "h-damage",
+      "blockType": "heading",
+      "content": "Damage, Cleanup & Liability Rules"
+    },
+    {
+      "id": "p-damage",
+      "blockType": "paragraph",
+      "content": "Most studios don't expect a spotless handover, but they do expect the space back in roughly the condition you found it — food packaging binned, spills wiped, props back in place. Beyond general tidiness, you're usually liable for anything actually broken or damaged during your booking, whether it's a cracked light stand or a torn backdrop, and studios typically bill repair or replacement at cost rather than a flat penalty. A quick walkthrough with the host or their team at the start and end of your slot protects both sides — it's the easiest way to avoid being billed for damage that existed before you arrived."
+    },
+    {
+      "id": "list-damage",
+      "blockType": "list",
+      "items": [
+        "Bin your own trash and wipe up spills before you leave",
+        "Expect to pay for repair or replacement of anything damaged during your booking",
+        "Do a quick walkthrough with the studio's team at check-in and check-out",
+        "Keep your booking confirmation as a record in case a dispute comes up later"
+      ]
+    },
+    {
+      "id": "quote-etiquette",
+      "blockType": "quote",
+      "content": "Studio etiquette rule of thumb: treat every backdrop, prop, and light stand like something you're borrowing from the next renter, not something you're paying to use up."
+    },
+    {
+      "id": "h-faq",
+      "blockType": "heading",
+      "content": "FAQs: Studio Rental Rules"
+    },
+    {
+      "id": "h-faq1",
+      "blockType": "heading",
+      "content": "What are the general rules for renting a photography or podcast studio in India?"
+    },
+    {
+      "id": "p-faq1",
+      "blockType": "paragraph",
+      "content": "Most Indian studios expect the same core rules: arrive close to your booked start time, treat your slot as inclusive of setup and breakdown, avoid touching equipment you didn't bring without asking, keep guest numbers within what you booked, and leave the space roughly as you found it. Individual studios may add specifics — no outdoor shoes on paper backdrops, no smoking, no subletting your slot — but these fundamentals hold across most bookings."
+    },
+    {
+      "id": "h-faq2",
+      "blockType": "heading",
+      "content": "How many guests can I bring to a studio booking?"
+    },
+    {
+      "id": "p-faq2",
+      "blockType": "paragraph",
+      "content": "This depends on the studio's stated capacity for your booked rate — most listings mention a base headcount, with an extra per-person charge beyond it. If your crew, models, or guests are likely to exceed what you originally booked for, message the host beforehand rather than showing up with a larger group; it avoids an awkward on-the-day charge or a request to reschedule."
+    },
+    {
+      "id": "h-faq3",
+      "blockType": "heading",
+      "content": "Who is responsible if studio equipment or props get damaged?"
+    },
+    {
+      "id": "p-faq3",
+      "blockType": "paragraph",
+      "content": "The renter is typically liable for damage caused during their booking, and most studios bill repair or replacement at cost. This is exactly why a quick equipment and space walkthrough at check-in is worth doing — it establishes what was already there versus what happened during your slot, protecting you from being charged for pre-existing wear."
+    },
+    {
+      "id": "h-faq4",
+      "blockType": "heading",
+      "content": "Is smoking or alcohol allowed inside rental studios?"
+    },
+    {
+      "id": "p-faq4",
+      "blockType": "paragraph",
+      "content": "Generally no, unless a specific studio explicitly permits it for your shoot and you've confirmed this in advance. Most studios prohibit smoking and alcohol on the premises by default, along with open flame or smoke effects, since these carry fire-safety and liability risk for a shared space. If your concept needs any of these, get written approval before your booking date, not on arrival."
+    },
+    {
+      "id": "h-faq5",
+      "blockType": "heading",
+      "content": "What happens if my shoot runs past the booked time?"
+    },
+    {
+      "id": "p-faq5",
+      "blockType": "paragraph",
+      "content": "You'll typically be billed an overtime rate for any time beyond your booked slot, and the studio may need to cut your session short if another booking follows immediately after. Confirming the overtime rate and how it's billed — per full hour or per extra minute — before you book is the easiest way to avoid a surprise at the end of a long shoot day."
+    },
+    {
+      "id": "h-contcave",
+      "blockType": "heading",
+      "content": "Why Book with ContCave"
+    },
+    {
+      "id": "p-contcave",
+      "blockType": "paragraph",
+      "content": "ContCave lists creative studios across Delhi NCR with transparent hourly pricing, so the details that matter most — capacity, inclusions, and cancellation terms — are visible on the listing itself rather than buried in a policy document you only see after paying. You can compare studios side by side and book your slot instantly, going into your shoot day already knowing what's expected instead of guessing at etiquette on arrival."
+    },
+    {
+      "id": "h-final",
+      "blockType": "heading",
+      "content": "Final Takeaways"
+    },
+    {
+      "id": "p-final",
+      "blockType": "paragraph",
+      "content": "Studio rental rules aren't there to restrict your shoot — they exist so the same space stays usable for the next fifty renters after you. Treat your booked time as inclusive of setup, respect props and backdrops, keep equipment changes to what the studio's team approves, stay within your booked headcount, and leave the space as you found it."
+    },
+    {
+      "id": "list-final",
+      "blockType": "list",
+      "items": [
+        "Book enough time to cover setup and breakdown, not just shooting",
+        "Ask before touching equipment, props, or backdrops you didn't bring",
+        "Confirm your guest count, footfall charges, and overtime rate before you pay",
+        "Do a quick walkthrough at check-in and check-out to avoid damage disputes",
+        "Use ContCave to book studios where pricing and inclusions are already transparent"
+      ]
+    }
+  ],
+  "slug": "studio-rental-rules",
+  "meta": {
+    "title": "Studio Rental Rules: Etiquette Every Renter Should Know",
+    "description": "Learn the studio rental rules every renter should know — scheduling, backdrops, equipment, and guest limits — before your next shoot with ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-09-18T04:00:00Z",
+  "updatedAt": "2026-09-18T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    { "id": "author-cc-edit", "name": "ContCave Editorial" }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "studio rental rules",
+    "studio etiquette",
+    "photography studio rules",
+    "studio rules for renters",
+    "studio booking etiquette",
+    "dos and donts of studio rental",
+    "rules for renting a photography studio",
+    "podcast studio rules",
+    "video studio rules",
+    "studio rental guidelines india",
+    "studio rental india",
+    "delhi ncr studio rental",
+    "studio on rent delhi",
+    "studio for rent in gurugram",
+    "studio for rent in noida",
+    "studio damage policy",
+    "studio cleanup rules",
+    "studio equipment rules",
+    "studio noise policy",
+    "studio guest limit",
+    "studio footfall charges",
+    "before you book a studio",
+    "studio booking guide 2026",
+    "studio rental rules for creators",
+    "studio etiquette for photographers",
+    "studio rules for podcasters",
+    "studio rules for brands",
+    "rent a studio near me",
+    "ContCave"
+  ]
+}
