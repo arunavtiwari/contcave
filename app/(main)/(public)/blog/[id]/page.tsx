@@ -143,20 +143,26 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
       <section className="py-20 -mt-10 relative z-20">
         <Container>
           <article className="bg-background rounded-3xl border border-border p-8 md:p-12 lg:p-16 shadow-sm max-w-5xl mx-auto space-y-8">
-            {post.layout.map((block) => {
+            {post.layout.map((block, index) => {
+              // The banner above already renders post.title as the page's H1;
+              // skip a leading heading block that just repeats it.
+              if (index === 0 && block.blockType === "heading" && block.content === post.title) {
+                return null;
+              }
+
               switch (block.blockType) {
                 case "heading":
                   return (
                     <Heading
                       key={block.id}
                       title={block.content}
-                      variant="h2"
+                      variant="h3"
                       className="text-foreground"
                     />
                   );
                 case "paragraph":
                   return (
-                    <p key={block.id} className="text-foreground/80 leading-relaxed">
+                    <p key={block.id} className="text-base md:text-lg text-foreground/80 leading-relaxed">
                       {block.content}
                     </p>
                   );
@@ -164,7 +170,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
                   return (
                     <blockquote
                       key={block.id}
-                      className="border-l-4 border-foreground pl-6 py-2 italic text-foreground bg-foreground/5 rounded-r-lg"
+                      className="border-l-4 border-foreground pl-6 py-2 italic text-base md:text-lg text-foreground bg-foreground/5 rounded-r-lg"
                     >
                       {block.content}
                     </blockquote>
@@ -182,7 +188,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
                   );
                 case "list":
                   return (
-                    <ul key={block.id} className="list-disc pl-6 space-y-2 text-foreground/80">
+                    <ul key={block.id} className="list-disc pl-6 space-y-2 text-base md:text-lg text-foreground/80">
                       {block.items?.map((item, i) => <li key={i}>{item}</li>)}
                     </ul>
                   );
