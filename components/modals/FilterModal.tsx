@@ -1,6 +1,7 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { FiSliders } from "react-icons/fi";
 
 import CitySelect from "@/components/inputs/CitySelect";
 import Modal from "@/components/modals/Modal";
@@ -153,20 +154,21 @@ const FilterModalContent = () => {
 
   return (
     <div className="shrink-0">
-      <button
+      <Button
+        label="Filters"
+        icon={FiSliders}
+        variant="ghost"
+        size="sm"
+        fit
         onClick={() => setIsOpen(true)}
-        className="relative inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-muted hover:bg-muted/80 border border-border transition-colors"
+        className="bg-muted border border-border hover:bg-muted/80 h-9 px-3 gap-1.5 font-medium"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="10" y1="18" x2="14" y2="18" />
-        </svg>
-        Filters
         {activeFilterCount > 0 && (
           <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-foreground text-background text-[10px] font-bold leading-none">
             {activeFilterCount}
           </span>
         )}
-      </button>
+      </Button>
 
       <Modal
         isOpen={isOpen}
@@ -189,10 +191,11 @@ const FilterModal = () => {
       <div className="shrink-0">
         <Button
           label="Filters"
+          icon={FiSliders}
           variant="ghost"
           size="sm"
           fit
-          className="bg-muted border border-border opacity-50"
+          className="bg-muted border border-border opacity-50 h-9 px-3 gap-1.5 font-medium"
           disabled
         />
       </div>

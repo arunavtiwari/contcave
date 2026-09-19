@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { memo, Suspense, useMemo } from "react";
+import { FiSliders } from "react-icons/fi";
 
 import FilterModal from "@/components/modals/FilterModal";
 import CategoryBox from "@/components/navbar/CategoryBox";
@@ -53,11 +54,12 @@ const Categories = memo(function Categories() {
         </div>
         <div className="shrink-0">
           <Button
-            label="More Filters"
+            label="Filters"
+            icon={FiSliders}
             variant="ghost"
             size="sm"
             fit
-            className="bg-muted border border-border opacity-50"
+            className="bg-muted border border-border opacity-50 h-9 px-3 gap-1.5 font-medium"
             disabled
           />
         </div>

@@ -40,3 +40,18 @@ export default async function getListingById(params: IParams): Promise<FullListi
   }
 }
 
+
+// Existence is checked without resolving the session so the page can answer a
+// real 404 before its Suspense fallback flushes the response at 200.
+export async function listingExists(listingId?: string): Promise<boolean> {
+  if (!listingId) return false;
+  try {
+    return await ListingService.exists(listingId);
+  } catch (error: unknown) {
+    console.error(
+      "[listingExists] Error:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    return true;
+  }
+}
