@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import {
     FiCheck,
     FiClock,
+    FiEdit,
     FiExternalLink,
     FiFileText,
     FiLayers,
@@ -412,14 +413,24 @@ function ReviewModal({
             }
             footer={
                 <div className="flex flex-col gap-3 border-t border-border bg-background pt-4 sm:flex-row sm:justify-between">
-                    <Button
-                        label="Open Preview"
-                        href={previewHref}
-                        target="_blank"
-                        variant="outline"
-                        icon={FiExternalLink}
-                        data-testid="admin-review-open-preview"
-                    />
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            label="Open Preview"
+                            href={previewHref}
+                            target="_blank"
+                            variant="outline"
+                            icon={FiExternalLink}
+                            data-testid="admin-review-open-preview"
+                        />
+                        <Button
+                            label="Edit Studio"
+                            href={`/dashboard/properties/${listing.id}`}
+                            target="_blank"
+                            variant="outline"
+                            icon={FiEdit}
+                            data-testid="admin-review-edit-studio"
+                        />
+                    </div>
                     <div className="flex flex-col gap-3 sm:flex-row">
                         {listing.status !== "VERIFIED" && (
                             <Button
@@ -859,6 +870,15 @@ export default function AdminListingsClient({
                                                     <div className="flex items-center justify-end gap-2">
                                                         <a href={publicListingHref(listing.slug || listing.id)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">View</a>
                                                         <Button
+                                                            icon={FiEdit}
+                                                            isIconOnly
+                                                            outline
+                                                            aria-label={`Edit studio: ${listing.title}`}
+                                                            tooltip="Edit Studio"
+                                                            data-testid={`edit-curated-${listing.id}`}
+                                                            onClick={() => window.open(`/dashboard/properties/${listing.id}`, "_blank")}
+                                                        />
+                                                        <Button
                                                             icon={FiStar}
                                                             isIconOnly
                                                             outline
@@ -1003,6 +1023,15 @@ export default function AdminListingsClient({
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        icon={FiEdit}
+                                                        isIconOnly
+                                                        outline
+                                                        aria-label={`Edit studio: ${listing.title}`}
+                                                        tooltip="Edit Studio"
+                                                        data-testid={`edit-listing-${listing.id}`}
+                                                        onClick={() => window.open(`/dashboard/properties/${listing.id}`, "_blank")}
+                                                    />
                                                     <Button
                                                         icon={FiStar}
                                                         isIconOnly

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { FiDownload, FiExternalLink, FiEye, FiFileText, FiRefreshCw } from "react-icons/fi";
+import { FiDownload, FiExternalLink, FiEye, FiFileText, FiPlus, FiRefreshCw } from "react-icons/fi";
 import { toast } from "sonner";
 
 import {
@@ -16,6 +16,7 @@ import {
   retryAdminVoucherEmailAction,
 } from "@/app/actions/adminBookingActions";
 import AdminTabs from "@/components/admin/AdminTabs";
+import CreateOfflineBookingModal from "@/components/admin/CreateOfflineBookingModal";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
@@ -556,6 +557,7 @@ export default function AdminBookingsClient({
   const [pendingInvoiceId, setPendingInvoiceId] = useState<string | null>(null);
   const [pendingVoucherId, setPendingVoucherId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<AdminBookingRow | null>(null);
+  const [isCreateOfflineBookingModalOpen, setIsCreateOfflineBookingModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const navigateTab = (
@@ -657,12 +659,20 @@ export default function AdminBookingsClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-3">
+        <Button
+          label="Create Offline Booking"
+          icon={FiPlus}
+          fit
+          size="sm"
+          onClick={() => setIsCreateOfflineBookingModalOpen(true)}
+        />
         <Button
           label="Export CSV"
           icon={FiDownload}
           fit
           size="sm"
+          outline
           onClick={() => downloadCsv(`contcave-${optimisticTab}.csv`, activeRows as Array<Record<string, unknown>>)}
           disabled={activeRows.length === 0 || isNavigating}
         />
@@ -1010,6 +1020,15 @@ export default function AdminBookingsClient({
       <BookingDetailModal
         booking={selectedBooking}
         onClose={() => setSelectedBooking(null)}
+      />
+
+      <CreateOfflineBookingModal
+        isOpen={isCreateOfflineBookingModalOpen}
+        onClose={() => setIsCreateOfflineBookingModalOpen(false)}
+        onSuccess={() => {
+          setIsCreateOfflineBookingModalOpen(false);
+          router.refresh();
+        }}
       />
     </div>
   );

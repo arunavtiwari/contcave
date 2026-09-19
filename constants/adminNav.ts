@@ -1,4 +1,4 @@
-import { LuCalendarCheck, LuLayers, LuScrollText } from "react-icons/lu";
+import { LuCalendarCheck, LuLayers, LuScrollText, LuUsers } from "react-icons/lu";
 
 export const NAV_ITEMS = [
     {
@@ -10,6 +10,11 @@ export const NAV_ITEMS = [
         name: "Bookings",
         href: "/admin/dashboard/bookings",
         icon: LuCalendarCheck,
+    },
+    {
+        name: "Owners",
+        href: "/admin/dashboard/owners",
+        icon: LuUsers,
     },
     {
         name: "Job Logs",
