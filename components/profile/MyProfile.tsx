@@ -32,6 +32,7 @@ import Pill from "@/components/ui/Pill";
 import Textarea from "@/components/ui/Textarea";
 import { PROFILE_LANGUAGE_OPTIONS, PROFILE_TITLE_OPTIONS } from "@/constants/user";
 import useUIStore from "@/hooks/useUIStore";
+import { discardUploadedMedia } from "@/lib/storage/discard";
 import { uploadToR2 } from "@/lib/storage/upload";
 import { isOwner } from "@/lib/user/permissions";
 import { cn } from "@/lib/utils";
@@ -152,11 +153,13 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
     };
 
     const onSubmit = async (data: FormValues) => {
+        const uploadedMediaRefs: string[] = [];
         try {
             let finalProfileImage = data.profileImage;
             if (finalProfileImage && finalProfileImage.startsWith("blob:")) {
                 const [uploadedUrl] = await uploadToR2([finalProfileImage], "profiles");
                 finalProfileImage = uploadedUrl;
+                uploadedMediaRefs.push(uploadedUrl);
             }
             const validatedData = UserDataSchema.parse(data);
             const { name, description, location, languages, title, phone } = validatedData;
@@ -177,6 +180,7 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
             setEditMode(false);
             toast.success("Profile updated successfully!");
         } catch (error) {
+            await discardUploadedMedia(uploadedMediaRefs);
             console.error("Failed to update user data", error);
             const message = error instanceof Error ? error.message : "Failed to update profile";
             toast.error(message);
@@ -212,7 +216,6 @@ const MyProfile: React.FC<ProfileClientProps> = ({ profile, openOwnerOnLoad = fa
                                                 }}
                                                 values={userData.profileImage ? [userData.profileImage] : []}
                                                 circle={true}
-                                                deferUpload
                                             />
                                         ) : (
                                             <Avatar

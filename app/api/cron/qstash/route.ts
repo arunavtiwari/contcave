@@ -6,11 +6,13 @@ import { isE2eEffectDisabled } from "@/lib/e2e-guards";
 import { getCurrentMonthToDatePeriod, getPreviousMonthPeriod, InvoiceService } from "@/lib/invoice/service";
 import { sendBookingReminderForReservation, sendBookingReminders } from "@/lib/maintenance/bookingReminders";
 import { processAndRecordMaintenanceJob } from "@/lib/maintenance/logger";
+import { runMediaRetentionSweep } from "@/lib/maintenance/mediaRetention";
 import { runDueSplits } from "@/lib/maintenance/payoutSplits";
 import { autoCompleteCheckedInReservations, expireAdditionalCharges, expireExtensionRequests, sendExtensionNudges } from "@/lib/maintenance/postBooking";
 import { assertNoFailedMaintenanceResults } from "@/lib/maintenance/results";
 import { ReservationService } from "@/lib/reservation/service";
 import { ReviewReminderService } from "@/lib/review/reminders";
+import { drainMediaDeletionQueue } from "@/lib/storage/mediaDeletionQueue";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +29,9 @@ type QstashJob =
   | "booking-reminders"
   | "payout-splits"
   | "invoice-retry"
-  | "month-end-invoices";
+  | "month-end-invoices"
+  | "media-retention"
+  | "media-deletion-queue";
 
 function isQstashJob(value: unknown): value is QstashJob {
   return [
@@ -43,6 +47,8 @@ function isQstashJob(value: unknown): value is QstashJob {
     "payout-splits",
     "invoice-retry",
     "month-end-invoices",
+    "media-retention",
+    "media-deletion-queue",
   ].includes(value as string);
 }
 
@@ -136,6 +142,18 @@ async function handleQstashJob(body: { job?: unknown; reservationId?: unknown; e
           const results = await InvoiceService.retryPendingInvoiceEmails(100);
           assertNoFailedMaintenanceResults(results);
           rawResult = results;
+          break;
+        }
+        case "media-deletion-queue": {
+          const results = await drainMediaDeletionQueue();
+          assertNoFailedMaintenanceResults(results);
+          rawResult = results;
+          break;
+        }
+        case "media-retention": {
+          const { listings, profiles } = await runMediaRetentionSweep();
+          assertNoFailedMaintenanceResults([...listings, ...profiles]);
+          rawResult = { listings, profiles };
           break;
         }
         case "month-end-invoices": {

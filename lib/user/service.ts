@@ -4,6 +4,7 @@ import crypto from "crypto";
 
 import { UserFacingError } from "@/lib/errors";
 import db from "@/lib/prismadb";
+import { enqueueMediaDeletions } from "@/lib/storage/mediaDeletionQueue";
 import { UserUpdateSchema, userUpdateSchema } from "@/schemas/user";
 import { RegisterData, SafeUser } from "@/types/user";
 
@@ -92,7 +93,7 @@ export class UserService {
         const stringFields = ['name', 'title', 'location', 'phone', 'description'];
         const currentUser = await db.user.findUnique({
             where: { email },
-            select: { phone: true, verified_via: true },
+            select: { id: true, phone: true, profileImage: true, verified_via: true },
         });
         if (!currentUser) throw new UserFacingError("User not found", 404);
 
@@ -116,9 +117,18 @@ export class UserService {
 
         if (Object.keys(updateData).length === 0) throw new UserFacingError("No valid fields to update");
 
-        const updatedUser = await db.user.update({
-            where: { email },
-            data: updateData,
+        const updatedUser = await db.$transaction(async (tx) => {
+            const user = await tx.user.update({ where: { email }, data: updateData });
+
+            if (currentUser.profileImage && currentUser.profileImage !== user.profileImage) {
+                await enqueueMediaDeletions(tx, {
+                    refs: [currentUser.profileImage],
+                    ownerId: currentUser.id,
+                    reason: "profile-image-replaced",
+                    sourceId: currentUser.id,
+                });
+            }
+            return user;
         });
 
         return this.serializeUser(updatedUser);
