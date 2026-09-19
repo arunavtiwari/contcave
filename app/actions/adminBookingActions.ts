@@ -1,15 +1,18 @@
 "use server";
 
 import { InvoiceDocumentType, InvoiceStatus, PaymentVoucherStatus, PaymentVoucherType, Prisma, ReservationStatus, TransactionStatus } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createAction } from "@/lib/actions-utils";
+import { createOfflineBooking, getAdminStudiosForOfflineBooking } from "@/lib/admin/offlineBooking";
 import { InvoiceService } from "@/lib/invoice/service";
 import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isAdmin } from "@/lib/user/permissions";
+import { createAdminOfflineBookingSchema } from "@/schemas/offlineBooking";
 import { UserRole } from "@/types/user";
 
 type AdminGstModel = "GST_STUDIO_AGENT" | "NON_GST_PRINCIPAL" | "UNKNOWN";
@@ -689,5 +692,24 @@ export const retryAdminVoucherEmailAction = createAction(
   async ({ voucherId }) => {
     const voucher = await PaymentVoucherService.retryVoucherEmail(voucherId);
     return { voucherId: voucher.id, status: voucher.status };
+  }
+);
+
+export const createAdminOfflineBookingAction = createAction(
+  createAdminOfflineBookingSchema,
+  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  async (data, { user }) => {
+    const result = await createOfflineBooking(data, user);
+    revalidatePath("/admin/dashboard/bookings");
+    revalidatePath("/dashboard/bookings");
+    return result;
+  }
+);
+
+export const getAdminStudiosForOfflineBookingAction = createAction(
+  z.object({}),
+  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  async () => {
+    return await getAdminStudiosForOfflineBooking();
   }
 );
