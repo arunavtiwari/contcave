@@ -269,12 +269,29 @@ model Listing {
   notifyReminderAt         DateTime?
   inConversation           Boolean                   @default(false)
   enquiryCount             Int                       @default(0)
+  mediaPurgedAt            DateTime?
 
   @@index([userId])
   @@index([listingType])
   @@index([listingType, status, createdAt])
   @@index([active, status, createdAt])
   @@index([userId, archivedAt])
+}
+
+model PendingMediaDeletion {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  ref         String
+  ownerId     String   @db.ObjectId
+  reason      String
+  sourceId    String?
+  scheduledAt DateTime
+  attempts    Int      @default(0)
+  lastError   String?
+  createdAt   DateTime @default(now())
+
+  @@index([scheduledAt, attempts])
+  @@index([ref])
+  @@index([ownerId])
 }
 
 model Package {

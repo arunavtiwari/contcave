@@ -8,6 +8,7 @@ import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isRichTextEmpty } from "@/lib/richText";
 import { generateUniqueSlug } from "@/lib/slug";
+import { cancelMediaDeletions, enqueueMediaDeletions } from "@/lib/storage/mediaDeletionQueue";
 import { slugify } from "@/lib/strings";
 import { sanitizeStringList } from "@/lib/strings";
 import { normaliseUseCase } from "@/lib/taxonomy";
@@ -15,6 +16,7 @@ import { listingBaseSchema, listingSchema, persistedMediaUrlSchema } from "@/sch
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData } from "@/types/listing";
 
+import { collectListingMediaRefs, ListingMediaSource, orphanedListingMediaRefs } from "./media";
 import { jitterLatLng } from "./utils";
 
 type ListingWithRelations = Prisma.ListingGetPayload<{
@@ -25,6 +27,8 @@ type ListingWithRelations = Prisma.ListingGetPayload<{
         blocks: true;
     };
 }>;
+
+type ValidatedListingInput = ReturnType<typeof listingSchema.parse>;
 
 type RawMongoId = string | { $oid?: unknown };
 type RawListingId = { _id?: RawMongoId };
@@ -427,6 +431,19 @@ export class ListingService {
         const validated = result.data;
         assertPersistedListingMedia(validated as Record<string, unknown>);
 
+        try {
+            return await this.persistNewListing(userId, validated, allowCurated);
+        } catch (error) {
+            await this.discardUnreferencedMedia(userId, validated.id, validated as ListingMediaSource);
+            throw error;
+        }
+    }
+
+    private static async persistNewListing(
+        userId: string,
+        validated: ValidatedListingInput,
+        allowCurated: boolean
+    ): Promise<FullListing> {
         const {
             id,
             listingType,
@@ -588,6 +605,21 @@ export class ListingService {
     static async updateListing(userId: string, listingId: string, body: Record<string, unknown>, allowAdmin = false): Promise<FullListing> {
         const validated = parseListingUpdateBody(body);
         assertPersistedListingMedia(validated);
+
+        try {
+            return await this.persistListingUpdate(userId, listingId, validated, allowAdmin);
+        } catch (error) {
+            await this.discardUnreferencedMedia(userId, listingId, validated as ListingMediaSource);
+            throw error;
+        }
+    }
+
+    private static async persistListingUpdate(
+        userId: string,
+        listingId: string,
+        validated: Record<string, unknown>,
+        allowAdmin: boolean
+    ): Promise<FullListing> {
         const { packages, sets: validatedSets, ...listingData } = validated;
         let sets = validatedSets;
 
@@ -719,6 +751,22 @@ export class ListingService {
         })) {
             throw new UserFacingError("Every package duration must fit within the studio's daily operating window");
         }
+
+        const previousMedia: ListingMediaSource = {
+            imageSrc: existingListing.imageSrc,
+            videoSrc: existingListing.videoSrc,
+            addons: existingListing.addons,
+            verifications: existingListing.verifications,
+            sets: existingSets,
+        };
+        const nextMedia: ListingMediaSource = {
+            imageSrc: "imageSrc" in sanitizedListingData ? sanitizedListingData.imageSrc : existingListing.imageSrc,
+            videoSrc: "videoSrc" in sanitizedListingData ? sanitizedListingData.videoSrc : existingListing.videoSrc,
+            addons: "addons" in sanitizedListingData ? sanitizedListingData.addons : existingListing.addons,
+            verifications: "verifications" in sanitizedListingData ? sanitizedListingData.verifications : existingListing.verifications,
+            sets: nextSets,
+        };
+        const orphanedRefs = orphanedListingMediaRefs(previousMedia, nextMedia);
 
         // 4. Atomic Transaction
         const hasChanges = await prisma.$transaction(async (tx) => {
@@ -886,6 +934,16 @@ export class ListingService {
                 }
             }
 
+            if (hasChanges) {
+                await cancelMediaDeletions(tx, collectListingMediaRefs(nextMedia));
+                await enqueueMediaDeletions(tx, {
+                    refs: orphanedRefs,
+                    ownerId: existingListing.userId,
+                    reason: "listing-media-replaced",
+                    sourceId: listingId,
+                });
+            }
+
             return hasChanges;
         });
 
@@ -894,6 +952,46 @@ export class ListingService {
             throw new UserFacingError(hasChanges ? "Listing update failed" : "Listing not found", hasChanges ? 500 : 404);
         }
         return updatedListing;
+    }
+
+    // The listing is re-read first, so refs that did reach the database — for
+    // example when the write succeeded and a later step threw — are retained.
+    private static async discardUnreferencedMedia(
+        fallbackOwnerId: string,
+        listingId: string | undefined,
+        payload: ListingMediaSource
+    ): Promise<void> {
+        try {
+            const candidates = collectListingMediaRefs(payload);
+            if (candidates.size === 0) return;
+
+            let ownerId = fallbackOwnerId;
+            const retained = new Set<string>();
+
+            if (listingId && /^[a-f\d]{24}$/i.test(listingId)) {
+                const [listing, sets] = await Promise.all([
+                    prisma.listing.findUnique({
+                        where: { id: listingId },
+                        select: { userId: true, imageSrc: true, videoSrc: true, addons: true, verifications: true },
+                    }),
+                    prisma.listingSet.findMany({ where: { listingId }, select: { images: true } }),
+                ]);
+                if (listing) {
+                    ownerId = listing.userId;
+                    collectListingMediaRefs({ ...listing, sets }).forEach((ref) => retained.add(ref));
+                }
+            }
+
+            const unreferenced = Array.from(candidates).filter((ref) => !retained.has(ref));
+            await enqueueMediaDeletions(prisma, {
+                refs: unreferenced,
+                ownerId,
+                reason: "listing-write-failed",
+                sourceId: listingId,
+            });
+        } catch (error) {
+            console.error("[ListingService] Failed to discard unreferenced media", error);
+        }
     }
 
     /**
@@ -1136,6 +1234,16 @@ export class ListingService {
             .filter((listing): listing is NonNullable<typeof listing> => Boolean(listing))
             .map((listing) => this.normalizeListingWithRelations(listing as ListingWithRelations))
             .filter((listing): listing is FullListing => Boolean(listing));
+    }
+
+    static async exists(listingId: string): Promise<boolean> {
+        if (!listingId) return false;
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
+        const listing = await prisma.listing.findFirst({
+            where: isObjectId ? { id: listingId } : { slug: listingId },
+            select: { id: true },
+        });
+        return Boolean(listing);
     }
 
     static async findById(
