@@ -417,6 +417,9 @@ export const createListingAction = createAction(
         if (!isContcave && user.role !== "OWNER" && user.role !== "ADMIN") {
             throw new UserFacingError("You must be an approved owner or administrator to create a listing", 403);
         }
+        if (!isContcave && user.role !== "ADMIN" && !user.is_verified) {
+            throw new UserFacingError("Complete your profile verification before listing a space", 403);
+        }
 
         const enforcedData = {
             ...data,
