@@ -9,22 +9,29 @@ import {
   FiClock,
   FiCreditCard,
   FiHome,
+  FiLayers,
+  FiPackage,
   FiUser,
 } from "react-icons/fi";
 import { toast } from "sonner";
 
 import {
   createAdminOfflineBookingAction,
+  getAdminStudioForOfflineBookingAction,
   getAdminStudiosForOfflineBookingAction,
 } from "@/app/actions/adminBookingActions";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Checkbox from "@/components/ui/Checkbox";
+import DatePicker from "@/components/ui/DatePicker";
 import Input from "@/components/ui/Input";
+import Pill from "@/components/ui/Pill";
 import Select, { SelectOption } from "@/components/ui/Select";
+import Skeleton from "@/components/ui/Skeleton";
 import Textarea from "@/components/ui/Textarea";
-import { AdminStudioOption } from "@/lib/admin/offlineBooking";
-import { formatINR } from "@/lib/utils";
+import { AdminStudioOption, AdminStudioSummary } from "@/lib/admin/offlineBooking";
+import { calculateSetPricing } from "@/lib/pricing";
+import { cn, formatINR } from "@/lib/utils";
 import {
   CreateAdminOfflineBookingInput,
   createAdminOfflineBookingSchema,
@@ -81,6 +88,59 @@ function calculateEndTime(startTime: string, hours: number): string {
   return `${String(endDisplayHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")} ${endPeriod}`;
 }
 
+/**
+ * Shared across mounts so the studio selector is only built once per page session.
+ * Creating a booking refreshes both, since the new reservation can change availability.
+ */
+let studioCache: AdminStudioSummary[] | null = null;
+const studioDetailCache = new Map<string, AdminStudioOption>();
+
+function resetStudioCaches() {
+  studioCache = null;
+  studioDetailCache.clear();
+}
+
+/** Matches the studio overview panel, so selecting a studio doesn't shift the dialog. */
+function StudioOverviewSkeleton() {
+  return (
+    <div
+      className="rounded-xl border border-border bg-background p-3.5 space-y-3"
+      aria-label="Loading studio details"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="space-y-1.5">
+          <Skeleton className="h-4 w-44 rounded-md" />
+          <Skeleton className="h-3 w-60 rounded" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-5 w-20 rounded-full" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
+      </div>
+
+      {/* Host, phone, email, bank, GSTIN, property state */}
+      <div className="grid gap-3 pt-2 border-t border-border/70 sm:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="space-y-1.5">
+            <Skeleton className="h-2.5 w-16 rounded" />
+            <Skeleton className="h-3.5 w-full rounded" />
+          </div>
+        ))}
+      </div>
+
+      {/* Configured sets and packages */}
+      <div className="space-y-1.5 border-t border-border/70 pt-2">
+        <Skeleton className="h-3 w-40 rounded" />
+        <div className="flex flex-wrap gap-1.5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-5 w-24 rounded-md" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CreateOfflineBookingModal({
   isOpen,
   onClose,
@@ -88,9 +148,13 @@ export default function CreateOfflineBookingModal({
 }: CreateOfflineBookingModalProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [studios, setStudios] = useState<AdminStudioOption[]>([]);
+  const [studios, setStudios] = useState<AdminStudioSummary[]>([]);
   const [isLoadingStudios, setIsLoadingStudios] = useState(false);
   const [selectedStudio, setSelectedStudio] = useState<AdminStudioOption | null>(null);
+  // The id the selector is showing, which is set before its details finish loading.
+  const [selectedStudioId, setSelectedStudioId] = useState<string | null>(null);
+  const [isLoadingStudio, setIsLoadingStudio] = useState(false);
+  const [selectedSetIds, setSelectedSetIds] = useState<string[]>([]);
   const [showCustomerGst, setShowCustomerGst] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -125,6 +189,7 @@ export default function CreateOfflineBookingModal({
       bookingType: "HOURLY",
       packageId: "",
       packageName: "",
+      setIds: [],
       hoursBooked: 4,
       price: 4000,
       paymentMadeVia: "Bank Transfer (NEFT/RTGS/IMPS)",
@@ -142,13 +207,22 @@ export default function CreateOfflineBookingModal({
     if (!isOpen) return;
 
     let active = true;
-    setIsLoadingStudios(true);
     setServerError(null);
+
+    // Reopening the dialog reuses the studios already fetched in this session; the list
+    // is expensive to build server-side and barely changes between two bookings.
+    if (studioCache) {
+      setStudios(studioCache);
+      return;
+    }
+
+    setIsLoadingStudios(true);
 
     getAdminStudiosForOfflineBookingAction({})
       .then((res) => {
-        if (active && res.success && res.data) {
-          setStudios(res.data);
+        if (res.success && res.data) {
+          studioCache = res.data;
+          if (active) setStudios(res.data);
         }
       })
       .catch((err) => {
@@ -163,9 +237,72 @@ export default function CreateOfflineBookingModal({
     };
   }, [isOpen]);
 
-  // Handle studio selection auto-population
-  const handleStudioSelect = (studioId: string) => {
-    const studio = studios.find((s) => s.id === studioId) || null;
+  // Pure helper to calculate suggested price based on studio rates, sets, and packages
+  const calculateSuggestedPrice = (
+    targetStudio: AdminStudioOption | null,
+    targetBookingType: "HOURLY" | "PACKAGE",
+    targetPackageId: string | null | undefined,
+    targetSetIds: string[],
+    hours: number
+  ): number => {
+    if (!targetStudio) return 0;
+
+    if (targetBookingType === "PACKAGE") {
+      const pkg = targetStudio.packages.find((p) => p.id === targetPackageId);
+      if (pkg) return pkg.offeredPrice;
+    }
+
+    // Hourly mode:
+    if (targetStudio.hasSets && targetStudio.sets.length > 0 && targetSetIds.length > 0) {
+      const formattedSets = targetStudio.sets.map((s) => ({
+        ...s,
+        listingId: targetStudio.id,
+        images: [],
+        description: null,
+        aesthetics: [],
+        setFeatures: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }));
+
+      const res = calculateSetPricing({
+        baseHourlyRate: targetStudio.price,
+        durationMinutes: Math.max(1, Math.round(hours * 60)),
+        selectedSetIds: targetSetIds,
+        sets: formattedSets,
+        pricingType: targetStudio.additionalSetPricingType,
+        selectedPackage: null,
+      });
+
+      return res.subtotal;
+    }
+
+    return Math.round((targetStudio.price || 0) * hours);
+  };
+
+  // Handle studio selection auto-population. The studio's sets, packages and host payout
+  // details are fetched on demand — loading them for every studio on the platform is what
+  // used to make this dialog slow to open.
+  const handleStudioSelect = async (studioId: string) => {
+    setSelectedStudioId(studioId);
+    setSelectedStudio(null);
+    setServerError(null);
+
+    let studio = studioDetailCache.get(studioId) || null;
+    if (!studio) {
+      setIsLoadingStudio(true);
+      const res = await getAdminStudioForOfflineBookingAction({ listingId: studioId });
+      setIsLoadingStudio(false);
+
+      if (!res.success || !res.data) {
+        toast.error(res.error || "Couldn't load that studio");
+        setSelectedStudioId(null);
+        return;
+      }
+      studio = res.data as AdminStudioOption;
+      studioDetailCache.set(studioId, studio);
+    }
+
     setSelectedStudio(studio);
 
     if (studio) {
@@ -176,46 +313,127 @@ export default function CreateOfflineBookingModal({
       setValue("studioGst", studio.gstin || "", { shouldValidate: true });
       setValue("propertyStateCode", studio.propertyStateCode || "07", { shouldValidate: true });
 
-      // If studio has packages, default to first package if package type selected
+      // Default sets: If studio has sets, select all sets (Entire Studio) by default
+      const defaultSetIds = studio.hasSets && studio.sets.length > 0
+        ? studio.sets.map((s) => s.id)
+        : [];
+      setSelectedSetIds(defaultSetIds);
+      setValue("setIds", defaultSetIds, { shouldValidate: true });
+
+      // If studio has packages and package mode is selected, select the first package
       if (watchBookingType === "PACKAGE" && studio.packages.length > 0) {
-        const firstPkg = studio.packages[0];
-        setValue("packageId", firstPkg.id);
-        setValue("packageName", firstPkg.title);
-        setValue("hoursBooked", firstPkg.durationHours);
-        setValue("price", firstPkg.offeredPrice);
-        setValue("endTime", calculateEndTime(watchStartTime, firstPkg.durationHours));
-      } else if (studio.price > 0) {
-        const calculated = studio.price * (watchHoursBooked || 4);
-        setValue("price", calculated, { shouldValidate: true });
+        handlePackageSelect(studio.packages[0].id, studio);
+      } else {
+        const suggested = calculateSuggestedPrice(
+          studio,
+          "HOURLY",
+          null,
+          defaultSetIds,
+          watchHoursBooked || 4
+        );
+        setValue("price", suggested, { shouldValidate: true });
       }
     }
   };
 
   // Handle package selection
-  const handlePackageSelect = (packageId: string) => {
-    setValue("packageId", packageId);
-    if (!selectedStudio) return;
+  const handlePackageSelect = (packageId: string, studioOverride?: AdminStudioOption | null) => {
+    const studio = studioOverride !== undefined ? studioOverride : selectedStudio;
+    setValue("packageId", packageId, { shouldValidate: true });
+    if (!studio) return;
 
-    const pkg = selectedStudio.packages.find((p) => p.id === packageId);
+    const pkg = studio.packages.find((p) => p.id === packageId);
     if (pkg) {
       setValue("packageName", pkg.title, { shouldValidate: true });
       setValue("hoursBooked", pkg.durationHours, { shouldValidate: true });
       setValue("price", pkg.offeredPrice, { shouldValidate: true });
-      setValue("endTime", calculateEndTime(watchStartTime, pkg.durationHours));
+      setValue("endTime", calculateEndTime(watchStartTime, pkg.durationHours), { shouldValidate: true });
+
+      // If package specifies eligible sets, sync them
+      if (pkg.eligibleSetIds && pkg.eligibleSetIds.length > 0) {
+        setSelectedSetIds(pkg.eligibleSetIds);
+        setValue("setIds", pkg.eligibleSetIds, { shouldValidate: true });
+      }
     }
   };
 
-  // Auto-recalculate end time when start time or hours change
+  // Handle set selection toggling
+  const handleToggleSet = (setId: string) => {
+    if (!selectedStudio) return;
+
+    const isCurrentlySelected = selectedSetIds.includes(setId);
+    const newSetIds = isCurrentlySelected
+      ? selectedSetIds.filter((id) => id !== setId)
+      : [...selectedSetIds, setId];
+
+    setSelectedSetIds(newSetIds);
+    setValue("setIds", newSetIds, { shouldValidate: true });
+
+    if (watchBookingType === "HOURLY") {
+      const suggested = calculateSuggestedPrice(
+        selectedStudio,
+        "HOURLY",
+        null,
+        newSetIds,
+        watchHoursBooked || 4
+      );
+      setValue("price", suggested, { shouldValidate: true });
+    }
+  };
+
+  const handleSelectAllSets = () => {
+    if (!selectedStudio) return;
+    const allIds = selectedStudio.sets.map((s) => s.id);
+    setSelectedSetIds(allIds);
+    setValue("setIds", allIds, { shouldValidate: true });
+
+    if (watchBookingType === "HOURLY") {
+      const suggested = calculateSuggestedPrice(
+        selectedStudio,
+        "HOURLY",
+        null,
+        allIds,
+        watchHoursBooked || 4
+      );
+      setValue("price", suggested, { shouldValidate: true });
+    }
+  };
+
+  const handleClearSets = () => {
+    setSelectedSetIds([]);
+    setValue("setIds", [], { shouldValidate: true });
+
+    if (watchBookingType === "HOURLY" && selectedStudio) {
+      const suggested = calculateSuggestedPrice(
+        selectedStudio,
+        "HOURLY",
+        null,
+        [],
+        watchHoursBooked || 4
+      );
+      setValue("price", suggested, { shouldValidate: true });
+    }
+  };
+
+  // Auto-recalculate end time when start time changes
   const handleStartTimeChange = (newStartTime: string) => {
     setValue("startTime", newStartTime, { shouldValidate: true });
     setValue("endTime", calculateEndTime(newStartTime, watchHoursBooked || 4), { shouldValidate: true });
   };
 
+  // Auto-recalculate end time and suggested price when hours change in hourly mode
   const handleHoursChange = (hours: number) => {
     setValue("hoursBooked", hours, { shouldValidate: true });
     setValue("endTime", calculateEndTime(watchStartTime, hours), { shouldValidate: true });
-    if (watchBookingType === "HOURLY" && selectedStudio && selectedStudio.price > 0) {
-      setValue("price", Math.round(selectedStudio.price * hours), { shouldValidate: true });
+    if (watchBookingType === "HOURLY" && selectedStudio) {
+      const suggested = calculateSuggestedPrice(
+        selectedStudio,
+        "HOURLY",
+        null,
+        selectedSetIds,
+        hours
+      );
+      setValue("price", suggested, { shouldValidate: true });
     }
   };
 
@@ -227,19 +445,22 @@ export default function CreateOfflineBookingModal({
         const res = await createAdminOfflineBookingAction(data);
 
         if (!res.success) {
-          setServerError(res.error || "Failed to create offline booking");
+          setServerError(res.error || "Failed to create booking");
           toast.error(res.error || "Failed to create booking");
           return;
         }
 
         const details = res.data;
         toast.success(
-          `Offline booking ${details?.bookingId || ""} created successfully! Invoice generated.`,
+          `Booking ${details?.bookingId || ""} created successfully! Invoice generated.`,
           { duration: 5000 }
         );
 
+        resetStudioCaches();
         reset();
         setSelectedStudio(null);
+        setSelectedStudioId(null);
+        setSelectedSetIds([]);
         setShowCustomerGst(false);
         onClose();
         router.refresh();
@@ -263,7 +484,7 @@ export default function CreateOfflineBookingModal({
     if (!selectedStudio || selectedStudio.packages.length === 0) return [];
     return selectedStudio.packages.map((p) => ({
       value: p.id,
-      label: `${p.title} (${p.durationHours}h) - ${formatINR(p.offeredPrice)}`,
+      label: `${p.title} (${p.durationHours}h) — ${formatINR(p.offeredPrice)}`,
     }));
   }, [selectedStudio]);
 
@@ -276,77 +497,162 @@ export default function CreateOfflineBookingModal({
         </div>
       )}
 
-      {/* SECTION 1: STUDIO DETAILS */}
+      {/* SECTION 1: STUDIO SELECTION & OVERVIEW */}
       <section className="rounded-xl border border-border bg-muted/20 p-4 sm:p-5">
         <div className="flex items-center gap-2 border-b border-border pb-3">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <FiHome size={15} />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground">1. Studio Details</h3>
-            <p className="text-xs text-muted-foreground">Select an existing studio or enter custom studio info</p>
+            <h3 className="text-sm font-semibold text-foreground">1. Studio Selection</h3>
+            <p className="text-xs text-muted-foreground">Select a verified studio from the ContCave platform</p>
           </div>
         </div>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 space-y-3">
           <div>
             <Select
               id="studioSelect"
-              label="Select Studio from Platform (Auto-fill)"
-              placeholder={isLoadingStudios ? "Loading ContCave studios…" : "Search ContCave studio…"}
+              label="Select Studio from Platform"
+              required
+              isSearchable
+              placeholder={isLoadingStudios ? "Loading ContCave studios…" : "Search by studio name, host or location…"}
               options={studioOptions}
-              value={selectedStudio ? studioOptions.find((o) => o.value === selectedStudio.id) || null : null}
+              value={selectedStudioId ? studioOptions.find((o) => o.value === selectedStudioId) || null : null}
               onChange={(opt) => {
                 const selected = opt as SelectOption | null;
-                if (selected?.value) handleStudioSelect(selected.value);
+                if (selected?.value) void handleStudioSelect(selected.value);
               }}
-              isDisabled={isLoadingStudios || isPending}
+              isDisabled={isLoadingStudios || isLoadingStudio || isPending}
+              error={errors.listingId?.message}
             />
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Input
-              id="studioName"
-              label="Studio Name"
-              required
-              register={register("studioName")}
-              error={errors.studioName?.message}
-              disabled={isPending}
-              placeholder="Studio title"
-            />
-            <Input
-              id="studioEmail"
-              label="Studio / Host Email"
-              type="email"
-              required
-              register={register("studioEmail")}
-              error={errors.studioEmail?.message}
-              disabled={isPending}
-              placeholder="host@example.com"
-            />
-          </div>
+          {isLoadingStudio ? (
+            <StudioOverviewSkeleton />
+          ) : selectedStudio ? (
+            <div className="rounded-xl border border-border bg-background p-3.5 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h4 className="font-semibold text-sm text-foreground">{selectedStudio.title}</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">{selectedStudio.address}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Pill label={`${formatINR(selectedStudio.price)}/hr`} variant="neutral" size="xs" />
+                  {selectedStudio.hasSets && selectedStudio.sets.length > 0 && (
+                    <Pill label={`${selectedStudio.sets.length} Sets`} variant="secondary" size="xs" />
+                  )}
+                  {selectedStudio.packages.length > 0 && (
+                    <Pill label={`${selectedStudio.packages.length} Packages`} variant="neutral" size="xs" />
+                  )}
+                </div>
+              </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="sm:col-span-2">
-              <Input
-                id="studioAddress"
-                label="Studio Address"
-                required
-                register={register("studioAddress")}
-                error={errors.studioAddress?.message}
-                disabled={isPending}
-                placeholder="Full studio physical address"
-              />
+              {/* OWNER & BANKING DETAILS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2.5 border-t border-border text-xs">
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">Space Owner / Host:</span>
+                  <span className="font-medium text-foreground inline-flex items-center gap-1.5 mt-0.5">
+                    {selectedStudio.hostName || "Host"}
+                    {selectedStudio.hostIsVerified && (
+                      <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                        Verified
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">Owner Phone:</span>
+                  <span className="font-medium text-foreground mt-0.5 block">
+                    {selectedStudio.hostPhone || "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">Owner Email:</span>
+                  <span className="font-medium text-foreground mt-0.5 block truncate" title={selectedStudio.hostEmail}>
+                    {selectedStudio.hostEmail || "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">Bank / Payout Info:</span>
+                  <span className="font-medium text-foreground mt-0.5 block">
+                    {selectedStudio.bankAccountLast4 ? (
+                      <span className="font-mono text-[11px]">
+                        ••••{selectedStudio.bankAccountLast4} {selectedStudio.bankIfsc ? `(${selectedStudio.bankIfsc})` : ""}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground italic text-[11px]">No Bank Added</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* STUDIO GSTIN & STATE */}
+              <div className="pt-2 border-t border-border/70 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="text-muted-foreground">
+                  Studio GSTIN:{" "}
+                  <span className="font-mono text-foreground font-medium">
+                    {selectedStudio.gstin || "Non-GST / None"}
+                  </span>
+                </span>
+                <span className="text-muted-foreground text-[11px]">
+                  Property State: <span className="font-mono text-foreground font-medium">{selectedStudio.propertyStateCode || "07"}</span>
+                </span>
+              </div>
+
+              {/* CONFIGURED SETS DETAILS */}
+              {selectedStudio.hasSets && selectedStudio.sets.length > 0 && (
+                <div className="pt-2 border-t border-border/70 text-xs">
+                  <div className="flex items-center gap-1 text-muted-foreground font-medium mb-1.5">
+                    <FiLayers size={13} className="text-primary" />
+                    <span>Configured Studio Sets ({selectedStudio.sets.length}):</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedStudio.sets.map((s) => (
+                      <span
+                        key={s.id}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-foreground"
+                      >
+                        <span className="font-medium">{s.name}</span>
+                        <span className="text-muted-foreground">
+                          ({selectedStudio.setsHaveSamePrice && selectedStudio.unifiedSetPrice
+                            ? `${formatINR(selectedStudio.unifiedSetPrice)}/hr`
+                            : `${formatINR(s.price)}/hr`})
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* CONFIGURED PACKAGES DETAILS */}
+              {selectedStudio.packages.length > 0 && (
+                <div className="pt-2 border-t border-border/70 text-xs">
+                  <div className="flex items-center gap-1 text-muted-foreground font-medium mb-1.5">
+                    <FiPackage size={13} className="text-primary" />
+                    <span>Configured Studio Packages ({selectedStudio.packages.length}):</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedStudio.packages.map((pkg) => (
+                      <span
+                        key={pkg.id}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/30 px-2 py-0.5 text-[11px] text-foreground"
+                      >
+                        <span className="font-medium">{pkg.title}</span>
+                        <span className="text-muted-foreground">
+                          ({pkg.durationHours}h — {formatINR(pkg.offeredPrice)})
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            <Input
-              id="studioGst"
-              label="Studio GSTIN (Optional)"
-              register={register("studioGst")}
-              error={errors.studioGst?.message}
-              disabled={isPending}
-              placeholder="e.g. 07AAAAA0000A1Z5"
-            />
-          </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-border p-3.5 text-center text-xs text-muted-foreground">
+              Please choose a studio from the dropdown above to load its sets, packages, and auto-populate rates.
+            </div>
+          )}
         </div>
       </section>
 
@@ -454,20 +760,27 @@ export default function CreateOfflineBookingModal({
           </div>
           <div>
             <h3 className="text-sm font-semibold text-foreground">3. Booking Schedule & Price</h3>
-            <p className="text-xs text-muted-foreground">Specify the session duration and agreed offline price</p>
+            <p className="text-xs text-muted-foreground">Specify the session duration and agreed booking price</p>
           </div>
         </div>
 
         <div className="mt-4 space-y-4">
           <div className="grid gap-3 sm:grid-cols-3">
-            <Input
-              id="bookingDate"
-              label="Booking Date"
-              type="date"
-              required
-              register={register("bookingDate")}
-              error={errors.bookingDate?.message}
-              disabled={isPending}
+            <Controller
+              name="bookingDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  id="bookingDate"
+                  label="Booking Date"
+                  required
+                  value={field.value}
+                  onChange={(val) => field.onChange(val)}
+                  error={errors.bookingDate?.message}
+                  disabled={isPending}
+                  size="sm"
+                />
+              )}
             />
 
             <Controller
@@ -493,6 +806,15 @@ export default function CreateOfflineBookingModal({
                     field.onChange(nextVal);
                     if (nextVal === "PACKAGE" && selectedStudio && selectedStudio.packages.length > 0) {
                       handlePackageSelect(selectedStudio.packages[0].id);
+                    } else if (nextVal === "HOURLY" && selectedStudio) {
+                      const suggested = calculateSuggestedPrice(
+                        selectedStudio,
+                        "HOURLY",
+                        null,
+                        selectedSetIds,
+                        watchHoursBooked || 4
+                      );
+                      setValue("price", suggested, { shouldValidate: true });
                     }
                   }}
                   isDisabled={isPending}
@@ -517,6 +839,7 @@ export default function CreateOfflineBookingModal({
                         if (selected?.value) handlePackageSelect(selected.value);
                       }}
                       isDisabled={isPending}
+                      error={errors.packageId?.message}
                     />
                   )}
                 />
@@ -529,6 +852,7 @@ export default function CreateOfflineBookingModal({
                   error={errors.packageName?.message}
                   disabled={isPending}
                   placeholder="e.g. 8-Hour Full Day Shoot"
+                  description="This studio has no pre-set packages"
                 />
               )
             ) : (
@@ -546,6 +870,78 @@ export default function CreateOfflineBookingModal({
               />
             )}
           </div>
+
+          {/* DEDICATED SETS SELECTION (When studio has configured sets) */}
+          {selectedStudio && selectedStudio.hasSets && selectedStudio.sets.length > 0 && (
+            <div className="rounded-xl border border-border/80 bg-background/60 p-3.5 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                  <FiLayers size={14} className="text-primary" />
+                  <span>Select Sets for this Booking</span>
+                  <span className="text-muted-foreground font-normal">
+                    ({selectedSetIds.length} of {selectedStudio.sets.length} selected)
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSelectAllSets}
+                    className="text-[11px] font-medium text-primary hover:underline transition-colors"
+                    disabled={isPending}
+                  >
+                    Entire Studio (All Sets)
+                  </button>
+                  <span className="text-muted-foreground text-xs">•</span>
+                  <button
+                    type="button"
+                    onClick={handleClearSets}
+                    className="text-[11px] font-medium text-muted-foreground hover:underline transition-colors"
+                    disabled={isPending}
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {selectedStudio.sets.map((set) => {
+                  const isSelected = selectedSetIds.includes(set.id);
+                  const displayRate = selectedStudio.setsHaveSamePrice && selectedStudio.unifiedSetPrice
+                    ? selectedStudio.unifiedSetPrice
+                    : set.price;
+
+                  return (
+                    <div
+                      key={set.id}
+                      onClick={() => !isPending && handleToggleSet(set.id)}
+                      className={cn(
+                        "flex items-center justify-between gap-2 rounded-lg border p-2.5 cursor-pointer transition-colors select-none text-xs",
+                        isSelected
+                          ? "border-primary bg-primary/5 text-foreground font-medium"
+                          : "border-border bg-background text-muted-foreground hover:border-foreground/30"
+                      )}
+                    >
+                      <div className="flex items-center gap-2 truncate">
+                        <Checkbox
+                          id={`set-${set.id}`}
+                          checked={isSelected}
+                          onCheckedChange={() => handleToggleSet(set.id)}
+                          disabled={isPending}
+                        />
+                        <span className="truncate">{set.name}</span>
+                      </div>
+                      <span className="shrink-0 text-[11px] text-muted-foreground font-mono">
+                        {formatINR(displayRate)}/hr
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Sets selection automatically suggests the booking rate, but the final price remains fully editable below.
+              </p>
+            </div>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-3">
             <Controller
@@ -588,14 +984,14 @@ export default function CreateOfflineBookingModal({
 
             <Input
               id="price"
-              label="Total Price (₹ INR)"
+              label="Agreed Price (₹ INR)"
               type="number"
               required
               formatPrice
               register={register("price", { valueAsNumber: true })}
               error={errors.price?.message}
               disabled={isPending}
-              description="Total agreed offline booking amount"
+              description="Pre-filled based on selection, but freely editable"
             />
           </div>
         </div>
@@ -662,7 +1058,7 @@ export default function CreateOfflineBookingModal({
           <Textarea
             id="internalNotes"
             label="Internal Notes (Optional)"
-            placeholder="e.g. Booking taken directly via studio manager phone call on 19th Sep. Payment verified via bank statement."
+            placeholder="e.g. Booking taken directly via studio manager phone call. Payment verified via bank statement."
             {...register("internalNotes")}
             disabled={isPending}
             rows={2}
@@ -693,7 +1089,7 @@ export default function CreateOfflineBookingModal({
       isOpen={isOpen}
       onCloseAction={onClose}
       onSubmitAction={() => {}}
-      title="Create Offline Booking"
+      title="Create Booking"
       customWidth="max-w-4xl"
       body={modalBody}
       selfActionButton

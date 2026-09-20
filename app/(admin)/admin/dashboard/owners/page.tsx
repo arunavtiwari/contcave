@@ -67,16 +67,14 @@ function OwnersSkeleton() {
             <TableHead>Owner</TableHead>
             <TableHead>Contact</TableHead>
             <TableHead className="text-center">Verification</TableHead>
-            <TableHead className="text-center">Spaces</TableHead>
-            <TableHead>Bank / Payout</TableHead>
-            <TableHead className="text-center">GST Status</TableHead>
+            <TableHead className="text-center">Studios</TableHead>
             <TableHead className="text-right">Bookings & GMV</TableHead>
             <TableHead>Joined</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableSkeletonRows rows={10} columns={9} />
+          <TableSkeletonRows rows={10} columns={7} />
         </TableBody>
       </Table>
     </div>

@@ -29,6 +29,7 @@ import AdminTabs from "@/components/admin/AdminTabs";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
+import Skeleton from "@/components/ui/Skeleton";
 import StatCard from "@/components/ui/StatCard";
 import {
   EmptyTable,
@@ -43,7 +44,7 @@ import {
 } from "@/components/ui/Table";
 import Tooltip from "@/components/ui/Tooltip";
 import { downloadCustomCsv } from "@/lib/csv";
-import { formatINR, formatISTDate } from "@/lib/utils";
+import { cn, formatINR, formatISTDate } from "@/lib/utils";
 
 interface AdminOwnersClientProps extends AdminOwnersPageData {
   searchQuery: string;
@@ -307,8 +308,6 @@ export default function AdminOwnersClient(props: AdminOwnersClientProps) {
               <TableHead>Contact</TableHead>
               <TableHead className="text-center">Verification</TableHead>
               <TableHead className="text-center">Studios</TableHead>
-              <TableHead>Bank / Payout</TableHead>
-              <TableHead className="text-center">GST Status</TableHead>
               <TableHead className="text-right">Bookings & GMV</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -316,7 +315,7 @@ export default function AdminOwnersClient(props: AdminOwnersClientProps) {
           </TableHeader>
           <TableBody>
             {isNavigating ? (
-              <TableSkeletonRows rows={Math.min(data.pageSize, 10)} columns={9} />
+              <TableSkeletonRows rows={Math.min(data.pageSize, 10)} columns={7} />
             ) : (
               data.owners.map((owner) => {
                 const badge = verificationBadge(owner);
@@ -353,13 +352,22 @@ export default function AdminOwnersClient(props: AdminOwnersClientProps) {
                       <div className="text-xs text-muted-foreground">{owner.location || "-"}</div>
                     </TableCell>
 
-                    {/* Verification Status */}
+                    {/* Verification Status — bank, GSTIN and payout specifics live in the detail modal */}
                     <TableCell className="text-center whitespace-nowrap">
-                      <Tooltip content={badge.stageText}>
-                        <div>
-                          <Pill label={badge.label} variant={badge.variant} size="xs" />
-                        </div>
-                      </Tooltip>
+                      <div className="flex items-center justify-center gap-1">
+                        <Tooltip content={badge.stageText}>
+                          <div>
+                            <Pill label={badge.label} variant={badge.variant} size="xs" />
+                          </div>
+                        </Tooltip>
+                        {owner.gstin && (
+                          <Tooltip content={`GSTIN: ${owner.gstin}`}>
+                            <div>
+                              <Pill label="GST" variant="outline" size="xs" />
+                            </div>
+                          </Tooltip>
+                        )}
+                      </div>
                     </TableCell>
 
                     {/* Studios Count */}
@@ -378,40 +386,6 @@ export default function AdminOwnersClient(props: AdminOwnersClientProps) {
                           </span>
                         </div>
                       </Tooltip>
-                    </TableCell>
-
-                    {/* Bank & Payouts */}
-                    <TableCell className="max-w-44">
-                      {owner.hasPaymentDetails ? (
-                        <div>
-                          <div className="truncate text-xs font-medium text-foreground">
-                            {owner.bankName || "Bank Added"}
-                          </div>
-                          <div className="truncate font-mono text-xs text-muted-foreground">
-                            {owner.accountNumberMasked}
-                          </div>
-                          {owner.cashfreeVendorId && (
-                            <span className="text-[10px] text-emerald-600 font-mono">
-                              CF: {owner.cashfreeVendorId.slice(0, 10)}…
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground italic">No Bank Details</span>
-                      )}
-                    </TableCell>
-
-                    {/* GST Status */}
-                    <TableCell className="text-center whitespace-nowrap">
-                      {owner.gstin ? (
-                        <Tooltip content={`GSTIN: ${owner.gstin}`}>
-                          <div>
-                            <Pill label={owner.gstin} variant="outline" size="xs" className="font-mono text-[11px]" />
-                          </div>
-                        </Tooltip>
-                      ) : (
-                        <Pill label="Non-GST" variant="secondary" size="xs" />
-                      )}
                     </TableCell>
 
                     {/* Bookings & GMV */}
@@ -490,6 +464,83 @@ function DetailSection({
   );
 }
 
+/** Mirrors the loaded profile exactly, so nothing shifts once the data arrives. */
+function OwnerDetailSkeleton() {
+  return (
+    <div className="space-y-5" aria-label="Loading space owner profile">
+      {/* Profile summary header */}
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-12 w-12 shrink-0 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-40 rounded-md" />
+            <Skeleton className="h-3 w-56 rounded-md" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-6 w-24 rounded-full" />
+          <Skeleton className="h-6 w-28 rounded-full" />
+        </div>
+      </div>
+
+      {/* Verification & KYC — four status tiles */}
+      <SkeletonSection titleWidth="w-44">
+        <div className="grid gap-3 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-muted/10 p-2.5">
+              <Skeleton className="h-4 w-4 shrink-0 rounded" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3 w-16 rounded" />
+                <Skeleton className="h-2.5 w-12 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </SkeletonSection>
+
+      {/* Banking & payout — eight labelled fields */}
+      <SkeletonSection titleWidth="w-40">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="space-y-1.5">
+              <Skeleton className="h-2.5 w-20 rounded" />
+              <Skeleton className="h-4 w-full rounded" />
+            </div>
+          ))}
+        </div>
+      </SkeletonSection>
+
+      {/* Studios & spaces — two cards */}
+      <SkeletonSection titleWidth="w-36">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="space-y-2 rounded-lg border border-border bg-muted/10 p-3.5">
+              <div className="flex items-start justify-between gap-2">
+                <Skeleton className="h-4 w-32 rounded" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+              <Skeleton className="h-3 w-24 rounded" />
+              <Skeleton className="h-3 w-40 rounded" />
+            </div>
+          ))}
+        </div>
+      </SkeletonSection>
+    </div>
+  );
+}
+
+function SkeletonSection({ titleWidth, children }: { titleWidth: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-xl border border-border bg-background p-4 sm:p-5">
+      <div className="flex items-center gap-2 border-b border-border pb-3">
+        <Skeleton className="h-6 w-6 rounded-lg" />
+        <Skeleton className={cn("h-4 rounded-md", titleWidth)} />
+      </div>
+      <div className="mt-3.5">{children}</div>
+    </section>
+  );
+}
+
 function OwnerDetailModal({
   state,
   onClose,
@@ -503,11 +554,7 @@ function OwnerDetailModal({
 
   const modalBody = (
     <div className="space-y-5">
-      {state.isLoading && (
-        <div className="py-16 text-center text-sm text-muted-foreground animate-pulse">
-          Loading space owner profile & properties…
-        </div>
-      )}
+      {state.isLoading && <OwnerDetailSkeleton />}
 
       {state.error && (
         <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -28,11 +29,11 @@ import {
     rejectListingAction,
 } from "@/app/actions/listingActions";
 import { AdminListingSkeletonRows, CuratedListingSkeletonRows } from "@/components/admin/AdminListingSkeletonRows";
-import ListingReviewsModal from "@/components/admin/ListingReviewsModal";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
+import Skeleton from "@/components/ui/Skeleton";
 import StatCard from "@/components/ui/StatCard";
 import {
     EmptyTable,
@@ -46,6 +47,13 @@ import {
 } from "@/components/ui/Table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
+
+// Only opened from a row action, so its bundle loads on first use rather than with the
+// listings table.
+const ListingReviewsModal = dynamic(
+    () => import("@/components/admin/ListingReviewsModal"),
+    { ssr: false }
+);
 
 type ListingStatus = "PENDING" | "VERIFIED" | "REJECTED";
 type ConfirmAction = "approve" | "reject" | null;
@@ -213,18 +221,95 @@ function KycGrid({ listing }: { listing: AdminListingReview }) {
     );
 }
 
+/** Same section rhythm as the loaded review, so the dialog holds its shape while fetching. */
+function ReviewModalSkeleton() {
+    return (
+        <div className="space-y-8" aria-label="Loading listing review">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+                <div className="space-y-4">
+                    <Skeleton className="aspect-video w-full rounded-xl" />
+                    <div className="grid grid-cols-4 gap-2">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                            <Skeleton key={i} className="aspect-square w-full rounded-xl" />
+                        ))}
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <Skeleton key={i} className="h-6 w-24 rounded-full" />
+                        ))}
+                    </div>
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-3/4 rounded-lg" />
+                        <Skeleton className="h-4 w-40 rounded" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                            <div key={i} className="space-y-1.5">
+                                <Skeleton className="h-2.5 w-20 rounded" />
+                                <Skeleton className="h-4 w-28 rounded" />
+                            </div>
+                        ))}
+                    </div>
+                    <Skeleton className="h-14 w-full rounded-xl" />
+                </div>
+            </div>
+
+            {/* Host & KYC, Documents, Listing Details, Amenities, Add-ons, Sets, Packages */}
+            {[3, 2, 4, 0, 3, 3, 2].map((fields, section) => (
+                <div key={section} className="space-y-3">
+                    <Skeleton className="h-4 w-36 rounded-md" />
+                    {fields === 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <Skeleton key={i} className="h-6 w-20 rounded-full" />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                            {Array.from({ length: fields }).map((_, i) => (
+                                <div key={i} className="space-y-1.5">
+                                    <Skeleton className="h-2.5 w-24 rounded" />
+                                    <Skeleton className="h-4 w-full rounded" />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+}
+
 function ReviewModal({
     listing,
+    isOpening,
     onClose,
     onRequestAction,
     isMutating,
 }: {
     listing: AdminListingReview | null;
+    isOpening?: boolean;
     onClose: () => void;
     onRequestAction: (action: ConfirmAction) => void;
     isMutating: boolean;
 }) {
-    if (!listing) return null;
+    if (!listing) {
+        if (!isOpening) return null;
+        return (
+            <Modal
+                isOpen
+                onCloseAction={onClose}
+                onSubmitAction={onClose}
+                title="Listing Review"
+                actionLabel="Close"
+                customWidth="w-full max-w-6xl"
+                customHeight="max-h-[92vh]"
+                body={<ReviewModalSkeleton />}
+            />
+        );
+    }
 
     const previewHref = publicListingHref(listing.slug || listing.id);
     const addons = Array.isArray(listing.addons) ? listing.addons as Array<Record<string, unknown>> : [];
@@ -532,6 +617,8 @@ export default function AdminListingsClient({
     const viewMode = optimisticView;
     const status = optimisticStatus;
     const [selected, setSelected] = useState<AdminListingReview | null>(null);
+    // Set the moment a row is clicked so the dialog can open on its skeleton.
+    const [pendingReviewId, setPendingReviewId] = useState<string | null>(null);
     const [reviewsFor, setReviewsFor] = useState<{ id: string; title: string } | null>(null);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
     const [rejectReason, setRejectReason] = useState("");
@@ -549,14 +636,26 @@ export default function AdminListingsClient({
     };
 
     const openReview = (listingId: string) => {
+        setPendingReviewId(listingId);
         startTransition(async () => {
-            const detail = await getAdminListingReviewDetail(listingId);
-            if (!detail) {
+            try {
+                const detail = await getAdminListingReviewDetail(listingId);
+                if (!detail) {
+                    toast.error("Listing review details are unavailable");
+                    setPendingReviewId(null);
+                    return;
+                }
+                setSelected(detail);
+            } catch {
                 toast.error("Listing review details are unavailable");
-                return;
+                setPendingReviewId(null);
             }
-            setSelected(detail);
         });
+    };
+
+    const closeReview = () => {
+        setSelected(null);
+        setPendingReviewId(null);
     };
 
     const [sortField, setSortField] = useState<string | null>(null);
@@ -711,7 +810,7 @@ export default function AdminListingsClient({
             if (result.success) {
                 toast.success(confirmAction === "approve" ? "Listing approved" : "Listing rejected");
                 resetConfirm();
-                setSelected(null);
+                closeReview();
                 try {
                     const res = await getAdminListingReviewPage({
                         page: pageData.page,
@@ -1063,15 +1162,18 @@ export default function AdminListingsClient({
 
                 <ReviewModal
                     listing={selected}
-                    onClose={() => setSelected(null)}
+                    isOpening={Boolean(pendingReviewId) && !selected}
+                    onClose={closeReview}
                     onRequestAction={setConfirmAction}
                     isMutating={isPending}
                 />
 
-                <ListingReviewsModal
-                    listing={reviewsFor}
-                    onClose={() => setReviewsFor(null)}
-                />
+                {reviewsFor && (
+                    <ListingReviewsModal
+                        listing={reviewsFor}
+                        onClose={() => setReviewsFor(null)}
+                    />
+                )}
 
                 {selected && confirmAction && (
                     <Modal

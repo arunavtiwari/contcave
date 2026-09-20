@@ -4,35 +4,64 @@ import { PaymentDetails, Prisma } from "@prisma/client";
 
 import { getGstStateCodeFromStateName, isValidGstStateCode } from "@/constants/gstStateCodes";
 import { parseTimeToMinutes } from "@/lib/availability";
-import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { UserFacingError } from "@/lib/errors";
-import { InvoiceService } from "@/lib/invoice/service";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
+import { ReservationService } from "@/lib/reservation/service";
 import { isReservationSlotUniqueConflict, LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
-import { formatReservationDate, parseReservationEndTimeForDate, parseReservationTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
 import { generateBookingId } from "@/lib/utils";
-import { WhatsappService } from "@/lib/whatsapp/service";
 import { CreateAdminOfflineBookingInput } from "@/schemas/offlineBooking";
 import { SafeUser, UserRole } from "@/types/user";
+
+export interface AdminStudioSetOption {
+  id: string;
+  name: string;
+  price: number;
+  position: number;
+}
+
+export interface AdminStudioPackageOption {
+  id: string;
+  title: string;
+  durationHours: number;
+  offeredPrice: number;
+  originalPrice?: number;
+  eligibleSetIds?: string[];
+  requiredSetCount?: number | null;
+  fixedAddOn?: number | null;
+}
+
+/** What the studio dropdown renders. Cheap to load for every studio on the platform. */
+export interface AdminStudioSummary {
+  id: string;
+  title: string;
+  hostName: string;
+  address: string;
+}
 
 export interface AdminStudioOption {
   id: string;
   title: string;
+  hostId: string;
   hostName: string;
   hostEmail: string;
   hostPhone: string;
+  hostIsVerified: boolean;
+  hostBankVerified: boolean;
+  hostBankVerifiedName?: string;
+  bankAccountLast4?: string;
+  bankIfsc?: string;
   address: string;
   propertyStateCode: string;
   price: number;
   gstin: string;
-  packages: Array<{
-    id: string;
-    title: string;
-    durationHours: number;
-    offeredPrice: number;
-  }>;
+  hasSets: boolean;
+  setsHaveSamePrice: boolean;
+  unifiedSetPrice: number | null;
+  additionalSetPricingType: "FIXED" | "HOURLY" | null;
+  sets: AdminStudioSetOption[];
+  packages: AdminStudioPackageOption[];
 }
 
 export interface OfflineBookingCreationResult {
@@ -43,14 +72,63 @@ export interface OfflineBookingCreationResult {
   whatsappSent: boolean;
 }
 
+const NOT_ARCHIVED: Prisma.ListingWhereInput = {
+  OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }],
+};
+
+/** The studio address shown in the selector, preferring the geocoded display name. */
+function studioAddress(listing: { actualLocation: unknown; locationValue: string | null }): string {
+  const actual = listing.actualLocation as Record<string, unknown> | null;
+  return typeof actual?.display_name === "string"
+    ? actual.display_name
+    : listing.locationValue || "Studio Address";
+}
+
 /**
- * Retrieve active and verified studio listings to populate the offline booking selector.
+ * Labels for the studio dropdown. Deliberately scalar-only: no sets, no packages, no host
+ * payment details. Loading the full option for every studio meant three PBKDF2 key
+ * derivations per listing (see `encryptionService`) before the dialog could be used at all,
+ * for data belonging to studios the admin was never going to pick.
+ *
+ * Every non-archived studio is listed, including unverified ones — an admin may well be
+ * recording a booking for a space that is not live yet. The dialog shows the selected
+ * studio's verification and bank state so that is a visible, deliberate choice.
  */
-export async function getAdminStudiosForOfflineBooking(): Promise<AdminStudioOption[]> {
-  const listings = await prisma.listing.findMany({
-    where: {
-      archivedAt: null,
-    },
+export async function getAdminStudiosForOfflineBooking(): Promise<AdminStudioSummary[]> {
+  try {
+    const listings = await prisma.listing.findMany({
+      where: NOT_ARCHIVED,
+      select: {
+        id: true,
+        title: true,
+        locationValue: true,
+        actualLocation: true,
+        user: { select: { name: true } },
+      },
+      orderBy: { title: "asc" },
+    });
+
+    return listings.map((l) => ({
+      id: l.id,
+      title: l.title,
+      hostName: l.user?.name || "Host",
+      address: studioAddress(l),
+    }));
+  } catch (error) {
+    console.error("[getAdminStudiosForOfflineBooking] Error retrieving studios:", error);
+    return [];
+  }
+}
+
+/**
+ * The full option for the one studio an admin picked — sets, packages, host contact and
+ * the decrypted bank/GSTIN details used to pre-fill the booking.
+ */
+export async function getAdminStudioForOfflineBooking(
+  listingId: string
+): Promise<AdminStudioOption | null> {
+  const l = await prisma.listing.findFirst({
+    where: { id: listingId, ...NOT_ARCHIVED },
     select: {
       id: true,
       title: true,
@@ -58,14 +136,36 @@ export async function getAdminStudiosForOfflineBooking(): Promise<AdminStudioOpt
       actualLocation: true,
       propertyStateCode: true,
       price: true,
+      hasSets: true,
+      setsHaveSamePrice: true,
+      unifiedSetPrice: true,
+      additionalSetPricingType: true,
       user: {
         select: {
           id: true,
           name: true,
           email: true,
           phone: true,
-          paymentDetails: true,
+          is_verified: true,
+          bank_verified: true,
+          bank_verified_name: true,
+          // Each encrypted field costs its own PBKDF2 key derivation to read, so only
+          // the three this dialog actually displays are loaded.
+          paymentDetails: {
+            select: {
+              accountNumber: true,
+              accountNumberIV: true,
+              ifscCode: true,
+              ifscCodeIV: true,
+              gstin: true,
+              gstinIV: true,
+            },
+          },
         },
+      },
+      sets: {
+        select: { id: true, name: true, price: true, position: true },
+        orderBy: { position: "asc" },
       },
       packages: {
         where: { isActive: true },
@@ -74,46 +174,70 @@ export async function getAdminStudiosForOfflineBooking(): Promise<AdminStudioOpt
           title: true,
           durationHours: true,
           offeredPrice: true,
+          originalPrice: true,
+          eligibleSetIds: true,
+          requiredSetCount: true,
+          fixedAddOn: true,
         },
       },
     },
-    orderBy: { title: "asc" },
   });
 
-  return listings.map((l) => {
-    let decryptedGstin = "";
-    if (l.user.paymentDetails) {
-      try {
-        const decrypted = decryptPaymentDetailsInternal(l.user.paymentDetails as PaymentDetails);
-        decryptedGstin = decrypted?.gstin || "";
-      } catch {
-        decryptedGstin = "";
+  if (!l) return null;
+
+  let decryptedGstin = "";
+  let bankAccountLast4 = "";
+  let bankIfsc = "";
+  if (l.user?.paymentDetails) {
+    try {
+      const decrypted = decryptPaymentDetailsInternal(l.user.paymentDetails as PaymentDetails);
+      decryptedGstin = decrypted?.gstin || "";
+      bankIfsc = decrypted?.ifscCode || "";
+      if (decrypted?.accountNumber) {
+        bankAccountLast4 = decrypted.accountNumber.slice(-4);
       }
+    } catch {
+      decryptedGstin = "";
     }
+  }
 
-    const actual = l.actualLocation as Record<string, unknown> | null;
-    const address = typeof actual?.display_name === "string"
-      ? actual.display_name
-      : l.locationValue;
-
-    return {
-      id: l.id,
-      title: l.title,
-      hostName: l.user.name || "",
-      hostEmail: l.user.email || "",
-      hostPhone: l.user.phone || "",
-      address,
-      propertyStateCode: l.propertyStateCode || "",
-      price: l.price || 0,
-      gstin: decryptedGstin,
-      packages: l.packages.map((pkg) => ({
-        id: pkg.id,
-        title: pkg.title,
-        durationHours: pkg.durationHours,
-        offeredPrice: pkg.offeredPrice,
-      })),
-    };
-  });
+  return {
+    id: l.id,
+    title: l.title,
+    hostId: l.user?.id || "",
+    hostName: l.user?.name || "Host",
+    hostEmail: l.user?.email || "",
+    hostPhone: l.user?.phone || "",
+    hostIsVerified: Boolean(l.user?.is_verified),
+    hostBankVerified: Boolean(l.user?.bank_verified),
+    hostBankVerifiedName: l.user?.bank_verified_name || undefined,
+    bankAccountLast4: bankAccountLast4 || undefined,
+    bankIfsc: bankIfsc || undefined,
+    address: studioAddress(l),
+    propertyStateCode: l.propertyStateCode || "07",
+    price: l.price || 0,
+    gstin: decryptedGstin,
+    hasSets: Boolean(l.hasSets),
+    setsHaveSamePrice: Boolean(l.setsHaveSamePrice),
+    unifiedSetPrice: l.unifiedSetPrice ?? null,
+    additionalSetPricingType: (l.additionalSetPricingType as "FIXED" | "HOURLY" | null) || null,
+    sets: (l.sets || []).map((s) => ({
+      id: s.id,
+      name: s.name,
+      price: s.price,
+      position: s.position,
+    })),
+    packages: (l.packages || []).map((pkg) => ({
+      id: pkg.id,
+      title: pkg.title,
+      durationHours: pkg.durationHours,
+      offeredPrice: pkg.offeredPrice,
+      originalPrice: pkg.originalPrice,
+      eligibleSetIds: pkg.eligibleSetIds,
+      requiredSetCount: pkg.requiredSetCount,
+      fixedAddOn: pkg.fixedAddOn,
+    })),
+  };
 }
 
 function buildSlotRows(params: {
@@ -173,7 +297,41 @@ export async function createOfflineBooking(
   data: CreateAdminOfflineBookingInput,
   adminUser: SafeUser
 ): Promise<OfflineBookingCreationResult> {
-  // 1. Resolve Customer User
+  // 1. Resolve Studio Listing from Platform
+  const listing = await prisma.listing.findUnique({
+    where: { id: data.listingId },
+    include: { user: { include: { paymentDetails: true } } },
+  });
+
+  if (!listing) {
+    throw new UserFacingError("Selected studio was not found on the platform. Please select a valid studio.");
+  }
+
+  const actualLoc = listing.actualLocation as Record<string, unknown> | null;
+  const studioAddress = typeof actualLoc?.display_name === "string"
+    ? actualLoc.display_name
+    : listing.locationValue || "Studio Address";
+
+  // Ensure listing has a valid propertyStateCode for invoice generation
+  let effectiveStateCode = listing.propertyStateCode;
+  if (!isValidGstStateCode(effectiveStateCode)) {
+    if (data.propertyStateCode && isValidGstStateCode(data.propertyStateCode)) {
+      effectiveStateCode = data.propertyStateCode;
+    } else if (data.studioGst && isValidGstStateCode(data.studioGst.slice(0, 2))) {
+      effectiveStateCode = data.studioGst.slice(0, 2);
+    } else {
+      const stateFromName = getGstStateCodeFromStateName(listing.locationValue);
+      effectiveStateCode = stateFromName && isValidGstStateCode(stateFromName) ? stateFromName : "07";
+    }
+
+    await prisma.listing.update({
+      where: { id: listing.id },
+      data: { propertyStateCode: effectiveStateCode },
+    });
+    listing.propertyStateCode = effectiveStateCode;
+  }
+
+  // 2. Resolve Customer User
   const customerEmail = data.customerEmail.toLowerCase().trim();
   let customer = await prisma.user.findUnique({
     where: { email: customerEmail },
@@ -203,14 +361,14 @@ export async function createOfflineBooking(
     }
   }
 
-  // 2. Customer GST / Billing Details
+  // 3. Customer GST / Billing Details
   let billingDetailId: string | undefined;
   let billingSnapshot: Record<string, string> | undefined;
 
   if (data.customerGst) {
     const normalizedGstin = data.customerGst.toUpperCase().trim();
     const companyName = data.customerCompanyName?.trim() || data.customerName.trim();
-    const billingAddress = data.customerBillingAddress?.trim() || data.studioAddress.trim();
+    const billingAddress = data.customerBillingAddress?.trim() || studioAddress;
 
     let billing = await prisma.billingDetails.findFirst({
       where: {
@@ -240,94 +398,26 @@ export async function createOfflineBooking(
     };
   }
 
-  // 3. Resolve Studio Listing
-  let listing = data.listingId
-    ? await prisma.listing.findUnique({
-        where: { id: data.listingId },
-        include: { user: { include: { paymentDetails: true } } },
-      })
-    : null;
-
-  if (!listing) {
-    // Matching on title alone can attach the booking to another host's studio,
-    // so the studio contact email has to agree and the order must be stable.
-    listing = await prisma.listing.findFirst({
-      where: {
-        title: data.studioName.trim(),
-        archivedAt: null,
-        user: { is: { email: data.studioEmail.toLowerCase().trim() } },
-      },
-      include: { user: { include: { paymentDetails: true } } },
-      orderBy: { createdAt: "asc" },
-    });
-  }
-
-  if (!listing) {
-    // Create an offline studio entry if not present
-    const hostEmail = data.studioEmail.toLowerCase().trim();
-    let host = await prisma.user.findUnique({
-      where: { email: hostEmail },
-    });
-
-    if (!host) {
-      host = await prisma.user.create({
-        data: {
-          email: hostEmail,
-          name: data.studioName.trim(),
-          role: UserRole.OWNER,
-          email_verified: true,
-        },
-      });
-    }
-
-    const stateCode = data.propertyStateCode
-      || (data.studioGst ? data.studioGst.slice(0, 2) : "07");
-
-    // Kept unpublished on purpose: this record exists so the booking, invoice
-    // and payout have a studio to hang off, not to appear in public search with
-    // no photos. An admin can review and publish it later.
-    listing = await prisma.listing.create({
-      data: {
-        userId: host.id,
-        title: data.studioName.trim(),
-        description: `Offline studio listing for ${data.studioName.trim()}`,
-        category: "Studio",
-        locationValue: data.studioAddress.trim(),
-        propertyStateCode: stateCode,
-        price: Math.max(1, Math.round(data.price / Math.max(data.hoursBooked, 1))),
-        status: "PENDING",
-        active: false,
-      },
-      include: { user: { include: { paymentDetails: true } } },
-    });
-  } else {
-    // Ensure existing listing has a valid propertyStateCode for invoice generation
-    let effectiveStateCode = listing.propertyStateCode;
-    if (!isValidGstStateCode(effectiveStateCode)) {
-      if (data.propertyStateCode && isValidGstStateCode(data.propertyStateCode)) {
-        effectiveStateCode = data.propertyStateCode;
-      } else if (data.studioGst && isValidGstStateCode(data.studioGst.slice(0, 2))) {
-        effectiveStateCode = data.studioGst.slice(0, 2);
-      } else {
-        const stateFromName = getGstStateCodeFromStateName(listing.locationValue);
-        effectiveStateCode = stateFromName && isValidGstStateCode(stateFromName) ? stateFromName : "07";
-      }
-
-      await prisma.listing.update({
-        where: { id: listing.id },
-        data: { propertyStateCode: effectiveStateCode },
-      });
-      listing.propertyStateCode = effectiveStateCode;
-    }
-  }
-
   // 4. Generate unique Booking ID & create Reservation
   const bookingId = generateBookingId();
   const startDate = new Date(`${data.bookingDate}T00:00:00.000Z`);
-  const studioSetIds = await prisma.listingSet.findMany({
+  const studioSets = await prisma.listingSet.findMany({
     where: { listingId: listing.id },
-    select: { id: true },
+    select: { id: true, name: true, price: true, position: true },
+    orderBy: { position: "asc" },
   });
+
+  const selectedSetIds = Array.isArray(data.setIds) && data.setIds.length > 0
+    ? data.setIds
+    : studioSets.map((s) => s.id);
+
+  let includedSetId: string | null = null;
+  if (selectedSetIds.length > 0 && studioSets.length > 0) {
+    const matchedSets = studioSets
+      .filter((s) => selectedSetIds.includes(s.id))
+      .sort((a, b) => (a.price !== b.price ? a.price - b.price : a.position - b.position));
+    includedSetId = matchedSets[0]?.id || null;
+  }
 
   const reservationData: Prisma.ReservationUncheckedCreateInput = {
     bookingId,
@@ -341,11 +431,16 @@ export async function createOfflineBooking(
     status: "CONFIRMED",
     billingDetailId,
     billingSnapshot: billingSnapshot || undefined,
+    setIds: selectedSetIds,
+    includedSetId: includedSetId || undefined,
+    setPackageId: data.packageId || undefined,
     pricingSnapshot: {
       offlineBooking: true,
       bookingType: data.bookingType,
       packageId: data.packageId || undefined,
       packageName: data.packageName || undefined,
+      setIds: selectedSetIds,
+      setNames: studioSets.filter((s) => selectedSetIds.includes(s.id)).map((s) => s.name),
       hoursBooked: data.hoursBooked,
       price: data.price,
       paymentMadeVia: data.paymentMadeVia,
@@ -368,7 +463,7 @@ export async function createOfflineBooking(
         startDate,
         startTime: data.startTime,
         endTime: data.endTime,
-        setIds: studioSetIds.map((set) => set.id),
+        setIds: selectedSetIds.length > 0 ? selectedSetIds : studioSets.map((s) => s.id),
       });
 
       // Every slot is inserted rather than skipping taken ones, so the unique
@@ -391,6 +486,10 @@ export async function createOfflineBooking(
           customerEmail: data.customerEmail,
           customerPhone: data.customerPhone,
           description: `Offline Booking - ${data.paymentMadeVia} (${data.paymentTerms})`,
+          payoutDoneAt: new Date(),
+          payoutSplitAt: new Date(),
+          payoutAmountToOwner: 0,
+          payoutPercentToOwner: 0,
           metadata: {
             offline: true,
             bookingType: data.bookingType,
@@ -415,66 +514,32 @@ export async function createOfflineBooking(
       throw error;
     });
 
-  // 7. Generate customer tax invoice and send email with invoice attachment
+  // 7. Trigger standard booking confirmation side effects (Invoice generation, Customer email with PDF, Host email, WhatsApp notifications, Calendar sync)
   let invoiceNumber: string | undefined;
   let emailSent = false;
-  try {
-    const { invoice } = await InvoiceService.ensureCustomerInvoiceForTransaction(transaction.id);
-    invoiceNumber = invoice.invoiceNumber;
-    try {
-      await InvoiceService.sendCustomerBookingConfirmationWithInvoice(invoice.id);
-      emailSent = true;
-    } catch (emailErr) {
-      console.error("[OfflineBooking] Customer invoice email delivery failed:", emailErr);
-    }
-  } catch (invoiceErr) {
-    console.error("[OfflineBooking] Customer invoice generation failed:", invoiceErr);
-  }
-
-  // 8. Send WhatsApp confirmation to customer (no host message needed)
   let whatsappSent = false;
-  if (data.customerPhone) {
-    try {
-      const formattedDate = formatReservationDate(startDate);
-      const actualLoc = listing.actualLocation as Record<string, unknown> | null;
-      const locationLink = typeof actualLoc?.url === "string"
-        ? actualLoc.url
-        : typeof actualLoc?.mapsUrl === "string"
-          ? actualLoc.mapsUrl
-          : typeof actualLoc?.googleMapsUrl === "string"
-            ? actualLoc.googleMapsUrl
-            : typeof actualLoc?.display_name === "string"
-              ? actualLoc.display_name
-              : data.studioAddress;
 
-      await WhatsappService.sendBookingConfirmedCustomer(data.customerPhone, {
-        customerName: data.customerName,
-        listingTitle: data.studioName,
-        startDate: formattedDate,
-        startTime: `${data.startTime} to ${data.endTime}`,
-        locationLink: String(locationLink || "https://contcave.com"),
-        idempotencyKey: `confirm_offline_${reservation.id}`,
-      });
-      whatsappSent = true;
-      await prisma.transaction.update({
-        where: { id: transaction.id },
-        data: { whatsappSentCustomer: true },
-      });
-    } catch (whatsappErr) {
-      console.error("[OfflineBooking] Customer WhatsApp confirmation failed:", whatsappErr);
+  try {
+    await ReservationService.ensurePostReservationSideEffects(transaction.id);
+
+    // Read generated invoice
+    const inv = await prisma.invoice.findFirst({
+      where: { transactionId: transaction.id },
+      select: { invoiceNumber: true, emailSentAt: true, status: true },
+      orderBy: { createdAt: "desc" },
+    });
+    if (inv) {
+      invoiceNumber = inv.invoiceNumber;
+      emailSent = Boolean(inv.emailSentAt || inv.status === "EMAIL_SENT");
     }
-  }
 
-  // 9. Calendar side-effect for host
-  const startAt = parseReservationTimeForDate(startDate, data.startTime);
-  const endAt = parseReservationEndTimeForDate(startDate, data.endTime);
-  if (startAt && endAt) {
-    await ensureCalendarEventForUser({
-      userId: listing.userId,
-      title: `Booking: ${listing.title}`,
-      startIso: startAt.toISOString(),
-      endIso: endAt.toISOString(),
-    }).catch(() => undefined);
+    const updatedTxn = await prisma.transaction.findUnique({
+      where: { id: transaction.id },
+      select: { whatsappSentCustomer: true },
+    });
+    whatsappSent = Boolean(updatedTxn?.whatsappSentCustomer);
+  } catch (sideEffectErr) {
+    console.error("[OfflineBooking] Post-reservation side effects failed:", sideEffectErr);
   }
 
   return {

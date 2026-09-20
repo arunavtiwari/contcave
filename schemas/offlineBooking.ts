@@ -3,11 +3,11 @@ import { z } from "zod";
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
 export const createAdminOfflineBookingSchema = z.object({
-  // 1. Studio Details
-  listingId: z.string().optional().nullable(),
-  studioName: z.string().trim().min(2, "Studio name must be at least 2 characters"),
-  studioEmail: z.string().trim().email("Valid studio contact email is required"),
-  studioAddress: z.string().trim().min(5, "Studio address must be at least 5 characters"),
+  // 1. Studio Details (Selected from platform)
+  listingId: z.string().trim().min(1, "Please select a studio from the platform"),
+  studioName: z.string().trim().optional().nullable(),
+  studioEmail: z.string().trim().optional().nullable(),
+  studioAddress: z.string().trim().optional().nullable(),
   studioGst: z
     .string()
     .trim()
@@ -16,7 +16,7 @@ export const createAdminOfflineBookingSchema = z.object({
     .nullable()
     .refine(
       (val) => !val || GSTIN_REGEX.test(val),
-      "Studio GSTIN must be a valid 15-character format (e.g. 07AAAAA0000A1Z5)"
+      "Studio GSTIN must be a valid 15-character format"
     ),
   propertyStateCode: z
     .string()
@@ -55,6 +55,7 @@ export const createAdminOfflineBookingSchema = z.object({
   bookingType: z.enum(["HOURLY", "PACKAGE"]),
   packageId: z.string().optional().nullable(),
   packageName: z.string().trim().optional().nullable(),
+  setIds: z.array(z.string()),
   hoursBooked: z.number().min(0.5, "Duration must be at least 0.5 hours"),
   price: z.number().min(1, "Price must be at least ₹1"),
 

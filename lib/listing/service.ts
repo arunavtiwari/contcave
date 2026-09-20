@@ -368,7 +368,13 @@ export class ListingService {
             .filter((id): id is string => !!id);
     }
 
-    static async getHydratableListingPage(params: {
+    /**
+     * The admin review screen needs one page of ids plus the per-status tallies for *both*
+     * listing types, to label the Verified/Curated tabs. Running that as three separate
+     * aggregations meant scanning the collection three times per request; a single grouped
+     * pass over the same match produces every tally, with the page rows alongside it.
+     */
+    static async getHydratableListingReviewFacets(params: {
         page: number;
         pageSize: number;
         status?: string;
@@ -376,7 +382,7 @@ export class ListingService {
     }): Promise<{
         ids: string[];
         total: number;
-        statusCounts: Record<string, number>;
+        statusCounts: Record<"STANDARD" | "CURATED", Record<string, number>>;
     }> {
         const page = Number.isFinite(params.page)
             ? Math.max(1, Math.floor(params.page))
@@ -384,43 +390,66 @@ export class ListingService {
         const pageSize = Number.isFinite(params.pageSize)
             ? Math.min(100, Math.max(1, Math.floor(params.pageSize)))
             : 20;
-        const filter = this.getHydratableListingFilter({
+        const rowFilter = this.getHydratableListingFilter({
             ...(params.status ? { status: params.status } : {}),
             listingType: params.listingType,
         });
+        // Same hydratability rules, but across both listing types so one pass can tally both.
+        const countFilter = this.getHydratableListingFilter({});
+
         const result = await prisma.listing.aggregateRaw({
             pipeline: [
-                { $match: filter },
+                { $match: countFilter },
                 {
                     $facet: {
                         rows: [
+                            { $match: rowFilter },
                             { $sort: { createdAt: -1 } },
                             { $skip: (page - 1) * pageSize },
                             { $limit: pageSize },
                             { $project: { _id: 1 } },
                         ],
+                        pageTotal: [{ $match: rowFilter }, { $count: "total" }],
                         counts: [
-                            { $group: { _id: "$status", total: { $sum: 1 } } },
+                            {
+                                $group: {
+                                    _id: {
+                                        listingType: {
+                                            $cond: [{ $eq: ["$listingType", "CURATED"] }, "CURATED", "STANDARD"],
+                                        },
+                                        status: "$status",
+                                    },
+                                    total: { $sum: 1 },
+                                },
+                            },
                         ],
                     },
                 },
             ] as unknown as Prisma.InputJsonValue[],
         }) as unknown as Array<{
             rows?: RawListingId[];
-            counts?: Array<{ _id?: string; total?: number }>;
+            pageTotal?: Array<{ total?: number }>;
+            counts?: Array<{ _id?: { listingType?: string; status?: string }; total?: number }>;
         }>;
+
         const facet = result[0] || {};
-        const statusCounts = (facet.counts || []).reduce<Record<string, number>>((acc, item) => {
-            if (typeof item._id === "string" && typeof item.total === "number") acc[item._id] = item.total;
-            return acc;
-        }, {});
-        const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
+        const statusCounts: Record<"STANDARD" | "CURATED", Record<string, number>> = {
+            STANDARD: {},
+            CURATED: {},
+        };
+        for (const item of facet.counts || []) {
+            const listingType = item._id?.listingType === "CURATED" ? "CURATED" : "STANDARD";
+            const status = item._id?.status;
+            if (typeof status === "string" && typeof item.total === "number") {
+                statusCounts[listingType][status] = item.total;
+            }
+        }
 
         return {
             ids: (facet.rows || [])
                 .map((item) => this.extractRawMongoId(item))
                 .filter((id): id is string => !!id),
-            total,
+            total: facet.pageTotal?.[0]?.total ?? 0,
             statusCounts,
         };
     }
