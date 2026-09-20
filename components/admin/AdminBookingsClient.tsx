@@ -226,39 +226,6 @@ function CompactPill({
   return pill;
 }
 
-function InvoiceSummary({ booking }: { booking: AdminBookingRow }) {
-  if (!booking.customerInvoiceNumber) {
-    return <CompactPill label="Pending" variant="warning" />;
-  }
-
-  return (
-    <div className="flex max-w-full items-center justify-center gap-2">
-      <div className="min-w-0">
-        <div className="truncate font-mono text-xs text-foreground">{booking.customerInvoiceNumber}</div>
-        <div className="mt-1 flex flex-wrap gap-1">
-          {booking.customerInvoiceStatus ? (
-            <CompactPill label={booking.customerInvoiceStatus} variant={statusVariant(booking.customerInvoiceStatus)} />
-          ) : null}
-          <CompactPill
-            label={booking.customerInvoiceEmailSentAt ? "Sent" : "Queued"}
-            variant={booking.customerInvoiceEmailSentAt ? "success" : "warning"}
-          />
-        </div>
-      </div>
-      {booking.customerInvoiceUrl ? (
-        <Button
-          href={booking.customerInvoiceUrl}
-          target="_blank"
-          icon={FiEye}
-          isIconOnly
-          outline
-          aria-label="View customer invoice"
-          tooltip="View invoice PDF"
-        />
-      ) : null}
-    </div>
-  );
-}
 
 function DetailItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -891,13 +858,12 @@ export default function AdminBookingsClient({
                 <TableHead>Schedule</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-center">Invoice</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isNavigating ? (
-                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={9} />
+                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={8} />
               ) : (
                 data.bookings.map((booking) => {
                   const status = bookingStatus(booking);
@@ -923,8 +889,9 @@ export default function AdminBookingsClient({
                           <div className="truncate text-muted-foreground">{booking.ownerName}</div>
                         </Tooltip>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                        {formatDateTimeRange(booking)}
+                      <TableCell className="whitespace-nowrap">
+                        <div className="text-xs font-medium text-foreground">{formatISTDate(booking.startDate)}</div>
+                        <div className="text-xs text-muted-foreground">{booking.startTime} - {booking.endTime}</div>
                       </TableCell>
                       <TableCell className="text-right whitespace-nowrap font-medium text-foreground">
                         {formatINR(booking.amount)}
@@ -932,13 +899,23 @@ export default function AdminBookingsClient({
                       <TableCell className="text-center whitespace-nowrap">
                         <CompactPill label={status.label} variant={status.variant} />
                       </TableCell>
-                      <TableCell className="text-center whitespace-nowrap">
-                        <div className="flex justify-center">
-                          <InvoiceSummary booking={booking} />
-                        </div>
-                      </TableCell>
                       <TableCell className="text-right whitespace-nowrap">
-                        <div className="flex justify-end">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {booking.customerInvoiceUrl ? (
+                            <Button
+                              href={booking.customerInvoiceUrl}
+                              target="_blank"
+                              icon={FiFileText}
+                              isIconOnly
+                              outline
+                              aria-label="View customer invoice"
+                              tooltip={
+                                booking.customerInvoiceNumber
+                                  ? `Invoice: ${booking.customerInvoiceNumber}`
+                                  : "View invoice PDF"
+                              }
+                            />
+                          ) : null}
                           <Button
                             icon={FiExternalLink}
                             isIconOnly

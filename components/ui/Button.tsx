@@ -139,7 +139,29 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
       title: tooltip ? undefined : title,
     };
 
+    const isExternalOrApi = Boolean(
+      href && (
+        href.startsWith("/api/") ||
+        href.startsWith("http://") ||
+        href.startsWith("https://") ||
+        href.startsWith("mailto:") ||
+        href.startsWith("tel:")
+      )
+    );
+
     const button = href ? (
+      isExternalOrApi ? (
+        <a
+          href={href}
+          target={target}
+          rel={target === "_blank" ? "noopener noreferrer" : undefined}
+          className={finalClasses}
+          ref={ref as React.Ref<HTMLAnchorElement>}
+          {...commonProps}
+        >
+          {content}
+        </a>
+      ) : (
         <Link
           href={href}
           target={target}
@@ -150,6 +172,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
         >
           {content}
         </Link>
+      )
     ) : (
       <button
         type={type as "button" | "submit" | "reset"}
