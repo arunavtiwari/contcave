@@ -15,12 +15,17 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 25 | GST, Invoices & Payments: Studio Booking Paperwork Explained | gst on studio rental | booking-tips | brands, hosts |
 | 26 | Best Natural-Light Studios & the Right Time Slots to Book Them | natural light studio | studio-guides | creators |
 | 27 | Build a Monthly Content Calendar Around One Studio Day | content calendar for creators | content-creation | creators |
 | 28 | UGC Creators: Delivering Brand Content with Studio Shoots | ugc creator india | creator-economy | creators |
 | 29 | Renting Event Spaces for Workshops, Pop-Ups & Launches | event space on rent delhi | studio-guides | brands |
 | 30 | How Hosts Can Get More Bookings: Photos, Pricing & Reviews | get more studio bookings | host-guides | hosts |
+| 31 | Vertical Video & Microdrama Studios: What Creators Need in 2026 | microdrama studio india | content-creation | creators |
+| 32 | Live Shopping & D2C Livestream Studio Setup Guide | live streaming studio rental india | studio-guides | brands |
+| 33 | Studio Booking Cancellation & Refund Policies Explained | studio booking cancellation policy | booking-tips | creators, hosts |
+| 34 | Beauty & Makeup Content Studios: What to Look For | studio with makeup room india | studio-guides | creators |
+| 35 | Planning Shoots Around Wedding & Festive Season Demand | festive season studio booking india | booking-tips | hosts, brands |
+| 36 | Voiceover & Audio Recording Studios vs Podcast Studios | voice over recording studio india | studio-guides | creators |
 
 ## Published
 
@@ -65,3 +70,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-09-14 | 22 | rent-your-property-for-shoots-india |
 | 2026-09-16 | 23 | corporate-video-production-cost-india |
 | 2026-09-18 | 24 | studio-rental-rules |
+| 2026-09-21 | 25 | gst-on-studio-rental-india |
