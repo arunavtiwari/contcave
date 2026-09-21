@@ -8,7 +8,7 @@ import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isRichTextEmpty } from "@/lib/richText";
 import { generateUniqueSlug } from "@/lib/slug";
-import { cancelMediaDeletions, enqueueMediaDeletions } from "@/lib/storage/mediaDeletionQueue";
+import { dispatchMediaDeletion } from "@/lib/storage/mediaDeletion";
 import { slugify } from "@/lib/strings";
 import { sanitizeStringList } from "@/lib/strings";
 import { normaliseUseCase } from "@/lib/taxonomy";
@@ -963,18 +963,16 @@ export class ListingService {
                 }
             }
 
-            if (hasChanges) {
-                await cancelMediaDeletions(tx, collectListingMediaRefs(nextMedia));
-                await enqueueMediaDeletions(tx, {
-                    refs: orphanedRefs,
-                    ownerId: existingListing.userId,
-                    reason: "listing-media-replaced",
-                    sourceId: listingId,
-                });
-            }
-
             return hasChanges;
         });
+
+        if (hasChanges && orphanedRefs.length > 0) {
+            void dispatchMediaDeletion({
+                refs: orphanedRefs,
+                ownerId: existingListing.userId,
+                sourceId: listingId,
+            });
+        }
 
         const updatedListing = await ListingService.findById(listingId, { id: userId, role: allowAdmin ? "ADMIN" : "OWNER" });
         if (!updatedListing) {
@@ -983,8 +981,6 @@ export class ListingService {
         return updatedListing;
     }
 
-    // The listing is re-read first, so refs that did reach the database — for
-    // example when the write succeeded and a later step threw — are retained.
     private static async discardUnreferencedMedia(
         fallbackOwnerId: string,
         listingId: string | undefined,
@@ -1012,12 +1008,13 @@ export class ListingService {
             }
 
             const unreferenced = Array.from(candidates).filter((ref) => !retained.has(ref));
-            await enqueueMediaDeletions(prisma, {
-                refs: unreferenced,
-                ownerId,
-                reason: "listing-write-failed",
-                sourceId: listingId,
-            });
+            if (unreferenced.length > 0) {
+                void dispatchMediaDeletion({
+                    refs: unreferenced,
+                    ownerId,
+                    sourceId: listingId,
+                });
+            }
         } catch (error) {
             console.error("[ListingService] Failed to discard unreferenced media", error);
         }

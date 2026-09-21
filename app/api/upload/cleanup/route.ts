@@ -3,18 +3,14 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, createSuccessResponse, handleRouteError, readJsonObject } from "@/lib/api-utils";
 import { getClientIp } from "@/lib/http/requestMeta";
-import prisma from "@/lib/prismadb";
 import { formatRetryAfterMs, rateLimit } from "@/lib/security/rateLimit";
-import { enqueueMediaDeletions } from "@/lib/storage/mediaDeletionQueue";
+import { dispatchMediaDeletion, normalizeMediaRefs } from "@/lib/storage/mediaDeletion";
 
 export const runtime = "nodejs";
 
 const MAX_REFS = 200;
 const MAX_REF_LENGTH = 2_000;
 
-// Queues uploads whose owner abandoned the form they belong to. Refs outside
-// the caller's own prefix are dropped on enqueue, and the drain re-checks every
-// ref against saved records before anything is removed from storage.
 export async function POST(req: NextRequest) {
     try {
         const currentUser = await getCurrentUser();
@@ -41,13 +37,15 @@ export async function POST(req: NextRequest) {
         const refs = rawRefs.filter((ref): ref is string =>
             typeof ref === "string" && ref.length > 0 && ref.length <= MAX_REF_LENGTH);
 
-        const queued = await enqueueMediaDeletions(prisma, {
-            refs,
-            ownerId: currentUser.id,
-            reason: "upload-abandoned",
-        });
+        const validRefs = normalizeMediaRefs(refs, currentUser.id);
+        if (validRefs.length > 0) {
+            void dispatchMediaDeletion({
+                refs: validRefs,
+                ownerId: currentUser.id,
+            });
+        }
 
-        return createSuccessResponse({ queued });
+        return createSuccessResponse({ queued: validRefs.length });
     } catch (error) {
         return handleRouteError(error, "POST /api/upload/cleanup");
     }

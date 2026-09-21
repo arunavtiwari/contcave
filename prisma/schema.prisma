@@ -282,22 +282,6 @@ model Listing {
   @@index([userId, archivedAt])
 }
 
-model PendingMediaDeletion {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  ref         String
-  ownerId     String   @db.ObjectId
-  reason      String
-  sourceId    String?
-  scheduledAt DateTime
-  attempts    Int      @default(0)
-  lastError   String?
-  createdAt   DateTime @default(now())
-
-  @@index([scheduledAt, attempts])
-  @@index([ref])
-  @@index([ownerId])
-}
-
 model Package {
   id               String   @id @default(auto()) @map("_id") @db.ObjectId
   title            String

@@ -164,7 +164,6 @@ export async function cleanupE2ERun(state: RunState) {
   await prisma.listingSet.deleteMany({ where: { listingId: { in: listingIds } } });
   await prisma.listingBlock.deleteMany({ where: { listingId: { in: listingIds } } });
   await prisma.dayStatus.deleteMany({ where: { listingId: { in: listingIds } } });
-  await prisma.pendingMediaDeletion.deleteMany({ where: { ownerId: { in: userIds } } });
   await prisma.customAmenities.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.account.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.listing.deleteMany({ where: { id: { in: listingIds } } });

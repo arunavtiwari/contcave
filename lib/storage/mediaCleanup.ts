@@ -38,15 +38,26 @@ function storageKeyForRef(value: unknown): { key: string; access: "public" | "pr
     return null;
 }
 
-export function isOwnedMediaRef(ref: unknown, ownerId: string): boolean {
+export function isOwnedMediaRef(ref: unknown, ownerId: string, sourceId?: string): boolean {
     const resolved = storageKeyForRef(ref);
-    return !!resolved && !!ownerId && resolved.key.startsWith(`users/${ownerId}/`);
+    if (!resolved) return false;
+    if (ownerId && resolved.key.startsWith(`users/${ownerId}/`)) return true;
+    if (sourceId && /^[a-f\d]{24}$/i.test(sourceId) && resolved.key.includes(`/listings/${sourceId}/`)) return true;
+    return false;
 }
 
-function keysOwnedBy(keys: Iterable<string>, ownerIds: Iterable<string>): string[] {
+function keysOwnedBy(
+    keys: Iterable<string>,
+    ownerIds: Iterable<string>,
+    sourceIds: Iterable<string> = []
+): string[] {
     const prefixes = Array.from(ownerIds).filter(Boolean).map((ownerId) => `users/${ownerId}/`);
-    if (prefixes.length === 0) return [];
-    return Array.from(new Set(keys)).filter((key) => prefixes.some((prefix) => key.startsWith(prefix)));
+    const validSources = Array.from(sourceIds).filter((s) => /^[a-f\d]{24}$/i.test(s)).map((s) => `/listings/${s}/`);
+    if (prefixes.length === 0 && validSources.length === 0) return [];
+    return Array.from(new Set(keys)).filter((key) =>
+        prefixes.some((prefix) => key.startsWith(prefix)) ||
+        validSources.some((source) => key.includes(source))
+    );
 }
 
 function resolvePrivateBucket(): string | undefined {
@@ -90,9 +101,11 @@ async function deleteKeys(bucket: string | undefined, keys: string[], access: "p
     return { deleted, failed };
 }
 
-// Only keys under `users/{ownerId}/` are removed, and never by throwing: the
-// caller inspects `failed` to decide whether the work needs to be retried.
-export async function deleteStoredMedia(refs: Iterable<unknown>, ownerIds: Iterable<string>): Promise<MediaDeletionOutcome> {
+export async function deleteStoredMedia(
+    refs: Iterable<unknown>,
+    ownerIds: Iterable<string>,
+    sourceIds: Iterable<string> = []
+): Promise<MediaDeletionOutcome> {
     try {
         const publicKeys: string[] = [];
         const privateKeys: string[] = [];
@@ -106,8 +119,8 @@ export async function deleteStoredMedia(refs: Iterable<unknown>, ownerIds: Itera
 
         const owners = Array.from(ownerIds).filter(Boolean);
         const [publicOutcome, privateOutcome] = await Promise.all([
-            deleteKeys(process.env.CLOUDFLARE_R2_BUCKET_NAME, keysOwnedBy(publicKeys, owners), "public"),
-            deleteKeys(resolvePrivateBucket(), keysOwnedBy(privateKeys, owners), "private"),
+            deleteKeys(process.env.CLOUDFLARE_R2_BUCKET_NAME, keysOwnedBy(publicKeys, owners, sourceIds), "public"),
+            deleteKeys(resolvePrivateBucket(), keysOwnedBy(privateKeys, owners, sourceIds), "private"),
         ]);
         return {
             deleted: publicOutcome.deleted + privateOutcome.deleted,

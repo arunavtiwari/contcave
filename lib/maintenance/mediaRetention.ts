@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { collectListingMediaRefs } from "@/lib/listing/media";
 import prisma from "@/lib/prismadb";
-import { enqueueMediaDeletions } from "@/lib/storage/mediaDeletionQueue";
+import { executeMediaDeletion } from "@/lib/storage/mediaDeletion";
 
 const RETENTION_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -25,8 +25,6 @@ function getRetentionCutoff(): Date {
     return new Date(Date.now() - RETENTION_DAYS * DAY_MS);
 }
 
-// Compliance documents in the private bucket are deliberately left in place:
-// signed agreements and verification paperwork outlive the listing.
 async function purgeExpiredListingMedia(limit: number): Promise<MediaPurgeResult[]> {
     const cutoff = getRetentionCutoff();
 
@@ -60,7 +58,7 @@ async function purgeExpiredListingMedia(limit: number): Promise<MediaPurgeResult
             const refs = collectListingMediaRefs(listing);
             const clearedAddons = withoutAddonImages(listing.addons);
 
-            const queued = await prisma.$transaction(async (tx) => {
+            await prisma.$transaction(async (tx) => {
                 await tx.listingSet.updateMany({ where: { listingId: listing.id }, data: { images: [] } });
                 await tx.listing.update({
                     where: { id: listing.id },
@@ -71,15 +69,15 @@ async function purgeExpiredListingMedia(limit: number): Promise<MediaPurgeResult
                         ...(clearedAddons ? { addons: clearedAddons } : {}),
                     },
                 });
-                return await enqueueMediaDeletions(tx, {
-                    refs,
-                    ownerId: listing.userId,
-                    reason: "retention-expired",
-                    sourceId: listing.id,
-                });
             });
 
-            results.push({ id: listing.id, status: "purged", queued, ok: true });
+            const outcome = await executeMediaDeletion({
+                refs,
+                ownerId: listing.userId,
+                sourceId: listing.id,
+            });
+
+            results.push({ id: listing.id, status: "purged", queued: outcome.deleted, ok: true });
         } catch (error) {
             console.error(`[MediaRetention] Failed to purge listing ${listing.id}`, error);
             results.push({ id: listing.id, status: "skipped", queued: 0, ok: false });
@@ -106,20 +104,18 @@ async function purgeExpiredProfileMedia(limit: number): Promise<MediaPurgeResult
 
     for (const user of users) {
         try {
-            const queued = await prisma.$transaction(async (tx) => {
-                await tx.user.update({
-                    where: { id: user.id },
-                    data: { profileImage: null, image: null },
-                });
-                return await enqueueMediaDeletions(tx, {
-                    refs: [user.profileImage, user.image],
-                    ownerId: user.id,
-                    reason: "retention-expired",
-                    sourceId: user.id,
-                });
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { profileImage: null, image: null },
             });
 
-            results.push({ id: user.id, status: "purged", queued, ok: true });
+            const outcome = await executeMediaDeletion({
+                refs: [user.profileImage, user.image],
+                ownerId: user.id,
+                sourceId: user.id,
+            });
+
+            results.push({ id: user.id, status: "purged", queued: outcome.deleted, ok: true });
         } catch (error) {
             console.error(`[MediaRetention] Failed to purge profile media for ${user.id}`, error);
             results.push({ id: user.id, status: "skipped", queued: 0, ok: false });

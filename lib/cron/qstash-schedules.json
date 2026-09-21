@@ -5,6 +5,5 @@
   { "scheduleId": "contcave-payout-splits", "cron": "30 18 * * *", "job": "payout-splits" },
   { "scheduleId": "contcave-invoice-retry", "cron": "50 * * * *", "job": "invoice-retry" },
   { "scheduleId": "contcave-month-end-invoices", "cron": "25 18 * * *", "job": "month-end-invoices" },
-  { "scheduleId": "contcave-media-retention", "cron": "15 19 * * *", "job": "media-retention" },
-  { "scheduleId": "contcave-media-deletion-queue", "cron": "45 7,19 * * *", "job": "media-deletion-queue" }
+  { "scheduleId": "contcave-media-retention", "cron": "15 19 * * *", "job": "media-retention" }
 ]
