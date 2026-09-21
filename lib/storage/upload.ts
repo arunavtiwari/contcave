@@ -73,14 +73,20 @@ export async function uploadToR2(
             throw new Error("Storage did not return a valid upload session");
         }
 
-        const uploadRes = await fetch(url, {
-            method: "PUT",
-            headers: {
-                "Content-Type": f.type,
-                "Cache-Control": typeof cacheControl === "string" ? cacheControl : "public, max-age=31536000, immutable",
-            },
-            body: f,
-        });
+        let uploadRes: Response;
+        try {
+            uploadRes = await fetch(url, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": f.type,
+                    "Cache-Control": typeof cacheControl === "string" ? cacheControl : "public, max-age=31536000, immutable",
+                },
+                body: f,
+            });
+        } catch (fetchError) {
+            console.error("[STORAGE_UPLOAD_ERROR] Direct storage upload failed:", fetchError);
+            throw new Error(`Failed to upload ${f.name} to storage. Please check network connectivity or storage CORS configuration.`);
+        }
 
         if (!uploadRes.ok) throw new Error("Failed to upload file to storage");
         newUrls.push(storedRef);
