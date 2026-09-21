@@ -53,7 +53,7 @@ type ViewMode = "STANDARD" | "CURATED";
 const STATUS_OPTIONS: Array<{ value: "ALL" | ListingStatus; label: string }> = [
     { value: "ALL", label: "All" },
     { value: "PENDING", label: "Pending" },
-    { value: "VERIFIED", label: "Verified" },
+    { value: "VERIFIED", label: "Approved" },
     { value: "REJECTED", label: "Rejected" },
 ];
 
@@ -61,6 +61,12 @@ function statusVariant(status: ListingStatus) {
     if (status === "VERIFIED") return "success";
     if (status === "REJECTED") return "destructive";
     return "warning";
+}
+
+function statusLabel(status: ListingStatus) {
+    if (status === "VERIFIED") return "Approved";
+    if (status === "REJECTED") return "Rejected";
+    return "Pending";
 }
 
 function yesNo(value: boolean | null | undefined) {
@@ -198,6 +204,8 @@ function KycGrid({ listing }: { listing: AdminListingReview }) {
                 <Detail label="Account" value={user?.paymentDetails?.accountNumber} />
                 <Detail label="IFSC" value={user?.paymentDetails?.ifscCode} />
                 <Detail label="GSTIN" value={user?.paymentDetails?.gstin} />
+                <Detail label="Company Name" value={user?.paymentDetails?.companyName} />
+                <Detail label="Company Address" value={user?.paymentDetails?.companyAddress} />
                 <Detail label="Cashfree Vendor" value={user?.paymentDetails?.cashfreeVendorId} />
             </div>
         </div>
@@ -254,7 +262,10 @@ function ReviewModal({
                         </div>
                         <div className="space-y-4">
                             <div className="flex flex-wrap items-center gap-2">
-                                <Pill label={listing.status} variant={statusVariant(listing.status)} size="sm" />
+                                <Pill label={statusLabel(listing.status)} variant={statusVariant(listing.status)} size="sm" />
+                                {listing.listingType === "CURATED" && (
+                                    <Pill label="ContCave Curated" variant="warning" size="sm" />
+                                )}
                                 <KycPill verified={Boolean(listing.user?.is_verified)} size="sm" />
                                 <Pill label={listing.active ? "Active" : "Inactive"} variant={listing.active ? "success" : "neutral"} size="sm" />
                             </div>
@@ -266,7 +277,16 @@ function ReviewModal({
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <Detail label="Category" value={listing.category} />
-                                <Detail label="Base Price" value={listing.price != null ? formatINR(listing.price) : "—"} />
+                                <Detail
+                                    label="Base Price"
+                                    value={
+                                        listing.price != null
+                                            ? formatINR(listing.price)
+                                            : listing.priceRangeMin && listing.priceRangeMax
+                                            ? `₹${listing.priceRangeMin.toLocaleString("en-IN")}–${listing.priceRangeMax.toLocaleString("en-IN")}`
+                                            : "Price on Demand"
+                                    }
+                                />
                                 <Detail label="Submitted" value={formatISTDateTime(listing.createdAt)} />
                                 <Detail label="Reviewed" value={listing.reviewedAt ? formatISTDateTime(listing.reviewedAt) : null} />
                             </div>
@@ -428,6 +448,13 @@ function ReviewModal({
     );
 }
 
+const DEFAULT_STATUS_COUNTS: Record<"ALL" | ListingStatus, number> = {
+    ALL: 0,
+    PENDING: 0,
+    VERIFIED: 0,
+    REJECTED: 0,
+};
+
 type AdminListingsClientProps = {
     listings: AdminListingReviewSummary[];
     selectedStatus: "ALL" | ListingStatus;
@@ -436,6 +463,7 @@ type AdminListingsClientProps = {
     pageSize: number;
     total: number;
     counts: Record<"ALL" | ListingStatus, number>;
+    curatedCounts?: Record<"ALL" | ListingStatus, number>;
     curatedTotal: number;
 };
 
@@ -447,6 +475,7 @@ export default function AdminListingsClient({
     pageSize,
     total,
     counts,
+    curatedCounts = DEFAULT_STATUS_COUNTS,
     curatedTotal,
 }: AdminListingsClientProps) {
     const router = useRouter();
@@ -454,20 +483,23 @@ export default function AdminListingsClient({
         listings,
         total,
         counts,
+        curatedCounts,
         curatedTotal,
         page,
         pageSize,
     });
 
-    const [prevProps, setPrevProps] = useState({ listings, total, counts, curatedTotal, page, pageSize });
+    const [prevProps, setPrevProps] = useState({ listings, total, counts, curatedCounts, curatedTotal, page, pageSize });
     if (
         listings !== prevProps.listings ||
         page !== prevProps.page ||
         total !== prevProps.total ||
-        curatedTotal !== prevProps.curatedTotal
+        curatedTotal !== prevProps.curatedTotal ||
+        counts !== prevProps.counts ||
+        curatedCounts !== prevProps.curatedCounts
     ) {
-        setPrevProps({ listings, total, counts, curatedTotal, page, pageSize });
-        setPageData({ listings, total, counts, curatedTotal, page, pageSize });
+        setPrevProps({ listings, total, counts, curatedCounts, curatedTotal, page, pageSize });
+        setPageData({ listings, total, counts, curatedCounts, curatedTotal, page, pageSize });
     }
 
     const [optimisticView, setOptimisticView] = useState<ViewMode>(listingType);
@@ -562,6 +594,10 @@ export default function AdminListingsClient({
                 cmp = (a.locationValue || "").localeCompare(b.locationValue || "");
             } else if (sortField === "enquiries") {
                 cmp = (a.enquiryCount || 0) - (b.enquiryCount || 0);
+            } else if (sortField === "status") {
+                cmp = (a.status || "").localeCompare(b.status || "");
+            } else if (sortField === "createdAt") {
+                cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
             }
             return sortDirection === "asc" ? cmp : -cmp;
         });
@@ -596,6 +632,7 @@ export default function AdminListingsClient({
                     listings: res.listings,
                     total: res.total,
                     counts: res.counts,
+                    curatedCounts: res.curatedCounts,
                     curatedTotal: res.curatedTotal,
                     page: res.page,
                     pageSize: res.pageSize,
@@ -629,6 +666,7 @@ export default function AdminListingsClient({
                         listings: res.listings,
                         total: res.total,
                         counts: res.counts,
+                        curatedCounts: res.curatedCounts,
                         curatedTotal: res.curatedTotal,
                         page: res.page,
                         pageSize: res.pageSize,
@@ -674,6 +712,7 @@ export default function AdminListingsClient({
                         listings: res.listings,
                         total: res.total,
                         counts: res.counts,
+                        curatedCounts: res.curatedCounts,
                         curatedTotal: res.curatedTotal,
                         page: res.page,
                         pageSize: res.pageSize,
@@ -687,19 +726,21 @@ export default function AdminListingsClient({
         });
     };
 
+    const activeCounts = viewMode === "CURATED" ? (pageData.curatedCounts || DEFAULT_STATUS_COUNTS) : pageData.counts;
+
     return (
         <div className="w-full space-y-6">
             <div className="flex items-center justify-between gap-4">
                 <Tabs
                     value={viewMode}
-                    onValueChange={(m) => navigate(m as ViewMode, m === "CURATED" ? "ALL" : status)}
+                    onValueChange={(m) => navigate(m as ViewMode, status)}
                     className="w-fit gap-0"
                 >
                     <TabsList>
                         <TabsTrigger value="STANDARD" count={pageData.counts.ALL}>
                             Verified
                         </TabsTrigger>
-                        <TabsTrigger value="CURATED" count={pageData.curatedTotal}>
+                        <TabsTrigger value="CURATED" count={pageData.curatedCounts?.ALL ?? pageData.curatedTotal}>
                             Curated
                         </TabsTrigger>
                     </TabsList>
@@ -710,13 +751,37 @@ export default function AdminListingsClient({
             </div>
 
             <div className="space-y-6">
-            {viewMode === "CURATED" ? (
-                <>
-                    {curatedListings.length === 0 ? (
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <StatCard label={viewMode === "CURATED" ? "All Curated" : "All Listings"} value={activeCounts?.ALL} icon={FiLayers} />
+                    <StatCard label="Pending" value={activeCounts?.PENDING} icon={FiClock} />
+                    <StatCard label="Approved" value={activeCounts?.VERIFIED} icon={FiCheck} />
+                    <StatCard label="Rejected" value={activeCounts?.REJECTED} icon={FiX} />
+                </div>
+
+                <Tabs
+                    value={status}
+                    onValueChange={(val) => navigate(viewMode, val as "ALL" | ListingStatus)}
+                    className="w-fit gap-0"
+                >
+                    <TabsList aria-label="Listing status filters">
+                        {STATUS_OPTIONS.map((option) => (
+                            <TabsTrigger
+                                key={option.value}
+                                value={option.value}
+                                count={activeCounts[option.value]}
+                            >
+                                {option.label}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                </Tabs>
+
+                {viewMode === "CURATED" ? (
+                    curatedListings.length === 0 && !isNavigating ? (
                         <EmptyTable
                             icon={FiLayers}
-                            label="No curated listings yet"
-                            description="Create one using the button above."
+                            label="No curated listings in this view"
+                            description={status === "ALL" ? "Create one using the button above." : "Change the status filter to review another queue."}
                         />
                     ) : (
                         <Table
@@ -724,7 +789,7 @@ export default function AdminListingsClient({
                                 <TablePagination
                                     page={pageData.page}
                                     pageSize={pageData.pageSize}
-                                    total={pageData.curatedTotal}
+                                    total={pageData.total}
                                     pageSizeOptions={[10, 20, 50]}
                                     onPageSizeChange={(newSize) => navigate(viewMode, status, 1, newSize)}
                                     label="curated listings"
@@ -756,276 +821,272 @@ export default function AdminListingsClient({
                                     >
                                         Enquiries
                                     </TableHead>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "status" ? sortDirection : false}
+                                        onSort={() => handleSort("status")}
+                                    >
+                                        Status
+                                    </TableHead>
                                     <TableHead>Outreach Status</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {isNavigating ? (
-                                    <CuratedListingSkeletonRows count={Math.min(pageData.pageSize, pageData.curatedTotal || 5)} />
+                                    <CuratedListingSkeletonRows count={Math.min(pageData.pageSize, pageData.total || 5)} />
                                 ) : (
                                     sortedCuratedListings.map(listing => {
-                                    const { label, variant } = outreachLabel(listing);
-                                    const isHighPriority = (listing.enquiryCount ?? 0) >= 3;
-                                    return (
+                                        const { label, variant } = outreachLabel(listing);
+                                        const isHighPriority = (listing.enquiryCount ?? 0) >= 3;
+                                        return (
+                                            <TableRow key={listing.id}>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium text-sm text-foreground">{listing.title}</span>
+                                                        {isHighPriority && <Pill label="High Priority" variant="destructive" size="xs" />}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-sm text-muted-foreground">{listing.locationValue}</TableCell>
+                                                <TableCell className="text-sm font-semibold text-foreground">{listing.enquiryCount ?? 0}</TableCell>
+                                                <TableCell>
+                                                    <Pill label={statusLabel(listing.status)} variant={statusVariant(listing.status)} size="xs" />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Pill label={label} variant={variant} size="xs" />
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <a href={publicListingHref(listing.slug || listing.id)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">View</a>
+                                                        <Button
+                                                            icon={FiStar}
+                                                            isIconOnly
+                                                            outline
+                                                            aria-label={`Manage reviews: ${listing.title}`}
+                                                            tooltip="Reviews"
+                                                            data-testid={`reviews-curated-${listing.id}`}
+                                                            onClick={() => setReviewsFor({ id: listing.id, title: listing.title })}
+                                                        />
+                                                        <Button
+                                                            icon={FiExternalLink}
+                                                            isIconOnly
+                                                            outline
+                                                            aria-label={`Open listing details: ${listing.title}`}
+                                                            tooltip="Open details"
+                                                            data-testid={`review-curated-${listing.id}`}
+                                                            onClick={() => openReview(listing.id)}
+                                                            disabled={isPending}
+                                                        />
+                                                        {!listing.inConversation && (
+                                                            <button type="button" className="text-xs text-success hover:underline cursor-pointer"
+                                                                onClick={() => startTransition(async () => {
+                                                                    const result = await markInConversationAction({ listingId: listing.id, inConversation: true });
+                                                                    if (!result.success) {
+                                                                        toast.error(result.error || "Failed to update outreach status");
+                                                                        return;
+                                                                    }
+                                                                    toast.success("Listing marked in conversation");
+                                                                    router.refresh();
+                                                                })}>
+                                                                Mark In Conversation
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })
+                                )}
+                            </TableBody>
+                        </Table>
+                    )
+                ) : (
+                    visibleListings.length === 0 && !isNavigating ? (
+                        <EmptyTable
+                            icon={FiShield}
+                            label="No listings in this view"
+                            description="Change the status filter to review another queue."
+                        />
+                    ) : (
+                        <Table
+                            footer={
+                                <TablePagination
+                                    page={pageData.page}
+                                    pageSize={pageData.pageSize}
+                                    total={pageData.total}
+                                    pageSizeOptions={[10, 20, 50]}
+                                    onPageSizeChange={(newSize) => navigate(viewMode, status, 1, newSize)}
+                                    label="listings"
+                                    hrefForPage={(nextPage, nextSize) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}&pageSize=${nextSize || pageData.pageSize}`}
+                                    onPageChange={(nextPage) => navigate(viewMode, status, nextPage, pageData.pageSize)}
+                                />
+                            }
+                        >
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "title" ? sortDirection : false}
+                                        onSort={() => handleSort("title")}
+                                    >
+                                        Listing
+                                    </TableHead>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "host" ? sortDirection : false}
+                                        onSort={() => handleSort("host")}
+                                    >
+                                        Host
+                                    </TableHead>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "status" ? sortDirection : false}
+                                        onSort={() => handleSort("status")}
+                                    >
+                                        Status
+                                    </TableHead>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "price" ? sortDirection : false}
+                                        onSort={() => handleSort("price")}
+                                    >
+                                        Price
+                                    </TableHead>
+                                    <TableHead
+                                        sortable
+                                        sortDirection={sortField === "createdAt" ? sortDirection : false}
+                                        onSort={() => handleSort("createdAt")}
+                                    >
+                                        Submitted
+                                    </TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {isNavigating ? (
+                                    <AdminListingSkeletonRows count={Math.min(pageData.pageSize, pageData.total || 6)} />
+                                ) : (
+                                    sortedVisibleListings.map((listing) => (
                                         <TableRow key={listing.id}>
                                             <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-sm text-foreground">{listing.title}</span>
-                                                    {isHighPriority && <Pill label="High Priority" variant="destructive" size="xs" />}
+                                                <div className="flex min-w-72 items-center gap-3">
+                                                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
+                                                        <Image
+                                                            src={listing.imageSrc[0] || "/assets/listing-image-default.png"}
+                                                            alt={listing.title}
+                                                            fill
+                                                            sizes="48px"
+                                                            className="object-cover"
+                                                        />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <div className="truncate text-sm font-semibold text-foreground">{listing.title}</div>
+                                                        <div className="truncate text-xs text-muted-foreground">{listing.category} • {listing.locationValue}</div>
+                                                    </div>
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">{listing.locationValue}</TableCell>
-                                            <TableCell className="text-sm font-semibold text-foreground">{listing.enquiryCount ?? 0}</TableCell>
                                             <TableCell>
-                                                <Pill label={label} variant={variant} size="xs" />
+                                                <div className="min-w-52 space-y-1">
+                                                    <div className="truncate text-sm font-medium text-foreground">{listing.user?.name || "Unknown host"}</div>
+                                                    <div className="truncate text-xs text-muted-foreground">{listing.user?.email || "No email"}</div>
+                                                    <KycPill verified={Boolean(listing.user?.is_verified)} size="xs" />
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Pill label={statusLabel(listing.status)} variant={statusVariant(listing.status)} size="xs" />
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap text-sm font-semibold text-foreground">
+                                                {listing.price != null ? formatINR(listing.price) : "—"}
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                                                {formatISTDate(listing.createdAt, { day: "numeric", month: "short", year: "numeric" })}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <a href={publicListingHref(listing.slug || listing.id)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">View</a>
-                                                    <button
-                                                        type="button"
-                                                        className="text-xs text-muted-foreground hover:text-foreground hover:underline underline-offset-2 cursor-pointer"
+                                                <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        icon={FiStar}
+                                                        isIconOnly
+                                                        outline
+                                                        aria-label={`Manage reviews: ${listing.title}`}
+                                                        tooltip="Reviews"
+                                                        data-testid={`reviews-listing-${listing.id}`}
                                                         onClick={() => setReviewsFor({ id: listing.id, title: listing.title })}
-                                                    >
-                                                        Reviews
-                                                    </button>
-                                                    {!listing.inConversation && (
-                                                        <button type="button" className="text-xs text-success hover:underline cursor-pointer"
-                                                            onClick={() => startTransition(async () => {
-                                                                const result = await markInConversationAction({ listingId: listing.id, inConversation: true });
-                                                                if (!result.success) {
-                                                                    toast.error(result.error || "Failed to update outreach status");
-                                                                    return;
-                                                                }
-                                                                toast.success("Listing marked in conversation");
-                                                                router.refresh();
-                                                            })}>
-                                                            Mark In Conversation
-                                                        </button>
-                                                    )}
+                                                    />
+                                                    <Button
+                                                        icon={FiExternalLink}
+                                                        isIconOnly
+                                                        outline
+                                                        aria-label={`Open listing details: ${listing.title}`}
+                                                        tooltip="Open details"
+                                                        data-testid={`review-listing-${listing.id}`}
+                                                        onClick={() => openReview(listing.id)}
+                                                        disabled={isPending}
+                                                    />
                                                 </div>
                                             </TableCell>
                                         </TableRow>
-                                    );
-                                }))}
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
-                    )}
-                </>
-            ) : (
-            <>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <StatCard label="All Listings" value={pageData.counts?.ALL} icon={FiLayers} />
-                <StatCard label="Pending" value={pageData.counts?.PENDING} icon={FiClock} />
-                <StatCard label="Verified" value={pageData.counts?.VERIFIED} icon={FiCheck} />
-                <StatCard label="Rejected" value={pageData.counts?.REJECTED} icon={FiX} />
-            </div>
+                    )
+                )}
 
-            <Tabs
-                value={status}
-                onValueChange={(val) => navigate("STANDARD", val as "ALL" | ListingStatus)}
-                className="w-fit gap-0"
-            >
-                <TabsList aria-label="Listing status filters">
-                    {STATUS_OPTIONS.map((option) => (
-                        <TabsTrigger
-                            key={option.value}
-                            value={option.value}
-                            count={pageData.counts[option.value]}
-                        >
-                            {option.label}
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
-            </Tabs>
-
-            {visibleListings.length === 0 && !isNavigating ? (
-                <EmptyTable
-                    icon={FiShield}
-                    label="No listings in this view"
-                    description="Change the status filter to review another queue."
+                <ReviewModal
+                    listing={selected}
+                    onClose={() => setSelected(null)}
+                    onRequestAction={setConfirmAction}
+                    isMutating={isPending}
                 />
-            ) : (
-                <Table
-                    footer={
-                        <TablePagination
-                            page={pageData.page}
-                            pageSize={pageData.pageSize}
-                            total={pageData.total}
-                            pageSizeOptions={[10, 20, 50]}
-                            onPageSizeChange={(newSize) => navigate(viewMode, status, 1, newSize)}
-                            label="listings"
-                            hrefForPage={(nextPage, nextSize) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}&pageSize=${nextSize || pageData.pageSize}`}
-                            onPageChange={(nextPage) => navigate(viewMode, status, nextPage, pageData.pageSize)}
-                        />
-                    }
-                >
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead
-                                sortable
-                                sortDirection={sortField === "title" ? sortDirection : false}
-                                onSort={() => handleSort("title")}
-                            >
-                                Listing
-                            </TableHead>
-                            <TableHead
-                                sortable
-                                sortDirection={sortField === "host" ? sortDirection : false}
-                                onSort={() => handleSort("host")}
-                            >
-                                Host
-                            </TableHead>
-                            <TableHead
-                                sortable
-                                sortDirection={sortField === "status" ? sortDirection : false}
-                                onSort={() => handleSort("status")}
-                            >
-                                Status
-                            </TableHead>
-                            <TableHead
-                                sortable
-                                sortDirection={sortField === "price" ? sortDirection : false}
-                                onSort={() => handleSort("price")}
-                            >
-                                Price
-                            </TableHead>
-                            <TableHead
-                                sortable
-                                sortDirection={sortField === "createdAt" ? sortDirection : false}
-                                onSort={() => handleSort("createdAt")}
-                            >
-                                Submitted
-                            </TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isNavigating ? (
-                            <AdminListingSkeletonRows count={Math.min(pageData.pageSize, pageData.total || 6)} />
-                        ) : (
-                            sortedVisibleListings.map((listing) => (
-                            <TableRow key={listing.id}>
-                                <TableCell>
-                                    <div className="flex min-w-72 items-center gap-3">
-                                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
-                                            <Image
-                                                src={listing.imageSrc[0] || "/assets/listing-image-default.png"}
-                                                alt={listing.title}
-                                                fill
-                                                sizes="48px"
-                                                className="object-cover"
-                                            />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <div className="truncate text-sm font-semibold text-foreground">{listing.title}</div>
-                                            <div className="truncate text-xs text-muted-foreground">{listing.category} • {listing.locationValue}</div>
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="min-w-52 space-y-1">
-                                        <div className="truncate text-sm font-medium text-foreground">{listing.user?.name || "Unknown host"}</div>
-                                        <div className="truncate text-xs text-muted-foreground">{listing.user?.email || "No email"}</div>
-                                        <KycPill verified={Boolean(listing.user?.is_verified)} size="xs" />
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <Pill label={listing.status} variant={statusVariant(listing.status)} size="xs" />
-                                </TableCell>
-                                <TableCell className="whitespace-nowrap text-sm font-semibold text-foreground">
-                                    {listing.price != null ? formatINR(listing.price) : "—"}
-                                </TableCell>
-                                <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                                    {formatISTDate(listing.createdAt, { day: "numeric", month: "short", year: "numeric" })}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Button
-                                            icon={FiStar}
-                                            isIconOnly
-                                            outline
-                                            aria-label={`Manage reviews: ${listing.title}`}
-                                            tooltip="Reviews"
-                                            data-testid={`reviews-listing-${listing.id}`}
-                                            onClick={() => setReviewsFor({ id: listing.id, title: listing.title })}
-                                        />
-                                        <Button
-                                            icon={FiExternalLink}
-                                            isIconOnly
-                                            outline
-                                            aria-label={`Open listing review: ${listing.title}`}
-                                            tooltip="Open review"
-                                            data-testid={`review-listing-${listing.id}`}
-                                            onClick={() => openReview(listing.id)}
+
+                <ListingReviewsModal
+                    listing={reviewsFor}
+                    onClose={() => setReviewsFor(null)}
+                />
+
+                {selected && confirmAction && (
+                    <Modal
+                        isOpen={Boolean(confirmAction)}
+                        onCloseAction={() => !isPending && resetConfirm()}
+                        onSubmitAction={submitDecision}
+                        title={confirmAction === "approve" ? "Approve Listing" : "Reject Listing"}
+                        actionLabel={confirmAction === "approve" ? "Approve Listing" : "Reject Listing"}
+                        primaryActionVariant={confirmAction === "approve" ? "default" : "destructive"}
+                        secondaryActionLabel="Cancel"
+                        secondaryActionAction={() => !isPending && resetConfirm()}
+                        nestedModal
+                        disableOverlayClose
+                        disabled={isPending}
+                        isLoading={isPending}
+                        customWidth="w-full max-w-lg"
+                        body={
+                            <div className="space-y-4" data-testid="admin-listing-confirm-modal">
+                                <p className="text-sm leading-6 text-muted-foreground">
+                                    Are you sure you want to {confirmAction === "approve" ? "approve" : "reject"} <span className="font-semibold text-foreground">{selected.title}</span>?
+                                </p>
+                                {confirmAction === "reject" && (
+                                    <div>
+                                        <label htmlFor="listing-rejection-reason" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Rejection reason
+                                        </label>
+                                        <textarea
+                                            id="listing-rejection-reason"
+                                            value={rejectReason}
+                                            onChange={(event) => setRejectReason(event.target.value)}
+                                            minLength={10}
+                                            maxLength={500}
+                                            rows={5}
+                                            className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10"
+                                            placeholder="Explain what needs to be corrected before this listing can be approved."
                                             disabled={isPending}
                                         />
+                                        <div className="mt-1 text-right text-xs text-muted-foreground">{rejectReason.trim().length}/500</div>
                                     </div>
-                                </TableCell>
-                            </TableRow>
-                        )))}
-                    </TableBody>
-                </Table>
-            )}
-
-            <ReviewModal
-                listing={selected}
-                onClose={() => setSelected(null)}
-                onRequestAction={setConfirmAction}
-                isMutating={isPending}
-            />
-
-            <ListingReviewsModal
-                listing={reviewsFor}
-                onClose={() => setReviewsFor(null)}
-            />
-
-            {selected && confirmAction && (
-                <Modal
-                    isOpen={Boolean(confirmAction)}
-                    onCloseAction={() => !isPending && resetConfirm()}
-                    onSubmitAction={submitDecision}
-                    title={confirmAction === "approve" ? "Approve Listing" : "Reject Listing"}
-                    actionLabel={confirmAction === "approve" ? "Approve Listing" : "Reject Listing"}
-                    primaryActionVariant={confirmAction === "approve" ? "default" : "destructive"}
-                    secondaryActionLabel="Cancel"
-                    secondaryActionAction={() => !isPending && resetConfirm()}
-                    nestedModal
-                    disableOverlayClose
-                    disabled={isPending}
-                    isLoading={isPending}
-                    customWidth="w-full max-w-lg"
-                    body={
-                        <div className="space-y-4" data-testid="admin-listing-confirm-modal">
-                            <p className="text-sm leading-6 text-muted-foreground">
-                                Are you sure you want to {confirmAction === "approve" ? "approve" : "reject"} <span className="font-semibold text-foreground">{selected.title}</span>?
-                            </p>
-                            {confirmAction === "reject" && (
-                                <div>
-                                    <label htmlFor="listing-rejection-reason" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                        Rejection reason
-                                    </label>
-                                    <textarea
-                                        id="listing-rejection-reason"
-                                        value={rejectReason}
-                                        onChange={(event) => setRejectReason(event.target.value)}
-                                        minLength={10}
-                                        maxLength={500}
-                                        rows={5}
-                                        className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10"
-                                        placeholder="Explain what needs to be corrected before this listing can be approved."
-                                        disabled={isPending}
-                                    />
-                                    <div className="mt-1 text-right text-xs text-muted-foreground">{rejectReason.trim().length}/500</div>
-                                </div>
-                            )}
-                        </div>
-                    }
-                />
-            )}
-            </>
-            )}
+                                )}
+                            </div>
+                        }
+                    />
+                )}
             </div>
         </div>
     );

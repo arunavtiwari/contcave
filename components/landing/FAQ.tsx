@@ -9,6 +9,7 @@ import FAQItem from "@/components/landing/FAQItem";
 import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { buildWhatsAppUrl } from "@/lib/whatsapp/urls";
 
 const FAQ = ({ nonce }: { nonce?: string }) => {
   const [activeFaq, setActiveFaq] = useState(1);
@@ -67,7 +68,7 @@ const FAQ = ({ nonce }: { nonce?: string }) => {
 
               <Button
                 label="Still have questions? Message us"
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}`}
+                href={buildWhatsAppUrl()}
                 target="_blank"
                 variant="ghost"
                 rounded
