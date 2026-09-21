@@ -77,7 +77,7 @@
                 "Write compelling meta descriptions that include location keywords and a call to action",
                 "Set canonical URLs on every page to prevent duplicate content issues",
                 "Add OpenGraph and Twitter card tags so your links look professional when shared on social media",
-                "Use separate, descriptive keywords per page — do not copy the same keyword list everywhere"
+                "Use separate, descriptive keywords per page: do not copy the same keyword list everywhere"
             ]
         },
         {
@@ -126,7 +126,7 @@
             "blockType": "list",
             "items": [
                 "Every internal link must be a real <a href> tag, not a button with onClick and router.push",
-                "Remove or fix all placeholder href='#' links — they waste crawl budget and confuse bots",
+                "Remove or fix all placeholder href='#' links: they waste crawl budget and confuse bots",
                 "Use a robots.txt that allows public pages and blocks private dashboards, API routes, and user profiles",
                 "Generate a dynamic sitemap that includes all published listings and blog posts with accurate lastModified dates",
                 "Submit your sitemap to Google Search Console and monitor for crawl errors weekly"
@@ -151,11 +151,11 @@
             "id": "list-semantic",
             "blockType": "list",
             "items": [
-                "One H1 per page — combine split headings into a single tag",
+                "One H1 per page: combine split headings into a single tag",
                 "Use semantic HTML5 elements: <main>, <article>, <section>, <nav>, <footer>",
                 "Write descriptive, keyword-rich alt text for all images",
                 "Use <a> tags for navigation, not <button> or <div>",
-                "Avoid generic alt text like 'Banner Image' — describe what the image actually shows"
+                "Avoid generic alt text like 'Banner Image': describe what the image actually shows"
             ]
         },
         {
@@ -188,14 +188,14 @@
         {
             "id": "p-content-1",
             "blockType": "paragraph",
-            "content": "Studio booking platforms typically have thin content: listings with a title, a few photos, and a price. That is not enough to rank for long-tail keywords. A blog bridges this gap by creating pages that target informational queries — the kind of searches people make before they are ready to book."
+            "content": "Studio booking platforms typically have thin content: listings with a title, a few photos, and a price. That is not enough to rank for long-tail keywords. A blog bridges this gap by creating pages that target informational queries: the kind of searches people make before they are ready to book."
         },
         {
             "id": "list-content",
             "blockType": "list",
             "items": [
                 "Target long-tail keywords: 'best photography studios in Delhi,' 'how to set up a product shoot on a budget'",
-                "Publish consistently — even two posts per month compounds over time",
+                "Publish consistently: even two posts per month compounds over time",
                 "Display recent blog posts on your homepage for fresh content signals and internal linking",
                 "Render blog tags as clickable links to create keyword-rich tag pages",
                 "Add BreadcrumbList structured data to blog posts for enhanced search results",
@@ -225,7 +225,7 @@
                 "Include city name in title, H1, meta description, and body content",
                 "Add LocalBusiness schema with full postal address and geo-coordinates",
                 "Claim and optimise your Google Business Profile",
-                "Encourage reviews on Google — they directly impact local pack rankings"
+                "Encourage reviews on Google: they directly impact local pack rankings"
             ]
         },
         {
