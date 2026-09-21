@@ -38,7 +38,7 @@
     {
       "id": "p-intro",
       "blockType": "paragraph",
-      "content": "GST on studio rental is one of those questions that only comes up at the worst possible time — a brand's finance team asks for a proper tax invoice the day after the shoot, or a host realises they've been renting out their space for a year without ever thinking about registration. It doesn't have to be confusing. This guide walks through the GST rate that applies to studio bookings, when a host needs to register at all, how reverse charge and TDS fit into a rental payment, and what a compliant invoice should actually contain — so brands can book with a clean paper trail and hosts can price and invoice correctly from the start."
+      "content": "GST on studio rental is one of those questions that only comes up at the worst possible time: a brand's finance team asks for a proper tax invoice the day after the shoot, or a host realises they've been renting out their space for a year without ever thinking about registration. It doesn't have to be confusing. This guide walks through the GST rate that applies to studio bookings, when a host needs to register at all, how reverse charge and TDS fit into a rental payment, and what a compliant invoice should actually contain, so brands can book with a clean paper trail and hosts can price and invoice correctly from the start."
     },
     {
       "id": "h-rate",
@@ -48,7 +48,7 @@
     {
       "id": "p-rate",
       "blockType": "paragraph",
-      "content": "Renting out a studio space is treated as a supply of service under GST, not a sale of goods, so it's classified under a Service Accounting Code (SAC) rather than an HSN code. Leasing or rental of immovable property for business use — which covers most studio bookings — typically falls under SAC 9973 and attracts 18% GST on the rental value. Photography-specific services billed separately (a photographer's own fee, as opposed to the space itself) are commonly billed under SAC 998912 or 998392, also at 18%. In practice, most studio hosts and platforms simply add 18% GST on top of the hourly or day-rate once they're registered — there's no separate, lower rate carved out for creative or event spaces."
+      "content": "Renting out a studio space is treated as a supply of service under GST, not a sale of goods, so it's classified under a Service Accounting Code (SAC) rather than an HSN code. Leasing or rental of immovable property for business use, which covers most studio bookings, typically falls under SAC 9973 and attracts 18% GST on the rental value. Photography-specific services billed separately (a photographer's own fee, as opposed to the space itself) are commonly billed under SAC 998912 or 998392, also at 18%. In practice, most studio hosts and platforms simply add 18% GST on top of the hourly or day-rate once they're registered: there's no separate, lower rate carved out for creative or event spaces."
     },
     {
       "id": "h-registration",
@@ -58,7 +58,7 @@
     {
       "id": "p-registration",
       "blockType": "paragraph",
-      "content": "GST registration becomes mandatory once a host's aggregate turnover from all business activities crosses ₹20 lakh in a financial year (₹10 lakh in a few special-category states). Many smaller studio hosts — someone renting out a spare room or a small setup on the side — stay under this threshold for a while and aren't legally required to register or charge GST at all. That changes quickly once a host runs multiple listings, rents out a larger commercial space full-time, or crosses the threshold across all their income sources combined, not just studio bookings. Registering voluntarily below the threshold is also common, mainly because it lets a host claim input tax credit on equipment, renovation, and other business costs — worth considering even before it's compulsory."
+      "content": "GST registration becomes mandatory once a host's aggregate turnover from all business activities crosses ₹20 lakh in a financial year (₹10 lakh in a few special-category states). Many smaller studio hosts (someone renting out a spare room or a small setup on the side) stay under this threshold for a while and aren't legally required to register or charge GST at all. That changes quickly once a host runs multiple listings, rents out a larger commercial space full-time, or crosses the threshold across all their income sources combined, not just studio bookings. Registering voluntarily below the threshold is also common, mainly because it lets a host claim input tax credit on equipment, renovation, and other business costs: worth considering even before it's compulsory."
     },
     {
       "id": "h-rcm",
@@ -68,7 +68,7 @@
     {
       "id": "p-rcm",
       "blockType": "paragraph",
-      "content": "This is the part brands most often miss. Since October 2024, when a GST-registered business rents commercial space from an unregistered landlord or host, the reverse charge mechanism (RCM) shifts the GST liability onto the tenant — meaning the brand, not the host, has to self-pay 18% GST directly to the government and report it, even though the host never charged it on the invoice. This mostly matters for brands and agencies that are themselves GST-registered and booking from smaller, unregistered studio owners. A freelancer or creator who isn't GST-registered generally isn't affected by RCM as a renter, since the obligation applies to registered tenants. If your finance team handles studio bookings regularly, it's worth checking upfront whether the host is registered, since it changes who is responsible for the tax."
+      "content": "This is the part brands most often miss. Since October 2024, when a GST-registered business rents commercial space from an unregistered landlord or host, the reverse charge mechanism (RCM) shifts the GST liability onto the tenant, meaning the brand, not the host, has to self-pay 18% GST directly to the government and report it, even though the host never charged it on the invoice. This mostly matters for brands and agencies that are themselves GST-registered and booking from smaller, unregistered studio owners. A freelancer or creator who isn't GST-registered generally isn't affected by RCM as a renter, since the obligation applies to registered tenants. If your finance team handles studio bookings regularly, it's worth checking upfront whether the host is registered, since it changes who is responsible for the tax."
     },
     {
       "id": "h-invoice",
@@ -78,7 +78,7 @@
     {
       "id": "p-invoice",
       "blockType": "paragraph",
-      "content": "A GST-compliant invoice from a registered host isn't complicated, but it needs specific fields to be usable for input tax credit claims or expense records. At minimum, expect an invoice number and date, the host's GSTIN and registered business name, the SAC code for the rental service, the taxable value (the rental amount before tax), the GST rate and amount split into CGST/SGST (for bookings within the same state) or IGST (for inter-state bookings), and the total payable. If the host isn't registered, they can still issue a simple bill of supply without GST — which is fine for the booking itself, but it means the brand can't claim any input tax credit on that spend, since there's no tax charged to credit against."
+      "content": "A GST-compliant invoice from a registered host isn't complicated, but it needs specific fields to be usable for input tax credit claims or expense records. At minimum, expect an invoice number and date, the host's GSTIN and registered business name, the SAC code for the rental service, the taxable value (the rental amount before tax), the GST rate and amount split into CGST/SGST (for bookings within the same state) or IGST (for inter-state bookings), and the total payable. If the host isn't registered, they can still issue a simple bill of supply without GST, which is fine for the booking itself, but it means the brand can't claim any input tax credit on that spend, since there's no tax charged to credit against."
     },
     {
       "id": "h-tds",
@@ -88,12 +88,12 @@
     {
       "id": "p-tds",
       "blockType": "paragraph",
-      "content": "Separate from GST, income tax rules require tax to be deducted at source (TDS) on rent payments once they cross a threshold. Under Section 194I, businesses and tax-audited entities must deduct TDS at 10% on rent for land, building, or furniture once payments to a single host cross the applicable threshold in a financial year — recent rules have moved this to roughly ₹50,000 per month, which works out to about ₹6 lakh a year. Section 194IB applies the same idea to individual tenants and HUFs who aren't under tax audit, at the same threshold. For most one-off or occasional studio bookings — a single day's shoot, a short-term rental — the payment stays well under this threshold and TDS simply doesn't apply. It becomes relevant mainly for brands with a long-running or high-frequency arrangement with the same studio, where cumulative payments in a year add up."
+      "content": "Separate from GST, income tax rules require tax to be deducted at source (TDS) on rent payments once they cross a threshold. Under Section 194I, businesses and tax-audited entities must deduct TDS at 10% on rent for land, building, or furniture once payments to a single host cross the applicable threshold in a financial year: recent rules have moved this to roughly ₹50,000 per month, which works out to about ₹6 lakh a year. Section 194IB applies the same idea to individual tenants and HUFs who aren't under tax audit, at the same threshold. For most one-off or occasional studio bookings (a single day's shoot, a short-term rental), the payment stays well under this threshold and TDS simply doesn't apply. It becomes relevant mainly for brands with a long-running or high-frequency arrangement with the same studio, where cumulative payments in a year add up."
     },
     {
       "id": "quote-rule",
       "blockType": "quote",
-      "content": "Rule of thumb: if the host is GST-registered, expect 18% added to the rental price with a proper invoice you can claim input tax credit against. If they're not, you pay the quoted price with no GST line — and if your business is GST-registered, check whether reverse charge applies before you assume the booking is tax-free."
+      "content": "Rule of thumb: if the host is GST-registered, expect 18% added to the rental price with a proper invoice you can claim input tax credit against. If they're not, you pay the quoted price with no GST line, and if your business is GST-registered, check whether reverse charge applies before you assume the booking is tax-free."
     },
     {
       "id": "h-itc",
@@ -103,7 +103,7 @@
     {
       "id": "p-itc",
       "blockType": "paragraph",
-      "content": "For a GST-registered brand or agency, the GST paid on a studio booking used for business purposes — a product shoot, a brand film, a podcast recording for a client — is generally eligible for input tax credit, provided the invoice is correctly issued with the host's GSTIN and the SAC code, and the booking is genuinely for business use rather than personal content. Keep every studio invoice on file the same way you would any other vendor bill, since it's the paper trail that matters if the credit is ever reviewed. If a booking was paid under reverse charge because the host was unregistered, the GST self-paid under RCM is also typically eligible for input tax credit in the same return period, which offsets most of the cash-flow impact of paying it upfront."
+      "content": "For a GST-registered brand or agency, the GST paid on a studio booking used for business purposes (a product shoot, a brand film, a podcast recording for a client) is generally eligible for input tax credit, provided the invoice is correctly issued with the host's GSTIN and the SAC code, and the booking is genuinely for business use rather than personal content. Keep every studio invoice on file the same way you would any other vendor bill, since it's the paper trail that matters if the credit is ever reviewed. If a booking was paid under reverse charge because the host was unregistered, the GST self-paid under RCM is also typically eligible for input tax credit in the same return period, which offsets most of the cash-flow impact of paying it upfront."
     },
     {
       "id": "h-faq",
@@ -138,7 +138,7 @@
     {
       "id": "p-faq3",
       "blockType": "paragraph",
-      "content": "Generally yes, as long as the brand is GST-registered, the booking is for business use, and the host issues a proper invoice with their GSTIN and the correct SAC code. Keep the invoice on file — it's the document that supports the credit claim."
+      "content": "Generally yes, as long as the brand is GST-registered, the booking is for business use, and the host issues a proper invoice with their GSTIN and the correct SAC code. Keep the invoice on file: it's the document that supports the credit claim."
     },
     {
       "id": "h-faq4",
@@ -148,7 +148,7 @@
     {
       "id": "p-faq4",
       "blockType": "paragraph",
-      "content": "Reverse charge (RCM) applies when a GST-registered business rents commercial space from an unregistered host — the tenant, not the host, becomes responsible for self-paying 18% GST to the government. It mainly affects registered brands and agencies booking from smaller, unregistered studio owners, not individual freelancers or creators."
+      "content": "Reverse charge (RCM) applies when a GST-registered business rents commercial space from an unregistered host: the tenant, not the host, becomes responsible for self-paying 18% GST to the government. It mainly affects registered brands and agencies booking from smaller, unregistered studio owners, not individual freelancers or creators."
     },
     {
       "id": "h-faq5",
@@ -158,7 +158,7 @@
     {
       "id": "p-faq5",
       "blockType": "paragraph",
-      "content": "Only if cumulative rent payments to the same host cross the applicable threshold in a financial year — roughly ₹50,000 a month under current rules. A single shoot day or an occasional booking almost never crosses this, so TDS mostly comes into play for brands with a frequent, ongoing arrangement with one studio."
+      "content": "Only if cumulative rent payments to the same host cross the applicable threshold in a financial year, roughly ₹50,000 a month under current rules. A single shoot day or an occasional booking almost never crosses this, so TDS mostly comes into play for brands with a frequent, ongoing arrangement with one studio."
     },
     {
       "id": "h-contcave",
@@ -184,10 +184,10 @@
       "id": "list-final",
       "blockType": "list",
       "items": [
-        "Ask upfront whether the host is GST-registered — it determines whether 18% GST applies and who issues what kind of invoice",
+        "Ask upfront whether the host is GST-registered: it determines whether 18% GST applies and who issues what kind of invoice",
         "Keep every studio invoice on file if you're a registered business, since it supports any input tax credit claim",
         "If your business is GST-registered and the host isn't, check whether reverse charge makes you responsible for self-paying the GST",
-        "Track cumulative payments to the same host across the year — TDS under Section 194I/194IB can apply once you cross the threshold",
+        "Track cumulative payments to the same host across the year: TDS under Section 194I/194IB can apply once you cross the threshold",
         "Book through a platform like ContCave for consistent, traceable pricing and payment records instead of ad hoc arrangements"
       ]
     }

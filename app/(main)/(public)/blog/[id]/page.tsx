@@ -150,7 +150,8 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
                     <Heading
                       key={block.id}
                       title={block.content}
-                      variant="h2"
+                      as="h2"
+                      variant="h4"
                       className="text-foreground"
                     />
                   );

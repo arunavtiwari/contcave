@@ -22,7 +22,7 @@
       {
         "children": [
           {
-            "text": "A step-by-step checklist for first-time podcasters walking into a rented studio — what to prepare beforehand, what to expect on the day, and how to avoid the mistakes that ruin an otherwise good episode."
+            "text": "A step-by-step checklist for first-time podcasters walking into a rented studio: what to prepare beforehand, what to expect on the day, and how to avoid the mistakes that ruin an otherwise good episode."
           }
         ]
       }
@@ -38,7 +38,7 @@
     {
       "id": "p-intro",
       "blockType": "paragraph",
-      "content": "Booking a studio takes the acoustics and gear off your plate, but it doesn't automatically make your first episode sound professional. Knowing how to record a podcast in a studio — what to bring, how to brief the engineer, and how to structure the two hours you've paid for — is what actually separates a smooth session from a rushed, unusable one. This checklist walks first-time podcasters through prep, the studio day itself, and the mistakes that trip up almost everyone on their first visit."
+      "content": "Booking a studio takes the acoustics and gear off your plate, but it doesn't automatically make your first episode sound professional. Knowing how to record a podcast in a studio (what to bring, how to brief the engineer, and how to structure the two hours you've paid for) is what actually separates a smooth session from a rushed, unusable one. This checklist walks first-time podcasters through prep, the studio day itself, and the mistakes that trip up almost everyone on their first visit."
     },
     {
       "id": "h-prep",
@@ -48,13 +48,13 @@
     {
       "id": "p-prep",
       "blockType": "paragraph",
-      "content": "A studio buys you clean audio and a controlled room — it does not write your episode. The single most useful thing you can do before recording day is prepare a tight outline, not a word-for-word script. Read it out loud once beforehand; if it sounds stiff on paper, it will sound worse on mic."
+      "content": "A studio buys you clean audio and a controlled room: it does not write your episode. The single most useful thing you can do before recording day is prepare a tight outline, not a word-for-word script. Read it out loud once beforehand; if it sounds stiff on paper, it will sound worse on mic."
     },
     {
       "id": "list-prep",
       "blockType": "list",
       "items": [
-        "A one-page outline: opening hook, 3-5 main points, and a closing line — not a script",
+        "A one-page outline: opening hook, 3-5 main points, and a closing line, not a script",
         "For interviews, your top 8-10 questions ranked by priority, in case time runs short",
         "A guest prep note sent 24-48 hours ahead: topic, sample questions, studio address, parking, and arrival time",
         "A shortlist of intro/outro lines so you're not improvising the hardest 30 seconds cold",
@@ -69,7 +69,7 @@
     {
       "id": "p-gear",
       "blockType": "paragraph",
-      "content": "Most rented podcast studios in India include mics, headphones, an acoustically treated room, and basic recording software as part of the hourly rate — confirm this when booking so you don't duplicate gear you're already paying for. What the studio usually doesn't manage for you is your content and your voice."
+      "content": "Most rented podcast studios in India include mics, headphones, an acoustically treated room, and basic recording software as part of the hourly rate: confirm this when booking so you don't duplicate gear you're already paying for. What the studio usually doesn't manage for you is your content and your voice."
     },
     {
       "id": "list-gear",
@@ -88,12 +88,12 @@
     {
       "id": "p-technique",
       "blockType": "paragraph",
-      "content": "A soundproofed studio removes room echo and outside noise, but it can't fix bad mic technique. Sit 6-8 inches from the mic, angled slightly off-axis rather than speaking straight into the capsule — this cuts plosives (the hard \"p\" and \"b\" pops) without needing a pop filter every time. Ask the engineer to run a 10-15 second level check before the real take: peaks should sit around -12 to -6 dBFS, never touching 0. Clipped audio can't be fixed in post, and a two-minute check now saves a re-record later."
+      "content": "A soundproofed studio removes room echo and outside noise, but it can't fix bad mic technique. Sit 6-8 inches from the mic, angled slightly off-axis rather than speaking straight into the capsule: this cuts plosives (the hard \"p\" and \"b\" pops) without needing a pop filter every time. Ask the engineer to run a 10-15 second level check before the real take: peaks should sit around -12 to -6 dBFS, never touching 0. Clipped audio can't be fixed in post, and a two-minute check now saves a re-record later."
     },
     {
       "id": "quote-check",
       "blockType": "quote",
-      "content": "Rule of thumb: if you haven't heard your own voice played back before hitting record, you haven't actually checked your levels — you've guessed at them."
+      "content": "Rule of thumb: if you haven't heard your own voice played back before hitting record, you haven't actually checked your levels. You've guessed at them."
     },
     {
       "id": "h-timeline",
@@ -109,11 +109,11 @@
       "id": "list-timeline",
       "blockType": "list",
       "items": [
-        "0-15 min: arrival, mic-up, level checks, and settling in — arrive 10-15 minutes early rather than eating into this",
+        "0-15 min: arrival, mic-up, level checks, and settling in (arrive 10-15 minutes early rather than eating into this)",
         "15-20 min: a level/sound check take that also doubles as a warm-up run of your opening line",
         "20-75 min: the recorded episode, with a short pause if you need to reset a section rather than pushing through a flubbed take",
         "75-90 min: buffer for a re-recorded segment, extra B-roll if it's a video podcast, or a few minutes of separate intro/outro recording",
-        "Batch two or three episodes in one booking if your guests overlap — you'll save on setup time and the per-episode studio cost drops noticeably"
+        "Batch two or three episodes in one booking if your guests overlap: you'll save on setup time and the per-episode studio cost drops noticeably"
       ]
     },
     {
@@ -130,9 +130,9 @@
       "id": "list-mistakes",
       "blockType": "list",
       "items": [
-        "Not testing gain before recording — leads to peaking, clipped audio that can't be recovered later",
-        "Talking over guests because there's no visual cue system agreed beforehand — a simple raised-hand signal fixes this",
-        "Leaving phones on vibrate instead of fully silent — vibration against a table is audible on mic",
+        "Not testing gain before recording: leads to peaking, clipped audio that can't be recovered later",
+        "Talking over guests because there's no visual cue system agreed beforehand: a simple raised-hand signal fixes this",
+        "Leaving phones on vibrate instead of fully silent: vibration against a table is audible on mic",
         "Skipping a short warm-up take, so the first few real minutes sound flat or nervous",
         "Not confirming the file format and delivery timeline upfront, leading to back-and-forth after the session ends",
         "Booking exactly the runtime of the episode with zero buffer for retakes or technical hiccups"
@@ -151,7 +151,7 @@
     {
       "id": "p-faq1",
       "blockType": "paragraph",
-      "content": "Usually no. Most rented podcast studios include broadcast-quality mics and headphones per speaker in the hourly rate. Confirm this when booking, and only bring your own mic if you have a specific reason — a mismatched personal mic can actually complicate the studio's existing setup."
+      "content": "Usually no. Most rented podcast studios include broadcast-quality mics and headphones per speaker in the hourly rate. Confirm this when booking, and only bring your own mic if you have a specific reason: a mismatched personal mic can actually complicate the studio's existing setup."
     },
     {
       "id": "h-faq2",
@@ -171,7 +171,7 @@
     {
       "id": "p-faq3",
       "blockType": "paragraph",
-      "content": "Yes, if the studio is set up for video podcasts — confirm camera count and framing when you book, since single-camera and multi-camera setups need different room layouts. Add 15-30 minutes to your slot for extra camera checks and B-roll if you plan to clip the episode for reels."
+      "content": "Yes, if the studio is set up for video podcasts: confirm camera count and framing when you book, since single-camera and multi-camera setups need different room layouts. Add 15-30 minutes to your slot for extra camera checks and B-roll if you plan to clip the episode for reels."
     },
     {
       "id": "h-faq4",
@@ -181,7 +181,7 @@
     {
       "id": "p-faq4",
       "blockType": "paragraph",
-      "content": "Pause, take a breath, and restart the sentence rather than trying to salvage it live — a clean edit point is far easier to fix in post than a stumbled sentence you talk over. Tell your guest upfront that this is normal so they don't feel awkward pausing too."
+      "content": "Pause, take a breath, and restart the sentence rather than trying to salvage it live: a clean edit point is far easier to fix in post than a stumbled sentence you talk over. Tell your guest upfront that this is normal so they don't feel awkward pausing too."
     },
     {
       "id": "h-faq5",
@@ -201,7 +201,7 @@
     {
       "id": "p-contcave",
       "blockType": "paragraph",
-      "content": "ContCave lists podcast-ready studios across Delhi NCR with transparent hourly pricing and clear equipment details up front — mic count, camera setup, and room capacity — so first-time podcasters know exactly what they're booking before they arrive. Compare a few studios by what's actually included, then book instantly instead of chasing quotes over calls."
+      "content": "ContCave lists podcast-ready studios across Delhi NCR with transparent hourly pricing and clear equipment details up front (mic count, camera setup, and room capacity) so first-time podcasters know exactly what they're booking before they arrive. Compare a few studios by what's actually included, then book instantly instead of chasing quotes over calls."
     },
     {
       "id": "h-final",
@@ -218,7 +218,7 @@
       "blockType": "list",
       "items": [
         "Prepare a one-page outline and send guests a prep note 24-48 hours ahead",
-        "Confirm what the studio provides — mics, headphones, multi-track recording — before you book",
+        "Confirm what the studio provides (mics, headphones, multi-track recording) before you book",
         "Run a level check and warm-up take before the real recording starts",
         "Book 90 minutes to two hours for a single 30-45 minute episode, with buffer for retakes",
         "Book a podcast-ready studio with clear pricing and equipment details on ContCave"
