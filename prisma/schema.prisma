@@ -178,6 +178,10 @@ model User {
   verified_via       String[]  @default([])
   verified_at        DateTime?
   aadhaar_last4      String?
+
+  @@index([role, markedForDeletion])
+  @@index([markedForDeletion, createdAt])
+  @@index([is_verified, verification_stage])
 }
 
 model Account {
@@ -269,6 +273,7 @@ model Listing {
   notifyReminderAt         DateTime?
   inConversation           Boolean                   @default(false)
   enquiryCount             Int                       @default(0)
+  mediaPurgedAt            DateTime?
 
   @@index([userId])
   @@index([listingType])
@@ -375,6 +380,7 @@ model Reservation {
   @@index([reviewReminderSentAt])
   @@index([userId, hiddenByGuestAt])
   @@index([listingId, hiddenByOwnerAt])
+  @@index([createdAt])
 }
 
 model ReservationSlot {
@@ -551,6 +557,7 @@ model Transaction {
   @@index([status])
   @@index([payoutDueAt])
   @@index([payoutSplitAt])
+  @@index([createdAt])
 }
 
 model ExtensionRequest {
@@ -672,6 +679,9 @@ model Invoice {
   @@index([status])
   @@index([idempotencyKey])
   @@index([periodStart, periodEnd])
+  @@index([createdAt])
+  @@index([documentType, createdAt])
+  @@index([status, createdAt])
 }
 
 model InvoiceSequence {
@@ -727,6 +737,7 @@ model PaymentVoucher {
   @@index([voucherType])
   @@index([status])
   @@index([financialYear, voucherType])
+  @@index([createdAt])
 }
 
 model PaymentVoucherSequence {
@@ -761,6 +772,7 @@ model AuditLog {
   @@index([userId])
   @@index([action])
   @@index([createdAt])
+  @@index([resource, createdAt])
 }
 
 model ListingSet {

@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 26 | Best Natural-Light Studios & the Right Time Slots to Book Them | natural light studio | studio-guides | creators |
 | 27 | Build a Monthly Content Calendar Around One Studio Day | content calendar for creators | content-creation | creators |
 | 28 | UGC Creators: Delivering Brand Content with Studio Shoots | ugc creator india | creator-economy | creators |
 | 29 | Renting Event Spaces for Workshops, Pop-Ups & Launches | event space on rent delhi | studio-guides | brands |
@@ -71,3 +70,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-09-16 | 23 | corporate-video-production-cost-india |
 | 2026-09-18 | 24 | studio-rental-rules |
 | 2026-09-21 | 25 | gst-on-studio-rental-india |
+| 2026-09-23 | 26 | natural-light-studio-delhi-ncr |

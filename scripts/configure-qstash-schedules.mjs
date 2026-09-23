@@ -19,6 +19,8 @@ const client = devMode
   ? new Client({ devMode: true })
   : new Client({ token, baseUrl: process.env.QSTASH_URL || undefined });
 
+const MANAGED_PREFIX = "contcave-";
+
 for (const schedule of schedules) {
   const result = await client.schedules.create({
     destination,
@@ -30,4 +32,16 @@ for (const schedule of schedules) {
     label: "contcave-maintenance",
   });
   console.log(`Configured ${schedule.scheduleId}: ${result.scheduleId}`);
+}
+
+// Schedules dropped from the JSON must also be removed, or QStash keeps calling
+// a job name the cron route no longer accepts.
+const declared = new Set(schedules.map((schedule) => schedule.scheduleId));
+const existing = await client.schedules.list();
+
+for (const schedule of existing) {
+  const scheduleId = schedule.scheduleId;
+  if (!scheduleId?.startsWith(MANAGED_PREFIX) || declared.has(scheduleId)) continue;
+  await client.schedules.delete(scheduleId);
+  console.log(`Removed ${scheduleId}`);
 }

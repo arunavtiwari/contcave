@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 import Script from "next/script";
 import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import getListingById from "@/app/actions/getListingById";
+import getListingById, { listingExists } from "@/app/actions/getListingById";
 import getReviewCount from "@/app/actions/getReviewCount";
 import { getPublicDayStatuses, getReservations } from "@/app/actions/reservationActions";
 import ListingClient from "@/components/listing/ListingClient";
 import ListingSkeleton from "@/components/listing/ListingSkeleton";
-import EmptyState from "@/components/ui/EmptyState";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import { getPlainTextFromHTML } from "@/lib/richText";
 import { safeJsonLd } from "@/lib/safeJsonLd";
@@ -112,10 +112,7 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
   const nonce = headerList.get("x-nonce") || "";
 
   const listing = await getListingById(params);
-
-  if (!listing) {
-    return <EmptyState />;
-  }
+  if (!listing) notFound();
 
   // Parallelize secondary fetches with individual catches for robustness in staging
   const [reservations, dayStatuses, currentUser, googleCalendarEvents, reviewCount] = await Promise.all([
@@ -367,7 +364,15 @@ const ListingPageData = async (props: { params: Promise<RouteParams> }) => {
   );
 };
 
-export default function ListingPage(props: { params: Promise<RouteParams> }) {
+// A URL matching no listing must answer 404, not a 200 carrying the not-found
+// page, which search engines read as a soft 404. The check is awaited before any
+// JSX is returned, because once a Suspense fallback flushes the status is fixed.
+// This route deliberately has no loading.tsx: that wraps the whole segment in an
+// implicit boundary that flushes before the page can raise notFound().
+export default async function ListingPage(props: { params: Promise<RouteParams> }) {
+  const params = await props.params;
+  if (!(await listingExists(params.listingId))) notFound();
+
   return (
     <main>
       <Suspense fallback={<ListingSkeleton />}>

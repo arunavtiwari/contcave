@@ -72,6 +72,13 @@ function isAuthApiPath(pathname: string): boolean {
     return pathname === '/api/auth' || pathname.startsWith('/api/auth/')
 }
 
+function isAllowedAdminApiPath(pathname: string): boolean {
+    return isAuthApiPath(pathname)
+        || pathname.startsWith('/api/documents/')
+        || pathname.startsWith('/api/admin/')
+        || pathname.startsWith('/api/upload/')
+}
+
 function cleanupStore(now: number): void {
     if (rateLimitStore.size <= 10000) return
     for (const [ip, rec] of rateLimitStore.entries()) {
@@ -258,11 +265,11 @@ export async function proxy(request: NextRequest) {
 
     const isAdminDomain = isAdminDomainHost(hostname)
     if (isAdminDomain) {
-        if (pathname.startsWith('/api') && !isAuthApiPath(pathname)) {
+        if (pathname.startsWith('/api') && !isAllowedAdminApiPath(pathname)) {
             return finalizeResponse(request, new NextResponse(null, { status: 404 }), pathname, nonce, start)
         }
 
-        if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next') && !isAuthApiPath(pathname)) {
+        if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
             const url = new URL(request.nextUrl)
             url.pathname = `/admin${pathname === '/' ? '' : pathname}`
             const requestHeaders = new Headers(request.headers)

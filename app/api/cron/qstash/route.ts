@@ -6,11 +6,13 @@ import { isE2eEffectDisabled } from "@/lib/e2e-guards";
 import { getCurrentMonthToDatePeriod, getPreviousMonthPeriod, InvoiceService } from "@/lib/invoice/service";
 import { sendBookingReminderForReservation, sendBookingReminders } from "@/lib/maintenance/bookingReminders";
 import { processAndRecordMaintenanceJob } from "@/lib/maintenance/logger";
+import { runMediaRetentionSweep } from "@/lib/maintenance/mediaRetention";
 import { runDueSplits } from "@/lib/maintenance/payoutSplits";
 import { autoCompleteCheckedInReservations, expireAdditionalCharges, expireExtensionRequests, sendExtensionNudges } from "@/lib/maintenance/postBooking";
 import { assertNoFailedMaintenanceResults } from "@/lib/maintenance/results";
 import { ReservationService } from "@/lib/reservation/service";
 import { ReviewReminderService } from "@/lib/review/reminders";
+import { executeMediaDeletion } from "@/lib/storage/mediaDeletion";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +29,9 @@ type QstashJob =
   | "booking-reminders"
   | "payout-splits"
   | "invoice-retry"
-  | "month-end-invoices";
+  | "month-end-invoices"
+  | "media-retention"
+  | "delete-media";
 
 function isQstashJob(value: unknown): value is QstashJob {
   return [
@@ -43,6 +47,8 @@ function isQstashJob(value: unknown): value is QstashJob {
     "payout-splits",
     "invoice-retry",
     "month-end-invoices",
+    "media-retention",
+    "delete-media",
   ].includes(value as string);
 }
 
@@ -61,7 +67,14 @@ function isFirstDayInIndia(date = new Date()) {
   return today === "01";
 }
 
-async function handleQstashJob(body: { job?: unknown; reservationId?: unknown; extensionId?: unknown; chargeId?: unknown } | null) {
+async function handleQstashJob(body: {
+  job?: unknown;
+  reservationId?: unknown;
+  extensionId?: unknown;
+  chargeId?: unknown;
+  refs?: unknown;
+  ownerId?: unknown;
+} | null) {
   if (!body || !isQstashJob(body.job)) {
     return NextResponse.json({ success: false, error: "Unknown QStash job" }, { status: 400 });
   }
@@ -136,6 +149,22 @@ async function handleQstashJob(body: { job?: unknown; reservationId?: unknown; e
           const results = await InvoiceService.retryPendingInvoiceEmails(100);
           assertNoFailedMaintenanceResults(results);
           rawResult = results;
+          break;
+        }
+        case "delete-media": {
+          const rawRefs = Array.isArray(body.refs) ? body.refs : [];
+          const ownerId = typeof body.ownerId === "string" ? body.ownerId : "";
+          if (!ownerId || rawRefs.length === 0) {
+            return NextResponse.json({ success: true, job: body.job, deleted: 0 });
+          }
+          const outcome = await executeMediaDeletion({ refs: rawRefs, ownerId });
+          rawResult = outcome;
+          break;
+        }
+        case "media-retention": {
+          const { listings, profiles } = await runMediaRetentionSweep();
+          assertNoFailedMaintenanceResults([...listings, ...profiles]);
+          rawResult = { listings, profiles };
           break;
         }
         case "month-end-invoices": {
