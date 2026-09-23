@@ -19,7 +19,7 @@ const buttonVariants = cva(
         destructive: "bg-destructive border-destructive text-destructive-foreground",
         ghost: "bg-transparent border-transparent text-foreground",
         secondary: "bg-background/10 border-background/20 text-background",
-        outline: "bg-background border-border text-foreground hover:border-foreground/30 hover:bg-muted",
+        outline: "bg-background border-border text-foreground hover:bg-muted",
       },
       size: {
         sm: "h-10 px-4 text-sm",
@@ -42,12 +42,12 @@ const buttonVariants = cva(
       },
     },
     compoundVariants: [
-      { variant: "default", outline: true, className: "border-border bg-background text-foreground hover:border-foreground/30 hover:bg-muted" },
-      { variant: "success", outline: true, className: "bg-background border-success text-success" },
-      { variant: "destructive", outline: true, className: "bg-background border-destructive text-destructive" },
+      { variant: "default", outline: true, className: "border-border bg-background text-foreground hover:bg-muted" },
+      { variant: "success", outline: true, className: "bg-background border-success text-success hover:bg-success/2" },
+      { variant: "destructive", outline: true, className: "bg-background border-destructive text-destructive hover:bg-destructive/2" },
       { variant: "ghost", outline: true, className: "bg-transparent border-border text-foreground" },
       { variant: "secondary", outline: true, className: "border-background/20 text-background" },
-      { isIconOnly: true, outline: true, className: "border-border bg-background text-foreground hover:border-foreground/30 hover:bg-muted" },
+      { isIconOnly: true, outline: true, className: "border-border bg-background text-foreground hover:bg-muted" },
       // Icon only sizes
       { isIconOnly: true, size: "sm", className: "w-9 h-9 p-0" },
       { isIconOnly: true, size: "md", className: "w-11 h-11 p-0" },

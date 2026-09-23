@@ -46,6 +46,7 @@ import {
     TableRow,
 } from "@/components/ui/Table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { adminEditListingHref } from "@/constants/adminNav";
 import { formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
 
 // Only opened from a row action, so its bundle loads on first use rather than with the
@@ -301,9 +302,8 @@ function ReviewModal({
             <Modal
                 isOpen
                 onCloseAction={onClose}
-                onSubmitAction={onClose}
                 title="Listing Review"
-                actionLabel="Close"
+                selfActionButton
                 customWidth="w-full max-w-6xl"
                 customHeight="max-h-[92vh]"
                 body={<ReviewModalSkeleton />}
@@ -322,7 +322,7 @@ function ReviewModal({
             onCloseAction={onClose}
             onSubmitAction={onClose}
             title="Listing Review"
-            actionLabel="Close"
+            selfActionButton
             customWidth="w-full max-w-6xl"
             customHeight="max-h-[92vh]"
             body={
@@ -497,31 +497,33 @@ function ReviewModal({
                 </div>
             }
             footer={
-                <div className="flex flex-col gap-3 border-t border-border bg-background pt-4 sm:flex-row sm:justify-between">
-                    <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-3 border-t border-border bg-background pt-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2">
                         <Button
                             label="Open Preview"
                             href={previewHref}
                             target="_blank"
                             variant="outline"
+                            fit
                             icon={FiExternalLink}
                             data-testid="admin-review-open-preview"
                         />
                         <Button
                             label="Edit Studio"
-                            href={`/dashboard/properties/${listing.id}`}
-                            target="_blank"
+                            href={adminEditListingHref(listing.id)}
                             variant="outline"
+                            fit
                             icon={FiEdit}
                             data-testid="admin-review-edit-studio"
                         />
                     </div>
-                    <div className="flex flex-col gap-3 sm:flex-row">
+                    <div className="flex items-center gap-2">
                         {listing.status !== "VERIFIED" && (
                             <Button
                                 label="Reject"
                                 variant="destructive"
                                 outline
+                                fit
                                 disabled={isMutating || listing.status === "REJECTED"}
                                 onClick={() => onRequestAction("reject")}
                                 data-testid="admin-review-reject"
@@ -531,6 +533,7 @@ function ReviewModal({
                             <Button
                                 label="Approve"
                                 variant="default"
+                                fit
                                 disabled={isMutating}
                                 onClick={() => onRequestAction("approve")}
                                 data-testid="admin-review-approve"
@@ -539,7 +542,6 @@ function ReviewModal({
                     </div>
                 </div>
             }
-            selfActionButton
         />
     );
 }
@@ -975,7 +977,7 @@ export default function AdminListingsClient({
                                                             aria-label={`Edit studio: ${listing.title}`}
                                                             tooltip="Edit Studio"
                                                             data-testid={`edit-curated-${listing.id}`}
-                                                            onClick={() => window.open(`/dashboard/properties/${listing.id}`, "_blank")}
+                                                            onClick={() => router.push(adminEditListingHref(listing.id))}
                                                         />
                                                         <Button
                                                             icon={FiStar}
@@ -1129,7 +1131,7 @@ export default function AdminListingsClient({
                                                         aria-label={`Edit studio: ${listing.title}`}
                                                         tooltip="Edit Studio"
                                                         data-testid={`edit-listing-${listing.id}`}
-                                                        onClick={() => window.open(`/dashboard/properties/${listing.id}`, "_blank")}
+                                                        onClick={() => router.push(adminEditListingHref(listing.id))}
                                                     />
                                                     <Button
                                                         icon={FiStar}

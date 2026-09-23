@@ -13,6 +13,9 @@ export interface NavigationItem {
     icon: React.ReactNode;
     href?: string;
     ownerOnly?: boolean;
+    // Tab acts on the viewer's own account, so it's meaningless when an admin
+    // edits someone else's listing.
+    hiddenForAdmin?: boolean;
 }
 
 export const MAIN_SIDEBAR_ITEMS: NavigationItem[] = [
@@ -22,7 +25,8 @@ export const MAIN_SIDEBAR_ITEMS: NavigationItem[] = [
     },
     {
         name: "Sync Calendar",
-        icon: <FaCalendarDays size={20} />
+        icon: <FaCalendarDays size={20} />,
+        hiddenForAdmin: true
     },
     {
         name: "Manage Timings",

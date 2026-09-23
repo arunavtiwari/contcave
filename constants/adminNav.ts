@@ -22,3 +22,7 @@ export const NAV_ITEMS = [
         icon: LuScrollText,
     },
 ] as const;
+
+export function adminEditListingHref(listingId: string) {
+    return `/admin/dashboard/listings/${listingId}/edit`;
+}
