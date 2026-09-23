@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import React from "react";
 import { FiArrowLeft } from "react-icons/fi";
 
 import getAddons from "@/app/actions/getAddons";
@@ -19,8 +18,6 @@ export const metadata = {
     title: "Edit Studio",
 };
 
-// The host dashboard route (/dashboard/properties/[id]) can't be reached from
-// the admin domain: the proxy rewrites every non-/admin path under /admin.
 const ADMIN_EDIT_TABS = MAIN_SIDEBAR_ITEMS.filter((item) => !item.hiddenForAdmin).map((item) => item.name);
 
 type Params = { listingId: string };

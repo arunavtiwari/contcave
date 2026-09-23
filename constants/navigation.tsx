@@ -13,8 +13,6 @@ export interface NavigationItem {
     icon: React.ReactNode;
     href?: string;
     ownerOnly?: boolean;
-    // Tab acts on the viewer's own account, so it's meaningless when an admin
-    // edits someone else's listing.
     hiddenForAdmin?: boolean;
 }
 
