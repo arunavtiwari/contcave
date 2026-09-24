@@ -152,7 +152,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                     <div className="hidden">
                         <Image
                             src={images[(currentIndex + 1) % images.length]}
-                            alt="preload"
+                            alt=""
                             width={10}
                             height={10}
                         />

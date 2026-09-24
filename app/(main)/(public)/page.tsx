@@ -13,6 +13,8 @@ import VerifiedVsCurated from "@/components/landing/VerifiedVsCurated";
 import JsonLd from "@/components/seo/JsonLd";
 import {
   absoluteUrl,
+  BRAND_DESCRIPTION,
+  BRAND_LOGO,
   BRAND_NAME,
   BRAND_TITLE,
   DEFAULT_KEYWORDS,
@@ -22,6 +24,52 @@ import {
 
 const HOME_DESCRIPTION =
   "Book the ideal shoot space for your next production with ContCave - India's trusted marketplace for photography, film, and event-ready studios." as const;
+
+const localBusinessJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": `${SITE_URL}/#localbusiness`,
+  name: BRAND_NAME,
+  legalName: "Arkanet Ventures LLP",
+  url: SITE_URL,
+  description: BRAND_DESCRIPTION,
+  image: `${SITE_URL}${OG_IMAGE}`,
+  logo: BRAND_LOGO,
+  address: {
+    "@type": "PostalAddress",
+    addressCountry: "IN",
+  },
+  areaServed: {
+    "@type": "Country",
+    name: "India",
+  },
+  email: "info@contcave.com",
+  foundingDate: "2024",
+  parentOrganization: { "@id": `${SITE_URL}/#organization` },
+  sameAs: [
+    "https://www.instagram.com/contcave",
+    "https://www.linkedin.com/company/contcave",
+    "https://x.com/contcave",
+  ],
+} as const;
+
+const serviceJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${SITE_URL}/#service`,
+  name: "Studio Booking Platform",
+  description: "Online marketplace for booking photography, video, and event studios across India",
+  provider: { "@id": `${SITE_URL}/#localbusiness` },
+  areaServed: {
+    "@type": "Country",
+    name: "India",
+  },
+  serviceType: "Studio Rental Booking",
+  offers: {
+    "@type": "Offer",
+    description: "Hourly studio rental booking service",
+  },
+} as const;
 
 const homeJsonLd = {
   "@context": "https://schema.org",
@@ -96,7 +144,7 @@ export default async function Home() {
 
   return (
     <main>
-      <JsonLd id="home-jsonld" data={homeJsonLd} />
+      <JsonLd id="home-jsonld" data={[homeJsonLd, localBusinessJsonLd, serviceJsonLd]} />
 
       {/* 1. Hero —  full-viewport, city search */}
       <Hero />

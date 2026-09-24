@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { IconType } from "react-icons";
 import { toast } from "sonner";
 
@@ -62,7 +62,6 @@ type Props = {
   fullListing: FullListing;
   definedAmenities?: SafeAmenity[];
   initialReviews?: Review[];
-  faq?: ReactNode;
   onAddonChange: (addons: Addon[]) => void;
   services: string[];
   onPackageSelect?: (pkg: Package | null) => void;
@@ -92,7 +91,6 @@ function ListingInfo({
   fullListing,
   definedAmenities,
   initialReviews,
-  faq,
   onAddonChange,
   onPackageSelect,
 
@@ -600,7 +598,6 @@ function ListingInfo({
 
       </div>
 
-      {faq}
     </div>
   );
 }

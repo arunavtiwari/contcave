@@ -2,16 +2,17 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 
-import { GST_RATE } from "@/constants/gst";
-import { durationText, joinList } from "@/lib/listing/faq";
-import { kindOf, minimumBookingHours, positive } from "@/lib/listing/seo";
+import { kindOf, positive } from "@/lib/listing/seo";
 import { ListingService } from "@/lib/listing/service";
 import prisma from "@/lib/prismadb";
 import { truncateText } from "@/lib/richText";
-import { type FaqItem, META_DESCRIPTION_LENGTH } from "@/lib/seo";
+import { META_DESCRIPTION_LENGTH } from "@/lib/seo";
 import type { FullListing } from "@/types/listing";
 
 const INR = new Intl.NumberFormat("en-IN");
+
+const joinList = (items: string[]) =>
+  items.length < 2 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 
 export const citySlug = (city: string) =>
   city
@@ -73,18 +74,6 @@ export async function findCity(slug: string) {
   return (await getCityDirectory()).find((entry) => entry.slug === slug);
 }
 
-const median = (sorted: number[]) => {
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
-};
-
-const topBy = (listings: FullListing[], value: (listing: FullListing) => number | undefined, limit = 3) =>
-  listings
-    .map((listing) => ({ listing, value: value(listing) }))
-    .filter((row): row is { listing: FullListing; value: number } => row.value !== undefined)
-    .sort((a, b) => b.value - a.value)
-    .slice(0, limit);
-
 export function describeCity(entry: CityEntry, listings: FullListing[]) {
   const { city } = entry;
   const place = entry.state && entry.state !== city ? `${city}, ${entry.state}` : city;
@@ -104,65 +93,10 @@ export function describeCity(entry: CityEntry, listings: FullListing[]) {
   const priceClause = prices.length ? `, from ₹${INR.format(prices[0])} per hour` : "";
   const intro = `${studios} you can book by the hour in ${place}${priceClause}.`;
 
-  const faq: FaqItem[] = [];
-  const gst = `${Math.round(GST_RATE * 100)}% GST`;
-
-  if (prices.length > 1) {
-    faq.push({
-      question: `How much does it cost to rent a studio in ${city}?`,
-      answer: `Studios in ${city} on ContCave cost ₹${INR.format(prices[0])}–₹${INR.format(prices[prices.length - 1])} per hour, with a median of ₹${INR.format(median(prices))}, plus ${gst}.`,
-    });
-  } else if (prices.length === 1) {
-    faq.push({
-      question: `How much does it cost to rent a studio in ${city}?`,
-      answer: `The studio you can book online in ${city} costs ₹${INR.format(prices[0])} per hour, plus ${gst}.`,
-    });
-  }
-
-  faq.push({
-    question: `How many studios can I book in ${city}?`,
-    answer: `ContCave lists ${studios} in ${city}: ${kindSummary}.`,
-  });
-
-  if (bookable.length) {
-    const minimums = bookable.map(minimumBookingHours).sort((a, b) => a - b);
-    const low = minimums[0];
-    const high = minimums[minimums.length - 1];
-    faq.push({
-      question: `Can I rent a studio in ${city} by the hour?`,
-      answer: `Yes. Every studio on ContCave is booked by the hour. In ${city} the minimum booking ${low === high ? `is ${durationText(low)}` : `ranges from ${durationText(low)} to ${durationText(high)}`}.`,
-    });
-
-    const instant = bookable.filter((listing) => listing.instantBooking);
-    const names = instant.slice(0, 5).map((listing) => listing.title.trim());
-    faq.push({
-      question: `Which studios in ${city} can I book instantly?`,
-      answer: instant.length
-        ? `${instant.length === bookable.length ? "All of them" : `${instant.length} of the ${bookable.length} you can book online`}: ${joinList(names)}${instant.length > names.length ? " and more" : ""}. The rest take booking requests, which hosts have 24 hours to accept.`
-        : `None right now. Studios in ${city} take booking requests: you pay when you send one and the host has 24 hours to accept, or your payment is refunded.`,
-    });
-  }
-
-  const largest = topBy(listings, (listing) => positive(listing.carpetArea));
-  if (largest.length) {
-    faq.push({
-      question: `What are the biggest studios in ${city}?`,
-      answer: `By floor area: ${joinList(largest.map(({ listing, value }) => `${listing.title.trim()} (${INR.format(value)} sq ft)`))}.`,
-    });
-  }
-
-  const roomiest = topBy(listings, (listing) => positive(listing.maximumPax));
-  if (roomiest.length) {
-    faq.push({
-      question: `Which studios in ${city} fit the biggest crews?`,
-      answer: `${joinList(roomiest.map(({ listing, value }) => `${listing.title.trim()} (up to ${value} people)`))}.`,
-    });
-  }
-
   const description = truncateText(
     `Book ${studios} in ${place} by the hour: ${kindSummary}${priceClause ? `. From ₹${INR.format(prices[0])}/hr` : ""}. Compare size, capacity and amenities on ContCave.`,
     META_DESCRIPTION_LENGTH
   );
 
-  return { intro, description, faq };
+  return { intro, description };
 }

@@ -8,13 +8,12 @@ import getListings from "@/app/actions/getListings";
 import Container from "@/components/layout/Container";
 import ListingFeed from "@/components/listing/ListingFeed";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
-import Faq from "@/components/seo/Faq";
 import JsonLd from "@/components/seo/JsonLd";
 import Heading from "@/components/ui/Heading";
 import { LocationSortProvider } from "@/hooks/useLocationSort";
 import { cityPath, describeCity, findCity, getCityDirectory } from "@/lib/listing/cities";
 import { listingPath, listingSummaryJsonLd } from "@/lib/listing/seo";
-import { absoluteUrl, BRAND_NAME, breadcrumbJsonLd, faqPageJsonLd, OG_IMAGE } from "@/lib/seo";
+import { absoluteUrl, BRAND_NAME, breadcrumbJsonLd, OG_IMAGE } from "@/lib/seo";
 import type { safeListing } from "@/types/listing";
 
 type RouteParams = { city: string };
@@ -76,7 +75,7 @@ export default async function CityStudiosPage(props: { params: Promise<RoutePara
   ]);
   if (!page) notFound();
 
-  const { entry, listings, intro, faq } = page;
+  const { entry, listings, intro } = page;
   const url = absoluteUrl(cityPath(entry.city));
   const trail = trailFor(entry.city);
   const otherCities = directory.filter((other) => other.slug !== entry.slug);
@@ -103,7 +102,6 @@ export default async function CityStudiosPage(props: { params: Promise<RoutePara
           })),
         },
       },
-      faqPageJsonLd(faq, url),
       breadcrumbJsonLd(trail, url),
     ],
   };
@@ -123,9 +121,6 @@ export default async function CityStudiosPage(props: { params: Promise<RoutePara
             <ListingFeed listings={listings as unknown as safeListing[]} currentUser={currentUser} />
           </LocationSortProvider>
 
-          <div className="max-w-3xl">
-            <Faq title={`Renting a studio in ${entry.city}`} items={faq} />
-          </div>
 
           {otherCities.length > 0 && (
             <nav aria-labelledby="other-cities" className="flex flex-col gap-3">
