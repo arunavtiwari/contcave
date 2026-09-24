@@ -1,74 +1,44 @@
 import { MetadataRoute } from "next";
 
+const PRIVATE_PATHS = [
+  "/api/",
+  "/admin",
+  "/dashboard",
+  "/properties",
+  "/properties/",
+  "/properties/*",
+  "/bookings",
+  "/favorites",
+  "/reservations",
+  "/profile",
+  "/profile-transaction",
+  "/chat/",
+  "/payments/",
+  "/demo/",
+];
+
+const NAMED_CRAWLERS = [
+  "Googlebot",
+  "Bingbot",
+  "GPTBot",
+  "OAI-SearchBot",
+  "ChatGPT-User",
+  "ClaudeBot",
+  "Claude-User",
+  "Claude-SearchBot",
+  "PerplexityBot",
+  "Perplexity-User",
+  "Google-Extended",
+  "Applebot-Extended",
+  "CCBot",
+];
+
 export default function robots(): MetadataRoute.Robots {
   const base = "https://contcave.com";
   return {
     rules: [
-      {
-        userAgent: "*",
-        allow: ["/"],
-        disallow: [
-          "/api/",
-          "/admin",
-          "/dashboard",
-          "/properties",
-          "/properties/",
-          "/properties/*",
-          "/bookings",
-          "/favorites",
-          "/reservations",
-          "/profile",
-          "/profile-transaction",
-          "/chat/",
-          "/payments/",
-          "/demo/",
-        ],
-      },
-      {
-        userAgent: "Googlebot",
-        allow: ["/"],
-        disallow: [
-          "/api/",
-          "/admin",
-          "/dashboard",
-          "/properties",
-          "/properties/",
-          "/properties/*",
-          "/bookings",
-          "/favorites",
-          "/reservations",
-          "/profile",
-          "/profile-transaction",
-          "/chat/",
-          "/payments/",
-          "/demo/",
-        ],
-      },
-      {
-        userAgent: "GPTBot",
-        allow: ["/"],
-        disallow: ["/api/", "/admin", "/dashboard", "/profile", "/chat/", "/payments/"],
-      },
-      {
-        userAgent: "ChatGPT-User",
-        allow: ["/"],
-        disallow: ["/api/", "/admin", "/dashboard", "/profile", "/chat/", "/payments/"],
-      },
-      {
-        userAgent: "CCBot",
-        allow: ["/"],
-        disallow: ["/api/", "/admin", "/dashboard", "/profile", "/chat/", "/payments/"],
-      },
-      {
-        userAgent: "anthropic-ai",
-        allow: ["/"],
-        disallow: ["/api/", "/admin", "/dashboard", "/profile", "/chat/", "/payments/"],
-      },
-      {
-        userAgent: "Claude-Web",
-        allow: ["/"],
-        disallow: ["/api/", "/admin", "/dashboard", "/profile", "/chat/", "/payments/"],
-      },
+      { userAgent: "*", allow: ["/"], disallow: PRIVATE_PATHS },
+      { userAgent: NAMED_CRAWLERS, allow: ["/"], disallow: PRIVATE_PATHS },
     ],
     sitemap: `${base}/sitemap.xml`,
     host: base,

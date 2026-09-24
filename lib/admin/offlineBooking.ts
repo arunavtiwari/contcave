@@ -6,6 +6,8 @@ import { getGstStateCodeFromStateName, isValidGstStateCode } from "@/constants/g
 import { parseTimeToMinutes } from "@/lib/availability";
 import { UserFacingError } from "@/lib/errors";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
+import { type GstOwner, gstOwnerFor } from "@/lib/payout/utils";
+import { addGst } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
 import { ReservationService } from "@/lib/reservation/service";
 import { isReservationSlotUniqueConflict, LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
@@ -56,6 +58,7 @@ export interface AdminStudioOption {
   propertyStateCode: string;
   price: number;
   gstin: string;
+  gstOwner: GstOwner;
   hasSets: boolean;
   setsHaveSamePrice: boolean;
   unifiedSetPrice: number | null;
@@ -82,6 +85,16 @@ function studioAddress(listing: { actualLocation: unknown; locationValue: string
   return typeof actual?.display_name === "string"
     ? actual.display_name
     : listing.locationValue || "Studio Address";
+}
+
+/** Undecryptable details count as absent, matching how invoicing treats them. */
+function decryptOwnerPayment(paymentDetails: unknown) {
+  if (!paymentDetails) return null;
+  try {
+    return decryptPaymentDetailsInternal(paymentDetails as PaymentDetails);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -153,6 +166,7 @@ export async function getAdminStudioForOfflineBooking(
           // the three this dialog actually displays are loaded.
           paymentDetails: {
             select: {
+              companyName: true,
               accountNumber: true,
               accountNumberIV: true,
               ifscCode: true,
@@ -185,21 +199,10 @@ export async function getAdminStudioForOfflineBooking(
 
   if (!l) return null;
 
-  let decryptedGstin = "";
-  let bankAccountLast4 = "";
-  let bankIfsc = "";
-  if (l.user?.paymentDetails) {
-    try {
-      const decrypted = decryptPaymentDetailsInternal(l.user.paymentDetails as PaymentDetails);
-      decryptedGstin = decrypted?.gstin || "";
-      bankIfsc = decrypted?.ifscCode || "";
-      if (decrypted?.accountNumber) {
-        bankAccountLast4 = decrypted.accountNumber.slice(-4);
-      }
-    } catch {
-      decryptedGstin = "";
-    }
-  }
+  const payment = decryptOwnerPayment(l.user?.paymentDetails);
+  const decryptedGstin = payment?.gstin || "";
+  const bankIfsc = payment?.ifscCode || "";
+  const bankAccountLast4 = payment?.accountNumber ? payment.accountNumber.slice(-4) : "";
 
   return {
     id: l.id,
@@ -217,6 +220,7 @@ export async function getAdminStudioForOfflineBooking(
     propertyStateCode: l.propertyStateCode || "07",
     price: l.price || 0,
     gstin: decryptedGstin,
+    gstOwner: gstOwnerFor(payment),
     hasSets: Boolean(l.hasSets),
     setsHaveSamePrice: Boolean(l.setsHaveSamePrice),
     unifiedSetPrice: l.unifiedSetPrice ?? null,
@@ -300,12 +304,14 @@ export async function createOfflineBooking(
   // 1. Resolve Studio Listing from Platform
   const listing = await prisma.listing.findUnique({
     where: { id: data.listingId },
-    include: { user: { include: { paymentDetails: true } } },
+    include: { user: { select: { paymentDetails: { select: { companyName: true, gstin: true, gstinIV: true } } } } },
   });
 
   if (!listing) {
     throw new UserFacingError("Selected studio was not found on the platform. Please select a valid studio.");
   }
+
+  const gstOwnedBy = gstOwnerFor(decryptOwnerPayment(listing.user?.paymentDetails));
 
   const actualLoc = listing.actualLocation as Record<string, unknown> | null;
   const studioAddress = typeof actualLoc?.display_name === "string"
@@ -419,6 +425,9 @@ export async function createOfflineBooking(
     includedSetId = matchedSets[0]?.id || null;
   }
 
+  // The agreed price is pre-GST, like listed studio rates; GST goes on top exactly as at online checkout.
+  const { total: totalWithGst } = addGst(data.price);
+
   const reservationData: Prisma.ReservationUncheckedCreateInput = {
     bookingId,
     userId: customer.id,
@@ -426,8 +435,8 @@ export async function createOfflineBooking(
     startDate,
     startTime: data.startTime,
     endTime: data.endTime,
-    totalPrice: data.price,
-    totalPriceInt: Math.round(data.price),
+    totalPrice: totalWithGst,
+    totalPriceInt: Math.round(totalWithGst),
     status: "CONFIRMED",
     billingDetailId,
     billingSnapshot: billingSnapshot || undefined,
@@ -478,7 +487,7 @@ export async function createOfflineBooking(
           listingId: listing.id,
           reservationId: createdReservation.id,
           bookingId,
-          amount: data.price,
+          amount: totalWithGst,
           currency: "INR",
           status: "SUCCESS",
           purpose: "BASE_BOOKING",
@@ -490,6 +499,7 @@ export async function createOfflineBooking(
           payoutSplitAt: new Date(),
           payoutAmountToOwner: 0,
           payoutPercentToOwner: 0,
+          gstOwnedBy,
           metadata: {
             offline: true,
             bookingType: data.bookingType,

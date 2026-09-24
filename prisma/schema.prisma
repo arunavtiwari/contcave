@@ -210,6 +210,7 @@ model Listing {
   description              String
   imageSrc                 String[]
   createdAt                DateTime                  @default(now())
+  updatedAt                DateTime?                 @updatedAt
   category                 String
   locationValue            String
   actualLocation           Json?

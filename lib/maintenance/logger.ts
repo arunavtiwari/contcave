@@ -105,8 +105,6 @@ function generateHumanSummary(jobName: string, itemsModified: number, totalProce
       return `Generated ${itemsModified} month-end owner invoice(s)`;
     case "post-booking-fast":
       return `Executed fast maintenance: modified ${itemsModified} item(s)`;
-    case "media-retention":
-      return `Queued stored media for ${itemsModified} expired listing(s) and profile(s)`;
     case "media-deletion-queue":
       return `Released queued media for ${itemsModified} owner(s) from storage`;
     default:

@@ -2033,6 +2033,7 @@ export class ReservationService {
         const normalizedListing: safeListing = {
             ...safeReservationListing,
             createdAt: listing.createdAt.toISOString(),
+            updatedAt: listing.updatedAt?.toISOString() ?? null,
             addons: normalizeListingAddons(listingAddons),
             avgReviewRating: listing.avgReviewRating ?? undefined,
         };

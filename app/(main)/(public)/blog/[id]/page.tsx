@@ -1,20 +1,36 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Image from "next/image";
-import Script from "next/script";
+import { notFound } from "next/navigation";
 
 import Container from "@/components/layout/Container";
+import JsonLd from "@/components/seo/JsonLd";
 import PageBanner from "@/components/ui/PageBanner";
 import { getBlogGradient } from "@/lib/blogGradient";
 import { getPostData, getSortedPostsData } from "@/lib/posts";
-import { safeJsonLd } from "@/lib/safeJsonLd";
-import { absoluteUrl, asciiClean, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { truncateText } from "@/lib/richText";
+import {
+  absoluteUrl,
+  BRAND_NAME,
+  META_DESCRIPTION_LENGTH,
+  OG_IMAGE,
+  SITE_URL,
+  toPlainText,
+} from "@/lib/seo";
 import { formatISTDate } from "@/lib/utils";
+import type { BlogPost } from "@/types/blog";
 
 const FALLBACK_DESCRIPTION =
   "Insights and stories from ContCave on studios, production workflows, and the creative economy in India.";
 
 type RouteParams = { id: string };
+
+const describePost = (post: BlogPost) =>
+  truncateText(
+    toPlainText(post.meta?.description) ??
+    toPlainText(post.layout?.find((block) => block.blockType === "paragraph")?.content) ??
+    FALLBACK_DESCRIPTION,
+    META_DESCRIPTION_LENGTH
+  );
 
 export async function generateStaticParams() {
   return getSortedPostsData().map((post) => ({ id: post.id }));
@@ -28,10 +44,7 @@ export async function generateMetadata({
   try {
     const { id } = await params;
     const post = getPostData(id);
-    const description =
-      asciiClean(post.meta?.description) ??
-      asciiClean(post.layout?.find((block) => block.blockType === "paragraph")?.content) ??
-      FALLBACK_DESCRIPTION;
+    const description = describePost(post);
 
     const image = absoluteUrl(post.meta?.image?.url ?? OG_IMAGE);
     const published = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
@@ -94,17 +107,17 @@ import Heading from "@/components/ui/Heading";
 
 export default async function PostPage(props: { params: Promise<RouteParams> }) {
   const { id } = await props.params;
-  const headerList = await headers();
-  const nonce = headerList.get("x-nonce") || "";
-  const post = await getPostData(id);
-  const description =
-    asciiClean(post.meta?.description) ??
-    asciiClean(post.layout?.find((block) => block.blockType === "paragraph")?.content) ??
-    FALLBACK_DESCRIPTION;
+  let post: BlogPost;
+  try {
+    post = getPostData(id);
+  } catch {
+    notFound();
+  }
+  const description = describePost(post);
 
   const articleJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     "@id": `${SITE_URL}/blog/${id}#article`,
     headline: post.title,
     description,
@@ -125,12 +138,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
 
   return (
     <main className="bg-background min-h-screen">
-      <Script
-        id={`blog-article-${id}`}
-        type="application/ld+json"
-        nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(articleJsonLd) }}
-      />
+      <JsonLd id={`blog-article-${id}`} data={articleJsonLd} />
 
       <PageBanner
         title={post.title}

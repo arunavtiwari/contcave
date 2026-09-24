@@ -1,3 +1,5 @@
+import { compressImageForUpload } from "@/lib/storage/compressImage";
+
 export async function uploadToR2(
     files: (File | string)[],
     folder?: string,
@@ -34,6 +36,10 @@ export async function uploadToR2(
             }
         } else {
             f = item;
+        }
+
+        if (options.access !== "private") {
+            f = await compressImageForUpload(f);
         }
 
         if (!Number.isSafeInteger(f.size) || f.size <= 0) {
