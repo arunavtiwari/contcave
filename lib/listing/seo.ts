@@ -8,8 +8,6 @@ import {
   BRAND_NAME,
   type BreadcrumbItem,
   breadcrumbJsonLd,
-  type FaqItem,
-  faqPageJsonLd,
   META_DESCRIPTION_LENGTH,
   OG_IMAGE,
   SITE_URL,
@@ -203,13 +201,12 @@ type ListingJsonLdInput = {
   amenities: SafeAmenity[];
   reviews: PublicReview[];
   reviewCount: number;
-  faq: FaqItem[];
   breadcrumbs: BreadcrumbItem[];
 };
 
 export function buildListingJsonLd(
   listing: FullListing,
-  { amenities, reviews, reviewCount, faq, breadcrumbs }: ListingJsonLdInput
+  { amenities, reviews, reviewCount, breadcrumbs }: ListingJsonLdInput
 ) {
   const url = absoluteUrl(listingPath(listing));
   const venueId = `${url}#venue`;
@@ -217,6 +214,9 @@ export function buildListingJsonLd(
   const [latitude, longitude] = listing.actualLocation?.latlng ?? [];
   const area = positive(listing.carpetArea);
   const price = listing.listingType === "CURATED" ? undefined : positive(listing.price);
+  const curatedLow = listing.listingType === "CURATED" ? fromPrice(listing) : undefined;
+  const curatedMax = positive(listing.priceRangeMax);
+  const curatedHigh = curatedLow && curatedMax && curatedMax >= curatedLow ? curatedMax : undefined;
   const rating = positive(listing.avgReviewRating);
   const features = amenityNamesOf(listing, amenities);
 
@@ -272,7 +272,30 @@ export function buildListingJsonLd(
         eligibleQuantity: { "@type": "QuantitativeValue", minValue: minimumBookingHours(listing), unitCode: "HUR" },
       },
     }
-    : undefined;
+    : curatedLow
+      ? {
+        "@type": "Product",
+        "@id": `${url}#rental`,
+        name: listing.title,
+        description: listingDescription(listing),
+        image: images,
+        url,
+        sku: listing.id,
+        category: kindOf(listing),
+        aggregateRating,
+        review: reviewItems.length ? reviewItems : undefined,
+        offers: {
+          "@type": "AggregateOffer",
+          url,
+          lowPrice: curatedLow,
+          highPrice: curatedHigh,
+          priceCurrency: "INR",
+          offerCount: 1,
+          availability: "https://schema.org/InStock",
+          seller: { "@id": `${SITE_URL}/#organization` },
+        },
+      }
+      : undefined;
 
   const venue = {
     "@type": ["LocalBusiness", "EventVenue"],
@@ -303,7 +326,6 @@ export function buildListingJsonLd(
     "@graph": [
       venue,
       ...(rental ? [rental] : []),
-      ...(faq.length ? [faqPageJsonLd(faq, url)] : []),
       breadcrumbJsonLd(breadcrumbs, url),
     ],
   };

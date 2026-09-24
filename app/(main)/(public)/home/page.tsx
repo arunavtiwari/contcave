@@ -14,14 +14,15 @@ import JsonLd from "@/components/seo/JsonLd";
 import EmptyState from "@/components/ui/EmptyState";
 import { LocationSortProvider } from "@/hooks/useLocationSort";
 import { isHtmlOnlyCrawler } from "@/lib/crawlers";
-import { listingPath, listingSummaryJsonLd } from "@/lib/listing/seo";
+import { listingPath } from "@/lib/listing/seo";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 import { safeListing } from "@/types/listing";
 
 export const dynamic = "force-dynamic";
 
+const LISTINGS_TITLE = "Book Photo & Video Studios for Rent by the Hour" as const;
 const LISTINGS_DESCRIPTION =
-  "Browse verified photography, video, and event studios across India. Filter by city, amenities, or dates to find the perfect space." as const;
+  "Compare and book verified photography, video, podcast and event studios in Delhi NCR, Gurgaon, Noida, Chandigarh, Mohali and Lucknow. Hourly pricing, real photos and instant availability." as const;
 
 function hasActiveFilters(params: IListingsParams): boolean {
   return Boolean(
@@ -47,21 +48,22 @@ export async function generateMetadata(props: HomeProps): Promise<Metadata> {
   const isFiltered = hasActiveFilters(searchParams);
 
   return {
-    title: "Explore Studios for Rent",
+    title: LISTINGS_TITLE,
     description: LISTINGS_DESCRIPTION,
     keywords: [
       "studio rental",
       "photography studio",
       "video shoot space",
       "creative studio",
-      "ContCave listings",
+      "studio for rent Delhi NCR",
+      "podcast studio for rent",
       "studio spaces India",
       "book studio online",
       "hourly studio rental",
     ],
     alternates: { canonical: "/home" },
     openGraph: {
-      title: "Explore Studios for Rent",
+      title: LISTINGS_TITLE,
       description: LISTINGS_DESCRIPTION,
       url: `${SITE_URL}/home`,
       siteName: BRAND_NAME,
@@ -78,7 +80,7 @@ export async function generateMetadata(props: HomeProps): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: "Explore Studios for Rent",
+      title: LISTINGS_TITLE,
       description: LISTINGS_DESCRIPTION,
       site: "@ContCave",
       creator: "@ContCave",
@@ -140,7 +142,8 @@ async function HomeContent(props: HomeProps) {
       "@type": "ListItem",
       position: index + 1,
       url: absoluteUrl(listingPath(item)),
-      item: listingSummaryJsonLd(item),
+      name: item.title.trim(),
+      ...(item.imageSrc?.[0] ? { image: item.imageSrc[0] } : {}),
     })),
   };
 

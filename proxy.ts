@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 import { createErrorResponse, handleRouteError } from '@/lib/api-utils'
+import { isAdminDomainHost } from '@/lib/http/adminHost'
 import { getClientIp } from '@/lib/http/requestMeta'
 
 type RateRecord = {
@@ -58,14 +59,6 @@ function hasValidMutationOrigin(request: NextRequest): boolean {
 function hasDedicatedRequestGuard(pathname: string): boolean {
     return ROUTES_WITH_DEDICATED_REQUEST_GUARDS.has(pathname)
         || pathname.startsWith('/api/pay/charge/')
-}
-
-function isAdminDomainHost(hostname: string): boolean {
-    const host = hostname.split(':')[0]?.toLowerCase() ?? ''
-    return host === 'admin.contcave.com'
-        || host === 'staging.admin.contcave.com'
-        || host.startsWith('admin.')
-        || host.includes('.admin.')
 }
 
 function isAuthApiPath(pathname: string): boolean {

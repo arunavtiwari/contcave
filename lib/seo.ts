@@ -46,18 +46,6 @@ export const toPlainText = (value: string | string[] | undefined | null): string
   return getPlainTextFromHTML(source, 0) || undefined;
 };
 
-export type FaqItem = { question: string; answer: string };
-
-export const faqPageJsonLd = (items: FaqItem[], pageUrl: string) => ({
-  "@type": "FAQPage",
-  "@id": `${pageUrl}#faq`,
-  mainEntity: items.map(({ question, answer }) => ({
-    "@type": "Question",
-    name: question,
-    acceptedAnswer: { "@type": "Answer", text: answer },
-  })),
-});
-
 export type BreadcrumbItem = { name: string; href?: string };
 
 export const breadcrumbJsonLd = (items: BreadcrumbItem[], pageUrl: string) => ({

@@ -49,7 +49,6 @@ type Props = {
   reviews?: PublicReview[];
   amenities?: SafeAmenity[];
   breadcrumbs?: ReactNode;
-  faq?: ReactNode;
   processedDescription?: string | null;
   processedTerms?: string | null;
   descriptionShouldTruncate?: boolean;
@@ -140,7 +139,6 @@ function ListingClient({
   reviews,
   amenities,
   breadcrumbs,
-  faq,
   processedDescription,
   processedTerms,
   descriptionShouldTruncate,
@@ -632,6 +630,7 @@ function ListingClient({
     () => categories.find((c) => c.label === listing.category),
     [listing.category]
   );
+  const kindLabel = listing.venueTypes?.[0] || listing.category || "Studio";
 
 
 
@@ -777,6 +776,7 @@ function ListingClient({
               imageSrc={listing.imageSrc}
               videoSrc={listing.videoSrc}
               locationValue={listing.locationValue}
+              kind={kindLabel}
               id={listing.id}
               currentUser={currentUser}
             />
@@ -789,7 +789,6 @@ function ListingClient({
                 fullListing={listing as unknown as FullListing}
                 definedAmenities={amenities}
                 initialReviews={reviews}
-                faq={faq}
                 onAddonChange={handleAddonChange}
                 services={[]}
                 onPackageSelect={handlePackageSelect}

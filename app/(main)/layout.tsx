@@ -42,9 +42,6 @@ export const metadata: Metadata = {
     description: BRAND_DESCRIPTION,
     keywords: [...DEFAULT_KEYWORDS],
     authors: [{ name: BRAND_NAME }],
-    alternates: {
-        canonical: "/",
-    },
     icons: {
         icon: [
             { url: "/favicon.ico", sizes: "48x48" },
@@ -164,7 +161,7 @@ export default async function RootLayout({
 
     return (
 
-        <html lang="en">
+        <html lang="en-IN">
             <head>
                 <JsonLd
                     id="organization-jsonld"
