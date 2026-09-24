@@ -70,3 +70,10 @@ export const breadcrumbJsonLd = (items: BreadcrumbItem[], pageUrl: string) => ({
     item: absoluteUrl(item.href ?? pageUrl),
   })),
 });
+
+export const BRAND_LOGO = {
+  "@type": "ImageObject",
+  url: `${SITE_URL}/images/logo/logo_small.png`,
+  width: 1220,
+  height: 1188,
+} as const;

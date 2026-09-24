@@ -123,7 +123,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
     description,
     image: [absoluteUrl(post.meta?.image?.url ?? OG_IMAGE)],
     author: (post.authors ?? []).map((name) => ({ "@type": "Person", name })),
-    publisher: { "@id": `${SITE_URL}/#localbusiness` },
+    publisher: { "@id": `${SITE_URL}/#organization` },
     datePublished: post.publishedAt,
     dateModified: post.updatedAt ?? post.publishedAt,
     keywords: post.tags?.length ? post.tags.join(", ") : undefined,
