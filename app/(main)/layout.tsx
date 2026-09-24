@@ -3,7 +3,6 @@ import "../../styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import Script from "next/script";
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
@@ -19,10 +18,10 @@ import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import GlobalProviders from "@/components/providers/GlobalProviders";
+import JsonLd from "@/components/seo/JsonLd";
 import ClientOnly from "@/components/ui/ClientOnly";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { Toaster } from "@/components/ui/Toast";
-import { safeJsonLd } from "@/lib/safeJsonLd";
 import {
     BRAND_DESCRIPTION,
     BRAND_NAME,
@@ -100,6 +99,13 @@ export const viewport: Viewport = {
     themeColor: "#111827",
 };
 
+const BRAND_LOGO = {
+    "@type": "ImageObject",
+    url: `${SITE_URL}/images/logo/logo_small.png`,
+    width: 1220,
+    height: 1188,
+} as const;
+
 const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -108,12 +114,7 @@ const organizationJsonLd = {
     legalName: "Arkanet Ventures LLP",
     url: SITE_URL,
     description: BRAND_DESCRIPTION,
-    logo: {
-        "@type": "ImageObject",
-        url: `${SITE_URL}${OG_IMAGE}`,
-        width: 1200,
-        height: 630,
-    },
+    logo: BRAND_LOGO,
     foundingDate: "2024",
     contactPoint: {
         "@type": "ContactPoint",
@@ -141,23 +142,15 @@ const localBusinessJsonLd = {
     url: SITE_URL,
     description: BRAND_DESCRIPTION,
     image: `${SITE_URL}${OG_IMAGE}`,
-    logo: {
-        "@type": "ImageObject",
-        url: `${SITE_URL}${OG_IMAGE}`,
-        width: 1200,
-        height: 630,
-    },
+    logo: BRAND_LOGO,
     address: {
         "@type": "PostalAddress",
         addressCountry: "IN",
-        addressLocality: "India",
     },
     areaServed: {
         "@type": "Country",
         name: "India",
     },
-    priceRange: "$$",
-    telephone: "+91",
     email: "info@contcave.com",
     foundingDate: "2024",
     parentOrganization: { "@id": `${SITE_URL}/#organization` },
@@ -225,13 +218,9 @@ export default async function RootLayout({
 
         <html lang="en">
             <head>
-                <Script
+                <JsonLd
                     id="organization-jsonld"
-                    type="application/ld+json"
-                    nonce={nonce}
-                    dangerouslySetInnerHTML={{
-                        __html: safeJsonLd([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]),
-                    }}
+                    data={[organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]}
                 />
             </head>
             <body className={GeistSans.className}>

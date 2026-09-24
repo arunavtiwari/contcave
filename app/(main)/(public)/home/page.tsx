@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import Script from "next/script";
 import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
@@ -11,9 +10,11 @@ import ListingFeed from "@/components/listing/ListingFeed";
 import ListingFeedHeader from "@/components/listing/ListingFeedHeader";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
 import Categories from "@/components/navbar/Categories";
+import JsonLd from "@/components/seo/JsonLd";
 import EmptyState from "@/components/ui/EmptyState";
 import { LocationSortProvider } from "@/hooks/useLocationSort";
-import { safeJsonLd } from "@/lib/safeJsonLd";
+import { isHtmlOnlyCrawler } from "@/lib/crawlers";
+import { listingPath, listingSummaryJsonLd } from "@/lib/listing/seo";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 import { safeListing } from "@/types/listing";
 
@@ -95,16 +96,21 @@ export async function generateMetadata(props: HomeProps): Promise<Metadata> {
   };
 }
 
-export default function Home(props: HomeProps) {
+export default async function Home(props: HomeProps) {
+  const feed = <HomeContent {...props} />;
+  const htmlOnlyCrawler = isHtmlOnlyCrawler((await headers()).get("user-agent"));
+
   return (
     <main>
       <Container>
         <Categories />
         <LocationSortProvider>
           <ListingFeedHeader />
-          <Suspense fallback={<ListingGridSkeleton count={6} hideActions />}>
-            <HomeContent {...props} />
-          </Suspense>
+          {htmlOnlyCrawler ? feed : (
+            <Suspense fallback={<ListingGridSkeleton count={6} hideActions />}>
+              {feed}
+            </Suspense>
+          )}
         </LocationSortProvider>
       </Container>
     </main>
@@ -113,8 +119,6 @@ export default function Home(props: HomeProps) {
 
 async function HomeContent(props: HomeProps) {
   const searchParams = await props.searchParams;
-  const headerList = await headers();
-  const nonce = headerList.get("x-nonce") || "";
   const isFiltered = hasActiveFilters(searchParams);
 
   const [listing, currentUser] = await Promise.all([
@@ -131,39 +135,18 @@ async function HomeContent(props: HomeProps) {
     "@id": `${SITE_URL}/home#itemlist`,
     name: "Studios available on ContCave",
     url: `${SITE_URL}/home`,
-    publisher: { "@id": `${SITE_URL}/#localbusiness` },
+    numberOfItems: listing.length,
     itemListElement: listing.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      url: absoluteUrl(`/listings/${item.id}`),
-      item: {
-        "@type": "LocalBusiness",
-        name: item.title,
-        description: item.description,
-        image: absoluteUrl(
-          Array.isArray(item.imageSrc) ? item.imageSrc[0] ?? OG_IMAGE : item.imageSrc ?? OG_IMAGE
-        ),
-        url: absoluteUrl(`/listings/${item.id}`),
-        priceRange: item.price ? `INR ${item.price}` : undefined,
-        address: {
-          "@type": "PostalAddress",
-          addressCountry: "IN",
-          addressRegion: item.locationValue,
-        },
-      },
+      url: absoluteUrl(listingPath(item)),
+      item: listingSummaryJsonLd(item),
     })),
   };
 
   return (
     <>
-      {listing.length > 0 && (
-        <Script
-          id="home-listings-jsonld"
-          type="application/ld+json"
-          nonce={nonce}
-          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
-        />
-      )}
+      {listing.length > 0 && <JsonLd id="home-listings-jsonld" data={jsonLd} />}
       {listing.length === 0 ? (
         <div className="space-y-10">
           <EmptyState

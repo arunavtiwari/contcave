@@ -1262,16 +1262,6 @@ export class ListingService {
             .filter((listing): listing is FullListing => Boolean(listing));
     }
 
-    static async exists(listingId: string): Promise<boolean> {
-        if (!listingId) return false;
-        const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
-        const listing = await prisma.listing.findFirst({
-            where: isObjectId ? { id: listingId } : { slug: listingId },
-            select: { id: true },
-        });
-        return Boolean(listing);
-    }
-
     static async findById(
         listingId: string,
         viewer?: { id: string; role: "CUSTOMER" | "OWNER" | "ADMIN" }
@@ -1328,6 +1318,7 @@ export class ListingService {
         return {
             ...publicListing,
             createdAt: l.createdAt.toISOString(),
+            updatedAt: l.updatedAt?.toISOString() ?? null,
             amenities: (l.amenities as string[]) || [],
             otherAmenities: (l.otherAmenities as string[]) || [],
             type: normalizedTypes,

@@ -29,8 +29,9 @@ import Pill from "@/components/ui/Pill";
 import Select, { SelectOption } from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Textarea from "@/components/ui/Textarea";
+import { GST_RATE } from "@/constants/gst";
 import { AdminStudioOption, AdminStudioSummary } from "@/lib/admin/offlineBooking";
-import { calculateSetPricing } from "@/lib/pricing";
+import { addGst, calculateSetPricing } from "@/lib/pricing";
 import { cn, formatINR } from "@/lib/utils";
 import {
   CreateAdminOfflineBookingInput,
@@ -201,6 +202,10 @@ export default function CreateOfflineBookingModal({
   const watchBookingType = watch("bookingType");
   const watchHoursBooked = watch("hoursBooked");
   const watchStartTime = watch("startTime");
+  const watchPrice = watch("price");
+  const priceWithGst = Number.isFinite(watchPrice) && watchPrice > 0
+    ? addGst(watchPrice)
+    : null;
 
   // Fetch available studios when modal opens
   useEffect(() => {
@@ -599,6 +604,11 @@ export default function CreateOfflineBookingModal({
                   Property State: <span className="font-mono text-foreground font-medium">{selectedStudio.propertyStateCode || "07"}</span>
                 </span>
               </div>
+              {selectedStudio.gstin && selectedStudio.gstOwner !== "STUDIO" && (
+                <p className="rounded-md border border-warning/30 bg-warning/10 px-2.5 py-1.5 text-[11px] text-warning">
+                  No company name on file for this GSTIN, so the invoice will be issued by ContCave. Ask the host to add it under Dashboard → Payments.
+                </p>
+              )}
 
               {/* CONFIGURED SETS DETAILS */}
               {selectedStudio.hasSets && selectedStudio.sets.length > 0 && (
@@ -984,14 +994,16 @@ export default function CreateOfflineBookingModal({
 
             <Input
               id="price"
-              label="Agreed Price (₹ INR)"
+              label="Agreed Price (₹ INR, excl. GST)"
               type="number"
               required
               formatPrice
               register={register("price", { valueAsNumber: true })}
               error={errors.price?.message}
               disabled={isPending}
-              description="Pre-filled based on selection, but freely editable"
+              description={priceWithGst
+                ? `+ ${Math.round(GST_RATE * 100)}% GST ${formatINR(priceWithGst.gstAmount)} · Customer pays ${formatINR(priceWithGst.total)}`
+                : "Pre-filled based on selection, but freely editable"}
             />
           </div>
         </div>

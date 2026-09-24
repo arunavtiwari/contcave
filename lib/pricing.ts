@@ -181,15 +181,13 @@ export function validateSetSelection(
 }
 
 
-export function calculateBookingTotal(params: {
-    setSubtotal: number;
-    addonsTotal: number;
-    platformFee: number;
-    gstRate?: number;
-}): { subtotal: number; gstAmount: number; total: number } {
-    const { setSubtotal, addonsTotal, platformFee, gstRate = GST_RATE } = params;
-    const subtotal = setSubtotal + addonsTotal + platformFee;
-    const gstAmount = Math.round(subtotal * gstRate);
-    const total = subtotal + gstAmount;
-    return { subtotal, gstAmount, total };
+/** GST charged on top of a pre-GST amount, in whole rupees — what the customer pays. */
+export function addGst(subtotal: number): { gstAmount: number; total: number } {
+    const gstAmount = Math.round(subtotal * GST_RATE);
+    return { gstAmount, total: Math.round(subtotal + gstAmount) };
+}
+
+/** The pre-GST value inside a GST-inclusive amount, unrounded so callers keep their own rounding. */
+export function amountBeforeGst(totalInclGst: number): number {
+    return totalInclGst / (1 + GST_RATE);
 }

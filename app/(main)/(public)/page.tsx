@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
-import Script from "next/script";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getRandomListings from "@/app/actions/getRandomListings";
@@ -12,6 +10,7 @@ import ProductionConcierge from "@/components/landing/ProductionConcierge";
 import SocialProof from "@/components/landing/SocialProof";
 import StudioShowcase from "@/components/landing/StudioShowcase";
 import VerifiedVsCurated from "@/components/landing/VerifiedVsCurated";
+import JsonLd from "@/components/seo/JsonLd";
 import {
   absoluteUrl,
   BRAND_NAME,
@@ -90,21 +89,14 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [headerList, currentUser, listings] = await Promise.all([
-    headers(),
+  const [currentUser, listings] = await Promise.all([
     getCurrentUser(),
     getRandomListings(3),
   ]);
-  const nonce = headerList.get("x-nonce") || "";
 
   return (
     <main>
-      <Script
-        id="home-jsonld"
-        type="application/ld+json"
-        nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd).replace(/</g, "\\u003c") }}
-      />
+      <JsonLd id="home-jsonld" data={homeJsonLd} />
 
       {/* 1. Hero —  full-viewport, city search */}
       <Hero />
@@ -125,7 +117,7 @@ export default async function Home() {
       <ProductionConcierge />
 
       {/* 7. FAQ —  objection handling before the final ask */}
-      <FAQ nonce={nonce} />
+      <FAQ />
 
       {/* 8. For Studio Owners —  CTA */}
       <CTA currentUser={currentUser} />

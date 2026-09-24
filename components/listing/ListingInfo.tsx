@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { IconType } from "react-icons";
 import { toast } from "sonner";
 
@@ -61,6 +61,8 @@ type Props = {
   locationValue: string;
   fullListing: FullListing;
   definedAmenities?: SafeAmenity[];
+  initialReviews?: Review[];
+  faq?: ReactNode;
   onAddonChange: (addons: Addon[]) => void;
   services: string[];
   onPackageSelect?: (pkg: Package | null) => void;
@@ -89,6 +91,8 @@ function ListingInfo({
   locationValue,
   fullListing,
   definedAmenities,
+  initialReviews,
+  faq,
   onAddonChange,
   onPackageSelect,
 
@@ -148,7 +152,8 @@ function ListingInfo({
 
   const [addonList, setAddonList] = useState<Addon[]>([]);
   const [amenityDefs, setAmenityDefs] = useState<SafeAmenity[]>(definedAmenities ?? []);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
+  const reviewsPreloaded = initialReviews !== undefined;
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
   const [review, setReview] = useState({ rating: 5, comment: "" });
@@ -173,6 +178,7 @@ function ListingInfo({
     const fetchData = async () => {
       const list = await getAddons();
       setAddonList(list || []);
+      if (reviewsPreloaded) return;
       try {
         const data = await getReviews(fullListing.id);
         setReviews(data || []);
@@ -199,7 +205,7 @@ function ListingInfo({
     };
     fetchData();
     checkBookingStatus();
-  }, [fullListing.id]);
+  }, [fullListing.id, reviewsPreloaded]);
 
   useEffect(() => {
     if (definedAmenities && definedAmenities.length > 0) {
@@ -593,6 +599,8 @@ function ListingInfo({
         </Link>
 
       </div>
+
+      {faq}
     </div>
   );
 }

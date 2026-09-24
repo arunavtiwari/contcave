@@ -1,3 +1,5 @@
+import { getPlainTextFromHTML } from "@/lib/richText";
+
 export const SITE_URL = "https://contcave.com" as const;
 export const BRAND_NAME = "ContCave" as const;
 export const BRAND_TITLE = `${BRAND_NAME} | Find the Perfect Shoot Space with Ease` as const;
@@ -32,18 +34,39 @@ export const DEFAULT_KEYWORDS = [
   "studios in surat",
 ] as const;
 
+export const META_DESCRIPTION_LENGTH = 160;
+
 export function absoluteUrl(path: string): string {
   if (path.startsWith("http")) return path;
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-
-export const asciiClean = (value: string | string[] | undefined | null): string | undefined => {
+export const toPlainText = (value: string | string[] | undefined | null): string | undefined => {
   const source = Array.isArray(value) ? value.join(" ") : value;
-  return source
-    ?.replace(/<[^>]*>?/gm, " ")
-    .replace(/&#?[a-z0-9]+;/gi, " ")
-    .replace(/[^\x20-\x7E]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return getPlainTextFromHTML(source, 0) || undefined;
 };
+
+export type FaqItem = { question: string; answer: string };
+
+export const faqPageJsonLd = (items: FaqItem[], pageUrl: string) => ({
+  "@type": "FAQPage",
+  "@id": `${pageUrl}#faq`,
+  mainEntity: items.map(({ question, answer }) => ({
+    "@type": "Question",
+    name: question,
+    acceptedAnswer: { "@type": "Answer", text: answer },
+  })),
+});
+
+export type BreadcrumbItem = { name: string; href?: string };
+
+export const breadcrumbJsonLd = (items: BreadcrumbItem[], pageUrl: string) => ({
+  "@type": "BreadcrumbList",
+  "@id": `${pageUrl}#breadcrumb`,
+  itemListElement: items.map((item, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    name: item.name,
+    item: absoluteUrl(item.href ?? pageUrl),
+  })),
+});
