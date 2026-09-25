@@ -356,7 +356,6 @@ const VerificationModal: React.FC<Props> = ({
                 values={aadhaarPreview}
                 onChange={(values) => setAadhaarPreview(values.slice(-1))}
                 onFilesChange={(files) => setAadhaarFile(files.at(-1) || null)}
-                deferUpload
                 multiple={false}
                 allowedTypes={["image/jpeg", "image/jpg", "image/png", "application/pdf"]}
                 maxSize={5 * 1024 * 1024}

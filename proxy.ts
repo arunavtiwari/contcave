@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 import { createErrorResponse, handleRouteError } from '@/lib/api-utils'
+import { isAdminDomainHost } from '@/lib/http/adminHost'
 import { getClientIp } from '@/lib/http/requestMeta'
 
 type RateRecord = {
@@ -60,16 +61,15 @@ function hasDedicatedRequestGuard(pathname: string): boolean {
         || pathname.startsWith('/api/pay/charge/')
 }
 
-function isAdminDomainHost(hostname: string): boolean {
-    const host = hostname.split(':')[0]?.toLowerCase() ?? ''
-    return host === 'admin.contcave.com'
-        || host === 'staging.admin.contcave.com'
-        || host.startsWith('admin.')
-        || host.includes('.admin.')
-}
-
 function isAuthApiPath(pathname: string): boolean {
     return pathname === '/api/auth' || pathname.startsWith('/api/auth/')
+}
+
+function isAllowedAdminApiPath(pathname: string): boolean {
+    return isAuthApiPath(pathname)
+        || pathname.startsWith('/api/documents/')
+        || pathname.startsWith('/api/admin/')
+        || pathname.startsWith('/api/upload/')
 }
 
 function cleanupStore(now: number): void {
@@ -258,11 +258,11 @@ export async function proxy(request: NextRequest) {
 
     const isAdminDomain = isAdminDomainHost(hostname)
     if (isAdminDomain) {
-        if (pathname.startsWith('/api') && !isAuthApiPath(pathname)) {
+        if (pathname.startsWith('/api') && !isAllowedAdminApiPath(pathname)) {
             return finalizeResponse(request, new NextResponse(null, { status: 404 }), pathname, nonce, start)
         }
 
-        if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next') && !isAuthApiPath(pathname)) {
+        if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
             const url = new URL(request.nextUrl)
             url.pathname = `/admin${pathname === '/' ? '' : pathname}`
             const requestHeaders = new Headers(request.headers)

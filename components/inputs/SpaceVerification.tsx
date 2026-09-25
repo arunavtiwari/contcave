@@ -143,7 +143,6 @@ const SpaceVerification: React.FC<Props> = ({ onVerification, initialDocuments =
                                 label="Verification Document"
                                 onChange={() => { }}
                                 values={[]}
-                                deferUpload
                                 onFilesChange={handleFilesChange}
                                 allowedTypes={['application/pdf']}
                                 maxSize={10 * 1024 * 1024}

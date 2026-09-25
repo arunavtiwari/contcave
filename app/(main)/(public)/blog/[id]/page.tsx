@@ -1,20 +1,52 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Image from "next/image";
-import Script from "next/script";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import Container from "@/components/layout/Container";
+import JsonLd from "@/components/seo/JsonLd";
+import Heading from "@/components/ui/Heading";
 import PageBanner from "@/components/ui/PageBanner";
 import { getBlogGradient } from "@/lib/blogGradient";
+import { getStudiosForPost } from "@/lib/blogStudios";
 import { getPostData, getSortedPostsData } from "@/lib/posts";
-import { safeJsonLd } from "@/lib/safeJsonLd";
-import { absoluteUrl, asciiClean, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { truncateText } from "@/lib/richText";
+import {
+  absoluteUrl,
+  BRAND_NAME,
+  breadcrumbJsonLd,
+  META_DESCRIPTION_LENGTH,
+  OG_IMAGE,
+  SITE_URL,
+  toPlainText,
+} from "@/lib/seo";
 import { formatISTDate } from "@/lib/utils";
+import type { BlogPost } from "@/types/blog";
 
 const FALLBACK_DESCRIPTION =
   "Insights and stories from ContCave on studios, production workflows, and the creative economy in India.";
 
+export const revalidate = 3600;
+
 type RouteParams = { id: string };
+
+const TEAM_BYLINE = /editorial|team|contcave/i;
+
+const ORGANIZATION_AUTHOR = { "@type": "Organization", name: BRAND_NAME, "@id": `${SITE_URL}/#organization` };
+
+const authorsJsonLd = (post: BlogPost) => {
+  const names = post.authors ?? [];
+  if (!names.length || names.every((name) => TEAM_BYLINE.test(name))) return [ORGANIZATION_AUTHOR];
+  return names.map((name) => (TEAM_BYLINE.test(name) ? ORGANIZATION_AUTHOR : { "@type": "Person", name }));
+};
+
+const describePost = (post: BlogPost) =>
+  truncateText(
+    toPlainText(post.meta?.description) ??
+    toPlainText(post.layout?.find((block) => block.blockType === "paragraph")?.content) ??
+    FALLBACK_DESCRIPTION,
+    META_DESCRIPTION_LENGTH
+  );
 
 export async function generateStaticParams() {
   return getSortedPostsData().map((post) => ({ id: post.id }));
@@ -28,10 +60,7 @@ export async function generateMetadata({
   try {
     const { id } = await params;
     const post = getPostData(id);
-    const description =
-      asciiClean(post.meta?.description) ??
-      asciiClean(post.layout?.find((block) => block.blockType === "paragraph")?.content) ??
-      FALLBACK_DESCRIPTION;
+    const description = describePost(post);
 
     const image = absoluteUrl(post.meta?.image?.url ?? OG_IMAGE);
     const published = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
@@ -61,7 +90,6 @@ export async function generateMetadata({
         publishedTime: published,
         modifiedTime: updated,
         locale: "en_IN",
-        authors: post.authors?.map((name) => `${SITE_URL}/#author-${name}`) || [BRAND_NAME],
       },
       twitter: {
         card: "summary_large_image",
@@ -90,47 +118,47 @@ export async function generateMetadata({
   }
 }
 
-import Heading from "@/components/ui/Heading";
-
 export default async function PostPage(props: { params: Promise<RouteParams> }) {
   const { id } = await props.params;
-  const headerList = await headers();
-  const nonce = headerList.get("x-nonce") || "";
-  const post = await getPostData(id);
-  const description =
-    asciiClean(post.meta?.description) ??
-    asciiClean(post.layout?.find((block) => block.blockType === "paragraph")?.content) ??
-    FALLBACK_DESCRIPTION;
+  let post: BlogPost;
+  try {
+    post = getPostData(id);
+  } catch {
+    notFound();
+  }
+  const description = describePost(post);
+  const { studios, city } = await getStudiosForPost(post);
+  const postUrl = absoluteUrl(`/blog/${id}`);
 
   const articleJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     "@id": `${SITE_URL}/blog/${id}#article`,
     headline: post.title,
     description,
     image: [absoluteUrl(post.meta?.image?.url ?? OG_IMAGE)],
-    author: (post.authors ?? []).map((name) => ({ "@type": "Person", name })),
-    publisher: { "@id": `${SITE_URL}/#localbusiness` },
+    author: authorsJsonLd(post),
+    publisher: { "@id": `${SITE_URL}/#organization` },
     datePublished: post.publishedAt,
     dateModified: post.updatedAt ?? post.publishedAt,
     keywords: post.tags?.length ? post.tags.join(", ") : undefined,
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": absoluteUrl(`/blog/${id}`),
+      "@id": postUrl,
     },
     isPartOf: { "@id": `${SITE_URL}/#website` },
   };
+
+  const breadcrumbs = breadcrumbJsonLd(
+    [{ name: "Home", href: "/" }, { name: "Blog", href: "/blog" }, { name: post.title }],
+    postUrl
+  );
 
   const formattedDate = formatISTDate(post.publishedAt);
 
   return (
     <main className="bg-background min-h-screen">
-      <Script
-        id={`blog-article-${id}`}
-        type="application/ld+json"
-        nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(articleJsonLd) }}
-      />
+      <JsonLd id={`blog-article-${id}`} data={[articleJsonLd, breadcrumbs]} />
 
       <PageBanner
         title={post.title}
@@ -208,6 +236,53 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
               </div>
             ) : null}
           </article>
+
+          {studios.length ? (
+            <section aria-labelledby="blog-studios-heading" className="max-w-5xl mx-auto mt-12">
+              <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
+                <Heading
+                  id="blog-studios-heading"
+                  title="Studios for this shoot"
+                  as="h2"
+                  variant="h4"
+                  className="text-foreground"
+                />
+                {city ? (
+                  <Link href={city.href} className="text-sm font-medium text-foreground underline underline-offset-4">
+                    Browse all studios in {city.name}
+                  </Link>
+                ) : null}
+              </div>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {studios.map((studio) => (
+                  <li key={studio.id}>
+                    <Link
+                      href={studio.href}
+                      className="group block overflow-hidden rounded-2xl border border-border bg-background"
+                    >
+                      {studio.image ? (
+                        <div className="relative aspect-4/3 w-full overflow-hidden">
+                          <Image
+                            src={studio.image}
+                            alt={studio.title}
+                            fill
+                            sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                      ) : null}
+                      <div className="p-4 space-y-1">
+                        <p className="font-semibold text-foreground line-clamp-2">{studio.title}</p>
+                        <p className="text-sm text-foreground/60">
+                          {[studio.kind, studio.city].filter(Boolean).join(" · ")}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </Container>
       </section>
     </main>

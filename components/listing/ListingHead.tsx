@@ -21,15 +21,18 @@ import { SafeUser } from "@/types/user";
 type Props = {
   title: string;
   locationValue: string;
+  kind?: string;
   imageSrc: string[];
   videoSrc?: string | null;
   id: string;
   currentUser?: SafeUser | null;
 };
 
-function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser }: Props) {
+function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, currentUser }: Props) {
   const { getByValue } = useCities();
   const location = getByValue(locationValue);
+  const altPrefix = `${title} – ${kind || "Studio"}${locationValue ? ` in ${locationValue}` : ""}`;
+  const photoAlt = (index: number) => `${altPrefix}, photo ${index + 1}`;
   const [showModal, setShowModal] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
@@ -93,7 +96,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
     <button type="button" aria-label={`Open photo ${index + 1}`} className={`relative block w-full h-full cursor-pointer overflow-hidden ${extraClasses} ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
       <Image
         src={src}
-        alt={`image-${index}`}
+        alt={photoAlt(index)}
         fill
         sizes={sizes}
         priority={priority}
@@ -129,7 +132,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
             {/* The complete, uncropped photo */}
             <Image
               src={url}
-              alt={`Photo ${index + 1}`}
+              alt={photoAlt(index)}
               fill
               sizes={isHero ? "(max-width: 768px) 100vw, 80vw" : "(max-width: 768px) 100vw, 45vw"}
               onLoad={() => handleImageLoad(index)}
@@ -163,7 +166,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
             <button type="button" aria-label={`Open photo ${index + 1}`} className={`block w-full h-full relative cursor-pointer overflow-hidden ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
               <Image
                 src={url}
-                alt={`image-${index}`}
+                alt={photoAlt(index)}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 priority={index === 0}
@@ -204,7 +207,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
               {imageSrc[0] && (
                 <Image
                   src={imageSrc[0]}
-                  alt="image-0"
+                  alt={photoAlt(0)}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   priority
@@ -222,7 +225,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                 <div className={`relative w-full h-full overflow-hidden rounded-br-lg ${skeletonClasses(4)}`}>
                   <Image
                     src={imageSrc[4]}
-                    alt="image-4"
+                    alt={photoAlt(4)}
                     fill
                     priority
                     sizes="(max-width: 768px) 100vw, 33vw"
@@ -321,7 +324,7 @@ function ListingHead({ title, locationValue, imageSrc, videoSrc, id, currentUser
                       <div className="relative h-[80vh] w-full">
                         <Image
                           src={url}
-                          alt={`Fullscreen image ${index}`}
+                          alt={photoAlt(index)}
                           fill
                           sizes="100vw"
                           className={`object-contain ${imageOpacityClasses(index)}`}

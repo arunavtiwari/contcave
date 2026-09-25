@@ -275,23 +275,20 @@ export async function getAdminListingReviewPage(params: {
         ? Math.min(100, Math.max(10, Math.floor(params.pageSize)))
         : 10;
     const listingType = params.listingType || "STANDARD";
-    const [pageData, countData, curatedCountData] = await Promise.all([
-        ListingService.getHydratableListingPage({ page, pageSize, status: params.status, listingType }),
-        ListingService.getHydratableListingPage({ page: 1, pageSize: 1, listingType: "STANDARD" }),
-        ListingService.getHydratableListingPage({ page: 1, pageSize: 1, listingType: "CURATED" }),
-    ]);
-    const counts = {
-        ALL: Object.values(countData.statusCounts).reduce((sum, count) => sum + count, 0),
-        PENDING: countData.statusCounts.PENDING || 0,
-        VERIFIED: countData.statusCounts.VERIFIED || 0,
-        REJECTED: countData.statusCounts.REJECTED || 0,
-    };
-    const curatedCounts = {
-        ALL: Object.values(curatedCountData.statusCounts).reduce((sum, count) => sum + count, 0),
-        PENDING: curatedCountData.statusCounts.PENDING || 0,
-        VERIFIED: curatedCountData.statusCounts.VERIFIED || 0,
-        REJECTED: curatedCountData.statusCounts.REJECTED || 0,
-    };
+    const pageData = await ListingService.getHydratableListingReviewFacets({
+        page,
+        pageSize,
+        status: params.status,
+        listingType,
+    });
+    const tallies = (byStatus: Record<string, number>) => ({
+        ALL: Object.values(byStatus).reduce((sum, count) => sum + count, 0),
+        PENDING: byStatus.PENDING || 0,
+        VERIFIED: byStatus.VERIFIED || 0,
+        REJECTED: byStatus.REJECTED || 0,
+    });
+    const counts = tallies(pageData.statusCounts.STANDARD);
+    const curatedCounts = tallies(pageData.statusCounts.CURATED);
 
     if (pageData.ids.length === 0) {
         return {
@@ -416,6 +413,9 @@ export const createListingAction = createAction(
         const isContcave = user.email?.toLowerCase().trim() === "contcave@gmail.com";
         if (!isContcave && user.role !== "OWNER" && user.role !== "ADMIN") {
             throw new UserFacingError("You must be an approved owner or administrator to create a listing", 403);
+        }
+        if (!isContcave && user.role !== "ADMIN" && !user.is_verified) {
+            throw new UserFacingError("Complete your profile verification before listing a space", 403);
         }
 
         const enforcedData = {

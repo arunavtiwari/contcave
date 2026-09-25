@@ -3,6 +3,13 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
+	--animate-hero-reveal: hero-reveal 0.65s ease-out both;
+
+	@keyframes hero-reveal {
+		0%, 45% { opacity: 1; }
+		100% { opacity: 0; }
+	}
+
 	/* 1. Core Primitives */
 	--color-black: #000000;
 	--color-white: #FFFFFF;

@@ -20,6 +20,7 @@ import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
 import prisma from "@/lib/prismadb";
 import { validateBookingWindow } from "@/lib/reservation/bookingWindow";
+import { isReservationSlotUniqueConflict, LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
 import { formatReservationDate, parseReservationEndTimeForDate, parseReservationTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
 import { generateBookingId } from "@/lib/utils";
@@ -71,21 +72,11 @@ type DocumentAttachment = {
     attachment?: { filename: string; content: string };
 };
 
-const LISTING_WIDE_SLOT_ID = "__LISTING__";
-
 class ReservationSlotConflictError extends Error {
     constructor(message: string) {
         super(message);
         this.name = "ReservationSlotConflictError";
     }
-}
-
-function isReservationSlotUniqueConflict(error: unknown) {
-    if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") return false;
-    const metadata = JSON.stringify(error.meta || {}).toLowerCase();
-    return metadata.includes("reservationslot")
-        || metadata.includes("slotkey")
-        || metadata.includes("datekey");
 }
 
 function normalizeListingAddons(value: Prisma.JsonValue | null): Addon[] {
@@ -2042,6 +2033,7 @@ export class ReservationService {
         const normalizedListing: safeListing = {
             ...safeReservationListing,
             createdAt: listing.createdAt.toISOString(),
+            updatedAt: listing.updatedAt?.toISOString() ?? null,
             addons: normalizeListingAddons(listingAddons),
             avgReviewRating: listing.avgReviewRating ?? undefined,
         };
