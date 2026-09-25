@@ -10,6 +10,7 @@ import { addWhatsAppReviewAction, deleteReviewAction } from "@/app/actions/revie
 import Modal from "@/components/modals/Modal";
 import Avatar from "@/components/ui/Avatar";
 import Pill from "@/components/ui/Pill";
+import Skeleton from "@/components/ui/Skeleton";
 import StarRating from "@/components/ui/StarRating";
 import { formatISTDate } from "@/lib/utils";
 
@@ -158,7 +159,20 @@ export default function ListingReviewsModal({
 
                     <div className="space-y-3">
                         {loading ? (
-                            <p className="text-sm text-muted-foreground">Loading reviews…</p>
+                            Array.from({ length: 3 }).map((_, i) => (
+                                <div key={i} className="flex items-start gap-3 rounded-xl border border-border p-3">
+                                    <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+                                    <div className="min-w-0 flex-1 space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <Skeleton className="h-3.5 w-28 rounded" />
+                                            <Skeleton className="h-3 w-16 rounded-full" />
+                                        </div>
+                                        <Skeleton className="h-3 w-full rounded" />
+                                        <Skeleton className="h-3 w-4/5 rounded" />
+                                        <Skeleton className="h-2.5 w-20 rounded" />
+                                    </div>
+                                </div>
+                            ))
                         ) : reviews.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No reviews yet.</p>
                         ) : (

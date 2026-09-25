@@ -98,12 +98,7 @@ const Hero = () => {
       <div
         className="relative flex items-center h-[calc(100vh-80px)] min-h-120"
       >
-        <motion.div
-          className="absolute inset-0 z-50 pointer-events-none bg-background"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: [1, 1, 0] }}
-          transition={{ duration: 0.65, times: [0, 0.45, 1], ease: "easeOut" }}
-        />
+        <div className="absolute inset-0 z-50 pointer-events-none bg-background opacity-0 animate-hero-reveal motion-reduce:animate-none" />
 
         <motion.div
           className="absolute z-0 left-0 right-0 top-[-8%] h-[116%]"
@@ -134,26 +129,17 @@ const Hero = () => {
         >
           <Container>
             <div className="w-full">
-              <motion.p
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.55 }}
+              <p
                 className="mb-2 text-xs font-medium uppercase tracking-widest text-muted/70"
               >
                 For Agencies, Brands and Creators
-              </motion.p>
+              </p>
 
-              <motion.div
-                initial={{ opacity: 0, y: 36 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.75, delay: 0.65 }}
-              >
-                <Heading
-                  title="Book your next shoot location"
-                  variant="h1"
-                  className="mb-6 text-background! max-w-2xl"
-                />
-              </motion.div>
+              <Heading
+                title="Book your next shoot location"
+                variant="h1"
+                className="mb-6 text-background! max-w-2xl"
+              />
 
               <motion.div
                 initial={{ opacity: 0, y: 24 }}

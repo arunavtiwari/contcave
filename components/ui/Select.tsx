@@ -292,6 +292,11 @@ function Select<
 }) {
   const reactSelectId = React.useId();
   const customStyles = getSelectStyles<Option, IsMulti, Group>(size, error);
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const mergedComponents = React.useMemo(
     () => ({
@@ -304,6 +309,56 @@ function Select<
     }),
     [userComponents]
   );
+
+  if (!isMounted) {
+    const dims = getSelectDimensions(size);
+    const rawVal = (props.value ?? props.defaultValue) as SelectOption | SelectOption[] | null | undefined;
+    let display = "";
+    if (Array.isArray(rawVal)) {
+      display = rawVal
+        .map((v) => (v && typeof v === "object" && "label" in v ? String(v.label) : ""))
+        .filter(Boolean)
+        .join(", ");
+    } else if (rawVal && typeof rawVal === "object" && "label" in rawVal) {
+      display = String(rawVal.label);
+    }
+    const hasValue = Boolean(display);
+    const placeholderText = display || (props.placeholder ? String(props.placeholder) : "Select...");
+
+    return (
+      <FormField
+        id={reactSelectId}
+        label={label}
+        description={description}
+        error={error}
+        required={required}
+        variant={variant}
+      >
+        <div className={cn("w-full", className)}>
+          <div
+            style={{
+              height: dims.height,
+              borderRadius: dims.radius,
+              fontSize: dims.fontSize,
+              padding: dims.padding,
+            }}
+            className={cn(
+              "flex w-full items-center justify-between border bg-background text-foreground select-none transition-colors",
+              error ? "border-destructive" : "border-border"
+            )}
+          >
+            <span className={cn("truncate", !hasValue && "text-muted-foreground")}>
+              {placeholderText}
+            </span>
+            <FiChevronDown
+              size={size === "xs" ? 12 : 15}
+              className="text-muted-foreground shrink-0 ml-1"
+            />
+          </div>
+        </div>
+      </FormField>
+    );
+  }
 
   return (
     <FormField

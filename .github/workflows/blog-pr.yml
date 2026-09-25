@@ -1,0 +1,27 @@
+name: Blog PR
+
+# Opens the staging PR for the scheduled blog routine, so the routine itself only
+# has to push (no PR tooling, no autofix session left watching the PR).
+on:
+  push:
+    branches: [regular-blog-update]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open PR into staging if none is open
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ -n "$(gh pr list --head regular-blog-update --base staging --state open --json number --jq '.[].number')" ]; then
+            echo "PR already open"; exit 0
+          fi
+          gh pr create --head regular-blog-update --base staging \
+            --title "Regular blog update" \
+            --body "Scheduled blog posts from the blog routine. Each commit adds one post."

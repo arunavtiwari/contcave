@@ -22,7 +22,7 @@
       {
         "children": [
           {
-            "text": "The honest math behind the rent-vs-build decision for YouTubers in India — what a home studio really costs in 2026, when hourly rentals win, and the hybrid approach most growing channels end up using."
+            "text": "The honest math behind the rent-vs-build decision for YouTubers in India: what a home studio really costs in 2026, when hourly rentals win, and the hybrid approach most growing channels end up using."
           }
         ]
       }
@@ -38,7 +38,7 @@
     {
       "id": "p-intro",
       "blockType": "paragraph",
-      "content": "Every growing YouTuber in India eventually faces the same question: keep renting studio time by the hour, or invest in a YouTube studio setup of your own? The answer depends less on your subscriber count and more on three numbers — how often you shoot, how much space you control, and what your format demands. This guide lays out the real 2026 costs on both sides so you can decide with math instead of instinct."
+      "content": "Every growing YouTuber in India eventually faces the same question: keep renting studio time by the hour, or invest in a YouTube studio setup of your own? The answer depends less on your subscriber count and more on three numbers: how often you shoot, how much space you control, and what your format demands. This guide lays out the real 2026 costs on both sides so you can decide with math instead of instinct."
     },
     {
       "id": "h-build",
@@ -54,18 +54,18 @@
       "id": "list-build",
       "blockType": "list",
       "items": [
-        "Camera: a capable mirrorless or a high-end phone rig — ₹40,000-1,50,000 (or ₹0 if your phone is recent)",
-        "Lighting: two softbox or LED panel kits — ₹8,000-30,000",
-        "Audio: wireless lapel or a dynamic mic with interface — ₹8,000-35,000",
-        "Backdrop and set dressing: paint, panels, shelves, props — ₹5,000-50,000",
-        "Acoustic treatment for echo: foam or panels — ₹5,000-20,000",
+        "Camera: a capable mirrorless or a high-end phone rig, ₹40,000-1,50,000 (or ₹0 if your phone is recent)",
+        "Lighting: two softbox or LED panel kits, ₹8,000-30,000",
+        "Audio: wireless lapel or a dynamic mic with interface, ₹8,000-35,000",
+        "Backdrop and set dressing: paint, panels, shelves, props, ₹5,000-50,000",
+        "Acoustic treatment for echo: foam or panels, ₹5,000-20,000",
         "Total: roughly ₹65,000-2,85,000 upfront, plus a dedicated room you can't easily reclaim"
       ]
     },
     {
       "id": "p-build-hidden",
       "blockType": "paragraph",
-      "content": "The hidden costs matter more than the gear list. You need a room that stays quiet during shooting hours, family members who tolerate a permanent set, and the discipline to maintain and upgrade equipment. In most Indian metro apartments, the dedicated-room requirement is the real constraint — not the budget."
+      "content": "The hidden costs matter more than the gear list. You need a room that stays quiet during shooting hours, family members who tolerate a permanent set, and the discipline to maintain and upgrade equipment. In most Indian metro apartments, the dedicated-room requirement is the real constraint: not the budget."
     },
     {
       "id": "h-rent",
@@ -83,7 +83,7 @@
       "items": [
         "Zero upfront investment and no dedicated room sacrificed",
         "Better lighting and acoustics than most home builds achieve",
-        "Set variety — switch backdrops between videos without renovating",
+        "Set variety: switch backdrops between videos without renovating",
         "Batch-friendly: shoot 4-6 videos in a single half-day slot",
         "Professional appearance for sponsor content and guest interviews"
       ]
@@ -96,12 +96,12 @@
     {
       "id": "p-math",
       "blockType": "paragraph",
-      "content": "Assume a mid-range home build at ₹1,20,000 versus a rented studio at ₹2,000 per hour. If you batch well and need 3 studio hours per month, renting costs ₹6,000 monthly — the home build pays for itself only after about 20 months, ignoring gear depreciation and upgrades. Shoot 10+ hours a month, though, and renting crosses ₹20,000 monthly, and building wins within half a year. The frequency of your shoots is the whole decision."
+      "content": "Assume a mid-range home build at ₹1,20,000 versus a rented studio at ₹2,000 per hour. If you batch well and need 3 studio hours per month, renting costs ₹6,000 monthly: the home build pays for itself only after about 20 months, ignoring gear depreciation and upgrades. Shoot 10+ hours a month, though, and renting crosses ₹20,000 monthly, and building wins within half a year. The frequency of your shoots is the whole decision."
     },
     {
       "id": "quote-rule",
       "blockType": "quote",
-      "content": "Rule of thumb for 2026: under 4 shooting hours a month, rent. Over 10, build. In between, do the hybrid — a minimal home corner for talking-head videos, rented studios for flagship and sponsor content."
+      "content": "Rule of thumb for 2026: under 4 shooting hours a month, rent. Over 10, build. In between, do the hybrid: a minimal home corner for talking-head videos, rented studios for flagship and sponsor content."
     },
     {
       "id": "h-hybrid",
@@ -111,7 +111,7 @@
     {
       "id": "p-hybrid",
       "blockType": "paragraph",
-      "content": "In practice, most growing Indian channels converge on a split: a simple, permanent corner at home for routine uploads — one camera, one light, decent mic — plus monthly rented-studio sessions for content that needs to look premium. Podcasts with guests, brand integrations, course launches, and thumbnail shoots all justify studio quality; a weekly vlog usually doesn't. This keeps fixed costs near zero while giving the channel a professional ceiling."
+      "content": "In practice, most growing Indian channels converge on a split: a simple, permanent corner at home for routine uploads (one camera, one light, decent mic) plus monthly rented-studio sessions for content that needs to look premium. Podcasts with guests, brand integrations, course launches, and thumbnail shoots all justify studio quality; a weekly vlog usually doesn't. This keeps fixed costs near zero while giving the channel a professional ceiling."
     },
     {
       "id": "h-faq",
@@ -126,7 +126,7 @@
     {
       "id": "p-faq1",
       "blockType": "paragraph",
-      "content": "A genuinely basic starter — recent phone, one ₹3,000-5,000 light, a ₹2,000-8,000 mic, and a clean wall — runs ₹5,000-15,000. That's enough to start uploading. The ₹65,000+ figures apply when you want interchangeable-lens cameras, treated audio, and a dressed set."
+      "content": "A genuinely basic starter (recent phone, one ₹3,000-5,000 light, a ₹2,000-8,000 mic, and a clean wall) runs ₹5,000-15,000. That's enough to start uploading. The ₹65,000+ figures apply when you want interchangeable-lens cameras, treated audio, and a dressed set."
     },
     {
       "id": "h-faq2",
@@ -136,7 +136,7 @@
     {
       "id": "p-faq2",
       "blockType": "paragraph",
-      "content": "Yes — most creator studios rent in 1-2 hour blocks. But single-video bookings waste the setup time you're paying for. Even for one flagship video, book a slightly longer slot and record extra material: intros, shorts, thumbnails, and B-roll you'll use for weeks."
+      "content": "Yes: most creator studios rent in 1-2 hour blocks. But single-video bookings waste the setup time you're paying for. Even for one flagship video, book a slightly longer slot and record extra material: intros, shorts, thumbnails, and B-roll you'll use for weeks."
     },
     {
       "id": "h-faq3",
@@ -146,7 +146,7 @@
     {
       "id": "p-faq3",
       "blockType": "paragraph",
-      "content": "Lighting, decisively — a mid phone in good light beats an expensive camera in bad light. Audio is the second priority; viewers forgive soft video but not muddy sound. This is also the core argument for rented studios: their lighting and acoustics are pre-solved."
+      "content": "Lighting, decisively: a mid phone in good light beats an expensive camera in bad light. Audio is the second priority; viewers forgive soft video but not muddy sound. This is also the core argument for rented studios: their lighting and acoustics are pre-solved."
     },
     {
       "id": "h-faq4",
@@ -156,7 +156,7 @@
     {
       "id": "p-faq4",
       "blockType": "paragraph",
-      "content": "Many offer full-day rates and some accommodate extended productions on request. If you're planning a course recording or multi-episode batch, ask for a day rate — the discount over hourly pricing is usually 20-35%."
+      "content": "Many offer full-day rates and some accommodate extended productions on request. If you're planning a course recording or multi-episode batch, ask for a day rate: the discount over hourly pricing is usually 20-35%."
     },
     {
       "id": "h-contcave",
@@ -176,7 +176,7 @@
     {
       "id": "p-final",
       "blockType": "paragraph",
-      "content": "There's no universally right answer — only your shooting frequency, space, and format. Run the break-even math before spending."
+      "content": "There's no universally right answer: only your shooting frequency, space, and format. Run the break-even math before spending."
     },
     {
       "id": "list-final",
@@ -193,7 +193,7 @@
   "slug": "youtube-studio-rent-vs-build-india",
   "meta": {
     "title": "YouTube Studio in India: Rent or Build? (2026 Cost Comparison)",
-    "description": "YouTube studio setup cost in India vs renting by the hour — 2026 break-even math, hybrid setups & when each wins. Compare studios on ContCave."
+    "description": "YouTube studio setup cost in India vs renting by the hour: 2026 break-even math, hybrid setups & when each wins. Compare studios on ContCave."
   },
   "_status": "published",
   "createdAt": "2026-07-16T05:00:00Z",

@@ -1,16 +1,17 @@
 "use client";
 import { motion } from "framer-motion";
-import Script from "next/script";
 import { useState } from "react";
 import { HiArrowRight } from "react-icons/hi";
 
 import faqData from "@/components/landing/faqData";
 import FAQItem from "@/components/landing/FAQItem";
 import Container from "@/components/layout/Container";
+import JsonLd from "@/components/seo/JsonLd";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { buildWhatsAppUrl } from "@/lib/whatsapp/urls";
 
-const FAQ = ({ nonce }: { nonce?: string }) => {
+const FAQ = () => {
   const [activeFaq, setActiveFaq] = useState(1);
 
   const handleFaqToggle = (id: number) => {
@@ -32,14 +33,7 @@ const FAQ = ({ nonce }: { nonce?: string }) => {
 
   return (
     <>
-      <Script
-        id="faq-jsonld"
-        type="application/ld+json"
-        nonce={nonce}
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c"),
-        }}
-      />
+      <JsonLd id="faq-jsonld" data={faqSchema} />
 
       <section className="overflow-hidden py-section">
 
@@ -67,7 +61,7 @@ const FAQ = ({ nonce }: { nonce?: string }) => {
 
               <Button
                 label="Still have questions? Message us"
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}`}
+                href={buildWhatsAppUrl()}
                 target="_blank"
                 variant="ghost"
                 rounded

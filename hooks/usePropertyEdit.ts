@@ -5,7 +5,8 @@ import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { updateListingAction } from "@/app/actions/listingActions";
-import { uploadListingMedia } from "@/lib/listing/mediaUpload";
+import { collectUploadedMediaRefs, uploadListingMedia } from "@/lib/listing/mediaUpload";
+import { discardUploadedMedia } from "@/lib/storage/discard";
 import { Addon } from "@/types/addon";
 import { FullListing } from "@/types/listing";
 import { Package as ListingPackage } from "@/types/package";
@@ -117,6 +118,7 @@ export function usePropertyEdit(listing: FullListing, predefinedAddons: Addon[])
 
   const update = async () => {
     setIsUpdating(true);
+    const uploadedMediaRefs: string[] = [];
     try {
       const mediaResults = await uploadListingMedia(initialListing.id, {
         imageSrc: initialListing.imageSrc,
@@ -126,6 +128,8 @@ export function usePropertyEdit(listing: FullListing, predefinedAddons: Addon[])
         createMissingSetIds: false,
         createMissingAddonIds: false,
       });
+
+      uploadedMediaRefs.push(...collectUploadedMediaRefs(mediaResults));
 
       const payload: Record<string, unknown> = {};
       const originalListing = originalListingRef.current;
@@ -193,6 +197,7 @@ export function usePropertyEdit(listing: FullListing, predefinedAddons: Addon[])
       toast.success("Property updated successfully");
       router.refresh();
     } catch (error: unknown) {
+      await discardUploadedMedia(uploadedMediaRefs);
       toast.error(error instanceof Error ? error.message : "Failed to update property");
     } finally {
       setIsUpdating(false);

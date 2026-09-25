@@ -275,7 +275,6 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
                   uid="property-main-upload"
                   onChange={(value) => handleInputChange("imageSrc", value)}
                   values={initialListing.imageSrc ?? []}
-                  deferUpload
                 />
               </div>
             )}
@@ -290,11 +289,12 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
               <ImageUpload
                 uid="property-video-upload"
                 uploadLabel="Upload Video Tour"
-                onChange={(v) => handleInputChange("videoSrc", v[0] || null)}
+                onChange={(v) => handleInputChange("videoSrc", v[v.length - 1] || null)}
                 values={initialListing.videoSrc ? [initialListing.videoSrc] : []}
                 allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
                 maxSize={100 * 1024 * 1024}
                 icon={TbVideoPlus}
+                multiple={false}
                 className="w-full h-48 p-4 border border-border rounded-xl"
               />
               {initialListing.videoSrc && (

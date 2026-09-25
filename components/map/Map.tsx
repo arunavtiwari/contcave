@@ -55,10 +55,13 @@ function MapViewportController({
 
     if (!shouldFocus) {
       map.flyTo(INDIA_CENTER, 4, { duration: 0.8, easeLinearity: 0.25 });
-      return;
+    } else {
+      map.flyTo(center, zoom, { duration: 1.2, easeLinearity: 0.25 });
     }
 
-    map.flyTo(center, zoom, { duration: 1.2, easeLinearity: 0.25 });
+    return () => {
+      map.stop();
+    };
   }, [animated, center, map, shouldFocus, zoom]);
 
   return null;
