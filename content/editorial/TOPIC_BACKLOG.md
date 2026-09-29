@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 28 | UGC Creators: Delivering Brand Content with Studio Shoots | ugc creator india | creator-economy | creators |
 | 29 | Renting Event Spaces for Workshops, Pop-Ups & Launches | event space on rent delhi | studio-guides | brands |
 | 30 | How Hosts Can Get More Bookings: Photos, Pricing & Reviews | get more studio bookings | host-guides | hosts |
 | 31 | Vertical Video & Microdrama Studios: What Creators Need in 2026 | microdrama studio india | content-creation | creators |
@@ -71,3 +70,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-09-21 | 25 | gst-on-studio-rental-india |
 | 2026-09-23 | 26 | natural-light-studio-delhi-ncr |
 | 2026-09-28 | 27 | content-calendar-for-creators-studio-day |
+| 2026-09-29 | 28 | ugc-creator-india |
