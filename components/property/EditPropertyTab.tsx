@@ -179,33 +179,6 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
           </FormField>
 
           <Input
-            id="instagramHandle"
-            label="Instagram Handle"
-            variant="horizontal"
-            placeholder="e.g. @contcave_studios"
-            value={initialListing.instagramHandle ?? ""}
-            onChange={(e) => handleInputChange("instagramHandle", e.target.value)}
-          />
-
-          <Input
-            id="mapsUrl"
-            label="Google Maps URL"
-            variant="horizontal"
-            placeholder="https://maps.google.com/..."
-            value={initialListing.mapsUrl ?? ""}
-            onChange={(e) => handleInputChange("mapsUrl", e.target.value)}
-          />
-
-          <Input
-            id="websiteUrl"
-            label="Website URL"
-            variant="horizontal"
-            placeholder="https://..."
-            value={initialListing.websiteUrl ?? ""}
-            onChange={(e) => handleInputChange("websiteUrl", e.target.value)}
-          />
-
-          <Input
             id="contactEmail"
             label="Contact Email"
             variant="horizontal"
