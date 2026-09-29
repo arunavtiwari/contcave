@@ -45,6 +45,12 @@ function MapViewportController({
       return;
     }
 
+    // react-leaflet's MapContainer calls map.remove() on unmount, which tears
+    // down the panes. Moving a removed map throws "_leaflet_pos of undefined".
+    if (!map.getPane("mapPane")) {
+      return;
+    }
+
     prevCenterRef.current = [targetCenter[0], targetCenter[1]];
     prevZoomRef.current = targetZoom;
 
@@ -55,13 +61,10 @@ function MapViewportController({
 
     if (!shouldFocus) {
       map.flyTo(INDIA_CENTER, 4, { duration: 0.8, easeLinearity: 0.25 });
-    } else {
-      map.flyTo(center, zoom, { duration: 1.2, easeLinearity: 0.25 });
+      return;
     }
 
-    return () => {
-      map.stop();
-    };
+    map.flyTo(center, zoom, { duration: 1.2, easeLinearity: 0.25 });
   }, [animated, center, map, shouldFocus, zoom]);
 
   return null;
