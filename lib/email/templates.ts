@@ -4,38 +4,40 @@ import { escapeEmailHtml } from "./html";
 import { AttachmentInput, sendEmail } from "./mailer";
 
 function formatInr(value: number) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(value);
+    return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0,
+    }).format(value);
 }
 
 function buildReservationEmailHtml(input: {
-  greetingName: string;
-  intro: string;
-  studioName: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  totalPrice: number;
-  amountLabel?: string;
-  detailsHeading?: string;
-  addons?: string | null;
-  studioLocation?: string;
-  nextSteps?: string[];
-  cta?: { label: string; url: string };
+    greetingName: string;
+    intro: string;
+    studioName: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    totalPrice: number;
+    amountLabel?: string;
+    detailsHeading?: string;
+    addons?: string | null;
+    studioLocation?: string;
+    nextSteps?: string[];
+    cta?: { label: string; url: string };
 }) {
-  const hasAddons = Boolean(input.addons?.trim());
-  const detailRows = [
-    ["Date", input.startDate],
-    ...(input.startTime || input.endTime ? [["Time", `${input.startTime} - ${input.endTime}`]] : []),
-    [input.amountLabel || "Total", formatInr(input.totalPrice)],
-    ...(hasAddons ? [["Add-ons", input.addons!]] : []),
-    ...(input.studioLocation ? [["Location", input.studioLocation]] : []),
-  ];
+    const hasAddons = Boolean(input.addons?.trim());
+    const detailRows = [
+        ["Date", input.startDate],
+        ...(input.startTime || input.endTime
+            ? [["Time", `${input.startTime} - ${input.endTime}`]]
+            : []),
+        [input.amountLabel || "Total", formatInr(input.totalPrice)],
+        ...(hasAddons ? [["Add-ons", input.addons!]] : []),
+        ...(input.studioLocation ? [["Location", input.studioLocation]] : []),
+    ];
 
-  return `
+    return `
   <!DOCTYPE html>
   <html>
   <head><meta charset="UTF-8" /><title>ContCave Booking Update</title></head>
@@ -53,24 +55,36 @@ function buildReservationEmailHtml(input: {
                 <p>${escapeEmailHtml(input.intro)}</p>
                 <h2 style="font-size:18px;color:#111827;margin:24px 0 12px;">${escapeEmailHtml(input.detailsHeading || "Booking Details")}</h2>
                 <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                  ${detailRows.map(([label, value]) => `
+                  ${detailRows
+                      .map(
+                          ([label, value]) => `
                     <tr>
                       <td style="padding:8px 0;color:#6b7280;width:120px;">${escapeEmailHtml(label)}</td>
                       <td style="padding:8px 0;color:#111827;font-weight:600;">${escapeEmailHtml(value)}</td>
                     </tr>
-                  `).join("")}
+                  `,
+                      )
+                      .join("")}
                 </table>
-                ${input.nextSteps?.length ? `
+                ${
+                    input.nextSteps?.length
+                        ? `
                   <h2 style="font-size:18px;color:#111827;margin:24px 0 12px;">Next Steps</h2>
                   <ul style="padding-left:20px;margin:0;">
                     ${input.nextSteps.map((step) => `<li>${escapeEmailHtml(step)}</li>`).join("")}
                   </ul>
-                ` : ""}
-                ${input.cta ? `
+                `
+                        : ""
+                }
+                ${
+                    input.cta
+                        ? `
                   <p style="text-align:center;margin:28px 0 0;">
                     <a href="${escapeEmailHtml(input.cta.url)}" style="background:#111827;color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block;">${escapeEmailHtml(input.cta.label)}</a>
                   </p>
-                ` : ""}
+                `
+                        : ""
+                }
                 <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
                 <p style="font-size:13px;color:#9ca3af;line-height:1.6;margin:0;">ContCave by Arkanet Ventures LLP.</p>
               </td>
@@ -84,8 +98,11 @@ function buildReservationEmailHtml(input: {
   `;
 }
 
-export function getEmailVerificationCodeTemplate(name: string, code: string): string {
-  return `
+export function getEmailVerificationCodeTemplate(
+    name: string,
+    code: string,
+): string {
+    return `
   <!DOCTYPE html>
   <html>
   <head><meta charset="UTF-8" /><title>Verify your ContCave email</title></head>
@@ -105,8 +122,11 @@ export function getEmailVerificationCodeTemplate(name: string, code: string): st
   </html>`;
 }
 
-export function getResetPasswordTemplate(name: string, resetUrl: string): string {
-  return `
+export function getResetPasswordTemplate(
+    name: string,
+    resetUrl: string,
+): string {
+    return `
   <!DOCTYPE html>
   <html>
   <head>
@@ -147,8 +167,8 @@ export function getResetPasswordTemplate(name: string, resetUrl: string): string
 }
 
 export function getHostOnboardingTemplate(name: string): string {
-  const ctaUrl = `${getValidatedBaseUrl()}/dashboard/properties`;
-  return `
+    const ctaUrl = `${getValidatedBaseUrl()}/dashboard/properties`;
+    return `
   <!DOCTYPE html>
   <html>
   <head>
@@ -196,8 +216,8 @@ export function getHostOnboardingTemplate(name: string): string {
 }
 
 export function getCustomerOnboardingTemplate(name: string): string {
-  const ctaUrl = `${getValidatedBaseUrl()}/home`;
-  return `
+    const ctaUrl = `${getValidatedBaseUrl()}/home`;
+    return `
   <!DOCTYPE html>
   <html>
   <head>
@@ -245,380 +265,411 @@ export function getCustomerOnboardingTemplate(name: string): string {
 }
 
 export async function sendReservationConfirmationCustomer(input: {
-  toEmail: string;
-  toName?: string;
-  studioName: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  totalPrice: number;
-  addons?: string | null;
-  studioLocation: string;
-  additionalInfo?: string;
-  setNames?: string;
-  packageTitle?: string | null;
-  templateId?: string;
-  bookingId?: string;
-  attachments: AttachmentInput[];
+    toEmail: string;
+    toName?: string;
+    studioName: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    totalPrice: number;
+    addons?: string | null;
+    studioLocation: string;
+    additionalInfo?: string;
+    setNames?: string;
+    packageTitle?: string | null;
+    templateId?: string;
+    bookingId?: string;
+    attachments: AttachmentInput[];
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `Your ContCave booking is confirmed: ${input.studioName}`,
-    html: buildReservationEmailHtml({
-      greetingName: input.toName || "there",
-      intro: `Your booking for ${input.studioName} has been confirmed. The tax invoice for this booking is attached for your records.`,
-      studioName: input.studioName,
-      startDate: input.startDate,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      totalPrice: input.totalPrice,
-      addons: input.addons,
-      studioLocation: input.studioLocation,
-      nextSteps: [
-        "Review the studio's guidelines for parking, access, and equipment use.",
-        "Arrive at least 15 minutes before your booking time.",
-      ],
-    }),
-    attachments: input.attachments,
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `Your ContCave booking is confirmed: ${input.studioName}`,
+        html: buildReservationEmailHtml({
+            greetingName: input.toName || "there",
+            intro: `Your booking for ${input.studioName} has been confirmed. The tax invoice for this booking is attached for your records.`,
+            studioName: input.studioName,
+            startDate: input.startDate,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            totalPrice: input.totalPrice,
+            addons: input.addons,
+            studioLocation: input.studioLocation,
+            nextSteps: [
+                "Review the studio's guidelines for parking, access, and equipment use.",
+                "Arrive at least 15 minutes before your booking time.",
+            ],
+        }),
+        attachments: input.attachments,
+    });
 }
 
 export async function sendCustomerPaymentInvoice(input: {
-  toEmail: string;
-  toName?: string;
-  studioName: string;
-  bookingId: string;
-  paymentLabel: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  amount: number;
-  studioLocation?: string;
-  attachments: AttachmentInput[];
+    toEmail: string;
+    toName?: string;
+    studioName: string;
+    bookingId: string;
+    paymentLabel: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    amount: number;
+    studioLocation?: string;
+    attachments: AttachmentInput[];
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `Your ContCave tax invoice: ${input.paymentLabel}`,
-    html: buildReservationEmailHtml({
-      greetingName: input.toName || "there",
-      intro: `Your tax invoice for ${input.paymentLabel} at ${input.studioName} is attached for your records.`,
-      studioName: input.studioName,
-      startDate: input.startDate,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      totalPrice: input.amount,
-      amountLabel: "Amount paid",
-      detailsHeading: "Payment Details",
-      studioLocation: input.studioLocation,
-      nextSteps: ["Keep this tax invoice for your records.", "Contact ContCave support if you need help with this payment."],
-    }),
-    attachments: input.attachments,
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `Your ContCave tax invoice: ${input.paymentLabel}`,
+        html: buildReservationEmailHtml({
+            greetingName: input.toName || "there",
+            intro: `Your tax invoice for ${input.paymentLabel} at ${input.studioName} is attached for your records.`,
+            studioName: input.studioName,
+            startDate: input.startDate,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            totalPrice: input.amount,
+            amountLabel: "Amount paid",
+            detailsHeading: "Payment Details",
+            studioLocation: input.studioLocation,
+            nextSteps: [
+                "Keep this tax invoice for your records.",
+                "Contact ContCave support if you need help with this payment.",
+            ],
+        }),
+        attachments: input.attachments,
+    });
 }
 
 export async function sendReservationReceivedCustomer(input: {
-  toEmail: string;
-  toName?: string;
-  studioName: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  totalPrice: number;
-  addons?: string | null;
-  studioLocation: string;
-  bookingId?: string;
-  attachments: AttachmentInput[];
+    toEmail: string;
+    toName?: string;
+    studioName: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    totalPrice: number;
+    addons?: string | null;
+    studioLocation: string;
+    bookingId?: string;
+    attachments: AttachmentInput[];
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `We received your ContCave booking request: ${input.studioName}`,
-    html: buildReservationEmailHtml({
-      greetingName: input.toName || "there",
-      intro: `We have received your booking request for ${input.studioName}. Your payment receipt is attached for your records. The studio owner has been notified and will review it shortly. We will email you once a decision has been made.`,
-      studioName: input.studioName,
-      startDate: input.startDate,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      totalPrice: input.totalPrice,
-      addons: input.addons,
-      studioLocation: input.studioLocation,
-      nextSteps: [
-        "We will notify you as soon as the studio owner approves your booking.",
-        "You can track this request from your bookings dashboard.",
-      ],
-    }),
-    attachments: input.attachments,
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `We received your ContCave booking request: ${input.studioName}`,
+        html: buildReservationEmailHtml({
+            greetingName: input.toName || "there",
+            intro: `We have received your booking request for ${input.studioName}. Your payment receipt is attached for your records. The studio owner has been notified and will review it shortly. We will email you once a decision has been made.`,
+            studioName: input.studioName,
+            startDate: input.startDate,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            totalPrice: input.totalPrice,
+            addons: input.addons,
+            studioLocation: input.studioLocation,
+            nextSteps: [
+                "We will notify you as soon as the studio owner approves your booking.",
+                "You can track this request from your bookings dashboard.",
+            ],
+        }),
+        attachments: input.attachments,
+    });
 }
 
 export async function sendReviewReminderCustomer(input: {
-  toEmail: string;
-  toName?: string;
-  studioName: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  totalPrice: number;
-  studioLocation?: string;
-  reviewUrl: string;
+    toEmail: string;
+    toName?: string;
+    studioName: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    totalPrice: number;
+    studioLocation?: string;
+    reviewUrl: string;
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `How was ${input.studioName}?`,
-    html: buildReservationEmailHtml({
-      greetingName: input.toName || "there",
-      intro: `Your session at ${input.studioName} has been completed. Share a short review to help other creators choose the right space.`,
-      studioName: input.studioName,
-      startDate: input.startDate,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      totalPrice: input.totalPrice,
-      studioLocation: input.studioLocation,
-      detailsHeading: "Completed Booking",
-      cta: { label: "Leave a review", url: input.reviewUrl },
-    }),
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `How was ${input.studioName}?`,
+        html: buildReservationEmailHtml({
+            greetingName: input.toName || "there",
+            intro: `Your session at ${input.studioName} has been completed. Share a short review to help other creators choose the right space.`,
+            studioName: input.studioName,
+            startDate: input.startDate,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            totalPrice: input.totalPrice,
+            studioLocation: input.studioLocation,
+            detailsHeading: "Completed Booking",
+            cta: { label: "Leave a review", url: input.reviewUrl },
+        }),
+    });
 }
 
 export async function sendReservationConfirmationOwner(input: {
-  toEmail: string;
-  toName?: string;
-  studioName: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  totalPrice: number;
-  customerName: string;
-  setNames?: string;
-  packageTitle?: string | null;
-  templateId?: string;
-  bookingId?: string;
-  addons?: string | null;
-  formattedStartDate?: string;
-  formattedStartTime?: string;
-  formattedEndTime?: string;
-  attachments?: AttachmentInput[];
+    toEmail: string;
+    toName?: string;
+    studioName: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    totalPrice: number;
+    customerName: string;
+    setNames?: string;
+    packageTitle?: string | null;
+    templateId?: string;
+    bookingId?: string;
+    addons?: string | null;
+    formattedStartDate?: string;
+    formattedStartTime?: string;
+    formattedEndTime?: string;
+    attachments?: AttachmentInput[];
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `New ContCave booking: ${input.studioName}`,
-    html: buildReservationEmailHtml({
-      greetingName: input.toName || "there",
-      intro: `${input.customerName || "A customer"} booked ${input.studioName}.`,
-      studioName: input.studioName,
-      startDate: input.formattedStartDate || input.startDate,
-      startTime: input.formattedStartTime || input.startTime,
-      endTime: input.formattedEndTime || input.endTime,
-      totalPrice: input.totalPrice,
-      addons: input.addons,
-      nextSteps: ["Review the booking in your dashboard and prepare the studio for the scheduled slot."],
-    }),
-    attachments: input.attachments,
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `New ContCave booking: ${input.studioName}`,
+        html: buildReservationEmailHtml({
+            greetingName: input.toName || "there",
+            intro: `${input.customerName || "A customer"} booked ${input.studioName}.`,
+            studioName: input.studioName,
+            startDate: input.formattedStartDate || input.startDate,
+            startTime: input.formattedStartTime || input.startTime,
+            endTime: input.formattedEndTime || input.endTime,
+            totalPrice: input.totalPrice,
+            addons: input.addons,
+            nextSteps: [
+                "Review the booking in your dashboard and prepare the studio for the scheduled slot.",
+            ],
+        }),
+        attachments: input.attachments,
+    });
 }
 
 export async function sendReservationRejectedCustomer(input: {
-  toEmail: string;
-  toName?: string;
-  studioName: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  totalPrice: number;
-  rejectReason?: string | null;
-  attachments: AttachmentInput[];
+    toEmail: string;
+    toName?: string;
+    studioName: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    totalPrice: number;
+    rejectReason?: string | null;
+    attachments: AttachmentInput[];
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `Your ContCave booking was not approved: ${input.studioName}`,
-    html: buildReservationEmailHtml({
-      greetingName: input.toName || "there",
-      intro: `The studio was unable to approve your booking request for ${input.studioName}. A refund has been initiated to your original payment method, and the refund voucher is attached for your records.`,
-      studioName: input.studioName,
-      startDate: input.startDate,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      totalPrice: input.totalPrice,
-      nextSteps: [
-        input.rejectReason ? `Reason provided: ${input.rejectReason}` : "Reason provided: Not specified.",
-        "Contact ContCave support if you need help with refund eligibility or status.",
-      ],
-    }),
-    attachments: input.attachments,
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `Your ContCave booking was not approved: ${input.studioName}`,
+        html: buildReservationEmailHtml({
+            greetingName: input.toName || "there",
+            intro: `The studio was unable to approve your booking request for ${input.studioName}. A refund has been initiated to your original payment method, and the refund voucher is attached for your records.`,
+            studioName: input.studioName,
+            startDate: input.startDate,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            totalPrice: input.totalPrice,
+            nextSteps: [
+                input.rejectReason
+                    ? `Reason provided: ${input.rejectReason}`
+                    : "Reason provided: Not specified.",
+                "Contact ContCave support if you need help with refund eligibility or status.",
+            ],
+        }),
+        attachments: input.attachments,
+    });
 }
 
 export async function sendReservationCancelledOwner(input: {
-  toEmail: string;
-  toName?: string;
-  customerName: string;
-  studioName: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  totalPrice: number;
-  attachments?: AttachmentInput[];
+    toEmail: string;
+    toName?: string;
+    customerName: string;
+    studioName: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    totalPrice: number;
+    attachments?: AttachmentInput[];
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `Booking request cancelled: ${input.studioName}`,
-    html: buildReservationEmailHtml({
-      greetingName: input.toName || "there",
-      intro: `${input.customerName || "The customer"} cancelled their pending booking request for ${input.studioName}. The slot has been released. Any refund must be reviewed and recorded by the ContCave team according to the booking policy.`,
-      studioName: input.studioName,
-      startDate: input.startDate,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      totalPrice: input.totalPrice,
-      nextSteps: ["No action is required from your side."],
-    }),
-    attachments: input.attachments,
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `Booking request cancelled: ${input.studioName}`,
+        html: buildReservationEmailHtml({
+            greetingName: input.toName || "there",
+            intro: `${input.customerName || "The customer"} cancelled their pending booking request for ${input.studioName}. The slot has been released. Any refund must be reviewed and recorded by the ContCave team according to the booking policy.`,
+            studioName: input.studioName,
+            startDate: input.startDate,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            totalPrice: input.totalPrice,
+            nextSteps: ["No action is required from your side."],
+        }),
+        attachments: input.attachments,
+    });
 }
 
 export async function sendReservationPendingOwner(input: {
-  toEmail: string;
-  toName?: string;
-  studioName: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  totalPrice: number;
-  customerName: string;
-  bookingId?: string;
-  addons?: string | null;
+    toEmail: string;
+    toName?: string;
+    studioName: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    totalPrice: number;
+    customerName: string;
+    bookingId?: string;
+    addons?: string | null;
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `New ContCave booking request: ${input.studioName}`,
-    html: buildReservationEmailHtml({
-      greetingName: input.toName || "there",
-      intro: `${input.customerName || "A customer"} has paid for a booking request at ${input.studioName}. Please approve or reject it from your dashboard.`,
-      studioName: input.studioName,
-      startDate: input.startDate,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      totalPrice: input.totalPrice,
-      addons: input.addons,
-      nextSteps: ["Review the pending request in your reservations dashboard."],
-    }),
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `New ContCave booking request: ${input.studioName}`,
+        html: buildReservationEmailHtml({
+            greetingName: input.toName || "there",
+            intro: `${input.customerName || "A customer"} has paid for a booking request at ${input.studioName}. Please approve or reject it from your dashboard.`,
+            studioName: input.studioName,
+            startDate: input.startDate,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            totalPrice: input.totalPrice,
+            addons: input.addons,
+            nextSteps: [
+                "Review the pending request in your reservations dashboard.",
+            ],
+        }),
+    });
 }
 
 export async function sendReservationRefundCustomer(input: {
-  toEmail: string;
-  toName?: string;
-  studioName: string;
-  startDate: string;
-  startTime: string;
-  endTime: string;
-  totalPrice: number;
-  reason?: string | null;
-  attachments: AttachmentInput[];
+    toEmail: string;
+    toName?: string;
+    studioName: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    totalPrice: number;
+    reason?: string | null;
+    attachments: AttachmentInput[];
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `Refund initiated for your ContCave booking request: ${input.studioName}`,
-    html: buildReservationEmailHtml({
-      greetingName: input.toName || "there",
-      intro: `Your pending booking request for ${input.studioName} has been cancelled. A refund has been initiated to your original payment method, and the refund voucher is attached for your records.`,
-      studioName: input.studioName,
-      startDate: input.startDate,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      totalPrice: input.totalPrice,
-      nextSteps: [
-        input.reason ? `Reason: ${input.reason}` : "Reason: Booking request cancelled before host approval.",
-        "Refunds usually reflect within 5-7 business days, depending on your bank or payment provider.",
-      ],
-    }),
-    attachments: input.attachments,
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `Refund initiated for your ContCave booking request: ${input.studioName}`,
+        html: buildReservationEmailHtml({
+            greetingName: input.toName || "there",
+            intro: `Your pending booking request for ${input.studioName} has been cancelled. A refund has been initiated to your original payment method, and the refund voucher is attached for your records.`,
+            studioName: input.studioName,
+            startDate: input.startDate,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            totalPrice: input.totalPrice,
+            nextSteps: [
+                input.reason
+                    ? `Reason: ${input.reason}`
+                    : "Reason: Booking request cancelled before host approval.",
+                "Refunds usually reflect within 5-7 business days, depending on your bank or payment provider.",
+            ],
+        }),
+        attachments: input.attachments,
+    });
 }
 
 export async function sendPayoutProcessedOwner(input: {
-  toEmail: string;
-  toName?: string;
-  studioName: string;
-  bookingId?: string | null;
-  bookingDate: string;
-  payoutAmount: number;
+    toEmail: string;
+    toName?: string;
+    studioName: string;
+    bookingId?: string | null;
+    bookingDate: string;
+    payoutAmount: number;
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `ContCave payout processed: ${input.studioName}`,
-    html: buildReservationEmailHtml({
-      greetingName: input.toName || "there",
-      intro: `Your payout for ${input.studioName} has been processed for settlement to your registered bank account.`,
-      studioName: input.studioName,
-      startDate: input.bookingDate,
-      startTime: "",
-      endTime: "",
-      totalPrice: input.payoutAmount,
-      amountLabel: "Payout",
-      detailsHeading: "Payout Details",
-      nextSteps: [
-        input.bookingId ? `Booking ID: ${input.bookingId}` : "You can review this payout from your dashboard.",
-        "Settlement timing depends on your Cashfree schedule and bank processing timelines.",
-      ],
-    }),
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `ContCave payout processed: ${input.studioName}`,
+        html: buildReservationEmailHtml({
+            greetingName: input.toName || "there",
+            intro: `Your payout for ${input.studioName} has been processed for settlement to your registered bank account.`,
+            studioName: input.studioName,
+            startDate: input.bookingDate,
+            startTime: "",
+            endTime: "",
+            totalPrice: input.payoutAmount,
+            amountLabel: "Payout",
+            detailsHeading: "Payout Details",
+            nextSteps: [
+                input.bookingId
+                    ? `Booking ID: ${input.bookingId}`
+                    : "You can review this payout from your dashboard.",
+                "Settlement timing depends on your Cashfree schedule and bank processing timelines.",
+            ],
+        }),
+    });
 }
 
 export async function sendCuratedOutreachEmail(input: {
-  toEmail: string;
-  studioName: string;
-  city: string;
-  listingId: string;
+    toEmail: string;
+    studioName: string;
+    city: string;
+    listingId: string;
 }) {
-  const rawWa = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(/\D/g, "");
-  const waNumber = rawWa.length === 10 ? `91${rawWa}` : rawWa;
-  const contactEmail = process.env.MAILERSEND_FROM_EMAIL ?? "info@contcave.com";
-  const baseUrl = getValidatedBaseUrl();
+    const rawWa = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(
+        /\D/g,
+        "",
+    );
+    const waNumber = rawWa.length === 10 ? `91${rawWa}` : rawWa;
+    const contactEmail =
+        process.env.MAILERSEND_FROM_EMAIL ?? "info@contcave.com";
+    const baseUrl = getValidatedBaseUrl();
 
-  const html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"/><title>Your studio is on ContCave</title></head>
+<head><meta charset="UTF-8"/><title>${escapeEmailHtml(input.studioName)} is now on ContCave</title></head>
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#374151;">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px;">
     <table width="100%" style="max-width:560px;background:#ffffff;border-radius:8px;padding:32px;"><tr><td style="font-size:15px;line-height:1.7;">
-      <p>Hi ${escapeEmailHtml(input.studioName)} Team,</p>
-      <p>We've added <strong>${escapeEmailHtml(input.studioName)}</strong> to <strong>ContCave</strong> - a curated marketplace where brands discover studios for shoots and productions in ${escapeEmailHtml(input.city)}.</p>
-      <p>Your studio is listed as a <strong>ContCave Curated</strong> studio. We've added basic information to help brands find you and are already directing interested brands your way.</p>
-      <p>View your listing: <a href="${baseUrl}/listings/${escapeEmailHtml(input.listingId)}" style="color:#b45309;">${baseUrl}/listings/${escapeEmailHtml(input.listingId)}</a></p>
-      <p>To update your listing, add pricing, or explore a full partnership, reach us at:</p>
-      <ul style="padding-left:20px;">
-        ${waNumber ? `<li>WhatsApp: <a href="https://wa.me/${escapeEmailHtml(waNumber)}" style="color:#b45309;">+${escapeEmailHtml(waNumber)}</a></li>` : ""}
-        <li>Email: <a href="mailto:${escapeEmailHtml(contactEmail)}" style="color:#b45309;">${escapeEmailHtml(contactEmail)}</a></li>
-        <li>Website: <a href="https://contcave.com/contact" style="color:#b45309;">contcave.com/contact</a></li>
+      <p>Hi ${escapeEmailHtml(input.studioName)} team,</p>
+      <p>Good news: <strong>${escapeEmailHtml(input.studioName)}</strong> is now listed on <strong>ContCave</strong>, where brands and creators in ${escapeEmailHtml(input.city)} discover and book studios for shoots.</p>
+      <p>This is a <strong>ContCave Curated</strong> listing. We set it up using your publicly available details so brands can start finding you right away. It's free, and there's no commitment.</p>
+
+      <table cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="background:#b45309;border-radius:6px;">
+        <a href="${baseUrl}/listings/${escapeEmailHtml(input.listingId)}" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-weight:bold;">View your listing</a>
+      </td></tr></table>
+
+      <p><strong>Take 5 minutes to make it yours.</strong> Brands shortlist studios with clear pricing and good photos first. Send us:</p>
+      <ul style="padding-left:20px;margin-top:0;">
+        <li>Your hourly / day rates</li>
+        <li>A few of your best studio photos</li>
+        <li>Key equipment, amenities and setups</li>
       </ul>
-      <p style="color:#6b7280;font-size:13px;">No action needed if you're happy with the listing as-is.</p>
-      <p>- Team ContCave</p>
+      <p>Just reply to this email${waNumber ? `, or message us on WhatsApp at <a href="https://wa.me/${escapeEmailHtml(waNumber)}" style="color:#b45309;">+${escapeEmailHtml(waNumber)}</a>` : ""}. We'll update it for you. If you'd like to go further with a full partnership, we're happy to walk you through it.</p>
+
+      <p>Thanks,<br/>Team ContCave<br/>
+        <a href="mailto:${escapeEmailHtml(contactEmail)}" style="color:#b45309;">${escapeEmailHtml(contactEmail)}</a> · <a href="https://contcave.com" style="color:#b45309;">contcave.com</a>
+      </p>
+
+      <p style="color:#9ca3af;font-size:12px;border-top:1px solid #e5e7eb;padding-top:16px;margin-top:24px;">
+        Details not right, or you'd prefer not to be listed? Reply to this email and we'll correct or remove it within 48 hours.
+      </p>
     </td></tr></table>
   </td></tr></table>
 </body>
 </html>`;
 
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: `${input.studioName} Team`,
-    subject: `We've listed ${input.studioName} on ContCave`,
-    html,
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: `${input.studioName} Team`,
+        subject: `We've listed ${input.studioName} on ContCave`,
+        html,
+    });
 }
 
-export function getReservationFailedTemplate(name: string, orderId: string): string {
-  return `
+export function getReservationFailedTemplate(
+    name: string,
+    orderId: string,
+): string {
+    return `
   <!DOCTYPE html>
   <html>
   <head>
@@ -660,14 +711,17 @@ export function getReservationFailedTemplate(name: string, orderId: string): str
 }
 
 export async function sendReservationFailedEmail(input: {
-  toEmail: string;
-  toName?: string;
-  orderId: string;
+    toEmail: string;
+    toName?: string;
+    orderId: string;
 }) {
-  await sendEmail({
-    toEmail: input.toEmail,
-    toName: input.toName || "",
-    subject: `Payment failed for your booking: Order #${input.orderId}`,
-    html: getReservationFailedTemplate(input.toName || "there", input.orderId),
-  });
+    await sendEmail({
+        toEmail: input.toEmail,
+        toName: input.toName || "",
+        subject: `Payment failed for your booking: Order #${input.orderId}`,
+        html: getReservationFailedTemplate(
+            input.toName || "there",
+            input.orderId,
+        ),
+    });
 }

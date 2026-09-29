@@ -96,14 +96,12 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         onChange={(html) => handleInputChange("description", html)}
       />
 
-      {!isCurated && (
-        <RichTextEditor
-          label="Terms & Conditions by Host"
-          variant="horizontal"
-          value={initialListing.customTerms ?? ""}
-          onChange={(html) => handleInputChange("customTerms", html)}
-        />
-      )}
+      <RichTextEditor
+        label="Terms & Conditions by Host"
+        variant="horizontal"
+        value={initialListing.customTerms ?? ""}
+        onChange={(html) => handleInputChange("customTerms", html)}
+      />
 
       <TaxonomyPillSelect
         label="Venue Type"

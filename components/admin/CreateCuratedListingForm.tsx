@@ -8,10 +8,14 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { createCuratedListingAction } from "@/app/actions/listingActions";
+import AmenitiesCheckbox, { AmenitiesData } from "@/components/inputs/AmenitySelection";
+import RichTextEditor from "@/components/inputs/RichTextEditor";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
+import { isRichTextEmpty } from "@/lib/richText";
+import type { SafeAmenity } from "@/types/amenity";
 
 const CATEGORIES = [
   "Photography",
@@ -34,9 +38,6 @@ const curatedListingSchema = z.object({
   imageSrc: z.string().trim().min(1, "At least one image URL is required"),
   priceRangeMin: z.string().optional(),
   priceRangeMax: z.string().optional(),
-  mapsUrl: z.string().trim().optional(),
-  websiteUrl: z.string().trim().optional(),
-  instagramHandle: z.string().trim().optional(),
   contactEmail: z
     .string()
     .trim()
@@ -44,12 +45,21 @@ const curatedListingSchema = z.object({
       message: "Please enter a valid email address",
     })
     .optional(),
+  amenities: z.array(z.string()),
+  otherAmenities: z.array(z.string()),
+  customTerms: z.string().optional(),
   curatedSource: z.string().trim().optional(),
 });
 
 type FormValues = z.infer<typeof curatedListingSchema>;
 
-export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: () => void }) {
+export default function CreateCuratedListingForm({
+  amenities,
+  onSuccess,
+}: {
+  amenities: SafeAmenity[];
+  onSuccess?: () => void;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -57,6 +67,8 @@ export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: ()
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(curatedListingSchema),
@@ -68,10 +80,10 @@ export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: ()
       imageSrc: "",
       priceRangeMin: "",
       priceRangeMax: "",
-      mapsUrl: "",
-      websiteUrl: "",
-      instagramHandle: "",
       contactEmail: "",
+      amenities: [],
+      otherAmenities: [],
+      customTerms: "",
       curatedSource: "",
     },
   });
@@ -94,9 +106,9 @@ export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: ()
         category: values.category,
         locationValue: values.locationValue,
         imageSrc: imageUrls,
-        mapsUrl: values.mapsUrl || undefined,
-        websiteUrl: values.websiteUrl || undefined,
-        instagramHandle: values.instagramHandle || undefined,
+        amenities: values.amenities,
+        otherAmenities: values.otherAmenities,
+        customTerms: isRichTextEmpty(values.customTerms ?? "") ? undefined : values.customTerms?.trim(),
         priceRangeMin: values.priceRangeMin ? Number(values.priceRangeMin) : undefined,
         priceRangeMax: values.priceRangeMax ? Number(values.priceRangeMax) : undefined,
         contactEmail: values.contactEmail || undefined,
@@ -197,41 +209,36 @@ export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: ()
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          id="mapsUrl"
-          label="Google Maps URL"
-          placeholder="https://maps.google.com/…"
-          error={errors.mapsUrl?.message}
-          {...register("mapsUrl")}
-        />
-        <Input
-          id="websiteUrl"
-          label="Studio Website"
-          placeholder="https://studioname.com"
-          error={errors.websiteUrl?.message}
-          {...register("websiteUrl")}
-        />
-      </div>
+      <AmenitiesCheckbox
+        label="Amenities"
+        amenities={amenities}
+        checked={watch("amenities")}
+        customAmenities={watch("otherAmenities")}
+        onChange={(data: AmenitiesData) => {
+          setValue(
+            "amenities",
+            Object.keys(data.predefined).filter((k) => data.predefined[k]),
+            { shouldDirty: true }
+          );
+          setValue("otherAmenities", data.custom, { shouldDirty: true });
+        }}
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          id="instagramHandle"
-          label="Instagram Handle"
-          placeholder="@studioname"
-          error={errors.instagramHandle?.message}
-          {...register("instagramHandle")}
-        />
-        <Input
-          id="contactEmail"
-          label="Contact Email (Internal)"
-          description="Never shown publicly"
-          type="email"
-          placeholder="owner@studio.com"
-          error={errors.contactEmail?.message}
-          {...register("contactEmail")}
-        />
-      </div>
+      <RichTextEditor
+        label="Terms & Conditions"
+        value={watch("customTerms") ?? ""}
+        onChange={(html) => setValue("customTerms", html, { shouldDirty: true })}
+      />
+
+      <Input
+        id="contactEmail"
+        label="Contact Email (Internal)"
+        description="Never shown publicly. Used to send the studio an outreach email."
+        type="email"
+        placeholder="owner@studio.com"
+        error={errors.contactEmail?.message}
+        {...register("contactEmail")}
+      />
 
       <Input
         id="curatedSource"
