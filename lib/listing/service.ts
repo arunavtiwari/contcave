@@ -1,7 +1,6 @@
 import { AdditionalSetPricingType, Prisma } from "@prisma/client";
 import { formatInTimeZone } from "date-fns-tz";
 
-import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 import { UserFacingError } from "@/lib/errors";
 import prisma from "@/lib/prismadb";
@@ -16,8 +15,8 @@ import { listingBaseSchema, listingSchema, persistedMediaUrlSchema } from "@/sch
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData } from "@/types/listing";
 
+import { resolveListingLocation } from "./location";
 import { collectListingMediaRefs, ListingMediaSource, orphanedListingMediaRefs } from "./media";
-import { jitterLatLng } from "./utils";
 
 type ListingWithRelations = Prisma.ListingGetPayload<{
     include: {
@@ -496,14 +495,7 @@ export class ListingService {
 
         // 2. Normalization
         const priceValue = Math.round(Number(price) || 0);
-        const privacySafeLatLng = jitterLatLng((actualLocation as { latlng?: unknown } | null)?.latlng);
-        const finalActualLocation = actualLocation
-            ? { ...(actualLocation as Record<string, unknown>), latlng: privacySafeLatLng }
-            : null;
-        const finalPropertyStateCode =
-            propertyStateCode ||
-            (actualLocation as { propertyStateCode?: string } | null)?.propertyStateCode ||
-            getGstStateCodeFromStateName((actualLocation as { state?: string } | null)?.state);
+        const location = resolveListingLocation(actualLocation ?? null);
         const newSlug = await generateUniqueSlug(slug || trimmedTitle);
         const finalAddons = toNullableJson(addons);
         const finalOperationalDays = toNullableJson(operationalDays);
@@ -524,8 +516,9 @@ export class ListingService {
                     imageSrc: Array.isArray(imageSrc) ? imageSrc.map((img: unknown) => String(img).trim()) : [],
                     category: String(category || "").trim(),
                     locationValue: String(locationValue || "").trim(),
-                    actualLocation: toNullableJson(finalActualLocation),
-                    propertyStateCode: finalPropertyStateCode,
+                    actualLocation: toNullableJson(location.actualLocation),
+                    ...(location.locationPoint ? { locationPoint: location.locationPoint } : {}),
+                    propertyStateCode: propertyStateCode || location.propertyStateCode,
                     price: priceValue,
                     user: { connect: { id: userId } },
                     amenities: defaultAmenityIds,
@@ -693,18 +686,15 @@ export class ListingService {
         }
 
         // 3. Normalized Location (Privacy Jitter)
-        const loc = listingData.actualLocation as { latlng?: unknown; propertyStateCode?: string; state?: string } | null | undefined;
-        if (loc) {
-            if (!isJsonEqual(loc, existingListing.actualLocation)) {
-                const privacySafeLatLng = jitterLatLng(loc.latlng);
-                listingData.actualLocation = {
-                    ...loc,
-                    latlng: privacySafeLatLng || [0, 0]
-                } as typeof loc;
-                listingData.propertyStateCode =
-                    listingData.propertyStateCode ||
-                    loc.propertyStateCode ||
-                    getGstStateCodeFromStateName(loc.state);
+        if ("actualLocation" in listingData && !isJsonEqual(listingData.actualLocation, existingListing.actualLocation)) {
+            const location = resolveListingLocation(
+                listingData.actualLocation as Record<string, unknown> | null,
+                existingListing.actualLocation
+            );
+            listingData.actualLocation = location.actualLocation;
+            listingData.locationPoint = location.locationPoint ? { set: location.locationPoint } : { unset: true };
+            if (location.actualLocation) {
+                listingData.propertyStateCode = listingData.propertyStateCode || location.propertyStateCode;
             }
         }
         const sanitizedListingData = sanitizeListingJsonFields(listingData as Record<string, unknown>);
@@ -1323,6 +1313,7 @@ export class ListingService {
             accountDeactivatedAt: _accountDeactivatedAt,
             archivedAt: _archivedAt,
             archivedById: _archivedById,
+            locationPoint: _locationPoint,
             user,
             ...publicListing
         } = l;

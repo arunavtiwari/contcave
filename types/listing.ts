@@ -14,6 +14,7 @@ export type safeListing = Omit<
     | "operationalDays"
     | "operationalHours"
     | "actualLocation"
+    | "locationPoint"
     | "verifications"
     | "reviewedAt"
     | "reviewedById"

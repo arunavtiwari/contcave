@@ -1,4 +1,6 @@
+import { toGeoPoint } from "../../lib/listing/location";
 import {
+  CONNAUGHT_PLACE,
   createUserFixture,
   prisma,
 } from "./support/db";
@@ -29,10 +31,11 @@ test.describe("feed filtering staging flow", () => {
         locationValue: "Delhi",
         propertyStateCode: "07",
         actualLocation: {
-          latlng: [28.62868, 77.21905],
+          latlng: CONNAUGHT_PLACE,
           label: "Delhi",
           value: "Delhi",
         },
+        locationPoint: toGeoPoint(CONNAUGHT_PLACE),
         price: 1500,
         userId: owner.id,
         status: "VERIFIED",
@@ -65,10 +68,11 @@ test.describe("feed filtering staging flow", () => {
         locationValue: "Noida",
         propertyStateCode: "09",
         actualLocation: {
-          latlng: [28.62868, 77.21905],
+          latlng: CONNAUGHT_PLACE,
           label: "Noida",
           value: "Noida",
         },
+        locationPoint: toGeoPoint(CONNAUGHT_PLACE),
         price: 3500,
         userId: owner.id,
         status: "VERIFIED",
