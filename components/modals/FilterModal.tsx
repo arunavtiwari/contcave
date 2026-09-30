@@ -1,5 +1,5 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { FiSliders } from "react-icons/fi";
 
@@ -8,12 +8,13 @@ import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import useIndianCities from "@/hooks/useCities";
+import { useFilterNavigation } from "@/hooks/useFilterNavigation";
 import { AESTHETICS, SET_FEATURES, USE_CASES, VENUE_TYPES } from "@/lib/taxonomy";
 
 type Props = { city?: string };
 
 const FilterModalContent = ({ city }: Props) => {
-  const router = useRouter();
+  const { navigate } = useFilterNavigation();
   const params = useSearchParams();
   const { getByValue } = useIndianCities();
   const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +69,7 @@ const FilterModalContent = ({ city }: Props) => {
     if (selectedCity) nextParams.set("locationValue", selectedCity);
     else nextParams.delete("locationValue");
 
-    router.push(`/studios?${nextParams.toString()}`);
+    navigate(`/studios?${nextParams.toString()}`);
     setIsOpen(false);
   };
 
@@ -80,7 +81,7 @@ const FilterModalContent = ({ city }: Props) => {
     setSelectedAesthetics([]);
     setSelectedSetFeatures([]);
     setSelectedCity(null);
-    router.push(`/studios?${nextParams.toString()}`);
+    navigate(`/studios?${nextParams.toString()}`);
     setIsOpen(false);
   };
 

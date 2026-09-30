@@ -15,12 +15,10 @@ import JsonLd from "@/components/seo/JsonLd";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import { categoriesOf } from "@/lib/listing/categories";
 import {
-  categoryLinks,
   cityPath,
   citySlug,
   cityTrail,
   findCity,
-  publishedCategories,
   STUDIOS_TRAIL,
 } from "@/lib/listing/cities";
 import { buildListingJsonLd, buildListingMetadata } from "@/lib/listing/seo";
@@ -136,10 +134,6 @@ export default async function ListingPage(props: {
 
   const breadcrumbs: BreadcrumbItem[] = [...(city ? cityTrail(city.city) : STUDIOS_TRAIL), { name: listing.title }];
 
-  const ownCategories = new Set(categoriesOf(listing).map((category) => category.slug));
-  const browseLinks = city
-    ? categoryLinks(city, publishedCategories(city).filter((category) => ownCategories.has(category.slug)))
-    : [];
 
   return (
     <main>
@@ -168,8 +162,6 @@ export default async function ListingPage(props: {
         currentUser={currentUser}
         moreHref={city ? cityPath(city.city) : "/studios"}
         moreLabel={city ? `All studios in ${city.city}` : "Browse all studios"}
-        links={browseLinks}
-        linksHeading={city ? `Explore more in ${city.city}` : undefined}
       />
     </main>
   );

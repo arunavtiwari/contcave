@@ -104,15 +104,12 @@ export const publishedCategories = (entry: CityEntry) =>
     .filter((category) => (entry.categoryCounts[category.slug] ?? 0) >= MIN_CATEGORY_LISTINGS)
     .sort((a, b) => entry.categoryCounts[b.slug] - entry.categoryCounts[a.slug]);
 
-export const categoryLinks = (entry: CityEntry, categories: StudioCategory[] = publishedCategories(entry)) =>
-  categories.map((category) => {
-    const count = entry.categoryCounts[category.slug] ?? 0;
-    return {
-      href: cityCategoryPath(entry.city, category),
-      label: category.name,
-      description: `${count} ${count === 1 ? "studio" : "studios"}`,
-    };
-  });
+export const venueTypeLinks = (entry: CityEntry): Record<string, string> =>
+  Object.fromEntries(
+    publishedCategories(entry).flatMap((category) =>
+      (category.venueTypes ?? []).map((venueType) => [venueType, cityCategoryPath(entry.city, category)])
+    )
+  );
 
 export async function findCity(slug: string) {
   return (await getCityDirectory()).find((entry) => entry.slug === slug);

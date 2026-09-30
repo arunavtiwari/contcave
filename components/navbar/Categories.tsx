@@ -11,9 +11,13 @@ import Button from "@/components/ui/Button";
 import { categories } from "./categoriesData";
 
 
-type Props = { city?: string };
+type Props = {
+  city?: string;
+  venueTypeHrefs?: Record<string, string>;
+  activeVenueType?: string;
+};
 
-const CategoriesContent = memo(function CategoriesContent({ city }: Props) {
+const CategoriesContent = memo(function CategoriesContent({ city, venueTypeHrefs, activeVenueType }: Props) {
   const params = useSearchParams();
   const venueType = useMemo(() => params?.get("venueTypes"), [params]);
 
@@ -24,11 +28,12 @@ const CategoriesContent = memo(function CategoriesContent({ city }: Props) {
           key={item.label}
           icon={item.icon}
           label={item.label}
-          selected={venueType === item.label}
+          selected={(activeVenueType ?? venueType) === item.label}
           city={city}
+          href={venueTypeHrefs?.[item.label]}
         />
       )),
-    [venueType, city]
+    [venueType, city, venueTypeHrefs, activeVenueType]
   );
 
   return (
@@ -43,7 +48,7 @@ const CategoriesContent = memo(function CategoriesContent({ city }: Props) {
 
 CategoriesContent.displayName = "CategoriesContent";
 
-const Categories = memo(function Categories({ city }: Props) {
+const Categories = memo(function Categories(props: Props) {
   return (
     <Suspense fallback={
       <div className="mt-4 mb-6 w-full flex flex-row items-center justify-between gap-2 border-b border-border">
@@ -68,7 +73,7 @@ const Categories = memo(function Categories({ city }: Props) {
         </div>
       </div>
     }>
-      <CategoriesContent city={city} />
+      <CategoriesContent {...props} />
     </Suspense>
   );
 });
