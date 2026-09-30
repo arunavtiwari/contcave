@@ -203,7 +203,7 @@ function buildCSP(nonce: string): string {
 
 function permissionsPolicyForPath(pathname: string): string {
     const allowGeo =
-        pathname === '/home'
+        pathname === '/studios' || pathname.startsWith('/studios/')
 
     return [
         'camera=()',

@@ -10,15 +10,23 @@ import getReviewCount from "@/app/actions/getReviewCount";
 import getReviews from "@/app/actions/getReviews";
 import { getPublicDayStatuses, getReservations } from "@/app/actions/reservationActions";
 import ListingClient from "@/components/listing/ListingClient";
-import MoreStudios, { type MoreStudiosItem } from "@/components/listing/MoreStudios";
-import Breadcrumbs from "@/components/seo/Breadcrumbs";
+import MoreStudios from "@/components/listing/MoreStudios";
 import JsonLd from "@/components/seo/JsonLd";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
-import { cityPath, citySlug, findCity } from "@/lib/listing/cities";
-import { buildListingJsonLd, buildListingMetadata, kindOf, listingPath } from "@/lib/listing/seo";
+import { categoriesOf } from "@/lib/listing/categories";
+import {
+  categoryLinks,
+  cityPath,
+  citySlug,
+  cityTrail,
+  findCity,
+  publishedCategories,
+  STUDIOS_TRAIL,
+} from "@/lib/listing/cities";
+import { buildListingJsonLd, buildListingMetadata } from "@/lib/listing/seo";
 import { getPlainTextFromHTML } from "@/lib/richText";
 import type { BreadcrumbItem } from "@/lib/seo";
-import type { FullListing } from "@/types/listing";
+import type { FullListing, safeListing } from "@/types/listing";
 import type { ListingAvailability } from "@/types/reservation";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +34,7 @@ export const dynamic = "force-dynamic";
 type RouteParams = { listingId?: string };
 type SearchParams = Record<string, string | string[] | undefined>;
 
-const RELATED_LIMIT = 6;
+const RELATED_LIMIT = 4;
 
 const loadListing = cache((listingId?: string) => getListingById({ listingId }));
 
@@ -67,25 +75,31 @@ async function loadAvailability(listing: FullListing): Promise<ListingAvailabili
   return { reservations, dayStatuses, googleCalendarEvents };
 }
 
-async function loadRelated(listing: FullListing): Promise<MoreStudiosItem[]> {
-  const picked = new Map<string, FullListing>();
-  const add = (candidates: FullListing[]) => {
-    for (const candidate of candidates) {
-      if (picked.size >= RELATED_LIMIT) return;
-      if (candidate.id !== listing.id && !picked.has(candidate.id)) picked.set(candidate.id, candidate);
-    }
+async function loadRelated(listing: FullListing): Promise<FullListing[]> {
+  const ownCategories = categoriesOf(listing);
+  const own = new Set(ownCategories.map((category) => category.slug));
+  const useCases = [...new Set(ownCategories.flatMap((category) => category.useCases ?? []))];
+  const venueTypes = [...new Set(ownCategories.flatMap((category) => category.venueTypes ?? []))];
+
+  const pools = await Promise.all([
+    listing.locationValue ? getListings({ locationValue: listing.locationValue }) : [],
+    useCases.length ? getListings({ type: useCases.join(",") }) : [],
+    venueTypes.length ? getListings({ venueTypes: venueTypes.join(",") }) : [],
+  ]);
+  const all = Array.from(new Map(pools.flat().map((candidate) => [candidate.id, candidate])).values());
+  const score = (candidate: FullListing) => {
+    const sameCity = Boolean(listing.locationValue) && candidate.locationValue === listing.locationValue;
+    const shared = categoriesOf(candidate).filter((category) => own.has(category.slug)).length;
+    return (sameCity ? 10 : 0) + Math.min(shared, 3);
   };
 
-  if (listing.locationValue) add(await getListings({ locationValue: listing.locationValue }));
-  if (picked.size < 4 && listing.category) add(await getListings({ category: listing.category }));
-
-  return Array.from(picked.values()).map((item) => ({
-    id: item.id,
-    title: item.title,
-    href: listingPath(item),
-    image: item.imageSrc?.[0],
-    kind: kindOf(item),
-  }));
+  return all
+    .filter((candidate) => candidate.id !== listing.id)
+    .map((candidate, index) => ({ candidate, index, score: score(candidate) }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, RELATED_LIMIT)
+    .map((item) => item.candidate);
 }
 
 function toQueryString(searchParams: SearchParams) {
@@ -107,7 +121,7 @@ export default async function ListingPage(props: {
   if (!listing) notFound();
 
   if (listing.slug && listingId !== listing.slug) {
-    permanentRedirect(`/listings/${listing.slug}${toQueryString(await props.searchParams)}`);
+    permanentRedirect(`/studio/${listing.slug}${toQueryString(await props.searchParams)}`);
   }
 
   const availability = loadAvailability(listing);
@@ -120,12 +134,12 @@ export default async function ListingPage(props: {
     loadRelated(listing).catch(() => []),
   ]);
 
-  const breadcrumbs: BreadcrumbItem[] = [
-    { name: "Home", href: "/" },
-    { name: "Studios", href: "/studios" },
-    ...(city ? [{ name: city.city, href: cityPath(city.city) }] : []),
-    { name: listing.title },
-  ];
+  const breadcrumbs: BreadcrumbItem[] = [...(city ? cityTrail(city.city) : STUDIOS_TRAIL), { name: listing.title }];
+
+  const ownCategories = new Set(categoriesOf(listing).map((category) => category.slug));
+  const browseLinks = city
+    ? categoryLinks(city, publishedCategories(city).filter((category) => ownCategories.has(category.slug)))
+    : [];
 
   return (
     <main>
@@ -139,7 +153,6 @@ export default async function ListingPage(props: {
         availability={availability}
         reviews={reviews}
         amenities={amenities}
-        breadcrumbs={<Breadcrumbs items={breadcrumbs} />}
         processedDescription={listing.description}
         processedTerms={listing.customTerms ?? null}
         descriptionShouldTruncate={getPlainTextFromHTML(listing.description, 0).length > 250}
@@ -151,9 +164,12 @@ export default async function ListingPage(props: {
       />
       <MoreStudios
         heading={city ? `More studios in ${city.city}` : "More studios you may like"}
-        items={related}
+        listings={related as unknown as safeListing[]}
+        currentUser={currentUser}
         moreHref={city ? cityPath(city.city) : "/studios"}
         moreLabel={city ? `All studios in ${city.city}` : "Browse all studios"}
+        links={browseLinks}
+        linksHeading={city ? `Explore more in ${city.city}` : undefined}
       />
     </main>
   );

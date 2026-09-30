@@ -137,7 +137,7 @@ const webSiteJsonLd = {
         "@type": "SearchAction",
         target: {
             "@type": "EntryPoint",
-            urlTemplate: `${SITE_URL}/home?locationValue={search_term_string}`,
+            urlTemplate: `${SITE_URL}/studios?locationValue={search_term_string}`,
         },
         "query-input": "required name=search_term_string",
     },

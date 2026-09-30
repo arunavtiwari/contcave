@@ -98,7 +98,7 @@ const addressOf = (listing: ListingBasics) => ({
 });
 
 export const listingPath = (listing: { id: string; slug?: string | null }) =>
-  `/listings/${listing.slug ?? listing.id}`;
+  `/studio/${listing.slug ?? listing.id}`;
 
 export function listingTitle(listing: ListingBasics) {
   const title = listing.title.trim();
@@ -241,64 +241,56 @@ export function buildListingJsonLd(
       reviewRating: { "@type": "Rating", ratingValue: review.rating, bestRating: 5, worstRating: 1 },
     }));
 
-  const rental = price
+  const rentalOffer = price
     ? {
-      "@type": "Product",
-      "@id": `${url}#rental`,
-      name: listing.title,
-      description: listingDescription(listing),
-      image: images,
+      "@type": "Offer",
       url,
-      sku: listing.id,
-      category: kindOf(listing),
-      aggregateRating,
-      review: reviewItems.length ? reviewItems : undefined,
-      offers: {
-        "@type": "Offer",
-        url,
+      price,
+      priceCurrency: "INR",
+      availability: "https://schema.org/InStock",
+      availableAtOrFrom: { "@id": venueId },
+      seller: { "@id": `${SITE_URL}/#organization` },
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
         price,
         priceCurrency: "INR",
-        availability: "https://schema.org/InStock",
-        availableAtOrFrom: { "@id": venueId },
-        seller: { "@id": `${SITE_URL}/#organization` },
-        priceSpecification: {
-          "@type": "UnitPriceSpecification",
-          price,
-          priceCurrency: "INR",
-          unitCode: "HUR",
-          unitText: "per hour",
-          referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "HUR" },
-        },
-        eligibleQuantity: { "@type": "QuantitativeValue", minValue: minimumBookingHours(listing), unitCode: "HUR" },
+        unitCode: "HUR",
+        unitText: "per hour",
+        referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "HUR" },
       },
+      eligibleQuantity: { "@type": "QuantitativeValue", minValue: minimumBookingHours(listing), unitCode: "HUR" },
     }
     : curatedLow
       ? {
-        "@type": "Product",
-        "@id": `${url}#rental`,
-        name: listing.title,
-        description: listingDescription(listing),
-        image: images,
+        "@type": "AggregateOffer",
         url,
-        sku: listing.id,
-        category: kindOf(listing),
-        aggregateRating,
-        review: reviewItems.length ? reviewItems : undefined,
-        offers: {
-          "@type": "AggregateOffer",
-          url,
-          lowPrice: curatedLow,
-          highPrice: curatedHigh,
-          priceCurrency: "INR",
-          offerCount: 1,
-          availability: "https://schema.org/InStock",
-          seller: { "@id": `${SITE_URL}/#organization` },
-        },
+        lowPrice: curatedLow,
+        highPrice: curatedHigh,
+        priceCurrency: "INR",
+        offerCount: 1,
+        availability: "https://schema.org/InStock",
+        seller: { "@id": `${SITE_URL}/#organization` },
       }
       : undefined;
 
+  const rental = rentalOffer && {
+    "@type": "Product",
+    "@id": `${url}#rental`,
+    name: listing.title,
+    description: listingDescription(listing),
+    image: images,
+    url,
+    sku: listing.id,
+    brand: { "@type": "Brand", name: listing.title },
+    category: kindOf(listing),
+    aggregateRating,
+    review: reviewItems.length ? reviewItems : undefined,
+    offers: rentalOffer,
+  };
+
   const venue = {
-    "@type": ["LocalBusiness", "EventVenue"],
+    "@type": "LocalBusiness",
+    additionalType: "https://schema.org/EventVenue",
     "@id": venueId,
     name: listing.title,
     description: toPlainText(listing.description),
@@ -317,7 +309,7 @@ export function buildListingJsonLd(
       : undefined,
     openingHoursSpecification: openingHours(listing),
     priceRange: priceRangeOf(listing),
-    aggregateRating,
+    aggregateRating: rental ? undefined : aggregateRating,
     review: !rental && reviewItems.length ? reviewItems : undefined,
   };
 
@@ -331,15 +323,82 @@ export function buildListingJsonLd(
   };
 }
 
-export function listingSummaryJsonLd(listing: ListingBasics) {
+function listingSummaryJsonLd(listing: ListingBasics) {
   const url = absoluteUrl(listingPath(listing));
   return {
-    "@type": ["LocalBusiness", "EventVenue"],
+    "@type": "LocalBusiness",
+    additionalType: "https://schema.org/EventVenue",
     "@id": `${url}#venue`,
     name: listing.title,
     url,
     image: listing.imageSrc?.[0] ? absoluteUrl(listing.imageSrc[0]) : undefined,
     address: addressOf(listing),
     priceRange: priceRangeOf(listing),
+  };
+}
+
+export const UNPUBLISHED_COLLECTION_METADATA: Metadata = {
+  title: "Studios",
+  robots: { index: false, follow: true },
+};
+
+export function collectionMetadata({ title, description, path }: { title: string; description: string; path: string }): Metadata {
+  const images = [{ url: absoluteUrl(OG_IMAGE), width: 1200, height: 630, alt: title }];
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { type: "website", title, description, url: absoluteUrl(path), siteName: BRAND_NAME, locale: "en_IN", images },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      site: "@ContCave",
+      creator: "@ContCave",
+      images: [absoluteUrl(OG_IMAGE)],
+    },
+  };
+}
+
+export function cityCollectionJsonLd({
+  path,
+  name,
+  description,
+  city,
+  listings,
+  trail,
+}: {
+  path: string;
+  name: string;
+  description: string;
+  city: string;
+  listings: ListingBasics[];
+  trail: BreadcrumbItem[];
+}) {
+  const url = absoluteUrl(path);
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": `${url}#page`,
+        url,
+        name,
+        description,
+        isPartOf: { "@id": `${SITE_URL}/#website` },
+        about: { "@type": "City", name: city, containedInPlace: { "@type": "Country", name: "India" } },
+        mainEntity: {
+          "@type": "ItemList",
+          numberOfItems: listings.length,
+          itemListElement: listings.map((listing, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            url: absoluteUrl(listingPath(listing)),
+            item: listingSummaryJsonLd(listing),
+          })),
+        },
+      },
+      breadcrumbJsonLd(trail, url),
+    ],
   };
 }

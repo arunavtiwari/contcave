@@ -78,17 +78,17 @@ test.describe("feed filtering staging flow", () => {
     });
 
     // 4. Filter by Location: Delhi
-    await gotoApp(page, "/home?locationValue=Delhi");
+    await gotoApp(page, "/studios?locationValue=Delhi");
     await expect(page.getByText(titleDelhi)).toBeVisible({ timeout: 25_000 });
     await expect(page.getByText(titleNoida)).toBeHidden({ timeout: 15_000 });
 
     // 5. Filter by Location: Noida
-    await gotoApp(page, "/home?locationValue=Noida");
+    await gotoApp(page, "/studios?locationValue=Noida");
     await expect(page.getByText(titleNoida)).toBeVisible({ timeout: 25_000 });
     await expect(page.getByText(titleDelhi)).toBeHidden({ timeout: 15_000 });
 
     // 6. Filter by Location: Delhi + Multi-set (hasSets=true)
-    await gotoApp(page, "/home?locationValue=Delhi&hasSets=true");
+    await gotoApp(page, "/studios?locationValue=Delhi&hasSets=true");
     await expect(page.getByText(titleDelhi)).toBeVisible({ timeout: 25_000 });
     await expect(page.getByText(titleNoida)).toBeHidden({ timeout: 15_000 });
 

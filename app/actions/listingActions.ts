@@ -470,7 +470,7 @@ export const updateListingAction = createAction(
         const { id, ...updateData } = data;
         const listing = await ListingService.updateListing(user.id, id, updateData, isContcave || user.role === "ADMIN");
 
-        revalidatePath(`/listings/${id}`);
+        revalidatePath(`/studio/${id}`);
         revalidatePath("/properties");
         revalidatePath("/dashboard/properties");
 
@@ -527,7 +527,7 @@ export const createBlockAction = createAction(
     async (data, { user }) => {
         const { listingId, ...blockData } = data;
         await ListingService.createBlock(user.id, listingId, blockData, user.role === "ADMIN");
-        revalidatePath(`/listings/${listingId}`);
+        revalidatePath(`/studio/${listingId}`);
         return { success: true };
     }
 );
@@ -537,7 +537,7 @@ export const deleteBlockAction = createAction(
     { requireAuth: true, allowedRoles: ["OWNER", "ADMIN"] },
     async (data, { user }) => {
         await ListingService.deleteBlock(user.id, data.listingId, data.blockId, user.role === "ADMIN");
-        revalidatePath(`/listings/${data.listingId}`);
+        revalidatePath(`/studio/${data.listingId}`);
         return { success: true };
     }
 );
@@ -574,7 +574,7 @@ export const updateDayStatusAction = createAction(
             },
         });
 
-        revalidatePath(`/listings/${listingId}`);
+        revalidatePath(`/studio/${listingId}`);
         return { success: true };
     }
 );
@@ -654,7 +654,7 @@ export const createCuratedListingAction = createAction(
             }
         }
 
-        revalidatePath("/home");
+        revalidatePath("/studios");
         revalidatePath("/admin/dashboard/listings");
         return { listingId: listing.id };
     }

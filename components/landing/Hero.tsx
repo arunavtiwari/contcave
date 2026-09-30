@@ -174,7 +174,7 @@ const Hero = () => {
                 <div className="flex items-center gap-3 mt-2">
                   <Button
                     label="View all studios"
-                    href="/home"
+                    href="/studios"
                     variant="outline"
                     rounded
                     fit
