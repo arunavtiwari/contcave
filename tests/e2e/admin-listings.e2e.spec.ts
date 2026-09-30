@@ -35,7 +35,7 @@ async function loginAdmin(page: Page, email: string, password: string) {
 }
 
 function reviewButtonFor(page: Page, listingTitle: string) {
-  return page.locator(`button[aria-label="Open listing review: ${listingTitle}"]`).first();
+  return page.locator(`button[aria-label="Open listing details: ${listingTitle}"]`).first();
 }
 
 async function openReviewModal(page: Page, listingTitle: string) {
@@ -65,7 +65,7 @@ test.describe("admin listing moderation", () => {
     await expect(page).toHaveURL(/\/admin\/dashboard\/bookings/);
     await page.getByRole("link", { name: "Listings" }).click();
     await expect(page).toHaveURL(/\/admin\/dashboard\/listings/);
-    await expect(page.getByRole("heading", { name: "Listing Review" })).toBeVisible();
+    await expect(page.getByRole("tablist", { name: "Listing status filters" })).toBeVisible();
   });
 
   test("loads status tabs and opens the enterprise review modal with KYC and documents", async ({ page }, testInfo) => {
@@ -100,7 +100,7 @@ test.describe("admin listing moderation", () => {
 
     const preview = page.getByTestId("admin-review-open-preview");
     await expect(preview).toBeVisible();
-    await expect(preview).toHaveAttribute("href", /\/listings\//);
+    await expect(preview).toHaveAttribute("href", /\/studio\//);
     await expect(preview).not.toHaveAttribute("href", /admin\./);
     await expect(page.getByTestId("admin-review-approve")).toBeEnabled();
     await expect(page.getByTestId("admin-review-reject")).toBeEnabled();
