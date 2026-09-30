@@ -10,7 +10,7 @@ import Tooltip from "@/components/ui/Tooltip";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative flex cursor-pointer items-center justify-center gap-2 border font-medium transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50",
+  "relative flex cursor-pointer items-center justify-center gap-2 border font-medium transition button-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -52,7 +52,7 @@ const buttonVariants = cva(
       { isIconOnly: true, size: "sm", className: "w-9 h-9 p-0" },
       { isIconOnly: true, size: "md", className: "w-11 h-11 p-0" },
       { isIconOnly: true, size: "lg", className: "w-12 h-12 p-0" },
-      { isIconOnly: true, className: "rounded-xl active:scale-95" },
+      { isIconOnly: true, className: "rounded-xl" },
     ],
     defaultVariants: {
       variant: "default",

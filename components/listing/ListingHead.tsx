@@ -341,10 +341,10 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
               </Swiper>
             </div>
 
-            <button type="button" aria-label="Previous photo" className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center active:scale-90">
+            <button type="button" aria-label="Previous photo" className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center">
               <HiOutlineChevronLeft size={20} />
             </button>
-            <button type="button" aria-label="Next photo" className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center active:scale-90">
+            <button type="button" aria-label="Next photo" className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center">
               <HiOutlineChevronRight size={20} />
             </button>
           </div>
