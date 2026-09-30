@@ -17,6 +17,7 @@ import { objectIdSchema } from "@/schemas/common";
 import { dayStatusSchema } from "@/schemas/dayStatus";
 import {
     approveListingSchema,
+    customAmenitiesSchema,
     deleteBlockSchema,
     deleteListingSchema,
     listingBaseSchema,
@@ -597,7 +598,7 @@ const curatedListingSchema = z.object({
     propertyStateCode: z.string().regex(/^\d{2}$/).optional().nullable(),
     imageSrc: z.array(curatedHttpUrlSchema(500)).min(1).max(30),
     amenities: z.array(z.string()).max(100).default([]),
-    otherAmenities: z.array(z.string().trim().min(1).max(100)).max(50).default([]),
+    otherAmenities: customAmenitiesSchema.default([]),
     customTerms: z.string().max(20000).optional(),
     priceRangeMin: z.number().int().positive().optional(),
     priceRangeMax: z.number().int().positive().optional(),
