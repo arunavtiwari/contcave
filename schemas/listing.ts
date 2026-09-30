@@ -26,6 +26,8 @@ const temporaryMediaUrlSchema = z.string().url().max(2000, "URL too long").refin
 // persistence validates the resulting HTTP(S) URLs separately.
 export const persistedMediaUrlSchema = httpUrlSchema(500);
 
+export const defaultAmenitiesSchema = z.array(z.string().trim().min(1).max(100)).max(50);
+
 export const customAmenitiesSchema = z
   .array(z.string().trim().min(1).max(100).regex(/\D/, "Custom amenity must be a name, not a number"))
   .max(50);
@@ -211,7 +213,7 @@ export const listingBaseSchema = z.object({
     contactEmail: z.string().email().optional().nullable().or(z.literal("")),
 
 
-    amenities: z.array(z.string().trim().min(1).max(100)).max(50).optional(),
+    amenities: defaultAmenitiesSchema.optional(),
     otherAmenities: customAmenitiesSchema.optional(),
     type: z.array(z.enum(USE_CASE_LABELS)).max(20).optional(),
     venueTypes: z.array(z.enum(VENUE_TYPE_LABELS)).max(7).optional().default([]),

@@ -9,15 +9,17 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import { createAction } from "@/lib/actions-utils";
 import { UserFacingError } from "@/lib/errors";
-import { ListingService } from "@/lib/listing/service";
+import { assertDefaultAmenitiesExist, ListingService } from "@/lib/listing/service";
 import { decryptAndSanitizePaymentDetails } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
 import { rateLimitRequest } from "@/lib/security/rateLimit";
+import { sanitizeStringList } from "@/lib/strings";
 import { objectIdSchema } from "@/schemas/common";
 import { dayStatusSchema } from "@/schemas/dayStatus";
 import {
     approveListingSchema,
     customAmenitiesSchema,
+    defaultAmenitiesSchema,
     deleteBlockSchema,
     deleteListingSchema,
     listingBaseSchema,
@@ -597,7 +599,7 @@ const curatedListingSchema = z.object({
     locationValue: z.string().trim().min(1).max(300),
     propertyStateCode: z.string().regex(/^\d{2}$/).optional().nullable(),
     imageSrc: z.array(curatedHttpUrlSchema(500)).min(1).max(30),
-    amenities: z.array(z.string()).max(100).default([]),
+    amenities: defaultAmenitiesSchema.default([]),
     otherAmenities: customAmenitiesSchema.default([]),
     customTerms: z.string().max(20000).optional(),
     priceRangeMin: z.number().int().positive().optional(),
@@ -630,8 +632,8 @@ export const createCuratedListingAction = createAction(
                 status: "VERIFIED",
                 active: true,
                 userId: user.id,
-                amenities: data.amenities,
-                otherAmenities: data.otherAmenities,
+                amenities: await assertDefaultAmenitiesExist(data.amenities),
+                otherAmenities: sanitizeStringList(data.otherAmenities),
                 type: [],
             },
         });
