@@ -183,8 +183,10 @@ export default async function RootLayout({
                         <CookieConsent />
                     </ClientOnly>
                     {children}
-                    <WhatsAppFloatingButton />
-                    <ScrollToTop />
+                    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-center gap-3">
+                        <WhatsAppFloatingButton />
+                        <ScrollToTop />
+                    </div>
                 </GlobalProviders>
             </body>
         </html>
