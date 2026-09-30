@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import ListingCard from "@/components/listing/ListingCard";
 import { useLocationSort } from "@/hooks/useLocationSort";
@@ -16,43 +16,39 @@ type Props = {
   currentUser?: SafeUser | null;
 };
 
-function ListingFeed({ listings, currentUser }: Props) {
-  const [sortedListings, setSortedListings] = useState(listings);
-  const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH_SIZE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+type Origin = { lat: number; lng: number };
 
+function sortByNearest(listings: safeListing[], { lat, lng }: Origin) {
+  const ranked = listings
+    .map((listing, index) => {
+      const coords = getListingLatLng(listing);
+      return { listing, index, distance: coords ? haversineDistance(lat, lng, coords[0], coords[1]) : Infinity };
+    })
+    .sort((a, b) => a.distance - b.distance || a.index - b.index);
+  return ranked.some((item) => Number.isFinite(item.distance)) ? ranked.map((item) => item.listing) : null;
+}
+
+function ListingFeed({ listings, currentUser }: Props) {
+  const [origin, setOrigin] = useState<Origin | null>(null);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH_SIZE);
+  const [prevListings, setPrevListings] = useState(listings);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const { setSortedByLocation, registerPrioritize } = useLocationSort();
-  const listingsRef = useRef(listings);
+
+  if (listings !== prevListings) {
+    setPrevListings(listings);
+    setOrigin(null);
+    setVisibleCount(INITIAL_BATCH_SIZE);
+  }
+
+  const nearestFirst = useMemo(() => (origin ? sortByNearest(listings, origin) : null), [listings, origin]);
+  const sortedListings = nearestFirst ?? listings;
 
   useEffect(() => {
-    listingsRef.current = listings;
-    setSortedListings(listings);
-    setSortedByLocation(false);
-    setVisibleCount(INITIAL_BATCH_SIZE);
-  }, [listings, setSortedByLocation]);
+    setSortedByLocation(nearestFirst !== null);
+  }, [nearestFirst, setSortedByLocation]);
 
-  const prioritizeListings = useCallback((userLat: number, userLng: number) => {
-    const baseline = listingsRef.current.map((listing: safeListing, index: number) => {
-      const listingCoords = getListingLatLng(listing);
-      const distance = listingCoords
-        ? haversineDistance(userLat, userLng, listingCoords[0], listingCoords[1])
-        : Number.POSITIVE_INFINITY;
-      return { listing, index, distance };
-    });
-
-    baseline.sort((a: { distance: number; index: number }, b: { distance: number; index: number }) => {
-      if (a.distance === b.distance) {
-        return a.index - b.index;
-      }
-      return a.distance - b.distance;
-    });
-
-    const hasAnyDistance = baseline.some((item: { distance: number }) => Number.isFinite(item.distance));
-    if (hasAnyDistance) {
-      setSortedListings(baseline.map((item: { listing: safeListing }) => item.listing));
-      setSortedByLocation(true);
-    }
-  }, [setSortedByLocation]);
+  const prioritizeListings = useCallback((lat: number, lng: number) => setOrigin({ lat, lng }), []);
 
   useEffect(() => {
     registerPrioritize(prioritizeListings);
