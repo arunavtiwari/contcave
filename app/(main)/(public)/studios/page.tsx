@@ -1,107 +1,180 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { headers } from "next/headers";
+import { Suspense } from "react";
 
-import Container from "@/components/layout/Container";
-import Breadcrumbs from "@/components/seo/Breadcrumbs";
+import getCurrentUser from "@/app/actions/getCurrentUser";
+import getListings, { IListingsParams } from "@/app/actions/getListings";
+import getRandomListings from "@/app/actions/getRandomListings";
+import ListingFeed from "@/components/listing/ListingFeed";
+import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
+import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
-import Heading from "@/components/ui/Heading";
-import { cityPath, getCityDirectory } from "@/lib/listing/cities";
-import { absoluteUrl, BRAND_NAME, breadcrumbJsonLd, OG_IMAGE } from "@/lib/seo";
+import EmptyState from "@/components/ui/EmptyState";
+import { isHtmlOnlyCrawler } from "@/lib/crawlers";
+import { listingPath } from "@/lib/listing/seo";
+import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { safeListing } from "@/types/listing";
 
-const INR = new Intl.NumberFormat("en-IN");
-const TITLE = "Studios for Rent Across India";
-const DESCRIPTION =
-  "Browse verified photo, video, podcast and event studios by city and book them by the hour on ContCave.";
-const TRAIL = [{ name: "Home", href: "/" }, { name: "Studios" }];
+export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: { canonical: "/studios" },
-  openGraph: {
-    type: "website",
-    title: TITLE,
-    description: DESCRIPTION,
-    url: absoluteUrl("/studios"),
-    siteName: BRAND_NAME,
-    locale: "en_IN",
-    images: [{ url: absoluteUrl(OG_IMAGE), width: 1200, height: 630, alt: TITLE }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: TITLE,
-    description: DESCRIPTION,
-    site: "@ContCave",
-    creator: "@ContCave",
-    images: [absoluteUrl(OG_IMAGE)],
-  },
-};
+const LISTINGS_TITLE = "Book Photo & Video Studios for Rent by the Hour" as const;
+const LISTINGS_DESCRIPTION =
+  "Compare and book verified photography, video, podcast and event studios in Delhi NCR, Gurgaon, Noida, Chandigarh, Mohali and Lucknow. Hourly pricing, real photos and instant availability." as const;
 
-export default async function StudiosByCityPage() {
-  const cities = await getCityDirectory();
-  const total = cities.reduce((sum, city) => sum + city.count, 0);
-  const url = absoluteUrl("/studios");
-  const intro = cities.length
-    ? `${total} verified ${total === 1 ? "studio" : "studios"} in ${cities.length} ${cities.length === 1 ? "city" : "cities"}, each bookable by the hour.`
-    : "New studios are being verified. Check back soon.";
+function hasActiveFilters(params: IListingsParams): boolean {
+  return Boolean(
+    params.locationValue ||
+    params.category ||
+    params.type ||
+    params.venueTypes ||
+    params.aesthetics ||
+    params.setFeatures ||
+    params.hasSets ||
+    params.startDate ||
+    params.endDate ||
+    params.userId
+  );
+}
+
+interface HomeProps {
+  searchParams: Promise<IListingsParams>;
+}
+
+export async function generateMetadata(props: HomeProps): Promise<Metadata> {
+  const searchParams = await props.searchParams;
+  const isFiltered = hasActiveFilters(searchParams);
+
+  return {
+    title: LISTINGS_TITLE,
+    description: LISTINGS_DESCRIPTION,
+    keywords: [
+      "studio rental",
+      "photography studio",
+      "video shoot space",
+      "creative studio",
+      "studio for rent Delhi NCR",
+      "podcast studio for rent",
+      "studio spaces India",
+      "book studio online",
+      "hourly studio rental",
+    ],
+    alternates: { canonical: "/studios" },
+    openGraph: {
+      title: LISTINGS_TITLE,
+      description: LISTINGS_DESCRIPTION,
+      url: `${SITE_URL}/studios`,
+      siteName: BRAND_NAME,
+      type: "website",
+      images: [
+        {
+          url: absoluteUrl(OG_IMAGE),
+          width: 1200,
+          height: 630,
+          alt: "ContCave Studio Listings",
+        },
+      ],
+      locale: "en_IN",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: LISTINGS_TITLE,
+      description: LISTINGS_DESCRIPTION,
+      site: "@ContCave",
+      creator: "@ContCave",
+      images: [absoluteUrl(OG_IMAGE)],
+    },
+    robots: {
+      index: !isFiltered,
+      follow: true,
+      googleBot: {
+        index: !isFiltered,
+        follow: true,
+        ...(isFiltered ? {} : { "max-image-preview": "large", "max-snippet": -1 }),
+      },
+    },
+  };
+}
+
+export default async function StudiosPage(props: HomeProps) {
+  const feed = <HomeContent {...props} />;
+  const htmlOnlyCrawler = isHtmlOnlyCrawler((await headers()).get("user-agent"));
+
+  return (
+    <StudioBrowse
+      feed={htmlOnlyCrawler ? feed : (
+        <Suspense fallback={<ListingGridSkeleton count={6} hideActions />}>
+          {feed}
+        </Suspense>
+      )}
+    />
+  );
+}
+
+async function HomeContent(props: HomeProps) {
+  const searchParams = await props.searchParams;
+  const isFiltered = hasActiveFilters(searchParams);
+
+  const [listing, currentUser] = await Promise.all([
+    getListings(searchParams),
+    getCurrentUser(),
+  ]);
+
+  // When filters produce 0 results, fetch popular alternatives to prevent thin content soft 404s
+  const fallbackListings = listing.length === 0 ? await getRandomListings(6) : [];
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "CollectionPage",
-        "@id": `${url}#page`,
-        url,
-        name: TITLE,
-        description: intro,
-        isPartOf: { "@id": `${absoluteUrl("/")}#website` },
-        mainEntity: {
-          "@type": "ItemList",
-          numberOfItems: cities.length,
-          itemListElement: cities.map((city, index) => ({
-            "@type": "ListItem",
-            position: index + 1,
-            name: `Studios for rent in ${city.city}`,
-            url: absoluteUrl(cityPath(city.city)),
-          })),
-        },
-      },
-      breadcrumbJsonLd(TRAIL, url),
-    ],
+    "@type": "ItemList",
+    "@id": `${SITE_URL}/studios#itemlist`,
+    name: "Studios available on ContCave",
+    url: `${SITE_URL}/studios`,
+    numberOfItems: listing.length,
+    itemListElement: listing.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: absoluteUrl(listingPath(item)),
+      name: item.title.trim(),
+      ...(item.imageSrc?.[0] ? { image: item.imageSrc[0] } : {}),
+    })),
   };
 
   return (
-    <main>
-      <JsonLd id="studios-jsonld" data={jsonLd} />
-      <Container>
-        <div className="flex flex-col gap-10 pt-8 pb-24">
-          <header className="flex flex-col gap-4">
-            <Breadcrumbs items={TRAIL} />
-            <Heading title="Studios for rent across India" as="h1" variant="h3" />
-            <p className="max-w-3xl text-muted-foreground">{intro}</p>
-          </header>
-
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {cities.map((city) => (
-              <li key={city.slug}>
-                <Link
-                  href={cityPath(city.city)}
-                  className="flex h-full flex-col gap-1 rounded-2xl border border-border p-5 transition-colors hover:border-foreground"
-                >
-                  <span className="text-lg font-semibold text-foreground">{city.city}</span>
-                  {city.state && city.state !== city.city && (
-                    <span className="text-sm text-muted-foreground">{city.state}</span>
-                  )}
-                  <span className="mt-2 text-sm text-muted-foreground">
-                    {city.count} {city.count === 1 ? "studio" : "studios"}
-                    {city.fromPrice ? ` · from ₹${INR.format(city.fromPrice)}/hr` : ""}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+    <>
+      {listing.length > 0 && <JsonLd id="home-listings-jsonld" data={jsonLd} />}
+      {listing.length === 0 ? (
+        <div className="space-y-10">
+          <EmptyState
+            showReset={isFiltered}
+            title={isFiltered ? "No exact matches found" : "No listings found"}
+            subtitle={
+              isFiltered
+                ? "Try adjusting or clearing some of your search filters to find available spaces."
+                : "We're currently adding new studios. Check back soon!"
+            }
+          />
+          {fallbackListings.length > 0 && (
+            <div className="border-t border-border pt-8">
+              <div className="mb-6 space-y-1">
+                <h2 className="text-xl font-bold tracking-tight text-foreground">
+                  Explore other top studios across India
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Here are some popular, verified spaces available for booking.
+                </p>
+              </div>
+              <ListingFeed
+                listings={fallbackListings as unknown as safeListing[]}
+                currentUser={currentUser}
+              />
+            </div>
+          )}
         </div>
-      </Container>
-    </main>
+      ) : (
+        <ListingFeed
+          listings={listing as unknown as safeListing[]}
+          currentUser={currentUser}
+        />
+      )}
+    </>
   );
 }

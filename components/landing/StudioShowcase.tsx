@@ -80,7 +80,7 @@ const StudioShowcase: React.FC<StudioShowcaseProps> = ({ listings }) => {
           />
           <Button
             label="Explore all studios"
-            href="/home"
+            href="/studios"
             variant="outline"
             outline
             rounded
@@ -99,7 +99,7 @@ const StudioShowcase: React.FC<StudioShowcaseProps> = ({ listings }) => {
         <div className="mt-12 text-center md:hidden">
           <Button
             label="View all studios"
-            href="/home"
+            href="/studios"
             variant="outline"
             outline
             rounded

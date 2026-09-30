@@ -10,7 +10,9 @@ import Pill from "@/components/ui/Pill";
 import useIndianCities from "@/hooks/useCities";
 import { AESTHETICS, SET_FEATURES, USE_CASES, VENUE_TYPES } from "@/lib/taxonomy";
 
-const FilterModalContent = () => {
+type Props = { city?: string };
+
+const FilterModalContent = ({ city }: Props) => {
   const router = useRouter();
   const params = useSearchParams();
   const { getByValue } = useIndianCities();
@@ -27,8 +29,8 @@ const FilterModalContent = () => {
     setSelectedVenueTypes(params?.get("venueTypes") ? params.get("venueTypes")!.split(",") : []);
     setSelectedAesthetics(params?.get("aesthetics") ? params.get("aesthetics")!.split(",") : []);
     setSelectedSetFeatures(params?.get("setFeatures") ? params.get("setFeatures")!.split(",") : []);
-    setSelectedCity(params?.get("locationValue") ?? null);
-  }, [params]);
+    setSelectedCity(params?.get("locationValue") ?? city ?? null);
+  }, [params, city]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -66,7 +68,7 @@ const FilterModalContent = () => {
     if (selectedCity) nextParams.set("locationValue", selectedCity);
     else nextParams.delete("locationValue");
 
-    router.push(`?${nextParams.toString()}`);
+    router.push(`/studios?${nextParams.toString()}`);
     setIsOpen(false);
   };
 
@@ -78,7 +80,7 @@ const FilterModalContent = () => {
     setSelectedAesthetics([]);
     setSelectedSetFeatures([]);
     setSelectedCity(null);
-    router.push(`?${nextParams.toString()}`);
+    router.push(`/studios?${nextParams.toString()}`);
     setIsOpen(false);
   };
 
@@ -185,7 +187,7 @@ const FilterModalContent = () => {
   );
 };
 
-const FilterModal = () => {
+const FilterModal = ({ city }: Props) => {
   return (
     <Suspense fallback={
       <div className="shrink-0">
@@ -200,7 +202,7 @@ const FilterModal = () => {
         />
       </div>
     }>
-      <FilterModalContent />
+      <FilterModalContent city={city} />
     </Suspense>
   );
 };

@@ -738,7 +738,7 @@ function OwnerDetailModal({
 
                     <div className="pt-1">
                       <Link
-                        href={`/listings/${listing.id}`}
+                        href={`/studio/${listing.id}`}
                         target="_blank"
                         className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                       >

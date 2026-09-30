@@ -54,7 +54,7 @@ export default async function RootNotFound() {
                             Go to homepage
                         </Link>
                         <Link
-                            href="/home"
+                            href="/studios"
                             className="rounded-full border border-foreground px-6 py-3 text-sm font-medium text-foreground"
                         >
                             Browse all studios

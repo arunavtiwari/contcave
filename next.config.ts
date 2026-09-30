@@ -32,6 +32,13 @@ const nextConfig: NextConfig = {
     compress: true,
     poweredByHeader: false,
     reactStrictMode: true,
+    async redirects() {
+        return [
+            { source: '/home', destination: '/studios', permanent: true },
+            { source: '/listings', destination: '/studios', permanent: true },
+            { source: '/listings/:listingId', destination: '/studio/:listingId', permanent: true },
+        ];
+    },
     async headers() {
         return [
             {

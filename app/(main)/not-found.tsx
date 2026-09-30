@@ -47,7 +47,7 @@ export default function NotFound() {
                 />
                 <Button
                     label="Browse listings"
-                    href="/listings"
+                    href="/studios"
                     variant="outline"
                     rounded
                     fit

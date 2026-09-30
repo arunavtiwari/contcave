@@ -216,7 +216,7 @@ export function getHostOnboardingTemplate(name: string): string {
 }
 
 export function getCustomerOnboardingTemplate(name: string): string {
-    const ctaUrl = `${getValidatedBaseUrl()}/home`;
+    const ctaUrl = `${getValidatedBaseUrl()}/studios`;
     return `
   <!DOCTYPE html>
   <html>
@@ -634,7 +634,7 @@ export async function sendCuratedOutreachEmail(input: {
       <p>This is a <strong>ContCave Curated</strong> listing. We set it up using your publicly available details so brands can start finding you right away. It's free, and there's no commitment.</p>
 
       <table cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="background:#b45309;border-radius:6px;">
-        <a href="${baseUrl}/listings/${escapeEmailHtml(input.listingId)}" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-weight:bold;">View your listing</a>
+        <a href="${baseUrl}/studio/${escapeEmailHtml(input.listingId)}" style="display:inline-block;padding:12px 24px;color:#ffffff;text-decoration:none;font-weight:bold;">View your listing</a>
       </td></tr></table>
 
       <p><strong>Take 5 minutes to make it yours.</strong> Brands shortlist studios with clear pricing and good photos first. Send us:</p>
@@ -691,7 +691,7 @@ export function getReservationFailedTemplate(
                 <p>If your bank shows a debit for this attempt, the amount will be reversed or refunded to your original payment method. Processing times vary by bank and payment provider.</p>
                 <p>You can return to ContCave to try the booking again.</p>
                 <div style="text-align:center;margin:32px 0;">
-                  <a href="${getValidatedBaseUrl()}/home"
+                  <a href="${getValidatedBaseUrl()}/studios"
                      style="background:#000000;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block;">
                     Try Booking Again
                   </a>

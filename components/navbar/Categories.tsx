@@ -11,7 +11,9 @@ import Button from "@/components/ui/Button";
 import { categories } from "./categoriesData";
 
 
-const CategoriesContent = memo(function CategoriesContent() {
+type Props = { city?: string };
+
+const CategoriesContent = memo(function CategoriesContent({ city }: Props) {
   const params = useSearchParams();
   const venueType = useMemo(() => params?.get("venueTypes"), [params]);
 
@@ -23,9 +25,10 @@ const CategoriesContent = memo(function CategoriesContent() {
           icon={item.icon}
           label={item.label}
           selected={venueType === item.label}
+          city={city}
         />
       )),
-    [venueType]
+    [venueType, city]
   );
 
   return (
@@ -33,14 +36,14 @@ const CategoriesContent = memo(function CategoriesContent() {
       <div className="flex-1 overflow-x-auto hide-scrollbar flex gap-4 items-center">
         {categoryItems}
       </div>
-      <FilterModal />
+      <FilterModal city={city} />
     </div>
   );
 });
 
 CategoriesContent.displayName = "CategoriesContent";
 
-const Categories = memo(function Categories() {
+const Categories = memo(function Categories({ city }: Props) {
   return (
     <Suspense fallback={
       <div className="mt-4 mb-6 w-full flex flex-row items-center justify-between gap-2 border-b border-border">
@@ -65,7 +68,7 @@ const Categories = memo(function Categories() {
         </div>
       </div>
     }>
-      <CategoriesContent />
+      <CategoriesContent city={city} />
     </Suspense>
   );
 });
