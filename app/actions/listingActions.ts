@@ -9,14 +9,17 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import { createAction } from "@/lib/actions-utils";
 import { UserFacingError } from "@/lib/errors";
-import { ListingService } from "@/lib/listing/service";
+import { assertDefaultAmenitiesExist, ListingService } from "@/lib/listing/service";
 import { decryptAndSanitizePaymentDetails } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
 import { rateLimitRequest } from "@/lib/security/rateLimit";
+import { sanitizeStringList } from "@/lib/strings";
 import { objectIdSchema } from "@/schemas/common";
 import { dayStatusSchema } from "@/schemas/dayStatus";
 import {
     approveListingSchema,
+    customAmenitiesSchema,
+    defaultAmenitiesSchema,
     deleteBlockSchema,
     deleteListingSchema,
     listingBaseSchema,
@@ -469,7 +472,7 @@ export const updateListingAction = createAction(
         const { id, ...updateData } = data;
         const listing = await ListingService.updateListing(user.id, id, updateData, isContcave || user.role === "ADMIN");
 
-        revalidatePath(`/listings/${id}`);
+        revalidatePath(`/studio/${id}`);
         revalidatePath("/properties");
         revalidatePath("/dashboard/properties");
 
@@ -526,7 +529,7 @@ export const createBlockAction = createAction(
     async (data, { user }) => {
         const { listingId, ...blockData } = data;
         await ListingService.createBlock(user.id, listingId, blockData, user.role === "ADMIN");
-        revalidatePath(`/listings/${listingId}`);
+        revalidatePath(`/studio/${listingId}`);
         return { success: true };
     }
 );
@@ -536,7 +539,7 @@ export const deleteBlockAction = createAction(
     { requireAuth: true, allowedRoles: ["OWNER", "ADMIN"] },
     async (data, { user }) => {
         await ListingService.deleteBlock(user.id, data.listingId, data.blockId, user.role === "ADMIN");
-        revalidatePath(`/listings/${data.listingId}`);
+        revalidatePath(`/studio/${data.listingId}`);
         return { success: true };
     }
 );
@@ -573,7 +576,7 @@ export const updateDayStatusAction = createAction(
             },
         });
 
-        revalidatePath(`/listings/${listingId}`);
+        revalidatePath(`/studio/${listingId}`);
         return { success: true };
     }
 );
@@ -596,8 +599,8 @@ const curatedListingSchema = z.object({
     locationValue: z.string().trim().min(1).max(300),
     propertyStateCode: z.string().regex(/^\d{2}$/).optional().nullable(),
     imageSrc: z.array(curatedHttpUrlSchema(500)).min(1).max(30),
-    amenities: z.array(z.string()).max(100).default([]),
-    otherAmenities: z.array(z.string().trim().min(1).max(100)).max(50).default([]),
+    amenities: defaultAmenitiesSchema.default([]),
+    otherAmenities: customAmenitiesSchema.default([]),
     customTerms: z.string().max(20000).optional(),
     priceRangeMin: z.number().int().positive().optional(),
     priceRangeMax: z.number().int().positive().optional(),
@@ -629,8 +632,8 @@ export const createCuratedListingAction = createAction(
                 status: "VERIFIED",
                 active: true,
                 userId: user.id,
-                amenities: data.amenities,
-                otherAmenities: data.otherAmenities,
+                amenities: await assertDefaultAmenitiesExist(data.amenities),
+                otherAmenities: sanitizeStringList(data.otherAmenities),
                 type: [],
             },
         });
@@ -653,7 +656,7 @@ export const createCuratedListingAction = createAction(
             }
         }
 
-        revalidatePath("/home");
+        revalidatePath("/studios");
         revalidatePath("/admin/dashboard/listings");
         return { listingId: listing.id };
     }

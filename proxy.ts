@@ -176,6 +176,11 @@ function buildCSP(nonce: string): string {
             'https://*.ably.net',
             'wss://*.ably.net',
             'https://capig.datah04.com',
+            'https://www.googletagmanager.com',
+            'https://*.google-analytics.com',
+            'https://*.analytics.google.com',
+            'https://analytics.google.com',
+            'https://www.google.com',
             'https://vercel.live',
             'wss://vercel.live'
         ],
@@ -198,7 +203,7 @@ function buildCSP(nonce: string): string {
 
 function permissionsPolicyForPath(pathname: string): string {
     const allowGeo =
-        pathname === '/home'
+        pathname === '/studios' || pathname.startsWith('/studios/')
 
     return [
         'camera=()',

@@ -101,7 +101,7 @@ function fileSize(bytes?: number) {
 }
 
 function publicListingHref(slugOrId: string) {
-    const path = `/listings/${slugOrId}`;
+    const path = `/studio/${slugOrId}`;
     if (typeof window === "undefined") return path;
 
     const url = new URL(window.location.href);

@@ -26,6 +26,12 @@ const temporaryMediaUrlSchema = z.string().url().max(2000, "URL too long").refin
 // persistence validates the resulting HTTP(S) URLs separately.
 export const persistedMediaUrlSchema = httpUrlSchema(500);
 
+export const defaultAmenitiesSchema = z.array(z.string().trim().min(1).max(100)).max(50);
+
+export const customAmenitiesSchema = z
+  .array(z.string().trim().min(1).max(100).regex(/\D/, "Custom amenity must be a name, not a number"))
+  .max(50);
+
 const signatureImageSchema = z.string().max(1_400_000, "Signature image is too large").refine((value) => {
     if (/^data:image\/(?:png|jpe?g);base64,[A-Za-z0-9+/=\s]+$/.test(value)) return true;
     try {
@@ -207,8 +213,8 @@ export const listingBaseSchema = z.object({
     contactEmail: z.string().email().optional().nullable().or(z.literal("")),
 
 
-    amenities: z.array(z.string().trim().min(1).max(100)).max(50).optional(),
-    otherAmenities: z.array(z.string().trim().min(1).max(100)).max(50).optional(),
+    amenities: defaultAmenitiesSchema.optional(),
+    otherAmenities: customAmenitiesSchema.optional(),
     type: z.array(z.enum(USE_CASE_LABELS)).max(20).optional(),
     venueTypes: z.array(z.enum(VENUE_TYPE_LABELS)).max(7).optional().default([]),
     aesthetics: z.array(z.enum(AESTHETIC_LABELS)).max(6).optional().default([]),

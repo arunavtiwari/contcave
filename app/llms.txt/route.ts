@@ -51,7 +51,7 @@ export async function GET() {
     for (const city of cities) {
       const count = `${city.count} ${city.count === 1 ? "studio" : "studios"}`;
       const price = city.fromPrice ? `, from ₹${INR.format(city.fromPrice)}/hr` : "";
-      lines.push(link(`Studios for rent in ${city.city}`, cityPath(city.city), `${count}${price}`));
+      lines.push(link(`Studios in ${city.city}`, cityPath(city.city), `${count}${price}`));
     }
   }
 
@@ -82,7 +82,7 @@ export async function GET() {
     "## Optional",
     "",
     link("About ContCave", "/about"),
-    link("Browse all studios", "/home"),
+    link("Browse all studios", "/studios"),
     "- Contact: info@contcave.com",
     ""
   );

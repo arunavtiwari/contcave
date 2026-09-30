@@ -10,14 +10,16 @@ type Props = {
   icon: IconType;
   label: string;
   selected?: boolean;
+  city?: string;
 };
 
-const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label, selected }: Props) {
+const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label, selected, city }: Props) {
   const params = useSearchParams();
 
   const currentQuery = params ? qs.parse(params.toString()) : {};
 
   const updatedQuery: Record<string, string | string[] | null | undefined> = {
+    ...(city ? { locationValue: city } : {}),
     ...currentQuery,
     venueTypes: label,
   };
@@ -28,7 +30,7 @@ const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label,
 
   const url = qs.stringifyUrl(
     {
-      url: "/home",
+      url: "/studios",
       query: updatedQuery,
     },
     { skipNull: true }

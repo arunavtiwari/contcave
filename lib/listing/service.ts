@@ -165,7 +165,7 @@ function getOperatingWindowHours(value: unknown): number | null {
     return start >= 0 && end > start ? (end - start) / 2 : null;
 }
 
-async function assertDefaultAmenitiesExist(value: unknown) {
+export async function assertDefaultAmenitiesExist(value: unknown) {
     const ids = sanitizeStringList(value);
     if (ids.some((id) => !/^[a-f\d]{24}$/i.test(id))) {
         throw new UserFacingError("One or more selected default amenities are invalid");

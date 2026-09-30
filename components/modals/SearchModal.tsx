@@ -63,7 +63,7 @@ function SearchModalContent({ }: Props) {
 
     const url = qs.stringifyUrl(
       {
-        url: "/home",
+        url: "/studios",
         query: updatedQuery,
       },
       { skipNull: true }

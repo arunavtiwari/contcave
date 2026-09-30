@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Container from "@/components/layout/Container";
 import CuratedReservation from "@/components/listing/CuratedReservation";
@@ -48,7 +48,6 @@ type Props = {
   availability: Promise<ListingAvailability>;
   reviews?: PublicReview[];
   amenities?: SafeAmenity[];
-  breadcrumbs?: ReactNode;
   processedDescription?: string | null;
   processedTerms?: string | null;
   descriptionShouldTruncate?: boolean;
@@ -138,7 +137,6 @@ function ListingClient({
   availability: availabilityPromise,
   reviews,
   amenities,
-  breadcrumbs,
   processedDescription,
   processedTerms,
   descriptionShouldTruncate,
@@ -770,7 +768,6 @@ function ListingClient({
       <Container>
         <div className="max-w-280 mx-auto pb-24">
           <div className="flex flex-col gap-2">
-            {breadcrumbs}
             <ListingHead
               title={listing.title}
               imageSrc={listing.imageSrc}

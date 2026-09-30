@@ -40,7 +40,7 @@ function EmptyState({
         <div className="mt-8">
           <Button
             label="Clear all filters"
-            onClick={() => window.location.href = '/home'}
+            onClick={() => window.location.href = '/studios'}
             className="px-8"
             rounded
           />

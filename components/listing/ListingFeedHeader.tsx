@@ -10,7 +10,7 @@ import { useLocationSearch } from "@/hooks/useLocationSearch";
 import { useLocationSort } from "@/hooks/useLocationSort";
 import { cn } from "@/lib/utils";
 
-const ListingFeedHeader: React.FC = () => {
+const ListingFeedHeader: React.FC<{ title?: string }> = ({ title = "Explore studios" }) => {
     const {
         sortedByLocation,
         showSortOptions,
@@ -27,7 +27,7 @@ const ListingFeedHeader: React.FC = () => {
                     "text-xl font-bold tracking-tight text-foreground shrink-0",
                     showSortOptions ? "hidden md:block" : "block"
                 )}>
-                    {sortedByLocation ? "Spaces near location" : "Explore studios for rent"}
+                    {sortedByLocation ? "Spaces near location" : title}
                 </h1>
 
                 <AnimatePresence mode="wait">

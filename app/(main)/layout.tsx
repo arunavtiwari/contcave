@@ -137,7 +137,7 @@ const webSiteJsonLd = {
         "@type": "SearchAction",
         target: {
             "@type": "EntryPoint",
-            urlTemplate: `${SITE_URL}/home?locationValue={search_term_string}`,
+            urlTemplate: `${SITE_URL}/studios?locationValue={search_term_string}`,
         },
         "query-input": "required name=search_term_string",
     },
@@ -183,8 +183,10 @@ export default async function RootLayout({
                         <CookieConsent />
                     </ClientOnly>
                     {children}
-                    <WhatsAppFloatingButton />
-                    <ScrollToTop />
+                    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-center gap-3">
+                        <WhatsAppFloatingButton />
+                        <ScrollToTop />
+                    </div>
                 </GlobalProviders>
             </body>
         </html>

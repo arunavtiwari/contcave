@@ -1,6 +1,7 @@
 import { type NextRequest } from "next/server";
 
 import { isAdminDomainHost } from "@/lib/http/adminHost";
+import { listingSitemapCount, listingSitemapPath } from "@/lib/listing/sitemap";
 import { SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -46,17 +47,24 @@ const rules = (agents: string[], extra: string[] = []) =>
     ...PRIVATE_PATHS.map((path) => `Disallow: ${path}`),
   ].join("\n");
 
-const PUBLIC_ROBOTS = [
-  rules(["*"], [CONTENT_SIGNAL]),
-  rules(NAMED_CRAWLERS, [CONTENT_SIGNAL]),
-  `Sitemap: ${SITE_URL}/sitemap.xml`,
-].join("\n\n") + "\n";
+async function publicRobots() {
+  const count = await listingSitemapCount().catch(() => 1);
+  const sitemaps = [
+    `Sitemap: ${SITE_URL}/sitemap.xml`,
+    ...Array.from({ length: count }, (_, id) => `Sitemap: ${SITE_URL}${listingSitemapPath(id)}`),
+  ];
+  return [
+    rules(["*"], [CONTENT_SIGNAL]),
+    rules(NAMED_CRAWLERS, [CONTENT_SIGNAL]),
+    sitemaps.join("\n"),
+  ].join("\n\n") + "\n";
+}
 
 const ADMIN_ROBOTS = "User-agent: *\nDisallow: /\n";
 
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const host = request.headers.get("host") ?? request.nextUrl.host;
-  return new Response(isAdminDomainHost(host) ? ADMIN_ROBOTS : PUBLIC_ROBOTS, {
+  return new Response(isAdminDomainHost(host) ? ADMIN_ROBOTS : await publicRobots(), {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "public, max-age=0, s-maxage=3600",
