@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { FiSliders } from "react-icons/fi";
 
 import CitySelect from "@/components/inputs/CitySelect";
@@ -19,29 +19,39 @@ const FilterModalContent = ({ city }: Props) => {
   const { getByValue } = useIndianCities();
   const [isOpen, setIsOpen] = useState(false);
 
+  const applied = useMemo(() => {
+    const list = (key: string) => params?.get(key)?.split(",").filter(Boolean) ?? [];
+    return {
+      types: list("type"),
+      venueTypes: list("venueTypes"),
+      aesthetics: list("aesthetics"),
+      setFeatures: list("setFeatures"),
+      city: params?.get("locationValue") ?? city ?? null,
+    };
+  }, [params, city]);
+
+  const activeFilterCount = [
+    applied.types.length > 0,
+    applied.venueTypes.length > 0,
+    applied.aesthetics.length > 0,
+    applied.setFeatures.length > 0,
+    Boolean(applied.city),
+  ].filter(Boolean).length;
+
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedVenueTypes, setSelectedVenueTypes] = useState<string[]>([]);
   const [selectedAesthetics, setSelectedAesthetics] = useState<string[]>([]);
   const [selectedSetFeatures, setSelectedSetFeatures] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
-  useEffect(() => {
-    setSelectedTypes(params?.get("type") ? params.get("type")!.split(",") : []);
-    setSelectedVenueTypes(params?.get("venueTypes") ? params.get("venueTypes")!.split(",") : []);
-    setSelectedAesthetics(params?.get("aesthetics") ? params.get("aesthetics")!.split(",") : []);
-    setSelectedSetFeatures(params?.get("setFeatures") ? params.get("setFeatures")!.split(",") : []);
-    setSelectedCity(params?.get("locationValue") ?? city ?? null);
-  }, [params, city]);
-
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (selectedTypes.length > 0) count++;
-    if (selectedVenueTypes.length > 0) count++;
-    if (selectedAesthetics.length > 0) count++;
-    if (selectedSetFeatures.length > 0) count++;
-    if (selectedCity) count++;
-    return count;
-  }, [selectedTypes, selectedVenueTypes, selectedAesthetics, selectedSetFeatures, selectedCity]);
+  const openFilters = () => {
+    setSelectedTypes(applied.types);
+    setSelectedVenueTypes(applied.venueTypes);
+    setSelectedAesthetics(applied.aesthetics);
+    setSelectedSetFeatures(applied.setFeatures);
+    setSelectedCity(applied.city);
+    setIsOpen(true);
+  };
 
   const urlSearchParams = useMemo(() => {
     return new URLSearchParams(params ? Array.from(params.entries()) : []);
@@ -163,7 +173,7 @@ const FilterModalContent = ({ city }: Props) => {
         variant="ghost"
         size="sm"
         fit
-        onClick={() => setIsOpen(true)}
+        onClick={openFilters}
         className="bg-muted border border-border hover:bg-muted/80 h-9 px-3 gap-1.5 font-medium"
       >
         {activeFilterCount > 0 && (

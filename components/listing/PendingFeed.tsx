@@ -11,7 +11,7 @@ export default function PendingFeed({ children }: { children: ReactNode }) {
   return (
     <div
       aria-busy={isPending}
-      className={cn("transition-opacity duration-200", isPending && "pointer-events-none opacity-50")}
+      className={cn("transition-opacity duration-200", isPending && "pointer-events-none opacity-50 delay-150")}
     >
       {children}
     </div>
