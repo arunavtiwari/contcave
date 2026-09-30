@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const ListingFeedHeader: React.FC<{ title?: string }> = ({ title = "Explore studios" }) => {
     const {
-        sortedByLocation,
+        nearLabel,
         showSortOptions,
         setShowSortOptions,
         isLocating
@@ -27,7 +27,7 @@ const ListingFeedHeader: React.FC<{ title?: string }> = ({ title = "Explore stud
                     "text-xl font-bold tracking-tight text-foreground shrink-0",
                     showSortOptions ? "hidden md:block" : "block"
                 )}>
-                    {sortedByLocation ? "Spaces near location" : title}
+                    {nearLabel ? `Studios near ${nearLabel}` : title}
                 </h1>
 
                 <AnimatePresence mode="wait">

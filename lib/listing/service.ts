@@ -3,6 +3,7 @@ import { formatInTimeZone } from "date-fns-tz";
 
 import { TIME_SLOTS } from "@/constants/timeSlots";
 import { UserFacingError } from "@/lib/errors";
+import type { LatLng } from "@/lib/geo";
 import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isRichTextEmpty } from "@/lib/richText";
@@ -11,11 +12,24 @@ import { dispatchMediaDeletion } from "@/lib/storage/mediaDeletion";
 import { slugify } from "@/lib/strings";
 import { sanitizeStringList } from "@/lib/strings";
 import { normaliseUseCase } from "@/lib/taxonomy";
-import { listingBaseSchema, listingSchema, persistedMediaUrlSchema } from "@/schemas/listing";
+import { listingBaseSchema, listingSchema, persistedMediaUrlSchema, type StudioFeedFilters, studioFeedSearchParamsSchema } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
-import { ActualLocation, FullListing, ListingBlockData } from "@/types/listing";
+import { ActualLocation, FullListing, ListingBlockData, type StudioFeedItem, type StudioFeedPage } from "@/types/listing";
 
-import { resolveListingLocation } from "./location";
+import {
+    buildFeedPipeline,
+    cursorFromRow,
+    decodeFeedCursor,
+    distanceKmOf,
+    encodeFeedCursor,
+    FEED_PAGE_SIZE,
+    type FeedCursor,
+    type FeedRow,
+    hydratableListingFilter,
+    readRawId,
+    toStudioFeedItem,
+} from "./feedQuery";
+import { LISTING_GEO_INDEX, resolveListingLocation } from "./location";
 import { collectListingMediaRefs, ListingMediaSource, orphanedListingMediaRefs } from "./media";
 
 type ListingWithRelations = Prisma.ListingGetPayload<{
@@ -29,8 +43,7 @@ type ListingWithRelations = Prisma.ListingGetPayload<{
 
 type ValidatedListingInput = ReturnType<typeof listingSchema.parse>;
 
-type RawMongoId = string | { $oid?: unknown };
-type RawListingId = { _id?: RawMongoId };
+type RawListingId = { _id?: string | { $oid?: unknown } };
 
 const JSON_FIELD_KEYS = new Set([
     "actualLocation",
@@ -309,61 +322,16 @@ function sanitizePublicLocation(value: unknown): ActualLocation | null {
 }
 
 export class ListingService {
-    private static readonly NUMERIC_OR_EMPTY_FILTER = [
-        { $exists: false },
-        null,
-        { $type: "int" },
-        { $type: "long" },
-    ];
-
-    private static getHydratableNumberFilter(fieldName: string) {
-        return {
-            $or: this.NUMERIC_OR_EMPTY_FILTER.map((condition) => ({
-                [fieldName]: condition,
-            })),
-        };
-    }
-
-    private static getHydratableListingFilter(params: { active?: boolean; status?: string; listingType?: "STANDARD" | "CURATED" } = { active: true }): Record<string, unknown> {
-        const filter: Record<string, unknown> = {
-            $and: [
-                { $or: [{ archivedAt: { $exists: false } }, { archivedAt: null }] },
-                this.getHydratableNumberFilter("price"),
-                this.getHydratableNumberFilter("carpetArea"),
-                this.getHydratableNumberFilter("minimumBookingHours"),
-                this.getHydratableNumberFilter("maximumPax"),
-                this.getHydratableNumberFilter("unifiedSetPrice"),
-                this.getHydratableNumberFilter("priceRangeMin"),
-                this.getHydratableNumberFilter("priceRangeMax"),
-                this.getHydratableNumberFilter("enquiryCount"),
-            ],
-        };
-
-        if (typeof params.active === "boolean") filter.active = params.active;
-        if (params.status) filter.status = params.status;
-        if (params.listingType === "CURATED") filter.listingType = "CURATED";
-        if (params.listingType === "STANDARD") {
-            filter.listingType = { $ne: "CURATED" };
-        }
-
-        return filter;
-    }
-
-    private static extractRawMongoId(raw: RawListingId): string | null {
-        const id = raw._id;
-        if (typeof id === "string") return id;
-        if (id && typeof id === "object" && typeof id.$oid === "string") return id.$oid;
-        return null;
-    }
+    private static geoIndexReady: Promise<void> | null = null;
 
     static async getHydratableListingIds(params: { active?: boolean; status?: string } = { active: true }): Promise<string[]> {
         const rawListings = await prisma.listing.findRaw({
-            filter: this.getHydratableListingFilter(params) as Prisma.InputJsonObject,
+            filter: hydratableListingFilter(params) as Prisma.InputJsonObject,
             options: { projection: { _id: 1 } },
         }) as unknown as RawListingId[];
 
         return rawListings
-            .map((item) => this.extractRawMongoId(item))
+            .map(readRawId)
             .filter((id): id is string => !!id);
     }
 
@@ -389,12 +357,12 @@ export class ListingService {
         const pageSize = Number.isFinite(params.pageSize)
             ? Math.min(100, Math.max(1, Math.floor(params.pageSize)))
             : 20;
-        const rowFilter = this.getHydratableListingFilter({
+        const rowFilter = hydratableListingFilter({
             ...(params.status ? { status: params.status } : {}),
             listingType: params.listingType,
         });
         // Same hydratability rules, but across both listing types so one pass can tally both.
-        const countFilter = this.getHydratableListingFilter({});
+        const countFilter = hydratableListingFilter({});
 
         const result = await prisma.listing.aggregateRaw({
             pipeline: [
@@ -446,7 +414,7 @@ export class ListingService {
 
         return {
             ids: (facet.rows || [])
-                .map((item) => this.extractRawMongoId(item))
+                .map(readRawId)
                 .filter((id): id is string => !!id),
             total: facet.pageTotal?.[0]?.total ?? 0,
             statusCounts,
@@ -1129,81 +1097,131 @@ export class ListingService {
         startDate?: string;
         endDate?: string;
     }): Promise<FullListing[]> {
-        const { userId, locationValue, category, type, venueTypes, aesthetics, setFeatures, hasSets, startDate, endDate } = params;
+        const { userId, hasSets, ...searchParams } = params;
+        if (userId) return this.getOwnerListings(userId);
 
-        const query: Prisma.ListingWhereInput = {};
-        query.OR = [{ archivedAt: null }, { archivedAt: { isSet: false } }];
-
-        if (userId) {
-            query.userId = userId;
-        } else {
-            query.active = true;
-            query.status = "VERIFIED";
-            const hydratableIds = await this.getHydratableListingIds({ active: true, status: "VERIFIED" });
-            if (hydratableIds.length === 0) return [];
-            query.id = { in: hydratableIds };
-        }
-
-        if (category) query.category = category;
-        if (locationValue) query.locationValue = locationValue;
-        if (type) query.type = { hasSome: type.split(",") };
-        if (venueTypes) query.venueTypes = { hasSome: venueTypes.split(",") };
-        if (aesthetics) query.aesthetics = { hasSome: aesthetics.split(",") };
-        if (setFeatures) query.setFeatures = { hasSome: setFeatures.split(",") };
-        if (hasSets) query.hasSets = true;
-
-        if (startDate && endDate) {
-            const rangeStart = new Date(startDate);
-            const rangeEnd = new Date(endDate);
-            if (!Number.isFinite(rangeStart.getTime()) || !Number.isFinite(rangeEnd.getTime()) || rangeStart > rangeEnd) {
-                throw new UserFacingError("Invalid listing availability date range");
-            }
-            query.NOT = {
-                reservations: {
-                    some: {
-                        AND: [
-                            { markedForDeletion: false },
-                            { status: { in: ["PENDING_APPROVAL", "CONFIRMED", "CHECKED_IN"] } },
-                            {
-                                startDate: {
-                                    gte: rangeStart,
-                                    lte: rangeEnd,
-                                },
-                            },
-                        ],
-                    },
-                },
-            };
-        }
+        const filters = studioFeedSearchParamsSchema.parse({ ...searchParams, hasSets: hasSets ? "true" : undefined });
+        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, origin: null, after: null }));
+        const ids = rows.map(readRawId).filter((id): id is string => !!id);
+        if (ids.length === 0) return [];
 
         const listings = await prisma.listing.findMany({
-            where: query,
+            where: { id: { in: ids } },
+            include: { packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, user: true },
+        });
+        const byId = new Map(listings.map((listing) => [listing.id, listing]));
+        return ids
+            .map((id) => byId.get(id))
+            .filter((listing): listing is NonNullable<typeof listing> => Boolean(listing))
+            .map((listing) => this.normalizeListingWithRelations(listing as ListingWithRelations))
+            .filter((item): item is FullListing => item !== null);
+    }
+
+    private static async getOwnerListings(userId: string): Promise<FullListing[]> {
+        const listings = await prisma.listing.findMany({
+            where: { userId, OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }] },
             orderBy: { createdAt: "desc" },
             include: { packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, user: true },
         });
+        const weightOf = (item: FullListing) =>
+            item.status === "VERIFIED" && item.listingType === "STANDARD" ? 1 : item.listingType === "CURATED" ? 2 : 3;
 
-        const normalized = listings
-            .map(l => this.normalizeListingWithRelations(l as ListingWithRelations))
-            .filter((item): item is FullListing => item !== null);
+        return listings
+            .map((listing) => this.normalizeListingWithRelations(listing as ListingWithRelations))
+            .filter((item): item is FullListing => item !== null)
+            .sort((a, b) => weightOf(a) - weightOf(b) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
 
-        const weighted = normalized.map((item) => {
-            const isVerifiedStandard = item.status === "VERIFIED" && item.listingType === "STANDARD";
-            const isCurated = item.listingType === "CURATED";
-            return {
-                item,
-                weight: isVerifiedStandard ? 1 : isCurated ? 2 : 3,
-                time: item.createdAt ? new Date(item.createdAt).getTime() : 0,
-            };
+    static async getListingFeedPage({
+        filters,
+        origin,
+        cursor,
+        size = FEED_PAGE_SIZE,
+    }: {
+        filters: StudioFeedFilters;
+        origin: LatLng | null;
+        cursor?: string | null;
+        size?: number;
+    }): Promise<StudioFeedPage> {
+        const after = cursor ? decodeFeedCursor(cursor) : null;
+        const { rows, origin: appliedOrigin } = await this.queryFeedRows(filters, origin, after, size + 1);
+        const pageRows = rows.slice(0, size);
+        const lastRow = pageRows[pageRows.length - 1];
+
+        return {
+            items: await this.loadFeedItems(pageRows.map(readRawId).filter((id): id is string => !!id)),
+            nextCursor: rows.length > size && lastRow ? encodeFeedCursor(cursorFromRow(lastRow)) : null,
+            nearestKm: after ? null : distanceKmOf(pageRows[0]),
+            origin: appliedOrigin,
+        };
+    }
+
+    private static async queryFeedRows(
+        filters: StudioFeedFilters,
+        origin: LatLng | null,
+        after: FeedCursor | null,
+        limit: number
+    ): Promise<{ rows: FeedRow[]; origin: LatLng | null }> {
+        const defaultPipeline = buildFeedPipeline({ filters, origin: null, after, limit });
+        if (!origin) return { rows: await this.runFeedPipeline(defaultPipeline), origin: null };
+
+        const geoPipeline = buildFeedPipeline({ filters, origin, after, limit });
+        try {
+            await this.ensureListingGeoIndex();
+            return { rows: await this.runFeedPipeline(geoPipeline), origin };
+        } catch (error) {
+            if (after) throw error;
+            console.error("[ListingService] Location-sorted feed failed; serving the default order.", error);
+            return { rows: await this.runFeedPipeline(defaultPipeline), origin: null };
+        }
+    }
+
+    private static async runFeedPipeline(pipeline: Record<string, unknown>[]): Promise<FeedRow[]> {
+        return await prisma.listing.aggregateRaw({
+            pipeline: pipeline as unknown as Prisma.InputJsonValue[],
+        }) as unknown as FeedRow[];
+    }
+
+    private static ensureListingGeoIndex(): Promise<void> {
+        this.geoIndexReady ??= prisma
+            .$runCommandRaw({ createIndexes: "Listing", indexes: [LISTING_GEO_INDEX] as unknown as Prisma.InputJsonValue })
+            .then(() => undefined)
+            .catch((error: unknown) => {
+                this.geoIndexReady = null;
+                throw error;
+            });
+        return this.geoIndexReady;
+    }
+
+    private static async loadFeedItems(ids: string[]): Promise<StudioFeedItem[]> {
+        if (ids.length === 0) return [];
+        const listings = await prisma.listing.findMany({
+            where: { id: { in: ids } },
+            select: {
+                id: true,
+                slug: true,
+                title: true,
+                imageSrc: true,
+                price: true,
+                locationValue: true,
+                category: true,
+                venueTypes: true,
+                avgReviewRating: true,
+                status: true,
+                hasSets: true,
+                carpetArea: true,
+                maximumPax: true,
+                listingType: true,
+                priceRangeMin: true,
+                priceRangeMax: true,
+                actualLocation: true,
+            },
         });
-
-        weighted.sort((a, b) => {
-            if (a.weight !== b.weight) {
-                return a.weight - b.weight;
-            }
-            return b.time - a.time;
-        });
-
-        return weighted.map((w) => w.item);
+        const byId = new Map(listings.map((listing) => [listing.id, listing]));
+        return ids
+            .map((id) => byId.get(id))
+            .filter((listing): listing is NonNullable<typeof listing> => Boolean(listing))
+            .map(toStudioFeedItem);
     }
 
     static async getRandomListings(limit: number = 3): Promise<FullListing[]> {

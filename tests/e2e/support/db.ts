@@ -3,7 +3,8 @@ import crypto from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-import { type LatLng, toGeoPoint } from "../../../lib/listing/location";
+import type { LatLng } from "../../../lib/geo";
+import { toGeoPoint } from "../../../lib/listing/location";
 import { getE2EConnectionEnv } from "./env";
 import { readRunState, trackCreated } from "./run-state";
 

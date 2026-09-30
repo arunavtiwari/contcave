@@ -1,39 +1,67 @@
 "use client";
 
 import { useCallback } from "react";
+import { toast } from "sonner";
 
 import { AutoCompleteValue } from "@/components/ui/AutoComplete";
+import { CURRENT_LOCATION_LABEL, type Nearby, NEARBY_COOKIE, NEARBY_COOKIE_MAX_AGE, serializeNearby } from "@/lib/geo";
 
+import { useFilterNavigation } from "./useFilterNavigation";
 import { useLocationSort } from "./useLocationSort";
 
-const GEO_TIMEOUT = 8000;
+const GEO_OPTIONS: PositionOptions = { enableHighAccuracy: false, timeout: 10_000, maximumAge: 10 * 60_000 };
+
+const SEARCH_INSTEAD = "or search for a place instead.";
+
+function geolocationErrorMessage(error: GeolocationPositionError) {
+    switch (error.code) {
+        case error.PERMISSION_DENIED:
+            return `Location access is blocked for this site. Allow it in your browser settings, ${SEARCH_INSTEAD}`;
+        case error.POSITION_UNAVAILABLE:
+            return `Your device couldn't find its location. Turn on Location Services for this browser, ${SEARCH_INSTEAD}`;
+        default:
+            return `Finding your location took too long. Try again, ${SEARCH_INSTEAD}`;
+    }
+}
+
+function rememberNearby(nearby: Nearby) {
+    const secure = window.location.protocol === "https:" ? "; secure" : "";
+    document.cookie = `${NEARBY_COOKIE}=${serializeNearby(nearby)}; path=/; max-age=${NEARBY_COOKIE_MAX_AGE}; samesite=lax${secure}`;
+}
+
+const placeLabel = (displayName: string) => displayName.split(",")[0]?.trim() || displayName;
 
 export const useLocationSearch = () => {
-    const { setIsLocating, prioritize } = useLocationSort();
+    const { setIsLocating } = useLocationSort();
+    const { refresh } = useFilterNavigation();
+
+    const choose = useCallback((nearby: Nearby) => {
+        rememberNearby(nearby);
+        refresh();
+    }, [refresh]);
 
     const handleDetectLocation = useCallback(() => {
         if (!("geolocation" in navigator)) {
-            alert("Geolocation is not supported by your browser");
+            toast.error(`This browser can't share its location, ${SEARCH_INSTEAD}`);
             return;
         }
         setIsLocating(true);
         navigator.geolocation.getCurrentPosition(
-            (position) => {
+            ({ coords }) => {
                 setIsLocating(false);
-                const { latitude, longitude } = position.coords;
-                prioritize(latitude, longitude);
+                choose({ latlng: [coords.latitude, coords.longitude], label: CURRENT_LOCATION_LABEL });
             },
-            () => {
+            (error) => {
                 setIsLocating(false);
-                alert("Unable to retrieve your location");
+                toast.error(geolocationErrorMessage(error));
             },
-            { enableHighAccuracy: false, timeout: GEO_TIMEOUT }
+            GEO_OPTIONS
         );
-    }, [setIsLocating, prioritize]);
+    }, [setIsLocating, choose]);
 
     const handleManualLocation = useCallback((val: AutoCompleteValue) => {
-        prioritize(val.latlng[0], val.latlng[1]);
-    }, [prioritize]);
+        choose({ latlng: val.latlng, label: placeLabel(val.display_name) });
+    }, [choose]);
 
     return {
         handleDetectLocation,

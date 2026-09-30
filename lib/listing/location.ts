@@ -1,8 +1,7 @@
 import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
+import { isLatLng, type LatLng } from "@/lib/geo";
 
 import { jitterLatLng } from "./utils";
-
-export type LatLng = [number, number];
 
 export type GeoPoint = { type: "Point"; coordinates: [number, number] };
 
@@ -15,14 +14,6 @@ export type ResolvedListingLocation = {
 };
 
 export const LISTING_GEO_INDEX = { name: "locationPoint_2dsphere", key: { locationPoint: "2dsphere" } } as const;
-
-export const isLatLng = (value: unknown): value is LatLng =>
-    Array.isArray(value) &&
-    value.length === 2 &&
-    value.every((n) => typeof n === "number" && Number.isFinite(n)) &&
-    Math.abs(value[0]) <= 90 &&
-    Math.abs(value[1]) <= 180 &&
-    !(value[0] === 0 && value[1] === 0);
 
 export const toGeoPoint = ([lat, lng]: LatLng): GeoPoint => ({ type: "Point", coordinates: [lng, lat] });
 

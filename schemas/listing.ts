@@ -354,3 +354,60 @@ export const deleteBlockSchema = z.object({
     listingId: objectIdSchema,
     blockId: objectIdSchema,
 });
+
+const MAX_FEED_TERMS = 20;
+const MAX_FEED_TERM_LENGTH = 100;
+const feedTermSchema = z.string().trim().min(1).max(MAX_FEED_TERM_LENGTH);
+const feedTermsSchema = z.array(feedTermSchema).min(1).max(MAX_FEED_TERMS);
+
+export const studioFeedFiltersSchema = z.object({
+    locationValues: feedTermsSchema.optional(),
+    category: feedTermSchema.optional(),
+    type: feedTermsSchema.optional(),
+    venueTypes: feedTermsSchema.optional(),
+    aesthetics: feedTermsSchema.optional(),
+    setFeatures: feedTermsSchema.optional(),
+    hasSets: z.boolean().optional(),
+    startDate: feedTermSchema.optional(),
+    endDate: feedTermSchema.optional(),
+    studioCategory: feedTermSchema.optional(),
+});
+
+export type StudioFeedFilters = z.infer<typeof studioFeedFiltersSchema>;
+
+const searchParamSchema = z.union([z.string(), z.array(z.string())]).optional();
+
+const searchTerms = (value?: string | string[]) => {
+    const terms = (Array.isArray(value) ? value : value ? [value] : [])
+        .flatMap((entry) => entry.split(","))
+        .map((term) => term.trim().slice(0, MAX_FEED_TERM_LENGTH))
+        .filter(Boolean);
+    return terms.length ? Array.from(new Set(terms)).slice(0, MAX_FEED_TERMS) : undefined;
+};
+
+const searchTerm = (value?: string | string[]) => searchTerms(value)?.[0];
+
+export const studioFeedSearchParamsSchema = z
+    .object({
+        locationValue: searchParamSchema,
+        category: searchParamSchema,
+        type: searchParamSchema,
+        venueTypes: searchParamSchema,
+        aesthetics: searchParamSchema,
+        setFeatures: searchParamSchema,
+        hasSets: searchParamSchema,
+        startDate: searchParamSchema,
+        endDate: searchParamSchema,
+    })
+    .transform((params): StudioFeedFilters => ({
+        locationValues: searchTerms(params.locationValue),
+        category: searchTerm(params.category),
+        type: searchTerms(params.type),
+        venueTypes: searchTerms(params.venueTypes),
+        aesthetics: searchTerms(params.aesthetics),
+        setFeatures: searchTerms(params.setFeatures),
+        hasSets: searchTerm(params.hasSets) === "true" || undefined,
+        startDate: searchTerm(params.startDate),
+        endDate: searchTerm(params.endDate),
+    }));
+

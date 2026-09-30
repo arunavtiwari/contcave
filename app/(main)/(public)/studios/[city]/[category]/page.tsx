@@ -3,11 +3,10 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import getListings from "@/app/actions/getListings";
 import ListingFeed from "@/components/listing/ListingFeed";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
-import { findCategory, matchesCategory, MIN_CATEGORY_LISTINGS, type StudioCategory } from "@/lib/listing/categories";
+import { findCategory, MIN_CATEGORY_LISTINGS, type StudioCategory } from "@/lib/listing/categories";
 import {
   cityCategoryPath,
   cityPath,
@@ -17,7 +16,7 @@ import {
   venueTypeLinks,
 } from "@/lib/listing/cities";
 import { cityCollectionJsonLd, collectionMetadata, UNPUBLISHED_COLLECTION_METADATA } from "@/lib/listing/seo";
-import type { safeListing } from "@/types/listing";
+import { loadStudioFeed } from "@/lib/listing/studioFeed";
 
 type RouteParams = { city: string; category: string };
 
@@ -28,11 +27,9 @@ const loadPage = cache(async (citySlugParam: string, categorySlug: string) => {
   const entry = category ? await findCity(citySlugParam) : undefined;
   if (!category || !entry) return null;
 
-  const listings = (await getListings({ locationValue: entry.city }))
-    .filter((listing) => matchesCategory(listing, category));
-  if (listings.length < MIN_CATEGORY_LISTINGS) return null;
+  if ((entry.categoryCounts[category.slug] ?? 0) < MIN_CATEGORY_LISTINGS) return null;
 
-  return { entry, category, listings, ...describeCityCategory(entry, category, listings) };
+  return { entry, category, ...describeCityCategory(entry, category) };
 });
 
 export async function generateMetadata({ params }: { params: Promise<RouteParams> }): Promise<Metadata> {
@@ -52,7 +49,8 @@ export default async function CityCategoryPage(props: { params: Promise<RoutePar
   const [page, currentUser] = await Promise.all([loadPage(city, categorySlug), getCurrentUser()]);
   if (!page) notFound();
 
-  const { entry, category, listings, description } = page;
+  const { entry, category, description } = page;
+  const feed = await loadStudioFeed({ locationValues: entry.locationValues, studioCategory: category.slug });
   const title = titleFor(category, entry.city);
   const trail = [...cityTrail(entry.city), { name: category.name }];
 
@@ -71,7 +69,7 @@ export default async function CityCategoryPage(props: { params: Promise<RoutePar
           name: title,
           description,
           city: entry.city,
-          listings,
+          listings: feed.page.items,
           trail,
         })}
       />
@@ -80,7 +78,7 @@ export default async function CityCategoryPage(props: { params: Promise<RoutePar
         city={entry.city}
         venueTypeHrefs={venueTypeHrefs}
         activeVenueType={activeVenueType}
-        feed={<ListingFeed listings={listings as unknown as safeListing[]} currentUser={currentUser} />}
+        feed={<ListingFeed key={feed.key} page={feed.page} filters={feed.filters} currentUser={currentUser} />}
       />
     </>
   );

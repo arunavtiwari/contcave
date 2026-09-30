@@ -1,50 +1,29 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 
 interface LocationSortContextType {
-    sortedByLocation: boolean;
-    setSortedByLocation: (val: boolean) => void;
+    nearLabel: string | null;
+    setNearLabel: (val: string | null) => void;
     showSortOptions: boolean;
     setShowSortOptions: (val: boolean) => void;
     isLocating: boolean;
     setIsLocating: (val: boolean) => void;
-    registerPrioritize: (fn: (lat: number, lng: number) => void) => void;
-    prioritize: (lat: number, lng: number) => void;
 }
 
 const LocationSortContext = createContext<LocationSortContextType | undefined>(undefined);
 
 export const LocationSortProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [sortedByLocation, setSortedByLocation] = useState(false);
+    const [nearLabel, setNearLabel] = useState<string | null>(null);
     const [showSortOptions, setShowSortOptions] = useState(false);
     const [isLocating, setIsLocating] = useState(false);
-    const prioritizeRef = React.useRef<((lat: number, lng: number) => void) | null>(null);
 
-    const registerPrioritize = (fn: (lat: number, lng: number) => void) => {
-        prioritizeRef.current = fn;
-    };
-
-    const prioritize = (lat: number, lng: number) => {
-        prioritizeRef.current?.(lat, lng);
-    };
-
-    return (
-        <LocationSortContext.Provider
-            value={{
-                sortedByLocation,
-                setSortedByLocation,
-                showSortOptions,
-                setShowSortOptions,
-                isLocating,
-                setIsLocating,
-                registerPrioritize,
-                prioritize,
-            }}
-        >
-            {children}
-        </LocationSortContext.Provider>
+    const value = useMemo(
+        () => ({ nearLabel, setNearLabel, showSortOptions, setShowSortOptions, isLocating, setIsLocating }),
+        [nearLabel, showSortOptions, isLocating]
     );
+
+    return <LocationSortContext.Provider value={value}>{children}</LocationSortContext.Provider>;
 };
 
 export const useLocationSort = () => {

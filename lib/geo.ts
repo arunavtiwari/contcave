@@ -1,39 +1,45 @@
-import { safeListing } from "@/types/listing";
+export type LatLng = [number, number];
 
-export const toRadians = (value: number) => (value * Math.PI) / 180;
-
-/**
- * Calculates the distance between two points on Earth using the Haversine formula.
- * Returns distance in kilometers.
- */
-export const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = toRadians(lat2 - lat1);
-    const dLon = toRadians(lon2 - lon1);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+export type Nearby = {
+    latlng: LatLng;
+    label: string;
+    approximate?: boolean;
 };
 
-/**
- * Extracts latitude and longitude from a listing's location metadata.
- * Prioritizes privacy-safe jittered coordinates over exact values.
- */
-export const getListingLatLng = (listing: safeListing): [number, number] | null => {
-    const actualLocation = listing.actualLocation;
-    if (!actualLocation || typeof actualLocation !== "object") return null;
+export const NEARBY_COOKIE = "cc_nearby";
+export const NEARBY_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+export const CURRENT_LOCATION_LABEL = "you";
 
-    // Prefer privacy-safe jittered latlng if available
-    const latlng = actualLocation.latlng;
-    if (Array.isArray(latlng) && latlng.length >= 2) {
-        const jLat = Number(latlng[0]);
-        const jLng = Number(latlng[1]);
-        if (Number.isFinite(jLat) && Number.isFinite(jLng)) {
-            return [jLat, jLng];
-        }
+const APPROXIMATE_RADIUS_KM = 150;
+const MAX_LABEL_LENGTH = 80;
+
+export const isLatLng = (value: unknown): value is LatLng =>
+    Array.isArray(value) &&
+    value.length === 2 &&
+    value.every((n) => typeof n === "number" && Number.isFinite(n)) &&
+    Math.abs(value[0]) <= 90 &&
+    Math.abs(value[1]) <= 180 &&
+    !(value[0] === 0 && value[1] === 0);
+
+export const nearLabelFor = ({ label, approximate }: Nearby, nearestKm: number | null) =>
+    nearestKm !== null && (!approximate || nearestKm <= APPROXIMATE_RADIUS_KM) ? label : undefined;
+
+export const serializeNearby = ({ latlng, label }: Nearby) =>
+    encodeURIComponent(JSON.stringify({
+        latlng: latlng.map((n) => Number(n.toFixed(2))),
+        label: label.slice(0, MAX_LABEL_LENGTH),
+    }));
+
+export function parseNearby(value: string | undefined): Nearby | null {
+    if (!value) return null;
+    try {
+        const parsed: unknown = JSON.parse(value);
+        if (!parsed || typeof parsed !== "object") return null;
+        const { latlng, label } = parsed as Record<string, unknown>;
+        if (!isLatLng(latlng) || typeof label !== "string") return null;
+        const trimmed = label.trim().slice(0, MAX_LABEL_LENGTH);
+        return trimmed ? { latlng, label: trimmed } : null;
+    } catch {
+        return null;
     }
-
-    return null;
-};
+}
