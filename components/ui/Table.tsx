@@ -281,7 +281,7 @@ function TablePagination({
   const isNextDisabled = currentPage >= pageCount;
 
   const buttonBaseClass =
-    "inline-flex items-center justify-center size-8 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-40 disabled:pointer-events-none cursor-pointer select-none active:scale-100! active:transform-none!";
+    "inline-flex items-center justify-center size-8 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-40 disabled:pointer-events-none cursor-pointer select-none active:transform-none!";
 
   const renderButton = (
     _direction: "prev" | "next",

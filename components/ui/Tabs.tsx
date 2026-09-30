@@ -117,7 +117,7 @@ export const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>
         disabled={disabled}
         onClick={() => onValueChange(value)}
         className={cn(
-          "relative inline-flex shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:scale-100! active:transform-none!",
+          "relative inline-flex shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:transform-none!",
           isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
           className
         )}
@@ -254,7 +254,7 @@ export function NavTabs({
               }
             }}
             className={cn(
-              "relative inline-flex shrink-0 whitespace-nowrap min-h-8 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer active:scale-100! active:transform-none!",
+              "relative inline-flex shrink-0 whitespace-nowrap min-h-8 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer active:transform-none!",
               isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             )}
           >

@@ -4,20 +4,17 @@ import { cache } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings from "@/app/actions/getListings";
-import ExploreLinks from "@/components/listing/ExploreLinks";
 import ListingFeed from "@/components/listing/ListingFeed";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import { findCategory, matchesCategory, MIN_CATEGORY_LISTINGS, type StudioCategory } from "@/lib/listing/categories";
 import {
-  categoryLinks,
   cityCategoryPath,
   cityPath,
   cityTrail,
   describeCityCategory,
   findCity,
-  getCityDirectory,
-  publishedCategories,
+  venueTypeLinks,
 } from "@/lib/listing/cities";
 import { cityCollectionJsonLd, collectionMetadata, UNPUBLISHED_COLLECTION_METADATA } from "@/lib/listing/seo";
 import type { safeListing } from "@/types/listing";
@@ -52,28 +49,18 @@ export async function generateMetadata({ params }: { params: Promise<RouteParams
 
 export default async function CityCategoryPage(props: { params: Promise<RouteParams> }) {
   const { city, category: categorySlug } = await props.params;
-  const [page, currentUser, directory] = await Promise.all([
-    loadPage(city, categorySlug),
-    getCurrentUser(),
-    getCityDirectory(),
-  ]);
+  const [page, currentUser] = await Promise.all([loadPage(city, categorySlug), getCurrentUser()]);
   if (!page) notFound();
 
   const { entry, category, listings, description } = page;
   const title = titleFor(category, entry.city);
   const trail = [...cityTrail(entry.city), { name: category.name }];
 
-  const moreInCity = [
-    { href: cityPath(entry.city), label: `All studios`, description: `${entry.count} studios` },
-    ...categoryLinks(entry, publishedCategories(entry).filter((other) => other.slug !== category.slug)),
-  ];
-  const otherCities = directory
-    .filter((other) => other.slug !== entry.slug && (other.categoryCounts[category.slug] ?? 0) >= MIN_CATEGORY_LISTINGS)
-    .map((other) => ({
-      href: cityCategoryPath(other.city, category),
-      label: other.city,
-      description: `${other.categoryCounts[category.slug]} studios`,
-    }));
+  const activeVenueType = category.venueTypes?.[0];
+  const venueTypeHrefs = {
+    ...venueTypeLinks(entry),
+    ...(activeVenueType ? { [activeVenueType]: cityPath(entry.city) } : {}),
+  };
 
   return (
     <>
@@ -91,11 +78,10 @@ export default async function CityCategoryPage(props: { params: Promise<RoutePar
       <StudioBrowse
         title={title}
         city={entry.city}
+        venueTypeHrefs={venueTypeHrefs}
+        activeVenueType={activeVenueType}
         feed={<ListingFeed listings={listings as unknown as safeListing[]} currentUser={currentUser} />}
-      >
-        <ExploreLinks id="more-in-city" title={`Explore more in ${entry.city}`} links={moreInCity} />
-        <ExploreLinks id="other-cities" title={`${category.name} in other cities`} links={otherCities} />
-      </StudioBrowse>
+      />
     </>
   );
 }

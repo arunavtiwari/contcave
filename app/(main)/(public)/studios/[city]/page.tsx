@@ -4,19 +4,16 @@ import { cache } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListings from "@/app/actions/getListings";
-import CityLinks from "@/components/listing/CityLinks";
-import ExploreLinks from "@/components/listing/ExploreLinks";
 import ListingFeed from "@/components/listing/ListingFeed";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import {
-  categoryLinks,
   cityPath,
   cityTrail,
   describeCity,
   findCity,
-  getCityDirectory,
   MIN_CITY_LISTINGS,
+  venueTypeLinks,
 } from "@/lib/listing/cities";
 import { cityCollectionJsonLd, collectionMetadata, UNPUBLISHED_COLLECTION_METADATA } from "@/lib/listing/seo";
 import type { safeListing } from "@/types/listing";
@@ -42,11 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<RouteParams
 
 export default async function CityStudiosPage(props: { params: Promise<RouteParams> }) {
   const { city: slug } = await props.params;
-  const [page, currentUser, directory] = await Promise.all([
-    loadCity(slug),
-    getCurrentUser(),
-    getCityDirectory(),
-  ]);
+  const [page, currentUser] = await Promise.all([loadCity(slug), getCurrentUser()]);
   if (!page) notFound();
 
   const { entry, listings, description } = page;
@@ -62,15 +55,9 @@ export default async function CityStudiosPage(props: { params: Promise<RoutePara
       <StudioBrowse
         title={title}
         city={entry.city}
+        venueTypeHrefs={venueTypeLinks(entry)}
         feed={<ListingFeed listings={listings as unknown as safeListing[]} currentUser={currentUser} />}
-      >
-        <ExploreLinks id="city-categories" title={`Explore studios in ${entry.city}`} links={categoryLinks(entry)} />
-        <CityLinks
-          id="other-cities"
-          title="Studios in other cities"
-          cities={directory.filter((other) => other.slug !== entry.slug)}
-        />
-      </StudioBrowse>
+      />
     </>
   );
 }

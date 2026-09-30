@@ -6,6 +6,7 @@ import { FiSearch } from "react-icons/fi";
 
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
+import { useFilterNavigation } from "@/hooks/useFilterNavigation";
 
 type Props = {
   title?: string;
@@ -18,6 +19,8 @@ function EmptyState({
   subtitle = "Try changing or removing some of your filters.",
   showReset,
 }: Props) {
+  const { navigate } = useFilterNavigation();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -40,7 +43,7 @@ function EmptyState({
         <div className="mt-8">
           <Button
             label="Clear all filters"
-            onClick={() => window.location.href = '/studios'}
+            onClick={() => navigate("/studios")}
             className="px-8"
             rounded
           />

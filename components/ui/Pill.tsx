@@ -32,7 +32,7 @@ const pillVariants = cva(
                 md: "px-3 h-9 text-sm",
             },
             clickable: {
-                true: "cursor-pointer hover:opacity-85 active:scale-95",
+                true: "cursor-pointer hover:opacity-85 button-active",
             },
         },
         defaultVariants: {

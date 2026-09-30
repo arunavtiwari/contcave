@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import Container from "@/components/layout/Container";
-import ExploreLinks, { type ExploreLink } from "@/components/listing/ExploreLinks";
 import ListingCard, { type ListingCardData } from "@/components/listing/ListingCard";
 import type { SafeUser } from "@/types/user";
 
@@ -11,12 +10,10 @@ type Props = {
   currentUser?: SafeUser | null;
   moreHref?: string;
   moreLabel?: string;
-  links?: ExploreLink[];
-  linksHeading?: string;
 };
 
-export default function MoreStudios({ heading, listings, currentUser, moreHref, moreLabel, links = [], linksHeading }: Props) {
-  if (listings.length === 0 && links.length === 0) return null;
+export default function MoreStudios({ heading, listings, currentUser, moreHref, moreLabel }: Props) {
+  if (listings.length === 0) return null;
 
   return (
     <section aria-labelledby="more-studios-heading" className="pb-24">
@@ -37,12 +34,6 @@ export default function MoreStudios({ heading, listings, currentUser, moreHref, 
               <ListingCard key={listing.id} data={listing} currentUser={currentUser} showListingBadge />
             ))}
           </div>
-          <ExploreLinks
-            id="explore-more-heading"
-            title={linksHeading ?? "Explore more"}
-            links={links}
-            className="mt-12 border-t border-border pt-8"
-          />
         </div>
       </Container>
     </section>

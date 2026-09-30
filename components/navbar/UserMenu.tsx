@@ -151,7 +151,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
           size="md"
           outline
           rounded
-          className="w-10! h-10! md:w-auto! md:h-11! px-0 md:px-2 flex items-center justify-center md:justify-start gap-3 transition-colors duration-200 border border-neutral-300! bg-background! ring-1 ring-neutral-300/70 hover:bg-muted active:scale-100!"
+          className="w-10! h-10! md:w-auto! md:h-11! px-0 md:px-2 flex items-center justify-center md:justify-start gap-3 transition-colors duration-200 border border-neutral-300! bg-background! ring-1 ring-neutral-300/70 hover:bg-muted active:transform-none!"
         >
           <AiOutlineMenu className="text-foreground shrink-0" />
           <div className="hidden md:block shrink-0">

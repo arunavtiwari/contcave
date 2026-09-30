@@ -168,7 +168,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                         type="button"
                         aria-label="Previous photo"
                         onClick={goToPrev}
-                        className="absolute left-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 active:scale-90 hover:bg-foreground/70 lg:hidden"
+                        className="absolute left-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 hover:bg-foreground/70 lg:hidden"
                     >
                         <HiOutlineChevronLeft size={16} />
                     </button>
@@ -176,7 +176,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                         type="button"
                         aria-label="Next photo"
                         onClick={goToNext}
-                        className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 active:scale-90 hover:bg-foreground/70 lg:hidden"
+                        className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 hover:bg-foreground/70 lg:hidden"
                     >
                         <HiOutlineChevronRight size={16} />
                     </button>
