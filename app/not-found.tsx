@@ -26,9 +26,9 @@ export default async function RootNotFound() {
     const cities = await loadCities();
 
     return (
-        <html lang="en-IN">
-            <body className={GeistSans.className}>
-                <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 py-24 text-center">
+        <html>
+            <body>
+                <main className={`${GeistSans.className} flex min-h-screen flex-col items-center justify-center gap-6 px-6 py-24 text-center`}>
                     <Link href="/" aria-label={`${BRAND_NAME} home`}>
                         <Image
                             src="/images/logo/logo_small.png"
