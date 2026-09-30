@@ -179,6 +179,8 @@ function buildCSP(nonce: string): string {
             'https://www.googletagmanager.com',
             'https://*.google-analytics.com',
             'https://*.analytics.google.com',
+            'https://analytics.google.com',
+            'https://www.google.com',
             'https://vercel.live',
             'wss://vercel.live'
         ],
