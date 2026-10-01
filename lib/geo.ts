@@ -7,7 +7,6 @@ export type Nearby = {
 };
 
 export const NEARBY_COOKIE = "cc_nearby";
-export const NEARBY_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 export const CURRENT_LOCATION_LABEL = "you";
 
 const APPROXIMATE_RADIUS_KM = 150;

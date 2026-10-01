@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 
 import { AutoCompleteValue } from "@/components/ui/AutoComplete";
-import { CURRENT_LOCATION_LABEL, type Nearby, NEARBY_COOKIE, NEARBY_COOKIE_MAX_AGE, serializeNearby } from "@/lib/geo";
+import { CURRENT_LOCATION_LABEL, type Nearby, NEARBY_COOKIE, serializeNearby } from "@/lib/geo";
 
 import { useFilterNavigation } from "./useFilterNavigation";
 import { useLocationSort } from "./useLocationSort";
@@ -26,7 +26,7 @@ function geolocationErrorMessage(error: GeolocationPositionError) {
 
 function rememberNearby(nearby: Nearby) {
     const secure = window.location.protocol === "https:" ? "; secure" : "";
-    document.cookie = `${NEARBY_COOKIE}=${serializeNearby(nearby)}; path=/; max-age=${NEARBY_COOKIE_MAX_AGE}; samesite=lax${secure}`;
+    document.cookie = `${NEARBY_COOKIE}=${serializeNearby(nearby)}; path=/; samesite=lax${secure}`;
 }
 
 const placeLabel = (displayName: string) => displayName.split(",")[0]?.trim() || displayName;
