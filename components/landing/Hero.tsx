@@ -1,5 +1,5 @@
 "use client";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { BiSearch } from "react-icons/bi";
@@ -73,10 +73,14 @@ const HeroSearch = () => {
 const Hero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // The server can't know the motion preference, so scroll effects only attach after mount.
+  const scrollMotion = isMounted && !prefersReducedMotion;
 
   const { scrollYProgress } = useScroll({
     target: isMounted ? containerRef : undefined,
@@ -92,17 +96,15 @@ const Hero = () => {
   return (
     <motion.div
       ref={containerRef}
-      style={{ scale, borderRadius }}
+      style={scrollMotion ? { scale, borderRadius } : undefined}
       className="relative overflow-hidden"
     >
       <div
         className="relative flex items-center h-[calc(100vh-80px)] min-h-120"
       >
-        <div className="absolute inset-0 z-50 pointer-events-none bg-background opacity-0 animate-hero-reveal motion-reduce:animate-none" />
-
         <motion.div
           className="absolute z-0 left-0 right-0 top-[-8%] h-[116%]"
-          style={{ y: videoY }}
+          style={scrollMotion ? { y: videoY } : undefined}
         >
           <video
             autoPlay
@@ -110,7 +112,6 @@ const Hero = () => {
             playsInline
             preload="metadata"
             poster="/videos/hero-bg-poster.webp"
-            onEnded={(e) => e.currentTarget.pause()}
             className="w-full h-full object-cover"
             controls={false}
           >
@@ -124,7 +125,7 @@ const Hero = () => {
         <div className="absolute inset-0 z-10 bg-linear-to-br from-foreground/50 to-foreground/90" />
 
         <motion.div
-          style={{ y: contentY }}
+          style={scrollMotion ? { y: contentY } : undefined}
           className="relative z-20 w-full"
         >
           <Container>
@@ -141,28 +142,20 @@ const Hero = () => {
                 className="mb-6 text-background! max-w-2xl"
               />
 
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, delay: 0.75 }}
-                className="mb-6 flex flex-wrap gap-2"
-              >
+              <div className="mb-6 flex flex-wrap gap-2">
                 {HERO_HIGHLIGHTS.map((highlight: string) => (
+                  // Animated per pill: opacity on a parent stops the glass blur from rendering.
                   <Pill
                     key={highlight}
                     label={highlight}
                     variant="glass"
                     size="sm"
+                    className="animate-hero-rise motion-reduce:animate-none"
                   />
                 ))}
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.85 }}
-                className="flex flex-col gap-6"
-              >
+              <div className="flex flex-col gap-6">
                 <div className="w-full">
                   <Suspense fallback={
                     <div className="h-16 w-full max-w-xl animate-pulse rounded-full bg-background/20 backdrop-blur-md md:max-w-2xl lg:max-w-3xl" />
@@ -181,7 +174,7 @@ const Hero = () => {
                     size="lg"
                   />
                 </div>
-              </motion.div>
+              </div>
             </div>
           </Container>
         </motion.div>
