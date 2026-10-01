@@ -7,8 +7,17 @@ import {
   prisma,
 } from "./support/db";
 import { getE2EConnectionEnv } from "./support/env";
+import { installServerOnlyStub } from "./support/server-only-stub";
 import { expect, test } from "./support/test";
 import { gotoApp } from "./support/ui";
+
+installServerOnlyStub();
+
+const THIRTY_ONE_DAYS_MS = 31 * 24 * 60 * 60 * 1000;
+
+function previewLinks() {
+  return require("../../lib/listing/preview") as typeof import("../../lib/listing/preview");
+}
 
 function adminBaseUrl() {
   const base = new URL(getE2EConnectionEnv().baseUrl);
@@ -139,6 +148,12 @@ test.describe("admin listing moderation", () => {
 
       const withoutToken = await guest.goto(previewUrl!.replace(/[?&]preview=[^&]+/, ""));
       expect(withoutToken?.status()).toBe(404);
+
+      const expiredLink = previewLinks().listingShareLink(listing, Date.now() - THIRTY_ONE_DAYS_MS);
+      const expired = await guest.goto(new URL(expiredLink.path, previewUrl!).toString());
+      expect(expired?.status()).toBe(200);
+      await expect(guest.getByText("This preview link has expired")).toBeVisible();
+      await expect(guest.getByRole("link", { name: "Ask for a new link" })).toHaveAttribute("href", /wa\.me/);
     } finally {
       await guestContext.close();
     }

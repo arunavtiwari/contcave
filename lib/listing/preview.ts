@@ -6,7 +6,8 @@ import { listingPath } from "@/lib/listing/seo";
 
 export const LISTING_PREVIEW_PARAM = "preview";
 
-const PREVIEW_TTL_SECONDS = 30 * 24 * 60 * 60;
+export const LISTING_PREVIEW_TTL_DAYS = 30;
+const PREVIEW_TTL_SECONDS = LISTING_PREVIEW_TTL_DAYS * 24 * 60 * 60;
 const EXPIRY_PATTERN = /^[0-9a-z]{1,10}$/;
 
 type VisibilityFields = { active: boolean; status: string; listingType: string | null };
@@ -30,16 +31,17 @@ function previewSigningKey() {
 const signature = (listingId: string, expiresAt: number) =>
   crypto.createHmac("sha256", previewSigningKey()).update(`${listingId}.${expiresAt}`).digest("base64url");
 
-export function isValidListingPreviewToken(listingId: string, token: string | undefined, now = Date.now()) {
+export type PreviewTokenStatus = "valid" | "expired" | "invalid";
+
+export function previewTokenStatus(listingId: string, token: string | undefined, now = Date.now()): PreviewTokenStatus {
   const [encodedExpiry, provided, ...rest] = token?.split(".") ?? [];
-  if (!encodedExpiry || !provided || rest.length || !EXPIRY_PATTERN.test(encodedExpiry)) return false;
+  if (!encodedExpiry || !provided || rest.length || !EXPIRY_PATTERN.test(encodedExpiry)) return "invalid";
 
   const expiresAt = parseInt(encodedExpiry, 36);
-  if (expiresAt * 1000 <= now) return false;
-
   const expected = Buffer.from(signature(listingId, expiresAt));
   const actual = Buffer.from(provided);
-  return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+  if (expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) return "invalid";
+  return expiresAt * 1000 > now ? "valid" : "expired";
 }
 
 export function listingShareLink(listing: ShareableListing, now = Date.now()): ListingShareLink {

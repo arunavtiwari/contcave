@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 
 import Button from "@/components/ui/Button";
-import Heading from "@/components/ui/Heading";
+import PageState from "@/components/ui/PageState";
 import { getCityDirectory } from "@/lib/listing/cities";
 import { cityPath } from "@/lib/listing/cityPaths";
 import { BRAND_NAME } from "@/lib/seo";
@@ -29,32 +28,17 @@ export default async function NotFoundState() {
   const cities = await loadCities();
 
   return (
-    <section className="flex min-h-[60vh] w-full flex-col items-center justify-center gap-8 px-4 py-16 text-center">
-      <div className="flex flex-col items-center gap-4">
-        <Link href="/" aria-label={`${BRAND_NAME} home`}>
-          <Image
-            src="/images/logo/logo_small.png"
-            alt={`${BRAND_NAME} logo`}
-            width={72}
-            height={70}
-            className="rounded-full"
-            priority
-          />
-        </Link>
-        <p className="text-sm font-medium text-muted-foreground">Error 404</p>
-        <Heading
-          as="h1"
-          variant="h3"
-          center
-          title="We couldn't find that page"
-          subtitle={SUBTITLE}
-          subtitleClassName="mx-auto mt-2 max-w-md"
-        />
-      </div>
-      <div className="flex flex-wrap justify-center gap-3">
-        <Button label="Go to homepage" href="/" size="md" rounded fit />
-        <Button label="Browse all studios" href="/studios" variant="outline" size="md" rounded fit />
-      </div>
+    <PageState
+      eyebrow="Error 404"
+      title="We couldn't find that page"
+      subtitle={SUBTITLE}
+      actions={
+        <>
+          <Button label="Go to homepage" href="/" size="md" rounded fit />
+          <Button label="Browse all studios" href="/studios" variant="outline" size="md" rounded fit />
+        </>
+      }
+    >
       {cities.length > 0 && (
         <nav aria-label="Studios by city" className="flex max-w-2xl flex-col items-center gap-3">
           <p className="text-sm font-medium text-muted-foreground">Studios by city</p>
@@ -72,6 +56,6 @@ export default async function NotFoundState() {
           </ul>
         </nav>
       )}
-    </section>
+    </PageState>
   );
 }

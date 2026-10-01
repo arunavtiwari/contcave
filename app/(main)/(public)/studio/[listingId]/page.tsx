@@ -4,13 +4,14 @@ import { cache } from "react";
 
 import getAmenities from "@/app/actions/getAmenities";
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import getListingById from "@/app/actions/getListingById";
+import { getListingAccess } from "@/app/actions/getListingById";
 import getListings from "@/app/actions/getListings";
 import getReviewCount from "@/app/actions/getReviewCount";
 import getReviews from "@/app/actions/getReviews";
 import { getPublicDayStatuses, getReservations } from "@/app/actions/reservationActions";
 import ListingClient from "@/components/listing/ListingClient";
 import MoreStudios from "@/components/listing/MoreStudios";
+import PreviewExpiredState, { PREVIEW_EXPIRED_METADATA } from "@/components/listing/PreviewExpiredState";
 import JsonLd from "@/components/seo/JsonLd";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import { categoriesOf } from "@/lib/listing/categories";
@@ -34,7 +35,7 @@ type SearchParams = Record<string, string | string[] | undefined>;
 
 const RELATED_LIMIT = 4;
 
-const loadListing = cache((listingId?: string, previewToken?: string) => getListingById({ listingId, previewToken }));
+const loadListingAccess = cache((listingId?: string, previewToken?: string) => getListingAccess({ listingId, previewToken }));
 
 const previewTokenOf = (searchParams: SearchParams) => {
   const value = searchParams[LISTING_PREVIEW_PARAM];
@@ -49,8 +50,9 @@ export async function generateMetadata({
   searchParams: Promise<SearchParams>;
 }): Promise<Metadata> {
   const { listingId } = await params;
-  const listing = await loadListing(listingId, previewTokenOf(await searchParams));
-  if (!listing) {
+  const access = await loadListingAccess(listingId, previewTokenOf(await searchParams));
+  if (access?.status === "preview-expired") return PREVIEW_EXPIRED_METADATA;
+  if (!access) {
     return {
       title: "Listing",
       description: "Discover verified studios available on ContCave.",
@@ -62,7 +64,7 @@ export async function generateMetadata({
     };
   }
 
-  return buildListingMetadata(listing);
+  return buildListingMetadata(access.listing);
 }
 
 async function loadAvailability(listing: FullListing): Promise<ListingAvailability> {
@@ -122,8 +124,11 @@ export default async function ListingPage(props: {
   searchParams: Promise<SearchParams>;
 }) {
   const [{ listingId }, searchParams] = await Promise.all([props.params, props.searchParams]);
-  const listing = await loadListing(listingId, previewTokenOf(searchParams));
-  if (!listing) notFound();
+  const access = await loadListingAccess(listingId, previewTokenOf(searchParams));
+  if (!access) notFound();
+  if (access.status === "preview-expired") return <PreviewExpiredState studioName={access.title} />;
+
+  const { listing } = access;
 
   if (listing.slug && listingId !== listing.slug) {
     permanentRedirect(`/studio/${listing.slug}${toQueryString(searchParams)}`);
