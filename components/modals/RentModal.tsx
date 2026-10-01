@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import React, {
   useCallback,
@@ -177,7 +178,9 @@ export default function RentModal({
   predefinedAddons = [],
 }: RentModalProps) {
   const uiStore = useUIStore();
+  const router = useRouter();
   const { data: session } = useSession();
+  const needsVerification = !!currentUser && currentUser.role !== "ADMIN" && !currentUser.is_verified;
 
   const userEmail = (currentUser?.email || session?.user?.email || "").toLowerCase().trim();
   const isContcave = userEmail === "contcave@gmail.com";
@@ -1183,16 +1186,28 @@ export default function RentModal({
         isOpen={showSuccessModal}
         testId="rent-modal-success"
         onCloseAction={() => { setShowSuccessModal(false); }}
-        onSubmitAction={() => { setShowSuccessModal(false); }}
-        title={isCurated ? "Curated Space Submitted 🎉" : "Listing Submitted 🎉"}
+        onSubmitAction={() => {
+          setShowSuccessModal(false);
+          if (needsVerification) router.push("/dashboard/profile");
+        }}
+        title={needsVerification ? "Details Submitted Successfully 🎉" : isCurated ? "Curated Space Submitted 🎉" : "Listing Submitted 🎉"}
         customHeight="h-auto"
-        actionLabel="Close"
+        actionLabel={needsVerification ? "Verify your profile" : "Close"}
+        secondaryActionLabel={needsVerification ? "Later" : undefined}
+        secondaryActionAction={needsVerification ? () => setShowSuccessModal(false) : undefined}
         body={
-          <div className="flex flex-col gap-3 text-muted-foreground text-center">
-            <p>{isCurated ? "Thank you for submitting your curated space!" : "Thank you for submitting your studio!"}</p>
-            <p>Our team will review and verify your listing shortly.</p>
-            <p>We&apos;ll notify you once it&apos;s live on ContCave.</p>
-          </div>
+          needsVerification ? (
+            <div className="flex flex-col gap-3 text-muted-foreground text-center">
+              <p>Your listing details have been submitted successfully.</p>
+              <p>To make your listing live, kindly verify your profile.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 text-muted-foreground text-center">
+              <p>{isCurated ? "Thank you for submitting your curated space!" : "Thank you for submitting your studio!"}</p>
+              <p>Our team will review and verify your listing shortly.</p>
+              <p>We&apos;ll notify you once it&apos;s live on ContCave.</p>
+            </div>
+          )
         }
       />
     </>

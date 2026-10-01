@@ -1051,6 +1051,18 @@ export class ListingService {
         active: boolean,
         review?: { reviewedById?: string; rejectionReason?: string | null }
     ): Promise<void> {
+        if (status === "VERIFIED" || active) {
+            const listing = await prisma.listing.findUnique({
+                where: { id: listingId },
+                select: { listingType: true, user: { select: { role: true, is_verified: true } } },
+            });
+            const hostCanGoLive = listing?.listingType === "CURATED"
+                || listing?.user?.role === "ADMIN"
+                || Boolean(listing?.user?.is_verified);
+            if (listing && !hostCanGoLive) {
+                throw new UserFacingError("Host profile must be verified before this listing can go live", 409);
+            }
+        }
         const updated = await prisma.listing.updateMany({
             where: {
                 id: listingId,

@@ -23,10 +23,7 @@ const CTA: React.FC<CTAProps> = ({ currentUser }) => {
       return;
     }
 
-    const canListSpace = currentUser.role === "ADMIN"
-      || (currentUser.role === "OWNER" && currentUser.is_verified);
-
-    if (canListSpace) uiStore.onOpen("rent");
+    if (currentUser.role === "ADMIN" || currentUser.role === "OWNER") uiStore.onOpen("rent");
     else router.push("/dashboard/profile");
   }, [currentUser, router, uiStore]);
 
