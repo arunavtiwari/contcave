@@ -8,22 +8,13 @@ import { ListingService } from "@/lib/listing/service";
 import prisma from "@/lib/prismadb";
 import { truncateText } from "@/lib/richText";
 import { type BreadcrumbItem, META_DESCRIPTION_LENGTH } from "@/lib/seo";
+import { pluralize } from "@/lib/strings";
 import { formatINR } from "@/lib/utils";
-import type { FullListing } from "@/types/listing";
+
+import { cityCategoryPath, cityPath, citySlug } from "./cityPaths";
 
 const joinList = (items: string[]) =>
   items.length < 2 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
-
-export const citySlug = (city: string) =>
-  city
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-export const cityPath = (city: string) => `/studios/${citySlug(city)}`;
 
 export const STUDIOS_TRAIL: BreadcrumbItem[] = [
   { name: "Home", href: "/" },
@@ -32,18 +23,21 @@ export const STUDIOS_TRAIL: BreadcrumbItem[] = [
 
 export const cityTrail = (city: string): BreadcrumbItem[] => [...STUDIOS_TRAIL, { name: city, href: cityPath(city) }];
 
-export const cityCategoryPath = (city: string, category: { slug: string }) =>
-  `${cityPath(city)}/${category.slug}`;
-
 export type CityEntry = {
   city: string;
   slug: string;
+  locationValues: string[];
   state?: string;
   count: number;
   fromPrice?: number;
   lastModified: string;
+  kindCounts: Record<string, number>;
   categoryCounts: Record<string, number>;
+  categoryFromPrice: Record<string, number>;
 };
+
+const lowerPrice = (current: number | undefined, candidate: number | undefined) =>
+  candidate && (!current || candidate < current) ? candidate : current;
 
 async function loadCityDirectory(): Promise<CityEntry[]> {
   const ids = await ListingService.getHydratableListingIds({ active: true, status: "VERIFIED" });
@@ -77,27 +71,42 @@ async function loadCityDirectory(): Promise<CityEntry[]> {
 
     let entry = bySlug.get(slug);
     if (!entry) {
-      entry = { city, slug, state, count: 0, fromPrice: price, lastModified: modified, categoryCounts: {} };
+      entry = {
+        city,
+        slug,
+        locationValues: [],
+        state,
+        count: 0,
+        lastModified: modified,
+        kindCounts: {},
+        categoryCounts: {},
+        categoryFromPrice: {},
+      };
       bySlug.set(slug, entry);
     }
     for (const category of categoriesOf(listing)) {
       entry.categoryCounts[category.slug] = (entry.categoryCounts[category.slug] ?? 0) + 1;
+      const categoryPrice = lowerPrice(entry.categoryFromPrice[category.slug], price);
+      if (categoryPrice) entry.categoryFromPrice[category.slug] = categoryPrice;
     }
+    const kind = kindOf(listing);
+    entry.kindCounts[kind] = (entry.kindCounts[kind] ?? 0) + 1;
+    if (!entry.locationValues.includes(listing.locationValue)) entry.locationValues.push(listing.locationValue);
     entry.count += 1;
     entry.state ??= state;
-    if (price && (!entry.fromPrice || price < entry.fromPrice)) entry.fromPrice = price;
+    entry.fromPrice = lowerPrice(entry.fromPrice, price);
     if (modified > entry.lastModified) entry.lastModified = modified;
   }
 
   return Array.from(bySlug.values()).sort((a, b) => b.count - a.count || a.city.localeCompare(b.city));
 }
 
-export const MIN_CITY_LISTINGS = 2;
+const MIN_CITY_LISTINGS = 2;
 
 const loadPublishedCities = async () =>
   (await loadCityDirectory()).filter((entry) => entry.count >= MIN_CITY_LISTINGS);
 
-export const getCityDirectory = unstable_cache(loadPublishedCities, ["city-directory-v3"], { revalidate: 3600 });
+export const getCityDirectory = unstable_cache(loadPublishedCities, ["city-directory-v4"], { revalidate: 3600 });
 
 export const publishedCategories = (entry: CityEntry) =>
   STUDIO_CATEGORIES
@@ -118,38 +127,26 @@ export async function findCity(slug: string) {
 const placeOf = (entry: CityEntry) =>
   entry.state && entry.state !== entry.city ? `${entry.city}, ${entry.state}` : entry.city;
 
-const numbers = (values: (number | undefined)[]) => values.filter((n): n is number => n !== undefined);
+const studiosLabel = (count: number, noun = "studio") => pluralize(count, `verified ${noun}`);
 
-const range = (values: number[]) =>
-  values.length ? ([Math.min(...values), Math.max(...values)] as const) : undefined;
-
-const hourlyPrices = (listings: FullListing[]) =>
-  range(numbers(listings.filter((listing) => listing.listingType !== "CURATED").map((listing) => positive(listing.price))));
-
-const studiosLabel = (count: number, noun = "studio") => `${count} verified ${noun}${count === 1 ? "" : "s"}`;
-
-export function describeCity(entry: CityEntry, listings: FullListing[]) {
-  const prices = hourlyPrices(listings);
-
-  const kindCounts = new Map<string, number>();
-  for (const listing of listings) kindCounts.set(kindOf(listing), (kindCounts.get(kindOf(listing)) ?? 0) + 1);
+export function describeCity(entry: CityEntry) {
   const kindSummary = joinList(
-    Array.from(kindCounts.entries()).sort((a, b) => b[1] - a[1]).map(([kind, n]) => `${kind} (${n})`)
+    Object.entries(entry.kindCounts).sort((a, b) => b[1] - a[1]).map(([kind, n]) => `${kind} (${n})`)
   );
 
   return {
     description: truncateText(
-      `Book ${studiosLabel(listings.length)} in ${placeOf(entry)} by the hour: ${kindSummary}${prices ? `. From ${formatINR(prices[0])}/hr` : ""}. Compare size, capacity and amenities on ContCave.`,
+      `Book ${studiosLabel(entry.count)} in ${placeOf(entry)} by the hour: ${kindSummary}${entry.fromPrice ? `. From ${formatINR(entry.fromPrice)}/hr` : ""}. Compare size, capacity and amenities on ContCave.`,
       META_DESCRIPTION_LENGTH
     ),
   };
 }
 
-export function describeCityCategory(entry: CityEntry, category: StudioCategory, listings: FullListing[]) {
-  const prices = hourlyPrices(listings);
+export function describeCityCategory(entry: CityEntry, category: StudioCategory) {
+  const fromPrice = entry.categoryFromPrice[category.slug];
   return {
     description: truncateText(
-      `Book ${studiosLabel(listings.length, category.noun)} in ${entry.city} by the hour${prices ? `, from ${formatINR(prices[0])}/hr` : ""}. Compare size, capacity, amenities and reviews on ContCave.`,
+      `Book ${studiosLabel(entry.categoryCounts[category.slug] ?? 0, category.noun)} in ${entry.city} by the hour${fromPrice ? `, from ${formatINR(fromPrice)}/hr` : ""}. Compare size, capacity, amenities and reviews on ContCave.`,
       META_DESCRIPTION_LENGTH
     ),
   };

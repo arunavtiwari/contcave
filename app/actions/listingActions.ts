@@ -1,6 +1,6 @@
 "use server";
 
-import { PaymentDetails } from "@prisma/client";
+import { PaymentDetails, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -9,6 +9,8 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import { createAction } from "@/lib/actions-utils";
 import { UserFacingError } from "@/lib/errors";
+import { listingLocationIssues, listingLocationValue, resolveListingLocation } from "@/lib/listing/location";
+import { type ListingShareLink, listingShareLink } from "@/lib/listing/preview";
 import { assertDefaultAmenitiesExist, ListingService } from "@/lib/listing/service";
 import { decryptAndSanitizePaymentDetails } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
@@ -25,6 +27,7 @@ import {
     listingBaseSchema,
     listingBlockSchema,
     listingSchema,
+    locationSchema,
     rejectListingSchema
 } from "@/schemas/listing";
 
@@ -106,6 +109,7 @@ export type AdminListingReviewSummary = {
     inConversation: boolean;
     notifyEmailSentAt: string | null;
     notifyReminderAt: string | null;
+    share: ListingShareLink;
     user: {
         name: string | null;
         email: string | null;
@@ -178,6 +182,7 @@ export async function getAdminListingReviews(status?: AdminListingStatus, listin
                 price: listing.price,
                 status: listing.status,
                 active: listing.active,
+                share: listingShareLink(listing),
                 createdAt: listing.createdAt.toISOString(),
                 reviewedAt: listing.reviewedAt?.toISOString() || null,
                 rejectionReason: listing.rejectionReason,
@@ -309,7 +314,7 @@ export async function getAdminListingReviewPage(params: {
         where: { id: { in: pageData.ids } },
         select: {
             id: true, slug: true, title: true, imageSrc: true, category: true, locationValue: true,
-            price: true, status: true, createdAt: true, listingType: true, enquiryCount: true,
+            price: true, status: true, active: true, createdAt: true, listingType: true, enquiryCount: true,
             inConversation: true, notifyEmailSentAt: true, notifyReminderAt: true,
             user: { select: { name: true, email: true, is_verified: true } },
         },
@@ -333,6 +338,7 @@ export async function getAdminListingReviewPage(params: {
             inConversation: listing.inConversation,
             notifyEmailSentAt: listing.notifyEmailSentAt?.toISOString() ?? null,
             notifyReminderAt: listing.notifyReminderAt?.toISOString() ?? null,
+            share: listingShareLink(listing),
             user: listing.user ? {
                 name: listing.user.name,
                 email: listing.user.email,
@@ -592,7 +598,7 @@ const curatedListingSchema = z.object({
     title: z.string().min(2).max(200),
     description: z.string().min(10).max(5000),
     category: z.string().trim().min(1).max(100),
-    locationValue: z.string().trim().min(1).max(300),
+    actualLocation: locationSchema,
     propertyStateCode: z.string().regex(/^\d{2}$/).optional().nullable(),
     imageSrc: z.array(curatedHttpUrlSchema(500)).min(1).max(30),
     amenities: defaultAmenitiesSchema.default([]),
@@ -605,19 +611,27 @@ const curatedListingSchema = z.object({
 }).refine((data) => data.priceRangeMin == null || data.priceRangeMax == null || data.priceRangeMin <= data.priceRangeMax, {
     message: "Minimum price cannot exceed maximum price",
     path: ["priceRangeMax"],
+}).superRefine((data, ctx) => {
+    const issues = listingLocationIssues(data.actualLocation);
+    const message = issues.city ?? issues.address;
+    if (message) ctx.addIssue({ code: "custom", message, path: ["actualLocation"] });
 });
 
 export const createCuratedListingAction = createAction(
     curatedListingSchema,
     { requireAuth: true, allowedRoles: ["ADMIN"] },
     async (data, { user }) => {
+        const locationValue = listingLocationValue(data.actualLocation);
+        const location = resolveListingLocation(data.actualLocation);
         const listing = await prisma.listing.create({
             data: {
                 title: data.title,
                 description: data.description,
                 category: data.category,
-                locationValue: data.locationValue,
-                propertyStateCode: data.propertyStateCode || getGstStateCodeFromStateName(data.locationValue),
+                locationValue,
+                actualLocation: location.actualLocation as Prisma.InputJsonObject,
+                ...(location.locationPoint ? { locationPoint: location.locationPoint } : {}),
+                propertyStateCode: data.propertyStateCode || location.propertyStateCode || getGstStateCodeFromStateName(locationValue),
                 imageSrc: data.imageSrc,
                 priceRangeMin: data.priceRangeMin ?? null,
                 priceRangeMax: data.priceRangeMax ?? null,
@@ -640,7 +654,7 @@ export const createCuratedListingAction = createAction(
                 await sendCuratedOutreachEmail({
                     toEmail: data.contactEmail,
                     studioName: data.title,
-                    city: data.locationValue,
+                    city: locationValue,
                     listingId: listing.id,
                 });
                 await prisma.listing.update({

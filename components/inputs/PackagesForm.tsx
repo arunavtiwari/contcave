@@ -8,8 +8,11 @@ import Checkbox from "@/components/ui/Checkbox";
 import FormField from "@/components/ui/FormField";
 import Input from "@/components/ui/Input";
 import Pill from "@/components/ui/Pill";
+import { SETS_REQUIRE_PACKAGE_MESSAGE } from "@/schemas/listing";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
+
+const REQUIRED_FOR_SETS_HINT = `${SETS_REQUIRE_PACKAGE_MESSAGE}. Guests who want the entire studio book one of these.`;
 
 interface PackagesFormProps {
   value: Package[];
@@ -81,7 +84,7 @@ export default function PackagesForm({
     <FormField
       id={id}
       label={label}
-      description={description}
+      description={description ?? (required ? REQUIRED_FOR_SETS_HINT : undefined)}
       required={required}
       error={error}
       variant={variant}

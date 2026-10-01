@@ -1,4 +1,4 @@
-import { CATEGORY_TO_VENUE_TYPES, normaliseUseCase } from "@/lib/taxonomy";
+import { CATEGORY_TO_VENUE_TYPES, normaliseUseCase, USE_CASE_LABELS, USE_CASE_LEGACY_MAP } from "@/lib/taxonomy";
 
 export type StudioCategory = {
   slug: string;
@@ -41,3 +41,26 @@ export function matchesCategory(listing: Taxonomised, category: StudioCategory) 
 
 export const categoriesOf = (listing: Taxonomised) =>
   STUDIO_CATEGORIES.filter((category) => matchesCategory(listing, category));
+
+const RAW_USE_CASES = Array.from(new Set([...USE_CASE_LABELS, ...Object.keys(USE_CASE_LEGACY_MAP)]));
+
+const NO_VENUE_TYPES = { $or: [{ venueTypes: { $exists: false } }, { venueTypes: null }, { venueTypes: { $size: 0 } }] };
+
+export function categoryMatch(category: StudioCategory): Record<string, unknown> {
+  const useCases = RAW_USE_CASES.filter((raw) => {
+    const useCase = normaliseUseCase(raw);
+    return useCase !== null && Boolean(category.useCases?.includes(useCase));
+  });
+  const venueTypes = category.venueTypes ?? [];
+  const legacyCategories = Object.entries(CATEGORY_TO_VENUE_TYPES)
+    .filter(([, mapped]) => mapped.venueTypes.some((venueType) => venueTypes.includes(venueType)))
+    .map(([legacy]) => legacy);
+
+  return {
+    $or: [
+      ...(useCases.length ? [{ type: { $in: useCases } }] : []),
+      ...(venueTypes.length ? [{ venueTypes: { $in: venueTypes } }] : []),
+      ...(legacyCategories.length ? [{ $and: [NO_VENUE_TYPES, { category: { $in: legacyCategories } }] }] : []),
+    ],
+  };
+}

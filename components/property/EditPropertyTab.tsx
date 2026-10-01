@@ -6,15 +6,14 @@ import { TbVideoPlus } from "react-icons/tb";
 
 import AddonsSelection from "@/components/inputs/AddonsSelection";
 import AmenitiesCheckbox from "@/components/inputs/AmenitySelection";
-import CitySelect, { CitySelectValue } from "@/components/inputs/CitySelect";
 import ImageReorderGrid from "@/components/inputs/ImageReorderGrid";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import PackagesForm from "@/components/inputs/PackagesForm";
 import RichTextEditor from "@/components/inputs/RichTextEditor";
 import SetsEditor from "@/components/inputs/SetsEditor";
 import TaxonomyPillSelect from "@/components/inputs/TaxonomyPillSelect";
+import ListingLocationFields from "@/components/listing/ListingLocationFields";
 import CustomAddonModal from "@/components/modals/CustomAddonModal";
-import AutoComplete, { AutoCompleteValue } from "@/components/ui/AutoComplete";
 import Button from "@/components/ui/Button";
 import FormField from "@/components/ui/FormField";
 import Heading from "@/components/ui/Heading";
@@ -22,9 +21,12 @@ import Input from "@/components/ui/Input";
 import Pill from "@/components/ui/Pill";
 import Select, { SelectOption } from "@/components/ui/Select";
 import Switch from "@/components/ui/Switch";
+import Textarea from "@/components/ui/Textarea";
 import { TIME_SLOTS } from "@/constants/timeSlots";
+import { listingLocationValue } from "@/lib/listing/location";
 import { slugify } from "@/lib/strings";
 import { AESTHETICS, SET_FEATURES, USE_CASE_LABELS, VENUE_TYPES } from "@/lib/taxonomy";
+import { CONTCAVE_NOTE_MAX_LENGTH } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import type { SafeAmenity } from "@/types/amenity";
 import { FullListing } from "@/types/listing";
@@ -46,6 +48,7 @@ interface EditPropertyTabProps {
   setUnifiedSetPrice: (v: number | null) => void;
   update: () => void;
   isUpdating: boolean;
+  canEditContcaveNote?: boolean;
 }
 
 const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
@@ -64,6 +67,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
   setUnifiedSetPrice,
   update,
   isUpdating,
+  canEditContcaveNote = false,
 }) => {
   const isCurated = initialListing.listingType === "CURATED";
 
@@ -102,6 +106,19 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         value={initialListing.customTerms ?? ""}
         onChange={(html) => handleInputChange("customTerms", html)}
       />
+
+      {canEditContcaveNote && !isCurated && (
+        <Textarea
+          id="contcaveNote"
+          label="Note from ContCave"
+          description="Optional. Guests see it in the booking summary before they pay."
+          variant="horizontal"
+          rows={3}
+          maxLength={CONTCAVE_NOTE_MAX_LENGTH}
+          value={initialListing.contcaveNote ?? ""}
+          onChange={(e) => handleInputChange("contcaveNote", e.target.value)}
+        />
+      )}
 
       <TaxonomyPillSelect
         label="Venue Type"
@@ -201,35 +218,15 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         />
       )}
 
-      <CitySelect
-        label="City"
+      <ListingLocationFields
         variant="horizontal"
-        value={initialListing.actualLocation as CitySelectValue | undefined}
+        showMap={false}
+        value={initialListing.actualLocation ?? null}
         locationValue={initialListing.locationValue}
-        onChange={(v: CitySelectValue) => {
-          handleInputChange("actualLocation", {
-            ...(initialListing.actualLocation || {}),
-            ...v,
-          });
-          handleInputChange("locationValue", v.value || "");
+        onChange={(location) => {
+          handleInputChange("actualLocation", location);
+          handleInputChange("locationValue", listingLocationValue(location));
         }}
-      />
-
-      <AutoComplete
-        label="Detailed address"
-        variant="horizontal"
-        value={initialListing.actualLocation?.display_name || ""}
-        onChange={(sel: AutoCompleteValue) => {
-          handleInputChange("actualLocation", {
-            ...(initialListing.actualLocation || {}),
-            display_name: sel.display_name,
-            latlng: sel.latlng,
-            address: sel.display_name,
-            lat: sel.latlng[0],
-            lng: sel.latlng[1],
-          });
-        }}
-        placeholder="Search for space address..."
       />
 
       <FormField label="Images" description="(Max 30)" variant="horizontal" align="start">
@@ -313,6 +310,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
             value={initialListing.packages ?? []}
             onChange={handlePackagesChange}
             availableSets={initialListing.hasSets ? (initialListing.sets ?? []) : []}
+            required={Boolean(initialListing.hasSets)}
           />
         </>
       )}

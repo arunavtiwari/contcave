@@ -17,6 +17,7 @@ import { amountBeforeGst } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
 import { isInvoiceEligible } from "@/lib/reservation/status";
 import { readPrivateDocument, uploadPrivateDocument } from "@/lib/storage/privateDocuments";
+import { withTransientRetry } from "@/lib/transient-retry";
 import { getValidatedBaseUrl } from "@/lib/utils";
 
 import { generateInvoicePDFBlob, InvoiceLineItem, InvoiceParty, InvoicePDFData, InvoiceTaxBreakup } from "./pdfBlob";
@@ -24,7 +25,6 @@ import { generateInvoicePDFBlob, InvoiceLineItem, InvoiceParty, InvoicePDFData, 
 const IST_TIME_ZONE = "Asia/Kolkata";
 const MAX_RETRY_COUNT = 5;
 const DELIVERY_CLAIM_TIMEOUT_MS = 10 * 60 * 1000;
-const MAX_TRANSACTION_RETRIES = 3;
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
 const GSTIN_PATTERN = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const MAX_GST_INVOICE_NUMBER_LENGTH = 16;
@@ -305,7 +305,14 @@ async function createInvoiceWithIdempotency(params: {
   });
   if (existing) return existing;
 
-  for (let attempt = 1; attempt <= MAX_TRANSACTION_RETRIES; attempt += 1) {
+  return withTransientRetry(async (attempt) => {
+    if (attempt > 1) {
+      const retryExisting = await prisma.invoice.findFirst({
+        where: { idempotencyKey: params.idempotencyKey },
+      });
+      if (retryExisting) return retryExisting;
+    }
+
     try {
       return await prisma.$transaction(async (tx) => {
         const already = await tx.invoice.findFirst({
@@ -326,26 +333,9 @@ async function createInvoiceWithIdempotency(params: {
         });
         if (lockedInvoice) return lockedInvoice;
       }
-
-      const message = error instanceof Error ? error.message : String(error);
-      const isRetryable =
-        error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034"
-        || /write conflict|deadlock|transaction failed/i.test(message);
-
-      if (isRetryable && attempt < MAX_TRANSACTION_RETRIES) {
-        await new Promise((resolve) => setTimeout(resolve, attempt * 100));
-        const retryExisting = await prisma.invoice.findFirst({
-          where: { idempotencyKey: params.idempotencyKey },
-        });
-        if (retryExisting) return retryExisting;
-        continue;
-      }
-
       throw error;
     }
-  }
-
-  throw new Error("Invoice creation retry limit reached");
+  });
 }
 
 function getArkanetParty(): InvoiceParty {

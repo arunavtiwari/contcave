@@ -203,6 +203,11 @@ model Account {
   @@index([userId])
 }
 
+type GeoPoint {
+  type        String
+  coordinates Float[]
+}
+
 model Listing {
   id                       String                    @id @default(auto()) @map("_id") @db.ObjectId
   title                    String
@@ -214,6 +219,7 @@ model Listing {
   category                 String
   locationValue            String
   actualLocation           Json?
+  locationPoint            GeoPoint?
   propertyStateCode        String?
   userId                   String                    @db.ObjectId
   price                    Int?
@@ -232,6 +238,7 @@ model Listing {
   verifications            Json?
   terms                    Boolean?
   customTerms              String?
+  contcaveNote             String?
 
   reviews                  Review[]
   DayStatus                DayStatus[]

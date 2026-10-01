@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IconType } from "react-icons";
 import { toast } from "sonner";
 
@@ -16,6 +16,7 @@ import AddonsList from "@/components/listing/AddonList";
 import ListingCategory from "@/components/listing/ListingCategory";
 import Offers from "@/components/listing/Offers";
 import PackageList from "@/components/listing/PackageList";
+import PackageSuggestion from "@/components/listing/PackageSuggestion";
 import SetSelector from "@/components/listing/SetSelector";
 import Avatar from "@/components/ui/Avatar";
 import Divider from "@/components/ui/Divider";
@@ -25,6 +26,8 @@ import SafeHtml from "@/components/ui/SafeHtml";
 import StarRating from "@/components/ui/StarRating";
 import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hooks/useCities";
+import { isLatLng } from "@/lib/geo";
+import type { WholeStudioSuggestion } from "@/lib/pricing";
 import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
 import { formatISTDate } from "@/lib/utils";
 import { Addon } from "@/types/addon";
@@ -69,9 +72,9 @@ type Props = {
 
   selectedSetIds?: string[];
   onSetToggle?: (setId: string) => void;
-  onSelectAllSets?: () => void;
+  wholeStudioSuggestion?: WholeStudioSuggestion | null;
+  onUsePackage?: (pkg: Package) => void;
   availableSetIds?: string[];
-  isEntireStudioBooked?: boolean;
   setPricingType?: "FIXED" | "HOURLY" | null;
   setHours?: number;
   includedSetId?: string | null;
@@ -96,9 +99,9 @@ function ListingInfo({
 
   selectedSetIds = [],
   onSetToggle,
-  onSelectAllSets,
+  wholeStudioSuggestion = null,
+  onUsePackage,
   availableSetIds = [],
-  isEntireStudioBooked = false,
   setPricingType = null,
   setHours = 1,
   includedSetId = null,
@@ -112,41 +115,20 @@ function ListingInfo({
   const coordinates = getByValue(locationValue)?.latlng;
 
   const getValidCenter = useCallback((): number[] | undefined => {
-    // Prefer privacy-safe jittered latlng if available
-    if (
-      fullListing.actualLocation &&
-      Array.isArray(fullListing.actualLocation.latlng) &&
-      fullListing.actualLocation.latlng.length >= 2 &&
-      typeof fullListing.actualLocation.latlng[0] === 'number' &&
-      typeof fullListing.actualLocation.latlng[1] === 'number' &&
-      Number.isFinite(fullListing.actualLocation.latlng[0]) &&
-      Number.isFinite(fullListing.actualLocation.latlng[1])
-    ) {
-      return [fullListing.actualLocation.latlng[0], fullListing.actualLocation.latlng[1]];
-    }
-
-    // Fallback to exact lat/lng (for legacy listings before jittering was introduced)
-    if (fullListing.actualLocation &&
-      typeof fullListing.actualLocation.lat === 'number' &&
-      typeof fullListing.actualLocation.lng === 'number' &&
-      Number.isFinite(fullListing.actualLocation.lat) &&
-      Number.isFinite(fullListing.actualLocation.lng)) {
-      return [fullListing.actualLocation.lat, fullListing.actualLocation.lng];
-    }
-
-    // Fallback to coordinates based on locationValue string
-    if (Array.isArray(coordinates) &&
-      coordinates.length >= 2 &&
-      typeof coordinates[0] === 'number' &&
-      typeof coordinates[1] === 'number' &&
-      Number.isFinite(coordinates[0]) &&
-      Number.isFinite(coordinates[1])) {
-      return [coordinates[0], coordinates[1]];
-    }
-    return undefined;
+    const location = fullListing.actualLocation;
+    const exact = [location?.lat, location?.lng];
+    return [location?.latlng, exact, coordinates].find(isLatLng);
   }, [fullListing.actualLocation, coordinates]);
 
   const relayAddons = useCallback((addons: Addon[]) => onAddonChange(addons), [onAddonChange]);
+
+  const packages = Array.isArray(fullListing.packages) ? fullListing.packages : [];
+  const hasPackages = packages.length > 0;
+  const packagesRef = useRef<HTMLElement>(null);
+  const scrollToPackages = useCallback(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    packagesRef.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  }, []);
 
   const [addonList, setAddonList] = useState<Addon[]>([]);
   const [amenityDefs, setAmenityDefs] = useState<SafeAmenity[]>(definedAmenities ?? []);
@@ -329,15 +311,21 @@ function ListingInfo({
             sets={fullListing.sets}
             selectedSetIds={selectedSetIds}
             onSetToggle={onSetToggle || (() => {})}
-            onSelectAll={onSelectAllSets}
+            onBookEntireStudio={hasPackages && !wholeStudioSuggestion ? scrollToPackages : undefined}
             includedSetId={includedSetId}
             pricingType={setPricingType}
             hours={setHours}
             disabled={isSetSelectionDisabled}
             selectedPackage={selectedPackage}
             availableSetIds={availableSetIds}
-            isEntireStudioBooked={isEntireStudioBooked}
           />
+          {wholeStudioSuggestion && onUsePackage && (
+            <PackageSuggestion
+              suggestion={wholeStudioSuggestion}
+              onUsePackage={onUsePackage}
+              onBrowsePackages={scrollToPackages}
+            />
+          )}
           <Divider />
         </>
       )}
@@ -387,16 +375,18 @@ function ListingInfo({
         </>
       )}
 
-      {Array.isArray(fullListing.packages) && fullListing.packages.length > 0 && (
+      {hasPackages && (
         <>
-          <PackageList
-            packages={fullListing.packages}
-            onSelect={(pkg) => {
-              onPackageSelect?.(pkg ?? null);
-            }}
-            selectedPackageId={selectedPackage?.id}
-            hasSets={fullListing.hasSets}
-          />
+          <section ref={packagesRef} className="scroll-mt-28">
+            <PackageList
+              packages={packages}
+              onSelect={(pkg) => {
+                onPackageSelect?.(pkg ?? null);
+              }}
+              selectedPackageId={selectedPackage?.id}
+              hasSets={fullListing.hasSets}
+            />
+          </section>
           <Divider />
         </>
       )}

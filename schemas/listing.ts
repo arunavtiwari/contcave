@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
+import { isDateKey } from "@/lib/booking/dayAvailability";
+import { isLatLng, parseLatLngParam, searchRadiusKm } from "@/lib/geo";
 import { AESTHETIC_LABELS, SET_FEATURE_LABELS, USE_CASE_LABELS, VENUE_TYPE_LABELS } from "@/lib/taxonomy";
 import { objectIdSchema } from "@/schemas/common";
 
@@ -184,6 +186,8 @@ export const signatureSchema = z.object({
 });
 
 
+export const CONTCAVE_NOTE_MAX_LENGTH = 1000;
+
 export const listingBaseSchema = z.object({
     id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid listing ID").optional(),
     listingType: z.enum(["STANDARD", "CURATED"]).default("STANDARD"),
@@ -224,6 +228,7 @@ export const listingBaseSchema = z.object({
     instantBooking: z.boolean().default(false),
     terms: z.boolean().optional(),
     customTerms: z.string().max(20_000).optional().nullable(),
+    contcaveNote: z.string().trim().max(CONTCAVE_NOTE_MAX_LENGTH, `Note from ContCave must be ${CONTCAVE_NOTE_MAX_LENGTH} characters or fewer`).optional().nullable(),
     operationalHours: operationalHoursSchema,
     operationalDays: operationalDaysSchema,
 
@@ -240,6 +245,11 @@ export const listingBaseSchema = z.object({
     agreementSignature: signatureSchema.optional().nullable(),
     videoSrc: temporaryMediaUrlSchema.optional().nullable(),
 });
+
+export const SETS_REQUIRE_PACKAGE_MESSAGE = "Studios with sets need at least one package";
+
+export const hasActivePackage = (packages: ReadonlyArray<{ isActive?: boolean | null }> | null | undefined) =>
+    (packages ?? []).some((pkg) => pkg.isActive !== false);
 
 export const listingSchema = listingBaseSchema.superRefine((data, ctx) => {
     const openingIndex = data.operationalHours ? TIME_SLOTS.indexOf(data.operationalHours.start) : -1;
@@ -286,6 +296,9 @@ export const listingSchema = listingBaseSchema.superRefine((data, ctx) => {
                 }
             });
         }
+    }
+    if (data.hasSets && !hasActivePackage(data.packages)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: SETS_REQUIRE_PACKAGE_MESSAGE, path: ["packages"] });
     }
     if (data.hasSets && data.packages) {
         const setCount = data.sets?.length || 0;
@@ -354,3 +367,71 @@ export const deleteBlockSchema = z.object({
     listingId: objectIdSchema,
     blockId: objectIdSchema,
 });
+
+const MAX_FEED_TERMS = 20;
+const MAX_FEED_TERM_LENGTH = 100;
+const feedTermSchema = z.string().trim().min(1).max(MAX_FEED_TERM_LENGTH);
+const feedTermsSchema = z.array(feedTermSchema).min(1).max(MAX_FEED_TERMS);
+
+export const studioFeedFiltersSchema = z.object({
+    locationValues: feedTermsSchema.optional(),
+    category: feedTermSchema.optional(),
+    type: feedTermsSchema.optional(),
+    venueTypes: feedTermsSchema.optional(),
+    aesthetics: feedTermsSchema.optional(),
+    setFeatures: feedTermsSchema.optional(),
+    hasSets: z.boolean().optional(),
+    date: z.string().refine(isDateKey, "Invalid date").optional(),
+    near: z.tuple([z.number(), z.number()]).refine(isLatLng, "Invalid location").optional(),
+    radiusKm: z.number().min(1).max(200).optional(),
+    studioCategory: feedTermSchema.optional(),
+});
+
+export type StudioFeedFilters = z.infer<typeof studioFeedFiltersSchema>;
+
+const searchParamSchema = z.union([z.string(), z.array(z.string())]).optional();
+
+const searchTerms = (value?: string | string[]) => {
+    const terms = (Array.isArray(value) ? value : value ? [value] : [])
+        .flatMap((entry) => entry.split(","))
+        .map((term) => term.trim().slice(0, MAX_FEED_TERM_LENGTH))
+        .filter(Boolean);
+    return terms.length ? Array.from(new Set(terms)).slice(0, MAX_FEED_TERMS) : undefined;
+};
+
+const searchTerm = (value?: string | string[]) => searchTerms(value)?.[0];
+
+const validDate = (value?: string) => (value && isDateKey(value) ? value : undefined);
+
+const firstParam = (value?: string | string[]) => (Array.isArray(value) ? value[0] : value);
+
+function nearFilter(near?: string | string[], km?: string | string[]) {
+    const latlng = parseLatLngParam(firstParam(near));
+    return latlng ? { near: latlng, radiusKm: searchRadiusKm(Number(firstParam(km))) } : {};
+}
+
+export const studioFeedSearchParamsSchema = z
+    .object({
+        locationValue: searchParamSchema,
+        category: searchParamSchema,
+        type: searchParamSchema,
+        venueTypes: searchParamSchema,
+        aesthetics: searchParamSchema,
+        setFeatures: searchParamSchema,
+        hasSets: searchParamSchema,
+        date: searchParamSchema,
+        near: searchParamSchema,
+        km: searchParamSchema,
+    })
+    .transform((params): StudioFeedFilters => ({
+        locationValues: searchTerms(params.locationValue),
+        category: searchTerm(params.category),
+        type: searchTerms(params.type),
+        venueTypes: searchTerms(params.venueTypes),
+        aesthetics: searchTerms(params.aesthetics),
+        setFeatures: searchTerms(params.setFeatures),
+        hasSets: searchTerm(params.hasSets) === "true" || undefined,
+        date: validDate(searchTerm(params.date)),
+        ...nearFilter(params.near, params.km),
+    }));
+

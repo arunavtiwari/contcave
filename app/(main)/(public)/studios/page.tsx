@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import getListings, { IListingsParams } from "@/app/actions/getListings";
 import getRandomListings from "@/app/actions/getRandomListings";
 import ListingFeed from "@/components/listing/ListingFeed";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
@@ -11,9 +11,14 @@ import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import EmptyState from "@/components/ui/EmptyState";
 import { isHtmlOnlyCrawler } from "@/lib/crawlers";
+import { parsePlaceLabelParam } from "@/lib/geo";
+import { findCity } from "@/lib/listing/cities";
+import { cityPath, citySlug } from "@/lib/listing/cityPaths";
+import { toStudioFeedItem } from "@/lib/listing/feedQuery";
 import { listingPath } from "@/lib/listing/seo";
+import { loadStudioFeed } from "@/lib/listing/studioFeed";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
-import { safeListing } from "@/types/listing";
+import { studioFeedSearchParamsSchema } from "@/schemas/listing";
 
 export const dynamic = "force-dynamic";
 
@@ -21,23 +26,25 @@ const LISTINGS_TITLE = "Book Photo & Video Studios for Rent by the Hour" as cons
 const LISTINGS_DESCRIPTION =
   "Compare and book verified photography, video, podcast and event studios in Delhi NCR, Gurgaon, Noida, Chandigarh, Mohali and Lucknow. Hourly pricing, real photos and instant availability." as const;
 
-function hasActiveFilters(params: IListingsParams): boolean {
-  return Boolean(
-    params.locationValue ||
-    params.category ||
-    params.type ||
-    params.venueTypes ||
-    params.aesthetics ||
-    params.setFeatures ||
-    params.hasSets ||
-    params.startDate ||
-    params.endDate ||
-    params.userId
-  );
-}
+type SearchParams = Record<string, string | string[] | undefined>;
 
 interface HomeProps {
-  searchParams: Promise<IListingsParams>;
+  searchParams: Promise<SearchParams>;
+}
+
+const feedFiltersOf = (searchParams: SearchParams) => studioFeedSearchParamsSchema.parse(searchParams);
+
+const placeLabelOf = (searchParams: SearchParams) =>
+  typeof searchParams.place === "string" ? parsePlaceLabelParam(searchParams.place) : undefined;
+
+const hasActiveFilters = (searchParams: SearchParams) =>
+  Object.values(feedFiltersOf(searchParams)).some((value) => value !== undefined);
+
+async function redirectToCityPage(searchParams: SearchParams) {
+  const city = searchParams.locationValue;
+  if (typeof city !== "string" || Object.keys(searchParams).length !== 1) return;
+  const entry = await findCity(citySlug(city));
+  if (entry) redirect(cityPath(entry.city));
 }
 
 export async function generateMetadata(props: HomeProps): Promise<Metadata> {
@@ -96,6 +103,7 @@ export async function generateMetadata(props: HomeProps): Promise<Metadata> {
 }
 
 export default async function StudiosPage(props: HomeProps) {
+  await redirectToCityPage(await props.searchParams);
   const feed = <HomeContent {...props} />;
   const htmlOnlyCrawler = isHtmlOnlyCrawler((await headers()).get("user-agent"));
 
@@ -114,13 +122,12 @@ async function HomeContent(props: HomeProps) {
   const searchParams = await props.searchParams;
   const isFiltered = hasActiveFilters(searchParams);
 
-  const [listing, currentUser] = await Promise.all([
-    getListings(searchParams),
+  const [feed, currentUser] = await Promise.all([
+    loadStudioFeed(feedFiltersOf(searchParams), placeLabelOf(searchParams)),
     getCurrentUser(),
   ]);
-
-  // When filters produce 0 results, fetch popular alternatives to prevent thin content soft 404s
-  const fallbackListings = listing.length === 0 ? await getRandomListings(6) : [];
+  const { items } = feed.page;
+  const fallbackItems = items.length === 0 ? (await getRandomListings(6)).map(toStudioFeedItem) : [];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -128,20 +135,20 @@ async function HomeContent(props: HomeProps) {
     "@id": `${SITE_URL}/studios#itemlist`,
     name: "Studios available on ContCave",
     url: `${SITE_URL}/studios`,
-    numberOfItems: listing.length,
-    itemListElement: listing.map((item, index) => ({
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,
       url: absoluteUrl(listingPath(item)),
       name: item.title.trim(),
-      ...(item.imageSrc?.[0] ? { image: item.imageSrc[0] } : {}),
+      ...(item.imageSrc[0] ? { image: item.imageSrc[0] } : {}),
     })),
   };
 
   return (
     <>
-      {listing.length > 0 && <JsonLd id="home-listings-jsonld" data={jsonLd} />}
-      {listing.length === 0 ? (
+      {items.length > 0 && <JsonLd id="home-listings-jsonld" data={jsonLd} />}
+      {items.length === 0 ? (
         <div className="space-y-10">
           <EmptyState
             showReset={isFiltered}
@@ -152,7 +159,7 @@ async function HomeContent(props: HomeProps) {
                 : "We're currently adding new studios. Check back soon!"
             }
           />
-          {fallbackListings.length > 0 && (
+          {fallbackItems.length > 0 && (
             <div className="border-t border-border pt-8">
               <div className="mb-6 space-y-1">
                 <h2 className="text-xl font-bold tracking-tight text-foreground">
@@ -163,7 +170,8 @@ async function HomeContent(props: HomeProps) {
                 </p>
               </div>
               <ListingFeed
-                listings={fallbackListings as unknown as safeListing[]}
+                page={{ items: fallbackItems, nextCursor: null, nearestKm: null, origin: null }}
+                filters={{}}
                 currentUser={currentUser}
               />
             </div>
@@ -171,8 +179,11 @@ async function HomeContent(props: HomeProps) {
         </div>
       ) : (
         <ListingFeed
-          listings={listing as unknown as safeListing[]}
+          key={feed.key}
+          page={feed.page}
+          filters={feed.filters}
           currentUser={currentUser}
+          nearLabel={feed.nearLabel}
         />
       )}
     </>

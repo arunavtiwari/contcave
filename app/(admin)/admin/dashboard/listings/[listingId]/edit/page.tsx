@@ -73,6 +73,7 @@ export default async function AdminEditListingPage({
                     predefinedAddons={addonsData}
                     afterDeleteHref="/admin/dashboard/listings"
                     tab={activeTab}
+                    canEditContcaveNote
                 />
             </div>
         </div>

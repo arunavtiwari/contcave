@@ -2,7 +2,8 @@ import { AdditionalChargeType, Prisma } from "@prisma/client";
 import crypto from "crypto";
 import { addDays } from "date-fns";
 
-import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
+import { checkExtensionSlot, loadDayAvailability, parseTimeToMinutes } from "@/lib/availability";
+import { checkExtensionWindow, dateKeyOf } from "@/lib/booking/dayAvailability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { scheduleQstashJob } from "@/lib/cron/qstash";
 import { UserFacingError } from "@/lib/errors";
@@ -14,6 +15,7 @@ import { LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
 import { canCreatePostBookingCharge } from "@/lib/reservation/status";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
+import { withTransientRetry } from "@/lib/transient-retry";
 import { getValidatedBaseUrl } from "@/lib/utils";
 import { WhatsappService } from "@/lib/whatsapp/service";
 
@@ -22,7 +24,6 @@ const EXTENSION_EXPIRY_MINUTES = 30;
 const ADDITIONAL_CHARGE_EXPIRY_MS = 24 * 60 * 60 * 1000;
 const MAX_PAYMENT_AMOUNT = 10_000_000;
 const MINUTES_PER_DAY = 24 * 60;
-const TRANSIENT_DB_RETRY_ATTEMPTS = 3;
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
 const PAYMENT_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 
@@ -55,47 +56,6 @@ function formatMinutesAsLabel(minutes: number) {
   const period = hour >= 12 ? "PM" : "AM";
   hour = hour % 12 || 12;
   return `${hour}:${String(minute).padStart(2, "0")} ${period}`;
-}
-
-function configuredClosingMinutes(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return MINUTES_PER_DAY;
-  const hours = value as { start?: unknown; end?: unknown };
-  const start = typeof hours.start === "string" ? parseTimeToMinutes(hours.start) : Number.NaN;
-  const rawEnd = typeof hours.end === "string" ? parseTimeToMinutes(hours.end) : Number.NaN;
-  if (start === 0 && rawEnd === 0) return MINUTES_PER_DAY;
-  const end = asEndOfDayMinutes(rawEnd);
-  return Number.isFinite(start) && Number.isFinite(end) && end > start ? end : 0;
-}
-
-async function extensionClosingMinutes(listingId: string, date: Date, operationalHours: unknown) {
-  const day = new Date(date);
-  day.setUTCHours(0, 0, 0, 0);
-  const override = await prisma.dayStatus.findUnique({
-    where: { listingId_date: { listingId, date: day } },
-    select: { listingActive: true, startTime: true, endTime: true },
-  });
-  if (override && !override.listingActive) return 0;
-  return configuredClosingMinutes(override
-    ? { start: override.startTime, end: override.endTime }
-    : operationalHours);
-}
-
-function isTransientDatabaseError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034"
-    || /write conflict|deadlock|transaction failed/i.test(message);
-}
-
-async function retryTransientDatabaseOperation<T>(operation: () => Promise<T>): Promise<T> {
-  for (let attempt = 1; attempt <= TRANSIENT_DB_RETRY_ATTEMPTS; attempt += 1) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (!isTransientDatabaseError(error) || attempt === TRANSIENT_DB_RETRY_ATTEMPTS) throw error;
-      await new Promise((resolve) => setTimeout(resolve, attempt * 100));
-    }
-  }
-  throw new Error("Transient database retry limit reached");
 }
 
 function endTimeForDate(date: Date, label: string) {
@@ -226,29 +186,23 @@ export class PostBookingService {
       return { maxDurationMinutes: 0, maxEndTime, reason: "Reservation end time is invalid" };
     }
 
-    const closingMinutes = await extensionClosingMinutes(
-      reservation.listingId,
-      reservation.startDate,
-      reservation.listing.operationalHours,
-    );
-    const maxDuration = Math.min(12 * 60, Math.max(0, closingMinutes - oldEndMinutes));
-    for (let duration = 30; duration <= maxDuration; duration += 30) {
+    const day = await loadDayAvailability({
+      listingId: reservation.listingId,
+      date: dateKeyOf(reservation.startDate),
+      excludeReservationId: reservation.id,
+      includeCalendar: true,
+    });
+    const maxDuration = Math.min(12 * 60, Math.max(0, (day?.closesAt ?? 0) - oldEndMinutes));
+    for (let duration = 30; day && duration <= maxDuration; duration += 30) {
       const requestedEndTime = formatMinutesAsLabel(oldEndMinutes + duration);
-      const conflict = await checkSetConflicts({
-        listingId: reservation.listingId,
-        date: reservation.startDate,
-        startTime: reservation.endTime,
-        endTime: requestedEndTime,
+      const problem = checkExtensionWindow(day, {
+        start: oldEndMinutes,
+        end: oldEndMinutes + duration,
         setIds: reservation.setIds,
-        excludeReservationId: reservation.id,
       });
 
-      if (conflict.hasConflict) {
-        return {
-          maxDurationMinutes,
-          maxEndTime,
-          reason: conflict.conflictDetails || "Next slot is unavailable",
-        };
+      if (problem) {
+        return { maxDurationMinutes, maxEndTime, reason: problem };
       }
 
       maxDurationMinutes = duration;
@@ -294,26 +248,19 @@ export class PostBookingService {
     if (oldEndMinutes + durationMinutes > MINUTES_PER_DAY) {
       throw new UserFacingError("Extensions cannot continue past midnight on the booking date");
     }
-    const closingMinutes = await extensionClosingMinutes(
-      reservation.listingId,
-      reservation.startDate,
-      reservation.listing.operationalHours,
-    );
-    if (oldEndMinutes + durationMinutes > closingMinutes) {
-      throw new UserFacingError("Extensions cannot continue past the studio's operating hours");
-    }
     const requestedEndTime = formatMinutesAsLabel(oldEndMinutes + durationMinutes);
 
-    const conflict = await checkSetConflicts({
+    const slotProblem = await checkExtensionSlot({
       listingId: reservation.listingId,
-      date: reservation.startDate,
+      date: dateKeyOf(reservation.startDate),
       startTime: reservation.endTime,
       endTime: requestedEndTime,
       setIds: reservation.setIds,
       excludeReservationId: reservation.id,
+      includeCalendar: true,
     });
-    if (conflict.hasConflict) {
-      throw new UserFacingError(conflict.conflictDetails || "The extension overlaps another booking or block", 409);
+    if (slotProblem) {
+      throw new UserFacingError(slotProblem, 409);
     }
 
     const customerPhone = normalizePhone(reservation.user.phone);
@@ -839,7 +786,7 @@ export class PostBookingService {
   }
 
   static async applyExtensionPayment(txnId: string, cfPaymentId?: string) {
-    await retryTransientDatabaseOperation(() => this.applyExtensionPaymentOnce(txnId, cfPaymentId));
+    await withTransientRetry(() => this.applyExtensionPaymentOnce(txnId, cfPaymentId));
   }
 
   private static async applyExtensionPaymentOnce(txnId: string, cfPaymentId?: string) {
@@ -877,33 +824,22 @@ export class PostBookingService {
       return;
     }
 
-    const conflict = await checkSetConflicts({
+    const slotProblem = await checkExtensionSlot({
       listingId: reservation.listingId,
-      date: reservation.startDate,
+      date: dateKeyOf(reservation.startDate),
       startTime: extension.oldEndTime,
       endTime: extension.requestedEndTime,
       setIds: reservation.setIds,
       excludeReservationId: reservation.id,
-      skipGoogleCalendar: true,
     });
 
-    const requestedEndMinutes = asEndOfDayMinutes(parseTimeToMinutes(extension.requestedEndTime));
-    const closingMinutes = await extensionClosingMinutes(
-      reservation.listingId,
-      reservation.startDate,
-      reservation.listing.operationalHours,
-    );
-    const outsideOperatingHours = !Number.isFinite(requestedEndMinutes) || requestedEndMinutes > closingMinutes;
-
-    if (conflict.hasConflict || outsideOperatingHours || reservation.status !== "CHECKED_IN") {
+    if (slotProblem || reservation.status !== "CHECKED_IN") {
       await this.markExtensionPaymentReview({
         extensionId: extension.id,
         reservationId: reservation.id,
         txnId: txn.id,
         cfPaymentId,
-        reason: outsideOperatingHours
-          ? "The extension is outside the studio's operating hours"
-          : conflict.conflictDetails || "Reservation is no longer checked in",
+        reason: slotProblem ?? "Reservation is no longer checked in",
       });
       return;
     }
@@ -986,7 +922,7 @@ export class PostBookingService {
   }
 
   static async applyAdditionalChargePayment(txnId: string, cfPaymentId?: string) {
-    await retryTransientDatabaseOperation(() => this.applyAdditionalChargePaymentOnce(txnId, cfPaymentId));
+    await withTransientRetry(() => this.applyAdditionalChargePaymentOnce(txnId, cfPaymentId));
   }
 
   private static async applyAdditionalChargePaymentOnce(txnId: string, cfPaymentId?: string) {

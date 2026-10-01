@@ -5,6 +5,7 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo, useTra
 
 type FilterNavigation = {
   navigate: (href: string) => void;
+  refresh: () => void;
   isPending: boolean;
 };
 
@@ -17,7 +18,8 @@ function useTransitionNavigation(): FilterNavigation {
     (href: string) => startTransition(() => router.push(href, { scroll: false })),
     [router]
   );
-  return useMemo(() => ({ navigate, isPending }), [navigate, isPending]);
+  const refresh = useCallback(() => startTransition(() => router.refresh()), [router]);
+  return useMemo(() => ({ navigate, refresh, isPending }), [navigate, refresh, isPending]);
 }
 
 export function FilterNavigationProvider({ children }: { children: ReactNode }) {

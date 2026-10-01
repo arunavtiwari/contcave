@@ -23,9 +23,17 @@ type Props = {
     predefinedAddons: Addon[];
     afterDeleteHref?: string;
     tab?: string;
+    canEditContcaveNote?: boolean;
 };
 
-const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons, afterDeleteHref = "/dashboard/properties", tab }: Props) => {
+const PropertyClient = ({
+    listing,
+    predefinedAmenities,
+    predefinedAddons,
+    afterDeleteHref = "/dashboard/properties",
+    tab,
+    canEditContcaveNote = false,
+}: Props) => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const selectedMenu = tab || searchParams?.get("tab") || "Edit Property";
@@ -92,6 +100,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons, afterD
                         setUnifiedSetPrice={setUnifiedSetPrice}
                         update={update}
                         isUpdating={isUpdating}
+                        canEditContcaveNote={canEditContcaveNote}
                     />
                 );
             case "Sync Calendar":

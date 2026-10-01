@@ -5,3 +5,7 @@ export function isAdminDomainHost(hostname: string): boolean {
         || host.startsWith('admin.')
         || host.includes('.admin.')
 }
+
+export function publicHostname(hostname: string): string {
+    return hostname.replace(/^staging\.admin\./, 'staging.').replace(/^admin\./, '')
+}

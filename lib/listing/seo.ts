@@ -57,7 +57,8 @@ export const cityOf = (listing: ListingBasics) => listing.locationValue?.trim() 
 
 export const stateOf = (listing: ListingBasics) => listing.actualLocation?.state?.trim() || undefined;
 
-export const kindOf = (listing: ListingBasics) => listing.venueTypes?.[0] || listing.category || "Studio";
+export const kindOf = (listing: Pick<ListingBasics, "venueTypes" | "category">) =>
+  listing.venueTypes?.[0] || listing.category || "Studio";
 
 export const minimumBookingHours = (listing: { minimumBookingHours?: number | null }) =>
   positive(listing.minimumBookingHours) ?? 1.5;

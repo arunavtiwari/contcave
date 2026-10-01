@@ -5,7 +5,7 @@ import ListingFeedHeader from "@/components/listing/ListingFeedHeader";
 import PendingFeed from "@/components/listing/PendingFeed";
 import Categories from "@/components/navbar/Categories";
 import { FilterNavigationProvider } from "@/hooks/useFilterNavigation";
-import { LocationSortProvider } from "@/hooks/useLocationSort";
+import { NearLabelProvider } from "@/hooks/useNearLabel";
 
 type Props = {
   feed: ReactNode;
@@ -21,10 +21,10 @@ export default function StudioBrowse({ feed, title, city, venueTypeHrefs, active
       <Container>
         <FilterNavigationProvider>
           <Categories city={city} venueTypeHrefs={venueTypeHrefs} activeVenueType={activeVenueType} />
-          <LocationSortProvider>
+          <NearLabelProvider>
             <ListingFeedHeader title={title} />
             <PendingFeed>{feed}</PendingFeed>
-          </LocationSortProvider>
+          </NearLabelProvider>
         </FilterNavigationProvider>
       </Container>
     </main>

@@ -6,6 +6,7 @@ import { FiCheck, FiMapPin } from 'react-icons/fi';
 import { components, type OptionProps } from "react-select";
 
 import Select, { SelectOption } from '@/components/ui/Select';
+import { distanceKm } from '@/lib/geo';
 
 const LIBRARIES: Libraries = ['places'];
 
@@ -13,12 +14,15 @@ type LatLngTuple = [number, number];
 
 export interface AutoCompleteValue {
   display_name: string;
+  name: string;
   latlng: LatLngTuple;
+  radiusKm: number | null;
 }
 
 export interface AutoCompleteProps {
   value?: string;
   onChange: (value: AutoCompleteValue) => void;
+  onClear?: () => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
@@ -39,6 +43,7 @@ export interface PlaceOption extends SelectOption {
 export default function AutoComplete({
   value,
   onChange,
+  onClear,
   placeholder = 'Search for a location',
   disabled = false,
   className = '',
@@ -111,7 +116,10 @@ export default function AutoComplete({
   const handleSelect = useCallback((option: unknown) => {
     const placeOption = option as PlaceOption | null;
     setCurrentValue(placeOption);
-    if (!placeOption) return;
+    if (!placeOption) {
+      onClear?.();
+      return;
+    }
 
     const div = document.createElement('div');
     if (!placesService.current) {
@@ -123,14 +131,18 @@ export default function AutoComplete({
       (place, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
           const loc = place.geometry.location;
+          const center: LatLngTuple = [loc.lat(), loc.lng()];
+          const corner = place.geometry.viewport?.getNorthEast();
           onChange({
             display_name: place.formatted_address || place.name || placeOption.value,
-            latlng: [loc.lat(), loc.lng()],
+            name: place.name || placeOption.main_text,
+            latlng: center,
+            radiusKm: corner ? distanceKm(center, [corner.lat(), corner.lng()]) : null,
           });
         }
       }
     );
-  }, [onChange]);
+  }, [onChange, onClear]);
 
   if (!apiKey) return <div className="text-sm text-destructive">Missing NEXT_PUBLIC_GOOGLE_MAPS_API.</div>;
   if (loadError) return <div className="text-sm text-destructive">Google Maps failed to load.</div>;
@@ -146,6 +158,7 @@ export default function AutoComplete({
       size={size}
       className={className}
       isAsync
+      isClearable={Boolean(onClear)}
       cacheOptions
       defaultOptions
       loadOptions={loadOptions}

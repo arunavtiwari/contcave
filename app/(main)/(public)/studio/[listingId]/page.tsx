@@ -4,23 +4,24 @@ import { cache } from "react";
 
 import getAmenities from "@/app/actions/getAmenities";
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import getListingById from "@/app/actions/getListingById";
+import { getListingAccess } from "@/app/actions/getListingById";
 import getListings from "@/app/actions/getListings";
 import getReviewCount from "@/app/actions/getReviewCount";
 import getReviews from "@/app/actions/getReviews";
 import { getPublicDayStatuses, getReservations } from "@/app/actions/reservationActions";
 import ListingClient from "@/components/listing/ListingClient";
 import MoreStudios from "@/components/listing/MoreStudios";
+import PreviewExpiredState, { PREVIEW_EXPIRED_METADATA } from "@/components/listing/PreviewExpiredState";
 import JsonLd from "@/components/seo/JsonLd";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import { categoriesOf } from "@/lib/listing/categories";
 import {
-  cityPath,
-  citySlug,
   cityTrail,
   findCity,
   STUDIOS_TRAIL,
 } from "@/lib/listing/cities";
+import { cityPath, citySlug } from "@/lib/listing/cityPaths";
+import { isListingPublic, LISTING_PREVIEW_PARAM } from "@/lib/listing/preview";
 import { buildListingJsonLd, buildListingMetadata } from "@/lib/listing/seo";
 import { getPlainTextFromHTML } from "@/lib/richText";
 import type { BreadcrumbItem } from "@/lib/seo";
@@ -34,16 +35,24 @@ type SearchParams = Record<string, string | string[] | undefined>;
 
 const RELATED_LIMIT = 4;
 
-const loadListing = cache((listingId?: string) => getListingById({ listingId }));
+const loadListingAccess = cache((listingId?: string, previewToken?: string) => getListingAccess({ listingId, previewToken }));
+
+const previewTokenOf = (searchParams: SearchParams) => {
+  const value = searchParams[LISTING_PREVIEW_PARAM];
+  return typeof value === "string" ? value : undefined;
+};
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<RouteParams>;
+  searchParams: Promise<SearchParams>;
 }): Promise<Metadata> {
   const { listingId } = await params;
-  const listing = await loadListing(listingId);
-  if (!listing) {
+  const access = await loadListingAccess(listingId, previewTokenOf(await searchParams));
+  if (access?.status === "preview-expired") return PREVIEW_EXPIRED_METADATA;
+  if (!access) {
     return {
       title: "Listing",
       description: "Discover verified studios available on ContCave.",
@@ -55,7 +64,7 @@ export async function generateMetadata({
     };
   }
 
-  return buildListingMetadata(listing);
+  return buildListingMetadata(access.listing);
 }
 
 async function loadAvailability(listing: FullListing): Promise<ListingAvailability> {
@@ -114,13 +123,18 @@ export default async function ListingPage(props: {
   params: Promise<RouteParams>;
   searchParams: Promise<SearchParams>;
 }) {
-  const { listingId } = await props.params;
-  const listing = await loadListing(listingId);
-  if (!listing) notFound();
+  const [{ listingId }, searchParams] = await Promise.all([props.params, props.searchParams]);
+  const access = await loadListingAccess(listingId, previewTokenOf(searchParams));
+  if (!access) notFound();
+  if (access.status === "preview-expired") return <PreviewExpiredState studioName={access.title} />;
+
+  const { listing } = access;
 
   if (listing.slug && listingId !== listing.slug) {
-    permanentRedirect(`/studio/${listing.slug}${toQueryString(await props.searchParams)}`);
+    permanentRedirect(`/studio/${listing.slug}${toQueryString(searchParams)}`);
   }
+
+  const isPreview = !isListingPublic(listing);
 
   const availability = loadAvailability(listing);
   const [currentUser, reviews, reviewCount, amenities, city, related] = await Promise.all([
@@ -137,12 +151,15 @@ export default async function ListingPage(props: {
 
   return (
     <main>
-      <JsonLd
-        id={`listing-jsonld-${listing.id}`}
-        data={buildListingJsonLd(listing, { amenities, reviews, reviewCount, breadcrumbs })}
-      />
+      {!isPreview && (
+        <JsonLd
+          id={`listing-jsonld-${listing.id}`}
+          data={buildListingJsonLd(listing, { amenities, reviews, reviewCount, breadcrumbs })}
+        />
+      )}
       <ListingClient
         listing={listing}
+        isPreview={isPreview}
         currentUser={currentUser}
         availability={availability}
         reviews={reviews}
