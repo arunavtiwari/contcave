@@ -1,6 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 
 import {
+    checkExtensionWindow,
     checkWindow,
     type DayAvailability,
     dayAvailabilityFromRecords,
@@ -135,28 +136,36 @@ export async function loadDayAvailability(params: {
     return (await loadDayAvailabilities({ ...rest, listingIds: [listingId] })).get(listingId) ?? null;
 }
 
-export async function checkBookingSlot(params: {
+type SlotParams = {
     listingId: string;
     date: string;
     startTime: string;
     endTime: string;
     setIds: string[];
-    packageDurationHours?: number | null;
     excludeReservationId?: string;
     db?: Db;
     includeCalendar?: boolean;
-    extension?: boolean;
-}): Promise<string | null> {
+};
+
+async function checkSlot(
+    params: SlotParams,
+    check: (day: DayAvailability, window: { start: number; end: number; setIds: string[] }) => string | null
+): Promise<string | null> {
     if (!isDateKey(params.date)) return "Please choose a valid booking date.";
     const day = await loadDayAvailability(params);
     if (!day) return "Listing not found";
 
-    return checkWindow(day, {
+    return check(day, {
         start: labelToMinutes(params.startTime),
         end: asEndOfDayMinutes(labelToMinutes(params.endTime)),
         setIds: params.setIds,
-        packageMinutes: Math.max(0, Number(params.packageDurationHours || 0)) * 60,
-        enforceMinimum: !params.extension,
-        enforcePast: !params.extension,
     });
 }
+
+export const checkBookingSlot = (params: SlotParams & { packageDurationHours?: number | null }) =>
+    checkSlot(params, (day, window) => checkWindow(day, {
+        ...window,
+        packageMinutes: Math.max(0, Number(params.packageDurationHours || 0)) * 60,
+    }));
+
+export const checkExtensionSlot = (params: SlotParams) => checkSlot(params, checkExtensionWindow);

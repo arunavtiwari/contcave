@@ -8,6 +8,7 @@ import { ListingService } from "@/lib/listing/service";
 import prisma from "@/lib/prismadb";
 import { truncateText } from "@/lib/richText";
 import { type BreadcrumbItem, META_DESCRIPTION_LENGTH } from "@/lib/seo";
+import { pluralize } from "@/lib/strings";
 import { formatINR } from "@/lib/utils";
 
 import { cityCategoryPath, cityPath, citySlug } from "./cityPaths";
@@ -126,7 +127,7 @@ export async function findCity(slug: string) {
 const placeOf = (entry: CityEntry) =>
   entry.state && entry.state !== entry.city ? `${entry.city}, ${entry.state}` : entry.city;
 
-const studiosLabel = (count: number, noun = "studio") => `${count} verified ${noun}${count === 1 ? "" : "s"}`;
+const studiosLabel = (count: number, noun = "studio") => pluralize(count, `verified ${noun}`);
 
 export function describeCity(entry: CityEntry) {
   const kindSummary = joinList(

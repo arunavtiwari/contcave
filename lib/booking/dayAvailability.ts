@@ -1,5 +1,6 @@
 import { TIME_SLOTS } from "@/constants/timeSlots";
 import { asEndOfDayMinutes, labelToMinutes } from "@/lib/scheduling";
+import { pluralize } from "@/lib/strings";
 import type { CalendarBusyEvent } from "@/types/reservation";
 import { toDayKey } from "@/types/scheduling";
 
@@ -34,6 +35,7 @@ export type DayAvailability = {
     date: string;
     hours: MinuteRange | null;
     closedBy: "day-status" | "schedule" | "misconfigured" | null;
+    closesAt: number | null;
     earliestStart: number;
     minimumMinutes: number;
     hasSets: boolean;
@@ -112,16 +114,17 @@ function openingHours(start?: unknown, end?: unknown): MinuteRange | null {
 
 function resolveHours(listing: ListingScheduleInput, dayStatus: DayStatusInput | null | undefined, dateKey: string) {
     if (dayStatus) {
-        if (!dayStatus.listingActive) return { hours: null, closedBy: "day-status" as const };
+        if (!dayStatus.listingActive) return { hours: null, closedBy: "day-status" as const, closesAt: null };
         const hours = openingHours(dayStatus.startTime, dayStatus.endTime);
-        return { hours, closedBy: hours ? null : ("misconfigured" as const) };
+        return { hours, closedBy: hours ? null : ("misconfigured" as const), closesAt: hours?.end ?? null };
     }
-    if (!isOperationalWeekday(listing.operationalDays, dateKey)) return { hours: null, closedBy: "schedule" as const };
     const configured = listing.operationalHours as { start?: unknown; end?: unknown } | null | undefined;
-    const hours = configured && typeof configured === "object" && !Array.isArray(configured)
+    const weekly = configured && typeof configured === "object" && !Array.isArray(configured)
         ? openingHours(configured.start, configured.end)
         : { start: 0, end: MINUTES_PER_DAY };
-    return { hours, closedBy: hours ? null : ("misconfigured" as const) };
+    const closesAt = weekly?.end ?? null;
+    if (!isOperationalWeekday(listing.operationalDays, dateKey)) return { hours: null, closedBy: "schedule" as const, closesAt };
+    return { hours: weekly, closedBy: weekly ? null : ("misconfigured" as const), closesAt };
 }
 
 function calendarBusyForDate(events: CalendarBusyEvent[], dateKey: string): MinuteRange[] {
@@ -157,7 +160,7 @@ export function buildDayAvailability(input: {
     now: Date;
 }): DayAvailability {
     const { date, listing, now } = input;
-    const { hours, closedBy } = resolveHours(listing, input.dayStatus, date);
+    const { hours, closedBy, closesAt } = resolveHours(listing, input.dayStatus, date);
     const today = istDateKey(now);
     const nowMinutes = Math.floor((now.getTime() - dayStartMs(today)) / MS_PER_MINUTE);
     const earliestStart = date < today ? MINUTES_PER_DAY : date === today ? nowMinutes + 1 : 0;
@@ -184,6 +187,7 @@ export function buildDayAvailability(input: {
         date,
         hours,
         closedBy,
+        closesAt,
         earliestStart,
         minimumMinutes: minimumBookingMinutes(listing.minimumBookingHours),
         hasSets: listing.hasSets && listing.setIds.length > 0,
@@ -222,38 +226,15 @@ const BUSY_MESSAGES: Record<BusyKind, string> = {
     calendar: "This time slot overlaps with a connected Google Calendar event.",
 };
 
-export function checkWindow(
-    day: DayAvailability,
-    window: {
-        start: number;
-        end: number;
-        setIds: string[];
-        packageMinutes?: number | null;
-        enforceMinimum?: boolean;
-        enforcePast?: boolean;
-    }
-): string | null {
-    const { start, end, setIds, enforceMinimum = true, enforcePast = true } = window;
-    if (!isDateKey(day.date)) return "Please choose a valid booking date.";
+type TimeWindow = { start: number; end: number; setIds: string[] };
+
+function invalidWindow({ start, end }: TimeWindow) {
     if (!Number.isFinite(start) || !Number.isFinite(end)) return "Please choose a valid start and end time.";
     if (end <= start) return "End time must be after start time.";
+    return null;
+}
 
-    const duration = end - start;
-    if (enforceMinimum && duration < day.minimumMinutes) {
-        const hours = day.minimumMinutes / 60;
-        return `Minimum booking duration is ${hours} hour${hours === 1 ? "" : "s"}.`;
-    }
-    const packageMinutes = Math.max(0, Number(window.packageMinutes || 0));
-    if (packageMinutes > 0 && duration !== packageMinutes) return "Selected time slot must match the package duration.";
-
-    if (!day.hours) {
-        return day.closedBy === "misconfigured"
-            ? "This studio's operational hours are not configured correctly."
-            : "This studio is not accepting bookings on the selected date.";
-    }
-    if (start < day.hours.start || end > day.hours.end) return "Selected time slot is outside this studio's operational hours.";
-    if (enforcePast && start < day.earliestStart) return "Past time slots are not available for booking.";
-
+function windowConflict(day: DayAvailability, { start, end, setIds }: TimeWindow) {
     const listingConflict = day.listingBusy.find((range) => range.start < end && start < range.end);
     if (listingConflict) return BUSY_MESSAGES[listingConflict.kind];
     for (const setId of setIds) {
@@ -265,6 +246,38 @@ export function checkWindow(
         }
     }
     return null;
+}
+
+export function checkWindow(day: DayAvailability, window: TimeWindow & { packageMinutes?: number | null }): string | null {
+    const { start, end } = window;
+    if (!isDateKey(day.date)) return "Please choose a valid booking date.";
+    const invalid = invalidWindow(window);
+    if (invalid) return invalid;
+
+    const duration = end - start;
+    if (duration < day.minimumMinutes) {
+        const hours = day.minimumMinutes / 60;
+        return `Minimum booking duration is ${pluralize(hours, "hour")}.`;
+    }
+    const packageMinutes = Math.max(0, Number(window.packageMinutes || 0));
+    if (packageMinutes > 0 && duration !== packageMinutes) return "Selected time slot must match the package duration.";
+
+    if (!day.hours) {
+        return day.closedBy === "misconfigured"
+            ? "This studio's operational hours are not configured correctly."
+            : "This studio is not accepting bookings on the selected date.";
+    }
+    if (start < day.hours.start || end > day.hours.end) return "Selected time slot is outside this studio's operational hours.";
+    if (start < day.earliestStart) return "Past time slots are not available for booking.";
+
+    return windowConflict(day, window);
+}
+
+export function checkExtensionWindow(day: DayAvailability, window: TimeWindow): string | null {
+    const invalid = invalidWindow(window);
+    if (invalid) return invalid;
+    if (day.closesAt === null || window.end > day.closesAt) return "Extensions cannot continue past the studio's operating hours.";
+    return windowConflict(day, window);
 }
 
 export function freeSetIds(day: DayAvailability, start: number, end: number) {

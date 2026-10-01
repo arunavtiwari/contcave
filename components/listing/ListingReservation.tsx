@@ -25,6 +25,7 @@ import { minimumBookingMinutes } from "@/lib/booking/dayAvailability";
 import { normalizePhone } from "@/lib/phone";
 import { addGst } from "@/lib/pricing";
 import { istToDateOnly } from "@/lib/scheduling";
+import { pluralize } from "@/lib/strings";
 import { Package } from "@/types/package";
 import {
   ReservationOperationalTimings,
@@ -615,8 +616,7 @@ export default function ListingReservation({
             </div>
           ) : (
             <p>
-              Base booking fee {INR.format(price)} × {safeHours} hr
-              {safeHours === 1 ? "" : "s"}
+              Base booking fee {INR.format(price)} × {pluralize(safeHours, "hr")}
             </p>
           )}
           <p>{INR.format(clampRound(bookingFee))}</p>

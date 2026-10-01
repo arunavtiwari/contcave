@@ -5,6 +5,7 @@ import { IoClose } from "react-icons/io5";
 
 import SetSelector from "@/components/listing/SetSelector";
 import Button from "@/components/ui/Button";
+import { pluralize } from "@/lib/strings";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
 
@@ -75,7 +76,7 @@ export default function PackageSetModal({
                     <div className="mb-4">
                         <p className="text-muted-foreground">
                             {requiredCount > 0
-                                ? `Please select exactly ${requiredCount} set${requiredCount === 1 ? "" : "s"} for this package.`
+                                ? `Please select exactly ${pluralize(requiredCount, "set")} for this package.`
                                 : "Please select the sets you want to include in this package."}
                         </p>
                     </div>

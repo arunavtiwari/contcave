@@ -2,8 +2,8 @@ import { AdditionalChargeType, Prisma } from "@prisma/client";
 import crypto from "crypto";
 import { addDays } from "date-fns";
 
-import { checkBookingSlot, loadDayAvailability, parseTimeToMinutes } from "@/lib/availability";
-import { checkWindow, dateKeyOf } from "@/lib/booking/dayAvailability";
+import { checkExtensionSlot, loadDayAvailability, parseTimeToMinutes } from "@/lib/availability";
+import { checkExtensionWindow, dateKeyOf } from "@/lib/booking/dayAvailability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { scheduleQstashJob } from "@/lib/cron/qstash";
 import { UserFacingError } from "@/lib/errors";
@@ -192,15 +192,13 @@ export class PostBookingService {
       excludeReservationId: reservation.id,
       includeCalendar: true,
     });
-    const maxDuration = Math.min(12 * 60, Math.max(0, (day?.hours?.end ?? 0) - oldEndMinutes));
+    const maxDuration = Math.min(12 * 60, Math.max(0, (day?.closesAt ?? 0) - oldEndMinutes));
     for (let duration = 30; day && duration <= maxDuration; duration += 30) {
       const requestedEndTime = formatMinutesAsLabel(oldEndMinutes + duration);
-      const problem = checkWindow(day, {
+      const problem = checkExtensionWindow(day, {
         start: oldEndMinutes,
         end: oldEndMinutes + duration,
         setIds: reservation.setIds,
-        enforceMinimum: false,
-        enforcePast: false,
       });
 
       if (problem) {
@@ -252,7 +250,7 @@ export class PostBookingService {
     }
     const requestedEndTime = formatMinutesAsLabel(oldEndMinutes + durationMinutes);
 
-    const slotProblem = await checkBookingSlot({
+    const slotProblem = await checkExtensionSlot({
       listingId: reservation.listingId,
       date: dateKeyOf(reservation.startDate),
       startTime: reservation.endTime,
@@ -260,7 +258,6 @@ export class PostBookingService {
       setIds: reservation.setIds,
       excludeReservationId: reservation.id,
       includeCalendar: true,
-      extension: true,
     });
     if (slotProblem) {
       throw new UserFacingError(slotProblem, 409);
@@ -827,14 +824,13 @@ export class PostBookingService {
       return;
     }
 
-    const slotProblem = await checkBookingSlot({
+    const slotProblem = await checkExtensionSlot({
       listingId: reservation.listingId,
       date: dateKeyOf(reservation.startDate),
       startTime: extension.oldEndTime,
       endTime: extension.requestedEndTime,
       setIds: reservation.setIds,
       excludeReservationId: reservation.id,
-      extension: true,
     });
 
     if (slotProblem || reservation.status !== "CHECKED_IN") {
