@@ -21,13 +21,12 @@ import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import Skeleton from "@/components/ui/Skeleton";
 import useUIStore from "@/hooks/useUIStore";
+import { minimumBookingMinutes } from "@/lib/booking/dayAvailability";
 import { normalizePhone } from "@/lib/phone";
 import { addGst } from "@/lib/pricing";
 import { istToDateOnly } from "@/lib/scheduling";
 import { Package } from "@/types/package";
 import {
-  DayKey,
-  OperationalDays,
   ReservationOperationalTimings,
   TimeHM,
   TimeLabel,
@@ -111,12 +110,6 @@ function getCashfree(mode: "sandbox" | "production") {
 const clampRound = (n: number) => Math.max(0, Math.round(n || 0));
 const isValidDate = (d: unknown): d is Date =>
   d instanceof Date && !Number.isNaN(d.getTime());
-
-function hoursToMinutes(h?: number, fallbackMinutes = 90) {
-  const n = Number(h);
-  if (!Number.isFinite(n) || n <= 0) return fallbackMinutes;
-  return Math.max(0, Math.round(n * 60));
-}
 
 
 const parseLabel = (label: string) => {
@@ -298,7 +291,7 @@ export default function ListingReservation({
 
   const minBookingMinutes = useMemo(
     () => Math.max(
-      hoursToMinutes(minBookingHours, 90),
+      minimumBookingMinutes(minBookingHours),
       selectedPackage ? Math.max(0, Number(selectedPackage.durationHours || 0)) * 60 : 0
     ),
     [minBookingHours, selectedPackage]
@@ -322,11 +315,6 @@ export default function ListingReservation({
       );
     },
     [selectedPackage]
-  );
-
-  const allowedDays = useMemo<OperationalDays | DayKey[] | undefined>(
-    () => operationalTimings.operationalDays,
-    [operationalTimings.operationalDays]
   );
 
   const formatLocalYmd = (d: Date) => {
@@ -545,7 +533,6 @@ export default function ListingReservation({
           minDate={bookingDateRange.min}
           maxDate={bookingDateRange.max}
           disabledDates={disabledDates}
-          allowedDays={allowedDays}
           onChange={(value) => {
             if (isValidDate(value)) {
               setSelectDateAction(value);
