@@ -9,6 +9,7 @@ import { getIpLocation } from "@/lib/http/requestMeta";
 import type { StudioFeedFilters } from "@/schemas/listing";
 
 import { ListingService } from "./service";
+import { studioFeedKey } from "./studioFeedKey";
 
 async function getVisitorOrigin(): Promise<Nearby | null> {
     const [cookieStore, headerList] = await Promise.all([cookies(), headers()]);
@@ -21,7 +22,7 @@ export async function loadStudioFeed(filters: StudioFeedFilters) {
     const page = await ListingService.getListingFeedPage({ filters, origin: visitor?.latlng ?? null });
 
     return {
-        key: JSON.stringify([filters, page.origin]),
+        key: studioFeedKey(filters, page.origin),
         filters,
         page,
         nearLabel: visitor && page.origin ? nearLabelFor(visitor, page.nearestKm) : undefined,
