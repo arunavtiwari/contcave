@@ -8,13 +8,12 @@ import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import { findCategory, MIN_CATEGORY_LISTINGS, type StudioCategory } from "@/lib/listing/categories";
 import {
-  cityCategoryPath,
-  cityPath,
   cityTrail,
   describeCityCategory,
   findCity,
   venueTypeLinks,
 } from "@/lib/listing/cities";
+import { cityCategoryPath, cityPath } from "@/lib/listing/cityPaths";
 import { cityCollectionJsonLd, collectionMetadata, UNPUBLISHED_COLLECTION_METADATA } from "@/lib/listing/seo";
 import { loadStudioFeed } from "@/lib/listing/studioFeed";
 

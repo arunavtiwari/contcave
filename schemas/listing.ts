@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
+import { isDateKey } from "@/lib/booking/dayAvailability";
+import { isLatLng, parseLatLngParam, searchRadiusKm } from "@/lib/geo";
 import { AESTHETIC_LABELS, SET_FEATURE_LABELS, USE_CASE_LABELS, VENUE_TYPE_LABELS } from "@/lib/taxonomy";
 import { objectIdSchema } from "@/schemas/common";
 
@@ -368,8 +370,9 @@ export const studioFeedFiltersSchema = z.object({
     aesthetics: feedTermsSchema.optional(),
     setFeatures: feedTermsSchema.optional(),
     hasSets: z.boolean().optional(),
-    startDate: feedTermSchema.optional(),
-    endDate: feedTermSchema.optional(),
+    date: z.string().refine(isDateKey, "Invalid date").optional(),
+    near: z.tuple([z.number(), z.number()]).refine(isLatLng, "Invalid location").optional(),
+    radiusKm: z.number().min(1).max(200).optional(),
     studioCategory: feedTermSchema.optional(),
 });
 
@@ -387,6 +390,15 @@ const searchTerms = (value?: string | string[]) => {
 
 const searchTerm = (value?: string | string[]) => searchTerms(value)?.[0];
 
+const validDate = (value?: string) => (value && isDateKey(value) ? value : undefined);
+
+const firstParam = (value?: string | string[]) => (Array.isArray(value) ? value[0] : value);
+
+function nearFilter(near?: string | string[], km?: string | string[]) {
+    const latlng = parseLatLngParam(firstParam(near));
+    return latlng ? { near: latlng, radiusKm: searchRadiusKm(Number(firstParam(km))) } : {};
+}
+
 export const studioFeedSearchParamsSchema = z
     .object({
         locationValue: searchParamSchema,
@@ -396,8 +408,9 @@ export const studioFeedSearchParamsSchema = z
         aesthetics: searchParamSchema,
         setFeatures: searchParamSchema,
         hasSets: searchParamSchema,
-        startDate: searchParamSchema,
-        endDate: searchParamSchema,
+        date: searchParamSchema,
+        near: searchParamSchema,
+        km: searchParamSchema,
     })
     .transform((params): StudioFeedFilters => ({
         locationValues: searchTerms(params.locationValue),
@@ -407,7 +420,7 @@ export const studioFeedSearchParamsSchema = z
         aesthetics: searchTerms(params.aesthetics),
         setFeatures: searchTerms(params.setFeatures),
         hasSets: searchTerm(params.hasSets) === "true" || undefined,
-        startDate: searchTerm(params.startDate),
-        endDate: searchTerm(params.endDate),
+        date: validDate(searchTerm(params.date)),
+        ...nearFilter(params.near, params.km),
     }));
 

@@ -1,4 +1,4 @@
-const PERMISSIONS_POLICY = 'camera=(), microphone=(), geolocation=(self)'
+const PERMISSIONS_POLICY = 'camera=(), microphone=(), geolocation=()'
 
 export const SECURITY_HEADERS: Record<string, string> = {
     'X-DNS-Prefetch-Control': 'on',

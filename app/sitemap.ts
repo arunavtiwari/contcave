@@ -23,7 +23,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   try {
-    const { cityCategoryPath, cityPath, getCityDirectory, publishedCategories } = await import("@/lib/listing/cities");
+    const [{ getCityDirectory, publishedCategories }, { cityCategoryPath, cityPath }] = await Promise.all([
+      import("@/lib/listing/cities"),
+      import("@/lib/listing/cityPaths"),
+    ]);
     for (const city of await getCityDirectory()) {
       cityRoutes.push({
         url: `${base}${cityPath(city.city)}`,

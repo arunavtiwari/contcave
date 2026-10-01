@@ -1,7 +1,6 @@
 "use client";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { BiSearch } from "react-icons/bi";
 
 import Container from "@/components/layout/Container";
@@ -9,34 +8,12 @@ import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import { HERO_HIGHLIGHTS } from "@/constants/landing";
-import useCities from "@/hooks/useCities";
+import { useStudioSearch } from "@/hooks/useStudioSearch";
 import useUIStore from "@/hooks/useUIStore";
-import { formatISTDate } from "@/lib/utils";
 
 const HeroSearch = () => {
   const uiStore = useUIStore();
-  const params = useSearchParams();
-  const { getByValue } = useCities();
-
-  const locationValue = params?.get("locationValue");
-  const startDate = params?.get("selectedDate");
-
-  const locationLabel = useMemo(() => {
-    if (locationValue) {
-      return getByValue(locationValue as string)?.label;
-    }
-    return null;
-  }, [getByValue, locationValue]);
-
-  const dateLabel = useMemo(() => {
-    if (startDate) {
-      return formatISTDate(startDate as string, {
-        month: "short",
-        day: "numeric",
-      });
-    }
-    return null;
-  }, [startDate]);
+  const { whereLabel, dateLabel } = useStudioSearch();
 
   return (
     <button
@@ -51,7 +28,7 @@ const HeroSearch = () => {
             Location
           </span>
           <span className="truncate text-sm font-medium text-background">
-            {locationLabel || "Search by city..."}
+            {whereLabel ?? "Search an area or city..."}
           </span>
         </div>
         <div className="hidden flex-1 flex-col px-4 sm:flex md:px-7">
@@ -59,7 +36,7 @@ const HeroSearch = () => {
             Date
           </span>
           <span className="truncate text-sm font-medium text-background">
-            {dateLabel || "Add date"}
+            {dateLabel ?? "Add date"}
           </span>
         </div>
       </div>

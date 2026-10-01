@@ -1,3 +1,6 @@
+import crypto from "node:crypto";
+
+import { addDaysToDateKey, buildDayAvailability, checkWindow, isBookable, istDateKey } from "../../lib/booking/dayAvailability";
 import type { LatLng } from "../../lib/geo";
 import { matchesCategory, STUDIO_CATEGORIES } from "../../lib/listing/categories";
 import { resolveListingLocation, toGeoPoint } from "../../lib/listing/location";
@@ -17,6 +20,10 @@ type FixtureInput = {
   type?: string[];
   venueTypes?: string[];
   category?: string;
+  operationalDays?: { start: string; end: string } | { days: string[] };
+  operationalHours?: { start: string; end: string };
+  minimumBookingHours?: number;
+  setNames?: string[];
 };
 
 const ORIGIN: LatLng = [28.6315, 77.2167];
@@ -50,10 +57,35 @@ async function createFeedListing(ownerId: string, city: string, input: FixtureIn
       status: "VERIFIED",
       active: true,
       createdAt: new Date(input.createdAt),
+      operationalDays: input.operationalDays,
+      operationalHours: input.operationalHours ?? { start: "9:00 AM", end: "9:00 PM" },
+      minimumBookingHours: input.minimumBookingHours,
+      hasSets: Boolean(input.setNames?.length),
+      sets: input.setNames?.length
+        ? { create: input.setNames.map((name, position) => ({ name, position, price: 1000 })) }
+        : undefined,
     },
+    include: { sets: true },
   });
   trackCreated("listing", listing.id);
   return listing;
+}
+
+async function createReservation(params: { listingId: string; userId: string; date: string; startTime: string; endTime: string; setIds?: string[] }) {
+  const reservation = await prisma.reservation.create({
+    data: {
+      listingId: params.listingId,
+      userId: params.userId,
+      bookingId: `QA-${crypto.randomUUID()}`,
+      startDate: new Date(`${params.date}T00:00:00.000Z`),
+      startTime: params.startTime,
+      endTime: params.endTime,
+      totalPrice: 1500,
+      status: "CONFIRMED",
+      setIds: params.setIds ?? [],
+    },
+  });
+  trackCreated("reservation", reservation.id);
 }
 
 async function pageAll(filters: StudioFeedFilters, origin: LatLng | null, size: number) {
@@ -136,6 +168,72 @@ test.describe("studio feed service", () => {
       const actual = (await pageAll({ locationValues: [city], studioCategory: category.slug }, null, 2)).sort();
       expect(actual, category.slug).toEqual(expected);
     }
+  });
+
+  test("place search keeps only studios within the radius, nearest first", async ({}, testInfo) => {
+    const suffix = `feed-radius-r${testInfo.retry}`;
+    const city = `${readRunState().runId} Radius ${testInfo.retry}`;
+    const { user } = await createUserFixture({ role: "OWNER", verified: true, suffix });
+    const near = await createFeedListing(user.id, city, { name: "5km", latlng: offsetNorth(ORIGIN, 5), createdAt: "2026-05-01" });
+    const edge = await createFeedListing(user.id, city, { name: "14km", latlng: offsetNorth(ORIGIN, 14), createdAt: "2026-05-02" });
+    await createFeedListing(user.id, city, { name: "30km", latlng: offsetNorth(ORIGIN, 30), createdAt: "2026-05-03" });
+    await createFeedListing(user.id, city, { name: "No location", createdAt: "2026-05-04" });
+
+    expect(await pageAll({ locationValues: [city], near: ORIGIN, radiusKm: 15 }, ORIGIN, 1)).toEqual([near.id, edge.id]);
+  });
+
+  test("date filter keeps only studios with a bookable slot that day", async ({}, testInfo) => {
+    const suffix = `feed-date-r${testInfo.retry}`;
+    const city = `${readRunState().runId} Date ${testInfo.retry}`;
+    const { user: owner } = await createUserFixture({ role: "OWNER", verified: true, suffix });
+    const { user: customer } = await createUserFixture({ role: "CUSTOMER", suffix });
+    const date = addDaysToDateKey(istDateKey(new Date()), 7);
+    const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date(`${date}T12:00:00+05:30`).getUTCDay()];
+
+    const open = await createFeedListing(owner.id, city, { name: "Open", createdAt: "2026-04-01" });
+    const fullyBooked = await createFeedListing(owner.id, city, { name: "Fully booked", createdAt: "2026-04-02" });
+    await createReservation({ listingId: fullyBooked.id, userId: customer.id, date, startTime: "9:00 AM", endTime: "9:00 PM" });
+    const oneSetFree = await createFeedListing(owner.id, city, { name: "One set free", createdAt: "2026-04-03", setNames: ["A", "B"] });
+    await createReservation({ listingId: oneSetFree.id, userId: customer.id, date, startTime: "9:00 AM", endTime: "9:00 PM", setIds: [oneSetFree.sets[0].id] });
+    const closedDay = await createFeedListing(owner.id, city, { name: "Closed day", createdAt: "2026-04-04" });
+    await prisma.dayStatus.create({ data: { listingId: closedDay.id, date: new Date(`${date}T00:00:00.000Z`), listingActive: false, startTime: "", endTime: "" } });
+    const reopened = await createFeedListing(owner.id, city, {
+      name: "Reopened weekday",
+      createdAt: "2026-04-05",
+      operationalDays: { days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].filter((day) => day !== weekday) },
+    });
+    await prisma.dayStatus.create({ data: { listingId: reopened.id, date: new Date(`${date}T00:00:00.000Z`), listingActive: true, startTime: "10:00", endTime: "14:00" } });
+    const tooShort = await createFeedListing(owner.id, city, { name: "Window too short", createdAt: "2026-04-06", minimumBookingHours: 2 });
+    await createReservation({ listingId: tooShort.id, userId: customer.id, date, startTime: "9:00 AM", endTime: "8:00 PM" });
+
+    const found = await pageAll({ locationValues: [city], date }, null, 2);
+    expect(found.sort()).toEqual([open.id, oneSetFree.id, reopened.id].sort());
+    expect(await pageAll({ locationValues: [city] }, null, 2)).toHaveLength(6);
+  });
+
+  test("availability engine applies the booking rules", () => {
+    const now = new Date("2026-10-01T06:00:00Z");
+    const listing = { operationalHours: { start: "9:00 AM", end: "9:00 PM" }, minimumBookingHours: 2, hasSets: false, setIds: [] };
+    const day = buildDayAvailability({ date: "2026-10-05", listing, bookings: [], blocks: [], now });
+
+    expect(isBookable(day, 1)).toBe(false);
+    expect(isBookable(day, 3)).toBe(true);
+    expect(checkWindow(day, { start: 600, end: 720, setIds: [], packageMinutes: 180 })).toBe("Selected time slot must match the package duration.");
+    expect(checkWindow(day, { start: 480, end: 600, setIds: [] })).toBe("Selected time slot is outside this studio's operational hours.");
+
+    const special = buildDayAvailability({
+      date: "2026-10-05",
+      listing,
+      dayStatus: { listingActive: true, startTime: "06:00", endTime: "08:00" },
+      bookings: [],
+      blocks: [],
+      now,
+    });
+    expect(checkWindow(special, { start: 360, end: 480, setIds: [] })).toBeNull();
+
+    const today = buildDayAvailability({ date: "2026-10-01", listing, bookings: [], blocks: [], now });
+    expect(checkWindow(today, { start: 660, end: 780, setIds: [] })).toBe("Past time slots are not available for booking.");
+    expect(checkWindow(today, { start: 720, end: 840, setIds: [] })).toBeNull();
   });
 
   test("rejects forged cursors", async () => {

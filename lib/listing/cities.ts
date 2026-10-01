@@ -10,19 +10,10 @@ import { truncateText } from "@/lib/richText";
 import { type BreadcrumbItem, META_DESCRIPTION_LENGTH } from "@/lib/seo";
 import { formatINR } from "@/lib/utils";
 
+import { cityCategoryPath, cityPath, citySlug } from "./cityPaths";
+
 const joinList = (items: string[]) =>
   items.length < 2 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
-
-export const citySlug = (city: string) =>
-  city
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-export const cityPath = (city: string) => `/studios/${citySlug(city)}`;
 
 export const STUDIOS_TRAIL: BreadcrumbItem[] = [
   { name: "Home", href: "/" },
@@ -30,9 +21,6 @@ export const STUDIOS_TRAIL: BreadcrumbItem[] = [
 ];
 
 export const cityTrail = (city: string): BreadcrumbItem[] => [...STUDIOS_TRAIL, { name: city, href: cityPath(city) }];
-
-export const cityCategoryPath = (city: string, category: { slug: string }) =>
-  `${cityPath(city)}/${category.slug}`;
 
 export type CityEntry = {
   city: string;

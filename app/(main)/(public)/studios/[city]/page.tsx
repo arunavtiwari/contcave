@@ -7,12 +7,12 @@ import ListingFeed from "@/components/listing/ListingFeed";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import {
-  cityPath,
   cityTrail,
   describeCity,
   findCity,
   venueTypeLinks,
 } from "@/lib/listing/cities";
+import { cityPath } from "@/lib/listing/cityPaths";
 import { cityCollectionJsonLd, collectionMetadata, UNPUBLISHED_COLLECTION_METADATA } from "@/lib/listing/seo";
 import { loadStudioFeed } from "@/lib/listing/studioFeed";
 

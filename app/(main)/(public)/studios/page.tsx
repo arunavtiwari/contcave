@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import type { IListingsParams } from "@/app/actions/getListings";
 import getRandomListings from "@/app/actions/getRandomListings";
 import ListingFeed from "@/components/listing/ListingFeed";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
@@ -11,6 +11,9 @@ import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import EmptyState from "@/components/ui/EmptyState";
 import { isHtmlOnlyCrawler } from "@/lib/crawlers";
+import { parsePlaceLabelParam } from "@/lib/geo";
+import { findCity } from "@/lib/listing/cities";
+import { cityPath, citySlug } from "@/lib/listing/cityPaths";
 import { toStudioFeedItem } from "@/lib/listing/feedQuery";
 import { listingPath } from "@/lib/listing/seo";
 import { loadStudioFeed } from "@/lib/listing/studioFeed";
@@ -23,23 +26,25 @@ const LISTINGS_TITLE = "Book Photo & Video Studios for Rent by the Hour" as cons
 const LISTINGS_DESCRIPTION =
   "Compare and book verified photography, video, podcast and event studios in Delhi NCR, Gurgaon, Noida, Chandigarh, Mohali and Lucknow. Hourly pricing, real photos and instant availability." as const;
 
-function hasActiveFilters(params: IListingsParams): boolean {
-  return Boolean(
-    params.locationValue ||
-    params.category ||
-    params.type ||
-    params.venueTypes ||
-    params.aesthetics ||
-    params.setFeatures ||
-    params.hasSets ||
-    params.startDate ||
-    params.endDate ||
-    params.userId
-  );
-}
+type SearchParams = Record<string, string | string[] | undefined>;
 
 interface HomeProps {
-  searchParams: Promise<IListingsParams>;
+  searchParams: Promise<SearchParams>;
+}
+
+const feedFiltersOf = (searchParams: SearchParams) => studioFeedSearchParamsSchema.parse(searchParams);
+
+const placeLabelOf = (searchParams: SearchParams) =>
+  typeof searchParams.place === "string" ? parsePlaceLabelParam(searchParams.place) : undefined;
+
+const hasActiveFilters = (searchParams: SearchParams) =>
+  Object.values(feedFiltersOf(searchParams)).some((value) => value !== undefined);
+
+async function redirectToCityPage(searchParams: SearchParams) {
+  const city = searchParams.locationValue;
+  if (typeof city !== "string" || Object.keys(searchParams).length !== 1) return;
+  const entry = await findCity(citySlug(city));
+  if (entry) redirect(cityPath(entry.city));
 }
 
 export async function generateMetadata(props: HomeProps): Promise<Metadata> {
@@ -98,6 +103,7 @@ export async function generateMetadata(props: HomeProps): Promise<Metadata> {
 }
 
 export default async function StudiosPage(props: HomeProps) {
+  await redirectToCityPage(await props.searchParams);
   const feed = <HomeContent {...props} />;
   const htmlOnlyCrawler = isHtmlOnlyCrawler((await headers()).get("user-agent"));
 
@@ -117,7 +123,7 @@ async function HomeContent(props: HomeProps) {
   const isFiltered = hasActiveFilters(searchParams);
 
   const [feed, currentUser] = await Promise.all([
-    loadStudioFeed(studioFeedSearchParamsSchema.parse(searchParams)),
+    loadStudioFeed(feedFiltersOf(searchParams), placeLabelOf(searchParams)),
     getCurrentUser(),
   ]);
   const { items } = feed.page;

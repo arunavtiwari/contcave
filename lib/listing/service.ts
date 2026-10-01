@@ -2,6 +2,8 @@ import { AdditionalSetPricingType, Prisma } from "@prisma/client";
 import { formatInTimeZone } from "date-fns-tz";
 
 import { TIME_SLOTS } from "@/constants/timeSlots";
+import { loadDayAvailabilities } from "@/lib/availability";
+import { addDaysToDateKey, BOOKING_HORIZON_DAYS, isBookable, istDateKey } from "@/lib/booking/dayAvailability";
 import { UserFacingError } from "@/lib/errors";
 import type { LatLng } from "@/lib/geo";
 import prisma from "@/lib/prismadb";
@@ -23,13 +25,14 @@ import {
     distanceKmOf,
     encodeFeedCursor,
     FEED_PAGE_SIZE,
+    feedCandidatePipeline,
     type FeedCursor,
     type FeedRow,
     hydratableListingFilter,
     readRawId,
     toStudioFeedItem,
 } from "./feedQuery";
-import { LISTING_GEO_INDEX, resolveListingLocation } from "./location";
+import { resolveListingLocation } from "./location";
 import { collectListingMediaRefs, ListingMediaSource, orphanedListingMediaRefs } from "./media";
 
 type ListingWithRelations = Prisma.ListingGetPayload<{
@@ -322,8 +325,6 @@ function sanitizePublicLocation(value: unknown): ActualLocation | null {
 }
 
 export class ListingService {
-    private static geoIndexReady: Promise<void> | null = null;
-
     static async getHydratableListingIds(params: { active?: boolean; status?: string } = { active: true }): Promise<string[]> {
         const rawListings = await prisma.listing.findRaw({
             filter: hydratableListingFilter(params) as Prisma.InputJsonObject,
@@ -1094,14 +1095,14 @@ export class ListingService {
         aesthetics?: string;
         setFeatures?: string;
         hasSets?: boolean;
-        startDate?: string;
-        endDate?: string;
+        date?: string;
     }): Promise<FullListing[]> {
         const { userId, hasSets, ...searchParams } = params;
         if (userId) return this.getOwnerListings(userId);
 
         const filters = studioFeedSearchParamsSchema.parse({ ...searchParams, hasSets: hasSets ? "true" : undefined });
-        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, origin: null, after: null }));
+        const excludeIds = await this.unbookableListingIds(filters);
+        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, origin: null, after: null, excludeIds }));
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
         if (ids.length === 0) return [];
 
@@ -1144,7 +1145,8 @@ export class ListingService {
         size?: number;
     }): Promise<StudioFeedPage> {
         const after = cursor ? decodeFeedCursor(cursor) : null;
-        const { rows, origin: appliedOrigin } = await this.queryFeedRows(filters, origin, after, size + 1);
+        const excludeIds = await this.unbookableListingIds(filters);
+        const { rows, origin: appliedOrigin } = await this.queryFeedRows({ filters, origin, after, limit: size + 1, excludeIds });
         const pageRows = rows.slice(0, size);
         const lastRow = pageRows[pageRows.length - 1];
 
@@ -1156,18 +1158,34 @@ export class ListingService {
         };
     }
 
-    private static async queryFeedRows(
-        filters: StudioFeedFilters,
-        origin: LatLng | null,
-        after: FeedCursor | null,
-        limit: number
-    ): Promise<{ rows: FeedRow[]; origin: LatLng | null }> {
-        const defaultPipeline = buildFeedPipeline({ filters, origin: null, after, limit });
+    private static async unbookableListingIds(filters: StudioFeedFilters): Promise<string[]> {
+        if (!filters.date) return [];
+        const candidates = (await this.runFeedPipeline(feedCandidatePipeline(filters)))
+            .map(readRawId)
+            .filter((id): id is string => !!id);
+        const today = istDateKey(new Date());
+        if (filters.date < today || filters.date > addDaysToDateKey(today, BOOKING_HORIZON_DAYS)) return candidates;
+
+        const days = await loadDayAvailabilities({ listingIds: candidates, date: filters.date });
+        return candidates.filter((id) => {
+            const day = days.get(id);
+            return !day || !isBookable(day);
+        });
+    }
+
+    private static async queryFeedRows(params: {
+        filters: StudioFeedFilters;
+        origin: LatLng | null;
+        after: FeedCursor | null;
+        limit: number;
+        excludeIds: string[];
+    }): Promise<{ rows: FeedRow[]; origin: LatLng | null }> {
+        const { origin, after } = params;
+        const defaultPipeline = buildFeedPipeline({ ...params, origin: null });
         if (!origin) return { rows: await this.runFeedPipeline(defaultPipeline), origin: null };
 
-        const geoPipeline = buildFeedPipeline({ filters, origin, after, limit });
+        const geoPipeline = buildFeedPipeline(params);
         try {
-            await this.ensureListingGeoIndex();
             return { rows: await this.runFeedPipeline(geoPipeline), origin };
         } catch (error) {
             if (after) throw error;
@@ -1180,17 +1198,6 @@ export class ListingService {
         return await prisma.listing.aggregateRaw({
             pipeline: pipeline as unknown as Prisma.InputJsonValue[],
         }) as unknown as FeedRow[];
-    }
-
-    private static ensureListingGeoIndex(): Promise<void> {
-        this.geoIndexReady ??= prisma
-            .$runCommandRaw({ createIndexes: "Listing", indexes: [LISTING_GEO_INDEX] as unknown as Prisma.InputJsonValue })
-            .then(() => undefined)
-            .catch((error: unknown) => {
-                this.geoIndexReady = null;
-                throw error;
-            });
-        return this.geoIndexReady;
     }
 
     private static async loadFeedItems(ids: string[]): Promise<StudioFeedItem[]> {

@@ -35,5 +35,5 @@ export function getIpLocation(headers: Headers): Nearby | null {
   if (!isLatLng(latlng)) return null;
 
   const city = headers.get(source.city);
-  return { latlng, label: (city && decodeHeader(city).trim()) || CURRENT_LOCATION_LABEL, approximate: true };
+  return { latlng, label: (city && decodeHeader(city).trim()) || CURRENT_LOCATION_LABEL };
 }

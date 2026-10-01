@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { loadMoreStudios } from "@/app/actions/studioFeedActions";
 import ListingCard from "@/components/listing/ListingCard";
 import Button from "@/components/ui/Button";
-import { useLocationSort } from "@/hooks/useLocationSort";
+import { useNearLabel } from "@/hooks/useNearLabel";
 import { studioFeedKey } from "@/lib/listing/studioFeedKey";
 import type { StudioFeedFilters } from "@/schemas/listing";
 import type { StudioFeedItem, StudioFeedPage } from "@/types/listing";
@@ -48,7 +48,7 @@ function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const loadingRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const { setNearLabel } = useLocationSort();
+  const { setNearLabel } = useNearLabel();
 
   useEffect(() => {
     setNearLabel(nearLabel ?? null);

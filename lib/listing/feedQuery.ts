@@ -24,6 +24,8 @@ type FeedSortField = "hasPoint" | "distance" | "weight" | "createdAt" | "_id";
 
 export const FEED_PAGE_SIZE = 12;
 
+const MONGO_EARTH_RADIUS_KM = 6378.1;
+
 const FEED_SORT: ReadonlyArray<readonly [FeedSortField, 1 | -1]> = [
     ["hasPoint", -1],
     ["distance", 1],
@@ -46,8 +48,6 @@ const HYDRATABLE_INT_FIELDS = [
 const NUMERIC_OR_EMPTY = [{ $exists: false }, null, { $type: "int" }, { $type: "long" }];
 
 const TAXONOMY_FILTERS = ["type", "venueTypes", "aesthetics", "setFeatures"] as const;
-
-const BLOCKING_RESERVATION_STATUSES = ["PENDING_APPROVAL", "CONFIRMED", "CHECKED_IN"];
 
 const EPOCH = { $date: "1970-01-01T00:00:00.000Z" };
 
@@ -99,9 +99,10 @@ const readRawDate = (value: unknown): string => {
     return date.toISOString();
 };
 
-function publicListingMatch(filters: StudioFeedFilters): MongoDocument {
+function publicListingMatch(filters: StudioFeedFilters, excludeIds: string[] = []): MongoDocument {
     const clauses: MongoDocument[] = [hydratableListingFilter({ active: true, status: "VERIFIED" })];
 
+    if (excludeIds.length) clauses.push({ _id: { $nin: excludeIds.map((id) => ({ $oid: id })) } });
     if (filters.locationValues) clauses.push({ locationValue: { $in: filters.locationValues } });
     if (filters.category) clauses.push({ category: filters.category });
     for (const field of TAXONOMY_FILTERS) {
@@ -109,6 +110,10 @@ function publicListingMatch(filters: StudioFeedFilters): MongoDocument {
         if (terms) clauses.push({ [field]: { $in: terms } });
     }
     if (filters.hasSets) clauses.push({ hasSets: true });
+    if (filters.near && filters.radiusKm) {
+        const [lat, lng] = filters.near;
+        clauses.push({ locationPoint: { $geoWithin: { $centerSphere: [[lng, lat], filters.radiusKm / MONGO_EARTH_RADIUS_KM] } } });
+    }
     if (filters.studioCategory) {
         const category = findCategory(filters.studioCategory);
         if (!category) throw new UserFacingError("Unknown studio category", 400);
@@ -116,38 +121,6 @@ function publicListingMatch(filters: StudioFeedFilters): MongoDocument {
     }
 
     return { $and: clauses };
-}
-
-function availabilityStages({ startDate, endDate }: StudioFeedFilters): MongoDocument[] {
-    if (!startDate || !endDate) return [];
-    const rangeStart = new Date(startDate);
-    const rangeEnd = new Date(endDate);
-    if (!Number.isFinite(rangeStart.getTime()) || !Number.isFinite(rangeEnd.getTime()) || rangeStart > rangeEnd) {
-        throw new UserFacingError("Invalid listing availability date range");
-    }
-
-    return [
-        {
-            $lookup: {
-                from: "Reservation",
-                localField: "_id",
-                foreignField: "listingId",
-                pipeline: [
-                    {
-                        $match: {
-                            markedForDeletion: false,
-                            $or: [{ status: { $in: BLOCKING_RESERVATION_STATUSES } }, { status: { $exists: false } }],
-                            startDate: { $gte: { $date: rangeStart.toISOString() }, $lte: { $date: rangeEnd.toISOString() } },
-                        },
-                    },
-                    { $limit: 1 },
-                    { $project: { _id: 1 } },
-                ],
-                as: "blockingReservations",
-            },
-        },
-        { $match: { blockingReservations: { $size: 0 } } },
-    ];
 }
 
 const cursorValue = (cursor: FeedCursor, field: FeedSortField) =>
@@ -168,18 +141,25 @@ function afterCursor(cursor: FeedCursor): MongoDocument {
     };
 }
 
+export const feedCandidatePipeline = (filters: StudioFeedFilters): MongoDocument[] => [
+    { $match: publicListingMatch(filters) },
+    { $project: { _id: 1 } },
+];
+
 export function buildFeedPipeline({
     filters,
     origin,
     after,
     limit,
+    excludeIds,
 }: {
     filters: StudioFeedFilters;
     origin: LatLng | null;
     after: FeedCursor | null;
     limit?: number;
+    excludeIds?: string[];
 }): MongoDocument[] {
-    const match = publicListingMatch(filters);
+    const match = publicListingMatch(filters, excludeIds);
     const unlocated = { $match: { $and: [match, { locationPoint: null }] } };
     const source = !origin
         ? [{ $match: match }]
@@ -212,7 +192,6 @@ export function buildFeedPipeline({
         },
         ...(after ? [{ $match: afterCursor(after) }] : []),
         { $sort: Object.fromEntries(FEED_SORT) },
-        ...availabilityStages(filters),
         ...(limit ? [{ $limit: limit }] : []),
     ];
 }

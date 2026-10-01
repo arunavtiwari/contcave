@@ -13,8 +13,6 @@ export type ResolvedListingLocation = {
     propertyStateCode?: string;
 };
 
-export const LISTING_GEO_INDEX = { name: "locationPoint_2dsphere", key: { locationPoint: "2dsphere" } } as const;
-
 export const toGeoPoint = ([lat, lng]: LatLng): GeoPoint => ({ type: "Point", coordinates: [lng, lat] });
 
 const storedLatLng = (location: unknown): LatLng | null => {

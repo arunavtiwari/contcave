@@ -15,12 +15,11 @@ import JsonLd from "@/components/seo/JsonLd";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
 import { categoriesOf } from "@/lib/listing/categories";
 import {
-  cityPath,
-  citySlug,
   cityTrail,
   findCity,
   STUDIOS_TRAIL,
 } from "@/lib/listing/cities";
+import { cityPath, citySlug } from "@/lib/listing/cityPaths";
 import { buildListingJsonLd, buildListingMetadata } from "@/lib/listing/seo";
 import { getPlainTextFromHTML } from "@/lib/richText";
 import type { BreadcrumbItem } from "@/lib/seo";

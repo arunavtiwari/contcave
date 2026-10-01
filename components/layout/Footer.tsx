@@ -4,7 +4,8 @@ import Link from "next/link";
 import Container from "@/components/layout/Container";
 import Logo from "@/components/navbar/Logo";
 import EmailShield from "@/components/ui/EmailShield";
-import { cityPath, getCityDirectory } from "@/lib/listing/cities";
+import { getCityDirectory } from "@/lib/listing/cities";
+import { cityPath } from "@/lib/listing/cityPaths";
 
 async function Footer() {
   const cities = await getCityDirectory().catch((error: unknown) => {

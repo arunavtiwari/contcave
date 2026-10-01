@@ -1,5 +1,6 @@
 import getListings from "@/app/actions/getListings";
-import { cityPath, getCityDirectory } from "@/lib/listing/cities";
+import { getCityDirectory } from "@/lib/listing/cities";
+import { cityPath } from "@/lib/listing/cityPaths";
 import { listingFacts, listingPath } from "@/lib/listing/seo";
 import { getSortedPostsData } from "@/lib/posts";
 import { absoluteUrl, BRAND_DESCRIPTION } from "@/lib/seo";
