@@ -11,6 +11,9 @@ import {
   TablePagination,
   TableRow,
 } from "@/components/ui/Table";
+import { cn } from "@/lib/utils";
+
+export const NAME_COLUMN_WIDTH = "w-80";
 
 export function AdminListingSkeletonRows({ count = 6 }: { count?: number }) {
   return (
@@ -18,7 +21,7 @@ export function AdminListingSkeletonRows({ count = 6 }: { count?: number }) {
       {Array.from({ length: count }).map((_, idx) => (
         <TableRow key={idx} className="hover:bg-transparent select-none">
           <TableCell>
-            <div className="flex min-w-72 items-center gap-3">
+            <div className={cn("flex items-center gap-3", NAME_COLUMN_WIDTH)}>
               <Skeleton className="h-12 w-12 shrink-0 rounded-xl" />
               <div className="min-w-0 space-y-2">
                 <Skeleton className="h-4 w-44 rounded-md" />
@@ -60,7 +63,9 @@ export function CuratedListingSkeletonRows({ count = 6 }: { count?: number }) {
       {Array.from({ length: count }).map((_, idx) => (
         <TableRow key={idx} className="hover:bg-transparent select-none">
           <TableCell>
-            <Skeleton className="h-4 w-40 rounded-md" />
+            <div className={NAME_COLUMN_WIDTH}>
+              <Skeleton className="h-4 w-40 rounded-md" />
+            </div>
           </TableCell>
           <TableCell>
             <Skeleton className="h-4 w-28 rounded-md" />
@@ -101,7 +106,7 @@ export function AdminListingsTableSkeleton({ count = 10 }: { count?: number }) {
     >
       <TableHeader>
         <TableRow>
-          <TableHead>Listing</TableHead>
+          <TableHead className={NAME_COLUMN_WIDTH}>Name</TableHead>
           <TableHead>Host</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Price</TableHead>

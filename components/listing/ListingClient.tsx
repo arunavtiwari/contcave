@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FiEye } from "react-icons/fi";
 
 import Container from "@/components/layout/Container";
 import CuratedReservation from "@/components/listing/CuratedReservation";
@@ -9,6 +10,7 @@ import ListingInfo from "@/components/listing/ListingInfo";
 import ListingReservation from "@/components/listing/ListingReservation";
 import PackageSetModal from "@/components/modals/PackageSetModal";
 import { categories } from "@/components/navbar/categoriesData";
+import Callout from "@/components/ui/Callout";
 import {
   addDaysToDateKey,
   BOOKING_HORIZON_DAYS,
@@ -48,6 +50,7 @@ import { SafeUser } from "@/types/user";
 
 type Props = {
   listing: FullListing;
+  isPreview?: boolean;
   currentUser?: SafeUser | null;
   availability: Promise<ListingAvailability>;
   reviews?: PublicReview[];
@@ -132,6 +135,7 @@ function useAvailability(promise: Promise<ListingAvailability>) {
 
 function ListingClient({
   listing,
+  isPreview = false,
   currentUser = null,
   availability: availabilityPromise,
   reviews,
@@ -382,6 +386,11 @@ function ListingClient({
     <div className="pt-10">
       <Container>
         <div className="max-w-280 mx-auto pb-24">
+          {isPreview && (
+            <Callout role="status" icon={FiEye} title="Preview: this studio isn't live yet" className="mb-6">
+              This is how guests will see it once it&apos;s approved. It&apos;s hidden from search, and bookings and enquiries are turned off until then.
+            </Callout>
+          )}
           <div className="flex flex-col gap-2">
             <ListingHead
               title={listing.title}
@@ -435,6 +444,7 @@ function ListingClient({
                     mapsUrl={listing.mapsUrl}
                     websiteUrl={listing.websiteUrl}
                     instagramHandle={listing.instagramHandle}
+                    disabled={isPreview}
                   />
                 ) : (
                   <ListingReservation
@@ -465,6 +475,7 @@ function ListingClient({
                     selectedPackageId={selectedPackage?.id || null}
                     setSelectionError={setSelectionError}
                     reservations={reservations}
+                    disabled={isPreview}
                   />
                 )}
               </div>

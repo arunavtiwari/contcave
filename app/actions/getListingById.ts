@@ -1,16 +1,18 @@
 "use server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { isListingPublic, isValidListingPreviewToken } from "@/lib/listing/preview";
 import { ListingService } from "@/lib/listing/service";
 import { FullListing } from "@/types/listing";
 
 interface IParams {
   listingId?: string;
+  previewToken?: string;
 }
 
 export default async function getListingById(params: IParams): Promise<FullListing | null> {
   try {
-    const { listingId } = params;
+    const { listingId, previewToken } = params;
 
     if (!listingId) {
       return null;
@@ -22,13 +24,9 @@ export default async function getListingById(params: IParams): Promise<FullListi
       : undefined);
     if (!listing) return null;
 
-    if (listing.active && (listing.status === "VERIFIED" || listing.listingType === "CURATED")) {
-      return listing;
-    }
-
-    if (currentUser && (currentUser.role === "ADMIN" || listing.userId === currentUser.id)) {
-      return listing;
-    }
+    if (isListingPublic(listing)) return listing;
+    if (currentUser && (currentUser.role === "ADMIN" || listing.userId === currentUser.id)) return listing;
+    if (isValidListingPreviewToken(listing.id, previewToken)) return listing;
 
     return null;
   } catch (error: unknown) {

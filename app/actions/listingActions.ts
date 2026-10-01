@@ -10,6 +10,7 @@ import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import { createAction } from "@/lib/actions-utils";
 import { UserFacingError } from "@/lib/errors";
 import { listingLocationIssues, listingLocationValue, resolveListingLocation } from "@/lib/listing/location";
+import { type ListingShareLink, listingShareLink } from "@/lib/listing/preview";
 import { assertDefaultAmenitiesExist, ListingService } from "@/lib/listing/service";
 import { decryptAndSanitizePaymentDetails } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
@@ -108,6 +109,7 @@ export type AdminListingReviewSummary = {
     inConversation: boolean;
     notifyEmailSentAt: string | null;
     notifyReminderAt: string | null;
+    share: ListingShareLink;
     user: {
         name: string | null;
         email: string | null;
@@ -180,6 +182,7 @@ export async function getAdminListingReviews(status?: AdminListingStatus, listin
                 price: listing.price,
                 status: listing.status,
                 active: listing.active,
+                share: listingShareLink(listing),
                 createdAt: listing.createdAt.toISOString(),
                 reviewedAt: listing.reviewedAt?.toISOString() || null,
                 rejectionReason: listing.rejectionReason,
@@ -311,7 +314,7 @@ export async function getAdminListingReviewPage(params: {
         where: { id: { in: pageData.ids } },
         select: {
             id: true, slug: true, title: true, imageSrc: true, category: true, locationValue: true,
-            price: true, status: true, createdAt: true, listingType: true, enquiryCount: true,
+            price: true, status: true, active: true, createdAt: true, listingType: true, enquiryCount: true,
             inConversation: true, notifyEmailSentAt: true, notifyReminderAt: true,
             user: { select: { name: true, email: true, is_verified: true } },
         },
@@ -335,6 +338,7 @@ export async function getAdminListingReviewPage(params: {
             inConversation: listing.inConversation,
             notifyEmailSentAt: listing.notifyEmailSentAt?.toISOString() ?? null,
             notifyReminderAt: listing.notifyReminderAt?.toISOString() ?? null,
+            share: listingShareLink(listing),
             user: listing.user ? {
                 name: listing.user.name,
                 email: listing.user.email,
