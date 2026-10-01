@@ -25,6 +25,7 @@ import SafeHtml from "@/components/ui/SafeHtml";
 import StarRating from "@/components/ui/StarRating";
 import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hooks/useCities";
+import { isLatLng } from "@/lib/geo";
 import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
 import { formatISTDate } from "@/lib/utils";
 import { Addon } from "@/types/addon";
@@ -112,38 +113,9 @@ function ListingInfo({
   const coordinates = getByValue(locationValue)?.latlng;
 
   const getValidCenter = useCallback((): number[] | undefined => {
-    // Prefer privacy-safe jittered latlng if available
-    if (
-      fullListing.actualLocation &&
-      Array.isArray(fullListing.actualLocation.latlng) &&
-      fullListing.actualLocation.latlng.length >= 2 &&
-      typeof fullListing.actualLocation.latlng[0] === 'number' &&
-      typeof fullListing.actualLocation.latlng[1] === 'number' &&
-      Number.isFinite(fullListing.actualLocation.latlng[0]) &&
-      Number.isFinite(fullListing.actualLocation.latlng[1])
-    ) {
-      return [fullListing.actualLocation.latlng[0], fullListing.actualLocation.latlng[1]];
-    }
-
-    // Fallback to exact lat/lng (for legacy listings before jittering was introduced)
-    if (fullListing.actualLocation &&
-      typeof fullListing.actualLocation.lat === 'number' &&
-      typeof fullListing.actualLocation.lng === 'number' &&
-      Number.isFinite(fullListing.actualLocation.lat) &&
-      Number.isFinite(fullListing.actualLocation.lng)) {
-      return [fullListing.actualLocation.lat, fullListing.actualLocation.lng];
-    }
-
-    // Fallback to coordinates based on locationValue string
-    if (Array.isArray(coordinates) &&
-      coordinates.length >= 2 &&
-      typeof coordinates[0] === 'number' &&
-      typeof coordinates[1] === 'number' &&
-      Number.isFinite(coordinates[0]) &&
-      Number.isFinite(coordinates[1])) {
-      return [coordinates[0], coordinates[1]];
-    }
-    return undefined;
+    const location = fullListing.actualLocation;
+    const exact = [location?.lat, location?.lng];
+    return [location?.latlng, exact, coordinates].find(isLatLng);
   }, [fullListing.actualLocation, coordinates]);
 
   const relayAddons = useCallback((addons: Addon[]) => onAddonChange(addons), [onAddonChange]);

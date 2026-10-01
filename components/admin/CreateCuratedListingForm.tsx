@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -10,11 +10,14 @@ import { z } from "zod";
 import { createCuratedListingAction } from "@/app/actions/listingActions";
 import AmenitiesCheckbox, { AmenitiesData } from "@/components/inputs/AmenitySelection";
 import RichTextEditor from "@/components/inputs/RichTextEditor";
+import ListingLocationFields from "@/components/listing/ListingLocationFields";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
+import { listingLocationIssues, listingLocationValue } from "@/lib/listing/location";
 import { isRichTextEmpty } from "@/lib/richText";
+import type { LocationSchema } from "@/schemas/listing";
 import type { SafeAmenity } from "@/types/amenity";
 
 const CATEGORIES = [
@@ -33,7 +36,6 @@ const CATEGORY_OPTIONS = CATEGORIES.map((c) => ({ value: c, label: c }));
 const curatedListingSchema = z.object({
   title: z.string().trim().min(1, "Studio name is required"),
   category: z.string().min(1, "Please select a category"),
-  locationValue: z.string().trim().min(1, "Location or area is required"),
   description: z.string().trim().min(1, "Description is required"),
   imageSrc: z.string().trim().min(1, "At least one image URL is required"),
   priceRangeMin: z.string().optional(),
@@ -62,6 +64,8 @@ export default function CreateCuratedListingForm({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [location, setLocation] = useState<LocationSchema | null>(null);
+  const [locationErrors, setLocationErrors] = useState<ReturnType<typeof listingLocationIssues>>({});
 
   const {
     register,
@@ -75,7 +79,6 @@ export default function CreateCuratedListingForm({
     defaultValues: {
       title: "",
       category: "",
-      locationValue: "",
       description: "",
       imageSrc: "",
       priceRangeMin: "",
@@ -89,6 +92,9 @@ export default function CreateCuratedListingForm({
   });
 
   const onSubmit = (values: FormValues) => {
+    const issues = listingLocationIssues(location);
+    if (!location || issues.city || issues.address) return;
+
     const imageUrls = values.imageSrc
       .split("\n")
       .map((s) => s.trim())
@@ -104,7 +110,7 @@ export default function CreateCuratedListingForm({
         title: values.title,
         description: values.description,
         category: values.category,
-        locationValue: values.locationValue,
+        actualLocation: location,
         imageSrc: imageUrls,
         amenities: values.amenities,
         otherAmenities: values.otherAmenities,
@@ -126,7 +132,14 @@ export default function CreateCuratedListingForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+    <form
+      onSubmit={(event) => {
+        setLocationErrors(listingLocationIssues(location));
+        void handleSubmit(onSubmit)(event);
+      }}
+      className="space-y-5"
+      noValidate
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
           id="title"
@@ -158,13 +171,16 @@ export default function CreateCuratedListingForm({
         />
       </div>
 
-      <Input
-        id="locationValue"
-        label="Location / Area"
-        required
-        placeholder="Delhi NCR — Lajpat Nagar"
-        error={errors.locationValue?.message}
-        {...register("locationValue")}
+      <ListingLocationFields
+        value={location}
+        locationValue={listingLocationValue(location)}
+        cityError={locationErrors.city}
+        addressError={locationErrors.address}
+        disabled={isPending}
+        onChange={(next) => {
+          setLocation(next);
+          setLocationErrors({});
+        }}
       />
 
       <Textarea

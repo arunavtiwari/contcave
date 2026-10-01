@@ -21,6 +21,7 @@ import Modal from "@/components/modals/Modal";
 import { toast } from "@/components/ui/Toast";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useUIStore from "@/hooks/useUIStore";
+import { listingLocationIssues, listingLocationValue } from "@/lib/listing/location";
 import { collectUploadedMediaRefs, uploadListingMedia } from "@/lib/listing/mediaUpload";
 import { isRichTextEmpty } from "@/lib/richText";
 import { discardUploadedMedia } from "@/lib/storage/discard";
@@ -376,16 +377,10 @@ export default function RentModal({
   }, [venueTypes]);
 
   const validateLocationStep = useCallback(async () => {
-    if (!actualLocation || !actualLocation.value) {
-      setCityError("Please select a city");
-      return false;
-    }
-    if (!actualLocation.display_name) {
-      setAddressError("Please enter a complete address");
-      return false;
-    }
-    if (!actualLocation.latlng || !Array.isArray(actualLocation.latlng) || actualLocation.latlng.length !== 2) {
-      setAddressError("Please select a valid location using autocomplete to fetch map coordinates");
+    const issues = listingLocationIssues(actualLocation);
+    if (issues.city || issues.address) {
+      setCityError(issues.city ?? "");
+      setAddressError(issues.address ?? "");
       return false;
     }
     return trigger("actualLocation");
@@ -930,18 +925,11 @@ export default function RentModal({
       }
     }
 
-    const locationValue =
-      data.actualLocation?.value ||
-      data.actualLocation?.label ||
-      data.actualLocation?.display_name ||
-      "";
-
-    if (!locationValue) {
-      return toast.error("Please select a valid city/location");
-    }
-
-    if (!data.actualLocation || !data.actualLocation.display_name) {
-      return toast.error("Please select an accurate location using the address search");
+    const locationValue = listingLocationValue(data.actualLocation);
+    const locationIssues = listingLocationIssues(data.actualLocation);
+    const locationIssue = locationIssues.city ?? locationIssues.address;
+    if (locationIssue) {
+      return toast.error(locationIssue);
     }
 
     const remoteImages = (data.imageSrc || []);

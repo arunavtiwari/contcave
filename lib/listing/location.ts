@@ -41,3 +41,17 @@ export function resolveListingLocation(incoming: LocationInput | null, stored?: 
         propertyStateCode: statedCode || getGstStateCodeFromStateName(state) || undefined,
     };
 }
+
+type PickedLocation = { value?: string; label?: string; display_name?: string; latlng?: unknown } | null | undefined;
+
+export const listingLocationValue = (location: PickedLocation) =>
+    location?.value || location?.label || location?.display_name || "";
+
+export function listingLocationIssues(location: PickedLocation): { city?: string; address?: string } {
+    if (!location?.value) return { city: "Please select a city" };
+    if (!location.display_name) return { address: "Please enter a complete address" };
+    if (!isLatLng(location.latlng)) {
+        return { address: "Please select a valid location using autocomplete to fetch map coordinates" };
+    }
+    return {};
+}
