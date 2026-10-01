@@ -10,8 +10,9 @@ import {
   breadcrumbJsonLd,
   META_DESCRIPTION_LENGTH,
   OG_IMAGE,
-  SITE_URL,
+  ORGANIZATION_ID,
   toPlainText,
+  WEBSITE_ID,
 } from "@/lib/seo";
 import type { SafeAmenity } from "@/types/amenity";
 import type { FullListing } from "@/types/listing";
@@ -53,17 +54,17 @@ const CITY_ALIASES: Record<string, string[]> = {
 export const positive = (value: number | null | undefined) =>
   typeof value === "number" && Number.isFinite(value) && value > 0 ? value : undefined;
 
-export const cityOf = (listing: ListingBasics) => listing.locationValue?.trim() || undefined;
+const cityOf = (listing: ListingBasics) => listing.locationValue?.trim() || undefined;
 
-export const stateOf = (listing: ListingBasics) => listing.actualLocation?.state?.trim() || undefined;
+const stateOf = (listing: ListingBasics) => listing.actualLocation?.state?.trim() || undefined;
 
 export const kindOf = (listing: Pick<ListingBasics, "venueTypes" | "category">) =>
   listing.venueTypes?.[0] || listing.category || "Studio";
 
-export const minimumBookingHours = (listing: { minimumBookingHours?: number | null }) =>
+const minimumBookingHours = (listing: { minimumBookingHours?: number | null }) =>
   positive(listing.minimumBookingHours) ?? 1.5;
 
-export function amenityNamesOf(
+function amenityNamesOf(
   listing: { amenities?: string[] | null; otherAmenities?: string[] | null },
   amenities: SafeAmenity[]
 ) {
@@ -101,7 +102,7 @@ const addressOf = (listing: ListingBasics) => ({
 export const listingPath = (listing: { id: string; slug?: string | null }) =>
   `/studio/${listing.slug ?? listing.id}`;
 
-export function listingTitle(listing: ListingBasics) {
+function listingTitle(listing: ListingBasics) {
   const title = listing.title.trim();
   const city = cityOf(listing);
   if (!city || mentionsCity(title, city)) return title;
@@ -125,7 +126,7 @@ export function listingFacts(listing: FullListing) {
     .join(" · ");
 }
 
-export function listingDescription(listing: FullListing) {
+function listingDescription(listing: FullListing) {
   const about = toPlainText(listing.description) ?? `Book ${listing.title} on ${BRAND_NAME}.`;
   return truncateText(`${listingFacts(listing)}. ${about}`, META_DESCRIPTION_LENGTH);
 }
@@ -250,7 +251,7 @@ export function buildListingJsonLd(
       priceCurrency: "INR",
       availability: "https://schema.org/InStock",
       availableAtOrFrom: { "@id": venueId },
-      seller: { "@id": `${SITE_URL}/#organization` },
+      seller: { "@id": ORGANIZATION_ID },
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price,
@@ -270,7 +271,7 @@ export function buildListingJsonLd(
         priceCurrency: "INR",
         offerCount: 1,
         availability: "https://schema.org/InStock",
-        seller: { "@id": `${SITE_URL}/#organization` },
+        seller: { "@id": ORGANIZATION_ID },
       }
       : undefined;
 
@@ -282,7 +283,6 @@ export function buildListingJsonLd(
     image: images,
     url,
     sku: listing.id,
-    brand: { "@type": "Brand", name: listing.title },
     category: kindOf(listing),
     aggregateRating,
     review: reviewItems.length ? reviewItems : undefined,
@@ -386,7 +386,7 @@ export function cityCollectionJsonLd({
         url,
         name,
         description,
-        isPartOf: { "@id": `${SITE_URL}/#website` },
+        isPartOf: { "@id": WEBSITE_ID },
         about: { "@type": "City", name: city, containedInPlace: { "@type": "Country", name: "India" } },
         mainEntity: {
           "@type": "ItemList",

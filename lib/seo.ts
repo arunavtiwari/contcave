@@ -1,6 +1,8 @@
 import { getPlainTextFromHTML } from "@/lib/richText";
 
 export const SITE_URL = "https://contcave.com" as const;
+export const ORGANIZATION_ID = `${SITE_URL}/#organization` as const;
+export const WEBSITE_ID = `${SITE_URL}/#website` as const;
 export const BRAND_NAME = "ContCave" as const;
 export const BRAND_TITLE = `${BRAND_NAME} | Find the Perfect Shoot Space with Ease` as const;
 export const BRAND_DESCRIPTION =

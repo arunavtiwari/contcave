@@ -23,13 +23,15 @@ import ClientOnly from "@/components/ui/ClientOnly";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { Toaster } from "@/components/ui/Toast";
 import {
-    BRAND_DESCRIPTION,
-    BRAND_LOGO,
-    BRAND_NAME,
-    BRAND_TITLE,
-    DEFAULT_KEYWORDS,
-    OG_IMAGE,
-    SITE_URL,
+  BRAND_DESCRIPTION,
+  BRAND_LOGO,
+  BRAND_NAME,
+  BRAND_TITLE,
+  DEFAULT_KEYWORDS,
+  OG_IMAGE,
+  ORGANIZATION_ID,
+  SITE_URL,
+  WEBSITE_ID,
 } from "@/lib/seo";
 
 
@@ -100,13 +102,33 @@ export const viewport: Viewport = {
 const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": `${SITE_URL}/#organization`,
+    "@id": ORGANIZATION_ID,
     name: BRAND_NAME,
     legalName: "Arkanet Ventures LLP",
     url: SITE_URL,
     description: BRAND_DESCRIPTION,
     logo: BRAND_LOGO,
     foundingDate: "2024",
+    founder: [
+        {
+            "@type": "Person",
+            name: "Arunav Tiwari",
+            jobTitle: "Chief Executive Officer",
+            sameAs: "https://www.linkedin.com/in/art-x/",
+        },
+        {
+            "@type": "Person",
+            name: "Shubham Samanta",
+            jobTitle: "Chief Technology Officer",
+            sameAs: "https://www.linkedin.com/in/sam8239/",
+        },
+        {
+            "@type": "Person",
+            name: "Harshita Betala",
+            jobTitle: "Chief Product Officer",
+            sameAs: "https://www.linkedin.com/in/harshita-betala-ab4b32169/",
+        },
+    ],
     contactPoint: {
         "@type": "ContactPoint",
         contactType: "Customer Service",
@@ -116,6 +138,10 @@ const organizationJsonLd = {
     address: {
         "@type": "PostalAddress",
         addressCountry: "IN",
+    },
+    areaServed: {
+        "@type": "Country",
+        name: "India",
     },
     sameAs: [
         "https://www.instagram.com/contcave",
@@ -127,20 +153,12 @@ const organizationJsonLd = {
 const webSiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": `${SITE_URL}/#website`,
+    "@id": WEBSITE_ID,
     url: SITE_URL,
     name: BRAND_NAME,
     description: BRAND_DESCRIPTION,
-    publisher: { "@id": `${SITE_URL}/#organization` },
+    publisher: { "@id": ORGANIZATION_ID },
     inLanguage: "en-IN",
-    potentialAction: {
-        "@type": "SearchAction",
-        target: {
-            "@type": "EntryPoint",
-            urlTemplate: `${SITE_URL}/studios?locationValue={search_term_string}`,
-        },
-        "query-input": "required name=search_term_string",
-    },
 } as const;
 
 
