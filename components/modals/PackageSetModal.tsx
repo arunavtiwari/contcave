@@ -90,7 +90,6 @@ export default function PackageSetModal({
                         selectedPackage={packageItem}
                         availableSetIds={availableSetIds}
 
-                        onSelectAll={undefined}
                     />
                 </div>
 

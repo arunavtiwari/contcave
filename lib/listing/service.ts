@@ -14,7 +14,15 @@ import { dispatchMediaDeletion } from "@/lib/storage/mediaDeletion";
 import { slugify } from "@/lib/strings";
 import { sanitizeStringList } from "@/lib/strings";
 import { normaliseUseCase } from "@/lib/taxonomy";
-import { listingBaseSchema, listingSchema, persistedMediaUrlSchema, type StudioFeedFilters, studioFeedSearchParamsSchema } from "@/schemas/listing";
+import {
+    hasActivePackage,
+    listingBaseSchema,
+    listingSchema,
+    persistedMediaUrlSchema,
+    SETS_REQUIRE_PACKAGE_MESSAGE,
+    type StudioFeedFilters,
+    studioFeedSearchParamsSchema,
+} from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData, type StudioFeedItem, type StudioFeedPage } from "@/types/listing";
 
@@ -677,12 +685,12 @@ export class ListingService {
         });
 
         const shouldValidateSetCount = Array.isArray(sets) || listingData.hasSets === true;
-        const shouldFetchSets = Array.isArray(sets) || Array.isArray(packages) || listingData.hasSets === true;
+        const touchesSetsOrPackages = Array.isArray(sets) || Array.isArray(packages) || listingData.hasSets === true;
         const [existingPkgs, existingSets] = await Promise.all([
-            Array.isArray(packages) || Array.isArray(sets)
+            touchesSetsOrPackages
                 ? prisma.package.findMany({ where: { listingId } })
                 : Promise.resolve([]),
-            shouldFetchSets
+            touchesSetsOrPackages
                 ? prisma.listingSet.findMany({ where: { listingId }, orderBy: [{ price: "asc" }, { position: "asc" }] })
                 : Promise.resolve([]),
         ]);
@@ -717,6 +725,9 @@ export class ListingService {
             }
         }
         const nextPackages = Array.isArray(packages) ? packages : existingPkgs.filter((pkg) => pkg.isActive);
+        if (touchesSetsOrPackages && nextHasSets && !hasActivePackage(nextPackages as { isActive?: boolean }[])) {
+            throw new UserFacingError(SETS_REQUIRE_PACKAGE_MESSAGE);
+        }
         if (nextHasSets && nextPackages.some((pkg) => {
             const requiredSetCount = Number((pkg as { requiredSetCount?: number | null }).requiredSetCount || 0);
             return requiredSetCount > nextSetCount;

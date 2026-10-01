@@ -574,6 +574,8 @@ export default function RentModal({
     setValue("addons", v, { shouldDirty: true });
   }, [setValue]);
 
+  const packagesError = errors.packages?.message;
+
   const validatePackagesStep = useCallback(async () => {
     return trigger("packages");
   }, [trigger]);
@@ -740,6 +742,7 @@ export default function RentModal({
             hasSets={hasSets}
             sets={sets as SetEditorItem[]}
             setValue={setValue as never}
+            error={packagesError}
           />
         ),
       },
@@ -793,6 +796,7 @@ export default function RentModal({
       listingDetails,
       listingType,
       packages,
+      packagesError,
       register,
       setCustomValue,
       otherAmenities,

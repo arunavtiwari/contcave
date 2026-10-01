@@ -23,6 +23,7 @@ import {
 } from "@/lib/booking/dayAvailability";
 import {
   calculateSetPricing,
+  suggestWholeStudioPackage,
   validateSetSelection,
 } from "@/lib/pricing";
 import {
@@ -162,7 +163,6 @@ function ListingClient({
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
 
   const [selectedSetIds, setSelectedSetIds] = useState<string[]>(initialSelectedSetIds);
-  const [isEntireStudioBooked, setIsEntireStudioBooked] = useState(false);
   const [isPackageSetModalOpen, setIsPackageSetModalOpen] = useState(false);
 
   const lastSigRef = useRef("");
@@ -288,25 +288,30 @@ function ListingClient({
     );
   }, [listing.hasSets, listing.sets, selectedDay, selectedTimeSlot]);
 
-  const pricingResult = useMemo(() => {
-    if (!listing.hasSets || !listing.sets) return null;
-    return calculateSetPricing({
-      baseHourlyRate: listing.price ?? 0,
-      durationMinutes: timeDifferenceInHours * 60,
-      selectedSetIds,
-      sets: listing.sets,
-      pricingType: listing.additionalSetPricingType,
-      selectedPackage: selectedPackage,
-    });
-  }, [
+  const pricingInput = useMemo(() => (listing.hasSets && listing.sets ? {
+    baseHourlyRate: listing.price ?? 0,
+    durationMinutes: timeDifferenceInHours * 60,
+    selectedSetIds,
+    sets: listing.sets,
+    pricingType: listing.additionalSetPricingType,
+  } : null), [
     listing.hasSets,
     listing.price,
     timeDifferenceInHours,
     selectedSetIds,
     listing.sets,
     listing.additionalSetPricingType,
-    selectedPackage,
   ]);
+
+  const pricingResult = useMemo(
+    () => (pricingInput ? calculateSetPricing({ ...pricingInput, selectedPackage }) : null),
+    [pricingInput, selectedPackage]
+  );
+
+  const wholeStudioSuggestion = useMemo(
+    () => (pricingInput && !selectedPackage ? suggestWholeStudioPackage({ ...pricingInput, packages: listing.packages ?? [] }) : null),
+    [pricingInput, selectedPackage, listing.packages]
+  );
 
   const setSelectionError = useMemo(() => {
     if (!listing.hasSets) return null;
@@ -319,28 +324,13 @@ function ListingClient({
   }, [listing.hasSets, selectedSetIds, selectedPackage, availableSetIds]);
 
   const handleSetToggle = useCallback((setId: string) => {
-    if (isEntireStudioBooked) return;
-
     setSelectedSetIds((prev) => {
       if (prev.includes(setId)) {
         return prev.filter((id) => id !== setId);
       }
       return [...prev, setId];
     });
-  }, [isEntireStudioBooked]);
-
-  const handleSelectAllSets = useCallback(() => {
-    if (!listing.sets) return;
-
-    if (isEntireStudioBooked) {
-      setIsEntireStudioBooked(false);
-      if (defaultSetId) setSelectedSetIds([defaultSetId]);
-    } else {
-      if (availableSetIds.length !== listing.sets.length) return;
-      setIsEntireStudioBooked(true);
-      setSelectedSetIds(listing.sets.map(s => s.id));
-    }
-  }, [listing.sets, isEntireStudioBooked, defaultSetId, availableSetIds]);
+  }, []);
 
   const handlePackageSelect = useCallback((pkg: Package | null) => {
     setSelectedPackage(pkg);
@@ -353,7 +343,6 @@ function ListingClient({
       }
     } else {
       setIsPackageSetModalOpen(false);
-      setIsEntireStudioBooked(false);
       if (defaultSetId) {
         setSelectedSetIds([defaultSetId]);
       } else {
@@ -417,9 +406,9 @@ function ListingClient({
 
                 selectedSetIds={selectedSetIds}
                 onSetToggle={handleSetToggle}
-                onSelectAllSets={handleSelectAllSets}
+                wholeStudioSuggestion={wholeStudioSuggestion}
+                onUsePackage={setSelectedPackage}
                 availableSetIds={availableSetIds}
-                isEntireStudioBooked={isEntireStudioBooked}
                 setPricingType={listing.additionalSetPricingType}
                 setHours={timeDifferenceInHours || 1}
                 includedSetId={pricingResult?.includedSetId || null}

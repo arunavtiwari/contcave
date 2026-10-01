@@ -293,6 +293,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
             value={initialListing.packages ?? []}
             onChange={handlePackagesChange}
             availableSets={initialListing.hasSets ? (initialListing.sets ?? []) : []}
+            required={Boolean(initialListing.hasSets)}
           />
         </>
       )}

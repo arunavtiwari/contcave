@@ -243,6 +243,11 @@ export const listingBaseSchema = z.object({
     videoSrc: temporaryMediaUrlSchema.optional().nullable(),
 });
 
+export const SETS_REQUIRE_PACKAGE_MESSAGE = "Studios with sets need at least one package";
+
+export const hasActivePackage = (packages: ReadonlyArray<{ isActive?: boolean | null }> | null | undefined) =>
+    (packages ?? []).some((pkg) => pkg.isActive !== false);
+
 export const listingSchema = listingBaseSchema.superRefine((data, ctx) => {
     const openingIndex = data.operationalHours ? TIME_SLOTS.indexOf(data.operationalHours.start) : -1;
     const closingIndex = data.operationalHours ? TIME_SLOTS.lastIndexOf(data.operationalHours.end) : -1;
@@ -288,6 +293,9 @@ export const listingSchema = listingBaseSchema.superRefine((data, ctx) => {
                 }
             });
         }
+    }
+    if (data.hasSets && !hasActivePackage(data.packages)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: SETS_REQUIRE_PACKAGE_MESSAGE, path: ["packages"] });
     }
     if (data.hasSets && data.packages) {
         const setCount = data.sets?.length || 0;
