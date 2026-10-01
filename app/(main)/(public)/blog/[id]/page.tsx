@@ -17,8 +17,10 @@ import {
   breadcrumbJsonLd,
   META_DESCRIPTION_LENGTH,
   OG_IMAGE,
+  ORGANIZATION_ID,
   SITE_URL,
   toPlainText,
+  WEBSITE_ID,
 } from "@/lib/seo";
 import { formatISTDate } from "@/lib/utils";
 import type { BlogPost } from "@/types/blog";
@@ -32,7 +34,7 @@ type RouteParams = { id: string };
 
 const TEAM_BYLINE = /editorial|team|contcave/i;
 
-const ORGANIZATION_AUTHOR = { "@type": "Organization", name: BRAND_NAME, "@id": `${SITE_URL}/#organization` };
+const ORGANIZATION_AUTHOR = { "@type": "Organization", name: BRAND_NAME, "@id": ORGANIZATION_ID };
 
 const authorsJsonLd = (post: BlogPost) => {
   const names = post.authors ?? [];
@@ -138,7 +140,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
     description,
     image: [absoluteUrl(post.meta?.image?.url ?? OG_IMAGE)],
     author: authorsJsonLd(post),
-    publisher: { "@id": `${SITE_URL}/#organization` },
+    publisher: { "@id": ORGANIZATION_ID },
     datePublished: post.publishedAt,
     dateModified: post.updatedAt ?? post.publishedAt,
     keywords: post.tags?.length ? post.tags.join(", ") : undefined,
@@ -146,7 +148,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
       "@type": "WebPage",
       "@id": postUrl,
     },
-    isPartOf: { "@id": `${SITE_URL}/#website` },
+    isPartOf: { "@id": WEBSITE_ID },
   };
 
   const breadcrumbs = breadcrumbJsonLd(
