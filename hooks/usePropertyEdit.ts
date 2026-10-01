@@ -142,6 +142,7 @@ export function usePropertyEdit(listing: FullListing, predefinedAddons: Addon[])
       addIfChanged("slug", initialListing.slug, originalListing.slug);
       addIfChanged("description", initialListing.description, originalListing.description);
       addIfChanged("customTerms", initialListing.customTerms, originalListing.customTerms);
+      addIfChanged("contcaveNote", initialListing.contcaveNote ?? null, originalListing.contcaveNote ?? null);
       addIfChanged("category", initialListing.category, originalListing.category);
       addIfChanged("locationValue", initialListing.locationValue, originalListing.locationValue);
       addIfChanged("actualLocation", initialListing.actualLocation, originalListing.actualLocation);

@@ -186,6 +186,8 @@ export const signatureSchema = z.object({
 });
 
 
+export const CONTCAVE_NOTE_MAX_LENGTH = 1000;
+
 export const listingBaseSchema = z.object({
     id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid listing ID").optional(),
     listingType: z.enum(["STANDARD", "CURATED"]).default("STANDARD"),
@@ -226,6 +228,7 @@ export const listingBaseSchema = z.object({
     instantBooking: z.boolean().default(false),
     terms: z.boolean().optional(),
     customTerms: z.string().max(20_000).optional().nullable(),
+    contcaveNote: z.string().trim().max(CONTCAVE_NOTE_MAX_LENGTH, `Note from ContCave must be ${CONTCAVE_NOTE_MAX_LENGTH} characters or fewer`).optional().nullable(),
     operationalHours: operationalHoursSchema,
     operationalDays: operationalDaysSchema,
 

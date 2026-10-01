@@ -98,6 +98,7 @@ type Props = {
 
   selectedPackageId?: string | null;
   setSelectionError?: string | null;
+  contcaveNote?: string | null;
 };
 
 let cashfreePromise: Promise<Cashfree | null> | null = null;
@@ -165,7 +166,7 @@ export default function ListingReservation({
 
   selectedPackageId = null,
   setSelectionError = null,
-
+  contcaveNote = null,
 }: Props) {
   const uiStore = useUIStore();
 
@@ -662,7 +663,9 @@ export default function ListingReservation({
         gstAmount={gstAmount}
         gstDetails={gstDetails}
         setGstDetailsAction={setGstDetails}
-        instantBooking={instantBooking} />
+        instantBooking={instantBooking}
+        contcaveNote={contcaveNote}
+      />
     </section>
   );
 }

@@ -21,10 +21,12 @@ import Input from "@/components/ui/Input";
 import Pill from "@/components/ui/Pill";
 import Select, { SelectOption } from "@/components/ui/Select";
 import Switch from "@/components/ui/Switch";
+import Textarea from "@/components/ui/Textarea";
 import { TIME_SLOTS } from "@/constants/timeSlots";
 import { listingLocationValue } from "@/lib/listing/location";
 import { slugify } from "@/lib/strings";
 import { AESTHETICS, SET_FEATURES, USE_CASE_LABELS, VENUE_TYPES } from "@/lib/taxonomy";
+import { CONTCAVE_NOTE_MAX_LENGTH } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import type { SafeAmenity } from "@/types/amenity";
 import { FullListing } from "@/types/listing";
@@ -46,6 +48,7 @@ interface EditPropertyTabProps {
   setUnifiedSetPrice: (v: number | null) => void;
   update: () => void;
   isUpdating: boolean;
+  canEditContcaveNote?: boolean;
 }
 
 const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
@@ -64,6 +67,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
   setUnifiedSetPrice,
   update,
   isUpdating,
+  canEditContcaveNote = false,
 }) => {
   const isCurated = initialListing.listingType === "CURATED";
 
@@ -102,6 +106,19 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         value={initialListing.customTerms ?? ""}
         onChange={(html) => handleInputChange("customTerms", html)}
       />
+
+      {canEditContcaveNote && !isCurated && (
+        <Textarea
+          id="contcaveNote"
+          label="Note from ContCave"
+          description="Optional. Guests see it in the booking summary before they pay."
+          variant="horizontal"
+          rows={3}
+          maxLength={CONTCAVE_NOTE_MAX_LENGTH}
+          value={initialListing.contcaveNote ?? ""}
+          onChange={(e) => handleInputChange("contcaveNote", e.target.value)}
+        />
+      )}
 
       <TaxonomyPillSelect
         label="Venue Type"

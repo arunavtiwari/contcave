@@ -48,4 +48,24 @@ test.describe("listing rules service", () => {
 
     await ListingService.updateListing(user.id, listing.id, { description: "<p>Unrelated edits still save for studios with sets.</p>" });
   });
+
+  test("only ContCave can set the note shown in the booking summary", async ({}, testInfo) => {
+    const suffix = `contcave-note-r${testInfo.retry}`;
+    const { user } = await createUserFixture({ role: "OWNER", verified: true, suffix });
+    const listing = await createActiveListingFixture(user.id, suffix);
+    const ListingService = await getListingService();
+    const noteOf = async () =>
+      (await prisma.listing.findUniqueOrThrow({ where: { id: listing.id }, select: { contcaveNote: true } })).contcaveNote;
+
+    await expect(
+      ListingService.updateListing(user.id, listing.id, { contcaveNote: "Owner-written note" })
+    ).rejects.toThrow(/only contcave/i);
+    expect(await noteOf()).toBeNull();
+
+    await ListingService.updateListing(user.id, listing.id, { contcaveNote: "  Use the basement parking.\nArrive 15 minutes early.  " }, true);
+    expect(await noteOf()).toBe("Use the basement parking.\nArrive 15 minutes early.");
+
+    await ListingService.updateListing(user.id, listing.id, { contcaveNote: "   " }, true);
+    expect(await noteOf()).toBeNull();
+  });
 });

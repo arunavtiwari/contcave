@@ -238,6 +238,7 @@ model Listing {
   verifications            Json?
   terms                    Boolean?
   customTerms              String?
+  contcaveNote             String?
 
   reviews                  Review[]
   DayStatus                DayStatus[]

@@ -465,6 +465,7 @@ function ListingClient({
                     setSelectionError={setSelectionError}
                     reservations={reservations}
                     disabled={isPreview}
+                    contcaveNote={listing.contcaveNote}
                   />
                 )}
               </div>

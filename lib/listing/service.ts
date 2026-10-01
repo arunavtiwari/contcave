@@ -636,6 +636,10 @@ export class ListingService {
         if (!allowAdmin && nextListingType === "CURATED") {
             throw new UserFacingError("Only administrators can manage curated listings");
         }
+        if ("contcaveNote" in listingData) {
+            if (!allowAdmin) throw new UserFacingError("Only ContCave can edit the note from ContCave", 403);
+            listingData.contcaveNote = listingData.contcaveNote || null;
+        }
         const nextPrice = listingData.price ?? existingListing.price;
         const nextPriceRangeMin = "priceRangeMin" in listingData ? listingData.priceRangeMin : existingListing.priceRangeMin;
         const nextPriceRangeMax = "priceRangeMax" in listingData ? listingData.priceRangeMax : existingListing.priceRangeMax;
