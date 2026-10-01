@@ -15,6 +15,7 @@ import { LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
 import { canCreatePostBookingCharge } from "@/lib/reservation/status";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
+import { withTransientRetry } from "@/lib/transient-retry";
 import { getValidatedBaseUrl } from "@/lib/utils";
 import { WhatsappService } from "@/lib/whatsapp/service";
 
@@ -23,7 +24,6 @@ const EXTENSION_EXPIRY_MINUTES = 30;
 const ADDITIONAL_CHARGE_EXPIRY_MS = 24 * 60 * 60 * 1000;
 const MAX_PAYMENT_AMOUNT = 10_000_000;
 const MINUTES_PER_DAY = 24 * 60;
-const TRANSIENT_DB_RETRY_ATTEMPTS = 3;
 const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
 const PAYMENT_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 
@@ -56,24 +56,6 @@ function formatMinutesAsLabel(minutes: number) {
   const period = hour >= 12 ? "PM" : "AM";
   hour = hour % 12 || 12;
   return `${hour}:${String(minute).padStart(2, "0")} ${period}`;
-}
-
-function isTransientDatabaseError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034"
-    || /write conflict|deadlock|transaction failed/i.test(message);
-}
-
-async function retryTransientDatabaseOperation<T>(operation: () => Promise<T>): Promise<T> {
-  for (let attempt = 1; attempt <= TRANSIENT_DB_RETRY_ATTEMPTS; attempt += 1) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (!isTransientDatabaseError(error) || attempt === TRANSIENT_DB_RETRY_ATTEMPTS) throw error;
-      await new Promise((resolve) => setTimeout(resolve, attempt * 100));
-    }
-  }
-  throw new Error("Transient database retry limit reached");
 }
 
 function endTimeForDate(date: Date, label: string) {
@@ -807,7 +789,7 @@ export class PostBookingService {
   }
 
   static async applyExtensionPayment(txnId: string, cfPaymentId?: string) {
-    await retryTransientDatabaseOperation(() => this.applyExtensionPaymentOnce(txnId, cfPaymentId));
+    await withTransientRetry(() => this.applyExtensionPaymentOnce(txnId, cfPaymentId));
   }
 
   private static async applyExtensionPaymentOnce(txnId: string, cfPaymentId?: string) {
@@ -944,7 +926,7 @@ export class PostBookingService {
   }
 
   static async applyAdditionalChargePayment(txnId: string, cfPaymentId?: string) {
-    await retryTransientDatabaseOperation(() => this.applyAdditionalChargePaymentOnce(txnId, cfPaymentId));
+    await withTransientRetry(() => this.applyAdditionalChargePaymentOnce(txnId, cfPaymentId));
   }
 
   private static async applyAdditionalChargePaymentOnce(txnId: string, cfPaymentId?: string) {
