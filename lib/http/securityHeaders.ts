@@ -1,4 +1,4 @@
-const PERMISSIONS_POLICY = 'camera=(), microphone=(), geolocation=()'
+const PERMISSIONS_POLICY = 'camera=(), microphone=()'
 
 export const SECURITY_HEADERS: Record<string, string> = {
     'X-DNS-Prefetch-Control': 'on',
@@ -75,7 +75,10 @@ export function buildCSP(nonce?: string): string {
             'https://*.google-analytics.com',
             'https://*.analytics.google.com',
             'https://analytics.google.com',
+            'https://*.doubleclick.net',
+            'https://stats.g.doubleclick.net',
             'https://www.google.com',
+            'https://*.google.com',
             'https://vercel.live',
             'wss://vercel.live'
         ],

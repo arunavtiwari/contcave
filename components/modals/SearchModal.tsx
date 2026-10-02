@@ -92,6 +92,8 @@ function SearchModalContent() {
         <AutoComplete
           value={where?.label ?? ""}
           placeholder="Search an area, city or landmark"
+          enableNearby
+          enableSuggestions
           onChange={(place) => setWhere({ label: place.name, latlng: place.latlng, radiusKm: searchRadiusKm(place.radiusKm) })}
           onClear={() => setWhere(null)}
         />

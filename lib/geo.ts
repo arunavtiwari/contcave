@@ -5,7 +5,7 @@ export type Nearby = {
     label: string;
 };
 
-export const CURRENT_LOCATION_LABEL = "you";
+export const CURRENT_LOCATION_LABEL = "nearby";
 
 const NEARBY_RADIUS_KM = 150;
 
