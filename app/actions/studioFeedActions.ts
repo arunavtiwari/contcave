@@ -2,8 +2,11 @@
 
 import { z } from "zod";
 
+import { headers } from "next/headers";
+
 import { createAction } from "@/lib/actions-utils";
 import { isLatLng } from "@/lib/geo";
+import { getIpLocation } from "@/lib/http/requestMeta";
 import { ListingService } from "@/lib/listing/service";
 import { studioFeedFiltersSchema } from "@/schemas/listing";
 
@@ -16,3 +19,9 @@ const loadMoreStudiosSchema = z.object({
 export const loadMoreStudios = createAction(loadMoreStudiosSchema, {}, async ({ filters, origin, cursor }) =>
     ListingService.getListingFeedPage({ filters, origin, cursor })
 );
+
+export const getVisitorLocationAction = createAction(z.object({}), {}, async () => {
+    const headerList = await headers();
+    return getIpLocation(headerList);
+});
+
