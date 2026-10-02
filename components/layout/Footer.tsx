@@ -4,8 +4,16 @@ import Link from "next/link";
 import Container from "@/components/layout/Container";
 import Logo from "@/components/navbar/Logo";
 import EmailShield from "@/components/ui/EmailShield";
+import { cityPath, getCityDirectory } from "@/lib/listing/cities";
 
-function Footer() {
+const FOOTER_CITY_COUNT = 5;
+
+async function Footer() {
+  const cities = await getCityDirectory().catch((error: unknown) => {
+    console.error("[Footer] City directory unavailable:", error instanceof Error ? error.message : error);
+    return [];
+  });
+
   return (
     <footer className="bg-muted/30 text-foreground border-t border-border">
       <Container>
@@ -79,12 +87,10 @@ function Footer() {
             <div className="flex flex-col space-y-3">
               <p className="text-lg font-bold text-foreground">Across India</p>
               <div className="grid grid-cols-1 gap-2">
-                <Link href="/home?locationValue=Delhi" className="text-muted-foreground hover:text-foreground transition-all text-sm">Delhi NCR</Link>
-                <Link href="/home?locationValue=Mumbai" className="text-muted-foreground hover:text-foreground transition-all text-sm">Mumbai</Link>
-                <Link href="/home?locationValue=Bangalore" className="text-muted-foreground hover:text-foreground transition-all text-sm">Bangalore</Link>
-                <Link href="/home?locationValue=Kolkata" className="text-muted-foreground hover:text-foreground transition-all text-sm">Kolkata</Link>
-                <Link href="/home?locationValue=Hyderabad" className="text-muted-foreground hover:text-foreground transition-all text-sm">Hyderabad</Link>
-                <Link href="/home" className="text-muted-foreground hover:text-foreground transition-all text-sm font-semibold">View All Cities</Link>
+                {cities.slice(0, FOOTER_CITY_COUNT).map((city) => (
+                  <Link key={city.slug} href={cityPath(city.city)} className="text-muted-foreground hover:text-foreground transition-all text-sm">{city.city}</Link>
+                ))}
+                <Link href="/studios" className="text-muted-foreground hover:text-foreground transition-all text-sm font-semibold">View All Cities</Link>
               </div>
             </div>
           </div>

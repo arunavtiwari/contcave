@@ -108,7 +108,7 @@ export class ReviewReminderService {
       where: {
         status: "COMPLETED",
         markedForDeletion: false,
-        completedAt: { lte: dueBefore },
+        completedAt: { not: null, lte: dueBefore },
         AND: [
           { OR: [{ reviewReminderSentAt: null }, { reviewReminderSentAt: { isSet: false } }] },
         ],

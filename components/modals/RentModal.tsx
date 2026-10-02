@@ -20,8 +20,9 @@ import Modal from "@/components/modals/Modal";
 import { toast } from "@/components/ui/Toast";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useUIStore from "@/hooks/useUIStore";
-import { uploadListingMedia } from "@/lib/listing/mediaUpload";
+import { collectUploadedMediaRefs, uploadListingMedia } from "@/lib/listing/mediaUpload";
 import { isRichTextEmpty } from "@/lib/richText";
+import { discardUploadedMedia } from "@/lib/storage/discard";
 import { uploadToR2 } from "@/lib/storage/upload";
 import {
   ListingSchema,
@@ -949,6 +950,8 @@ export default function RentModal({
 
     uiStore.onClose("rent");
 
+    const uploadedMediaRefs: string[] = [];
+
     try {
       const listingId = createObjectId();
 
@@ -959,10 +962,10 @@ export default function RentModal({
         addons: data.addons,
       });
 
+      uploadedMediaRefs.push(...collectUploadedMediaRefs(mediaResults));
+
       if (mediaResults.imageSrc.length === 0) {
-        setIsLoading(false);
-        setIsSubmitting(false);
-        return toast.error("Please upload at least one image");
+        throw new Error("Please upload at least one image");
       }
 
       const storedVerifications = toStoredVerificationPayload(data.verifications);
@@ -977,6 +980,7 @@ export default function RentModal({
             `listings/${listingId}/compliance/verification/general`,
             { access: "private" }
           );
+          uploadedMediaRefs.push(...uploadedRefs);
 
           for (let i = 0; i < docsWithFiles.length; i++) {
             const doc = docsWithFiles[i];
@@ -1001,6 +1005,7 @@ export default function RentModal({
       if (data.agreementSignature && data.terms) {
         if (!generatePdf) throw new Error("Signed agreement generator is unavailable");
         const meta = await generatePdf(listingId);
+        uploadedMediaRefs.push(meta.storageRef);
         setAgreementPdf(meta);
         finalVerifications.agreementPdf = meta;
       }
@@ -1081,6 +1086,7 @@ export default function RentModal({
       setShowSuccessModal(true);
       toast.success(isCurated ? "Curated space created successfully!" : "Listing created successfully!");
     } catch (error: unknown) {
+      await discardUploadedMedia(uploadedMediaRefs);
       const errorMessage = error instanceof Error ? error.message : "Something went wrong while creating the listing.";
       toast.error(errorMessage);
     } finally {

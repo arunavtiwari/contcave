@@ -39,4 +39,3 @@ export default async function getListingById(params: IParams): Promise<FullListi
     return null;
   }
 }
-

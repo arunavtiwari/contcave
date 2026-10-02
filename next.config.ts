@@ -1,7 +1,10 @@
 import type { NextConfig } from 'next'
 
+import { HTML_ONLY_CRAWLER_UA_RE } from './lib/crawlers'
+
 const nextConfig: NextConfig = {
     serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
+    htmlLimitedBots: HTML_ONLY_CRAWLER_UA_RE,
     allowedDevOrigins: ['192.168.1.3', 'admin.localhost', '*.localhost'],
     images: {
         loader: 'custom',
@@ -23,8 +26,8 @@ const nextConfig: NextConfig = {
                 : [])
         ],
         formats: ['image/avif', 'image/webp'],
-        deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-        imageSizes: [16, 32, 48, 64, 96, 128, 256, 384]
+        deviceSizes: [640, 1080, 1920],
+        imageSizes: [96, 256, 384]
     },
     compress: true,
     poweredByHeader: false,

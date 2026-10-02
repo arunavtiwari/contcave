@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState } from "react";
+import React from "react";
 import { IconType } from "react-icons";
 import { TbPhotoPlus } from "react-icons/tb";
 
@@ -11,7 +11,6 @@ type Props = {
   onChange: (value: string[]) => void;
   values: string[];
   circle?: boolean;
-  deferUpload?: boolean;
   onFilesChange?: (files: File[]) => void;
   uid?: string;
   allowedTypes?: string[];
@@ -23,15 +22,15 @@ type Props = {
   variant?: "vertical" | "horizontal";
   error?: string;
   icon?: IconType;
-  folder?: string;
   multiple?: boolean;
 };
 
+// Selections stay local as object URLs and only reach R2 when the surrounding
+// form saves, so an abandoned form never leaves an orphaned object behind.
 function ImageUpload({
   onChange,
   values,
   circle = false,
-  deferUpload = false,
   onFilesChange,
   uid = "file-upload",
   allowedTypes = [
@@ -51,17 +50,14 @@ function ImageUpload({
   variant = "vertical",
   error,
   icon: Icon = TbPhotoPlus,
-  folder,
   multiple = true,
   className,
 }: Props & { className?: string }) {
-  const [uploading, setUploading] = useState(false);
-
   const isVideo = (url: string) => {
     return /\.(mp4|webm|mov)$/i.test(url);
   };
 
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
@@ -86,62 +82,10 @@ function ImageUpload({
       }
     }
 
-    if (deferUpload) {
-      const previews = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
-      );
-      onChange([...values, ...previews]);
-      onFilesChange?.(Array.from(files));
-      event.target.value = "";
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      const newUrls: string[] = [];
-      for (const file of Array.from(files)) {
-        const presignRes = await fetch("/api/upload/presign", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type,
-            fileSize: file.size,
-            folder,
-          }),
-        });
-
-        if (!presignRes.ok) {
-          const txt = await presignRes.text();
-          throw new Error(`Presign failed: ${txt}`);
-        }
-
-        const { url, publicUrl } = await presignRes.json();
-
-        const uploadRes = await fetch(url, {
-          method: "PUT",
-          headers: {
-            "Content-Type": file.type,
-            "Cache-Control": "public, max-age=31536000, immutable",
-          },
-          body: file,
-        });
-
-        if (!uploadRes.ok) throw new Error("Failed to upload file to storage");
-        newUrls.push(publicUrl);
-      }
-
-      if (newUrls.length > 0) {
-        onChange([...values, ...newUrls]);
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      alert(`Upload Failed: ${errorMessage}`);
-    } finally {
-      setUploading(false);
-      event.target.value = "";
-    }
+    const previews = Array.from(files).map((file) => URL.createObjectURL(file));
+    onChange([...values, ...previews]);
+    onFilesChange?.(Array.from(files));
+    event.target.value = "";
   };
 
   return (
@@ -162,12 +106,7 @@ function ImageUpload({
             : className || "w-32 h-32 p-4 border border-border"
           }`}
       >
-        {uploading ? (
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-sm font-medium">Uploading...</span>
-          </div>
-        ) : circle ? (
+        {circle ? (
           values && values.length > 0 ? (
             isVideo(values[0]) ? (
               <video

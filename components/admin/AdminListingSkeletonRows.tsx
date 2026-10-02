@@ -69,6 +69,9 @@ export function CuratedListingSkeletonRows({ count = 6 }: { count?: number }) {
             <Skeleton className="h-4 w-10 rounded-md" />
           </TableCell>
           <TableCell>
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </TableCell>
+          <TableCell>
             <Skeleton className="h-5 w-24 rounded-full" />
           </TableCell>
           <TableCell className="text-right">

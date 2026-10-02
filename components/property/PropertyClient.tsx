@@ -21,12 +21,14 @@ type Props = {
     listing: FullListing;
     predefinedAmenities: SafeAmenity[];
     predefinedAddons: Addon[];
+    afterDeleteHref?: string;
+    tab?: string;
 };
 
-const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Props) => {
+const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons, afterDeleteHref = "/dashboard/properties", tab }: Props) => {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const selectedMenu = searchParams?.get("tab") || "Edit Property";
+    const selectedMenu = tab || searchParams?.get("tab") || "Edit Property";
     
     const {
         initialListing,
@@ -59,7 +61,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             const res = await deleteListingAction({ listingId: initialListing.id });
             if (res.error) throw new Error(res.error);
             toast.info("Property deleted successfully", { id: "Listing_Deleted" });
-            router.push("/dashboard/properties");
+            router.push(afterDeleteHref);
             router.refresh();
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Failed to delete property";
@@ -68,7 +70,7 @@ const PropertyClient = ({ listing, predefinedAmenities, predefinedAddons }: Prop
             setIsDeleting(false);
             setIsDeleteModalOpen(false);
         }
-    }, [initialListing.id, router]);
+    }, [afterDeleteHref, initialListing.id, router]);
 
     const renderContent = () => {
         switch (selectedMenu) {

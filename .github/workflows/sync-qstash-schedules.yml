@@ -1,0 +1,45 @@
+name: Sync QStash Schedules
+
+# Schedules are declared in lib/cron/qstash-schedules.json. This runs only when
+# that file (or the script applying it) lands on main, so a normal merge does
+# not touch the scheduler.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "lib/cron/qstash-schedules.json"
+      - "scripts/configure-qstash-schedules.mjs"
+      - ".github/workflows/sync-qstash-schedules.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: sync-qstash-schedules
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+
+    # The script targets https://contcave.com/api/cron/qstash when NODE_ENV is
+    # production, so only the token has to be supplied.
+    env:
+      NODE_ENV: production
+      QSTASH_TOKEN: ${{ secrets.QSTASH_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Apply schedules
+        run: node scripts/configure-qstash-schedules.mjs

@@ -5,6 +5,7 @@ import { FiArrowRight, FiCheck, FiX } from "react-icons/fi";
 import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { buildWhatsAppUrl } from "@/lib/whatsapp/urls";
 
 const WITHOUT_CONTCAVE =
   "Find a photographer. Negotiate. Book HMU. Confirm equipment. Chase everyone on WhatsApp.";
@@ -22,7 +23,7 @@ const WHATSAPP_MESSAGE =
   "Hi ContCave! I want Production Concierge for my shoot. Here's my brief:";
 
 const ProductionConcierge = () => {
-  const whatsappHref = `https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+  const whatsappHref = buildWhatsAppUrl(WHATSAPP_MESSAGE);
 
   return (
     <section id="production-concierge" className="py-section bg-muted/30">

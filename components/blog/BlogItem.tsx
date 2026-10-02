@@ -9,10 +9,10 @@ import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import { getBlogGradient } from "@/lib/blogGradient";
 import { formatISTDate } from "@/lib/utils";
-import { BlogPost } from "@/types/blog";
+import { BlogCard } from "@/types/blog";
 
 interface BlogItemProps {
-    post: BlogPost;
+    post: BlogCard;
 }
 
 const BlogItem: React.FC<BlogItemProps> = ({ post }) => {

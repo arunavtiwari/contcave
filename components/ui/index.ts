@@ -7,6 +7,8 @@ export * from "./Button";
 export { default as Checkbox } from "./Checkbox";
 export * from "./Checkbox";
 export { default as ClientOnly } from "./ClientOnly";
+export { default as DatePicker } from "./DatePicker";
+export * from "./DatePicker";
 export { default as Divider } from "./Divider";
 export { default as EmailShield } from "./EmailShield";
 export { default as EmptyState } from "./EmptyState";

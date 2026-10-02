@@ -1,4 +1,5 @@
-import { GST_RATE, PLATFORM_COMMISSION_PERCENT } from "@/constants/gst";
+import { PLATFORM_COMMISSION_PERCENT } from "@/constants/gst";
+import { amountBeforeGst } from "@/lib/pricing";
 
 /**
  * Helper to determine if studio has valid GST registration
@@ -11,6 +12,12 @@ export function hasValidGST(paymentDetails: {
         paymentDetails?.companyName?.trim() &&
         paymentDetails?.gstin?.trim()
     );
+}
+
+export type GstOwner = "STUDIO" | "ARKANET";
+
+export function gstOwnerFor(paymentDetails: Parameters<typeof hasValidGST>[0]): GstOwner {
+    return hasValidGST(paymentDetails) ? "STUDIO" : "ARKANET";
 }
 
 /**
@@ -26,12 +33,12 @@ export function calculatePayoutDetails(
 ): {
     baseAmount: number;
     gstAmount: number;
-    gstOwnedBy: "STUDIO" | "ARKANET";
+    gstOwnedBy: GstOwner;
     payoutToStudio: number;
     payoutPercentOfTotal: number;
     arkanetRetains: number;
 } {
-    const baseAmount = totalAmount / (1 + GST_RATE);
+    const baseAmount = amountBeforeGst(totalAmount);
     const gstAmount = totalAmount - baseAmount;
 
     const platformCommissionOnBase = baseAmount * (PLATFORM_COMMISSION_PERCENT / 100);

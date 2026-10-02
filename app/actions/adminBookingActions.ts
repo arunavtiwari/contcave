@@ -1,24 +1,37 @@
 "use server";
 
 import { InvoiceDocumentType, InvoiceStatus, PaymentVoucherStatus, PaymentVoucherType, Prisma, ReservationStatus, TransactionStatus } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createAction } from "@/lib/actions-utils";
+import {
+  createOfflineBooking,
+  getAdminStudioForOfflineBooking,
+  getAdminStudiosForOfflineBooking,
+} from "@/lib/admin/offlineBooking";
+import { UserFacingError } from "@/lib/errors";
 import { InvoiceService } from "@/lib/invoice/service";
 import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import prisma from "@/lib/prismadb";
-import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isAdmin } from "@/lib/user/permissions";
+import { createAdminOfflineBookingSchema } from "@/schemas/offlineBooking";
 import { UserRole } from "@/types/user";
 
 type AdminGstModel = "GST_STUDIO_AGENT" | "NON_GST_PRINCIPAL" | "UNKNOWN";
 export type AdminBookingTab = "bookings" | "ownerInvoices" | "vouchers" | "payouts" | "failures" | "audit";
 
+/**
+ * Everything the booking drawer shows and the table does not. Kept out of the list
+ * response because addon lists, pricing snapshots, sets and packages are large per row
+ * and only ever read for the one booking an admin opens.
+ */
 export type AdminBookingDetail = {
-  startTime: string;
-  endTime: string;
   createdAt: string;
+  gstModel: AdminGstModel;
+  gstOwner?: string | null;
+  vouchers: AdminVoucherRow[];
   rejectReason?: string | null;
   billingCompany?: string | null;
   billingGstin?: string | null;
@@ -64,35 +77,25 @@ export type AdminBookingDetail = {
   }>;
 };
 
+/** Exactly the columns the bookings table renders — nothing is fetched to be discarded. */
 export type AdminBookingRow = {
   id: string;
   bookingId: string;
   customerName: string;
   ownerName: string;
   studioName: string;
+  studioLocation: string;
   amount: number;
   startDate: string;
+  startTime: string;
+  endTime: string;
   lifecycleStatus: ReservationStatus;
-  checkedInAt?: string | null;
-  completedAt?: string | null;
-  noShowAt?: string | null;
-  refundAmount?: number | null;
-  refundRecordedAt?: string | null;
-  unverifiedPast: boolean;
-  reviewRequiredPaymentCount: number;
-  pendingPostBookingPaymentCount: number;
   paymentStatus: TransactionStatus | "NO_PAYMENT";
-  gstModel: AdminGstModel;
-  gstOwner?: string | null;
   customerInvoiceNumber?: string | null;
   customerInvoiceId?: string | null;
   customerInvoiceStatus?: InvoiceStatus | null;
   customerInvoiceUrl?: string | null;
   customerInvoiceEmailSentAt?: string | null;
-  customerInvoiceEmailError?: string | null;
-  customerInvoiceRetryCount?: number | null;
-  vouchers: AdminVoucherRow[];
-  detail: AdminBookingDetail;
 };
 
 export type AdminInvoiceRow = {
@@ -163,6 +166,82 @@ function readBillingSnapshot(value: unknown) {
   };
 }
 
+const OWNER_INVOICE_TYPES = ["OWNER_MONTHLY_COMMISSION_INVOICE", "OWNER_MONTHLY_BILL_OF_SUPPLY"];
+const CUSTOMER_INVOICE_TYPES = ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"];
+const FAILED_INVOICE_STATUSES = ["EMAIL_FAILED", "DELIVERY_BLOCKED", "RETRYING"];
+
+const ownerInvoiceWhere: Prisma.InvoiceWhereInput = {
+  documentType: { in: ["OWNER_MONTHLY_COMMISSION_INVOICE", "OWNER_MONTHLY_BILL_OF_SUPPLY"] },
+};
+const visibleFailureWhere: Prisma.InvoiceWhereInput = {
+  OR: [
+    { status: { in: ["EMAIL_FAILED", "DELIVERY_BLOCKED", "RETRYING"] } },
+    { emailError: { not: null } },
+  ],
+};
+const payoutWhere: Prisma.TransactionWhereInput = {
+  OR: [
+    { payoutAmountToOwner: { not: null } },
+    { payoutSplitAt: { not: null } },
+    { payoutDoneAt: { not: null } },
+  ],
+};
+const auditWhere: Prisma.AuditLogWhereInput = { resource: { in: ["Invoice", "PaymentVoucher"] } };
+
+type InvoiceCounts = {
+  ownerInvoices: number;
+  failures: number;
+  customerInvoices: number;
+  pendingCustomerInvoices: number;
+};
+
+/**
+ * The four invoice tallies behind the stat cards and tab badges differ only by their
+ * filter, so a single `$facet` answers all of them in one round trip instead of four.
+ */
+async function getInvoiceCounts(): Promise<InvoiceCounts> {
+  const result = (await prisma.invoice.aggregateRaw({
+    pipeline: [
+      {
+        $facet: {
+          ownerInvoices: [{ $match: { documentType: { $in: OWNER_INVOICE_TYPES } } }, { $count: "total" }],
+          failures: [
+            {
+              $match: {
+                $or: [
+                  { status: { $in: FAILED_INVOICE_STATUSES } },
+                  { emailError: { $ne: null } },
+                ],
+              },
+            },
+            { $count: "total" },
+          ],
+          customerInvoices: [{ $match: { documentType: { $in: CUSTOMER_INVOICE_TYPES } } }, { $count: "total" }],
+          pendingCustomerInvoices: [
+            {
+              $match: {
+                documentType: { $in: CUSTOMER_INVOICE_TYPES },
+                $or: [{ emailSentAt: null }, { emailSentAt: { $exists: false } }],
+              },
+            },
+            { $count: "total" },
+          ],
+        },
+      },
+    ] as unknown as Prisma.InputJsonValue[],
+  })) as unknown as Array<Record<keyof InvoiceCounts, Array<{ total?: number }> | undefined>>;
+
+  const facet = result[0];
+  const read = (key: keyof InvoiceCounts) => facet?.[key]?.[0]?.total ?? 0;
+
+  return {
+    ownerInvoices: read("ownerInvoices"),
+    failures: read("failures"),
+    customerInvoices: read("customerInvoices"),
+    pendingCustomerInvoices: read("pendingCustomerInvoices"),
+  };
+}
+
 export async function getAdminBookingOperations(
   params: { page?: number; pageSize?: number; tab?: AdminBookingTab } = {}
 ) {
@@ -178,27 +257,6 @@ export async function getAdminBookingOperations(
     ? Math.min(100, Math.max(10, Math.floor(params.pageSize)))
     : 20;
   const tab = params.tab || "bookings";
-  const ownerInvoiceWhere: Prisma.InvoiceWhereInput = {
-    documentType: { in: ["OWNER_MONTHLY_COMMISSION_INVOICE", "OWNER_MONTHLY_BILL_OF_SUPPLY"] },
-  };
-  const visibleFailureWhere: Prisma.InvoiceWhereInput = {
-    OR: [
-      { status: { in: ["EMAIL_FAILED", "DELIVERY_BLOCKED", "RETRYING"] } },
-      { emailError: { not: null } },
-    ],
-  };
-  const payoutWhere: Prisma.TransactionWhereInput = {
-    OR: [
-      { payoutAmountToOwner: { not: null } },
-      { payoutSplitAt: { not: null } },
-      { payoutDoneAt: { not: null } },
-    ],
-  };
-  const visibleVoucherWhere: Prisma.PaymentVoucherWhereInput = {};
-  const auditWhere: Prisma.AuditLogWhereInput = { resource: { in: ["Invoice", "PaymentVoucher"] } };
-  const customerInvoiceWhere: Prisma.InvoiceWhereInput = {
-    documentType: { in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"] },
-  };
   const invoiceWhere = tab === "ownerInvoices" ? ownerInvoiceWhere : visibleFailureWhere;
   const skip = (page - 1) * pageSize;
 
@@ -209,13 +267,10 @@ export async function getAdminBookingOperations(
     payouts,
     paymentVouchers,
     audits,
-    ownerInvoiceTotal,
+    invoiceCounts,
     voucherTotal,
     payoutTotal,
-    failureTotal,
     auditTotal,
-    customerInvoiceTotal,
-    pendingCustomerInvoiceTotal,
   ] = await Promise.all([
     tab === "bookings" ? prisma.reservation.findMany({
       select: {
@@ -225,88 +280,20 @@ export async function getAdminBookingOperations(
         startDate: true,
         startTime: true,
         endTime: true,
-        createdAt: true,
         status: true,
-        checkedInAt: true,
-        completedAt: true,
-        noShowAt: true,
-        refundAmount: true,
-        refundRecordedAt: true,
-        rejectReason: true,
-        selectedAddons: true,
-        pricingSnapshot: true,
-        setIds: true,
-        setPackageId: true,
-        billingSnapshot: true,
-        billingDetail: {
-          select: {
-            companyName: true,
-            gstin: true,
-            billingAddress: true,
-          },
-        },
         user: { select: { name: true, email: true } },
         listing: {
           select: {
-            id: true,
             title: true,
             locationValue: true,
-            propertyStateCode: true,
-            hasSets: true,
             user: { select: { name: true, email: true } },
-            sets: {
-              select: {
-                id: true,
-                name: true,
-                price: true,
-                description: true,
-              },
-              orderBy: [{ position: "asc" }, { price: "asc" }],
-            },
-            packages: {
-              select: {
-                id: true,
-                title: true,
-                description: true,
-                offeredPrice: true,
-                durationHours: true,
-                features: true,
-              },
-            },
           },
         },
         Transaction: {
           where: { purpose: "BASE_BOOKING" },
           orderBy: { createdAt: "desc" },
           take: 1,
-          select: {
-            id: true,
-            status: true,
-            gstOwnedBy: true,
-            cfTxnRef: true,
-            paymentMethod: true,
-            createdAt: true,
-            payoutAmountToOwner: true,
-            payoutSplitAt: true,
-            payoutDoneAt: true,
-          },
-        },
-        extensionRequests: {
-          select: {
-            id: true,
-            status: true,
-            extraAmount: true,
-            requestedEndTime: true,
-          },
-        },
-        additionalCharges: {
-          select: {
-            id: true,
-            type: true,
-            status: true,
-            totalAmount: true,
-            note: true,
-          },
+          select: { status: true },
         },
         invoices: {
           where: {
@@ -323,24 +310,6 @@ export async function getAdminBookingOperations(
             status: true,
             invoiceUrl: true,
             emailSentAt: true,
-            emailError: true,
-            retryCount: true,
-          },
-        },
-        paymentVouchers: {
-          orderBy: { createdAt: "desc" },
-          select: {
-            id: true,
-            voucherNumber: true,
-            voucherType: true,
-            status: true,
-            amount: true,
-            issuedAt: true,
-            emailSentAt: true,
-            emailError: true,
-            retryCount: true,
-            voucherUrl: true,
-            user: { select: { name: true, email: true } },
           },
         },
       },
@@ -403,7 +372,6 @@ export async function getAdminBookingOperations(
       take: pageSize,
     }) : Promise.resolve([]),
     tab === "vouchers" ? prisma.paymentVoucher.findMany({
-      where: visibleVoucherWhere,
       select: {
         id: true,
         voucherNumber: true,
@@ -435,53 +403,15 @@ export async function getAdminBookingOperations(
       skip,
       take: pageSize,
     }) : Promise.resolve([]),
-    prisma.invoice.count({ where: ownerInvoiceWhere }),
-    prisma.paymentVoucher.count({ where: visibleVoucherWhere }),
+    getInvoiceCounts(),
+    prisma.paymentVoucher.count(),
     prisma.transaction.count({ where: payoutWhere }),
-    prisma.invoice.count({ where: visibleFailureWhere }),
     prisma.auditLog.count({ where: auditWhere }),
-    prisma.invoice.count({ where: customerInvoiceWhere }),
-    prisma.invoice.count({
-      where: {
-        ...customerInvoiceWhere,
-        OR: [{ emailSentAt: null }, { emailSentAt: { isSet: false } }],
-      },
-    }),
   ]);
 
   const bookingRows: AdminBookingRow[] = reservations.map((reservation) => {
     const transaction = reservation.Transaction[0];
     const customerInvoice = reservation.invoices[0];
-    const billing = readBillingSnapshot(reservation.billingSnapshot) || reservation.billingDetail;
-    const endAt = parseReservationEndTimeForDate(reservation.startDate, reservation.endTime);
-    const unverifiedPast =
-      reservation.status === "CONFIRMED" &&
-      !reservation.checkedInAt &&
-      Boolean(endAt && endAt.getTime() + 2 * 60 * 60 * 1000 <= Date.now());
-    const postBookingPayments = [
-      ...reservation.extensionRequests.map((extension) => ({
-        id: extension.id,
-        kind: "EXTENSION" as const,
-        status: extension.status,
-        amount: extension.extraAmount,
-        detail: `Until ${extension.requestedEndTime}`,
-      })),
-      ...reservation.additionalCharges.map((charge) => ({
-        id: charge.id,
-        kind: charge.type,
-        status: charge.status,
-        amount: charge.totalAmount,
-        detail: charge.note,
-      })),
-    ];
-    const reviewRequiredPaymentCount = postBookingPayments.filter((payment) => payment.status === "PAYMENT_REVIEW_REQUIRED").length;
-    const pendingPostBookingPaymentCount = postBookingPayments.filter((payment) => payment.status === "PENDING_PAYMENT").length;
-    const gstModel: AdminGstModel =
-      transaction?.gstOwnedBy === "STUDIO"
-        ? "GST_STUDIO_AGENT"
-        : transaction?.gstOwnedBy === "ARKANET"
-          ? "NON_GST_PRINCIPAL"
-          : "UNKNOWN";
 
     return {
       id: reservation.id,
@@ -489,83 +419,18 @@ export async function getAdminBookingOperations(
       customerName: reservation.user.name || reservation.user.email || "Customer",
       ownerName: reservation.listing.user.name || reservation.listing.user.email || "Owner",
       studioName: reservation.listing.title,
+      studioLocation: reservation.listing.locationValue,
       amount: reservation.totalPrice,
       startDate: reservation.startDate.toISOString(),
+      startTime: reservation.startTime,
+      endTime: reservation.endTime,
       lifecycleStatus: reservation.status,
-      checkedInAt: iso(reservation.checkedInAt),
-      completedAt: iso(reservation.completedAt),
-      noShowAt: iso(reservation.noShowAt),
-      refundAmount: reservation.refundAmount,
-      refundRecordedAt: iso(reservation.refundRecordedAt),
-      unverifiedPast,
-      reviewRequiredPaymentCount,
-      pendingPostBookingPaymentCount,
       paymentStatus: transaction?.status || "NO_PAYMENT",
-      gstModel,
-      gstOwner: transaction?.gstOwnedBy,
       customerInvoiceId: customerInvoice?.id,
       customerInvoiceNumber: customerInvoice?.invoiceNumber,
       customerInvoiceStatus: customerInvoice?.status,
       customerInvoiceUrl: customerInvoice?.invoiceUrl ? `/api/documents/invoices/${customerInvoice.id}` : undefined,
       customerInvoiceEmailSentAt: iso(customerInvoice?.emailSentAt),
-      customerInvoiceEmailError: customerInvoice?.emailError,
-      customerInvoiceRetryCount: customerInvoice?.retryCount,
-      vouchers: reservation.paymentVouchers.map((voucher) => ({
-        id: voucher.id,
-        voucherNumber: voucher.voucherNumber,
-        voucherType: voucher.voucherType,
-        status: voucher.status,
-        recipientName: voucher.user.name || voucher.user.email || "Recipient",
-        bookingId: reservation.bookingId,
-        amount: voucher.amount,
-        issuedAt: iso(voucher.issuedAt),
-        emailSentAt: iso(voucher.emailSentAt),
-        emailError: voucher.emailError,
-        retryCount: voucher.retryCount,
-        voucherUrl: voucher.voucherUrl ? `/api/documents/vouchers/${voucher.id}` : "",
-        reservationMarkedForDeletion: false,
-      })),
-      detail: {
-        startTime: reservation.startTime,
-        endTime: reservation.endTime,
-        createdAt: reservation.createdAt.toISOString(),
-        rejectReason: reservation.rejectReason,
-        billingCompany: billing?.companyName,
-        billingGstin: billing?.gstin,
-        billingAddress: billing?.billingAddress,
-        selectedAddons: reservation.selectedAddons,
-        pricingSnapshot: reservation.pricingSnapshot,
-        selectedSetIds: reservation.setIds,
-        selectedSets: reservation.listing.sets
-          .filter((set) => reservation.setIds.includes(set.id))
-          .map((set) => ({
-            id: set.id,
-            name: set.name,
-            price: set.price,
-            description: set.description,
-          })),
-        selectedPackage: reservation.setPackageId
-          ? reservation.listing.packages.find((pkg) => pkg.id === reservation.setPackageId) || null
-          : null,
-        listing: {
-          id: reservation.listing.id,
-          locationValue: reservation.listing.locationValue,
-          propertyStateCode: reservation.listing.propertyStateCode,
-          hasSets: reservation.listing.hasSets,
-        },
-        transaction: transaction
-          ? {
-            id: transaction.id,
-            cfTxnRef: transaction.cfTxnRef,
-            paymentMethod: transaction.paymentMethod,
-            createdAt: transaction.createdAt.toISOString(),
-            payoutAmountToOwner: transaction.payoutAmountToOwner,
-            payoutSplitAt: iso(transaction.payoutSplitAt),
-            payoutDoneAt: iso(transaction.payoutDoneAt),
-          }
-          : null,
-        postBookingPayments,
-      },
     };
   });
 
@@ -626,46 +491,35 @@ export async function getAdminBookingOperations(
     metadata: audit.metadata,
   }));
 
-  const activeBookingCustomerInvoices = invoiceRows.filter((invoice) =>
-    invoice.documentType.startsWith("CUSTOMER_")
-    && Boolean(invoice.bookingId)
-    && invoice.reservationMarkedForDeletion !== true
-  );
   const ownerInvoiceRows = invoiceRows.filter((invoice) => invoice.documentType.startsWith("OWNER_"));
   const visibleFailureRows = invoiceRows.filter((invoice) => {
-    const failed = ["EMAIL_FAILED", "DELIVERY_BLOCKED", "RETRYING"].includes(invoice.status) || Boolean(invoice.emailError);
+    const failed = FAILED_INVOICE_STATUSES.includes(invoice.status) || Boolean(invoice.emailError);
     if (!failed) return false;
     if (invoice.documentType.startsWith("OWNER_")) return true;
     return Boolean(invoice.bookingId) && invoice.reservationMarkedForDeletion !== true;
   });
 
+  const tabCounts = {
+    bookings: bookingTotal,
+    ownerInvoices: invoiceCounts.ownerInvoices,
+    vouchers: voucherTotal,
+    payouts: payoutTotal,
+    failures: invoiceCounts.failures,
+    audit: auditTotal,
+  };
+
   return {
     activeTab: tab,
     operationPage: page,
     operationPageSize: pageSize,
-    operationTotal: {
-      bookings: bookingTotal,
-      ownerInvoices: ownerInvoiceTotal,
-      vouchers: voucherTotal,
-      payouts: payoutTotal,
-      failures: failureTotal,
-      audit: auditTotal,
-    }[tab],
-    tabCounts: {
-      bookings: bookingTotal,
-      ownerInvoices: ownerInvoiceTotal,
-      vouchers: voucherTotal,
-      payouts: payoutTotal,
-      failures: failureTotal,
-      audit: auditTotal,
-    },
-    customerInvoiceTotal,
-    pendingCustomerInvoiceTotal,
+    operationTotal: tabCounts[tab],
+    tabCounts,
+    customerInvoiceTotal: invoiceCounts.customerInvoices,
+    pendingCustomerInvoiceTotal: invoiceCounts.pendingCustomerInvoices,
     bookings: bookingRows,
     bookingPage: page,
     bookingPageSize: pageSize,
     bookingTotal,
-    customerInvoices: activeBookingCustomerInvoices,
     ownerInvoices: ownerInvoiceRows,
     vouchers: voucherRows.filter((voucher) => voucher.reservationMarkedForDeletion !== true),
     failures: visibleFailureRows,
@@ -673,6 +527,178 @@ export async function getAdminBookingOperations(
     audits: auditRows,
   };
 }
+
+/**
+ * Loads the drawer payload for one booking. Splitting this out of the list keeps the
+ * table's response small and skips five nested relation fetches per page that only
+ * mattered for a booking nobody had opened yet.
+ */
+export const getAdminBookingDetailAction = createAction(
+  z.object({ reservationId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid booking ID") }),
+  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  async ({ reservationId }): Promise<AdminBookingDetail> => {
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+      select: {
+        bookingId: true,
+        createdAt: true,
+        rejectReason: true,
+        selectedAddons: true,
+        pricingSnapshot: true,
+        setIds: true,
+        setPackageId: true,
+        billingSnapshot: true,
+        billingDetail: {
+          select: { companyName: true, gstin: true, billingAddress: true },
+        },
+        listing: {
+          select: {
+            id: true,
+            locationValue: true,
+            propertyStateCode: true,
+            hasSets: true,
+          },
+        },
+        Transaction: {
+          where: { purpose: "BASE_BOOKING" },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: {
+            id: true,
+            gstOwnedBy: true,
+            cfTxnRef: true,
+            paymentMethod: true,
+            createdAt: true,
+            payoutAmountToOwner: true,
+            payoutSplitAt: true,
+            payoutDoneAt: true,
+          },
+        },
+        extensionRequests: {
+          select: { id: true, status: true, extraAmount: true, requestedEndTime: true },
+        },
+        additionalCharges: {
+          select: { id: true, type: true, status: true, totalAmount: true, note: true },
+        },
+        paymentVouchers: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            voucherNumber: true,
+            voucherType: true,
+            status: true,
+            amount: true,
+            issuedAt: true,
+            emailSentAt: true,
+            emailError: true,
+            retryCount: true,
+            voucherUrl: true,
+            user: { select: { name: true, email: true } },
+          },
+        },
+      },
+    });
+
+    if (!reservation) throw new UserFacingError("Booking not found", 404);
+
+    // Only the sets and package this booking actually selected, rather than the studio's
+    // full catalogue filtered down in memory.
+    const [selectedSets, selectedPackage] = await Promise.all([
+      reservation.setIds.length
+        ? prisma.listingSet.findMany({
+            where: { id: { in: reservation.setIds } },
+            select: { id: true, name: true, price: true, description: true },
+            orderBy: [{ position: "asc" }, { price: "asc" }],
+          })
+        : Promise.resolve([]),
+      reservation.setPackageId
+        ? prisma.package.findUnique({
+            where: { id: reservation.setPackageId },
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              offeredPrice: true,
+              durationHours: true,
+              features: true,
+            },
+          })
+        : Promise.resolve(null),
+    ]);
+
+    const transaction = reservation.Transaction[0];
+    const billing = readBillingSnapshot(reservation.billingSnapshot) || reservation.billingDetail;
+    const gstModel: AdminGstModel =
+      transaction?.gstOwnedBy === "STUDIO"
+        ? "GST_STUDIO_AGENT"
+        : transaction?.gstOwnedBy === "ARKANET"
+          ? "NON_GST_PRINCIPAL"
+          : "UNKNOWN";
+
+    return {
+      createdAt: reservation.createdAt.toISOString(),
+      gstModel,
+      gstOwner: transaction?.gstOwnedBy,
+      rejectReason: reservation.rejectReason,
+      billingCompany: billing?.companyName,
+      billingGstin: billing?.gstin,
+      billingAddress: billing?.billingAddress,
+      selectedAddons: reservation.selectedAddons,
+      pricingSnapshot: reservation.pricingSnapshot,
+      selectedSetIds: reservation.setIds,
+      selectedSets,
+      selectedPackage,
+      listing: {
+        id: reservation.listing.id,
+        locationValue: reservation.listing.locationValue,
+        propertyStateCode: reservation.listing.propertyStateCode,
+        hasSets: reservation.listing.hasSets,
+      },
+      transaction: transaction
+        ? {
+          id: transaction.id,
+          cfTxnRef: transaction.cfTxnRef,
+          paymentMethod: transaction.paymentMethod,
+          createdAt: transaction.createdAt.toISOString(),
+          payoutAmountToOwner: transaction.payoutAmountToOwner,
+          payoutSplitAt: iso(transaction.payoutSplitAt),
+          payoutDoneAt: iso(transaction.payoutDoneAt),
+        }
+        : null,
+      postBookingPayments: [
+        ...reservation.extensionRequests.map((extension) => ({
+          id: extension.id,
+          kind: "EXTENSION" as const,
+          status: extension.status,
+          amount: extension.extraAmount,
+          detail: `Until ${extension.requestedEndTime}`,
+        })),
+        ...reservation.additionalCharges.map((charge) => ({
+          id: charge.id,
+          kind: charge.type,
+          status: charge.status,
+          amount: charge.totalAmount,
+          detail: charge.note,
+        })),
+      ],
+      vouchers: reservation.paymentVouchers.map((voucher) => ({
+        id: voucher.id,
+        voucherNumber: voucher.voucherNumber,
+        voucherType: voucher.voucherType,
+        status: voucher.status,
+        recipientName: voucher.user.name || voucher.user.email || "Recipient",
+        bookingId: reservation.bookingId,
+        amount: voucher.amount,
+        issuedAt: iso(voucher.issuedAt),
+        emailSentAt: iso(voucher.emailSentAt),
+        emailError: voucher.emailError,
+        retryCount: voucher.retryCount,
+        voucherUrl: voucher.voucherUrl ? `/api/documents/vouchers/${voucher.id}` : "",
+        reservationMarkedForDeletion: false,
+      })),
+    };
+  }
+);
 
 export const retryAdminInvoiceEmailAction = createAction(
   z.object({ invoiceId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid invoice ID") }),
@@ -689,5 +715,35 @@ export const retryAdminVoucherEmailAction = createAction(
   async ({ voucherId }) => {
     const voucher = await PaymentVoucherService.retryVoucherEmail(voucherId);
     return { voucherId: voucher.id, status: voucher.status };
+  }
+);
+
+export const createAdminOfflineBookingAction = createAction(
+  createAdminOfflineBookingSchema,
+  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  async (data, { user }) => {
+    const result = await createOfflineBooking(data, user);
+    revalidatePath("/admin/dashboard/bookings");
+    revalidatePath("/dashboard/bookings");
+    return result;
+  }
+);
+
+export const getAdminStudiosForOfflineBookingAction = createAction(
+  z.object({}),
+  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  async () => {
+    return await getAdminStudiosForOfflineBooking();
+  }
+);
+
+/** Loads sets, packages and host payout details for the one studio an admin picked. */
+export const getAdminStudioForOfflineBookingAction = createAction(
+  z.object({ listingId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid studio ID") }),
+  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  async ({ listingId }) => {
+    const studio = await getAdminStudioForOfflineBooking(listingId);
+    if (!studio) throw new UserFacingError("Studio not found", 404);
+    return studio;
   }
 );

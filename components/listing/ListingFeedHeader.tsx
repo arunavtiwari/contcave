@@ -23,12 +23,12 @@ const ListingFeedHeader: React.FC = () => {
     return (
         <div className="mb-8">
             <div className="flex items-center justify-between gap-4 h-14">
-                <p className={cn(
+                <h1 className={cn(
                     "text-xl font-bold tracking-tight text-foreground shrink-0",
                     showSortOptions ? "hidden md:block" : "block"
                 )}>
-                    {sortedByLocation ? "Spaces near location" : "Showing all spaces"}
-                </p>
+                    {sortedByLocation ? "Spaces near location" : "Explore studios for rent"}
+                </h1>
 
                 <AnimatePresence mode="wait">
                     {!showSortOptions ? (

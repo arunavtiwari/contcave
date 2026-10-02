@@ -49,7 +49,6 @@ export default function SetsEditor({
     onChange,
     pricingType,
     disabled = false,
-    deferUpload = true,
     isPricingUniform = false,
     uniformPrice,
     onUniformPriceChange,
@@ -60,7 +59,6 @@ export default function SetsEditor({
     error,
     id = "sets-editor",
 }: SetsEditorProps & {
-    deferUpload?: boolean;
     isPricingUniform?: boolean;
     uniformPrice?: number | null;
     onUniformPriceChange?: (price: number) => void;
@@ -309,7 +307,6 @@ export default function SetsEditor({
                                                     updateSet(index, { images: newUrls });
                                                 }}
                                                 values={set.images}
-                                                deferUpload={deferUpload}
                                             />
 
                                     </div>

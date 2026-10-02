@@ -1,16 +1,19 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { FiDownload, FiExternalLink, FiEye, FiFileText, FiRefreshCw } from "react-icons/fi";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { FiDownload, FiExternalLink, FiEye, FiFileText, FiPlus, FiRefreshCw } from "react-icons/fi";
 import { toast } from "sonner";
 
 import {
   AdminAuditRow,
+  AdminBookingDetail,
   AdminBookingRow,
   AdminInvoiceRow,
   AdminPayoutRow,
   AdminVoucherRow,
+  getAdminBookingDetailAction,
   getAdminBookingOperations,
   retryAdminInvoiceEmailAction,
   retryAdminVoucherEmailAction,
@@ -19,6 +22,7 @@ import AdminTabs from "@/components/admin/AdminTabs";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
+import Skeleton from "@/components/ui/Skeleton";
 import StatCard from "@/components/ui/StatCard";
 import {
   EmptyTable,
@@ -33,7 +37,14 @@ import {
 } from "@/components/ui/Table";
 import Tooltip from "@/components/ui/Tooltip";
 import { downloadCsv } from "@/lib/csv";
-import { formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
+import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
+
+// Form-heavy and only reachable behind a button, so its bundle stays out of the initial
+// page load rather than shipping with every bookings table render.
+const CreateOfflineBookingModal = dynamic(
+  () => import("@/components/admin/CreateOfflineBookingModal"),
+  { ssr: false }
+);
 
 type Props = {
   bookings: AdminBookingRow[];
@@ -70,8 +81,46 @@ function statusVariant(status: string) {
 }
 
 function bookingStatus(booking: AdminBookingRow) {
+  // 1. Check reservation lifecycle status
+  if (booking.lifecycleStatus === "CONFIRMED") {
+    return { label: "Confirmed", variant: "success" as const };
+  }
+  if (booking.lifecycleStatus === "CHECKED_IN") {
+    return { label: "Checked In", variant: "success" as const };
+  }
+  if (booking.lifecycleStatus === "COMPLETED") {
+    return { label: "Completed", variant: "success" as const };
+  }
+  if (booking.lifecycleStatus === "CANCELLED") {
+    return { label: "Cancelled", variant: "destructive" as const };
+  }
+  if (booking.lifecycleStatus === "REFUNDED") {
+    return { label: "Refunded", variant: "destructive" as const };
+  }
+  if (booking.lifecycleStatus === "PARTIALLY_REFUNDED") {
+    return { label: "Partially Refunded", variant: "warning" as const };
+  }
+  if (booking.lifecycleStatus === "NO_SHOW") {
+    return { label: "No Show", variant: "destructive" as const };
+  }
+
+  // 2. Pending approval states
+  if (booking.lifecycleStatus === "PENDING_APPROVAL") {
+    if (booking.paymentStatus === "SUCCESS") {
+      return { label: "Paid Pending Approval", variant: "warning" as const };
+    }
+    if (booking.paymentStatus === "FAILED") {
+      return { label: "Payment Failed", variant: "destructive" as const };
+    }
+    if (booking.paymentStatus === "NO_PAYMENT") {
+      return { label: "Payment Missing", variant: "secondary" as const };
+    }
+    return { label: "Payment Pending", variant: "warning" as const };
+  }
+
+  // 3. Fallback based on payment status
   if (booking.paymentStatus === "FAILED") return { label: "Payment Failed", variant: "destructive" as const };
-  if (booking.paymentStatus === "SUCCESS") return { label: "Paid Pending Approval", variant: "warning" as const };
+  if (booking.paymentStatus === "SUCCESS") return { label: "Paid", variant: "success" as const };
   if (booking.paymentStatus === "NO_PAYMENT") return { label: "Payment Missing", variant: "secondary" as const };
   return { label: "Payment Pending", variant: "warning" as const };
 }
@@ -83,13 +132,13 @@ function documentDelivery(document: { emailSentAt?: string | null; status: strin
   return { label: "Queued", variant: "warning" as const };
 }
 
-function gstModelLabel(value: AdminBookingRow["gstModel"]) {
+function gstModelLabel(value: AdminBookingDetail["gstModel"]) {
   if (value === "GST_STUDIO_AGENT") return "GST Studio";
   if (value === "NON_GST_PRINCIPAL") return "Non-GST";
   return "Unknown";
 }
 
-function gstModelVariant(value: AdminBookingRow["gstModel"]) {
+function gstModelVariant(value: AdminBookingDetail["gstModel"]) {
   if (value === "GST_STUDIO_AGENT") return "success";
   if (value === "NON_GST_PRINCIPAL") return "warning";
   return "secondary";
@@ -141,7 +190,7 @@ function normalizeAddons(value: unknown) {
 }
 
 function formatDateTimeRange(booking: AdminBookingRow) {
-  return `${formatISTDate(booking.startDate)} | ${booking.detail.startTime} - ${booking.detail.endTime}`;
+  return `${formatISTDate(booking.startDate)} | ${booking.startTime} - ${booking.endTime}`;
 }
 
 function MutedDash({ title = "Unavailable" }: { title?: string }) {
@@ -177,39 +226,6 @@ function CompactPill({
   return pill;
 }
 
-function InvoiceSummary({ booking }: { booking: AdminBookingRow }) {
-  if (!booking.customerInvoiceNumber) {
-    return <CompactPill label="Pending" variant="warning" />;
-  }
-
-  return (
-    <div className="flex max-w-full items-center justify-center gap-2">
-      <div className="min-w-0">
-        <div className="truncate font-mono text-xs text-foreground">{booking.customerInvoiceNumber}</div>
-        <div className="mt-1 flex flex-wrap gap-1">
-          {booking.customerInvoiceStatus ? (
-            <CompactPill label={booking.customerInvoiceStatus} variant={statusVariant(booking.customerInvoiceStatus)} />
-          ) : null}
-          <CompactPill
-            label={booking.customerInvoiceEmailSentAt ? "Sent" : "Queued"}
-            variant={booking.customerInvoiceEmailSentAt ? "success" : "warning"}
-          />
-        </div>
-      </div>
-      {booking.customerInvoiceUrl ? (
-        <Button
-          href={booking.customerInvoiceUrl}
-          target="_blank"
-          icon={FiEye}
-          isIconOnly
-          outline
-          aria-label="View customer invoice"
-          tooltip="View invoice PDF"
-        />
-      ) : null}
-    </div>
-  );
-}
 
 function DetailItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -229,17 +245,120 @@ function DetailSection({ title, children }: { title: string; children: React.Rea
   );
 }
 
+/**
+ * Lays out the same sections as the loaded drawer — and keeps the header real, since the
+ * table row already has those values — so the dialog doesn't reflow when the rest lands.
+ */
+function BookingDetailSkeleton({ booking }: { booking: AdminBookingRow }) {
+  const status = bookingStatus(booking);
+
+  return (
+    <div className="space-y-4" aria-label="Loading booking details">
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/20 p-4 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0">
+          <div className="font-mono text-xs text-muted-foreground">{booking.bookingId}</div>
+          <div className="mt-1 truncate text-lg font-semibold text-foreground">{booking.studioName}</div>
+          <div className="mt-1 text-sm text-muted-foreground">{formatDateTimeRange(booking)}</div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <CompactPill label={status.label} variant={status.variant} />
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </div>
+      </div>
+
+      {/* Parties & studio location / Payment & invoicing */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, section) => (
+          <SkeletonDetailSection key={section} fields={4} columns="sm:grid-cols-2" />
+        ))}
+      </div>
+
+      {/* Tax & GST information */}
+      <SkeletonDetailSection fields={3} columns="sm:grid-cols-3" />
+
+      {/* Receipts & refund vouchers */}
+      <SkeletonDetailSection>
+        <Skeleton className="h-24 w-full rounded-lg" />
+      </SkeletonDetailSection>
+
+      {/* Booking composition: package / sets / add-ons */}
+      <SkeletonDetailSection>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-2.5 w-16 rounded" />
+              <Skeleton className="h-20 w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </SkeletonDetailSection>
+
+      {/* Operational notes & pricing snapshot */}
+      <SkeletonDetailSection>
+        <Skeleton className="h-28 w-full rounded-lg" />
+      </SkeletonDetailSection>
+    </div>
+  );
+}
+
+function SkeletonDetailSection({
+  fields,
+  columns,
+  children,
+}: {
+  fields?: number;
+  columns?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-lg border border-border bg-background p-4">
+      <Skeleton className="h-4 w-40 rounded-md" />
+      <div className="mt-3">
+        {children ?? (
+          <div className={cn("grid gap-3", columns)}>
+            {Array.from({ length: fields ?? 4 }).map((_, i) => (
+              <div key={i} className="space-y-1.5">
+                <Skeleton className="h-2.5 w-24 rounded" />
+                <Skeleton className="h-4 w-full rounded" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function BookingDetailModal({
   booking,
+  detail,
   onClose,
 }: {
   booking: AdminBookingRow | null;
+  detail: AdminBookingDetail | null;
   onClose: () => void;
 }) {
   if (!booking) return null;
 
-  const addons = normalizeAddons(booking.detail.selectedAddons);
-  const pricingSnapshot = asRecord(booking.detail.pricingSnapshot);
+  // The drawer payload is fetched when the row is opened, so the shell renders first and
+  // fills in once it lands.
+  if (!detail) {
+    return (
+      <Modal
+        isOpen
+        onCloseAction={onClose}
+        onSubmitAction={onClose}
+        title="Booking Details"
+        actionLabel="Close"
+        customWidth="w-full max-w-5xl"
+        customHeight="h-auto max-h-[92vh]"
+        body={<BookingDetailSkeleton booking={booking} />}
+      />
+    );
+  }
+
+  const addons = normalizeAddons(detail.selectedAddons);
+  const pricingSnapshot = asRecord(detail.pricingSnapshot);
   const hasPricingSnapshot = Object.keys(pricingSnapshot).length > 0;
   const status = bookingStatus(booking);
 
@@ -262,7 +381,7 @@ function BookingDetailModal({
             </div>
             <div className="flex flex-wrap gap-2">
               <CompactPill label={status.label} variant={status.variant} />
-              <CompactPill label={gstModelLabel(booking.gstModel)} variant={gstModelVariant(booking.gstModel)} />
+              <CompactPill label={gstModelLabel(detail.gstModel)} variant={gstModelVariant(detail.gstModel)} />
             </div>
           </div>
 
@@ -274,7 +393,7 @@ function BookingDetailModal({
                 <DetailItem label="Studio Name" value={booking.studioName} />
                 <DetailItem
                   label="Studio Location"
-                  value={`${booking.detail.listing.locationValue}${booking.detail.listing.propertyStateCode ? ` (${booking.detail.listing.propertyStateCode})` : ""}`}
+                  value={`${detail.listing.locationValue}${detail.listing.propertyStateCode ? ` (${detail.listing.propertyStateCode})` : ""}`}
                 />
               </div>
             </DetailSection>
@@ -282,8 +401,8 @@ function BookingDetailModal({
             <DetailSection title="Payment & Invoicing">
               <div className="grid gap-3 sm:grid-cols-2">
                 <DetailItem label="Total Booking Value" value={<span className="font-semibold text-foreground">{formatINR(booking.amount)}</span>} />
-                <DetailItem label="Payment Method" value={booking.detail.transaction?.paymentMethod || <MutedDash />} />
-                <DetailItem label="Transaction Reference" value={booking.detail.transaction?.cfTxnRef || <MutedDash />} />
+                <DetailItem label="Payment Method" value={detail.transaction?.paymentMethod || <MutedDash />} />
+                <DetailItem label="Transaction Reference" value={detail.transaction?.cfTxnRef || <MutedDash />} />
                 <DetailItem
                   label="Customer Invoice"
                   value={booking.customerInvoiceNumber ? (
@@ -318,25 +437,25 @@ function BookingDetailModal({
                 label="GST Model"
                 value={
                   <div className="flex items-center gap-2">
-                    <CompactPill label={gstModelLabel(booking.gstModel)} variant={gstModelVariant(booking.gstModel)} />
+                    <CompactPill label={gstModelLabel(detail.gstModel)} variant={gstModelVariant(detail.gstModel)} />
                     <span className="text-xs text-muted-foreground">
-                      {booking.gstModel === "GST_STUDIO_AGENT" ? "Agent (18% platform fee)" : "Principal (Non-GST)"}
+                      {detail.gstModel === "GST_STUDIO_AGENT" ? "Agent (18% platform fee)" : "Principal (Non-GST)"}
                     </span>
                   </div>
                 }
               />
-              <DetailItem label="Registered Tax Entity" value={booking.gstOwner || "ContCave Marketplace / Standard"} />
-              <DetailItem label="Billing Company" value={booking.detail.billingCompany || <MutedDash title="No company provided" />} />
-              <DetailItem label="Billing GSTIN" value={booking.detail.billingGstin || <MutedDash title="No GSTIN provided" />} />
+              <DetailItem label="Registered Tax Entity" value={detail.gstOwner || "ContCave Marketplace / Standard"} />
+              <DetailItem label="Billing Company" value={detail.billingCompany || <MutedDash title="No company provided" />} />
+              <DetailItem label="Billing GSTIN" value={detail.billingGstin || <MutedDash title="No GSTIN provided" />} />
               <div className="sm:col-span-2">
-                <DetailItem label="Billing Address" value={booking.detail.billingAddress || <MutedDash title="No billing address provided" />} />
+                <DetailItem label="Billing Address" value={detail.billingAddress || <MutedDash title="No billing address provided" />} />
               </div>
             </div>
           </DetailSection>
 
           {/* Receipts & Refunds - details moved from table column */}
           <DetailSection title="Receipts & Refund Vouchers">
-            {booking.vouchers.length > 0 ? (
+            {detail.vouchers.length > 0 ? (
               <div className="overflow-hidden rounded-lg border border-border">
                 <table className="w-full text-left text-xs">
                   <thead className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
@@ -350,7 +469,7 @@ function BookingDetailModal({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {booking.vouchers.map((voucher) => (
+                    {detail.vouchers.map((voucher) => (
                       <tr key={voucher.id} className="hover:bg-muted/20">
                         <td className="px-3 py-2 font-mono text-foreground">{voucher.voucherNumber}</td>
                         <td className="px-3 py-2">{voucherTypeLabel(voucher.voucherType)}</td>
@@ -391,18 +510,18 @@ function BookingDetailModal({
             <div className="grid gap-4 lg:grid-cols-3">
               <div>
                 <div className="text-xs font-semibold uppercase text-muted-foreground">Package</div>
-                {booking.detail.selectedPackage ? (
+                {detail.selectedPackage ? (
                   <div className="mt-2 rounded-lg border border-border p-3">
-                    <div className="font-medium text-foreground">{booking.detail.selectedPackage.title}</div>
+                    <div className="font-medium text-foreground">{detail.selectedPackage.title}</div>
                     <div className="mt-1 text-xs text-muted-foreground">
-                      {booking.detail.selectedPackage.durationHours}h | {formatINR(booking.detail.selectedPackage.offeredPrice)}
+                      {detail.selectedPackage.durationHours}h | {formatINR(detail.selectedPackage.offeredPrice)}
                     </div>
-                    {booking.detail.selectedPackage.description ? (
-                      <p className="mt-2 text-sm text-muted-foreground">{booking.detail.selectedPackage.description}</p>
+                    {detail.selectedPackage.description ? (
+                      <p className="mt-2 text-sm text-muted-foreground">{detail.selectedPackage.description}</p>
                     ) : null}
-                    {booking.detail.selectedPackage.features.length > 0 ? (
+                    {detail.selectedPackage.features.length > 0 ? (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {booking.detail.selectedPackage.features.map((feature) => (
+                        {detail.selectedPackage.features.map((feature) => (
                           <CompactPill key={feature} label={feature} variant="secondary" />
                         ))}
                       </div>
@@ -415,9 +534,9 @@ function BookingDetailModal({
 
               <div>
                 <div className="text-xs font-semibold uppercase text-muted-foreground">Sets</div>
-                {booking.detail.selectedSets.length > 0 ? (
+                {detail.selectedSets.length > 0 ? (
                   <div className="mt-2 space-y-2">
-                    {booking.detail.selectedSets.map((set) => (
+                    {detail.selectedSets.map((set) => (
                       <div key={set.id} className="rounded-lg border border-border p-3">
                         <div className="font-medium text-foreground">{set.name}</div>
                         <div className="mt-1 text-xs text-muted-foreground">{formatINR(set.price)}</div>
@@ -426,7 +545,7 @@ function BookingDetailModal({
                   </div>
                 ) : (
                   <div className="mt-2 text-sm text-muted-foreground">
-                    {booking.detail.listing.hasSets ? "No set information stored" : "Full studio booking"}
+                    {detail.listing.hasSets ? "No set information stored" : "Full studio booking"}
                   </div>
                 )}
               </div>
@@ -452,7 +571,7 @@ function BookingDetailModal({
           <div className="grid gap-4">
             <DetailSection title="Operational Notes & Pricing Snapshot">
               <div className="grid gap-3">
-                {booking.detail.rejectReason ? <DetailItem label="Reject Reason" value={booking.detail.rejectReason} /> : null}
+                {detail.rejectReason ? <DetailItem label="Reject Reason" value={detail.rejectReason} /> : null}
                 {hasPricingSnapshot ? (
                   <div>
                     <div className="text-xs font-semibold uppercase text-muted-foreground">Pricing Snapshot</div>
@@ -556,6 +675,8 @@ export default function AdminBookingsClient({
   const [pendingInvoiceId, setPendingInvoiceId] = useState<string | null>(null);
   const [pendingVoucherId, setPendingVoucherId] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<AdminBookingRow | null>(null);
+  const [bookingDetail, setBookingDetail] = useState<AdminBookingDetail | null>(null);
+  const [isCreateOfflineBookingModalOpen, setIsCreateOfflineBookingModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const navigateTab = (
@@ -642,6 +763,34 @@ export default function AdminBookingsClient({
     });
   };
 
+  // Tracks which booking the open drawer is for, so a slow response for a row the admin
+  // has already navigated away from is discarded instead of overwriting the current one.
+  const openBookingIdRef = useRef<string | null>(null);
+
+  const openBookingDetail = useCallback(async (booking: AdminBookingRow) => {
+    openBookingIdRef.current = booking.id;
+    setSelectedBooking(booking);
+    setBookingDetail(null);
+
+    const res = await getAdminBookingDetailAction({ reservationId: booking.id });
+    if (openBookingIdRef.current !== booking.id) return;
+
+    if (!res.success || !res.data) {
+      toast.error(res.error || "Failed to load booking details");
+      openBookingIdRef.current = null;
+      setSelectedBooking(null);
+      return;
+    }
+
+    setBookingDetail(res.data as AdminBookingDetail);
+  }, []);
+
+  const closeBookingDetail = useCallback(() => {
+    openBookingIdRef.current = null;
+    setSelectedBooking(null);
+    setBookingDetail(null);
+  }, []);
+
   const paginationFooter = (
     <TablePagination
       page={data.operationPage}
@@ -657,12 +806,20 @@ export default function AdminBookingsClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-3">
+        <Button
+          label="Create Booking"
+          icon={FiPlus}
+          fit
+          size="sm"
+          onClick={() => setIsCreateOfflineBookingModalOpen(true)}
+        />
         <Button
           label="Export CSV"
           icon={FiDownload}
           fit
           size="sm"
+          outline
           onClick={() => downloadCsv(`contcave-${optimisticTab}.csv`, activeRows as Array<Record<string, unknown>>)}
           disabled={activeRows.length === 0 || isNavigating}
         />
@@ -701,13 +858,12 @@ export default function AdminBookingsClient({
                 <TableHead>Schedule</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-center">Invoice</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isNavigating ? (
-                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={9} />
+                <TableSkeletonRows rows={Math.min(data.operationPageSize, 10)} columns={8} />
               ) : (
                 data.bookings.map((booking) => {
                   const status = bookingStatus(booking);
@@ -721,7 +877,7 @@ export default function AdminBookingsClient({
                         <Tooltip content={booking.studioName}>
                           <div className="truncate font-medium text-foreground">{booking.studioName}</div>
                         </Tooltip>
-                        <div className="truncate text-xs text-muted-foreground">{booking.detail.listing.locationValue}</div>
+                        <div className="truncate text-xs text-muted-foreground">{booking.studioLocation}</div>
                       </TableCell>
                       <TableCell className="max-w-40">
                         <Tooltip content={booking.customerName}>
@@ -733,8 +889,9 @@ export default function AdminBookingsClient({
                           <div className="truncate text-muted-foreground">{booking.ownerName}</div>
                         </Tooltip>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                        {formatDateTimeRange(booking)}
+                      <TableCell className="whitespace-nowrap">
+                        <div className="text-xs font-medium text-foreground">{formatISTDate(booking.startDate)}</div>
+                        <div className="text-xs text-muted-foreground">{booking.startTime} - {booking.endTime}</div>
                       </TableCell>
                       <TableCell className="text-right whitespace-nowrap font-medium text-foreground">
                         {formatINR(booking.amount)}
@@ -742,20 +899,30 @@ export default function AdminBookingsClient({
                       <TableCell className="text-center whitespace-nowrap">
                         <CompactPill label={status.label} variant={status.variant} />
                       </TableCell>
-                      <TableCell className="text-center whitespace-nowrap">
-                        <div className="flex justify-center">
-                          <InvoiceSummary booking={booking} />
-                        </div>
-                      </TableCell>
                       <TableCell className="text-right whitespace-nowrap">
-                        <div className="flex justify-end">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {booking.customerInvoiceUrl ? (
+                            <Button
+                              href={booking.customerInvoiceUrl}
+                              target="_blank"
+                              icon={FiFileText}
+                              isIconOnly
+                              outline
+                              aria-label="View customer invoice"
+                              tooltip={
+                                booking.customerInvoiceNumber
+                                  ? `Invoice: ${booking.customerInvoiceNumber}`
+                                  : "View invoice PDF"
+                              }
+                            />
+                          ) : null}
                           <Button
                             icon={FiExternalLink}
                             isIconOnly
                             outline
                             aria-label="View booking details"
                             tooltip="View details"
-                            onClick={() => setSelectedBooking(booking)}
+                            onClick={() => openBookingDetail(booking)}
                           />
                         </div>
                       </TableCell>
@@ -1009,7 +1176,17 @@ export default function AdminBookingsClient({
 
       <BookingDetailModal
         booking={selectedBooking}
-        onClose={() => setSelectedBooking(null)}
+        detail={bookingDetail}
+        onClose={closeBookingDetail}
+      />
+
+      <CreateOfflineBookingModal
+        isOpen={isCreateOfflineBookingModalOpen}
+        onClose={() => setIsCreateOfflineBookingModalOpen(false)}
+        onSuccess={() => {
+          setIsCreateOfflineBookingModalOpen(false);
+          router.refresh();
+        }}
       />
     </div>
   );

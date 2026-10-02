@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 
 import Container from "@/components/layout/Container";
+import JsonLd from "@/components/seo/JsonLd";
 import PageBanner from "@/components/ui/PageBanner";
-import { getSortedPostsData, groupPostsByCategory } from "@/lib/posts";
-import { BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { getSortedPostsData, groupPostsByCategory, toBlogCard } from "@/lib/posts";
+import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 import { BlogPost } from "@/types/blog";
 
 const DESCRIPTION =
   "Read ContCave's latest articles on studio booking, production workflows, and creative industry insights across India." as const;
 
 export const metadata: Metadata = {
-  title: "Blogs — Insights, Tips, and Updates",
+  title: "Blogs: Insights, Tips, and Updates",
   description: DESCRIPTION,
   keywords: [
     "ContCave blog",
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     canonical: "/blog",
   },
   openGraph: {
-    title: "Blogs — Insights & Tips",
+    title: "Blogs: Insights & Tips",
     description: DESCRIPTION,
     url: `${SITE_URL}/blog`,
     siteName: BRAND_NAME,
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blogs — Insights & Tips",
+    title: "Blogs: Insights & Tips",
     description: DESCRIPTION,
     site: "@ContCave",
     creator: "@ContCave",
@@ -67,8 +68,30 @@ export default function BlogPage() {
   const posts: BlogPost[] = getSortedPostsData();
   const grouped = groupPostsByCategory(posts);
 
+  const blogJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": `${SITE_URL}/blog#blog`,
+    url: `${SITE_URL}/blog`,
+    name: `${BRAND_NAME} Blog`,
+    description: DESCRIPTION,
+    inLanguage: "en-IN",
+    publisher: { "@id": `${SITE_URL}/#organization` },
+    blogPost: posts.map((post) => ({
+      "@type": "BlogPosting",
+      "@id": `${SITE_URL}/blog/${post.id}#article`,
+      headline: post.title,
+      url: absoluteUrl(`/blog/${post.id}`),
+      description: post.meta?.description,
+      image: post.meta?.image?.url ? absoluteUrl(post.meta.image.url) : undefined,
+      datePublished: post.publishedAt,
+      dateModified: post.updatedAt ?? post.publishedAt,
+    })),
+  };
+
   return (
     <main className="bg-background min-h-screen">
+      <JsonLd id="blog-jsonld" data={blogJsonLd} />
       <PageBanner
         title="Blogs"
         subtitle="Insights, tips, and updates from the ContCave team."
@@ -88,7 +111,7 @@ export default function BlogPage() {
 
                 <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
                   {posts.map(post => (
-                    <BlogItem key={post.id} post={post} />
+                    <BlogItem key={post.id} post={toBlogCard(post)} />
                   ))}
                 </div>
               </section>

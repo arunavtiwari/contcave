@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Container from "@/components/layout/Container";
 import CuratedReservation from "@/components/listing/CuratedReservation";
@@ -24,9 +24,16 @@ import {
   toHHMM,
   toISTDateParts,
 } from "@/lib/scheduling";
+import { SafeAmenity } from "@/types/amenity";
 import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
-import { PublicDayStatus, PublicReservationSlot } from "@/types/reservation";
+import {
+  CalendarBusyEvent,
+  ListingAvailability,
+  PublicDayStatus,
+  PublicReservationSlot,
+} from "@/types/reservation";
+import { PublicReview } from "@/types/review";
 import {
   buildOperationalTimings,
   ReservationOperationalTimings,
@@ -36,27 +43,17 @@ import {
 import { SafeUser } from "@/types/user";
 
 type Props = {
-  reservations?: PublicReservationSlot[];
-  dayStatuses?: PublicDayStatus[];
   listing: FullListing;
   currentUser?: SafeUser | null;
-  googleCalendarEvents?: GoogleCalendarEvent[];
+  availability: Promise<ListingAvailability>;
+  reviews?: PublicReview[];
+  amenities?: SafeAmenity[];
+  breadcrumbs?: ReactNode;
   processedDescription?: string | null;
   processedTerms?: string | null;
   descriptionShouldTruncate?: boolean;
   initialSelectedSetIds?: string[];
 };
-
-interface GoogleCalendarEvent {
-  start?: {
-    date?: string | null;
-    dateTime?: string | null;
-  };
-  end?: {
-    date?: string | null;
-    dateTime?: string | null;
-  };
-}
 
 type AddonItem = { name?: string; price: number; qty: number };
 
@@ -105,17 +102,53 @@ const normalizeAddons = (input: unknown): AddonItem[] => {
 const addonsSig = (arr: AddonItem[]) =>
   arr.map((a) => `${a.name ?? ""}|${a.price}|${a.qty}`).sort().join(",");
 
+const NO_RESERVATIONS: PublicReservationSlot[] = [];
+const NO_DAY_STATUSES: PublicDayStatus[] = [];
+const NO_CALENDAR_EVENTS: CalendarBusyEvent[] = [];
+const NO_AVAILABILITY: ListingAvailability = {
+  reservations: NO_RESERVATIONS,
+  dayStatuses: NO_DAY_STATUSES,
+  googleCalendarEvents: NO_CALENDAR_EVENTS,
+};
+
+function useAvailability(promise: Promise<ListingAvailability>) {
+  const [availability, setAvailability] = useState<ListingAvailability | null>(null);
+
+  useEffect(() => {
+    let current = true;
+    promise.then(
+      (value) => {
+        if (current) setAvailability(value);
+      },
+      () => {
+        if (current) setAvailability(NO_AVAILABILITY);
+      }
+    );
+    return () => {
+      current = false;
+    };
+  }, [promise]);
+
+  return availability;
+}
+
 function ListingClient({
-  reservations = [],
-  dayStatuses = [],
   listing,
   currentUser = null,
-  googleCalendarEvents = [],
+  availability: availabilityPromise,
+  reviews,
+  amenities,
+  breadcrumbs,
   processedDescription,
   processedTerms,
   descriptionShouldTruncate,
   initialSelectedSetIds = []
 }: Props) {
+  const availability = useAvailability(availabilityPromise);
+  const reservations = availability?.reservations ?? NO_RESERVATIONS;
+  const dayStatuses = availability?.dayStatuses ?? NO_DAY_STATUSES;
+  const googleCalendarEvents = availability?.googleCalendarEvents ?? NO_CALENDAR_EVENTS;
+
   const isOwnListing = Boolean(currentUser?.id && currentUser.id === listing.userId);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>([null, null]);
@@ -597,6 +630,7 @@ function ListingClient({
     () => categories.find((c) => c.label === listing.category),
     [listing.category]
   );
+  const kindLabel = listing.venueTypes?.[0] || listing.category || "Studio";
 
 
 
@@ -736,11 +770,13 @@ function ListingClient({
       <Container>
         <div className="max-w-280 mx-auto pb-24">
           <div className="flex flex-col gap-2">
+            {breadcrumbs}
             <ListingHead
               title={listing.title}
               imageSrc={listing.imageSrc}
               videoSrc={listing.videoSrc}
               locationValue={listing.locationValue}
+              kind={kindLabel}
               id={listing.id}
               currentUser={currentUser}
             />
@@ -751,6 +787,8 @@ function ListingClient({
                 description={listing.description}
                 locationValue={listing.locationValue}
                 fullListing={listing as unknown as FullListing}
+                definedAmenities={amenities}
+                initialReviews={reviews}
                 onAddonChange={handleAddonChange}
                 services={[]}
                 onPackageSelect={handlePackageSelect}
@@ -797,6 +835,7 @@ function ListingClient({
                     setSelectTimeSlotsAction={setSelectedTimeSlot}
                     selectedTime={selectedTimeSlot}
                     instantBooking={!!listing.instantBooking}
+                    availabilityLoading={!availability}
                     disabledDates={disabledDates}
                     disabledStartTimes={disabledPairsForPicker.starts}
                     disabledEndTimes={disabledPairsForPicker.ends}

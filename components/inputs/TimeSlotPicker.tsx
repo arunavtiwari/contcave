@@ -251,7 +251,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                     </p>
 
                     <div className="gap-4 grid grid-cols-3 h-[30vh] pr-1 overflow-y-auto pb-4">
-                        {visible.map((label) => {
+                        {visible.map((label, offset) => {
                             const disabled = isSlotDisabled(label);
                             const selected =
                                 (activeSegment === "start" && to12hLabel(label) === normStart) ||
@@ -259,7 +259,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
                             return (
                                 <button
-                                    key={label}
+                                    key={startIdx + offset}
                                     type="button"
                                     onClick={() => handleClick(label)}
                                     disabled={disabled}

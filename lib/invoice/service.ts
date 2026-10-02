@@ -12,6 +12,8 @@ import { escapeEmailHtml } from "@/lib/email/html";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
 import { sendCustomerPaymentInvoice, sendReservationConfirmationCustomer } from "@/lib/email/templates";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
+import { hasValidGST } from "@/lib/payout/utils";
+import { amountBeforeGst } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
 import { isInvoiceEligible } from "@/lib/reservation/status";
 import { readPrivateDocument, uploadPrivateDocument } from "@/lib/storage/privateDocuments";
@@ -592,7 +594,7 @@ export class InvoiceService {
     }
 
     const providedStudioGstin = normalizeGstin(studioPayment?.gstin);
-    const studioHasGst = Boolean(studioPayment?.companyName?.trim() && providedStudioGstin);
+    const studioHasGst = hasValidGST({ companyName: studioPayment?.companyName, gstin: providedStudioGstin });
     const studioGstin = studioHasGst ? assertValidGstin(providedStudioGstin, "Studio") : null;
     const supplierGstin = studioGstin || assertValidGstin(ARKANET_VENTURES_GST.gstin, "ContCave");
     const propertyStateCode = assertPropertyStateCode(listing.propertyStateCode);
@@ -602,7 +604,7 @@ export class InvoiceService {
     const financialYear = getFinancialYear(new Date());
     const idempotencyKey = `${documentType}:${transaction.id}`;
     const totalAmount = roundMoney(transaction.amount || reservation.totalPrice);
-    const amount = roundMoney(totalAmount / (1 + GST_RATE));
+    const amount = roundMoney(amountBeforeGst(totalAmount));
     const taxBreakup = calculateTaxBreakup(amount, supplierGstin, propertyStateCode);
     const gstAmount = taxBreakup.totalTax;
     const issuedAt = new Date();
@@ -612,7 +614,7 @@ export class InvoiceService {
       ? {
         name: studioPayment?.companyName || owner.name || "Studio Partner",
         legalName: studioPayment?.companyName || owner.name || "Studio Partner",
-        address: location || listing.locationValue,
+        address: studioPayment?.companyAddress || location || listing.locationValue,
         phone: owner.phone,
         email: owner.email,
         gstin: studioGstin,
@@ -899,7 +901,7 @@ export class InvoiceService {
       ? assertValidGstin(ownerGstin, "Studio owner")
       : ownerGstin || null;
     const totalBookingBase = roundMoney(relevantTxns.reduce((sum, txn) => {
-      const base = txn.baseAmountBeforeGst || roundMoney(txn.amount / (1 + GST_RATE));
+      const base = txn.baseAmountBeforeGst || roundMoney(amountBeforeGst(txn.amount));
       return sum + base;
     }, 0));
     const commissionAmount = roundMoney(totalBookingBase * (PLATFORM_COMMISSION_PERCENT / 100));
@@ -915,6 +917,7 @@ export class InvoiceService {
     const ownerParty: InvoiceParty = {
       name: studioPayment?.companyName || owner.name || "Studio Owner",
       legalName: studioPayment?.companyName || owner.name || "Studio Owner",
+      address: studioPayment?.companyAddress || owner.location || undefined,
       email: owner.email,
       phone: owner.phone,
       gstin: ownerGstinForCommission,
@@ -923,7 +926,7 @@ export class InvoiceService {
 
     const lineItems: InvoiceLineItem[] = documentType === "OWNER_MONTHLY_COMMISSION_INVOICE"
       ? relevantTxns.map((txn) => {
-        const base = roundMoney(txn.baseAmountBeforeGst || txn.amount / (1 + GST_RATE));
+        const base = roundMoney(txn.baseAmountBeforeGst || amountBeforeGst(txn.amount));
         return applyTaxRatesToLineItem({
           description: txn.bookingId || txn.reservation?.bookingId || "Booking",
           subText: `${txn.user.name || "Customer"} - ${txn.reservation?.listing.title || "Studio"}`,

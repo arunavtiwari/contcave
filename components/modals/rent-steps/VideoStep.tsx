@@ -22,13 +22,13 @@ const VideoStep: React.FC<VideoStepProps> = ({ videoSrc, setCustomValue }) => {
           <ImageUpload
             uid="rent-modal-video-upload"
             uploadLabel="Upload Video Tour"
-            onChange={(v) => setCustomValue("videoSrc", v[0] || null)}
+            onChange={(v) => setCustomValue("videoSrc", v[v.length - 1] || null)}
             values={videoSrc ? [videoSrc] : []}
             allowedTypes={["video/mp4", "video/webm", "video/quicktime"]}
             maxSize={100 * 1024 * 1024}
             icon={TbVideoPlus}
             className="w-full h-48 p-4 border border-border rounded-xl"
-            deferUpload={true}
+            multiple={false}
           />
           {videoSrc && (
             <div className="mt-4 relative group w-full max-w-md">

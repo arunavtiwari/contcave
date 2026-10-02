@@ -8,6 +8,7 @@ import type { PublicUser } from "@/types/user";
 export type safeListing = Omit<
     Listing,
     | "createdAt"
+    | "updatedAt"
     | "addons"
     | "packages"
     | "operationalDays"
@@ -29,6 +30,7 @@ export type safeListing = Omit<
     | "avgReviewRating"
 > & {
     createdAt: string;
+    updatedAt?: string | null;
     addons?: Addon[] | null;
     packages?: Package[] | null;
     operationalDays?: { start?: string; end?: string } | null;

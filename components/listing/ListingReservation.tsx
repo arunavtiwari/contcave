@@ -19,8 +19,10 @@ import PhoneModal from "@/components/modals/PhoneModal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
+import Skeleton from "@/components/ui/Skeleton";
 import useUIStore from "@/hooks/useUIStore";
 import { normalizePhone } from "@/lib/phone";
+import { addGst } from "@/lib/pricing";
 import { istToDateOnly } from "@/lib/scheduling";
 import { Package } from "@/types/package";
 import {
@@ -70,6 +72,7 @@ type Props = {
   setSelectTimeSlotsAction: (value: [TimeLabel | null, TimeLabel | null]) => void;
   selectedTime: [TimeLabel | null, TimeLabel | null];
   disabled?: boolean;
+  availabilityLoading?: boolean;
   disabledDates: Date[];
   disabledStartTimes: readonly TimeHM[];
   disabledEndTimes: readonly TimeHM[];
@@ -106,7 +109,6 @@ function getCashfree(mode: "sandbox" | "production") {
 }
 
 const clampRound = (n: number) => Math.max(0, Math.round(n || 0));
-const GST_RATE = 0.18;
 const isValidDate = (d: unknown): d is Date =>
   d instanceof Date && !Number.isNaN(d.getTime());
 
@@ -147,6 +149,7 @@ export default function ListingReservation({
   setSelectTimeSlotsAction,
   selectedTime,
   disabled = false,
+  availabilityLoading = false,
   disabledDates,
   disabledStartTimes,
   disabledEndTimes,
@@ -268,17 +271,9 @@ export default function ListingReservation({
     [bookingFee, addonsSum, platformFee]
   );
 
-  const gstAmount = useMemo(
-    () => clampRound(computedTotal * GST_RATE),
-    [computedTotal]
-  );
+  const { gstAmount, total: totalWithGst } = useMemo(() => addGst(computedTotal), [computedTotal]);
 
-  const finalTotal = useMemo(() => {
-    if (typeof totalPrice === "number") {
-      return clampRound(totalPrice);
-    }
-    return clampRound(computedTotal + gstAmount);
-  }, [totalPrice, computedTotal, gstAmount]);
+  const finalTotal = typeof totalPrice === "number" ? clampRound(totalPrice) : totalWithGst;
 
   const hasValidTime = useMemo(
     () => Boolean(localTimes.start && localTimes.end),
@@ -293,11 +288,12 @@ export default function ListingReservation({
   const ready = useMemo(
     () =>
       !disabled &&
+      !availabilityLoading &&
       hasPickedDate &&
       hasValidTime &&
       !isPaying &&
       setValidation.valid,
-    [disabled, hasPickedDate, hasValidTime, isPaying, setValidation.valid]
+    [disabled, availabilityLoading, hasPickedDate, hasValidTime, isPaying, setValidation.valid]
   );
 
   const minBookingMinutes = useMemo(
@@ -539,24 +535,30 @@ export default function ListingReservation({
           id={`${sectionId}-date-label`}
         />
       </div>
-      <Calendar
-        value={selectedDate ?? null}
-        minDate={bookingDateRange.min}
-        maxDate={bookingDateRange.max}
-        disabledDates={disabledDates}
-        allowedDays={allowedDays}
-        onChange={(value) => {
-          if (isValidDate(value)) {
-            setSelectDateAction(value);
-            setHasPickedDate(true);
-            setErr(null);
-          } else {
-            setSelectDateAction(null);
-            setHasPickedDate(false);
-          }
-        }}
-        aria-labelledby={`${sectionId}-date-label`}
-      />
+      {availabilityLoading ? (
+        <div className="p-4" aria-busy="true" aria-labelledby={`${sectionId}-date-label`}>
+          <Skeleton className="h-82 w-full rounded-lg" />
+        </div>
+      ) : (
+        <Calendar
+          value={selectedDate ?? null}
+          minDate={bookingDateRange.min}
+          maxDate={bookingDateRange.max}
+          disabledDates={disabledDates}
+          allowedDays={allowedDays}
+          onChange={(value) => {
+            if (isValidDate(value)) {
+              setSelectDateAction(value);
+              setHasPickedDate(true);
+              setErr(null);
+            } else {
+              setSelectDateAction(null);
+              setHasPickedDate(false);
+            }
+          }}
+          aria-labelledby={`${sectionId}-date-label`}
+        />
+      )}
       <hr />
       <hr />
       {hasSets && (

@@ -1,7 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { createPrivateDocumentDownloadUrl } from "@/lib/storage/privateDocuments";
+import { readPrivateDocument, safeDownloadName } from "@/lib/storage/privateDocuments";
 import { UserRole } from "@/types/user";
 
 export async function GET(_request: Request, props: { params: Promise<{ invoiceId?: string }> }) {
@@ -17,19 +17,41 @@ export async function GET(_request: Request, props: { params: Promise<{ invoiceI
         userId: true,
         invoiceNumber: true,
         invoiceUrl: true,
+        reservation: {
+          select: {
+            userId: true,
+            listing: {
+              select: {
+                userId: true,
+              },
+            },
+          },
+        },
       },
     });
     const allowed = invoice && (
       currentUser.role === UserRole.ADMIN
       || invoice.userId === currentUser.id
+      || invoice.reservation?.userId === currentUser.id
+      || invoice.reservation?.listing?.userId === currentUser.id
     );
     if (!allowed || !invoice.invoiceUrl) return createErrorResponse("Invoice not found", 404);
 
-    const signedUrl = await createPrivateDocumentDownloadUrl(invoice.invoiceUrl, `${invoice.invoiceNumber}.pdf`);
-    const response = Response.redirect(signedUrl, 302);
-    response.headers.set("Cache-Control", "private, no-store");
-    response.headers.set("Referrer-Policy", "no-referrer");
-    return response;
+    if (invoice.invoiceUrl.startsWith("http://") || invoice.invoiceUrl.startsWith("https://")) {
+      return Response.redirect(invoice.invoiceUrl, 302);
+    }
+
+    const buffer = await readPrivateDocument(invoice.invoiceUrl);
+    const filename = `${safeDownloadName(invoice.invoiceNumber)}.pdf`;
+
+    return new Response(new Uint8Array(buffer), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="${filename}"`,
+        "Cache-Control": "private, no-cache, no-store, must-revalidate",
+      },
+    });
   } catch (error) {
     return handleRouteError(error, "GET private invoice");
   }

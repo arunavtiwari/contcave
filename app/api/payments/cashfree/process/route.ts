@@ -8,7 +8,7 @@ import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/
 import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { getClientIp } from "@/lib/http/requestMeta";
-import { calculateSetPricing, validateSetSelection } from "@/lib/pricing";
+import { addGst, calculateSetPricing, validateSetSelection } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
 import { getBookingDate, validateBookingWindow } from "@/lib/reservation/bookingWindow";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
@@ -330,12 +330,7 @@ export async function POST(req: NextRequest) {
         }
         const persistedAddons = cleanedAddons.map(({ maxAvailable: _maxAvailable, ...addon }) => addon);
 
-        const platformFee = 0;
-        const subTotal = bookingFee + addonsSum + platformFee;
-        const gstAmount = Math.round(subTotal * GST_RATE);
-        const finalCalculatedAmount = Math.round(subTotal + gstAmount);
-
-        const amount = finalCalculatedAmount;
+        const { gstAmount, total: amount } = addGst(bookingFee + addonsSum);
 
         if (Math.abs(Number(data.totalPrice) - amount) > 1) {
             return createErrorResponse("Booking price changed. Please refresh the page and try again.", 409);

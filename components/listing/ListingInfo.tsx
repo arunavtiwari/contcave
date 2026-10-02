@@ -61,6 +61,7 @@ type Props = {
   locationValue: string;
   fullListing: FullListing;
   definedAmenities?: SafeAmenity[];
+  initialReviews?: Review[];
   onAddonChange: (addons: Addon[]) => void;
   services: string[];
   onPackageSelect?: (pkg: Package | null) => void;
@@ -89,6 +90,7 @@ function ListingInfo({
   locationValue,
   fullListing,
   definedAmenities,
+  initialReviews,
   onAddonChange,
   onPackageSelect,
 
@@ -148,7 +150,8 @@ function ListingInfo({
 
   const [addonList, setAddonList] = useState<Addon[]>([]);
   const [amenityDefs, setAmenityDefs] = useState<SafeAmenity[]>(definedAmenities ?? []);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
+  const reviewsPreloaded = initialReviews !== undefined;
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
   const [review, setReview] = useState({ rating: 5, comment: "" });
@@ -173,6 +176,7 @@ function ListingInfo({
     const fetchData = async () => {
       const list = await getAddons();
       setAddonList(list || []);
+      if (reviewsPreloaded) return;
       try {
         const data = await getReviews(fullListing.id);
         setReviews(data || []);
@@ -199,7 +203,7 @@ function ListingInfo({
     };
     fetchData();
     checkBookingStatus();
-  }, [fullListing.id]);
+  }, [fullListing.id, reviewsPreloaded]);
 
   useEffect(() => {
     if (definedAmenities && definedAmenities.length > 0) {
@@ -593,6 +597,7 @@ function ListingInfo({
         </Link>
 
       </div>
+
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { BlogPost } from "@/types/blog";
+import { BlogCard, BlogPost } from "@/types/blog";
 
 const postsDirectory = path.join(process.cwd(), "content/posts");
 
@@ -28,6 +28,13 @@ export function getPostData(id: string): BlogPost {
   const post: BlogPost = JSON.parse(fileContents);
   return post;
 }
+
+export const toBlogCard = ({ id, title, publishedAt, meta }: BlogPost): BlogCard => ({
+  id,
+  title,
+  publishedAt,
+  meta: { description: meta.description, image: meta.image ? { url: meta.image.url } : undefined },
+});
 
 export function groupPostsByCategory(posts: BlogPost[]) {
   const grouped: Record<string, BlogPost[]> = {};

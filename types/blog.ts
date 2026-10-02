@@ -57,6 +57,10 @@ export interface BlogBlock {
 
 export type BlogContent = BlogBlock;
 
+export type BlogCard = Pick<BlogPost, "id" | "title" | "publishedAt"> & {
+  meta: Pick<Meta, "description"> & { image?: Pick<MetaImage, "url"> };
+};
+
 export interface BlogPost {
   id: string;
   title: string;

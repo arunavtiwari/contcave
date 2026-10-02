@@ -8,6 +8,7 @@ import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isRichTextEmpty } from "@/lib/richText";
 import { generateUniqueSlug } from "@/lib/slug";
+import { dispatchMediaDeletion } from "@/lib/storage/mediaDeletion";
 import { slugify } from "@/lib/strings";
 import { sanitizeStringList } from "@/lib/strings";
 import { normaliseUseCase } from "@/lib/taxonomy";
@@ -15,6 +16,7 @@ import { listingBaseSchema, listingSchema, persistedMediaUrlSchema } from "@/sch
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData } from "@/types/listing";
 
+import { collectListingMediaRefs, ListingMediaSource, orphanedListingMediaRefs } from "./media";
 import { jitterLatLng } from "./utils";
 
 type ListingWithRelations = Prisma.ListingGetPayload<{
@@ -25,6 +27,8 @@ type ListingWithRelations = Prisma.ListingGetPayload<{
         blocks: true;
     };
 }>;
+
+type ValidatedListingInput = ReturnType<typeof listingSchema.parse>;
 
 type RawMongoId = string | { $oid?: unknown };
 type RawListingId = { _id?: RawMongoId };
@@ -364,7 +368,13 @@ export class ListingService {
             .filter((id): id is string => !!id);
     }
 
-    static async getHydratableListingPage(params: {
+    /**
+     * The admin review screen needs one page of ids plus the per-status tallies for *both*
+     * listing types, to label the Verified/Curated tabs. Running that as three separate
+     * aggregations meant scanning the collection three times per request; a single grouped
+     * pass over the same match produces every tally, with the page rows alongside it.
+     */
+    static async getHydratableListingReviewFacets(params: {
         page: number;
         pageSize: number;
         status?: string;
@@ -372,7 +382,7 @@ export class ListingService {
     }): Promise<{
         ids: string[];
         total: number;
-        statusCounts: Record<string, number>;
+        statusCounts: Record<"STANDARD" | "CURATED", Record<string, number>>;
     }> {
         const page = Number.isFinite(params.page)
             ? Math.max(1, Math.floor(params.page))
@@ -380,43 +390,66 @@ export class ListingService {
         const pageSize = Number.isFinite(params.pageSize)
             ? Math.min(100, Math.max(1, Math.floor(params.pageSize)))
             : 20;
-        const filter = this.getHydratableListingFilter({
+        const rowFilter = this.getHydratableListingFilter({
             ...(params.status ? { status: params.status } : {}),
             listingType: params.listingType,
         });
+        // Same hydratability rules, but across both listing types so one pass can tally both.
+        const countFilter = this.getHydratableListingFilter({});
+
         const result = await prisma.listing.aggregateRaw({
             pipeline: [
-                { $match: filter },
+                { $match: countFilter },
                 {
                     $facet: {
                         rows: [
+                            { $match: rowFilter },
                             { $sort: { createdAt: -1 } },
                             { $skip: (page - 1) * pageSize },
                             { $limit: pageSize },
                             { $project: { _id: 1 } },
                         ],
+                        pageTotal: [{ $match: rowFilter }, { $count: "total" }],
                         counts: [
-                            { $group: { _id: "$status", total: { $sum: 1 } } },
+                            {
+                                $group: {
+                                    _id: {
+                                        listingType: {
+                                            $cond: [{ $eq: ["$listingType", "CURATED"] }, "CURATED", "STANDARD"],
+                                        },
+                                        status: "$status",
+                                    },
+                                    total: { $sum: 1 },
+                                },
+                            },
                         ],
                     },
                 },
             ] as unknown as Prisma.InputJsonValue[],
         }) as unknown as Array<{
             rows?: RawListingId[];
-            counts?: Array<{ _id?: string; total?: number }>;
+            pageTotal?: Array<{ total?: number }>;
+            counts?: Array<{ _id?: { listingType?: string; status?: string }; total?: number }>;
         }>;
+
         const facet = result[0] || {};
-        const statusCounts = (facet.counts || []).reduce<Record<string, number>>((acc, item) => {
-            if (typeof item._id === "string" && typeof item.total === "number") acc[item._id] = item.total;
-            return acc;
-        }, {});
-        const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
+        const statusCounts: Record<"STANDARD" | "CURATED", Record<string, number>> = {
+            STANDARD: {},
+            CURATED: {},
+        };
+        for (const item of facet.counts || []) {
+            const listingType = item._id?.listingType === "CURATED" ? "CURATED" : "STANDARD";
+            const status = item._id?.status;
+            if (typeof status === "string" && typeof item.total === "number") {
+                statusCounts[listingType][status] = item.total;
+            }
+        }
 
         return {
             ids: (facet.rows || [])
                 .map((item) => this.extractRawMongoId(item))
                 .filter((id): id is string => !!id),
-            total,
+            total: facet.pageTotal?.[0]?.total ?? 0,
             statusCounts,
         };
     }
@@ -427,6 +460,19 @@ export class ListingService {
         const validated = result.data;
         assertPersistedListingMedia(validated as Record<string, unknown>);
 
+        try {
+            return await this.persistNewListing(userId, validated, allowCurated);
+        } catch (error) {
+            await this.discardUnreferencedMedia(userId, validated.id, validated as ListingMediaSource);
+            throw error;
+        }
+    }
+
+    private static async persistNewListing(
+        userId: string,
+        validated: ValidatedListingInput,
+        allowCurated: boolean
+    ): Promise<FullListing> {
         const {
             id,
             listingType,
@@ -588,6 +634,21 @@ export class ListingService {
     static async updateListing(userId: string, listingId: string, body: Record<string, unknown>, allowAdmin = false): Promise<FullListing> {
         const validated = parseListingUpdateBody(body);
         assertPersistedListingMedia(validated);
+
+        try {
+            return await this.persistListingUpdate(userId, listingId, validated, allowAdmin);
+        } catch (error) {
+            await this.discardUnreferencedMedia(userId, listingId, validated as ListingMediaSource);
+            throw error;
+        }
+    }
+
+    private static async persistListingUpdate(
+        userId: string,
+        listingId: string,
+        validated: Record<string, unknown>,
+        allowAdmin: boolean
+    ): Promise<FullListing> {
         const { packages, sets: validatedSets, ...listingData } = validated;
         let sets = validatedSets;
 
@@ -719,6 +780,22 @@ export class ListingService {
         })) {
             throw new UserFacingError("Every package duration must fit within the studio's daily operating window");
         }
+
+        const previousMedia: ListingMediaSource = {
+            imageSrc: existingListing.imageSrc,
+            videoSrc: existingListing.videoSrc,
+            addons: existingListing.addons,
+            verifications: existingListing.verifications,
+            sets: existingSets,
+        };
+        const nextMedia: ListingMediaSource = {
+            imageSrc: "imageSrc" in sanitizedListingData ? sanitizedListingData.imageSrc : existingListing.imageSrc,
+            videoSrc: "videoSrc" in sanitizedListingData ? sanitizedListingData.videoSrc : existingListing.videoSrc,
+            addons: "addons" in sanitizedListingData ? sanitizedListingData.addons : existingListing.addons,
+            verifications: "verifications" in sanitizedListingData ? sanitizedListingData.verifications : existingListing.verifications,
+            sets: nextSets,
+        };
+        const orphanedRefs = orphanedListingMediaRefs(previousMedia, nextMedia);
 
         // 4. Atomic Transaction
         const hasChanges = await prisma.$transaction(async (tx) => {
@@ -889,11 +966,58 @@ export class ListingService {
             return hasChanges;
         });
 
+        if (hasChanges && orphanedRefs.length > 0) {
+            void dispatchMediaDeletion({
+                refs: orphanedRefs,
+                ownerId: existingListing.userId,
+                sourceId: listingId,
+            });
+        }
+
         const updatedListing = await ListingService.findById(listingId, { id: userId, role: allowAdmin ? "ADMIN" : "OWNER" });
         if (!updatedListing) {
             throw new UserFacingError(hasChanges ? "Listing update failed" : "Listing not found", hasChanges ? 500 : 404);
         }
         return updatedListing;
+    }
+
+    private static async discardUnreferencedMedia(
+        fallbackOwnerId: string,
+        listingId: string | undefined,
+        payload: ListingMediaSource
+    ): Promise<void> {
+        try {
+            const candidates = collectListingMediaRefs(payload);
+            if (candidates.size === 0) return;
+
+            let ownerId = fallbackOwnerId;
+            const retained = new Set<string>();
+
+            if (listingId && /^[a-f\d]{24}$/i.test(listingId)) {
+                const [listing, sets] = await Promise.all([
+                    prisma.listing.findUnique({
+                        where: { id: listingId },
+                        select: { userId: true, imageSrc: true, videoSrc: true, addons: true, verifications: true },
+                    }),
+                    prisma.listingSet.findMany({ where: { listingId }, select: { images: true } }),
+                ]);
+                if (listing) {
+                    ownerId = listing.userId;
+                    collectListingMediaRefs({ ...listing, sets }).forEach((ref) => retained.add(ref));
+                }
+            }
+
+            const unreferenced = Array.from(candidates).filter((ref) => !retained.has(ref));
+            if (unreferenced.length > 0) {
+                void dispatchMediaDeletion({
+                    refs: unreferenced,
+                    ownerId,
+                    sourceId: listingId,
+                });
+            }
+        } catch (error) {
+            console.error("[ListingService] Failed to discard unreferenced media", error);
+        }
     }
 
     /**
@@ -1194,6 +1318,7 @@ export class ListingService {
         return {
             ...publicListing,
             createdAt: l.createdAt.toISOString(),
+            updatedAt: l.updatedAt?.toISOString() ?? null,
             amenities: (l.amenities as string[]) || [],
             otherAmenities: (l.otherAmenities as string[]) || [],
             type: normalizedTypes,
