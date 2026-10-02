@@ -1,0 +1,289 @@
+{
+  "id": "get-more-studio-bookings",
+  "title": "Get More Studio Bookings: Photos, Pricing & Reviews",
+  "categories": [
+    {
+      "id": "host-guides",
+      "title": "Host Guides",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Host Guides",
+          "id": "bc-host-guides"
+        }
+      ],
+      "createdAt": "2026-10-02T00:00:00Z",
+      "updatedAt": "2026-10-02T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-02T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A practical guide for studio hosts on ContCave to turn more enquiries into confirmed bookings, covering photos, pricing, reviews and response speed."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Get More Studio Bookings: Photos, Pricing & Reviews"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "If you listed your studio weeks ago and are still searching for how to get more studio bookings, the problem is rarely the space itself. Most hosts running a photography, video, podcast or event studio in Delhi NCR already have a usable room, decent lighting and basic gear. What usually separates a calendar that fills up from one that sits empty is the listing around that space: how it photographs, how it is priced against the hours near it, how many reviews back it up, and how fast the host replies when a guest sends an enquiry. Work through those four things in order and bookings tend to follow."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "Why a decent studio still gets skipped"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "A guest comparing studios rarely visits in person before deciding. They scroll a short list of listings, open the ones with the best cover image, and shortlist two or three to message. If your studio has strong natural light but the photos were shot on a phone at night, you lose that first round before pricing or reviews ever come into play. The same goes for a studio with excellent acoustic treatment but no photo that actually shows the walls or the mic setup — guests assume the worst and move on."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "Treat the listing as the thing you are selling, not the room. A host who updates photos, rewrites the description for a specific audience, and checks pricing every few weeks will consistently out-book a host with a better space and a stale listing."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Photos that convert browsers into bookings"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Daylight photography shot closer to midday, with curtains or blinds open, shows a room's true colour and size far better than evening shots under mixed artificial light. Shoot wide first to establish the room, then add closer shots of anything a guest will specifically look for: the cyclorama wall, the mic and headphone setup, the lighting kit, the green room or waiting area, parking, and the entrance from the street."
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Lead with the widest, brightest shot of the main shooting area as your cover image",
+        "Add at least one photo of every distinct zone: shooting floor, equipment, seating, washroom, parking",
+        "Reshoot after any change in paint, flooring, backdrop colour or furniture",
+        "Avoid clutter in frame — cables, packed boxes and personal items read as unprofessional",
+        "Keep a consistent light temperature across the set so the gallery does not look mismatched"
+      ]
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "A studio that looks larger and cleaner in photos than it does in person creates a bad first visit. Photograph it exactly as a guest will experience it, just well-lit."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Price your studio to win the calendar, not just the rate card"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "New hosts often set one flat hourly rate and leave it untouched for months. That works against you in two ways: your weekday mornings sit empty because nothing nudges a flexible guest toward them, and your weekend evening slots are underpriced relative to demand. Look at your own booking history every few weeks and adjust around it rather than guessing."
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Keep a lower rate on weekday mornings and early afternoons, when demand is thinnest",
+        "Price weekend and evening slots closer to what comparable studios nearby are charging",
+        "Offer a modest discount for bookings of four hours or more instead of discounting every slot",
+        "Bundle add-ons (lighting kit, extra backdrop, an assistant) as optional line items rather than folding them into the base rate, so budget-conscious guests can still book the room alone",
+        "Review your pricing against similar studios on ContCave in your area at least once a month"
+      ]
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "A studio that keeps a wide, accurate calendar and replies within the hour usually fills faster than a slightly cheaper one that guests have to chase for availability. Speed and visibility are pricing levers too, not just the number on the rate card."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Reviews and ratings compound over time"
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Reviews do more work than hosts expect because a guest booking a studio for the first time is trusting a space they have never stood in. A handful of honest, recent reviews reduces that risk more than almost anything else you can add to a listing. Reviews also tend to mention specifics — sound insulation, parking ease, how helpful the host was — that generic listing copy cannot convey as credibly."
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "Ask for a review right after a shoot wraps, while the experience is still fresh, rather than days later. Make it easy: a short message thanking the guest and a direct nudge to leave a rating works better than a generic reminder. If a review flags something fixable — a loose light stand, confusing entry instructions — fix it and mention the fix to future guests in your listing description. A studio with five recent, specific reviews reads as far more trustworthy than one with twenty generic ones from a year ago."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Respond fast and keep your calendar current"
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Many bookings are lost before pricing or photos are even compared, simply because a host took half a day to reply to an enquiry while a guest moved on to a studio that answered in minutes. Treat enquiries like a live chat whenever you can, especially during the hours your audience is most active — evenings and weekends for creators, business hours for brand teams."
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "An out-of-date calendar causes the same problem from the other direction: if your available slots have not been updated in weeks, guests either assume the studio is inactive or waste time asking about a slot that is already taken. Block out personal use and maintenance time immediately, and open your calendar a few weeks further out than you think you need to, so planners booking ahead of a shoot date can actually find you."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "FAQs: Getting More Studio Bookings"
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "How many photos should a studio listing have?"
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "There is no strict minimum, but a listing with fewer than eight to ten photos usually reads as incomplete to a guest comparing options. Cover the main shooting area from multiple angles, every distinct zone in the space, and the entrance or parking, so a guest arrives with no surprises."
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "Should I lower my price to get my first bookings?"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "A short-term introductory rate on your slowest slots can help you collect your first few reviews faster, but avoid pricing the entire listing far below comparable studios indefinitely. Once you have a handful of reviews, move pricing back toward what the space and service are actually worth."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "Do reviews really affect how often a studio gets booked?"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Yes, more than most hosts expect. A studio with a few recent, specific reviews converts enquiries into confirmed bookings more reliably than an identical space with no reviews at all, because reviews reduce the guest's uncertainty about a space they have not visited."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "How fast should I respond to a booking enquiry?"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "Aim to reply within an hour during your active hours, and never longer than a few hours. Guests comparing multiple studios usually book whichever host responds first with a clear, confident answer."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "What is the biggest mistake new studio hosts make?"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Setting up the listing once and never revisiting it. Photos go stale, pricing falls out of line with nearby studios, and the calendar stops reflecting real availability. Treat the listing as something to maintain, not a one-time task."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "ContCave gives studio hosts one place to manage photos, pricing and availability without juggling spreadsheets or multiple booking links. Guests can compare studios side by side with transparent hourly pricing, see real reviews from past bookings, and confirm a slot instantly instead of waiting on a reply over message. For hosts, that means fewer enquiries lost to slow responses and a listing that keeps working for you between updates, which is exactly the system this guide has walked through."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "Getting more studio bookings is rarely about finding more guests to show the listing to — it is about converting the guests already looking at it. Fix the listing itself before spending time or money chasing more traffic."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Reshoot photos in daylight and cover every zone a guest will look for",
+        "Review and adjust pricing against nearby studios at least monthly",
+        "Ask for a review right after every shoot while the experience is fresh",
+        "Reply to enquiries within the hour, especially during your busiest hours",
+        "Keep your calendar open and accurate several weeks ahead"
+      ]
+    }
+  ],
+  "slug": "get-more-studio-bookings",
+  "meta": {
+    "title": "Get More Studio Bookings: Photos, Pricing & Reviews",
+    "description": "Struggling to fill your calendar? Learn how studio hosts in India get more studio bookings with better photos, smart pricing and reviews on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-02T04:00:00Z",
+  "updatedAt": "2026-10-02T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "get more studio bookings",
+    "how to get more studio bookings",
+    "increase studio bookings",
+    "studio booking tips for hosts",
+    "list your studio for rent",
+    "studio host tips india",
+    "photography studio bookings",
+    "video studio bookings",
+    "podcast studio bookings",
+    "event space bookings",
+    "studio pricing strategy",
+    "studio rental pricing india",
+    "studio reviews and ratings",
+    "studio listing photos",
+    "respond faster to booking enquiries",
+    "fill your studio calendar",
+    "studio rental business india",
+    "earn more from your studio",
+    "host your studio on contcave",
+    "studio owner tips",
+    "for hosts",
+    "for studio owners",
+    "delhi ncr",
+    "noida",
+    "gurugram",
+    "studio marketing tips",
+    "2026",
+    "studio booking platform india",
+    "grow studio bookings",
+    "ContCave"
+  ]
+}
