@@ -164,7 +164,10 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
 
       <PageBanner
         title={post.title}
-        subtitle={`Published on: ${formattedDate}`}
+        subtitle={[
+          post.authors?.length ? `By ${post.authors.join(", ")}` : null,
+          `Published on: ${formattedDate}`,
+        ].filter(Boolean).join(" · ")}
         image={post.meta?.image?.url}
         gradient={getBlogGradient(post.id)}
       />
