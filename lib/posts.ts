@@ -5,6 +5,8 @@ import { BlogCard, BlogPost } from "@/types/blog";
 
 const postsDirectory = path.join(process.cwd(), "content/posts");
 
+// Posts with a future publishedAt are scheduled: hidden everywhere until that moment.
+const isLive = (post: BlogPost) => new Date(post.publishedAt).getTime() <= Date.now();
 
 export function getSortedPostsData(): BlogPost[] {
   const fileNames = fs.readdirSync(postsDirectory);
@@ -16,9 +18,9 @@ export function getSortedPostsData(): BlogPost[] {
     return post;
   });
 
-  return allPosts.sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  );
+  return allPosts
+    .filter(isLive)
+    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 }
 
 
@@ -26,6 +28,7 @@ export function getPostData(id: string): BlogPost {
   const fullPath = path.join(postsDirectory, `${id}.json`);
   const fileContents = fs.readFileSync(fullPath, "utf8");
   const post: BlogPost = JSON.parse(fileContents);
+  if (!isLive(post)) throw new Error(`Post ${id} is scheduled for ${post.publishedAt}`);
   return post;
 }
 

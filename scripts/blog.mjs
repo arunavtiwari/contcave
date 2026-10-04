@@ -32,6 +32,7 @@ title: <= 65 chars, primary keyword first>
 description: <140-155 chars, primary keyword, mentions ContCave>
 summary: <1-2 sentence standfirst>
 category: <studio-guides | booking-tips | content-creation | creator-economy | host-guides>
+date: <optional YYYY-MM-DD; a future date schedules the post (hidden until 9:30 AM IST that day)>
 tags: <20-30 comma-separated, head -> long-tail; the script appends "ContCave">
 ---
 # <H1, same as title>
@@ -137,6 +138,7 @@ function cmdPublish(draftPath) {
   if (!fm.summary) errors.push("summary is required");
   if (!CATEGORIES[category]) errors.push(`category "${category}" is not one of: ${Object.keys(CATEGORIES).join(", ")}`);
   if (tags.length < 20 || tags.length > 30) errors.push(`need 20-30 tags including ContCave (have ${tags.length})`);
+  if (fm.date && !/^\d{4}-\d{2}-\d{2}$/.test(fm.date)) errors.push(`date "${fm.date}" must be YYYY-MM-DD`);
 
   const headings = blocks.filter((b) => b.blockType === "heading");
   if (headings[0] !== blocks[0]) errors.push("draft body must start with a # H1 heading");
@@ -155,7 +157,7 @@ function cmdPublish(draftPath) {
 
   if (errors.length) fail(errors);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = fm.date || new Date().toISOString().slice(0, 10);
   const stamp = `${today}T04:00:00Z`;
   const post = {
     id: slug,
