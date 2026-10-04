@@ -21,6 +21,27 @@ append a fresh batch at the bottom, keeping this file's format.
 | 34 | Beauty & Makeup Content Studios: What to Look For | studio with makeup room india | studio-guides | creators |
 | 35 | Planning Shoots Around Wedding & Festive Season Demand | festive season studio booking india | booking-tips | hosts, brands |
 | 36 | Voiceover & Audio Recording Studios vs Podcast Studios | voice over recording studio india | studio-guides | creators |
+| 37 | Jewellery Photography Before Dhanteras & Diwali | jewellery photography delhi | studio-guides | brands, agencies |
+| 38 | Diwali & Karva Chauth Family Photoshoot Ideas | diwali family photoshoot ideas | content-creation | families |
+| 39 | Shoot 30+ Instagram Ad Creatives in One Studio Day | ad creatives for instagram ads | content-creation | brands, agencies |
+| 40 | Maternity Photoshoot in Delhi: Timing, Cost & Outfits | maternity photoshoot in delhi | booking-tips | families, photographers |
+| 41 | Microdrama Production Cost in India: Per-Episode Budget | microdrama production cost india | creator-economy | producers, creators |
+| 42 | Marketplace Image Sizes: Amazon, Flipkart, Myntra, Nykaa | amazon flipkart myntra image size | content-creation | brands |
+| 43 | Studio Security Deposits & Damage Policy for Hosts | studio security deposit | host-guides | hosts |
+| 44 | Film Shooting Permission in Delhi NCR: Fees & Process | shooting permission in delhi | booking-tips | filmmakers, creators |
+| 45 | Newborn Photoshoot Safety: What to Check in a Studio | newborn photoshoot safety | studio-guides | families, photographers |
+| 46 | Photoshoot Call Sheet & Shot List for Client Shoots | photoshoot call sheet template | booking-tips | agencies, brands |
+| 47 | Short Film Budget in India: A Realistic Breakdown | short film budget india | content-creation | filmmakers |
+| 48 | Quick Commerce Product Images: Blinkit, Zepto, Instamart | blinkit product image requirements | content-creation | brands |
+| 49 | Photography & Podcast Studio Setup Cost in India | photography studio setup cost in india | host-guides | hosts |
+| 50 | How to Pitch a Microdrama to Indian Vertical Apps | how to pitch microdrama india | creator-economy | writers, producers |
+| 51 | Cake Smash & Baby Milestone Photoshoot Guide | cake smash photoshoot | booking-tips | families, photographers |
+| 52 | Model Fees & Usage Rights for Brand Shoots in India | model charges for photoshoot in india | booking-tips | brands, agencies |
+| 53 | Online Course Recording: Home Setup vs Studio Rental | online class recording studio setup | studio-guides | educators, creators |
+| 54 | AI Photoshoot vs Studio Shoot for Clothing Brands | ai photoshoot for clothing brand | content-creation | brands, agencies |
+| 55 | Microdrama Shoot Schedule: Episodes per Day & Framing | microdrama shoot schedule | content-creation | directors, producers |
+| 56 | Studio vs Location Shoot for Short Films & Series | studio vs location shoot | booking-tips | filmmakers, creators |
+| 57 | Studio Revenue Ideas: Workshops, Memberships, Packages | photo studio business ideas | creator-economy | hosts |
 
 ## Published
 
