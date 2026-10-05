@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 31 | Vertical Video & Microdrama Studios: What Creators Need in 2026 | microdrama studio india | content-creation | creators |
 | 32 | Live Shopping & D2C Livestream Studio Setup Guide | live streaming studio rental india | studio-guides | brands |
 | 33 | Studio Booking Cancellation & Refund Policies Explained | studio booking cancellation policy | booking-tips | creators, hosts |
 | 34 | Beauty & Makeup Content Studios: What to Look For | studio with makeup room india | studio-guides | creators |
@@ -92,3 +91,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-10-23 | 55 | microdrama-shoot-schedule |
 | 2026-10-24 | 56 | studio-vs-location-shoot-india |
 | 2026-10-25 | 57 | studio-revenue-ideas |
+| 2026-10-05 | 31 | microdrama-studio-india |
