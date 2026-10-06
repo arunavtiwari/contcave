@@ -96,6 +96,7 @@ type Props = {
 
   selectedPackageId?: string | null;
   setSelectionError?: string | null;
+  slotError?: string | null;
   contcaveNote?: string | null;
   maximumPax?: number | null;
   trackingStudio?: TrackedStudio;
@@ -171,6 +172,7 @@ export default function ListingReservation({
 
   selectedPackageId = null,
   setSelectionError = null,
+  slotError = null,
   contcaveNote = null,
   maximumPax = null,
   trackingStudio,
@@ -296,9 +298,10 @@ export default function ListingReservation({
       !availabilityLoading &&
       hasPickedDate &&
       hasValidTime &&
+      !slotError &&
       !isPaying &&
       setValidation.valid,
-    [disabled, availabilityLoading, hasPickedDate, hasValidTime, isPaying, setValidation.valid]
+    [disabled, availabilityLoading, hasPickedDate, hasValidTime, slotError, isPaying, setValidation.valid]
   );
 
   const minBookingMinutes = useMemo(
@@ -608,6 +611,9 @@ export default function ListingReservation({
         aria-labelledby={`${sectionId}-time-label`}
         minBookingMinutes={minBookingMinutes}
       />
+      {slotError && (
+        <p className="px-4 pt-2 text-sm text-destructive" role="alert">{slotError}</p>
+      )}
       <hr />
 
       <div className="p-4">
