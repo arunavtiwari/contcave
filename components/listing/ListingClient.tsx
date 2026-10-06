@@ -15,6 +15,7 @@ import {
   addDaysToDateKey,
   BOOKING_HORIZON_DAYS,
   busyRanges,
+  checkWindow,
   dayAvailabilityFromRecords,
   freeSetIds,
   isBookable,
@@ -316,12 +317,19 @@ function ListingClient({
   const setSelectionError = useMemo(() => {
     if (!listing.hasSets) return null;
     const validation = validateSetSelection(selectedSetIds, selectedPackage);
-    if (!validation.valid) return validation.error || "Select a valid set configuration.";
-    if (selectedSetIds.some((setId) => !availableSetIds.includes(setId))) {
-      return "One or more selected sets are unavailable for this time slot.";
-    }
-    return null;
-  }, [listing.hasSets, selectedSetIds, selectedPackage, availableSetIds]);
+    return validation.valid ? null : validation.error || "Select a valid set configuration.";
+  }, [listing.hasSets, selectedSetIds, selectedPackage]);
+
+  const slotError = useMemo(() => {
+    const [startLabel, endLabel] = selectedTimeSlot;
+    if (!selectedDay || !startLabel || !endLabel) return null;
+    return checkWindow(selectedDay, {
+      start: labelToMinutes(startLabel),
+      end: asEndOfDayMinutes(labelToMinutes(endLabel)),
+      setIds: listing.hasSets ? selectedSetIds : [],
+      packageMinutes: (selectedPackage?.durationHours ?? 0) * 60,
+    });
+  }, [selectedDay, selectedTimeSlot, listing.hasSets, selectedSetIds, selectedPackage]);
 
   const handleSetToggle = useCallback((setId: string) => {
     setSelectedSetIds((prev) => {
@@ -463,6 +471,7 @@ function ListingClient({
                     pricingResult={pricingResult}
                     selectedPackageId={selectedPackage?.id || null}
                     setSelectionError={setSelectionError}
+                    slotError={slotError}
                     reservations={reservations}
                     disabled={isPreview}
                     contcaveNote={listing.contcaveNote}

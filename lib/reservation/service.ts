@@ -1,6 +1,6 @@
 import { Prisma, ReservationStatus } from "@prisma/client";
 
-import { checkBookingSlot, parseTimeToMinutes } from "@/lib/availability";
+import { checkBookingSlot, findActiveReservations, parseTimeToMinutes } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund } from "@/lib/cashfree/cashfree";
 import { scheduleQstashJob } from "@/lib/cron/qstash";
@@ -1903,27 +1903,9 @@ export class ReservationService {
         const indiaDate = new Date(Date.now() + (5 * 60 + 30) * 60_000).toISOString().slice(0, 10);
         const rangeStart = new Date(`${indiaDate}T00:00:00.000Z`);
         const rangeEnd = new Date(rangeStart.getTime() + 91 * 24 * 60 * 60_000);
-        const reservations = await prisma.reservation.findMany({
-            where: {
-                listingId,
-                listing: { active: true, status: "VERIFIED" },
-                startDate: { gte: rangeStart, lt: rangeEnd },
-                markedForDeletion: false,
-                status: { in: ["PENDING_APPROVAL", "CONFIRMED", "CHECKED_IN"] },
-            },
-            select: {
-                startDate: true,
-                startTime: true,
-                endTime: true,
-                setIds: true,
-            },
-            orderBy: { startDate: "asc" },
-        });
+        const reservations = await findActiveReservations({ listingIds: [listingId], from: rangeStart, to: rangeEnd });
 
-        return reservations.map((reservation) => ({
-            ...reservation,
-            startDate: reservation.startDate.toISOString(),
-        }));
+        return reservations.map(({ date, startTime, endTime, setIds }) => ({ startDate: date, startTime, endTime, setIds }));
     }
 
     static async getPublicDayStatuses(listingId: string): Promise<PublicDayStatus[]> {
