@@ -1,10 +1,12 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 
 import {
+    addDaysToDateKey,
     checkExtensionWindow,
     checkWindow,
     type DayAvailability,
     dayAvailabilityFromRecords,
+    type DayEntry,
     isDateKey,
 } from "@/lib/booking/dayAvailability";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
@@ -15,7 +17,15 @@ import { asEndOfDayMinutes, labelToMinutes } from "@/lib/scheduling";
 type Db = Prisma.TransactionClient | PrismaClient;
 
 type RawId = string | { $oid?: string };
-type RawReservation = { listingId?: RawId; startTime?: string; endTime?: string; setIds?: RawId[] };
+type RawReservation = {
+    listingId?: RawId;
+    startDate?: string | { $date?: string };
+    startTime?: string;
+    endTime?: string;
+    setIds?: RawId[];
+};
+
+export type ActiveReservation = DayEntry & { listingId: string; date: string; setIds: string[] };
 
 export function parseTimeToMinutes(timeStr: string): number {
     if (!timeStr) return Number.NaN;
@@ -41,10 +51,43 @@ export function parseTimeToMinutes(timeStr: string): number {
 
 const readRawId = (value: RawId | undefined) => (typeof value === "string" ? value : value?.$oid ?? "");
 
+const readRawDateKey = (value: RawReservation["startDate"]) =>
+    (typeof value === "string" ? value : value?.$date ?? "").slice(0, 10);
+
 const dayBounds = (date: string) => ({
     start: new Date(`${date}T00:00:00.000Z`),
-    end: new Date(`${date}T23:59:59.999Z`),
+    end: new Date(`${addDaysToDateKey(date, 1)}T00:00:00.000Z`),
 });
+
+export async function findActiveReservations(params: {
+    listingIds: string[];
+    from: Date;
+    to: Date;
+    db?: Db;
+    excludeReservationId?: string;
+}): Promise<ActiveReservation[]> {
+    const { listingIds, from, to, db = prisma, excludeReservationId } = params;
+    if (listingIds.length === 0) return [];
+
+    const rows = await db.reservation.findRaw({
+        filter: {
+            listingId: { $in: listingIds.map((id) => ({ $oid: id })) },
+            startDate: { $gte: { $date: from.toISOString() }, $lt: { $date: to.toISOString() } },
+            markedForDeletion: false,
+            $or: [{ status: { $in: ACTIVE_RESERVATION_STATUSES } }, { status: { $exists: false } }],
+            ...(excludeReservationId ? { _id: { $ne: { $oid: excludeReservationId } } } : {}),
+        },
+        options: { projection: { listingId: 1, startDate: 1, startTime: 1, endTime: 1, setIds: 1 } },
+    }) as unknown as RawReservation[];
+
+    return rows.map((row) => ({
+        listingId: readRawId(row.listingId),
+        date: readRawDateKey(row.startDate),
+        startTime: row.startTime ?? "",
+        endTime: row.endTime ?? "",
+        setIds: (row.setIds ?? []).map(readRawId).filter(Boolean),
+    }));
+}
 
 export async function loadDayAvailabilities(params: {
     listingIds: string[];
@@ -59,7 +102,7 @@ export async function loadDayAvailabilities(params: {
     if (listingIds.length === 0 || !isDateKey(date)) return result;
 
     const bounds = dayBounds(date);
-    const [listings, dayStatuses, blocks, reservations] = await Promise.all([
+    const [listings, dayStatuses, blocks, bookings] = await Promise.all([
         db.listing.findMany({
             where: { id: { in: listingIds } },
             select: {
@@ -76,30 +119,14 @@ export async function loadDayAvailabilities(params: {
             select: { listingId: true, listingActive: true, startTime: true, endTime: true },
         }),
         db.listingBlock.findMany({
-            where: { listingId: { in: listingIds }, date: { gte: bounds.start, lte: bounds.end } },
+            where: { listingId: { in: listingIds }, date: { gte: bounds.start, lt: bounds.end } },
             select: { listingId: true, startTime: true, endTime: true, setIds: true },
         }),
-        db.reservation.findRaw({
-            filter: {
-                listingId: { $in: listingIds.map((id) => ({ $oid: id })) },
-                startDate: { $gte: { $date: bounds.start.toISOString() }, $lte: { $date: bounds.end.toISOString() } },
-                markedForDeletion: false,
-                $or: [{ status: { $in: ACTIVE_RESERVATION_STATUSES } }, { status: { $exists: false } }],
-                ...(excludeReservationId ? { _id: { $ne: { $oid: excludeReservationId } } } : {}),
-            },
-            options: { projection: { listingId: 1, startTime: 1, endTime: 1, setIds: 1 } },
-        }) as unknown as Promise<RawReservation[]>,
+        findActiveReservations({ listingIds, from: bounds.start, to: bounds.end, db, excludeReservationId }),
     ]);
 
     const byListing = <T extends { listingId: string }>(rows: T[], listingId: string) =>
         rows.filter((row) => row.listingId === listingId);
-    const bookings = reservations.map((row) => ({
-        listingId: readRawId(row.listingId),
-        date,
-        startTime: row.startTime ?? "",
-        endTime: row.endTime ?? "",
-        setIds: (row.setIds ?? []).map(readRawId).filter(Boolean),
-    }));
     const calendarEvents = includeCalendar
         ? await Promise.all(listings.map((listing) => fetchListingCalendarEvents(listing.id)))
         : [];
