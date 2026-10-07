@@ -213,6 +213,28 @@ export function addGst(subtotal: number): { gstAmount: number; total: number } {
     return { gstAmount, total: Math.round(subtotal + gstAmount) };
 }
 
+export type BookingQuote = {
+    hours: number;
+    subtotal: number;
+    gstAmount: number;
+    total: number;
+    includedSetId: string | null;
+    packageId: string | null;
+};
+
+export function quoteBooking(params: SetPricingParams): BookingQuote {
+    const pricing = calculateSetPricing(params);
+    const { gstAmount, total } = addGst(pricing.subtotal);
+    return {
+        hours: pricing.hours,
+        subtotal: pricing.subtotal,
+        gstAmount,
+        total,
+        includedSetId: pricing.includedSetId,
+        packageId: params.selectedPackage?.id ?? null,
+    };
+}
+
 /** The pre-GST value inside a GST-inclusive amount, unrounded so callers keep their own rounding. */
 export function amountBeforeGst(totalInclGst: number): number {
     return totalInclGst / (1 + GST_RATE);

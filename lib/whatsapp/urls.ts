@@ -15,6 +15,12 @@ export function curatedEnquiryMessage(studioName: string, area: string): string 
     return `Hi ContCave, I'm interested in ${studioName} in ${area}. Could you share pricing details and availability?`;
 }
 
+const MAX_SEARCH_MESSAGE_LENGTH = 900;
+
+export function searchEnquiryMessage(summary: string): string {
+    return `Hi ContCave, please help me find a studio for this shoot:\n${summary}`.slice(0, MAX_SEARCH_MESSAGE_LENGTH);
+}
+
 export function previewLinkExpiredMessage(studioName: string): string {
     return `Hi ContCave, my preview link for ${studioName} has expired. Could you send me a new one?`;
 }

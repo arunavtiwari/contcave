@@ -9,7 +9,7 @@ import { buildWhatsAppUrl } from "@/lib/whatsapp/urls";
 
 const WITHOUT_CONTCAVE =
   "Find a photographer. Negotiate. Book HMU. Confirm equipment. Chase everyone on WhatsApp.";
-const WITH_CONTCAVE = "Send one brief. Show up. Shoot.";
+const WITH_CONTCAVE = "Send your shoot details. Show up. Shoot.";
 
 const INCLUDED = [
   "Dedicated production coordinator",
@@ -20,7 +20,7 @@ const INCLUDED = [
 ];
 
 const WHATSAPP_MESSAGE =
-  "Hi ContCave! I want Production Concierge for my shoot. Here's my brief:";
+  "Hi ContCave! I want Production Concierge for my shoot. Here are my shoot details:";
 
 const ProductionConcierge = () => {
   const whatsappHref = buildWhatsAppUrl(WHATSAPP_MESSAGE);

@@ -20,6 +20,7 @@ import {
   freeSetIds,
   isBookable,
   istDateKey,
+  minutesToClock,
   minutesToLabel,
 } from "@/lib/booking/dayAvailability";
 import {
@@ -61,14 +62,11 @@ type Props = {
   processedTerms?: string | null;
   descriptionShouldTruncate?: boolean;
   initialSelectedSetIds?: string[];
+  initialDate?: string | null;
+  initialTimeSlot?: [TimeLabel, TimeLabel] | null;
 };
 
 type AddonItem = { name?: string; price: number; qty: number };
-
-const minutesToHM = (minutes: number) => {
-  const wrapped = minutes % 1440;
-  return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}` as TimeHM;
-};
 
 const toCalendarYmd = (date: Date) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -145,7 +143,9 @@ function ListingClient({
   processedDescription,
   processedTerms,
   descriptionShouldTruncate,
-  initialSelectedSetIds = []
+  initialSelectedSetIds = [],
+  initialDate = null,
+  initialTimeSlot = null,
 }: Props) {
   const availability = useAvailability(availabilityPromise);
   const reservations = availability?.reservations ?? NO_RESERVATIONS;
@@ -153,13 +153,14 @@ function ListingClient({
   const googleCalendarEvents = availability?.googleCalendarEvents ?? NO_CALENDAR_EVENTS;
 
   const isOwnListing = Boolean(currentUser?.id && currentUser.id === listing.userId);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>([null, null]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(() => (initialDate ? dateFromYmd(initialDate) : null));
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>(() => initialTimeSlot ?? [null, null]);
   const [selectedAddons, setSelectedAddons] = useState<AddonItem[]>([]);
 
-  useEffect(() => {
+  const selectDate = useCallback((value: Date | null) => {
+    setSelectedDate(value);
     setSelectedTimeSlot([null, null]);
-  }, [selectedDate]);
+  }, []);
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
 
@@ -235,7 +236,7 @@ function ListingClient({
   const disabledPairsForPicker = useMemo(() => {
     if (!selectedDay) return { starts: [] as TimeHM[], ends: [] as TimeHM[] };
     const ranges = busyRanges(selectedDay, { ...setRequirement, setIds: selectedSetIds });
-    return { starts: ranges.map((range) => minutesToHM(range.start)), ends: ranges.map((range) => minutesToHM(range.end)) };
+    return { starts: ranges.map((range) => minutesToClock(range.start) as TimeHM), ends: ranges.map((range) => minutesToClock(range.end) as TimeHM) };
   }, [selectedDay, setRequirement, selectedSetIds]);
 
   const isCurated = listing.listingType === "CURATED";
@@ -449,7 +450,7 @@ function ListingClient({
                     price={listing.price ?? 0}
                     platformFee={0}
                     time={timeDifferenceInHours}
-                    setSelectDateAction={setSelectedDate}
+                    setSelectDateAction={selectDate}
                     selectedDate={selectedDate}
                     setSelectTimeSlotsAction={setSelectedTimeSlot}
                     selectedTime={selectedTimeSlot}

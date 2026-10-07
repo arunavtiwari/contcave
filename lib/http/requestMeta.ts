@@ -1,4 +1,11 @@
+import { userAgent } from "next/server";
+
+import { isHtmlOnlyCrawler } from "@/lib/crawlers";
 import { CURRENT_LOCATION_LABEL, isLatLng, type Nearby } from "@/lib/geo";
+
+export function isBotRequest(headers: Headers) {
+  return userAgent({ headers }).isBot || isHtmlOnlyCrawler(headers.get("user-agent"));
+}
 
 const CLOUDFLARE_LOCATION_HEADERS = { lat: "cf-iplatitude", lng: "cf-iplongitude" } as const;
 const VERCEL_LOCATION_HEADERS = { lat: "x-vercel-ip-latitude", lng: "x-vercel-ip-longitude" } as const;

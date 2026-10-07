@@ -1,11 +1,9 @@
 import "server-only";
 
 import { headers } from "next/headers";
-import { userAgent } from "next/server";
 
-import { isHtmlOnlyCrawler } from "@/lib/crawlers";
 import { type Nearby, nearLabelFor } from "@/lib/geo";
-import { getIpLocation } from "@/lib/http/requestMeta";
+import { getIpLocation, isBotRequest } from "@/lib/http/requestMeta";
 import type { StudioFeedFilters } from "@/schemas/listing";
 
 import { ListingService } from "./service";
@@ -13,7 +11,7 @@ import { studioFeedKey } from "./studioFeedKey";
 
 async function getVisitorOrigin(): Promise<Nearby | null> {
     const headerList = await headers();
-    if (userAgent({ headers: headerList }).isBot || isHtmlOnlyCrawler(headerList.get("user-agent"))) return null;
+    if (isBotRequest(headerList)) return null;
     return getIpLocation(headerList);
 }
 

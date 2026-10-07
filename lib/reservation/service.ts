@@ -19,7 +19,7 @@ import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
 import prisma from "@/lib/prismadb";
-import { isReservationSlotUniqueConflict, LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
+import { isReservationSlotUniqueConflict, reservationSlotRows } from "@/lib/reservation/slots";
 import { formatReservationDate, parseReservationEndTimeForDate, parseReservationTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
 import { generateBookingId } from "@/lib/utils";
@@ -94,43 +94,6 @@ function normalizeListingAddons(value: Prisma.JsonValue | null): Addon[] {
             qty: Number.isInteger(Number(record.qty)) && Number(record.qty) > 0 ? Number(record.qty) : 1,
         }];
     });
-}
-
-function buildReservationSlotRows(params: {
-    listingId: string;
-    reservationId: string;
-    startDate: Date;
-    startTime: string;
-    endTime: string;
-    setIds: string[];
-}) {
-    const start = parseTimeToMinutes(params.startTime);
-    const end = asEndOfDayMinutes(parseTimeToMinutes(params.endTime));
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
-        throw new Error("Reservation time range is invalid");
-    }
-
-    const dateKey = params.startDate.toISOString().slice(0, 10);
-    const slotSetIds = params.setIds.length > 0 ? Array.from(new Set(params.setIds)) : [LISTING_WIDE_SLOT_ID];
-    const rows: Prisma.ReservationSlotCreateManyInput[] = [];
-
-    for (let cursor = start; cursor < end; cursor += 30) {
-        const hour = String(Math.floor(cursor / 60)).padStart(2, "0");
-        const minute = String(cursor % 60).padStart(2, "0");
-        const slotKey = `${hour}:${minute}`;
-
-        for (const setId of slotSetIds) {
-            rows.push({
-                listingId: params.listingId,
-                reservationId: params.reservationId,
-                dateKey,
-                slotKey,
-                setId,
-            });
-        }
-    }
-
-    return rows;
 }
 
 function parseMetadataJson(value: unknown): Prisma.InputJsonValue | null {
@@ -498,7 +461,7 @@ export class ReservationService {
                     }
                 });
 
-                const slotRows = buildReservationSlotRows({
+                const slotRows = reservationSlotRows({
                     listingId: txn.listingId!,
                     reservationId: reservation.id,
                     startDate,
@@ -506,6 +469,7 @@ export class ReservationService {
                     endTime,
                     setIds,
                 });
+                if (!slotRows) throw new Error("Reservation time range is invalid");
 
                 if (slotRows.length > 0) {
                     await tx.reservationSlot.createMany({ data: slotRows });
@@ -1903,7 +1867,11 @@ export class ReservationService {
         const indiaDate = new Date(Date.now() + (5 * 60 + 30) * 60_000).toISOString().slice(0, 10);
         const rangeStart = new Date(`${indiaDate}T00:00:00.000Z`);
         const rangeEnd = new Date(rangeStart.getTime() + 91 * 24 * 60 * 60_000);
-        const reservations = await findActiveReservations({ listingIds: [listingId], from: rangeStart, to: rangeEnd });
+        const [listing, reservations] = await Promise.all([
+            prisma.listing.findFirst({ where: { id: listingId, active: true, status: "VERIFIED" }, select: { id: true } }),
+            findActiveReservations({ listingIds: [listingId], from: rangeStart, to: rangeEnd }),
+        ]);
+        if (!listing) return [];
 
         return reservations.map(({ date, startTime, endTime, setIds }) => ({ startDate: date, startTime, endTime, setIds }));
     }

@@ -13,7 +13,9 @@ import ListingClient from "@/components/listing/ListingClient";
 import MoreStudios from "@/components/listing/MoreStudios";
 import PreviewExpiredState, { PREVIEW_EXPIRED_METADATA } from "@/components/listing/PreviewExpiredState";
 import JsonLd from "@/components/seo/JsonLd";
+import { istDateKey } from "@/lib/booking/dayAvailability";
 import { fetchListingCalendarEvents } from "@/lib/calendar/fetchEvents";
+import { parseBookingPrefill } from "@/lib/listing/bookingPrefill";
 import { categoriesOf } from "@/lib/listing/categories";
 import {
   cityTrail,
@@ -135,6 +137,7 @@ export default async function ListingPage(props: {
   }
 
   const isPreview = !isListingPublic(listing);
+  const prefill = parseBookingPrefill(searchParams, listing.hasSets ? (listing.sets ?? []).map((set) => set.id) : [], istDateKey(new Date()));
 
   const availability = loadAvailability(listing);
   const [currentUser, reviews, reviewCount, amenities, city, related] = await Promise.all([
@@ -168,10 +171,14 @@ export default async function ListingPage(props: {
         processedTerms={listing.customTerms ?? null}
         descriptionShouldTruncate={getPlainTextFromHTML(listing.description, 0).length > 250}
         initialSelectedSetIds={
-          listing.hasSets && listing.sets && listing.sets.length > 0
-            ? [listing.sets[0].id]
-            : []
+          prefill.setIds.length > 0
+            ? prefill.setIds
+            : listing.hasSets && listing.sets && listing.sets.length > 0
+              ? [listing.sets[0].id]
+              : []
         }
+        initialDate={prefill.date}
+        initialTimeSlot={prefill.timeSlot}
       />
       <MoreStudios
         heading={city ? `More studios in ${city.city}` : "More studios you may like"}

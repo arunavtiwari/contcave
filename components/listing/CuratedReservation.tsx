@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useTransition } from "react";
-import { IoLogoWhatsapp } from "react-icons/io";
 
 import { trackEnquiryAction } from "@/app/actions/listingActions";
-import { cn } from "@/lib/utils";
+import WhatsAppLinkButton from "@/components/ui/WhatsAppLinkButton";
 import { buildWhatsAppUrl, curatedEnquiryMessage } from "@/lib/whatsapp/urls";
 
 import CuratedListingBanner from "./CuratedListingBanner";
@@ -64,21 +63,7 @@ export default function CuratedReservation({
             </div>
 
             {/* WhatsApp CTA */}
-            <Link
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={handleEnquiry}
-                aria-disabled={disabled}
-                tabIndex={disabled ? -1 : undefined}
-                className={cn(
-                    "flex items-center justify-center gap-2.5 w-full rounded-xl bg-[#25D366] hover:bg-[#1ebe5d] transition-colors px-4 py-3.5 text-white font-semibold text-sm shadow-sm",
-                    disabled && "pointer-events-none opacity-50"
-                )}
-            >
-                <IoLogoWhatsapp size={20} />
-                Request Price
-            </Link>
+            <WhatsAppLinkButton href={waUrl} label="Request Price" onClick={handleEnquiry} disabled={disabled} />
 
             {/* Links */}
             {(mapsUrl || websiteUrl || instagramHandle) && (

@@ -6,8 +6,8 @@ import { FiCheck } from 'react-icons/fi';
 import { LuLocateFixed, LuMapPin } from 'react-icons/lu';
 import { components, type OptionProps } from "react-select";
 
-import Select, { SelectOption } from '@/components/ui/Select';
 import { getVisitorLocationAction } from '@/app/actions/studioFeedActions';
+import Select, { SelectOption } from '@/components/ui/Select';
 import { distanceKm } from '@/lib/geo';
 
 const LIBRARIES: Libraries = ['places'];

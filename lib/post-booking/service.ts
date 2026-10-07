@@ -11,7 +11,7 @@ import { InvoiceService } from "@/lib/invoice/service";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
 import prisma from "@/lib/prismadb";
-import { LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
+import { reservationSlotRows } from "@/lib/reservation/slots";
 import { canCreatePostBookingCharge } from "@/lib/reservation/status";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
@@ -62,43 +62,6 @@ function endTimeForDate(date: Date, label: string) {
   const parsed = parseReservationEndTimeForDate(date, label);
   if (!parsed) throw new UserFacingError("Reservation end time is invalid");
   return parsed;
-}
-
-function buildReservationSlotRows(params: {
-  listingId: string;
-  reservationId: string;
-  startDate: Date;
-  startTime: string;
-  endTime: string;
-  setIds: string[];
-}) {
-  const start = parseTimeToMinutes(params.startTime);
-  const end = asEndOfDayMinutes(parseTimeToMinutes(params.endTime));
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
-    throw new UserFacingError("Extensions must end on the same booking date");
-  }
-
-  const dateKey = params.startDate.toISOString().slice(0, 10);
-  const slotSetIds = params.setIds.length > 0 ? Array.from(new Set(params.setIds)) : [LISTING_WIDE_SLOT_ID];
-  const rows: Prisma.ReservationSlotCreateManyInput[] = [];
-
-  for (let cursor = start; cursor < end; cursor += 30) {
-    const hour = String(Math.floor(cursor / 60)).padStart(2, "0");
-    const minute = String(cursor % 60).padStart(2, "0");
-    const slotKey = `${hour}:${minute}`;
-
-    for (const setId of slotSetIds) {
-      rows.push({
-        listingId: params.listingId,
-        reservationId: params.reservationId,
-        dateKey,
-        slotKey,
-        setId,
-      });
-    }
-  }
-
-  return rows;
 }
 
 function getOwnerPayoutData(ownerPaymentDetails: unknown, amount: number, payoutDueAt?: Date): Prisma.TransactionUncheckedUpdateInput {
@@ -844,7 +807,7 @@ export class PostBookingService {
       return;
     }
 
-    const rows = buildReservationSlotRows({
+    const rows = reservationSlotRows({
       listingId: reservation.listingId,
       reservationId: reservation.id,
       startDate: reservation.startDate,
@@ -852,6 +815,7 @@ export class PostBookingService {
       endTime: extension.requestedEndTime,
       setIds: reservation.setIds,
     });
+    if (!rows) throw new UserFacingError("Extensions must end on the same booking date");
 
     try {
       const applied = await prisma.$transaction(async (tx) => {

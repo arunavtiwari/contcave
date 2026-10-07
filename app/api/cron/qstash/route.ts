@@ -11,42 +11,33 @@ import { autoCompleteCheckedInReservations, expireAdditionalCharges, expireExten
 import { assertNoFailedMaintenanceResults } from "@/lib/maintenance/results";
 import { ReservationService } from "@/lib/reservation/service";
 import { ReviewReminderService } from "@/lib/review/reminders";
+import { refreshSearchDocs } from "@/lib/search/searchDoc";
 import { executeMediaDeletion } from "@/lib/storage/mediaDeletion";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type QstashJob =
-  | "pending-approval-expiry"
-  | "extension-expiry"
-  | "additional-charge-expiry"
-  | "auto-complete"
-  | "booking-reminder"
-  | "review-reminder"
-  | "post-booking-fast"
-  | "post-booking-complete"
-  | "booking-reminders"
-  | "payout-splits"
-  | "invoice-retry"
-  | "month-end-invoices"
-  | "delete-media";
+const QSTASH_JOBS = [
+  "pending-approval-expiry",
+  "extension-expiry",
+  "additional-charge-expiry",
+  "auto-complete",
+  "booking-reminder",
+  "review-reminder",
+  "post-booking-fast",
+  "post-booking-complete",
+  "booking-reminders",
+  "payout-splits",
+  "invoice-retry",
+  "month-end-invoices",
+  "delete-media",
+  "search-index-refresh",
+] as const;
+
+type QstashJob = (typeof QSTASH_JOBS)[number];
 
 function isQstashJob(value: unknown): value is QstashJob {
-  return [
-    "pending-approval-expiry",
-    "extension-expiry",
-    "additional-charge-expiry",
-    "auto-complete",
-    "booking-reminder",
-    "review-reminder",
-    "post-booking-fast",
-    "post-booking-complete",
-    "booking-reminders",
-    "payout-splits",
-    "invoice-retry",
-    "month-end-invoices",
-    "delete-media",
-  ].includes(value as string);
+  return (QSTASH_JOBS as readonly unknown[]).includes(value);
 }
 
 function isObjectId(value: unknown): value is string {
@@ -156,6 +147,10 @@ async function handleQstashJob(body: {
           }
           const outcome = await executeMediaDeletion({ refs: rawRefs, ownerId });
           rawResult = outcome;
+          break;
+        }
+        case "search-index-refresh": {
+          rawResult = await refreshSearchDocs();
           break;
         }
         case "month-end-invoices": {

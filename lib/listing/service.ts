@@ -56,6 +56,56 @@ type ValidatedListingInput = ReturnType<typeof listingSchema.parse>;
 
 type RawListingId = { _id?: string | { $oid?: unknown } };
 
+const SEARCH_CANDIDATE_SELECT = {
+    id: true,
+    slug: true,
+    title: true,
+    imageSrc: true,
+    locationValue: true,
+    listingType: true,
+    category: true,
+    price: true,
+    hasSets: true,
+    additionalSetPricingType: true,
+    type: true,
+    venueTypes: true,
+    aesthetics: true,
+    setFeatures: true,
+    amenities: true,
+    otherAmenities: true,
+    maximumPax: true,
+    minimumBookingHours: true,
+    instantBooking: true,
+    avgReviewRating: true,
+    carpetArea: true,
+    locationPoint: true,
+    priceRangeMin: true,
+    priceRangeMax: true,
+    mediaPurgedAt: true,
+    sets: {
+        select: { id: true, name: true, price: true, position: true, aesthetics: true, setFeatures: true },
+        orderBy: [{ price: "asc" }, { position: "asc" }],
+    },
+    packages: {
+        where: { isActive: true },
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            originalPrice: true,
+            offeredPrice: true,
+            features: true,
+            durationHours: true,
+            requiredSetCount: true,
+            fixedAddOn: true,
+            eligibleSetIds: true,
+            isActive: true,
+        },
+    },
+} satisfies Prisma.ListingSelect;
+
+export type SearchCandidateRecord = Awaited<ReturnType<typeof ListingService.getSearchCandidates>>[number];
+
 const JSON_FIELD_KEYS = new Set([
     "actualLocation",
     "addons",
@@ -1244,6 +1294,51 @@ export class ListingService {
             .map((id) => byId.get(id))
             .filter((listing): listing is NonNullable<typeof listing> => Boolean(listing))
             .map(toStudioFeedItem);
+    }
+
+    static async getSearchCandidates({
+        locationValues,
+        origin,
+        limit,
+    }: {
+        locationValues: string[];
+        origin: LatLng | null;
+        limit: number;
+    }) {
+        const { rows } = await this.queryFeedRows({ filters: { locationValues }, origin, after: null, limit, excludeIds: [] });
+        const ids = rows.map(readRawId).filter((id): id is string => !!id);
+        if (ids.length === 0) return [];
+
+        const [listings, reviewCounts] = await Promise.all([
+            prisma.listing.findMany({ where: { id: { in: ids } }, select: SEARCH_CANDIDATE_SELECT }),
+            prisma.review.aggregateRaw({
+                pipeline: [
+                    { $match: { listingId: { $in: ids.map((id) => ({ $oid: id })) } } },
+                    { $group: { _id: "$listingId", count: { $sum: 1 } } },
+                ],
+            }) as unknown as Promise<{ _id?: RawListingId["_id"]; count?: number | { $numberInt?: string } }[]>,
+        ]);
+        const amenityIds = Array.from(new Set(listings.flatMap((listing) => listing.amenities)));
+        const amenities = amenityIds.length
+            ? await prisma.amenities.findMany({ where: { id: { in: amenityIds } }, select: { id: true, name: true } })
+            : [];
+
+        const amenityName = new Map(amenities.map((amenity) => [amenity.id, amenity.name]));
+        const countOf = new Map(reviewCounts.map((row) => [
+            readRawId(row),
+            Number(typeof row.count === "object" ? row.count?.$numberInt : row.count) || 0,
+        ]));
+        const byId = new Map(listings.map((listing) => [listing.id, listing]));
+
+        return ids
+            .map((id) => byId.get(id))
+            .filter((listing): listing is NonNullable<typeof listing> => Boolean(listing))
+            .filter((listing) => !(listing.listingType === "CURATED" && listing.mediaPurgedAt))
+            .map((listing) => ({
+                ...listing,
+                amenityNames: listing.amenities.map((id) => amenityName.get(id)).filter((name): name is string => Boolean(name)),
+                reviewCount: countOf.get(listing.id) ?? 0,
+            }));
     }
 
     static async getRandomListings(limit: number = 3): Promise<FullListing[]> {

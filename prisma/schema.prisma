@@ -834,3 +834,39 @@ model MaintenanceJobLog {
   @@index([status, createdAt])
   @@index([createdAt])
 }
+
+type SearchSessionEvent {
+  type      String
+  listingId String?
+  at        DateTime
+}
+
+model SearchSession {
+  id          String               @id @map("_id") @db.ObjectId
+  query       String               @default("")
+  parsedQuery Json?
+  source      String?
+  overrides   Json?
+  results     Json?
+  curated     Json?
+  resultCount Int                  @default(0)
+  goodCount   Int                  @default(0)
+  events      SearchSessionEvent[]
+  timings     Json?
+  userId      String?              @db.ObjectId
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  expiresAt   DateTime
+
+  @@index([createdAt])
+}
+
+model ListingSearchDoc {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  listingId String   @unique @db.ObjectId
+  text      String
+  hash      String
+  model     String?
+  embedding Bytes?
+  updatedAt DateTime @updatedAt
+}

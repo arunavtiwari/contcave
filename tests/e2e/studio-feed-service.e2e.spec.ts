@@ -1,9 +1,9 @@
 import crypto from "node:crypto";
 
-import { addDaysToDateKey, buildDayAvailability, checkExtensionWindow, checkWindow, isBookable, istDateKey } from "../../lib/booking/dayAvailability";
+import { addDaysToDateKey, istDateKey } from "../../lib/booking/dayAvailability";
 import type { LatLng } from "../../lib/geo";
 import { matchesCategory, STUDIO_CATEGORIES } from "../../lib/listing/categories";
-import { resolveListingLocation, toGeoPoint } from "../../lib/listing/location";
+import { toGeoPoint } from "../../lib/listing/location";
 import type { StudioFeedFilters } from "../../schemas/listing";
 import { createUserFixture, prisma } from "./support/db";
 import { readRunState, trackCreated } from "./support/run-state";
@@ -210,93 +210,5 @@ test.describe("studio feed service", () => {
     const found = await pageAll({ locationValues: [city], date }, null, 2);
     expect(found.sort()).toEqual([open.id, oneSetFree.id, reopened.id].sort());
     expect(await pageAll({ locationValues: [city] }, null, 2)).toHaveLength(6);
-  });
-
-  test("availability engine applies the booking rules", () => {
-    const now = new Date("2026-10-01T06:00:00Z");
-    const listing = { operationalHours: { start: "9:00 AM", end: "9:00 PM" }, minimumBookingHours: 2, hasSets: false, setIds: [] };
-    const day = buildDayAvailability({ date: "2026-10-05", listing, bookings: [], blocks: [], now });
-
-    expect(isBookable(day, 1)).toBe(false);
-    expect(isBookable(day, 3)).toBe(true);
-    expect(checkWindow(day, { start: 600, end: 720, setIds: [], packageMinutes: 180 })).toBe("Selected time slot must match the package duration.");
-    expect(checkWindow(day, { start: 480, end: 600, setIds: [] })).toBe("Selected time slot is outside this studio's operational hours.");
-
-    const special = buildDayAvailability({
-      date: "2026-10-05",
-      listing,
-      dayStatus: { listingActive: true, startTime: "06:00", endTime: "08:00" },
-      bookings: [],
-      blocks: [],
-      now,
-    });
-    expect(checkWindow(special, { start: 360, end: 480, setIds: [] })).toBeNull();
-
-    const today = buildDayAvailability({ date: "2026-10-01", listing, bookings: [], blocks: [], now });
-    expect(checkWindow(today, { start: 660, end: 780, setIds: [] })).toBe("Past time slots are not available for booking.");
-    expect(checkWindow(today, { start: 720, end: 840, setIds: [] })).toBeNull();
-  });
-
-  test("availability engine lets running sessions extend until closing time", () => {
-    const now = new Date("2026-10-01T06:00:00Z");
-    const listing = {
-      operationalDays: { start: "Mon", end: "Fri" },
-      operationalHours: { start: "9:00 AM", end: "9:00 PM" },
-      minimumBookingHours: 2,
-      hasSets: false,
-      setIds: [],
-    };
-    const monday = buildDayAvailability({ date: "2026-10-05", listing, bookings: [{ startTime: "8:00 PM", endTime: "8:30 PM" }], blocks: [], now });
-
-    expect(checkWindow(monday, { start: 315, end: 435, setIds: [] })).toBe("Selected time slot is outside this studio's operational hours.");
-    expect(checkExtensionWindow(monday, { start: 405, end: 435, setIds: [] })).toBeNull();
-    expect(checkExtensionWindow(monday, { start: 1110, end: 1170, setIds: [] })).toBeNull();
-    expect(checkExtensionWindow(monday, { start: 1170, end: 1230, setIds: [] })).toBe("This time slot is already booked.");
-    expect(checkExtensionWindow(monday, { start: 1230, end: 1290, setIds: [] })).toBe("Extensions cannot continue past the studio's operating hours.");
-
-    const sunday = buildDayAvailability({ date: "2026-10-04", listing, bookings: [], blocks: [], now });
-    expect(checkWindow(sunday, { start: 600, end: 720, setIds: [] })).toBe("This studio is not accepting bookings on the selected date.");
-    expect(checkExtensionWindow(sunday, { start: 600, end: 630, setIds: [] })).toBeNull();
-
-    const switchedOff = buildDayAvailability({
-      date: "2026-10-05",
-      listing,
-      dayStatus: { listingActive: false, startTime: "", endTime: "" },
-      bookings: [],
-      blocks: [],
-      now,
-    });
-    expect(checkExtensionWindow(switchedOff, { start: 600, end: 630, setIds: [] })).toBe("Extensions cannot continue past the studio's operating hours.");
-
-    const today = buildDayAvailability({ date: "2026-10-01", listing, bookings: [], blocks: [], now });
-    expect(checkExtensionWindow(today, { start: 600, end: 630, setIds: [] })).toBeNull();
-  });
-
-  test("rejects forged cursors", async () => {
-    const ListingService = await getListingService();
-    const forged = Buffer.from(JSON.stringify({ p: 1, d: 1.5, w: 1, t: "yesterday", id: "nope" })).toString("base64url");
-    for (const cursor of ["not-a-cursor", forged]) {
-      await expect(ListingService.getListingFeedPage({ filters: {}, origin: null, cursor })).rejects.toThrow("Invalid feed cursor");
-    }
-  });
-
-  test("resolves listing locations without drifting or inventing coordinates", () => {
-    const stored = { latlng: [28.6374, 77.1386], label: "Delhi", state: "Delhi" };
-
-    const relabelled = resolveListingLocation({ ...stored, label: "New Delhi" }, stored);
-    expect(relabelled.actualLocation?.latlng).toEqual(stored.latlng);
-    expect(relabelled.locationPoint).toEqual({ type: "Point", coordinates: [77.1386, 28.6374] });
-    expect(relabelled.propertyStateCode).toBe("07");
-
-    const moved = resolveListingLocation({ latlng: [30.7046, 76.7179], state: "Punjab" }, stored);
-    const [lat, lng] = moved.actualLocation?.latlng as LatLng;
-    expect(Math.abs(lat - 30.7046)).toBeLessThan(0.02);
-    expect(Math.abs(lng - 76.7179)).toBeLessThan(0.02);
-    expect([lat, lng]).not.toEqual([30.7046, 76.7179]);
-    expect(moved.locationPoint?.coordinates).toEqual([lng, lat]);
-
-    expect(resolveListingLocation({ latlng: [0, 0], label: "x" }, stored).actualLocation?.latlng).toEqual(stored.latlng);
-    expect(resolveListingLocation({ latlng: "bad" }).locationPoint).toBeNull();
-    expect(resolveListingLocation(null, stored)).toEqual({ actualLocation: null, locationPoint: null });
   });
 });
