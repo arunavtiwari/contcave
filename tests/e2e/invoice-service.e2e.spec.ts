@@ -1,6 +1,5 @@
 import crypto from "node:crypto";
 
-import { generateInvoicePDFBlob } from "../../lib/invoice/pdfBlob";
 import { InvoiceService } from "../../lib/invoice/service";
 import { prisma, qaEmail, qaPhone } from "./support/db";
 import { trackCreated } from "./support/run-state";
@@ -333,20 +332,5 @@ test.describe("enterprise invoice service", () => {
     expect(statement!.invoice.invoiceNumber).toMatch(/^BOS[A-F0-9]{4}-2627-\d{3,}$/);
     expect(statement!.invoice.gstAmount).toBe(0);
     expect(JSON.stringify(statement!.invoice.lineItems)).not.toMatch(/TDS|194C|194H|Form 16A/i);
-  });
-
-  test("PDF generation rejects forbidden TDS wording", async () => {
-    await expect(generateInvoicePDFBlob({
-      documentType: "OWNER_MONTHLY_BILL_OF_SUPPLY",
-      invoiceNumber: "QA-TEST",
-      invoiceDate: new Date(),
-      billedBy: { name: "QA Studio" },
-      billedTo: { name: "ContCave" },
-      lineItems: [{ description: "Studio service", taxableValue: 100 }],
-      amount: 100,
-      gstAmount: 0,
-      totalAmount: 100,
-      notes: ["This note mentions TDS and must fail."],
-    })).rejects.toThrow(/TDS/i);
   });
 });

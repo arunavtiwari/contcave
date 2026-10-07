@@ -7,6 +7,7 @@ import { FiMapPin } from "react-icons/fi";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 
 import HeartButton from "@/components/listing/HeartButton";
+import ListingTypeBadge from "@/components/listing/ListingTypeBadge";
 import Pill from "@/components/ui/Pill";
 import { cn } from "@/lib/utils";
 import { SafeUser } from "@/types/user";
@@ -188,21 +189,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
 
             {showListingBadge && !reservationLifecycleStatus && (listingType === "CURATED" || isVerified) && (
                 <div className="absolute left-3 top-3 z-20">
-                    {listingType === "CURATED" ? (
-                        <Pill
-                            label="Curated"
-                            variant="curated-button"
-                            size="xs"
-                            className="bg-background/80 backdrop-blur-md text-[11px] font-semibold tracking-normal border border-warning/30 shadow-sm"
-                        />
-                    ) : (
-                        <Pill
-                            label="Verified"
-                            variant="verified-button"
-                            size="xs"
-                            className="bg-background/80 backdrop-blur-md text-[11px] font-semibold tracking-normal border border-success/30 shadow-sm"
-                        />
-                    )}
+                    <ListingTypeBadge listingType={listingType === "CURATED" ? "CURATED" : "STANDARD"} className="bg-background/80 shadow-sm backdrop-blur-md" />
                 </div>
             )}
 

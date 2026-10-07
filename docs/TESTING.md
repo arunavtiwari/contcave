@@ -7,9 +7,13 @@ This document details the engineering guidelines, execution paths, and design pa
 ## 1. Testing Philosophy
 
 We use three tiers of testing to ensure platform stability:
-1. **Unit Tests**: For pure functions, mathematical utilities, and independent helper methods (e.g., price calculators, string formatters).
+1. **Unit Tests**: Driven by **Vitest** (`npm run test:unit`), for pure functions, mathematical utilities, and independent helper methods (e.g., price calculators, availability rules, search parsing and ranking). They live in `tests/unit/` and run in seconds with no database, browser or env. Any test that needs neither the database nor a browser belongs here, not in Playwright.
 2. **Integration / API Tests**: For Server Actions and API endpoints, verifying database mutations and schema validations.
 3. **End-to-End (E2E) Tests**: Driven by **Playwright**, simulating actual customer and host user interactions on real browser contexts.
+
+### AI search evaluation
+
+`npm run eval:search` scores the AI search query parser against the labelled queries in `tests/eval/queries.fixture.ts` (city, date, crew and budget target 90%+). The rule-based reader is always scored; Gemini is scored too when `GEMINI_API_KEY` is set.
 
 ---
 
@@ -41,9 +45,9 @@ Below is a summary of our active Playwright E2E test inventory:
 | [favorites.e2e.spec.ts](../tests/e2e/favorites.e2e.spec.ts) | Customer listing wishlists | 1 |
 | [chat.e2e.spec.ts](../tests/e2e/chat.e2e.spec.ts) | Host-guest real-time chat websockets | 1 |
 | [filters.e2e.spec.ts](../tests/e2e/filters.e2e.spec.ts) | Studio feed queries & location filters | 1 |
-| [invoice-service.e2e.spec.ts](../tests/e2e/invoice-service.e2e.spec.ts) | Tax invoices & payouts calculations | 8 |
+| [invoice-service.e2e.spec.ts](../tests/e2e/invoice-service.e2e.spec.ts) | Tax invoices & payouts calculations | 7 |
 | [reviews.e2e.spec.ts](../tests/e2e/reviews.e2e.spec.ts) | Customer rating & review submissions | 1 |
-| **Total Suite** | | **30** |
+| **Total Suite** | | **29** |
 
 ---
 

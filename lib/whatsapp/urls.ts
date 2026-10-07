@@ -36,6 +36,12 @@ export function generalEnquiryMessage(studioUrl?: string | null): string {
         : GENERAL_ENQUIRY_MESSAGE;
 }
 
+const MAX_SEARCH_MESSAGE_LENGTH = 900;
+
+export function searchEnquiryMessage(summary: string): string {
+    return `Hi ContCave, please help me find a studio for this shoot:\n${summary}`.slice(0, MAX_SEARCH_MESSAGE_LENGTH);
+}
+
 export function previewLinkExpiredMessage(studioName: string): string {
     return `Hi ContCave, my preview link for ${studioName} has expired. Could you send me a new one?`;
 }

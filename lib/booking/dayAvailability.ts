@@ -7,7 +7,8 @@ import { toDayKey } from "@/types/scheduling";
 const DEFAULT_MINIMUM_BOOKING_MINUTES = 90;
 export const BOOKING_HORIZON_DAYS = 90;
 
-const MINUTES_PER_DAY = 1440;
+export const MINUTES_PER_DAY = 1440;
+export const SLOT_MINUTES = 30;
 const MS_PER_MINUTE = 60_000;
 const IST_OFFSET_MINUTES = 330;
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
@@ -67,6 +68,11 @@ export const addDaysToDateKey = (dateKey: string, days: number) =>
     new Date(Date.parse(`${dateKey}T00:00:00.000Z`) + days * 1440 * MS_PER_MINUTE).toISOString().slice(0, 10);
 
 const dayStartMs = (dateKey: string) => Date.parse(`${dateKey}T00:00:00+05:30`);
+
+export const minutesToClock = (minutes: number) => {
+    const wrapped = minutes % MINUTES_PER_DAY;
+    return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`;
+};
 
 export const minutesToLabel = (minutes: number) => {
     const wrapped = minutes % MINUTES_PER_DAY;

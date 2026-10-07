@@ -7,7 +7,7 @@ const faqData = [
   {
     id: 2,
     quest: "What types of studios are available on ContCave?",
-    ans: "We list photography studios, video production spaces, podcast and interview rooms, lifestyle and fashion studios, product photography setups, cyclorama and infinity wall spaces, vintage and themed sets, and event-ready creative spaces. Studios are tagged by shoot type so you can filter to exactly what your brief needs.",
+    ans: "We list photography studios, video production spaces, podcast and interview rooms, lifestyle and fashion studios, product photography setups, cyclorama and infinity wall spaces, vintage and themed sets, and event-ready creative spaces. Studios are tagged by shoot type, and AI search lets you describe your shoot in your own words to find exactly what it needs.",
   },
   {
     id: 3,
@@ -17,7 +17,7 @@ const faqData = [
   {
     id: 4,
     quest: "I'm a brand or agency, can ContCave handle studio bookings for our campaigns?",
-    ans: "Yes. Send us your shoot brief - space type, date, team size, aesthetic - and we will recommend verified studios from our network that fit. We handle the booking and logistics so your team does not have to. Reach out directly at info@contcave.com or message us on WhatsApp.",
+    ans: "Yes. Describe your shoot in AI search for an instant shortlist, or send us your shoot details - space type, date, team size, aesthetic - and we will recommend verified studios from our network that fit. We handle the booking and logistics so your team does not have to. Reach out directly at info@contcave.com or message us on WhatsApp.",
   },
   {
     id: 5,

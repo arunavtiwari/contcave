@@ -1,54 +1,74 @@
 "use client";
+import { addDays, startOfToday } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { FiSliders } from "react-icons/fi";
 
+import TaxonomyPillSelect from "@/components/inputs/TaxonomyPillSelect";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
-import Pill from "@/components/ui/Pill";
+import DatePicker from "@/components/ui/DatePicker";
+import Switch from "@/components/ui/Switch";
 import { useFilterNavigation } from "@/hooks/useFilterNavigation";
+import { useStudioSearch } from "@/hooks/useStudioSearch";
 import useUIStore from "@/hooks/useUIStore";
+import { BOOKING_HORIZON_DAYS } from "@/lib/booking/dayAvailability";
 import { AESTHETICS, SET_FEATURES, USE_CASES } from "@/lib/taxonomy";
+
+const TAG_FILTERS = [
+  { key: "type", label: "Shoot type", vocab: USE_CASES },
+  { key: "aesthetics", label: "Aesthetics", vocab: AESTHETICS },
+] as const;
+
+const SET_FEATURE_GROUPS = Array.from(new Set(SET_FEATURES.map((feature) => feature.group ?? "Other"))).map((group) => ({
+  group,
+  vocab: SET_FEATURES.filter((feature) => (feature.group ?? "Other") === group),
+}));
+
+type TagKey = (typeof TAG_FILTERS)[number]["key"] | "setFeatures";
+
+type Draft = {
+  tags: Record<TagKey, string[]>;
+  date: string | null;
+  hasSets: boolean;
+};
+
+const TAG_KEYS: TagKey[] = [...TAG_FILTERS.map((filter) => filter.key), "setFeatures"];
+const DATE_PARAMS = ["date", "selectedDate", "startDate", "endDate"];
+const RETIRED_PARAMS = ["venueTypes"];
+const RESET_PARAMS = [...TAG_KEYS, ...DATE_PARAMS, ...RETIRED_PARAMS, "hasSets"];
 
 type Props = { city?: string };
 
 const FilterModalContent = ({ city }: Props) => {
   const { navigate } = useFilterNavigation();
   const params = useSearchParams();
-  // Opening lives in the shared UI store so the mobile control bar can raise the same
-  // modal as the toolbar button, instead of a second copy with its own state.
+  const active = useStudioSearch();
   const uiStore = useUIStore();
   const isOpen = uiStore.modals.filter;
   const setIsOpen = (open: boolean) => (open ? uiStore.onOpen("filter") : uiStore.onClose("filter"));
+  const today = useMemo(() => startOfToday(), []);
+  const lastBookableDay = useMemo(() => addDays(today, BOOKING_HORIZON_DAYS), [today]);
 
-  const applied = useMemo(() => {
-    const list = (key: string) => params?.get(key)?.split(",").filter(Boolean) ?? [];
-    return {
-      types: list("type"),
-      aesthetics: list("aesthetics"),
-      setFeatures: list("setFeatures"),
-    };
-  }, [params]);
+  const appliedTags = useMemo(
+    () => Object.fromEntries(TAG_KEYS.map((key) => [key, params?.get(key)?.split(",").filter(Boolean) ?? []])) as Draft["tags"],
+    [params]
+  );
 
-  const activeFilterCount = [
-    applied.types.length > 0,
-    applied.aesthetics.length > 0,
-    applied.setFeatures.length > 0,
-  ].filter(Boolean).length;
+  const [draft, setDraft] = useState<Draft>({ tags: appliedTags, date: null, hasSets: false });
+  const update = (patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch }));
+  const updateTags = (key: TagKey, values: string[]) => setDraft((current) => ({ ...current, tags: { ...current.tags, [key]: values } }));
 
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedAesthetics, setSelectedAesthetics] = useState<string[]>([]);
-  const [selectedSetFeatures, setSelectedSetFeatures] = useState<string[]>([]);
-
-  const openFilters = () => uiStore.onOpen("filter");
-
-  // The draft starts from what is applied, however the modal was opened.
   useEffect(() => {
     if (!isOpen) return;
-    setSelectedTypes(applied.types);
-    setSelectedAesthetics(applied.aesthetics);
-    setSelectedSetFeatures(applied.setFeatures);
-  }, [isOpen, applied]);
+    setDraft({ tags: appliedTags, date: active.date, hasSets: active.hasSets });
+  }, [isOpen, appliedTags, active.date, active.hasSets]);
+
+  const activeFilterCount = [
+    ...TAG_KEYS.map((key) => appliedTags[key].length > 0),
+    Boolean(active.date),
+    active.hasSets,
+  ].filter(Boolean).length;
 
   const urlSearchParams = useMemo(() => {
     const next = new URLSearchParams(params ? Array.from(params.entries()) : []);
@@ -56,90 +76,75 @@ const FilterModalContent = ({ city }: Props) => {
     return next;
   }, [params, city]);
 
-  const toggle = (value: string, list: string[], setList: (v: string[]) => void) => {
-    setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
-  };
-
   const handleApplyFilters = () => {
-    const nextParams = new URLSearchParams(urlSearchParams.toString());
+    const next = new URLSearchParams(urlSearchParams.toString());
 
-    if (selectedTypes.length > 0) nextParams.set("type", selectedTypes.join(","));
-    else nextParams.delete("type");
+    for (const key of TAG_KEYS) {
+      if (draft.tags[key].length > 0) next.set(key, draft.tags[key].join(","));
+      else next.delete(key);
+    }
+    RETIRED_PARAMS.forEach((key) => next.delete(key));
 
-    // Venue type is no longer a filter; drop it from older links so it can't silently narrow results.
-    nextParams.delete("venueTypes");
+    DATE_PARAMS.forEach((key) => next.delete(key));
+    if (draft.date) next.set("date", draft.date);
 
-    if (selectedAesthetics.length > 0) nextParams.set("aesthetics", selectedAesthetics.join(","));
-    else nextParams.delete("aesthetics");
+    if (draft.hasSets) next.set("hasSets", "true");
+    else next.delete("hasSets");
 
-    if (selectedSetFeatures.length > 0) nextParams.set("setFeatures", selectedSetFeatures.join(","));
-    else nextParams.delete("setFeatures");
-
-    navigate(`/studios?${nextParams.toString()}`);
+    navigate(`/studios?${next.toString()}`);
     setIsOpen(false);
   };
 
   const handleResetFilters = () => {
-    const nextParams = new URLSearchParams(urlSearchParams.toString());
-    ["type", "venueTypes", "aesthetics", "setFeatures"].forEach((k) => nextParams.delete(k));
-    setSelectedTypes([]);
-    setSelectedAesthetics([]);
-    setSelectedSetFeatures([]);
-    navigate(`/studios?${nextParams.toString()}`);
+    const next = new URLSearchParams(urlSearchParams.toString());
+    RESET_PARAMS.forEach((key) => next.delete(key));
+    navigate(`/studios?${next.toString()}`);
     setIsOpen(false);
   };
 
   const body = (
-    <div className="divide-y divide-border">
-      <section className="pb-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Shoot type</p>
-        <div className="flex flex-wrap gap-2">
-          {USE_CASES.map((u) => (
-            <Pill
-              key={u.slug}
-              label={u.label}
-              variant={selectedTypes.includes(u.label) ? "solid" : "secondary"}
-              onClick={() => toggle(u.label, selectedTypes, setSelectedTypes)}
-            />
-          ))}
-        </div>
-      </section>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <DatePicker
+          id="filter-date"
+          label="Date"
+          description="Only show studios with a free slot that day"
+          placeholder="Any date"
+          value={draft.date}
+          minDate={today}
+          maxDate={lastBookableDay}
+          onChange={(date) => update({ date })}
+        />
+        {draft.date && (
+          <Button label="Clear date" variant="ghost" fit onClick={() => update({ date: null })} className="h-auto px-0 text-muted-foreground hover:text-foreground" />
+        )}
+      </div>
 
+      <Switch
+        label="Multi-set studios"
+        description="Only show studios with multiple sets"
+        variant="horizontal"
+        childWidth="auto"
+        checked={draft.hasSets}
+        onChange={(hasSets) => update({ hasSets })}
+      />
 
-      <section className="py-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Aesthetics</p>
-        <div className="flex flex-wrap gap-2">
-          {AESTHETICS.map((a) => (
-            <Pill
-              key={a.slug}
-              label={a.label}
-              variant={selectedAesthetics.includes(a.label) ? "solid" : "secondary"}
-              onClick={() => toggle(a.label, selectedAesthetics, setSelectedAesthetics)}
-            />
-          ))}
-        </div>
-      </section>
+      {TAG_FILTERS.map(({ key, label, vocab }) => (
+        <TaxonomyPillSelect key={key} label={label} vocab={vocab} value={draft.tags[key]} onChange={(values) => updateTags(key, values)} />
+      ))}
 
-      <section className="pt-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Sets & Space Features</p>
-        <div className="flex flex-col gap-4">
-          {Array.from(new Set(SET_FEATURES.map((f) => f.group ?? "Other"))).map((group) => (
-            <div key={group} className="flex flex-col gap-2">
-              <p className="text-xs text-muted-foreground">{group}</p>
-              <div className="flex flex-wrap gap-2">
-                {SET_FEATURES.filter((f) => (f.group ?? "Other") === group).map((f) => (
-                  <Pill
-                    key={f.slug}
-                    label={f.label}
-                    variant={selectedSetFeatures.includes(f.label) ? "solid" : "secondary"}
-                    onClick={() => toggle(f.label, selectedSetFeatures, setSelectedSetFeatures)}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {SET_FEATURE_GROUPS.map(({ group, vocab }) => (
+        <TaxonomyPillSelect
+          key={group}
+          label={group}
+          vocab={vocab}
+          value={draft.tags.setFeatures.filter((label) => vocab.some((item) => item.label === label))}
+          onChange={(values) => updateTags("setFeatures", [
+            ...draft.tags.setFeatures.filter((label) => !vocab.some((item) => item.label === label)),
+            ...values,
+          ])}
+        />
+      ))}
     </div>
   );
 
@@ -151,7 +156,7 @@ const FilterModalContent = ({ city }: Props) => {
         variant="ghost"
         size="sm"
         fit
-        onClick={openFilters}
+        onClick={() => setIsOpen(true)}
         className="bg-muted border border-border hover:bg-muted/80 h-9 px-3 gap-1.5 font-medium"
       >
         {activeFilterCount > 0 && (

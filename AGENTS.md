@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents (Claude Code, Codex and others) when working with code in this repository.
 
 ## What this project is
 
@@ -14,6 +14,8 @@ npm run build         # Production build
 npm run type-check    # tsc --noEmit (run this before committing)
 npm run check         # type-check + lint together
 npm run lint:fix      # Auto-fix lint issues
+npm run test:unit     # Vitest unit tests (pure logic, no DB or browser)
+npm run eval:search   # Score the AI search parser on labelled queries
 npm run test:e2e      # Playwright end-to-end tests
 npx prisma studio     # Open Prisma database GUI
 npx prisma generate   # Regenerate client after schema changes
@@ -138,3 +140,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Analytics and tracking
+
+GTM loads once in `app/(main)/layout.tsx`; GA4 and Google Ads are configured inside the container. All dataLayer events go through `lib/analytics/tracking.ts`, which also sends the matching Meta Pixel + Conversions API event under a shared `event_id`. Visitors are opted in until they decline in the cookie banner. `docs/tracking-events.md` is the event map — update it when adding or changing an event.
