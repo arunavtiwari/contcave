@@ -372,7 +372,7 @@ export const TooltipContent = React.forwardRef<
         opacity: coords ? 1 : 0,
       }}
       className={cn(
-        "z-100 pointer-events-none select-none overflow-hidden rounded-md bg-neutral-900 px-2.5 py-1 text-xs font-medium text-neutral-50 shadow-md border border-neutral-800 transition-opacity duration-150 animate-in fade-in-0 zoom-in-95 dark:bg-neutral-100 dark:text-neutral-900 dark:border-neutral-200",
+        "z-100002 pointer-events-none select-none overflow-hidden rounded-md bg-neutral-900 px-2.5 py-1 text-xs font-medium text-neutral-50 shadow-md border border-neutral-800 transition-opacity duration-150 animate-in fade-in-0 zoom-in-95 dark:bg-neutral-100 dark:text-neutral-900 dark:border-neutral-200",
         className
       )}
       {...props}

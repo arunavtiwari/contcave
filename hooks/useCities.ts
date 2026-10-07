@@ -62,7 +62,7 @@ export type City = {
   name: string;
 };
 
-const formattedIndianCities: City[] = indianCities.map((city) => ({
+export const INDIAN_CITIES: City[] = indianCities.map((city) => ({
   value: city.name,
   label: city.name,
   state: city.state,
@@ -71,10 +71,10 @@ const formattedIndianCities: City[] = indianCities.map((city) => ({
 }));
 
 const useIndianCities = () => {
-  const getAll = () => formattedIndianCities;
+  const getAll = () => INDIAN_CITIES;
 
   const getByValue = (value: string) => {
-    return formattedIndianCities.find((item) => item.value === value);
+    return INDIAN_CITIES.find((item) => item.value === value);
   };
 
   return {

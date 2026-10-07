@@ -18,9 +18,9 @@ import LoginModal from "@/components/modals/LoginModal";
 import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
 import RegisterModal from "@/components/modals/RegisterModal";
 import RentModal from "@/components/modals/RentModal";
-import SearchModal from "@/components/modals/SearchModal";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import GlobalProviders from "@/components/providers/GlobalProviders";
+import SpotlightSearch from "@/components/search/SpotlightSearch";
 import JsonLd from "@/components/seo/JsonLd";
 import ClientOnly from "@/components/ui/ClientOnly";
 import ScrollToTop from "@/components/ui/ScrollToTop";
@@ -234,7 +234,7 @@ export default async function RootLayout({
                     <JourneyEventTracker />
                     <ClientOnly>
                         <Toaster />
-                        <SearchModal />
+                        <SpotlightSearch />
                         <RegisterModal />
                         <LoginModal />
                         <OwnerRegisterModal />

@@ -3,15 +3,13 @@ import "server-only";
 import { PaymentDetails, Prisma } from "@prisma/client";
 
 import { getGstStateCodeFromStateName, isValidGstStateCode } from "@/constants/gstStateCodes";
-import { parseTimeToMinutes } from "@/lib/availability";
 import { UserFacingError } from "@/lib/errors";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import { type GstOwner, gstOwnerFor } from "@/lib/payout/utils";
 import { addGst } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
 import { ReservationService } from "@/lib/reservation/service";
-import { isReservationSlotUniqueConflict, LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
-import { asEndOfDayMinutes } from "@/lib/scheduling";
+import { isReservationSlotUniqueConflict, reservationSlotRows } from "@/lib/reservation/slots";
 import { generateBookingId } from "@/lib/utils";
 import { CreateAdminOfflineBookingInput } from "@/schemas/offlineBooking";
 import { SafeUser, UserRole } from "@/types/user";
@@ -244,48 +242,6 @@ export async function getAdminStudioForOfflineBooking(
   };
 }
 
-function buildSlotRows(params: {
-  listingId: string;
-  reservationId: string;
-  startDate: Date;
-  startTime: string;
-  endTime: string;
-  setIds: string[];
-}) {
-  const start = parseTimeToMinutes(params.startTime);
-  const end = asEndOfDayMinutes(parseTimeToMinutes(params.endTime));
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
-    return [];
-  }
-
-  const dateKey = params.startDate.toISOString().slice(0, 10);
-  // An offline booking takes the whole studio, so every set it owns is blocked.
-  // Writing only the listing-wide row would leave a set-based studio bookable
-  // online for the same slot.
-  const slotSetIds = params.setIds.length > 0
-    ? Array.from(new Set(params.setIds))
-    : [LISTING_WIDE_SLOT_ID];
-  const rows: Prisma.ReservationSlotCreateManyInput[] = [];
-
-  for (let cursor = start; cursor < end; cursor += 30) {
-    const hour = String(Math.floor(cursor / 60)).padStart(2, "0");
-    const minute = String(cursor % 60).padStart(2, "0");
-    const slotKey = `${hour}:${minute}`;
-
-    for (const setId of slotSetIds) {
-      rows.push({
-        listingId: params.listingId,
-        reservationId: params.reservationId,
-        dateKey,
-        slotKey,
-        setId,
-      });
-    }
-  }
-
-  return rows;
-}
-
 /**
  * Creates an offline booking record end-to-end:
  * 1. Resolves/creates customer User and optional customer BillingDetails (GST)
@@ -466,14 +422,14 @@ export async function createOfflineBooking(
   const { reservation, transaction } = await prisma.$transaction(async (tx) => {
       const createdReservation = await tx.reservation.create({ data: reservationData });
 
-      const slots = buildSlotRows({
+      const slots = reservationSlotRows({
         listingId: listing.id,
         reservationId: createdReservation.id,
         startDate,
         startTime: data.startTime,
         endTime: data.endTime,
         setIds: selectedSetIds.length > 0 ? selectedSetIds : studioSets.map((s) => s.id),
-      });
+      }) ?? [];
 
       // Every slot is inserted rather than skipping taken ones, so the unique
       // index rejects the booking instead of silently double-booking the studio.
