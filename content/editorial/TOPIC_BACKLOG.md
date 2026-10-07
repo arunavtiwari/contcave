@@ -15,11 +15,16 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 32 | Live Shopping & D2C Livestream Studio Setup Guide | live streaming studio rental india | studio-guides | brands |
 | 33 | Studio Booking Cancellation & Refund Policies Explained | studio booking cancellation policy | booking-tips | creators, hosts |
 | 34 | Beauty & Makeup Content Studios: What to Look For | studio with makeup room india | studio-guides | creators |
 | 35 | Planning Shoots Around Wedding & Festive Season Demand | festive season studio booking india | booking-tips | hosts, brands |
 | 36 | Voiceover & Audio Recording Studios vs Podcast Studios | voice over recording studio india | studio-guides | creators |
+| 58 | Corporate Headshot & LinkedIn Photography Studios in India | corporate headshot studio india | studio-guides | brands |
+| 59 | Gaming & Streaming Studio Setup for Twitch and YouTube Creators | gaming streaming studio india | content-creation | creators |
+| 60 | Studio Equipment Insurance & Damage Liability: A Host's Guide | studio insurance for hosts india | host-guides | hosts |
+| 61 | Fitness & Yoga Content Studios: What Creators Need to Shoot Workouts | fitness studio for content shoot india | studio-guides | creators |
+| 62 | Cooking & Recipe Video Studios: Kitchen Setup for Food Creators | cooking studio rental india | studio-guides | creators |
+| 63 | Budget Studio Shoots for Student & Campus Creators | studio for student creators india | content-creation | creators |
 
 ## Published
 
@@ -92,3 +97,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-10-24 | 56 | studio-vs-location-shoot-india |
 | 2026-10-25 | 57 | studio-revenue-ideas |
 | 2026-10-05 | 31 | microdrama-studio-india |
+| 2026-10-07 | 32 | live-streaming-studio-rental-india |
