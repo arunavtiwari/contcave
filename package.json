@@ -18,8 +18,7 @@
 		"eval:search": "vitest run --project eval",
 		"qstash:dev": "npx @upstash/qstash-cli@latest dev",
 		"configure:qstash": "node scripts/configure-qstash-schedules.mjs",
-		"backfill:listing-location": "node scripts/backfill-listing-location.mjs",
-		"ensure:search-indexes": "node scripts/ensure-search-indexes.mjs",
+		"ensure:indexes": "node scripts/ensure-indexes.mjs",
 		"postinstall": "npx prisma generate"
 	},
 	"dependencies": {
