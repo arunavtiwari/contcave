@@ -5,7 +5,7 @@ type ModalType =
     | "register"
     | "ownerRegister"
     | "rent"
-    | "search"
+    | "spotlight"
     | "addon"
     | "payout";
 
@@ -22,7 +22,7 @@ const useUIStore = create<UIStore>((set, get) => ({
         register: false,
         ownerRegister: false,
         rent: false,
-        search: false,
+        spotlight: false,
         addon: false,
         payout: false,
     },

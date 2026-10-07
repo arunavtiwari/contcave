@@ -1,11 +1,10 @@
 import "server-only";
 
 import { cookies, headers } from "next/headers";
-import { userAgent } from "next/server";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { isHtmlOnlyCrawler } from "@/lib/crawlers";
 import type { LatLng } from "@/lib/geo";
+import { isBotRequest } from "@/lib/http/requestMeta";
 import type { StudioFeedFilters } from "@/schemas/listing";
 
 import type { FeedSortContext } from "./feedQuery";
@@ -61,8 +60,7 @@ async function resolveFeedSort(
         };
     }
 
-    const isBot = userAgent({ headers: headerList }).isBot || isHtmlOnlyCrawler(headerList.get("user-agent"));
-    const region = isBot ? null : regionOfCity(ipCity(headerList));
+    const region = isBotRequest(headerList) ? null : regionOfCity(ipCity(headerList));
     if (region) {
         return {
             sort: { region: region.slug, origin: null },

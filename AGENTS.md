@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents (Claude Code, Codex and others) when working with code in this repository.
 
 ## What this project is
 
@@ -14,6 +14,8 @@ npm run build         # Production build
 npm run type-check    # tsc --noEmit (run this before committing)
 npm run check         # type-check + lint together
 npm run lint:fix      # Auto-fix lint issues
+npm run test:unit     # Vitest unit tests (pure logic, no DB or browser)
+npm run eval:search   # Score the AI search parser on labelled queries
 npm run test:e2e      # Playwright end-to-end tests
 npx prisma studio     # Open Prisma database GUI
 npx prisma generate   # Regenerate client after schema changes

@@ -5,7 +5,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import useIndianCities from "@/hooks/useCities";
 import { type LatLng, parseLatLngParam, parsePlaceLabelParam, searchRadiusKm } from "@/lib/geo";
 import { citySlug } from "@/lib/listing/cityPaths";
-import { formatISTDate } from "@/lib/utils";
 
 const CITY_PAGE = /^\/studios\/([^/]+)/;
 
@@ -39,7 +38,6 @@ export function useStudioSearch() {
     place,
     whereLabel: place?.label ?? city?.label ?? cityParam ?? null,
     date,
-    dateLabel: date ? formatISTDate(date, { month: "short", day: "numeric" }) : null,
     hasSets: params?.get("hasSets") === "true",
   };
 }

@@ -29,6 +29,8 @@ const ROUTES_WITH_DEDICATED_REQUEST_GUARDS = new Set([
     '/api/user/verify/aadhaar',
     '/api/whatsapp/webhook',
     '/api/cron/qstash',
+    '/api/search',
+    '/api/search/suggest',
 ])
 
 const EXTERNAL_MUTATION_ROUTES = new Set([

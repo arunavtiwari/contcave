@@ -1,51 +1,13 @@
 "use client";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { Suspense, useEffect, useRef, useState } from "react";
-import { BiSearch } from "react-icons/bi";
+import { useEffect, useRef, useState } from "react";
 
 import Container from "@/components/layout/Container";
+import SpotlightTrigger from "@/components/search/SpotlightTrigger";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import { HERO_HIGHLIGHTS } from "@/constants/landing";
-import { useStudioSearch } from "@/hooks/useStudioSearch";
-import useUIStore from "@/hooks/useUIStore";
-
-const HeroSearch = () => {
-  const uiStore = useUIStore();
-  const { whereLabel, dateLabel } = useStudioSearch();
-
-  return (
-    <button
-      type="button"
-      onClick={() => uiStore.onOpen("search")}
-      aria-label="Open studio search"
-      className="group flex w-full max-w-lg flex-row items-center rounded-full border border-background/20 bg-background/10 backdrop-blur-2xl p-1 text-left shadow-sm transition-all md:max-w-xl lg:max-w-2xl"
-    >
-      <div className="flex flex-1 flex-row items-center sm:divide-x sm:divide-border/50">
-        <div className="flex flex-1 flex-col px-4 md:px-7">
-          <span className="text-[10px] uppercase text-background/50">
-            Location
-          </span>
-          <span className="truncate text-sm font-medium text-background">
-            {whereLabel ?? "Search an area or city..."}
-          </span>
-        </div>
-        <div className="hidden flex-1 flex-col px-4 sm:flex md:px-7">
-          <span className="text-[10px] uppercase text-background/50">
-            Date
-          </span>
-          <span className="truncate text-sm font-medium text-background">
-            {dateLabel ?? "Add date"}
-          </span>
-        </div>
-      </div>
-      <div className="flex shrink-0 items-center justify-center rounded-full bg-foreground/40 p-2 text-background transition-transform group-hover:scale-105 md:p-3 backdrop-blur-lg">
-        <BiSearch size={22} />
-      </div>
-    </button>
-  );
-};
 
 const Hero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -134,11 +96,7 @@ const Hero = () => {
 
               <div className="flex flex-col gap-6">
                 <div className="w-full">
-                  <Suspense fallback={
-                    <div className="h-16 w-full max-w-xl animate-pulse rounded-full bg-background/20 backdrop-blur-md md:max-w-2xl lg:max-w-3xl" />
-                  }>
-                    <HeroSearch />
-                  </Suspense>
+                  <SpotlightTrigger tone="glass" />
                 </div>
 
                 <div className="flex items-center gap-3 mt-2">
