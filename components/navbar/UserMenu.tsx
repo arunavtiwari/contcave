@@ -118,8 +118,6 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
     };
   }, [isOpen, updateMenuCoords]);
 
-  const canListSpace = currentUser?.role === UserRole.ADMIN || !!currentUser?.is_verified;
-
   const handleRent = useCallback(() => {
     uiStore.onOpen("rent");
     closeMenu();
@@ -151,7 +149,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
           size="md"
           outline
           rounded
-          className="w-10! h-10! md:w-auto! md:h-11! px-0 md:px-2 flex items-center justify-center md:justify-start gap-3 transition-colors duration-200 border border-neutral-300! bg-background! ring-1 ring-neutral-300/70 hover:bg-muted active:scale-100!"
+          className="w-10! h-10! md:w-auto! md:h-11! px-0 md:px-2 flex items-center justify-center md:justify-start gap-3 transition-colors duration-200 border border-neutral-300! bg-background! ring-1 ring-neutral-300/70 hover:bg-muted active:transform-none!"
         >
           <AiOutlineMenu className="text-foreground shrink-0" />
           <div className="hidden md:block shrink-0">
@@ -184,11 +182,7 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
                       <>
                         <MenuItem onClick={closeMenu} href="/dashboard/reservations" label="Guest Reservations" icon={FiUserCheck} />
                         <MenuItem onClick={closeMenu} href="/dashboard/properties" label="My Properties" icon={MdApartment} />
-                        {canListSpace ? (
-                          <MenuItem onClick={handleRent} label="List your space" icon={FiPlusCircle} />
-                        ) : (
-                          <MenuItem onClick={closeMenu} href="/dashboard/profile" label="Verify to list your space" icon={FiPlusCircle} />
-                        )}
+                        <MenuItem onClick={handleRent} label="List your space" icon={FiPlusCircle} />
                       </>
                     )}
                     <MenuItem onClick={closeMenu} href="/dashboard/profile" label="My Profile" icon={FiUser} />

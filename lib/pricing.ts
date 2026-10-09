@@ -9,18 +9,18 @@ import {
 } from "@/types/set";
 
 
-export function calculateHours(durationMinutes: number): number {
+function calculateHours(durationMinutes: number): number {
     if (durationMinutes <= 0) return 1;
     return Math.ceil(durationMinutes / 60);
 }
 
 
-export function calculateBaseCost(baseHourlyRate: number, hours: number): number {
+function calculateBaseCost(baseHourlyRate: number, hours: number): number {
     return Math.round(baseHourlyRate * hours);
 }
 
 
-export function findIncludedSet(
+function findIncludedSet(
     selectedSetIds: string[],
     sets: ListingSet[]
 ): ListingSet | null {
@@ -37,7 +37,7 @@ export function findIncludedSet(
 }
 
 
-export function calculateAdditionalSetsCost(
+function calculateAdditionalSetsCost(
     selectedSetIds: string[],
     includedSetId: string | null,
     sets: ListingSet[],
@@ -180,6 +180,32 @@ export function validateSetSelection(
     return { valid: true };
 }
 
+
+export type WholeStudioSuggestion =
+    | { kind: "package"; package: Package; price: number; savings: number }
+    | { kind: "browse" };
+
+export function suggestWholeStudioPackage(
+    params: Omit<SetPricingParams, "selectedPackage"> & { packages: Package[] }
+): WholeStudioSuggestion | null {
+    const { packages, selectedSetIds, sets, durationMinutes } = params;
+    if (sets.length < 2 || selectedSetIds.length !== sets.length) return null;
+
+    const eligible = packages.filter((pkg) => validateSetSelection(selectedSetIds, pkg).valid);
+    if (eligible.length === 0) return null;
+
+    const setsPrice = calculateSetPricing({ ...params, selectedPackage: null }).subtotal;
+    const best = eligible
+        .filter((pkg) => Number(pkg.durationHours) * 60 === durationMinutes)
+        .map((pkg) => {
+            const price = calculateSetPricing({ ...params, selectedPackage: pkg }).subtotal;
+            return { package: pkg, price, savings: setsPrice - price };
+        })
+        .filter((option) => option.savings > 0)
+        .sort((a, b) => b.savings - a.savings)[0];
+
+    return best ? { kind: "package", ...best } : { kind: "browse" };
+}
 
 /** GST charged on top of a pre-GST amount, in whole rupees — what the customer pays. */
 export function addGst(subtotal: number): { gstAmount: number; total: number } {

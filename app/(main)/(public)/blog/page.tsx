@@ -4,7 +4,13 @@ import Container from "@/components/layout/Container";
 import JsonLd from "@/components/seo/JsonLd";
 import PageBanner from "@/components/ui/PageBanner";
 import { getSortedPostsData, groupPostsByCategory, toBlogCard } from "@/lib/posts";
-import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import {
+  absoluteUrl,
+  BRAND_NAME,
+  OG_IMAGE,
+  ORGANIZATION_ID,
+  SITE_URL,
+} from "@/lib/seo";
 import { BlogPost } from "@/types/blog";
 
 export const revalidate = 3600;
@@ -78,7 +84,7 @@ export default function BlogPage() {
     name: `${BRAND_NAME} Blog`,
     description: DESCRIPTION,
     inLanguage: "en-IN",
-    publisher: { "@id": `${SITE_URL}/#organization` },
+    publisher: { "@id": ORGANIZATION_ID },
     blogPost: posts.map((post) => ({
       "@type": "BlogPosting",
       "@id": `${SITE_URL}/blog/${post.id}#article`,

@@ -2,16 +2,23 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { createCuratedListingAction } from "@/app/actions/listingActions";
+import AmenitiesCheckbox, { AmenitiesData } from "@/components/inputs/AmenitySelection";
+import RichTextEditor from "@/components/inputs/RichTextEditor";
+import ListingLocationFields from "@/components/listing/ListingLocationFields";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
+import { listingLocationIssues, listingLocationValue } from "@/lib/listing/location";
+import { isRichTextEmpty } from "@/lib/richText";
+import type { LocationSchema } from "@/schemas/listing";
+import type { SafeAmenity } from "@/types/amenity";
 
 const CATEGORIES = [
   "Photography",
@@ -29,14 +36,10 @@ const CATEGORY_OPTIONS = CATEGORIES.map((c) => ({ value: c, label: c }));
 const curatedListingSchema = z.object({
   title: z.string().trim().min(1, "Studio name is required"),
   category: z.string().min(1, "Please select a category"),
-  locationValue: z.string().trim().min(1, "Location or area is required"),
   description: z.string().trim().min(1, "Description is required"),
   imageSrc: z.string().trim().min(1, "At least one image URL is required"),
   priceRangeMin: z.string().optional(),
   priceRangeMax: z.string().optional(),
-  mapsUrl: z.string().trim().optional(),
-  websiteUrl: z.string().trim().optional(),
-  instagramHandle: z.string().trim().optional(),
   contactEmail: z
     .string()
     .trim()
@@ -44,39 +47,54 @@ const curatedListingSchema = z.object({
       message: "Please enter a valid email address",
     })
     .optional(),
+  amenities: z.array(z.string()),
+  otherAmenities: z.array(z.string()),
+  customTerms: z.string().optional(),
   curatedSource: z.string().trim().optional(),
 });
 
 type FormValues = z.infer<typeof curatedListingSchema>;
 
-export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: () => void }) {
+export default function CreateCuratedListingForm({
+  amenities,
+  onSuccess,
+}: {
+  amenities: SafeAmenity[];
+  onSuccess?: () => void;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [location, setLocation] = useState<LocationSchema | null>(null);
+  const [locationErrors, setLocationErrors] = useState<ReturnType<typeof listingLocationIssues>>({});
 
   const {
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(curatedListingSchema),
     defaultValues: {
       title: "",
       category: "",
-      locationValue: "",
       description: "",
       imageSrc: "",
       priceRangeMin: "",
       priceRangeMax: "",
-      mapsUrl: "",
-      websiteUrl: "",
-      instagramHandle: "",
       contactEmail: "",
+      amenities: [],
+      otherAmenities: [],
+      customTerms: "",
       curatedSource: "",
     },
   });
 
   const onSubmit = (values: FormValues) => {
+    const issues = listingLocationIssues(location);
+    if (!location || issues.city || issues.address) return;
+
     const imageUrls = values.imageSrc
       .split("\n")
       .map((s) => s.trim())
@@ -92,11 +110,11 @@ export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: ()
         title: values.title,
         description: values.description,
         category: values.category,
-        locationValue: values.locationValue,
+        actualLocation: location,
         imageSrc: imageUrls,
-        mapsUrl: values.mapsUrl || undefined,
-        websiteUrl: values.websiteUrl || undefined,
-        instagramHandle: values.instagramHandle || undefined,
+        amenities: values.amenities,
+        otherAmenities: values.otherAmenities,
+        customTerms: isRichTextEmpty(values.customTerms ?? "") ? undefined : values.customTerms?.trim(),
         priceRangeMin: values.priceRangeMin ? Number(values.priceRangeMin) : undefined,
         priceRangeMax: values.priceRangeMax ? Number(values.priceRangeMax) : undefined,
         contactEmail: values.contactEmail || undefined,
@@ -114,7 +132,14 @@ export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: ()
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+    <form
+      onSubmit={(event) => {
+        setLocationErrors(listingLocationIssues(location));
+        void handleSubmit(onSubmit)(event);
+      }}
+      className="space-y-5"
+      noValidate
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
           id="title"
@@ -146,13 +171,16 @@ export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: ()
         />
       </div>
 
-      <Input
-        id="locationValue"
-        label="Location / Area"
-        required
-        placeholder="Delhi NCR — Lajpat Nagar"
-        error={errors.locationValue?.message}
-        {...register("locationValue")}
+      <ListingLocationFields
+        value={location}
+        locationValue={listingLocationValue(location)}
+        cityError={locationErrors.city}
+        addressError={locationErrors.address}
+        disabled={isPending}
+        onChange={(next) => {
+          setLocation(next);
+          setLocationErrors({});
+        }}
       />
 
       <Textarea
@@ -197,41 +225,36 @@ export default function CreateCuratedListingForm({ onSuccess }: { onSuccess?: ()
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          id="mapsUrl"
-          label="Google Maps URL"
-          placeholder="https://maps.google.com/…"
-          error={errors.mapsUrl?.message}
-          {...register("mapsUrl")}
-        />
-        <Input
-          id="websiteUrl"
-          label="Studio Website"
-          placeholder="https://studioname.com"
-          error={errors.websiteUrl?.message}
-          {...register("websiteUrl")}
-        />
-      </div>
+      <AmenitiesCheckbox
+        label="Amenities"
+        amenities={amenities}
+        checked={watch("amenities")}
+        customAmenities={watch("otherAmenities")}
+        onChange={(data: AmenitiesData) => {
+          setValue(
+            "amenities",
+            Object.keys(data.predefined).filter((k) => data.predefined[k]),
+            { shouldDirty: true }
+          );
+          setValue("otherAmenities", data.custom, { shouldDirty: true });
+        }}
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          id="instagramHandle"
-          label="Instagram Handle"
-          placeholder="@studioname"
-          error={errors.instagramHandle?.message}
-          {...register("instagramHandle")}
-        />
-        <Input
-          id="contactEmail"
-          label="Contact Email (Internal)"
-          description="Never shown publicly"
-          type="email"
-          placeholder="owner@studio.com"
-          error={errors.contactEmail?.message}
-          {...register("contactEmail")}
-        />
-      </div>
+      <RichTextEditor
+        label="Terms & Conditions"
+        value={watch("customTerms") ?? ""}
+        onChange={(html) => setValue("customTerms", html, { shouldDirty: true })}
+      />
+
+      <Input
+        id="contactEmail"
+        label="Contact Email (Internal)"
+        description="Never shown publicly. Used to send the studio an outreach email."
+        type="email"
+        placeholder="owner@studio.com"
+        error={errors.contactEmail?.message}
+        {...register("contactEmail")}
+      />
 
       <Input
         id="curatedSource"

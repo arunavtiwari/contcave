@@ -1,6 +1,6 @@
 import { Prisma, ReservationStatus } from "@prisma/client";
 
-import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
+import { checkBookingSlot, parseTimeToMinutes } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund } from "@/lib/cashfree/cashfree";
 import { scheduleQstashJob } from "@/lib/cron/qstash";
@@ -19,7 +19,6 @@ import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
 import prisma from "@/lib/prismadb";
-import { validateBookingWindow } from "@/lib/reservation/bookingWindow";
 import { isReservationSlotUniqueConflict, LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
 import { formatReservationDate, parseReservationEndTimeForDate, parseReservationTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
@@ -451,27 +450,9 @@ export class ReservationService {
                     throw new ReservationSlotConflictError("This listing is no longer accepting bookings");
                 }
                 const dateKey = startDate.toISOString().slice(0, 10);
-                const dayStatus = await tx.dayStatus.findUnique({
-                    where: { listingId_date: { listingId: txn.listing.id, date: startDate } },
-                });
-                if (dayStatus && !dayStatus.listingActive) {
-                    throw new ReservationSlotConflictError("This listing is not accepting bookings on the selected date");
-                }
                 const selectedPackage = setPackageId
                     ? txn.listing.packages.find((pkg) => pkg.id === setPackageId && pkg.isActive)
                     : null;
-                const windowError = validateBookingWindow({
-                    startDate: dateKey,
-                    startTime,
-                    endTime,
-                    operationalDays: txn.listing.operationalDays,
-                    operationalHours: dayStatus
-                        ? { start: dayStatus.startTime, end: dayStatus.endTime }
-                        : txn.listing.operationalHours,
-                    minimumBookingHours: txn.listing.minimumBookingHours,
-                    selectedPackageDurationHours: selectedPackage?.durationHours ?? null,
-                });
-                if (windowError) throw new ReservationSlotConflictError(windowError);
                 const availableSetIds = new Set(txn.listing.sets.map((set) => set.id));
                 if (
                     (txn.listing.hasSets && setIds.length === 0) ||
@@ -479,23 +460,20 @@ export class ReservationService {
                 ) {
                     throw new ReservationSlotConflictError("One or more selected sets are no longer available");
                 }
-                if (setPackageId && !txn.listing.packages.some((pkg) => pkg.id === setPackageId && pkg.isActive)) {
+                if (setPackageId && !selectedPackage) {
                     throw new ReservationSlotConflictError("The selected package is no longer available");
                 }
 
-                const conflict = await checkSetConflicts({
+                const slotError = await checkBookingSlot({
                     listingId: txn.listingId!,
-                    date: startDate,
+                    date: dateKey,
                     startTime,
                     endTime,
                     setIds,
-                    tx,
-                    skipGoogleCalendar: true,
+                    packageDurationHours: selectedPackage?.durationHours ?? null,
+                    db: tx,
                 });
-
-                if (conflict.hasConflict) {
-                    throw new ReservationSlotConflictError(conflict.conflictDetails || "Slot taken");
-                }
+                if (slotError) throw new ReservationSlotConflictError(slotError);
 
                 const bookingId = await generateBookingId();
 

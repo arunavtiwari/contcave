@@ -1,25 +1,19 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import Container from "@/components/layout/Container";
-
-export type MoreStudiosItem = {
-  id: string;
-  title: string;
-  href: string;
-  image?: string;
-  kind: string;
-};
+import ListingCard, { type ListingCardData } from "@/components/listing/ListingCard";
+import type { SafeUser } from "@/types/user";
 
 type Props = {
   heading: string;
-  items: MoreStudiosItem[];
+  listings: ListingCardData[];
+  currentUser?: SafeUser | null;
   moreHref?: string;
   moreLabel?: string;
 };
 
-export default function MoreStudios({ heading, items, moreHref, moreLabel }: Props) {
-  if (items.length === 0) return null;
+export default function MoreStudios({ heading, listings, currentUser, moreHref, moreLabel }: Props) {
+  if (listings.length === 0) return null;
 
   return (
     <section aria-labelledby="more-studios-heading" className="pb-24">
@@ -35,26 +29,11 @@ export default function MoreStudios({ heading, items, moreHref, moreLabel }: Pro
               </Link>
             )}
           </div>
-          <ul className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {items.map((item) => (
-              <li key={item.id}>
-                <Link href={item.href} className="group block">
-                  <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-muted">
-                    {item.image && (
-                      <Image
-                        src={item.image}
-                        alt={`${item.title} – ${item.kind}`}
-                        fill
-                        sizes="(max-width: 768px) 50vw, 33vw"
-                        className="object-cover transition group-hover:scale-105"
-                      />
-                    )}
-                  </div>
-                  <p className="mt-2 text-sm font-medium text-foreground line-clamp-2">{item.title}</p>
-                </Link>
-              </li>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {listings.map((listing) => (
+              <ListingCard key={listing.id} data={listing} currentUser={currentUser} showListingBadge />
             ))}
-          </ul>
+          </div>
         </div>
       </Container>
     </section>

@@ -1,6 +1,6 @@
 "use server";
 
-import { PaymentDetails } from "@prisma/client";
+import { PaymentDetails, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -9,19 +9,25 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getGstStateCodeFromStateName } from "@/constants/gstStateCodes";
 import { createAction } from "@/lib/actions-utils";
 import { UserFacingError } from "@/lib/errors";
-import { ListingService } from "@/lib/listing/service";
+import { listingLocationIssues, listingLocationValue, resolveListingLocation } from "@/lib/listing/location";
+import { type ListingShareLink, listingShareLink } from "@/lib/listing/preview";
+import { assertDefaultAmenitiesExist, ListingService } from "@/lib/listing/service";
 import { decryptAndSanitizePaymentDetails } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
 import { rateLimitRequest } from "@/lib/security/rateLimit";
+import { sanitizeStringList } from "@/lib/strings";
 import { objectIdSchema } from "@/schemas/common";
 import { dayStatusSchema } from "@/schemas/dayStatus";
 import {
     approveListingSchema,
+    customAmenitiesSchema,
+    defaultAmenitiesSchema,
     deleteBlockSchema,
     deleteListingSchema,
     listingBaseSchema,
     listingBlockSchema,
     listingSchema,
+    locationSchema,
     rejectListingSchema
 } from "@/schemas/listing";
 
@@ -103,6 +109,7 @@ export type AdminListingReviewSummary = {
     inConversation: boolean;
     notifyEmailSentAt: string | null;
     notifyReminderAt: string | null;
+    share: ListingShareLink;
     user: {
         name: string | null;
         email: string | null;
@@ -175,6 +182,7 @@ export async function getAdminListingReviews(status?: AdminListingStatus, listin
                 price: listing.price,
                 status: listing.status,
                 active: listing.active,
+                share: listingShareLink(listing),
                 createdAt: listing.createdAt.toISOString(),
                 reviewedAt: listing.reviewedAt?.toISOString() || null,
                 rejectionReason: listing.rejectionReason,
@@ -306,7 +314,7 @@ export async function getAdminListingReviewPage(params: {
         where: { id: { in: pageData.ids } },
         select: {
             id: true, slug: true, title: true, imageSrc: true, category: true, locationValue: true,
-            price: true, status: true, createdAt: true, listingType: true, enquiryCount: true,
+            price: true, status: true, active: true, createdAt: true, listingType: true, enquiryCount: true,
             inConversation: true, notifyEmailSentAt: true, notifyReminderAt: true,
             user: { select: { name: true, email: true, is_verified: true } },
         },
@@ -330,6 +338,7 @@ export async function getAdminListingReviewPage(params: {
             inConversation: listing.inConversation,
             notifyEmailSentAt: listing.notifyEmailSentAt?.toISOString() ?? null,
             notifyReminderAt: listing.notifyReminderAt?.toISOString() ?? null,
+            share: listingShareLink(listing),
             user: listing.user ? {
                 name: listing.user.name,
                 email: listing.user.email,
@@ -414,10 +423,6 @@ export const createListingAction = createAction(
         if (!isContcave && user.role !== "OWNER" && user.role !== "ADMIN") {
             throw new UserFacingError("You must be an approved owner or administrator to create a listing", 403);
         }
-        if (!isContcave && user.role !== "ADMIN" && !user.is_verified) {
-            throw new UserFacingError("Complete your profile verification before listing a space", 403);
-        }
-
         const enforcedData = {
             ...data,
             listingType: isContcave
@@ -469,7 +474,7 @@ export const updateListingAction = createAction(
         const { id, ...updateData } = data;
         const listing = await ListingService.updateListing(user.id, id, updateData, isContcave || user.role === "ADMIN");
 
-        revalidatePath(`/listings/${id}`);
+        revalidatePath(`/studio/${id}`);
         revalidatePath("/properties");
         revalidatePath("/dashboard/properties");
 
@@ -526,7 +531,7 @@ export const createBlockAction = createAction(
     async (data, { user }) => {
         const { listingId, ...blockData } = data;
         await ListingService.createBlock(user.id, listingId, blockData, user.role === "ADMIN");
-        revalidatePath(`/listings/${listingId}`);
+        revalidatePath(`/studio/${listingId}`);
         return { success: true };
     }
 );
@@ -536,7 +541,7 @@ export const deleteBlockAction = createAction(
     { requireAuth: true, allowedRoles: ["OWNER", "ADMIN"] },
     async (data, { user }) => {
         await ListingService.deleteBlock(user.id, data.listingId, data.blockId, user.role === "ADMIN");
-        revalidatePath(`/listings/${data.listingId}`);
+        revalidatePath(`/studio/${data.listingId}`);
         return { success: true };
     }
 );
@@ -573,7 +578,7 @@ export const updateDayStatusAction = createAction(
             },
         });
 
-        revalidatePath(`/listings/${listingId}`);
+        revalidatePath(`/studio/${listingId}`);
         return { success: true };
     }
 );
@@ -593,12 +598,12 @@ const curatedListingSchema = z.object({
     title: z.string().min(2).max(200),
     description: z.string().min(10).max(5000),
     category: z.string().trim().min(1).max(100),
-    locationValue: z.string().trim().min(1).max(300),
+    actualLocation: locationSchema,
     propertyStateCode: z.string().regex(/^\d{2}$/).optional().nullable(),
     imageSrc: z.array(curatedHttpUrlSchema(500)).min(1).max(30),
-    mapsUrl: curatedHttpUrlSchema(1000).optional().or(z.literal("")),
-    websiteUrl: curatedHttpUrlSchema(1000).optional().or(z.literal("")),
-    instagramHandle: z.string().trim().regex(/^@?[A-Za-z0-9._]{1,30}$/, "Invalid Instagram handle").optional(),
+    amenities: defaultAmenitiesSchema.default([]),
+    otherAmenities: customAmenitiesSchema.default([]),
+    customTerms: z.string().max(20000).optional(),
     priceRangeMin: z.number().int().positive().optional(),
     priceRangeMax: z.number().int().positive().optional(),
     contactEmail: z.string().email().optional().or(z.literal("")),
@@ -606,33 +611,39 @@ const curatedListingSchema = z.object({
 }).refine((data) => data.priceRangeMin == null || data.priceRangeMax == null || data.priceRangeMin <= data.priceRangeMax, {
     message: "Minimum price cannot exceed maximum price",
     path: ["priceRangeMax"],
+}).superRefine((data, ctx) => {
+    const issues = listingLocationIssues(data.actualLocation);
+    const message = issues.city ?? issues.address;
+    if (message) ctx.addIssue({ code: "custom", message, path: ["actualLocation"] });
 });
 
 export const createCuratedListingAction = createAction(
     curatedListingSchema,
     { requireAuth: true, allowedRoles: ["ADMIN"] },
     async (data, { user }) => {
+        const locationValue = listingLocationValue(data.actualLocation);
+        const location = resolveListingLocation(data.actualLocation);
         const listing = await prisma.listing.create({
             data: {
                 title: data.title,
                 description: data.description,
                 category: data.category,
-                locationValue: data.locationValue,
-                propertyStateCode: data.propertyStateCode || getGstStateCodeFromStateName(data.locationValue),
+                locationValue,
+                actualLocation: location.actualLocation as Prisma.InputJsonObject,
+                ...(location.locationPoint ? { locationPoint: location.locationPoint } : {}),
+                propertyStateCode: data.propertyStateCode || location.propertyStateCode || getGstStateCodeFromStateName(locationValue),
                 imageSrc: data.imageSrc,
-                mapsUrl: data.mapsUrl || null,
-                websiteUrl: data.websiteUrl || null,
-                instagramHandle: data.instagramHandle || null,
                 priceRangeMin: data.priceRangeMin ?? null,
                 priceRangeMax: data.priceRangeMax ?? null,
                 contactEmail: data.contactEmail || null,
                 curatedSource: data.curatedSource || null,
+                customTerms: data.customTerms || null,
                 listingType: "CURATED",
                 status: "VERIFIED",
                 active: true,
                 userId: user.id,
-                amenities: [],
-                otherAmenities: [],
+                amenities: await assertDefaultAmenitiesExist(data.amenities),
+                otherAmenities: sanitizeStringList(data.otherAmenities),
                 type: [],
             },
         });
@@ -643,7 +654,7 @@ export const createCuratedListingAction = createAction(
                 await sendCuratedOutreachEmail({
                     toEmail: data.contactEmail,
                     studioName: data.title,
-                    city: data.locationValue,
+                    city: locationValue,
                     listingId: listing.id,
                 });
                 await prisma.listing.update({
@@ -655,7 +666,7 @@ export const createCuratedListingAction = createAction(
             }
         }
 
-        revalidatePath("/home");
+        revalidatePath("/studios");
         revalidatePath("/admin/dashboard/listings");
         return { listingId: listing.id };
     }

@@ -1,4 +1,4 @@
-export function getNormalizedWhatsAppNumber(): string {
+function getNormalizedWhatsAppNumber(): string {
     const raw = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "").replace(/\D/g, "");
     if (!raw) return "";
     return raw.length === 10 ? `91${raw}` : raw;
@@ -13,6 +13,10 @@ export function buildWhatsAppUrl(message?: string): string {
 
 export function curatedEnquiryMessage(studioName: string, area: string): string {
     return `Hi ContCave, I'm interested in ${studioName} in ${area}. Could you share pricing details and availability?`;
+}
+
+export function previewLinkExpiredMessage(studioName: string): string {
+    return `Hi ContCave, my preview link for ${studioName} has expired. Could you send me a new one?`;
 }
 
 export const GENERAL_ENQUIRY_MESSAGE =

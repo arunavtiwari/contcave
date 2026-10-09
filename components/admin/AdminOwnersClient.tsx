@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import React, { useState, useTransition } from "react";
 import {
   FiAlertCircle,
@@ -43,6 +42,7 @@ import {
   TableSkeletonRows,
 } from "@/components/ui/Table";
 import Tooltip from "@/components/ui/Tooltip";
+import { usePublicSiteUrl } from "@/hooks/usePublicSiteUrl";
 import { downloadCustomCsv } from "@/lib/csv";
 import { cn, formatINR, formatISTDate } from "@/lib/utils";
 
@@ -548,6 +548,8 @@ function OwnerDetailModal({
   state: OwnerDetailState;
   onClose: () => void;
 }) {
+  const publicUrl = usePublicSiteUrl();
+
   if (!state.isOpen) return null;
 
   const owner = state.data;
@@ -737,14 +739,15 @@ function OwnerDetailModal({
                     </div>
 
                     <div className="pt-1">
-                      <Link
-                        href={`/listings/${listing.id}`}
+                      <a
+                        href={publicUrl(listing.share.path)}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                       >
-                        <span>View public page</span>
+                        <span>{listing.share.expiresAt ? "Open preview" : "View public page"}</span>
                         <FiExternalLink size={12} />
-                      </Link>
+                      </a>
                     </div>
                   </div>
                 ))}

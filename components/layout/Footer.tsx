@@ -4,9 +4,8 @@ import Link from "next/link";
 import Container from "@/components/layout/Container";
 import Logo from "@/components/navbar/Logo";
 import EmailShield from "@/components/ui/EmailShield";
-import { cityPath, getCityDirectory } from "@/lib/listing/cities";
-
-const FOOTER_CITY_COUNT = 5;
+import { getCityDirectory } from "@/lib/listing/cities";
+import { cityPath } from "@/lib/listing/cityPaths";
 
 async function Footer() {
   const cities = await getCityDirectory().catch((error: unknown) => {
@@ -75,22 +74,21 @@ async function Footer() {
 
             <div className="flex flex-col space-y-3">
               <p className="text-lg font-bold text-foreground">Activities</p>
-              <Link href="/home?type=Fashion+%26+Lifestyle" className="text-muted-foreground hover:text-foreground transition-all text-sm">Fashion Shoot</Link>
-              <Link href="/home?type=Video+%26+Film" className="text-muted-foreground hover:text-foreground transition-all text-sm">Video & Film</Link>
-              <Link href="/home?type=Pre-Wedding" className="text-muted-foreground hover:text-foreground transition-all text-sm">Pre-Wedding Shoot</Link>
-              <Link href="/home?venueTypes=Outdoor+%2F+Rooftop" className="text-muted-foreground hover:text-foreground transition-all text-sm">Outdoor Spaces</Link>
-              <Link href="/home?type=Podcast+%26+Interview" className="text-muted-foreground hover:text-foreground transition-all text-sm">Podcasts</Link>
-              <Link href="/home?type=Events+%26+Pop-Ups" className="text-muted-foreground hover:text-foreground transition-all text-sm">Events & Pop-Ups</Link>
-              <Link href="/home?type=Product+%26+E-commerce" className="text-muted-foreground hover:text-foreground transition-all text-sm">Product Shoots</Link>
+              <Link href="/studios?type=Fashion+%26+Lifestyle" className="text-muted-foreground hover:text-foreground transition-all text-sm">Fashion Shoot</Link>
+              <Link href="/studios?type=Video+%26+Film" className="text-muted-foreground hover:text-foreground transition-all text-sm">Video & Film</Link>
+              <Link href="/studios?type=Pre-Wedding" className="text-muted-foreground hover:text-foreground transition-all text-sm">Pre-Wedding Shoot</Link>
+              <Link href="/studios?venueTypes=Outdoor+%2F+Rooftop" className="text-muted-foreground hover:text-foreground transition-all text-sm">Outdoor Spaces</Link>
+              <Link href="/studios?type=Podcast+%26+Interview" className="text-muted-foreground hover:text-foreground transition-all text-sm">Podcasts</Link>
+              <Link href="/studios?type=Events+%26+Pop-Ups" className="text-muted-foreground hover:text-foreground transition-all text-sm">Events & Pop-Ups</Link>
+              <Link href="/studios?type=Product+%26+E-commerce" className="text-muted-foreground hover:text-foreground transition-all text-sm">Product Shoots</Link>
             </div>
 
             <div className="flex flex-col space-y-3">
               <p className="text-lg font-bold text-foreground">Across India</p>
               <div className="grid grid-cols-1 gap-2">
-                {cities.slice(0, FOOTER_CITY_COUNT).map((city) => (
+                {cities.map((city) => (
                   <Link key={city.slug} href={cityPath(city.city)} className="text-muted-foreground hover:text-foreground transition-all text-sm">{city.city}</Link>
                 ))}
-                <Link href="/studios" className="text-muted-foreground hover:text-foreground transition-all text-sm font-semibold">View All Cities</Link>
               </div>
             </div>
           </div>

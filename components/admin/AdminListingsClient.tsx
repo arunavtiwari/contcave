@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import {
     FiCheck,
     FiClock,
+    FiCopy,
     FiEdit,
     FiExternalLink,
     FiFileText,
@@ -28,7 +29,7 @@ import {
     markInConversationAction,
     rejectListingAction,
 } from "@/app/actions/listingActions";
-import { AdminListingSkeletonRows, CuratedListingSkeletonRows } from "@/components/admin/AdminListingSkeletonRows";
+import { AdminListingSkeletonRows, CuratedListingSkeletonRows, NAME_COLUMN_WIDTH } from "@/components/admin/AdminListingSkeletonRows";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
@@ -47,7 +48,8 @@ import {
 } from "@/components/ui/Table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { adminEditListingHref } from "@/constants/adminNav";
-import { formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
+import { usePublicSiteUrl } from "@/hooks/usePublicSiteUrl";
+import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
 
 // Only opened from a row action, so its bundle loads on first use rather than with the
 // listings table.
@@ -100,20 +102,13 @@ function fileSize(bytes?: number) {
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
 
-function publicListingHref(slugOrId: string) {
-    const path = `/listings/${slugOrId}`;
-    if (typeof window === "undefined") return path;
-
-    const url = new URL(window.location.href);
-    if (url.hostname.startsWith("admin.")) {
-        url.hostname = url.hostname.replace(/^admin\./, "");
-    } else if (url.hostname.startsWith("staging.admin.")) {
-        url.hostname = url.hostname.replace(/^staging\.admin\./, "staging.");
+async function copyShareLink(url: string, expiresAt: string | null) {
+    try {
+        await navigator.clipboard.writeText(url);
+        toast.success(expiresAt ? `Preview link copied. It works until ${formatISTDateTime(expiresAt)}.` : "Studio link copied");
+    } catch {
+        toast.error("Couldn't copy the link");
     }
-    url.pathname = path;
-    url.search = "";
-    url.hash = "";
-    return url.toString();
 }
 
 function KycPill({ verified, size }: { verified: boolean; size?: "xs" | "sm" | "md" }) {
@@ -296,6 +291,8 @@ function ReviewModal({
     onRequestAction: (action: ConfirmAction) => void;
     isMutating: boolean;
 }) {
+    const publicUrl = usePublicSiteUrl();
+
     if (!listing) {
         if (!isOpening) return null;
         return (
@@ -311,7 +308,7 @@ function ReviewModal({
         );
     }
 
-    const previewHref = publicListingHref(listing.slug || listing.id);
+    const previewHref = publicUrl(listing.share.path);
     const addons = Array.isArray(listing.addons) ? listing.addons as Array<Record<string, unknown>> : [];
     const allAmenities = [...asList(listing.amenities), ...asList(listing.otherAmenities)];
     const agreementUrl = listing.verifications.agreementPdf?.pdfUrl || listing.verifications.agreementPdf?.url;
@@ -376,7 +373,13 @@ function ReviewModal({
                                 <Detail label="Submitted" value={formatISTDateTime(listing.createdAt)} />
                                 <Detail label="Reviewed" value={listing.reviewedAt ? formatISTDateTime(listing.reviewedAt) : null} />
                             </div>
-                            <DocumentLink href={previewHref} title="Open public preview" meta="Listing detail page" />
+                            <DocumentLink
+                                href={previewHref}
+                                title="Open public preview"
+                                meta={listing.share.expiresAt
+                                    ? `Shareable preview link, valid until ${formatISTDateTime(listing.share.expiresAt)}`
+                                    : "Live listing page"}
+                            />
                             {listing.status === "REJECTED" && <Detail label="Rejection Reason" value={listing.rejectionReason} />}
                         </div>
                     </div>
@@ -509,6 +512,14 @@ function ReviewModal({
                             data-testid="admin-review-open-preview"
                         />
                         <Button
+                            label="Copy Link"
+                            onClick={() => copyShareLink(previewHref, listing.share.expiresAt)}
+                            variant="outline"
+                            fit
+                            icon={FiCopy}
+                            data-testid="admin-review-copy-preview"
+                        />
+                        <Button
                             label="Edit Studio"
                             href={adminEditListingHref(listing.id)}
                             variant="outline"
@@ -577,6 +588,7 @@ export default function AdminListingsClient({
     curatedTotal,
 }: AdminListingsClientProps) {
     const router = useRouter();
+    const publicUrl = usePublicSiteUrl();
     const [pageData, setPageData] = useState({
         listings,
         total,
@@ -913,11 +925,12 @@ export default function AdminListingsClient({
                             <TableHeader>
                                 <TableRow>
                                     <TableHead
+                                        className={NAME_COLUMN_WIDTH}
                                         sortable
                                         sortDirection={sortField === "title" ? sortDirection : false}
                                         onSort={() => handleSort("title")}
                                     >
-                                        Studio
+                                        Name
                                     </TableHead>
                                     <TableHead
                                         sortable
@@ -954,9 +967,9 @@ export default function AdminListingsClient({
                                         return (
                                             <TableRow key={listing.id}>
                                                 <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium text-sm text-foreground">{listing.title}</span>
-                                                        {isHighPriority && <Pill label="High Priority" variant="destructive" size="xs" />}
+                                                    <div className={cn("flex items-center gap-2", NAME_COLUMN_WIDTH)}>
+                                                        <span className="min-w-0 truncate font-medium text-sm text-foreground" title={listing.title}>{listing.title}</span>
+                                                        {isHighPriority && <Pill label="High Priority" variant="destructive" size="xs" className="shrink-0" />}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-sm text-muted-foreground">{listing.locationValue}</TableCell>
@@ -969,7 +982,7 @@ export default function AdminListingsClient({
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        <a href={publicListingHref(listing.slug || listing.id)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">View</a>
+                                                        <a href={publicUrl(listing.share.path)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">View</a>
                                                         <Button
                                                             icon={FiEdit}
                                                             isIconOnly
@@ -1046,11 +1059,12 @@ export default function AdminListingsClient({
                             <TableHeader>
                                 <TableRow>
                                     <TableHead
+                                        className={NAME_COLUMN_WIDTH}
                                         sortable
                                         sortDirection={sortField === "title" ? sortDirection : false}
                                         onSort={() => handleSort("title")}
                                     >
-                                        Listing
+                                        Name
                                     </TableHead>
                                     <TableHead
                                         sortable
@@ -1090,7 +1104,7 @@ export default function AdminListingsClient({
                                     sortedVisibleListings.map((listing) => (
                                         <TableRow key={listing.id}>
                                             <TableCell>
-                                                <div className="flex min-w-72 items-center gap-3">
+                                                <div className={cn("flex items-center gap-3", NAME_COLUMN_WIDTH)}>
                                                     <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
                                                         <Image
                                                             src={listing.imageSrc[0] || "/assets/listing-image-default.png"}
@@ -1101,7 +1115,7 @@ export default function AdminListingsClient({
                                                         />
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <div className="truncate text-sm font-semibold text-foreground">{listing.title}</div>
+                                                        <div className="truncate text-sm font-semibold text-foreground" title={listing.title}>{listing.title}</div>
                                                         <div className="truncate text-xs text-muted-foreground">{listing.category} • {listing.locationValue}</div>
                                                     </div>
                                                 </div>

@@ -148,6 +148,26 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
     </div>
   );
 
+  const galleryActions = (
+    <div className="absolute bottom-4 right-4 z-20 flex gap-2">
+      {videoSrc && (
+        <Button
+          label="Video tour"
+          icon={HiOutlineVideoCamera}
+          onClick={() => setShowVideoModal(true)}
+          variant="outline"
+          fit
+        />
+      )}
+      <Button
+        label="Show all photos"
+        onClick={handleShowAllPhotos}
+        variant="outline"
+        fit
+      />
+    </div>
+  );
+
   const sliderContent = (
     <div className="relative group">
       <Swiper
@@ -184,6 +204,7 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
       <button type="button" aria-label="Next photo" className="swiper-button-next-custom absolute top-1/2 right-3 transform -translate-y-1/2 z-10 cursor-pointer bg-foreground/60 backdrop-blur-2xl p-2 rounded-full border border-background/50 hover:bg-foreground/80 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100">
         <HiOutlineChevronRight className="text-background" size={24} />
       </button>
+      {galleryActions}
     </div>
   );
 
@@ -202,7 +223,7 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
         </div>
       ) : (
         <>
-          <div className="hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
+          <div className="relative hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
             <button type="button" aria-label="Open photo 1" className={`relative block h-113.75 w-full cursor-pointer overflow-hidden rounded-l-lg ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
               {imageSrc[0] && (
                 <Image
@@ -233,17 +254,10 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
                     className={`object-cover hover:brightness-90 ${imageOpacityClasses(4)} cursor-pointer`}
                   />
                   <button type="button" aria-label="Open photo 5" className="absolute inset-0" onClick={() => handleImageClick(4)} />
-                  <div className="absolute bottom-4 right-4 z-10 flex gap-2">
-                    <Button
-                      label="Show all photos"
-                      onClick={handleShowAllPhotos}
-                      variant="outline"
-                      fit
-                    />
-                  </div>
                 </div>
               )}
             </div>
+            {galleryActions}
           </div>
 
           <div className="lg:hidden mt-4">
@@ -265,18 +279,6 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
 
       {videoSrc && (
         <>
-          <Button
-            onClick={() => setShowVideoModal(true)}
-            aria-label="video tour"
-            rounded
-            className="fixed bottom-18 right-4 z-99 group px-2.5! group-hover:px-5! transition-all duration-300"
-            fit
-          >
-            <HiOutlineVideoCamera size={20} className="shrink-0" />
-            <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out -ml-2 group-hover:max-w-37.5 group-hover:opacity-100 group-hover:ml-0">
-              Video Tour
-            </span>
-          </Button>
           <VideoTourModal
             isOpen={showVideoModal}
             onClose={() => setShowVideoModal(false)}
@@ -339,10 +341,10 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
               </Swiper>
             </div>
 
-            <button type="button" aria-label="Previous photo" className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center active:scale-90">
+            <button type="button" aria-label="Previous photo" className="swiper-lb-prev absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center">
               <HiOutlineChevronLeft size={20} />
             </button>
-            <button type="button" aria-label="Next photo" className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center active:scale-90">
+            <button type="button" aria-label="Next photo" className="swiper-lb-next absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-50 cursor-pointer border border-background/20 bg-background/5 hover:bg-background/15 hover:border-background/50 text-background p-3 rounded-full backdrop-blur-sm transition-colors hidden md:flex items-center justify-center">
               <HiOutlineChevronRight size={20} />
             </button>
           </div>

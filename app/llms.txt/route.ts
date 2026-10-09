@@ -1,5 +1,6 @@
 import getListings from "@/app/actions/getListings";
-import { cityPath, getCityDirectory } from "@/lib/listing/cities";
+import { getCityDirectory } from "@/lib/listing/cities";
+import { cityPath } from "@/lib/listing/cityPaths";
 import { listingFacts, listingPath } from "@/lib/listing/seo";
 import { getSortedPostsData } from "@/lib/posts";
 import { absoluteUrl, BRAND_DESCRIPTION } from "@/lib/seo";
@@ -51,7 +52,7 @@ export async function GET() {
     for (const city of cities) {
       const count = `${city.count} ${city.count === 1 ? "studio" : "studios"}`;
       const price = city.fromPrice ? `, from ₹${INR.format(city.fromPrice)}/hr` : "";
-      lines.push(link(`Studios for rent in ${city.city}`, cityPath(city.city), `${count}${price}`));
+      lines.push(link(`Studios in ${city.city}`, cityPath(city.city), `${count}${price}`));
     }
   }
 
@@ -82,7 +83,7 @@ export async function GET() {
     "## Optional",
     "",
     link("About ContCave", "/about"),
-    link("Browse all studios", "/home"),
+    link("Browse all studios", "/studios"),
     "- Contact: info@contcave.com",
     ""
   );

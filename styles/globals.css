@@ -3,11 +3,11 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-	--animate-hero-reveal: hero-reveal 0.65s ease-out both;
+	--animate-hero-rise: hero-rise 0.4s ease-out 0.1s backwards;
 
-	@keyframes hero-reveal {
-		0%, 45% { opacity: 1; }
-		100% { opacity: 0; }
+	@keyframes hero-rise {
+		from { opacity: 0; transform: translateY(12px); }
+		to { opacity: 1; transform: translateY(0); }
 	}
 
 	/* 1. Core Primitives */
@@ -90,7 +90,7 @@
 
 	button:not(:disabled):active,
 	.button-active:not(:disabled):active {
-		transform: scale(0.98);
+		transform: translateY(1px);
 		transition: transform 0.1s ease;
 	}
 }

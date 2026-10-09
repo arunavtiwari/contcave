@@ -1,39 +1,15 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { memo, Suspense, useCallback, useMemo } from "react";
+import { memo, Suspense, useCallback } from "react";
 import { BiSearch } from "react-icons/bi";
 
 import Button from "@/components/ui/Button";
-import useCountries from "@/hooks/useCities";
+import { useStudioSearch } from "@/hooks/useStudioSearch";
 import useUIStore from "@/hooks/useUIStore";
-import { formatISTDate } from "@/lib/utils";
 
 const SearchContent = memo(function SearchContent() {
   const uiStore = useUIStore();
-  const params = useSearchParams();
-  const { getByValue } = useCountries();
-
-  const locationValue = params?.get("locationValue");
-  const startDate = params?.get("selectedDate");
-
-  const locationLabel = useMemo(() => {
-    if (locationValue) {
-      return getByValue(locationValue as string)?.label;
-    }
-    return "City";
-  }, [getByValue, locationValue]);
-
-  const dateLabel = useMemo(() => {
-    if (startDate) {
-      const formattedDate = formatISTDate(startDate as string, {
-        month: "short",
-        day: "numeric",
-      });
-      return <span className="text-sm">{formattedDate}</span>;
-    }
-    return "Date";
-  }, [startDate]);
+  const { whereLabel, dateLabel } = useStudioSearch();
 
   const handleClick = useCallback(() => {
     uiStore.onOpen("search");
@@ -50,9 +26,9 @@ const SearchContent = memo(function SearchContent() {
       className="bg-background! border-neutral-300! ring-1 ring-neutral-300/70 shadow-sm px-2!"
     >
       <div className="flex flex-row items-center justify-between w-full">
-        <div className="text-sm font-medium px-6">{locationLabel}</div>
+        <div className="text-sm font-medium px-6">{whereLabel ?? "Where"}</div>
         <div className="hidden sm:block text-sm font-medium px-6 border-s flex-1 text-center">
-          {dateLabel}
+          {dateLabel ?? "Date"}
         </div>
         <div className="text-muted-foreground flex flex-row items-center gap-3">
           <div className="p-2 bg-foreground rounded-full text-background">
@@ -78,7 +54,7 @@ const Search = memo(function Search() {
         disabled
       >
         <div className="flex flex-row items-center justify-between w-full">
-          <div className="text-sm font-medium px-6">City</div>
+          <div className="text-sm font-medium px-6">Where</div>
           <div className="hidden sm:block text-sm font-medium px-6 border-s flex-1 text-center">
             Date
           </div>

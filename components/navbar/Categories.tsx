@@ -11,7 +11,13 @@ import Button from "@/components/ui/Button";
 import { categories } from "./categoriesData";
 
 
-const CategoriesContent = memo(function CategoriesContent() {
+type Props = {
+  city?: string;
+  venueTypeHrefs?: Record<string, string>;
+  activeVenueType?: string;
+};
+
+const CategoriesContent = memo(function CategoriesContent({ city, venueTypeHrefs, activeVenueType }: Props) {
   const params = useSearchParams();
   const venueType = useMemo(() => params?.get("venueTypes"), [params]);
 
@@ -22,10 +28,12 @@ const CategoriesContent = memo(function CategoriesContent() {
           key={item.label}
           icon={item.icon}
           label={item.label}
-          selected={venueType === item.label}
+          selected={(activeVenueType ?? venueType) === item.label}
+          city={city}
+          href={venueTypeHrefs?.[item.label]}
         />
       )),
-    [venueType]
+    [venueType, city, venueTypeHrefs, activeVenueType]
   );
 
   return (
@@ -33,14 +41,14 @@ const CategoriesContent = memo(function CategoriesContent() {
       <div className="flex-1 overflow-x-auto hide-scrollbar flex gap-4 items-center">
         {categoryItems}
       </div>
-      <FilterModal />
+      <FilterModal city={city} />
     </div>
   );
 });
 
 CategoriesContent.displayName = "CategoriesContent";
 
-const Categories = memo(function Categories() {
+const Categories = memo(function Categories(props: Props) {
   return (
     <Suspense fallback={
       <div className="mt-4 mb-6 w-full flex flex-row items-center justify-between gap-2 border-b border-border">
@@ -65,7 +73,7 @@ const Categories = memo(function Categories() {
         </div>
       </div>
     }>
-      <CategoriesContent />
+      <CategoriesContent {...props} />
     </Suspense>
   );
 });

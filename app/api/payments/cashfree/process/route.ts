@@ -5,12 +5,11 @@ import { NextRequest } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { GST_RATE } from "@/constants/gst";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
-import { checkSetConflicts, parseTimeToMinutes } from "@/lib/availability";
+import { checkBookingSlot, parseTimeToMinutes } from "@/lib/availability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { getClientIp } from "@/lib/http/requestMeta";
 import { addGst, calculateSetPricing, validateSetSelection } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
-import { getBookingDate, validateBookingWindow } from "@/lib/reservation/bookingWindow";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
 import { formatRetryAfterMs, rateLimit } from "@/lib/security/rateLimit";
 import { TransactionService } from "@/lib/transaction/service";
@@ -155,49 +154,6 @@ export async function POST(req: NextRequest) {
         if (data.setPackageId && !selectedPackage) {
             return createErrorResponse("Selected package is no longer available", 400);
         }
-        const windowError = validateBookingWindow({
-            startDate: data.startDate,
-            startTime: data.startTime,
-            endTime: data.endTime,
-            operationalDays: listing.operationalDays,
-            operationalHours: listing.operationalHours,
-            minimumBookingHours: listing.minimumBookingHours,
-            selectedPackageDurationHours: selectedPackage?.durationHours ?? null,
-        });
-
-        if (windowError) {
-            return createErrorResponse(windowError, 400);
-        }
-
-        const dayStatus = await prisma.dayStatus.findUnique({
-            where: {
-                listingId_date: {
-                    listingId: data.listingId,
-                    date: getBookingDate(data.startDate),
-                }
-            }
-        });
-
-        if (dayStatus) {
-            if (!dayStatus.listingActive) {
-                return createErrorResponse("This studio is not accepting bookings on the selected date", 400);
-            }
-
-            const overrideError = validateBookingWindow({
-                startDate: data.startDate,
-                startTime: data.startTime,
-                endTime: data.endTime,
-                operationalDays: listing.operationalDays,
-                operationalHours: { start: dayStatus.startTime, end: dayStatus.endTime },
-                minimumBookingHours: listing.minimumBookingHours,
-                selectedPackageDurationHours: selectedPackage?.durationHours ?? null,
-            });
-
-            if (overrideError) {
-                return createErrorResponse(overrideError, 400);
-            }
-        }
-
         if (listing.hasSets) {
             if (selectedSetIds.length === 0) {
                 return createErrorResponse("Select at least one set for this listing", 400);
@@ -218,16 +174,18 @@ export async function POST(req: NextRequest) {
         }
 
 
-        const conflict = await checkSetConflicts({
+        const slotError = await checkBookingSlot({
             listingId: data.listingId,
-            date: getBookingDate(data.startDate),
+            date: data.startDate,
             startTime: data.startTime,
             endTime: data.endTime,
             setIds: selectedSetIds,
+            packageDurationHours: selectedPackage?.durationHours ?? null,
+            includeCalendar: true,
         });
 
-        if (conflict.hasConflict) {
-            return createErrorResponse(conflict.conflictDetails || "One or more sets are no longer available for this time slot", 400);
+        if (slotError) {
+            return createErrorResponse(slotError, 400);
         }
 
         const startMin = parseTimeToMinutes(data.startTime);

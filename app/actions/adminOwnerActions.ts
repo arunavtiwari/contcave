@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createAction } from "@/lib/actions-utils";
+import { listingShareLink } from "@/lib/listing/preview";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
 import { isAdmin } from "@/lib/user/permissions";
@@ -555,9 +556,11 @@ export const getAdminOwnerDetailAction = createAction(
           where: NOT_ARCHIVED,
           select: {
             id: true,
+            slug: true,
             title: true,
             status: true,
             active: true,
+            listingType: true,
             price: true,
             locationValue: true,
             category: true,
@@ -634,6 +637,7 @@ export const getAdminOwnerDetailAction = createAction(
         category: l.category,
         carpetArea: l.carpetArea || null,
         packagesCount: l._count.packages,
+        share: listingShareLink(l),
         reservations: l.reservations.map((r) => ({
           id: r.id,
           bookingId: r.bookingId,

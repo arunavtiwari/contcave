@@ -1,9 +1,8 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 
 import HeartButton from "@/components/listing/HeartButton";
@@ -56,8 +55,17 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
+    const [mountedIndexes, setMountedIndexes] = useState<number[]>(() => (images.length > 1 ? [0, 1] : [0]));
     const slideshowInterval = useRef<NodeJS.Timeout | null>(null);
     const touchStartX = useRef<number | null>(null);
+
+    useEffect(() => {
+        if (images.length <= 1) return;
+        const next = (currentIndex + 1) % images.length;
+        setMountedIndexes((prev) =>
+            prev.includes(currentIndex) && prev.includes(next) ? prev : Array.from(new Set([...prev, currentIndex, next]))
+        );
+    }, [currentIndex, images.length]);
 
     const clearSlideshow = () => {
         if (slideshowInterval.current) {
@@ -127,37 +135,29 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
             />
 
             <Link href={cardHref} className="block h-full w-full relative">
-                <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.div
-                        key={currentIndex}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.4, ease: "easeOut" }}
-                        className="absolute inset-0"
-                    >
+                <div
+                    className={cn(
+                        "absolute inset-0 transition-transform duration-400 ease-out",
+                        allowScale && "group-hover:scale-110"
+                    )}
+                >
+                    {mountedIndexes.filter((index) => index < images.length).map((index) => (
                         <Image
+                            key={index}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                            className={`object-cover h-full w-full transition-transform duration-400 ease-out ${allowScale ? "group-hover:scale-110" : ""}`}
-                            src={images[currentIndex]}
-                            alt={displayTitle}
-                            priority={priority && currentIndex === 0}
-                            onLoad={() => setIsImageLoaded(true)}
+                            className={cn(
+                                "object-cover transition-opacity duration-500 ease-out",
+                                index === currentIndex ? "opacity-100" : "opacity-0"
+                            )}
+                            src={images[index]}
+                            alt={index === currentIndex ? displayTitle : ""}
+                            aria-hidden={index !== currentIndex}
+                            priority={priority && index === 0}
+                            onLoad={index === 0 ? () => setIsImageLoaded(true) : undefined}
                         />
-                    </motion.div>
-                </AnimatePresence>
-
-                {images.length > 1 && (
-                    <div className="hidden">
-                        <Image
-                            src={images[(currentIndex + 1) % images.length]}
-                            alt=""
-                            width={10}
-                            height={10}
-                        />
-                    </div>
-                )}
+                    ))}
+                </div>
 
                 <div className="absolute inset-0 bg-linear-to-t from-foreground/20 via-transparent to-foreground/5 opacity-60 pointer-events-none z-10" />
             </Link>
@@ -168,7 +168,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                         type="button"
                         aria-label="Previous photo"
                         onClick={goToPrev}
-                        className="absolute left-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 active:scale-90 hover:bg-foreground/70 lg:hidden"
+                        className="absolute left-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 hover:bg-foreground/70 lg:hidden"
                     >
                         <HiOutlineChevronLeft size={16} />
                     </button>
@@ -176,7 +176,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                         type="button"
                         aria-label="Next photo"
                         onClick={goToNext}
-                        className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 active:scale-90 hover:bg-foreground/70 lg:hidden"
+                        className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border border-background/40 bg-foreground/50 p-1.5 text-background backdrop-blur-md transition-all duration-200 hover:bg-foreground/70 lg:hidden"
                     >
                         <HiOutlineChevronRight size={16} />
                     </button>
