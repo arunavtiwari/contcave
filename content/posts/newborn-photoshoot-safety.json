@@ -1,0 +1,356 @@
+{
+  "id": "newborn-photoshoot-safety",
+  "title": "Newborn Photoshoot Safety: A Parent's Guide for Delhi NCR",
+  "categories": [
+    {
+      "id": "studio-guides",
+      "title": "Studio Guides",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Studio Guides",
+          "id": "bc-studio-guides"
+        }
+      ],
+      "createdAt": "2026-10-13T00:00:00Z",
+      "updatedAt": "2026-10-13T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-13T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "What makes a newborn shoot safe, from the right age and a warm, hygienic room to supported poses, plus the questions to ask your photographer and the studio before you book."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Newborn Photoshoot Safety: A Parent's Guide for Delhi NCR"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "Those sleepy, curled-up newborn photos look effortless, but every one of them depends on a warm room, clean hands, careful handling and a photographer who knows when to stop. Newborn photoshoot safety is the first thing parents should ask about and, too often, the last thing they check. This guide explains the best age for a shoot, how warm the room should be, what the froggy pose really is, the questions to ask your photographer, what a safe studio looks like, and how a typical session runs. It is written for parents in Delhi NCR and for the photographers who rent studios for newborn work."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Safety rule that never bends: a newborn is never left unsupported in a prop, on a raised surface or in a pose, not even for one frame."
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "This is practical guidance, not medical advice. If your baby was premature, has jaundice, reflux or any health concern, speak to your paediatrician before booking and follow their advice over anything here."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "Is newborn photography safe?"
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "It can be, when the photographer is trained, the room is prepared, and the baby's comfort sets the pace. The risks come from shortcuts: babies balanced in baskets without a spotter, props placed on high surfaces, poses forced on a baby who is awake and unhappy, rooms that are too hot or too cold, and unwashed hands or wraps reused between sessions."
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Newborn photography is unregulated, and there is no official certification in India that we are aware of. That makes your own questions the main safety check. Ask where the photographer trained, how long they have shot newborns, and how they handle safety. A good photographer will answer clearly and without irritation."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Best age for a newborn photoshoot"
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "The commonly recommended window is roughly 5 to 14 days after birth, and many Delhi studios quote 7 to 21 days. In these early days babies sleep deeply, curl up naturally the way they did in the womb, and settle into wrapped and curled poses more easily."
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Book the photographer during the third trimester with a tentative date, then confirm after the birth",
+        "If the mother is recovering from a caesarean, pick a studio with easy access and seating, and ask whether an at-home session is possible",
+        "Older babies can still be photographed beautifully; expect more awake, lifestyle-style shots and fewer curled poses",
+        "Premature babies: ask your paediatrician when it is appropriate"
+      ]
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Room temperature, hygiene and the froggy pose"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "Room warmth. Newborns lose heat quickly when partly unwrapped. Newborn photographers commonly pre-warm the room and cite roughly 24 to 29°C as their working range. Treat that as industry practice, not medical guidance. Watch your baby throughout: flushed skin, sweating or damp hair mean the room is too warm, and cool hands with mottled skin mean it may be too cold. Ask for adjustments at any time."
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Hygiene. Everyone who handles the baby should wash their hands first, and wraps, blankets, beanbag covers and props should be cleaned between sessions. Anyone who is unwell, including the photographer or an assistant, should not be in the room. A photographer who cannot explain their hygiene routine is a red flag."
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "The froggy pose. The pose where the baby appears to rest its chin on its hands is always a composite. It is made from at least two frames: in one, a hand supports the baby's head; in the other, a hand holds the wrists. The two are merged in editing so neither hand shows. If a photographer suggests a baby can hold this pose unsupported, walk away. The same applies to hanging or suspended poses, which should only ever be composites."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Questions to ask a newborn photographer"
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Send these before you pay a booking amount:"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Where did you train in newborn posing and safety, and how many newborn sessions have you shot?",
+        "How do you keep the room warm, and what temperature do you work at?",
+        "What is your hygiene routine for hands, wraps and props?",
+        "Do you always work with a spotter, a parent or assistant within arm's reach?",
+        "Are the froggy pose and prop shots composites?",
+        "Will you stop for feeds, changes and cuddles whenever the baby needs it?",
+        "Which studio do you use, and can we see it beforehand?",
+        "What is included: hours, number of edited images, props and wraps?"
+      ]
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "On price, newborn packages we have seen listed by Delhi photographers start from about ₹10,000 to ₹15,000, while aggregator sites summarise a broader range of roughly ₹5,000 to ₹35,000. Treat these as indicative. A noticeably cheap quote is worth a second look at the answers above."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Studio checklist for a safe newborn session"
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "Whether you are a parent choosing between studios or a photographer booking one, check these before confirming:"
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Reliable temperature control: AC and a heater, plus a space heater kept well away from the baby and fabrics",
+        "A private, quiet area for feeding and nappy changes",
+        "A washroom and a sink for hand-washing within the studio",
+        "Washable flooring and surfaces that can be wiped down between sessions",
+        "No through-traffic from other renters or staff during the booking",
+        "A low posing area: a beanbag or posing table at floor level or close to it",
+        "Props that are sturdy and weighted, with no sharp edges or loose parts",
+        "Seating for parents near the posing area",
+        "Natural or soft continuous light, without flash fired close to the baby's face"
+      ]
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "A baby is never placed in a prop unsupported. Baskets, bowls and crates are either weighted and spotted with a hand on the baby at all times, or the image is created as a composite. A spotter should be within arm's reach for every pose."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "How a typical newborn session runs"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Most newborn sessions take about 2 to 4 hours, because the baby sets the pace. A typical flow looks like this:"
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Arrive, settle in and let the room reach temperature",
+        "Feed the baby fully just before the shoot starts so they drift into a deep sleep",
+        "Wrapped poses first, since swaddled babies stay settled",
+        "Unwrapped beanbag poses once the baby is in deep sleep",
+        "Breaks for feeds, changes, burping and cuddles whenever needed",
+        "Prop and composite setups, always spotted",
+        "Family shots with parents and siblings, usually at the end or when the baby is awake"
+      ]
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "What parents should bring:"
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Enough milk or formula, bottles and a feeding pillow if you use one",
+        "Plenty of nappies, wipes and a spare change of clothes for you and the baby",
+        "Burp cloths and a swaddle the baby is used to",
+        "A pacifier, if your baby uses one",
+        "Comfortable outfits for parents in neutral or soft colours",
+        "Snacks and water for yourselves"
+      ]
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Older siblings do best when they arrive for the last 30 minutes rather than waiting for the whole session."
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "FAQs: Newborn photoshoot safety"
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "Is newborn photography safe for babies?"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "It is when the photographer is trained, the room is warm and hygienic, a spotter is always present and poses are never forced. Ask about training and safety practices before booking, and check with your paediatrician if your baby has any health concerns."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "What is the best age for a newborn photoshoot?"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "Roughly 5 to 14 days is the commonly recommended window, and many Delhi studios quote 7 to 21 days. Babies sleep more deeply and curl more easily in these early days."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "What temperature should the room be for a newborn shoot?"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "Newborn photographers commonly work at roughly 24 to 29°C and pre-warm the room. This is industry practice, not medical guidance, so watch for sweating or flushing and follow your paediatrician's advice."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "Is the froggy pose real or edited?"
+    },
+    {
+      "id": "p-19",
+      "blockType": "paragraph",
+      "content": "It is always a composite of at least two frames, with a hand supporting the head in one and the wrists in the other. A baby should never hold the pose unsupported."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "What questions should I ask a newborn photographer?"
+    },
+    {
+      "id": "p-20",
+      "blockType": "paragraph",
+      "content": "Ask about training, room temperature, hygiene, whether a spotter is always present, how composites are made, and whether they stop for feeds and breaks."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-21",
+      "blockType": "paragraph",
+      "content": "ContCave lets you browse and compare photography studios across Delhi, Gurugram and Noida in one place, with hourly pricing shown upfront. Listing photos and amenities help you shortlist, and you can message the host before booking to ask about heating, a feeding area, the washroom and whether other renters pass through. You can read reviews from past bookings and book and pay online with a published cancellation policy."
+    },
+    {
+      "id": "h-15",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-22",
+      "blockType": "paragraph",
+      "content": "A safe newborn shoot is slow, warm, clean and always supported. Choose a trained photographer, a studio built for calm sessions, and let your baby set the pace."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "Plan the shoot for roughly 5 to 14 days after birth and confirm with your paediatrician if needed",
+        "Ask every photographer about training, hygiene, room warmth and spotting",
+        "Treat any unsupported prop or froggy pose as a dealbreaker",
+        "Check the studio for heating, a private feeding area, a sink and no foot traffic",
+        "Compare studios and hourly rates on ContCave"
+      ]
+    }
+  ],
+  "slug": "newborn-photoshoot-safety",
+  "meta": {
+    "title": "Newborn Photoshoot Safety: A Parent's Guide for Delhi NCR",
+    "description": "Newborn photoshoot safety explained: best age, room warmth, the froggy pose, hygiene and what to ask your photographer. Compare Delhi studios on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-13T04:00:00Z",
+  "updatedAt": "2026-10-13T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "newborn photoshoot safety",
+    "is newborn photography safe",
+    "newborn baby photoshoot delhi",
+    "newborn photoshoot delhi ncr",
+    "best age for newborn photoshoot",
+    "newborn photoshoot room temperature",
+    "froggy pose safe",
+    "newborn froggy pose",
+    "newborn photography tips for parents",
+    "questions to ask newborn photographer",
+    "newborn photoshoot studio",
+    "newborn photoshoot price delhi",
+    "newborn photoshoot gurugram",
+    "newborn photoshoot noida",
+    "newborn photoshoot near me",
+    "newborn photoshoot india",
+    "newborn photography hygiene",
+    "newborn photoshoot checklist",
+    "what to bring to newborn photoshoot",
+    "newborn shoot at home or studio",
+    "newborn photoshoot 2026",
+    "studio for newborn shoot delhi",
+    "newborn photography for photographers",
+    "book newborn photoshoot",
+    "ContCave"
+  ]
+}

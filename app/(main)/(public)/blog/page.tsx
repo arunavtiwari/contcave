@@ -13,6 +13,8 @@ import {
 } from "@/lib/seo";
 import { BlogPost } from "@/types/blog";
 
+export const revalidate = 3600;
+
 const DESCRIPTION =
   "Read ContCave's latest articles on studio booking, production workflows, and creative industry insights across India." as const;
 

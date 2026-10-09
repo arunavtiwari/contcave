@@ -1,0 +1,332 @@
+{
+  "id": "studio-vs-location-shoot-india",
+  "title": "Studio vs Location Shoot: Cost, Permits and Control in 2026",
+  "categories": [
+    {
+      "id": "booking-tips",
+      "title": "Booking Tips",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Booking Tips",
+          "id": "bc-booking-tips"
+        }
+      ],
+      "createdAt": "2026-10-24T00:00:00Z",
+      "updatedAt": "2026-10-24T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-24T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A practical comparison for short filmmakers, microdrama crews and YouTubers deciding between a real location and a studio, with Delhi permit fees, a hybrid plan and a simple cost worksheet."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Studio vs Location Shoot: Cost, Permits and Control in 2026"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "The studio vs location shoot question decides most of a short film's budget before you have cast anyone. A real flat, cafe or street gives you texture for free, but it also gives you traffic, curious neighbours, power cuts and paperwork. A studio gives you silence and control by the hour, but you have to build the world yourself. For short filmmakers, microdrama crews and YouTubers in Delhi NCR, the right answer is often a mix. This guide compares the two factor by factor, sets out what Delhi public-location permissions are reported to cost, shows how to dress a small studio as a convincing home, office or cafe, and ends with a cost worksheet you can fill in tonight."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "Studio vs location: a factor-by-factor comparison"
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Sound: studios are usually quieter and can switch off AC between takes; homes and cafes bring traffic, pressure cookers, construction and azaan or temple timings you cannot control",
+        "Light control: a studio with blackout lets you shoot \"night\" at noon and match shots across days; locations change light every hour and windows blow out",
+        "Permits: a studio booking needs only the host's terms; public locations in Delhi need formal permission and fees",
+        "Crowd and police risk: a camera on a street draws a crowd quickly, and a shoot without paperwork can be stopped; studios avoid both",
+        "Company moves: every move between locations costs two to three hours of packing, travel and re-lighting; one studio with several set corners avoids that",
+        "Art department: locations come pre-dressed; studios need you to bring furniture, props and wall treatments",
+        "Weather and AQI: from October to February, Delhi smog and haze can ruin exteriors, shorten winter daylight and affect cast health; studios are indifferent to it",
+        "Power: studios normally have adequate power points and many have backup; homes may trip with a few lights on, and generators add cost and noise"
+      ]
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Rule of thumb: if a scene is mostly dialogue, shoot it where you control sound. If a scene is mostly atmosphere, shoot it where the atmosphere already exists."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "What location permits cost in Delhi"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "Public locations in Delhi are cleared through the e-Film Clearance system run by the Delhi Tourism and Transport Development Corporation (DTTDC) under the Delhi Film Policy 2022. The policy's operational guidelines state a processing fee of ₹17,700 including GST per application, and the system aims to deliver approvals within about 15 days. Location fees charged by the agency that controls each site are separate."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "Deccan Herald reported in September 2025 that Delhi had cut several location fees to attract filmmakers, a move Business Standard also covered. As reported:"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "MCD locations: reduced from ₹75,000 per day to ₹15,000 for 8 hours, or ₹25,000 plus GST for 24 hours",
+        "PWD locations: a base charge of ₹10,000",
+        "Dilli Haat INA and Garden of Five Senses: ₹80,000 plus GST per day",
+        "Delhi Metro: roughly ₹2 to ₹3 lakh depending on line, station and timing"
+      ]
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "These figures are as reported and can change, so confirm current fees and documents on the official e-Film Clearance portal before you budget. Add the 15-day lead time to your schedule, since a missed approval means a missed shoot day."
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "Private homes are a different case. Even in a friend's flat or a rented house, you need the owner's written consent, and many housing societies and RWAs have their own rules on shoots, parking, crew numbers and timings. Ask the society office early; some ask for a letter or a fee, and a complaining neighbour can end a shoot mid-scene."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Is it cheaper to shoot in a studio or on location?"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "It depends on what you count. A free location is rarely free once you add the hidden lines: extra days lost to noise, transport between locations, generator hire, food for a crew waiting on traffic, and permit fees for anything public. A studio has a visible hourly cost but tends to compress the schedule."
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Video-capable studios in Delhi NCR are commonly listed from roughly ₹1,500 per hour, with larger or better-equipped floors at roughly ₹1,500 to ₹4,000 per hour. Those are indicative ranges, and many hosts offer half-day or full-day packages. Microdrama producers keep costs down for exactly this reason: a single location or a reusable set lets them shoot many episodes across a few days without company moves."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "A hybrid plan: exteriors on location, interiors in studio"
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "For most short films, the efficient split is to shoot exteriors and establishing shots on location and dialogue-heavy interiors in a studio."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Day 1, location: establishing shots, walking scenes, car or auto shots, and any exterior dialogue, ideally in the first hours of daylight before traffic and haze build",
+        "Day 2, studio: all interior scenes, grouped by set so you light each corner once",
+        "Pickups: inserts such as hands, phones, cups and door handles can be shot in the studio afterwards"
+      ]
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Match the two by noting window direction and time of day on location, then recreating that light direction in the studio. Record room tone and ambience at the real location so the studio scenes sound like they belong to the same world."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "How to make a small studio look like a real location"
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "You do not need a large floor. You need one convincing corner per set and a frame that never shows the edges."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Home: a sofa, a side table, a lamp, a rug, a framed print and a bookshelf; add a curtain lit from behind to fake a window",
+        "Office: a desk, a monitor, a chair, a plant, a whiteboard with handwriting and a blind with light streaming through",
+        "Cafe: two small tables, mismatched chairs, a menu board, warm practical bulbs in frame, cups with steam, and background chatter added in post",
+        "Use flats or movable wall panels to change wall colour between sets",
+        "Keep the lens longer and the depth of field shallower so the background reads as a space, not as a studio",
+        "Practical lights in frame (lamps, fairy lights, a fridge glow) sell realism more than expensive props"
+      ]
+    },
+    {
+      "id": "quote-2",
+      "blockType": "quote",
+      "content": "Pro tip: plan your sets around one wall. Dress it three ways in one day and you have three locations without a single company move."
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "Ask the host in advance what furniture and props the studio already holds, and whether you can bring your own flats and paint samples."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "A simple cost worksheet"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "List every line for both options and compare the totals honestly."
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Space: studio hours times hourly rate, or location fee, permit fee and agency charges",
+        "Lead time: days to permission, and the cost of a slipped date",
+        "Transport: crew vehicles, equipment van, parking per location",
+        "Power: generator hire and fuel, if the location cannot run your lights",
+        "Art department: furniture rental, props, paint, flats",
+        "Crew time: hours lost to company moves, noise holds and weather",
+        "Food and holding: meals and a waiting area for cast and crew",
+        "Contingency: an extra day or a few extra studio hours for reshoots"
+      ]
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "FAQs: studio vs location shoot"
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "Is it cheaper to shoot in a studio or on location?"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "For dialogue-heavy interiors, a studio is often cheaper once you count lost time, transport, power and permits. A free location can work for a tiny crew and a short scene. Fill in the cost worksheet above for both options before deciding."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "Do I need permission to shoot in a rented house in Delhi?"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "For a private home you need the owner's written consent and should check society or RWA rules on shoots, crew size and parking. Public locations need permission through the Delhi e-Film Clearance system; confirm requirements on the official portal."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "How do I make a small studio look like a real location?"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Dress one corner per set with furniture, practical lights and a fake window, use flats to change walls, and frame tightly with a longer lens. Add ambience from a real location in post."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "What are the pros and cons of studio filming?"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Pros: controlled sound and light, no permits or crowds, no weather or AQI worries and no company moves. Cons: an hourly cost, and you must bring the art department to make it feel real."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "ContCave lets you browse and compare video studios across Delhi, Gurugram and Noida in one place, with hourly pricing shown upfront. You can check listing photos, amenities, add-ons and packages, read reviews from past bookings, and message the host about furniture, power and blackout before you book and pay online."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "Location gives you atmosphere; studio gives you control. Most short films and microdramas get the best of both by shooting exteriors on location and interiors in a dressed studio."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "Split your script into exterior and interior scenes",
+        "Check permit fees and lead times on the official e-Film Clearance portal",
+        "Get written owner consent and society approval for any private home",
+        "Fill in the cost worksheet for both options",
+        "Shortlist studios and ask hosts what set furniture they already have"
+      ]
+    }
+  ],
+  "slug": "studio-vs-location-shoot-india",
+  "meta": {
+    "title": "Studio vs Location Shoot: Cost, Permits and Control in 2026",
+    "description": "Studio vs location shoot for short films and YouTube in Delhi NCR: permit fees, noise, AQI, set dressing and a cost worksheet. A practical ContCave guide."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-24T04:00:00Z",
+  "updatedAt": "2026-10-24T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "studio vs location shoot",
+    "studio vs location filming",
+    "shoot short film in studio or location",
+    "one location short film",
+    "indoor set for short film",
+    "studio shoot cost india",
+    "set design on a budget",
+    "location shoot permission delhi",
+    "film shooting permission delhi",
+    "delhi film policy 2022",
+    "e-film clearance delhi",
+    "video studio delhi ncr",
+    "film studio on rent delhi",
+    "shooting studio gurugram",
+    "shooting studio noida",
+    "microdrama shoot studio",
+    "short film studio rent",
+    "youtube shoot studio",
+    "studio shoot price per hour",
+    "pros and cons of studio filming",
+    "shoot in rented house delhi",
+    "dress a studio as a home set",
+    "studio shoot 2026",
+    "book video studio near me",
+    "studio for indie filmmakers",
+    "ContCave"
+  ]
+}

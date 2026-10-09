@@ -137,6 +137,12 @@ node scripts/blog.mjs publish /tmp/draft.md # writes content/posts/<slug>.json, 
 
 If `publish` rejects the draft, fix the listed problems and rerun it.
 
+**Scheduling:** add `date: YYYY-MM-DD` to the draft front matter to set the post's
+publish date. A post whose `publishedAt` is in the future stays hidden from the
+blog index, its own URL, the sitemap and `llms.txt` until 04:00 UTC (9:30 AM IST)
+on that date, then appears within an hour without a redeploy. Use this to batch
+posts ahead of time; the backlog row is moved to Published with the scheduled date.
+
 ## Publishing flow (automated routine)
 
 All scheduled posts go to one persistent branch, `regular-blog-update`.
