@@ -366,7 +366,7 @@ function ReviewModal({
                                         listing.price != null
                                             ? formatINR(listing.price)
                                             : listing.priceRangeMin && listing.priceRangeMax
-                                            ? `₹${listing.priceRangeMin.toLocaleString("en-IN")}–${listing.priceRangeMax.toLocaleString("en-IN")}`
+                                            ? `₹${listing.priceRangeMin.toLocaleString("en-IN")}${listing.priceRangeMax !== listing.priceRangeMin ? `–${listing.priceRangeMax.toLocaleString("en-IN")}` : ""}`
                                             : "Price on Demand"
                                     }
                                 />

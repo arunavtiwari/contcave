@@ -229,7 +229,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                             priceRangeMin && priceRangeMax ? (
                                 <>
                                     <span className="text-[10px] opacity-70">Est.</span>
-                                    <span className="text-xs">₹{priceRangeMin.toLocaleString("en-IN")}–{priceRangeMax.toLocaleString("en-IN")}</span>
+                                    <span className="text-xs">₹{priceRangeMin.toLocaleString("en-IN")}{priceRangeMax !== priceRangeMin && `–${priceRangeMax.toLocaleString("en-IN")}`}</span>
                                     <span className="text-[10px] opacity-70">/ hr</span>
                                 </>
                             ) : (

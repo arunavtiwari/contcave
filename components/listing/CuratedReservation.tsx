@@ -51,7 +51,7 @@ export default function CuratedReservation({
                     <div className="flex items-baseline gap-1.5">
                         <span className="text-xs text-muted-foreground">Est.</span>
                         <span className="text-2xl font-bold">
-                            ₹{priceRangeMin.toLocaleString("en-IN")}–{priceRangeMax.toLocaleString("en-IN")}
+                            ₹{priceRangeMin.toLocaleString("en-IN")}{priceRangeMax !== priceRangeMin && `–${priceRangeMax.toLocaleString("en-IN")}`}
                         </span>
                         <span className="text-sm text-muted-foreground">/ hr</span>
                     </div>
