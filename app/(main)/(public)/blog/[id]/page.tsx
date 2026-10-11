@@ -42,6 +42,31 @@ const authorsJsonLd = (post: BlogPost) => {
   return names.map((name) => (TEAM_BYLINE.test(name) ? ORGANIZATION_AUTHOR : { "@type": "Person", name }));
 };
 
+const INLINE_LINK = /\[([^\]]+)\]\(((?:\/|https?:\/\/)[^\s)]+)\)/g;
+const LINK_CLASS = "font-medium text-foreground underline underline-offset-4 hover:text-foreground/70";
+
+// Renders `[text](url)` inside block content as links; internal paths stay client-side.
+const renderInline = (content?: string) => {
+  if (!content) return content;
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  for (const match of content.matchAll(INLINE_LINK)) {
+    const [raw, text, href] = match;
+    if (match.index > last) parts.push(content.slice(last, match.index));
+    parts.push(
+      href.startsWith("/") ? (
+        <Link key={match.index} href={href} className={LINK_CLASS}>{text}</Link>
+      ) : (
+        <a key={match.index} href={href} target="_blank" rel="noopener noreferrer" className={LINK_CLASS}>{text}</a>
+      )
+    );
+    last = match.index + raw.length;
+  }
+  if (last === 0) return content;
+  if (last < content.length) parts.push(content.slice(last));
+  return parts;
+};
+
 const describePost = (post: BlogPost) =>
   truncateText(
     toPlainText(post.meta?.description) ??
@@ -191,7 +216,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
                 case "paragraph":
                   return (
                     <p key={block.id} className="text-foreground/80 leading-relaxed">
-                      {block.content}
+                      {renderInline(block.content)}
                     </p>
                   );
                 case "quote":
@@ -200,7 +225,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
                       key={block.id}
                       className="border-l-4 border-foreground pl-6 py-2 italic text-foreground bg-foreground/5 rounded-r-lg"
                     >
-                      {block.content}
+                      {renderInline(block.content)}
                     </blockquote>
                   );
                 case "image":
@@ -217,7 +242,7 @@ export default async function PostPage(props: { params: Promise<RouteParams> }) 
                 case "list":
                   return (
                     <ul key={block.id} className="list-disc pl-6 space-y-2 text-foreground/80">
-                      {block.items?.map((item, i) => <li key={i}>{item}</li>)}
+                      {block.items?.map((item, i) => <li key={i}>{renderInline(item)}</li>)}
                     </ul>
                   );
                 default:
