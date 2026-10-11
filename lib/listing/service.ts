@@ -1403,6 +1403,9 @@ export class ListingService {
                 role: user.role,
                 is_verified: user.is_verified,
                 googleCalendarConnected: user.googleCalendarConnected,
+                title: user.title,
+                description: user.description,
+                languages: user.languages,
             },
         };
     }

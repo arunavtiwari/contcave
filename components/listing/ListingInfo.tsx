@@ -18,6 +18,7 @@ import Offers from "@/components/listing/Offers";
 import PackageList from "@/components/listing/PackageList";
 import PackageSuggestion from "@/components/listing/PackageSuggestion";
 import SetSelector from "@/components/listing/SetSelector";
+import Modal from "@/components/modals/Modal";
 import Avatar from "@/components/ui/Avatar";
 import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
@@ -133,6 +134,10 @@ function ListingInfo({
   const [addonList, setAddonList] = useState<Addon[]>([]);
   const [amenityDefs, setAmenityDefs] = useState<SafeAmenity[]>(definedAmenities ?? []);
   const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
+  const [isHostAboutOpen, setIsHostAboutOpen] = useState(false);
+  const hostAvatar = user?.profileImage || user?.image;
+  const hostLanguages = user?.languages?.filter(Boolean) ?? [];
+  const hasHostAbout = Boolean(user?.title?.trim() || user?.description?.trim() || hostLanguages.length);
   const reviewsPreloaded = initialReviews !== undefined;
   const [canReview, setCanReview] = useState(false);
   const [latestReservationId, setLatestReservationId] = useState("");
@@ -290,7 +295,17 @@ function ListingInfo({
     <div className="col-span-4 flex flex-col gap-8">
       <div className="flex gap-2 justify-between items-start">
         <div className="text-xl font-semibold flex flex-row items-center gap-3">
-          <Avatar src={user?.image} size={40} />
+          <button
+            type="button"
+            onClick={() => hasHostAbout && setIsHostAboutOpen(true)}
+            disabled={!hasHostAbout}
+            aria-label={hasHostAbout ? `About ${user?.name ?? "the host"}` : undefined}
+            className={hasHostAbout
+              ? "rounded-full ring-2 ring-foreground/70 ring-offset-2 ring-offset-background transition hover:ring-foreground cursor-pointer"
+              : "rounded-full cursor-default"}
+          >
+            <Avatar src={hostAvatar} size={40} />
+          </button>
           <Heading title={`Hosted by ${user?.name}`} variant="h6" />
         </div>
         {fullListing.avgReviewRating && fullListing.avgReviewRating !== 0 && (
@@ -588,6 +603,29 @@ function ListingInfo({
 
       </div>
 
+      {hasHostAbout && (
+        <Modal
+          isOpen={isHostAboutOpen}
+          onCloseAction={() => setIsHostAboutOpen(false)}
+          title={`About ${user?.name ?? "the host"}`}
+          customWidth="w-full md:w-4/6 lg:w-3/6 xl:w-2/6"
+          body={
+            <div className="flex flex-col items-center gap-4 text-center">
+              <Avatar src={hostAvatar} size={88} />
+              <div className="flex flex-col gap-1">
+                <p className="text-lg font-semibold text-foreground">{user?.name}</p>
+                {user?.title?.trim() && <p className="text-sm text-muted-foreground">{user.title}</p>}
+              </div>
+              {user?.description?.trim() && (
+                <p className="text-sm leading-relaxed text-foreground/80 whitespace-pre-line">{user.description}</p>
+              )}
+              {hostLanguages.length > 0 && (
+                <p className="text-sm text-muted-foreground">Speaks {hostLanguages.join(", ")}</p>
+              )}
+            </div>
+          }
+        />
+      )}
     </div>
   );
 }

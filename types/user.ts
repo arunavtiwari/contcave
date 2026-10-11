@@ -43,7 +43,7 @@ export type PublicUser = Pick<
     | "role"
     | "is_verified"
     | "googleCalendarConnected"
->;
+> & Partial<Pick<SafeUser, "title" | "description" | "languages">>;
 
 export interface RegisterData {
     email: string;
