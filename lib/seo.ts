@@ -9,6 +9,16 @@ export const BRAND_DESCRIPTION =
   "ContCave helps creators discover, compare, and book verified studios and production-ready spaces across India." as const;
 export const OG_IMAGE = "/images/logo/logo-og.png" as const;
 
+export const FOUNDERS = [
+  { name: "Arunav Tiwari", jobTitle: "Chief Executive Officer", sameAs: "https://www.linkedin.com/in/art-x/" },
+  { name: "Shubham Samanta", jobTitle: "Chief Technology Officer", sameAs: "https://www.linkedin.com/in/sam8239/" },
+  {
+    name: "Harshita Betala",
+    jobTitle: "Chief Product Officer",
+    sameAs: "https://www.linkedin.com/in/harshita-betala-ab4b32169/",
+  },
+] as const;
+
 export const DEFAULT_KEYWORDS = [
   "studio booking",
   "creative studio rental",

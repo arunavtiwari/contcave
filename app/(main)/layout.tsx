@@ -28,6 +28,7 @@ import {
   BRAND_NAME,
   BRAND_TITLE,
   DEFAULT_KEYWORDS,
+  FOUNDERS,
   OG_IMAGE,
   ORGANIZATION_ID,
   SITE_URL,
@@ -109,26 +110,7 @@ const organizationJsonLd = {
     description: BRAND_DESCRIPTION,
     logo: BRAND_LOGO,
     foundingDate: "2024",
-    founder: [
-        {
-            "@type": "Person",
-            name: "Arunav Tiwari",
-            jobTitle: "Chief Executive Officer",
-            sameAs: "https://www.linkedin.com/in/art-x/",
-        },
-        {
-            "@type": "Person",
-            name: "Shubham Samanta",
-            jobTitle: "Chief Technology Officer",
-            sameAs: "https://www.linkedin.com/in/sam8239/",
-        },
-        {
-            "@type": "Person",
-            name: "Harshita Betala",
-            jobTitle: "Chief Product Officer",
-            sameAs: "https://www.linkedin.com/in/harshita-betala-ab4b32169/",
-        },
-    ],
+    founder: FOUNDERS.map((founder) => ({ "@type": "Person", ...founder })),
     contactPoint: {
         "@type": "ContactPoint",
         contactType: "Customer Service",
