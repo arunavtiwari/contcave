@@ -302,7 +302,6 @@ function ReviewModal({
                 isOpen
                 onCloseAction={onClose}
                 title="Listing Review"
-                selfActionButton
                 customWidth="w-full max-w-6xl"
                 customHeight="max-h-[92vh]"
                 body={<ReviewModalSkeleton />}
@@ -319,9 +318,7 @@ function ReviewModal({
         <Modal
             isOpen={Boolean(listing)}
             onCloseAction={onClose}
-            onSubmitAction={onClose}
             title="Listing Review"
-            selfActionButton
             customWidth="w-full max-w-6xl"
             customHeight="max-h-[92vh]"
             body={

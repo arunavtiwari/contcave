@@ -9,7 +9,8 @@ import { useBrowseLocation } from "@/hooks/useBrowseLocation";
 import { useFeedSummary } from "@/hooks/useFeedSummary";
 import { cn } from "@/lib/utils";
 
-export default function ListingFeedHeader({ title = "Explore studios" }: { title?: string }) {
+/** `title: null` is for pages whose hero already carries the heading; the controls still render. */
+export default function ListingFeedHeader({ title = "Explore studios" }: { title?: string | null }) {
     const { nearLabel } = useFeedSummary();
     const { location } = useBrowseLocation();
 
@@ -26,9 +27,11 @@ export default function ListingFeedHeader({ title = "Explore studios" }: { title
         <>
             <div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
-                    <h1 className="truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                        {heading()}
-                    </h1>
+                    {title !== null && (
+                        <h1 className="truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                            {heading()}
+                        </h1>
+                    )}
                     {/* Once a location is set the phone layout shows this inside the sticky bar
                         instead, so it travels with the controls it describes. */}
                     <div className={cn(location && "hidden md:block")}>

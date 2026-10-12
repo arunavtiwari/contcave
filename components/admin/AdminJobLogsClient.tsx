@@ -473,9 +473,7 @@ export default function AdminJobLogsClient({
         <Modal
           isOpen={Boolean(selectedLog)}
           onCloseAction={() => setSelectedLog(null)}
-          onSubmitAction={() => setSelectedLog(null)}
           title={`Job Details: ${selectedLog.jobName}`}
-          actionLabel="Close"
           customWidth="w-full max-w-2xl"
           body={
             <div className="space-y-4 text-xs">

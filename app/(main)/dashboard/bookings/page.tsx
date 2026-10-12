@@ -25,7 +25,7 @@ const BookingPage = ({ searchParams }: { searchParams: Promise<{ page?: string }
   return (
     <div className="space-y-8">
       <Heading title="My Bookings" subtitle="Spaces booked by you" />
-      <Suspense fallback={<BookingGridSkeleton count={6} />}>
+      <Suspense fallback={<BookingGridSkeleton />}>
         <BookingContent searchParams={searchParams} />
       </Suspense>
     </div>

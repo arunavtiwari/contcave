@@ -148,7 +148,7 @@ function BookingClient({ reservations, currentUser }: Props) {
       <ReservationDetailModal isOpen={isInfoModalOpen} onCloseAction={() => setInfoModalOpen(false)} reservation={infoReservation} />
 
       {isModalOpen && (
-        <Modal isOpen={isModalOpen} onCloseAction={() => !deletingId && setModalOpen(false)} onSubmitAction={handleConfirmAction} title={modalAction === "cancel" ? "Cancel Reservation" : "Delete Reservation"} body={<p className="text-center">Are you sure you want to {modalAction === "cancel" ? "cancel" : "delete"} this reservation?</p>} actionLabel={modalAction === "cancel" ? "Cancel Reservation" : "Delete Reservation"} secondaryActionAction={() => !deletingId && setModalOpen(false)} secondaryActionLabel="Close" />
+        <Modal isOpen={isModalOpen} onCloseAction={() => !deletingId && setModalOpen(false)} onSubmitAction={handleConfirmAction} title={modalAction === "cancel" ? "Cancel Reservation" : "Delete Reservation"} body={<p className="text-center">Are you sure you want to {modalAction === "cancel" ? "cancel" : "delete"} this reservation?</p>} actionLabel={modalAction === "cancel" ? "Cancel Reservation" : "Delete Reservation"} />
       )}
 
       {isRefundOpen && (

@@ -11,7 +11,7 @@ const pillVariants = cva(
             variant: {
                 solid: "bg-foreground text-background",
                 subtle: "bg-foreground/10 text-foreground",
-                glass: "bg-background/80 backdrop-blur-md text-foreground",
+                glass: "glass text-foreground border-border/40",
                 secondary: "bg-neutral-100 text-neutral-900 border-neutral-200",
                 neutral: "bg-neutral-50 text-neutral-600",
                 destructive: "bg-destructive text-destructive-foreground",
@@ -20,7 +20,7 @@ const pillVariants = cva(
                 info: "bg-info/10 text-info",
                 "card-feature": "bg-muted text-muted-foreground",
                 "card-category": "bg-neutral-100 text-neutral-900",
-                "card-rating": "bg-neutral-50 text-neutral-600",
+                "card-rating": "bg-neutral-50 text-foreground [&>svg]:text-warning [&>svg]:fill-warning",
                 "card-muted": "bg-neutral-100/50 text-neutral-500",
                 outline: "bg-white border-neutral-200 text-neutral-500 rounded-lg",
                 "verified-button": "bg-white border-green text-success",
@@ -30,6 +30,11 @@ const pillVariants = cva(
                 xs: "px-2 h-6 text-[10px]",
                 sm: "px-2.5 h-7 text-xs",
                 md: "px-3 h-9 text-sm",
+            },
+            tone: {
+                positive: "text-emerald-700 dark:text-emerald-300",
+                pending: "text-amber-700 dark:text-amber-300",
+                negative: "text-rose-700 dark:text-rose-300",
             },
             clickable: {
                 true: "cursor-pointer hover:opacity-85 button-active",
@@ -51,6 +56,7 @@ const Pill: React.FC<PillProps> = ({
     label,
     variant,
     size,
+    tone,
     icon: Icon,
     className,
     onClick,
@@ -59,7 +65,7 @@ const Pill: React.FC<PillProps> = ({
     return (
         <div
             onClick={onClick}
-            className={cn(pillVariants({ variant, size, clickable: !!onClick, className }))}
+            className={cn(pillVariants({ variant, size, tone, clickable: !!onClick, className }))}
             {...props}
         >
             {Icon && <Icon className="shrink-0" size={size === "xs" ? 10 : 12} />}

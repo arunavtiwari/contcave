@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import PageOffset from "@/components/layout/PageOffset";
 import ErrorState from "@/components/ui/ErrorState";
 
 interface Props {
@@ -20,13 +21,15 @@ export default function GlobalMainError({ error, reset }: Props) {
   }, [error]);
 
   return (
-    <ErrorState
-      title="Something went wrong"
-      subtitle="We encountered an unexpected error while rendering this page. You can try refreshing or returning home."
-      error={error}
-      reset={reset}
-      homeHref="/"
-      homeLabel="Go to Homepage"
-    />
+    <PageOffset>
+      <ErrorState
+        title="Something went wrong"
+        subtitle="We encountered an unexpected error while rendering this page. You can try refreshing or returning home."
+        error={error}
+        reset={reset}
+        homeHref="/"
+        homeLabel="Go to Homepage"
+      />
+    </PageOffset>
   );
 }

@@ -797,12 +797,9 @@ function OwnerDetailModal({
     <Modal
       isOpen={state.isOpen}
       onCloseAction={onClose}
-      onSubmitAction={onClose}
       title={owner ? `Space Owner: ${owner.name}` : "Owner Details"}
       customWidth="max-w-4xl"
       body={modalBody}
-      selfActionButton
-      actionLabel=""
     />
   );
 }

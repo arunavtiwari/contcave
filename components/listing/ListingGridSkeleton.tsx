@@ -8,7 +8,7 @@ interface ListingGridSkeletonProps {
 }
 
 const ListingGridSkeleton: React.FC<ListingGridSkeletonProps> = ({
-    count = 6,
+    count = 12,
     hideActions = false
 }) => {
     return (

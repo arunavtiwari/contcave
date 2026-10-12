@@ -2,9 +2,9 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IconType } from "react-icons";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { toast } from "sonner";
 
 import createReview from "@/app/actions/createReview";
@@ -28,12 +28,14 @@ import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
 import StarRating from "@/components/ui/StarRating";
 import Textarea from "@/components/ui/Textarea";
+import TextLink from "@/components/ui/TextLink";
+import { CANCELLATION_POLICY_SUMMARY } from "@/constants/cancellation";
 import useCities from "@/hooks/useCities";
 import { isLatLng } from "@/lib/geo";
 import type { EquipmentItem, EquipmentPolicy, ListingAccess } from "@/lib/listing/equipment";
 import type { WholeStudioSuggestion } from "@/lib/pricing";
 import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
-import { formatISTDate } from "@/lib/utils";
+import { cn,formatISTDate } from "@/lib/utils";
 import { Addon } from "@/types/addon";
 import type { SafeAmenity } from "@/types/amenity";
 import { FullListing } from "@/types/listing";
@@ -56,6 +58,7 @@ interface Review {
 }
 
 type Props = {
+  header: React.ReactNode;
   user: PublicUser;
   description: string;
   category:
@@ -99,6 +102,7 @@ type Props = {
 };
 
 function ListingInfo({
+  header,
   user,
   description,
   category,
@@ -162,18 +166,13 @@ function ListingInfo({
   const [isExpanded, setIsExpanded] = useState(false);
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
-  const [isTermsExpanded, setIsTermsExpanded] = useState(false);
-  const toggleTermsExpand = () => setIsTermsExpanded((prev) => !prev);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const termsHtml = processedTerms || fullListing.customTerms || "";
 
   const shouldTruncate = useMemo(() => {
     if (descriptionShouldTruncate !== undefined) return descriptionShouldTruncate;
     return getPlainTextFromHTML(description, 0).length > 250;
   }, [description, descriptionShouldTruncate]);
-
-  const shouldTruncateTerms = useMemo(() => {
-    if (!fullListing.customTerms) return false;
-    return getPlainTextFromHTML(fullListing.customTerms, 0).length > 250;
-  }, [fullListing.customTerms]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -308,9 +307,10 @@ function ListingInfo({
   };
 
   return (
-    <div className="col-span-4 flex flex-col gap-8">
+    <div className="col-span-1 md:col-span-7 lg:col-span-7 xl:col-span-8 flex flex-col gap-8">
+      {header}
       <div className="flex gap-2 justify-between items-start">
-        <div className="text-xl font-semibold flex flex-row items-center gap-3">
+        <div className="flex flex-row items-center gap-3">
           <button
             type="button"
             onClick={() => hasHostAbout && setIsHostAboutOpen(true)}
@@ -322,7 +322,12 @@ function ListingInfo({
           >
             <Avatar src={hostAvatar} size={40} />
           </button>
-          <Heading title={`Hosted by ${user?.name}`} variant="h6" />
+          <Heading
+            as="h2"
+            variant="h6"
+            className="text-sm!"
+            title={<><span className="mb-0.5 block font-sans text-xs font-normal text-muted-foreground">Hosted by</span>{user?.name}</>}
+          />
         </div>
         {fullListing.avgReviewRating && fullListing.avgReviewRating !== 0 && (
           <StarRating
@@ -334,7 +339,39 @@ function ListingInfo({
         )}
       </div>
 
-      <hr />
+      <Divider />
+
+      {category && (
+        <ListingCategory
+          icon={category.icon}
+          label={category.label}
+          description={category.description}
+        />
+      )}
+
+      <div className="text-base font-normal">
+        <div
+          className={cn(
+            "relative transition-all duration-300",
+            !isExpanded && shouldTruncate && "max-h-36 overflow-hidden mask-[linear-gradient(to_bottom,black_60%,transparent)]"
+          )}
+        >
+          <SafeHtml html={processedDescription || description || ""} />
+        </div>
+
+        {shouldTruncate && (
+          <button
+            onClick={toggleExpand}
+            className="inline-flex items-center gap-1 font-medium text-sm mt-2 text-foreground hover:underline cursor-pointer"
+            type="button"
+          >
+            <span>{isExpanded ? "Show less" : "Show more"}</span>
+            {isExpanded ? <FiChevronUp className="size-4" /> : <FiChevronDown className="size-4" />}
+          </button>
+        )}
+      </div>
+
+      <Divider />
 
       {fullListing.hasSets && fullListing.sets && fullListing.sets.length > 0 && (
         <>
@@ -360,33 +397,6 @@ function ListingInfo({
           <Divider />
         </>
       )}
-
-      {category && (
-        <ListingCategory
-          icon={category.icon}
-          label={category.label}
-          description={category.description}
-        />
-      )}
-
-      <div className="text-base font-normal">
-        <SafeHtml
-          html={processedDescription || description || ""}
-          className={!isExpanded ? "max-h-40 overflow-hidden relative" : ""}
-        />
-
-        {shouldTruncate && (
-          <button
-            onClick={toggleExpand}
-            className="underline font-medium text-sm mt-1 cursor-pointer"
-            type="button"
-          >
-            {isExpanded ? "See less" : "See more"}
-          </button>
-        )}
-      </div>
-
-      <Divider />
 
       {(selectedAmenityKeys.length > 0 || (fullListing.otherAmenities?.length ?? 0) > 0) && (
         <>
@@ -439,15 +449,15 @@ function ListingInfo({
       )}
 
       <div className="flex flex-col gap-4">
-        <Heading title="Where you'll be" variant="h5" />
-        <Map center={getValidCenter() as [number, number] | undefined} />
+        <Heading as="h2" title="Where you'll be" variant="h5" />
+        <Map center={getValidCenter()} area />
         {access && <AccessDetails access={access} />}
       </div>
 
       <Divider />
 
       <div className="flex flex-col gap-4">
-        <Heading title="Operational Timings" variant="h5" />
+        <Heading as="h2" title="Operational Timings" variant="h5" />
         <div className="flex gap-10">
           {(opDaysStart || opDaysEnd) && (
             <div>
@@ -467,7 +477,7 @@ function ListingInfo({
       <Divider />
 
       <div className="flex flex-col gap-4">
-        <Heading title="Additional Information" variant="h5" />
+        <Heading as="h2" title="Additional Information" variant="h5" />
         {(carpetArea || carpetArea === 0) && (
           <div className="flex gap-10">
             <div className="w-1/2">
@@ -497,7 +507,7 @@ function ListingInfo({
       <Divider />
 
       <div className="flex flex-col gap-4">
-        <Heading title="Listed Services" variant="h5" />
+        <Heading as="h2" title="Listed Services" variant="h5" />
         <div className="flex flex-wrap gap-2">
           {type.map((service: string, index: number) => (
             <Pill
@@ -518,7 +528,7 @@ function ListingInfo({
       {(reviews.length > 0 || canReview) && (
         <div className="flex flex-col gap-8">
           <div className="flex items-center justify-between">
-            <Heading title="Reviews" variant="h5" />
+            <Heading as="h2" title="Reviews" variant="h5" />
             <div className="text-lg font-semibold flex items-center gap-1.5">
               <span className="text-2xl">{reviews.length}</span>
               <span className="text-muted-foreground text-sm font-medium uppercase tracking-wider">Ratings</span>
@@ -562,7 +572,7 @@ function ListingInfo({
           {canReview && (
             <>
               <div className="flex flex-col gap-4">
-                <Heading title="Submit your review" variant="h5" className="capitalize" />
+                <Heading as="h3" title="Submit your review" variant="h5" className="capitalize" />
                 <div className="relative">
                   <div className="text-sm font-bold mb-2">Write your message</div>
                   <div className="flex w-full bg-background border border-border items-end px-2 py-2 rounded-xl">
@@ -601,38 +611,39 @@ function ListingInfo({
 
       {!isRichTextEmpty(fullListing.customTerms) && (
         <>
-          <div className="flex flex-col gap-4">
-            <Heading title="Terms & Conditions by Host" variant="h5" />
-            <div className="text-base font-normal">
-              <SafeHtml
-                html={processedTerms || fullListing.customTerms || ""}
-                className={!isTermsExpanded ? "max-h-40 overflow-hidden relative" : ""}
-              />
-              {shouldTruncateTerms && (
-                <button
-                  onClick={toggleTermsExpand}
-                  className="underline font-medium text-sm mt-1 cursor-pointer"
-                  type="button"
-                >
-                  {isTermsExpanded ? "See less" : "See more"}
-                </button>
-              )}
+          <div className="flex flex-col gap-3">
+            <Heading as="h2" title="Terms & Conditions by Host" variant="h5" />
+            <div className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+              <SafeHtml html={termsHtml} />
             </div>
+            <button
+              type="button"
+              onClick={() => setIsTermsModalOpen(true)}
+              className="text-sm font-medium underline text-foreground hover:opacity-80 cursor-pointer w-fit"
+            >
+              Show all host rules
+            </button>
+
+            <Modal
+              isOpen={isTermsModalOpen}
+              onCloseAction={() => setIsTermsModalOpen(false)}
+              title="Terms & Conditions by Host"
+              body={
+                <div className="max-h-[60vh] overflow-y-auto pr-2 text-sm leading-relaxed text-foreground space-y-3">
+                  <SafeHtml html={termsHtml} />
+                </div>
+              }
+              customWidth="w-full max-w-2xl"
+            />
           </div>
           <Divider />
         </>
       )}
 
       <div className="flex flex-col gap-4">
-        <Heading title="Cancellation Policy" variant="h5" />
-        <p className="flex flex-wrap">
-          Full refund for cancellations made at least 72 hours before the scheduled booking, partial refund for cancellations made
-          between 24 and 72 hours before the scheduled booking, and no refund for cancellations made within 24 hours of the scheduled booking.
-        </p>
-
-        <Link href="/cancellation" className="text-foreground font-semibold underline cursor-pointer w-fit">
-          Know more about Cancellation Policy
-        </Link>
+        <Heading as="h2" title="Cancellation Policy" variant="h5" />
+        <p>{CANCELLATION_POLICY_SUMMARY}</p>
+        <TextLink href="/cancellation" className="w-fit">Know more about Cancellation Policy</TextLink>
 
       </div>
 
@@ -640,8 +651,6 @@ function ListingInfo({
         <Modal
           isOpen={isHostAboutOpen}
           onCloseAction={() => setIsHostAboutOpen(false)}
-          onSubmitAction={() => setIsHostAboutOpen(false)}
-          actionLabel="Close"
           customWidth="w-full md:w-4/6 lg:w-3/6 xl:w-2/6"
           body={
             <div className="flex flex-col items-center gap-4 text-center">

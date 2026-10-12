@@ -1,7 +1,14 @@
 const JITTER_METERS = 250;
 
+export const APPROXIMATE_AREA_RADIUS_METERS = JITTER_METERS * 3;
+
 export const slugHistory = (previous: string[], current: string, next: string) =>
     Array.from(new Set([...previous, current])).filter((slug) => slug !== next);
+
+export const locationState = (location: unknown) => {
+    const state = (location as { state?: unknown } | null | undefined)?.state;
+    return typeof state === "string" && state.trim() ? state.trim() : undefined;
+};
 
 /**
  * Clamps a number between a minimum and maximum value.

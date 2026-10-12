@@ -102,10 +102,7 @@ export default function ListingReviewsModal({
         <Modal
             isOpen={Boolean(listing)}
             onCloseAction={onClose}
-            onSubmitAction={onClose}
             title={`Reviews — ${listing.title}`}
-            actionLabel="Close"
-            selfActionButton
             customWidth="w-full max-w-2xl"
             customHeight="max-h-[88vh]"
             body={

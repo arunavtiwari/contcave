@@ -7,7 +7,7 @@ export default function TransactionsLoading() {
   return (
     <div className="space-y-8">
       <Heading title="Transactions" subtitle="Your earnings and payouts" />
-      <BookingGridSkeleton count={6} />
+      <BookingGridSkeleton />
     </div>
   );
 }

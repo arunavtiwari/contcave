@@ -7,7 +7,7 @@ export default function FavoritesLoading() {
   return (
     <div className="space-y-8">
       <Heading title="Favorites" subtitle="List of places you favorited!" />
-      <ListingGridSkeleton count={6} hideActions />
+      <ListingGridSkeleton hideActions />
     </div>
   );
 }

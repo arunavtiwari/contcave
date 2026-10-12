@@ -101,7 +101,7 @@ export const QUERY_FIXTURES: QueryFixture[] = [
     { text: "chandigarh sector 17 studio for fashion shoot tomorrow 5 models 4 hrs", expect: { city: "Chandigarh", area: "Chandigarh Sector 17", dates: ["2026-10-07"], crew: 5, hours: 4, shootTypes: [FASHION] } },
     { text: "Podcast in Chandigarh on 14 oct, 3 people, 2 hours, soundproof", expect: { city: "Chandigarh", dates: ["2026-10-14"], crew: 3, hours: 2, needs: ["Soundproofed"] } },
     { text: "mohali phase 7 product shoot saturday 3 hrs 6000", expect: { city: "Mohali", area: "Mohali Phase 7", dates: ["2026-10-10"], hours: 3, budgetMax: 6000 } },
-    { text: "tricity studio for pre wedding shoot this weekend", expect: { city: "Tricity", dates: ["2026-10-10", "2026-10-11"], shootTypes: [PRE_WEDDING] } },
+    { text: "tricity studio for pre wedding shoot this weekend", expect: { city: "Chandigarh Tricity", dates: ["2026-10-10", "2026-10-11"], shootTypes: [PRE_WEDDING] } },
     { text: "Mohali, reel shoot, 4 log, parso, 2 ghante, 1000 per hour", expect: { city: "Mohali", crew: 4, dates: ["2026-10-08"], hours: 2, budgetMax: 1000, budgetBasis: "hourly" } },
     { text: "zirakpur studio for maternity shoot sunday morning", expect: { city: "Mohali", area: "Zirakpur", dates: ["2026-10-11"], shootTypes: [PORTRAIT] } },
     { text: "chd studio with cyc 20/10 6 people", expect: { city: "Chandigarh", dates: ["2026-10-20"], crew: 6, needs: ["Cyclorama"] } },

@@ -140,10 +140,11 @@ export type StudioFeedItem = Pick<
 
 export type StudioFeedPage = {
     items: StudioFeedItem[];
-    nextCursor: string | null;
-    nearestKm: number | null;
-    /** How many studios match in total; only counted for the first page. */
+    /** How many studios match in total; null for lists that aren't a counted feed. */
     total: number | null;
+    totalPages: number;
+    /** Closest located studio on the first page, for the "nothing near you" banner. */
+    nearestKm: number | null;
     /** Precise location the order was built from (GPS / entered place), never IP. */
     origin: LatLng | null;
     /** Region the order was grouped by, e.g. "delhi-ncr". */

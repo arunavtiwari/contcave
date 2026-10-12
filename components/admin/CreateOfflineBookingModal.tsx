@@ -34,7 +34,7 @@ import Pill from "@/components/ui/Pill";
 import Select, { SelectOption } from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Textarea from "@/components/ui/Textarea";
-import { GST_RATE } from "@/constants/gst";
+import { GST_PERCENT } from "@/constants/gst";
 import type { AdminStudioOption, AdminStudioSummary, OfflineBookingCreationResult } from "@/lib/admin/offlineBooking";
 import { computePayoutBreakdown, panFromGstin } from "@/lib/payout/breakdown";
 import { addGst, calculateSetPricing } from "@/lib/pricing";
@@ -1056,7 +1056,7 @@ export default function CreateOfflineBookingModal({
               error={errors.price?.message}
               disabled={isPending}
               description={priceWithGst
-                ? `+ ${Math.round(GST_RATE * 100)}% GST ${formatINR(priceWithGst.gstAmount)} · Customer pays ${formatINR(priceWithGst.total)}`
+                ? `+ ${GST_PERCENT}% GST ${formatINR(priceWithGst.gstAmount)} · Customer pays ${formatINR(priceWithGst.total)}`
                 : "Pre-filled based on selection, but freely editable"}
             />
           </div>
@@ -1313,12 +1313,9 @@ export default function CreateOfflineBookingModal({
     <Modal
       isOpen={isOpen}
       onCloseAction={handleClose}
-      onSubmitAction={() => {}}
       title={created ? "Booking Created" : "Create Booking"}
       customWidth="max-w-4xl"
       body={successBody ?? modalBody}
-      selfActionButton
-      actionLabel=""
     />
   );
 }

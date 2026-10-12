@@ -1,89 +1,20 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { cache } from "react";
 
-import getCurrentUser from "@/app/actions/getCurrentUser";
-import ListingFeed from "@/components/listing/ListingFeed";
-import StudioBrowse from "@/components/listing/StudioBrowse";
-import JsonLd from "@/components/seo/JsonLd";
-import { parseBrowseSort } from "@/lib/listing/browseSort";
-import { findCategory, MIN_CATEGORY_LISTINGS, type StudioCategory } from "@/lib/listing/categories";
-import {
-  cityTrail,
-  describeCityCategory,
-  findCity,
-} from "@/lib/listing/cities";
-import { cityCategoryPath } from "@/lib/listing/cityPaths";
-import { cityCollectionJsonLd, collectionMetadata, UNPUBLISHED_COLLECTION_METADATA } from "@/lib/listing/seo";
-import { loadStudioFeed, pickedBrowseLocation } from "@/lib/listing/studioFeed";
+import PlaceLanding from "@/components/listing/PlaceLanding";
+import { placeMetadata } from "@/lib/listing/placePage";
+import { pageFromParams, type SearchParams } from "@/lib/pagination";
 
-type RouteParams = { city: string; category: string };
+type Props = {
+  params: Promise<{ city: string; category: string }>;
+  searchParams: Promise<SearchParams>;
+};
 
-const titleFor = (category: StudioCategory, city: string) => `${category.name} in ${city}`;
-
-const loadPage = cache(async (citySlugParam: string, categorySlug: string) => {
-  const category = findCategory(categorySlug);
-  const entry = category ? await findCity(citySlugParam) : undefined;
-  if (!category || !entry) return null;
-
-  if ((entry.categoryCounts[category.slug] ?? 0) < MIN_CATEGORY_LISTINGS) return null;
-
-  return { entry, category, ...describeCityCategory(entry, category) };
-});
-
-export async function generateMetadata({ params }: { params: Promise<RouteParams> }): Promise<Metadata> {
-  const { city, category } = await params;
-  const page = await loadPage(city, category);
-  if (!page) return UNPUBLISHED_COLLECTION_METADATA;
-
-  return collectionMetadata({
-    title: titleFor(page.category, page.entry.city),
-    description: page.description,
-    path: cityCategoryPath(page.entry.city, page.category),
-  });
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const [{ city, category }, query] = await Promise.all([params, searchParams]);
+  return placeMetadata(city, category, pageFromParams(query));
 }
 
-export default async function CityCategoryPage(props: {
-  params: Promise<RouteParams>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const [{ city, category: categorySlug }, searchParams] = await Promise.all([props.params, props.searchParams]);
-  const [page, currentUser] = await Promise.all([loadPage(city, categorySlug), getCurrentUser()]);
-  if (!page) notFound();
-
-  const { entry, category, description } = page;
-  const feed = await loadStudioFeed(
-    { locationValues: entry.locationValues, studioCategory: category.slug },
-    undefined,
-    parseBrowseSort(searchParams.sort)
-  );
-  const title = titleFor(category, entry.city);
-  const trail = [...cityTrail(entry.city), { name: category.name }];
-
-  return (
-    <>
-      <JsonLd
-        id={`city-category-jsonld-${entry.slug}-${category.slug}`}
-        data={cityCollectionJsonLd({
-          path: cityCategoryPath(entry.city, category),
-          name: title,
-          description,
-          city: entry.city,
-          listings: feed.page.items,
-          trail,
-        })}
-      />
-      <StudioBrowse
-        title={title}
-        city={entry.city}
-        initialLocation={await pickedBrowseLocation(feed.filters)}
-        isLoggedIn={Boolean(currentUser)}
-        feed={(
-          <>
-            <ListingFeed key={feed.key} page={feed.page} filters={feed.filters} currentUser={currentUser} order={feed.order} />
-          </>
-        )}
-      />
-    </>
-  );
+export default async function CityCategoryPage({ params, searchParams }: Props) {
+  const [{ city, category }, query] = await Promise.all([params, searchParams]);
+  return <PlaceLanding slug={city} categorySlug={category} pageNumber={pageFromParams(query)} searchParams={query} />;
 }

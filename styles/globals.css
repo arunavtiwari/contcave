@@ -72,6 +72,10 @@
 			padding-bottom: var(--spacing-section);
 		}
 	}
+
+	.glass {
+		@apply bg-background/65 backdrop-blur-xl backdrop-saturate-150;
+	}
 }
 
 @layer base {

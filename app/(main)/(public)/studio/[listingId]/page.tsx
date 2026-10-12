@@ -19,12 +19,13 @@ import { parseBookingPrefill } from "@/lib/listing/bookingPrefill";
 import { categoriesOf } from "@/lib/listing/categories";
 import {
   cityTrail,
-  findCity,
+  landingPlaceFor,
   STUDIOS_TRAIL,
 } from "@/lib/listing/cities";
-import { cityPath, citySlug } from "@/lib/listing/cityPaths";
+import { cityPath } from "@/lib/listing/cityPaths";
 import { isListingPublic, LISTING_PREVIEW_PARAM } from "@/lib/listing/preview";
-import { buildListingJsonLd, buildListingMetadata } from "@/lib/listing/seo";
+import { buildListingJsonLd, buildListingMetadata, listingPath } from "@/lib/listing/seo";
+import { type SearchParams, toQueryString } from "@/lib/pagination";
 import { getPlainTextFromHTML } from "@/lib/richText";
 import type { BreadcrumbItem } from "@/lib/seo";
 import type { FullListing, safeListing } from "@/types/listing";
@@ -33,7 +34,6 @@ import type { ListingAvailability } from "@/types/reservation";
 export const dynamic = "force-dynamic";
 
 type RouteParams = { listingId?: string };
-type SearchParams = Record<string, string | string[] | undefined>;
 
 const RELATED_LIMIT = 4;
 
@@ -111,16 +111,6 @@ async function loadRelated(listing: FullListing): Promise<FullListing[]> {
     .map((item) => item.candidate);
 }
 
-function toQueryString(searchParams: SearchParams) {
-  const query = new URLSearchParams();
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (Array.isArray(value)) value.forEach((entry) => query.append(key, entry));
-    else if (value !== undefined) query.append(key, value);
-  }
-  const serialized = query.toString();
-  return serialized ? `?${serialized}` : "";
-}
-
 export default async function ListingPage(props: {
   params: Promise<RouteParams>;
   searchParams: Promise<SearchParams>;
@@ -133,7 +123,7 @@ export default async function ListingPage(props: {
   const { listing } = access;
 
   if (listing.slug && listingId !== listing.slug) {
-    permanentRedirect(`/studio/${listing.slug}${toQueryString(searchParams)}`);
+    permanentRedirect(`${listingPath(listing)}${toQueryString(searchParams)}`);
   }
 
   const isPreview = !isListingPublic(listing);
@@ -145,7 +135,7 @@ export default async function ListingPage(props: {
     getReviews(listing.id),
     getReviewCount(listing.id),
     getAmenities(),
-    findCity(citySlug(listing.locationValue ?? "")).catch(() => undefined),
+    landingPlaceFor(listing.locationValue ?? "").catch(() => undefined),
     loadRelated(listing).catch(() => []),
   ]);
 
@@ -162,6 +152,8 @@ export default async function ListingPage(props: {
       )}
       <ListingClient
         listing={listing}
+        breadcrumbs={breadcrumbs}
+        path={listingPath(listing)}
         isPreview={isPreview}
         currentUser={currentUser}
         availability={availability}

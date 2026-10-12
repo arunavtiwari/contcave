@@ -8,6 +8,8 @@ import { IconType } from "react-icons";
 
 import Tooltip from "@/components/ui/Tooltip";
 import { useFilterNavigation } from "@/hooks/useFilterNavigation";
+import { PAGE_PARAM } from "@/lib/pagination";
+import { isPlainClick } from "@/lib/utils";
 
 type Props = {
   icon: IconType;
@@ -31,6 +33,7 @@ const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label,
     ...(city ? { locationValue: city } : {}),
     ...currentQuery,
     purpose: value,
+    [PAGE_PARAM]: undefined,
   };
 
   if (params?.get("purpose") === value) {
@@ -53,7 +56,7 @@ const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label,
   );
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (!isPlainClick(event)) return;
     event.preventDefault();
     navigate(href ?? url);
   };

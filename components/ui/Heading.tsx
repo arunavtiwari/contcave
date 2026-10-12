@@ -48,7 +48,7 @@ const Heading: React.FC<HeadingProps> = ({
     const textColorClass = "text-foreground";
 
     return (
-        <div className={cn(center ? "text-center" : "text-start")}>
+        <div className={cn("flex flex-col gap-1", center ? "text-center items-center" : "text-start")}>
             <Component
                 className={cn(fontClass, sizeClass, textColorClass, className)}
                 {...props}

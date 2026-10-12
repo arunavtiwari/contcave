@@ -26,10 +26,11 @@ import {
 } from "@/lib/listing/browseLocation";
 import { persistBrowseLocation, readStoredBrowseLocation } from "@/lib/listing/browseLocationStorage";
 import { type BrowseSort, DEFAULT_BROWSE_SORT, parseBrowseSort, SORT_NEEDS_LOCATION } from "@/lib/listing/browseSort";
+import { FEED_ANCHOR } from "@/lib/listing/feedPages";
 import { regionOfPoint } from "@/lib/listing/regions";
+import { PAGE_PARAM } from "@/lib/pagination";
 
 /** The grid scrolls back into view after a pick changes the results underneath it. */
-export const BROWSE_GRID_ANCHOR_ID = "studio-grid";
 
 const GPS_TIMEOUT_MS = 10_000;
 const GPS_MAX_AGE_MS = 5 * 60_000;
@@ -61,7 +62,7 @@ const BrowseLocationContext = createContext<BrowseLocationContextValue | null>(n
 
 /** Scrolls up to the grid, never down - a pick shouldn't push the controls off-screen. */
 function scrollToGrid() {
-    const grid = document.getElementById(BROWSE_GRID_ANCHOR_ID);
+    const grid = document.getElementById(FEED_ANCHOR);
     if (!grid) return;
     const top = grid.getBoundingClientRect().top + window.scrollY - GRID_SCROLL_MARGIN;
     if (window.scrollY > top) window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
@@ -142,6 +143,7 @@ function BrowseLocationState({ initialLocation, isLoggedIn, children }: Provider
     const buildHref = useCallback(
         (changes: Record<string, string | undefined>) => {
             const query = qs.parse(params?.toString() ?? "");
+            delete query[PAGE_PARAM];
             for (const [key, value] of Object.entries(changes)) {
                 if (value === undefined) delete query[key];
                 else query[key] = value;

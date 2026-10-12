@@ -3,125 +3,83 @@
 import "leaflet/dist/leaflet.css";
 
 import L from "leaflet";
-import { useEffect, useMemo, useRef } from "react";
-import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
+import { useEffect, useRef } from "react";
+import { Circle, MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
+
+import { isLatLng, type LatLng } from "@/lib/geo";
+import { APPROXIMATE_AREA_RADIUS_METERS } from "@/lib/listing/utils";
+import { cn } from "@/lib/utils";
 
 type Props = {
-  center?: [number, number];
+  center?: number[];
   animated?: boolean;
+  area?: boolean;
 };
 
-const INDIA_CENTER: [number, number] = [20.5937, 78.9629];
+const INDIA_CENTER: LatLng = [20.5937, 78.9629];
+const OVERVIEW_ZOOM = 4;
+const PIN_ZOOM = 16;
+const AREA_ZOOM = 13.5;
+const MAX_ZOOM = 19;
+const TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
-const TILE_URL =
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-const MAX_ZOOM = 16;
+const AREA_STYLE = {
+  color: "#18181b",
+  fillColor: "#18181b",
+  weight: 2,
+  opacity: 0.85,
+  fillOpacity: 0.15,
+  interactive: false,
+} as const;
 
-function MapViewportController({
-  center,
-  zoom,
-  shouldFocus,
-  animated,
-}: {
-  center: [number, number];
-  zoom: number;
-  shouldFocus: boolean;
-  animated: boolean;
-}) {
+const PIN_ICON = L.icon({
+  iconUrl: "/images/icons/marker.png",
+  iconRetinaUrl: "/images/icons/marker.png",
+  iconSize: [38, 38],
+  iconAnchor: [19, 38],
+});
+
+const focusZoom = (area: boolean) => (area ? AREA_ZOOM : PIN_ZOOM);
+
+function MapViewport({ center, zoom, animated }: { center: LatLng | null; zoom: number; animated: boolean }) {
   const map = useMap();
-  const prevCenterRef = useRef<[number, number] | null>(null);
-  const prevZoomRef = useRef<number | null>(null);
+  const shownRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const targetCenter = shouldFocus ? center : INDIA_CENTER;
-    const targetZoom = shouldFocus ? zoom : 4;
+    if (!map.getPane("mapPane")) return;
 
-    const isSameTarget =
-      prevCenterRef.current !== null &&
-      Math.abs(prevCenterRef.current[0] - targetCenter[0]) < 0.000001 &&
-      Math.abs(prevCenterRef.current[1] - targetCenter[1]) < 0.000001 &&
-      prevZoomRef.current === targetZoom;
+    const target = center ?? INDIA_CENTER;
+    const key = `${target[0]},${target[1]},${zoom}`;
+    if (shownRef.current === key) return;
+    shownRef.current = key;
 
-    if (isSameTarget) {
-      return;
-    }
-
-    // react-leaflet's MapContainer calls map.remove() on unmount, which tears
-    // down the panes. Moving a removed map throws "_leaflet_pos of undefined".
-    if (!map.getPane("mapPane")) {
-      return;
-    }
-
-    prevCenterRef.current = [targetCenter[0], targetCenter[1]];
-    prevZoomRef.current = targetZoom;
-
-    if (!animated) {
-      map.setView(targetCenter, targetZoom);
-      return;
-    }
-
-    if (!shouldFocus) {
-      map.flyTo(INDIA_CENTER, 4, { duration: 0.8, easeLinearity: 0.25 });
-      return;
-    }
-
-    map.flyTo(center, zoom, { duration: 1.2, easeLinearity: 0.25 });
-  }, [animated, center, map, shouldFocus, zoom]);
+    if (animated) map.flyTo(target, zoom, { duration: center ? 1.2 : 0.8, easeLinearity: 0.25 });
+    else map.setView(target, zoom);
+  }, [animated, center, map, zoom]);
 
   return null;
 }
 
-function Map({ center, animated = false }: Props) {
-  const lat = center?.[0];
-  const lng = center?.[1];
-
-  const isValidCenter = useMemo(() => {
-    return (
-      Array.isArray(center) &&
-      center.length === 2 &&
-      Number.isFinite(lat) &&
-      Number.isFinite(lng)
-    );
-  }, [center, lat, lng]);
-
-  const mapCenter = useMemo<[number, number]>(() => {
-    if (!isValidCenter || lat === undefined || lng === undefined) return INDIA_CENTER;
-    return [lat, lng];
-  }, [isValidCenter, lat, lng]);
-
-  const customIcon = useMemo(() => {
-    return L.icon({
-      iconUrl: "/images/icons/marker.png",
-      iconRetinaUrl: "/images/icons/marker.png",
-      iconSize: [38, 38],
-      iconAnchor: [19, 38],
-    });
-  }, []);
+function Map({ center, animated = false, area = false }: Props) {
+  const point = isLatLng(center) ? center : null;
+  const zoom = point ? focusZoom(area) : OVERVIEW_ZOOM;
 
   return (
     <MapContainer
-      center={mapCenter}
-      zoom={isValidCenter ? 14 : 4}
+      center={point ?? INDIA_CENTER}
+      zoom={zoom}
       minZoom={3}
       maxZoom={MAX_ZOOM}
-      scrollWheelZoom={true}
+      scrollWheelZoom={false}
       zoomControl={false}
       attributionControl={false}
-      preferCanvas
-      className="z-0 h-[35vh] w-full rounded-xl"
+      className={cn("z-0 w-full rounded-xl", area ? "h-90" : "h-[35vh]")}
     >
-      <MapViewportController
-        center={mapCenter}
-        zoom={isValidCenter ? 15 : 4}
-        shouldFocus={isValidCenter}
-        animated={animated}
-      />
-      <TileLayer
-        url={TILE_URL}
-        detectRetina
-      />
-
-      {isValidCenter && <Marker position={mapCenter} icon={customIcon} />}
+      <MapViewport center={point} zoom={zoom} animated={animated} />
+      <TileLayer url={TILE_URL} maxZoom={MAX_ZOOM} detectRetina />
+      {point && (area
+        ? <Circle center={point} radius={APPROXIMATE_AREA_RADIUS_METERS} pathOptions={AREA_STYLE} />
+        : <Marker position={point} icon={PIN_ICON} />)}
     </MapContainer>
   );
 }

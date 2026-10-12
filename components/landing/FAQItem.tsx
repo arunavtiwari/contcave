@@ -1,18 +1,17 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useMemo } from "react";
+import { motion } from "framer-motion";
+import { useId } from "react";
 import { HiChevronDown } from "react-icons/hi";
 
-type FaqData = {
-  activeFaq: number;
-  id: number;
-  handleFaqToggle: (id: number) => void;
-  quest: string;
-  ans: string;
-};
-
 import Heading from "@/components/ui/Heading";
+
+type Props = {
+  question: string;
+  answer: string;
+  isOpen: boolean;
+  onToggle: () => void;
+};
 
 const contentVariants = {
   collapsed: {
@@ -40,35 +39,29 @@ const chevronTransition = {
   mass: 0.8,
 } as const;
 
-const FAQItem = ({ faqData }: { faqData: FaqData }) => {
-  const { activeFaq, id, handleFaqToggle, quest, ans } = faqData;
-  const isOpen = activeFaq === id;
-
-  const onToggle = useCallback(() => handleFaqToggle(id), [handleFaqToggle, id]);
-
-  const chevronAnimate = useMemo(
-    () => ({ rotate: isOpen ? 180 : 0 }),
-    [isOpen],
-  );
+const FAQItem = ({ question, answer, isOpen, onToggle }: Props) => {
+  const answerId = useId();
 
   return (
     <div className="flex flex-col border-b border-border last-of-type:border-none">
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
+        aria-controls={answerId}
         className={`flex cursor-pointer items-center justify-between px-6 py-5 text-base font-medium transition-colors duration-200 group w-full text-left ${isOpen
           ? "bg-muted/40 text-foreground"
           : "text-foreground/70 hover:text-foreground hover:bg-muted/20"
           }`}
       >
         <Heading
-          title={quest}
+          as="h3"
+          title={question}
           variant="h6"
           className="pr-4 text-base!"
         />
 
         <motion.div
-          animate={chevronAnimate}
+          animate={{ rotate: isOpen ? 180 : 0 }}
           transition={chevronTransition}
           className="shrink-0 will-change-transform"
         >
@@ -76,24 +69,21 @@ const FAQItem = ({ faqData }: { faqData: FaqData }) => {
         </motion.div>
       </button>
 
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            key="content"
-            variants={contentVariants}
-            initial="collapsed"
-            animate="expanded"
-            exit="collapsed"
-            className="overflow-hidden will-change-[height,opacity]"
-          >
-            <div className="border-t border-border px-6 py-5 lg:px-9 lg:py-8 bg-muted/10">
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {ans}
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <motion.div
+        id={answerId}
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+        initial={false}
+        animate={isOpen ? "expanded" : "collapsed"}
+        variants={contentVariants}
+        className="overflow-hidden will-change-[height,opacity]"
+      >
+        <div className="border-t border-border px-6 py-5 lg:px-9 lg:py-8 bg-muted/10">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {answer}
+          </p>
+        </div>
+      </motion.div>
     </div>
   );
 };

@@ -1,13 +1,15 @@
 import getListings from "@/app/actions/getListings";
-import { getCityDirectory } from "@/lib/listing/cities";
+import { CANCELLATION_POLICY_SUMMARY } from "@/constants/cancellation";
+import { getPlaceDirectory } from "@/lib/listing/cities";
 import { cityPath } from "@/lib/listing/cityPaths";
 import { listingFacts, listingPath } from "@/lib/listing/seo";
 import { getSortedPostsData } from "@/lib/posts";
 import { absoluteUrl, BRAND_DESCRIPTION, FOUNDERS } from "@/lib/seo";
+import { pluralize } from "@/lib/strings";
+import { formatINR } from "@/lib/utils";
 
 export const revalidate = 3600;
 
-const INR = new Intl.NumberFormat("en-IN");
 const MAX_LISTINGS = 500;
 
 const logError = (part: string, error: unknown) =>
@@ -18,7 +20,7 @@ const link = (title: string, path: string, note?: string) =>
 
 export async function GET() {
   const [cities, listings] = await Promise.all([
-    getCityDirectory().catch((error: unknown) => {
+    getPlaceDirectory().catch((error: unknown) => {
       logError("cities", error);
       return [];
     }),
@@ -54,9 +56,8 @@ export async function GET() {
     lines.push("", "## Studios by city", "");
     lines.push(link("All cities", "/studios", "every city with bookable studios"));
     for (const city of cities) {
-      const count = `${city.count} ${city.count === 1 ? "studio" : "studios"}`;
-      const price = city.fromPrice ? `, from ₹${INR.format(city.fromPrice)}/hr` : "";
-      lines.push(link(`Studios in ${city.city}`, cityPath(city.city), `${count}${price}`));
+      const price = city.fromPrice ? `, from ${formatINR(city.fromPrice)}/hr` : "";
+      lines.push(link(`Studios in ${city.city}`, cityPath(city.city), `${pluralize(city.count, "studio")}${price}`));
     }
   }
 
@@ -76,11 +77,7 @@ export async function GET() {
     "",
     "## Booking and policies",
     "",
-    link(
-      "Cancellation policy",
-      "/cancellation",
-      "full refund for cancellations at least 72 hours before the booking, 50% between 24 and 72 hours, none within 24 hours; refunds reach the original payment method in 5–7 business days"
-    ),
+    link("Cancellation policy", "/cancellation", CANCELLATION_POLICY_SUMMARY),
     link("Terms and conditions", "/terms-and-conditions"),
     link("Privacy policy", "/privacy-policy"),
     "",

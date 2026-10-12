@@ -350,9 +350,7 @@ function BookingDetailModal({
       <Modal
         isOpen
         onCloseAction={onClose}
-        onSubmitAction={onClose}
         title="Booking Details"
-        actionLabel="Close"
         customWidth="w-full max-w-5xl"
         customHeight="h-auto max-h-[92vh]"
         body={<BookingDetailSkeleton booking={booking} />}
@@ -374,9 +372,7 @@ function BookingDetailModal({
     <Modal
       isOpen={Boolean(booking)}
       onCloseAction={onClose}
-      onSubmitAction={onClose}
       title="Booking Details"
-      actionLabel="Close"
       customWidth="w-full max-w-5xl"
       customHeight="h-auto max-h-[92vh]"
       body={
