@@ -53,7 +53,7 @@ export default function CuratedReservation({
     }
 
     return (
-        <div className="sticky top-24 rounded-2xl border border-border bg-background p-6 shadow-sm flex flex-col gap-5">
+        <div className="rounded-2xl border border-border bg-background p-6 shadow-sm flex flex-col gap-5">
             {/* Price */}
             <div>
                 {priceRangeMin && priceRangeMax ? (

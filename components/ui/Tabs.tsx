@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { cn, isPlainClick } from "@/lib/utils";
 
 interface TabsContextValue {
   value: string;
@@ -242,7 +242,7 @@ export function NavTabs({
             href={item.href}
             aria-current={isActive ? "page" : undefined}
             onClick={(e) => {
-              if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+              if (!isPlainClick(e)) return;
               e.preventDefault();
               setOptimisticActiveId(item.id);
               if (onSelect) {

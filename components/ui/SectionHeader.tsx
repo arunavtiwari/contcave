@@ -4,6 +4,7 @@ import Heading from "@/components/ui/Heading";
 import { cn } from "@/lib/utils";
 
 interface SectionHeaderProps {
+    as?: "h1" | "h2";
     badge: string;
     title: React.ReactNode;
     description?: string;
@@ -13,6 +14,7 @@ interface SectionHeaderProps {
 }
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({
+    as = "h2",
     badge,
     title,
     description,
@@ -35,6 +37,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
             </p>
 
             <Heading
+                as={as}
                 title={title}
                 variant="h2"
                 center={center}

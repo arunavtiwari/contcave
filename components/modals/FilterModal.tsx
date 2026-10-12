@@ -9,11 +9,14 @@ import Modal from "@/components/modals/Modal";
 import AutoComplete from "@/components/ui/AutoComplete";
 import Button from "@/components/ui/Button";
 import DatePicker from "@/components/ui/DatePicker";
+import Select, { type SelectOption } from "@/components/ui/Select";
 import Switch from "@/components/ui/Switch";
 import { useFilterNavigation } from "@/hooks/useFilterNavigation";
 import { type SearchPlace, useStudioSearch } from "@/hooks/useStudioSearch";
 import { BOOKING_HORIZON_DAYS } from "@/lib/booking/dayAvailability";
 import { formatLatLngParam, searchRadiusKm } from "@/lib/geo";
+import { FEED_SORT_LABELS, FEED_SORTS, type FeedSort, parseFeedSort } from "@/lib/listing/feedSort";
+import { PAGE_PARAM } from "@/lib/pagination";
 import { AESTHETICS, SET_FEATURES, USE_CASES } from "@/lib/taxonomy";
 
 const TAG_FILTERS = [
@@ -24,17 +27,20 @@ const TAG_FILTERS = [
 
 type TagKey = (typeof TAG_FILTERS)[number]["key"];
 
+const SORT_OPTIONS: SelectOption[] = FEED_SORTS.map((sort) => ({ value: sort, label: FEED_SORT_LABELS[sort] }));
+
 type Draft = {
   tags: Record<TagKey, string[]>;
   where?: SearchPlace | null;
   date: string | null;
   hasSets: boolean;
+  sort?: FeedSort;
 };
 
 const PLACE_PARAMS = ["place", "near", "km"];
 const DATE_PARAMS = ["date", "selectedDate", "startDate", "endDate"];
 const RETIRED_PARAMS = ["venueTypes"];
-const RESET_PARAMS = [...TAG_FILTERS.map((filter) => filter.key), ...PLACE_PARAMS, ...DATE_PARAMS, ...RETIRED_PARAMS, "hasSets"];
+const RESET_PARAMS = [...TAG_FILTERS.map((filter) => filter.key), ...PLACE_PARAMS, ...DATE_PARAMS, ...RETIRED_PARAMS, "hasSets", "sort"];
 
 type Props = { city?: string };
 
@@ -53,6 +59,8 @@ const FilterModalContent = ({ city }: Props) => {
     [params]
   );
 
+  const appliedSort = parseFeedSort(params?.get("sort"));
+
   const [draft, setDraft] = useState<Draft>({ tags: appliedTags, date: null, hasSets: false });
   const update = (patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch }));
 
@@ -61,15 +69,17 @@ const FilterModalContent = ({ city }: Props) => {
     Boolean(active.place),
     Boolean(active.date),
     active.hasSets,
+    Boolean(appliedSort),
   ].filter(Boolean).length;
 
   const openFilters = () => {
-    setDraft({ tags: appliedTags, where: undefined, date: active.date, hasSets: active.hasSets });
+    setDraft({ tags: appliedTags, where: undefined, date: active.date, hasSets: active.hasSets, sort: appliedSort });
     setIsOpen(true);
   };
 
   const urlSearchParams = useMemo(() => {
     const next = new URLSearchParams(params ? Array.from(params.entries()) : []);
+    next.delete(PAGE_PARAM);
     if (city && !next.has("locationValue")) next.set("locationValue", city);
     return next;
   }, [params, city]);
@@ -98,6 +108,9 @@ const FilterModalContent = ({ city }: Props) => {
     if (draft.hasSets) next.set("hasSets", "true");
     else next.delete("hasSets");
 
+    if (draft.sort) next.set("sort", draft.sort);
+    else next.delete("sort");
+
     navigate(`/studios?${next.toString()}`);
     setIsOpen(false);
   };
@@ -111,6 +124,15 @@ const FilterModalContent = ({ city }: Props) => {
 
   const body = (
     <div className="flex flex-col gap-6">
+      <Select
+        label="Sort by price"
+        placeholder="Select price order"
+        isClearable
+        options={SORT_OPTIONS}
+        value={SORT_OPTIONS.find((option) => option.value === draft.sort) ?? null}
+        onChange={(option) => update({ sort: parseFeedSort(option?.value) })}
+      />
+
       <AutoComplete
         label="Location"
         value={draft.where === undefined ? active.whereLabel ?? "" : draft.where?.label ?? ""}

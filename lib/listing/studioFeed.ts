@@ -11,7 +11,6 @@ import type { FeedSortContext } from "./feedQuery";
 import { findRegion, regionOfCity, regionOfPoint } from "./regions";
 import { type FeedLocationSummary, parseSavedSearchLocation, parseSearchLocationCookie, SEARCH_LOCATION_COOKIE } from "./searchLocation";
 import { ListingService } from "./service";
-import { studioFeedKey } from "./studioFeedKey";
 
 const IP_CITY_HEADERS = ["x-vercel-ip-city", "cf-ipcity"] as const;
 
@@ -71,14 +70,11 @@ async function resolveFeedSort(
     return { sort: { region: null, origin: null }, location: null };
 }
 
-export async function loadStudioFeed(filters: StudioFeedFilters, placeLabel?: string) {
+export async function loadStudioFeed(filters: StudioFeedFilters, { page = 1, placeLabel }: { page?: number; placeLabel?: string } = {}) {
     const { sort, location } = await resolveFeedSort(filters, placeLabel);
-    const page = await ListingService.getListingFeedPage({ filters, sort });
 
     return {
-        key: studioFeedKey(filters, page.origin, page.region),
-        filters,
-        page,
+        page: await ListingService.getListingFeedPage({ filters, sort, page }),
         location,
         nearLabel: filters.near ? placeLabel : undefined,
     };

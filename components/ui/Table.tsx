@@ -7,7 +7,7 @@ import { LuArrowDown, LuArrowUp, LuArrowUpDown } from "react-icons/lu";
 
 import Select, { type SelectOption } from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
-import { cn } from "@/lib/utils";
+import { cn, isPlainClick } from "@/lib/utils";
 
 interface TableShellProps extends React.HTMLAttributes<HTMLDivElement> {
   header?: React.ReactNode;
@@ -310,7 +310,7 @@ function TablePagination({
           className={buttonBaseClass}
           aria-label={text}
           onClick={(e) => {
-            if (onPageChange && !e.defaultPrevented && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+            if (onPageChange && isPlainClick(e)) {
               e.preventDefault();
               onPageChange(targetPage);
             }

@@ -9,6 +9,7 @@ import Callout from "@/components/ui/Callout";
 import Checkbox from "@/components/ui/Checkbox";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
+import { GST_PERCENT } from "@/constants/gst";
 import { formatINR } from "@/lib/utils";
 import { billingSchema } from "@/schemas/billing";
 
@@ -138,7 +139,7 @@ export default function BookingSummaryModal({
           <p>{formatINR(platformFee)}</p>
         </div>
         <div className="flex justify-between text-sm">
-          <p>GST (18%)</p>
+          <p>GST ({GST_PERCENT}%)</p>
           <p>{formatINR(gstAmount)}</p>
         </div>
         <hr className="border-border/40" />

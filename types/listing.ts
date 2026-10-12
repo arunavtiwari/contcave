@@ -136,8 +136,7 @@ export type StudioFeedItem = Pick<
 
 export type StudioFeedPage = {
     items: StudioFeedItem[];
-    nextCursor: string | null;
-    nearestKm: number | null;
+    totalPages: number;
     /** Precise location the order was built from (GPS / entered place), never IP. */
     origin: LatLng | null;
     /** Region the order was grouped by, e.g. "delhi-ncr". */

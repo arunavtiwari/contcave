@@ -33,6 +33,11 @@ interface ListingCardMediaProps {
     showListingBadge?: boolean;
 }
 
+const POSITIVE_STATUSES = new Set(["CONFIRMED", "CHECKED_IN", "COMPLETED"]);
+
+const reservationTone = (status: string) =>
+    POSITIVE_STATUSES.has(status) ? "positive" : status === "PENDING_APPROVAL" ? "pending" : "negative";
+
 const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
     images,
     displayTitle,
@@ -160,7 +165,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                     ))}
                 </div>
 
-                <div className="absolute inset-0 bg-linear-to-t from-foreground/20 via-transparent to-foreground/5 opacity-60 pointer-events-none z-10" />
+                <div className="absolute inset-0 bg-linear-to-b from-foreground/15 via-transparent to-foreground/20 opacity-60 pointer-events-none z-10" />
             </Link>
 
             {images.length > 1 && (
@@ -186,25 +191,18 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
 
             {showListingBadge && !reservationLifecycleStatus && (listingType === "CURATED" || isVerified) && (
                 <div className="absolute left-3 top-3 z-20">
-                    <ListingTypeBadge listingType={listingType === "CURATED" ? "CURATED" : "STANDARD"} className="bg-background/80 shadow-sm backdrop-blur-md" />
+                    <ListingTypeBadge listingType={listingType === "CURATED" ? "CURATED" : "STANDARD"} />
                 </div>
             )}
 
             {reservationLifecycleStatus && (
                 <div className={`absolute left-3 top-3 z-20 transition-transform ${allowScale ? "group-hover:scale-110" : ""}`}>
                     <Pill
-                        label={
-                            reservationLifecycleStatus.replaceAll("_", " ")
-                        }
-                        variant={
-                            reservationLifecycleStatus === "COMPLETED" || reservationLifecycleStatus === "CHECKED_IN" || reservationLifecycleStatus === "CONFIRMED" ? "success" :
-                                reservationLifecycleStatus === "PENDING_APPROVAL" ? "warning" : "destructive"
-                        }
-                        size="xs"
-                        className={`bg-background/80 backdrop-blur-md font-semibold text-[11px] px-3 border shadow-sm ${
-                            reservationLifecycleStatus === "COMPLETED" || reservationLifecycleStatus === "CHECKED_IN" || reservationLifecycleStatus === "CONFIRMED" ? "text-success border-success/30" :
-                                reservationLifecycleStatus === "PENDING_APPROVAL" ? "text-warning border-warning/30" : "text-destructive border-destructive/30"
-                        }`}
+                        label={reservationLifecycleStatus.replaceAll("_", " ")}
+                        variant="glass"
+                        size="sm"
+                        tone={reservationTone(reservationLifecycleStatus)}
+                        className="text-xs font-semibold tracking-wide uppercase"
                     />
                 </div>
             )}

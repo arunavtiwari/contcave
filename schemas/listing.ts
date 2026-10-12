@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import { isDateKey } from "@/lib/booking/dayAvailability";
-import { isLatLng, parseLatLngParam, searchRadiusKm } from "@/lib/geo";
+import { type LatLng, parseLatLngParam, searchRadiusKm } from "@/lib/geo";
 import {
     EQUIPMENT_CATEGORIES,
     EQUIPMENT_POLICIES,
@@ -11,6 +11,7 @@ import {
     LIFT_TYPES,
     PARKING_TYPES,
 } from "@/lib/listing/equipment";
+import { type FeedSort, parseFeedSort } from "@/lib/listing/feedSort";
 import { AESTHETIC_LABELS, SET_FEATURE_LABELS, USE_CASE_LABELS, VENUE_TYPE_LABELS } from "@/lib/taxonomy";
 import { objectIdSchema } from "@/schemas/common";
 
@@ -434,31 +435,28 @@ export const deleteBlockSchema = z.object({
 
 const MAX_FEED_TERMS = 20;
 const MAX_FEED_TERM_LENGTH = 100;
-const feedTermSchema = z.string().trim().min(1).max(MAX_FEED_TERM_LENGTH);
-const feedTermsSchema = z.array(feedTermSchema).min(1).max(MAX_FEED_TERMS);
 
-export const studioFeedFiltersSchema = z.object({
-    locationValues: feedTermsSchema.optional(),
-    category: feedTermSchema.optional(),
-    type: feedTermsSchema.optional(),
-    venueTypes: feedTermsSchema.optional(),
-    aesthetics: feedTermsSchema.optional(),
-    setFeatures: feedTermsSchema.optional(),
-    hasSets: z.boolean().optional(),
-    date: z.string().refine(isDateKey, "Invalid date").optional(),
-    near: z.tuple([z.number(), z.number()]).refine(isLatLng, "Invalid location").optional(),
-    radiusKm: z.number().min(1).max(200).optional(),
-    studioCategory: feedTermSchema.optional(),
+export type StudioFeedFilters = {
+    locationValues?: string[];
+    category?: string;
+    type?: string[];
+    venueTypes?: string[];
+    aesthetics?: string[];
+    setFeatures?: string[];
+    hasSets?: boolean;
+    date?: string;
+    near?: LatLng;
+    radiusKm?: number;
+    studioCategory?: string;
     /** "What's the shoot?" filter, e.g. "backdrop" (see lib/listing/shootPurposes.ts). */
-    purpose: feedTermSchema.optional(),
+    purpose?: string;
+    sort?: FeedSort;
     /** Server-resolved: listings whose sets match the purpose. Never read from the URL. */
-    purposeSetListingIds: z.array(objectIdSchema).optional(),
+    purposeSetListingIds?: string[];
     /** Server-resolved: listings whose sets carry a requested aesthetic / set feature. Never read from the URL. */
-    aestheticSetListingIds: z.array(objectIdSchema).optional(),
-    setFeatureSetListingIds: z.array(objectIdSchema).optional(),
-});
-
-export type StudioFeedFilters = z.infer<typeof studioFeedFiltersSchema>;
+    aestheticSetListingIds?: string[];
+    setFeatureSetListingIds?: string[];
+};
 
 const searchParamSchema = z.union([z.string(), z.array(z.string())]).optional();
 
@@ -494,6 +492,7 @@ export const studioFeedSearchParamsSchema = z
         near: searchParamSchema,
         km: searchParamSchema,
         purpose: searchParamSchema,
+        sort: searchParamSchema,
     })
     .transform((params): StudioFeedFilters => ({
         locationValues: searchTerms(params.locationValue),
@@ -506,5 +505,6 @@ export const studioFeedSearchParamsSchema = z
         date: validDate(searchTerm(params.date)),
         purpose: searchTerm(params.purpose),
         ...nearFilter(params.near, params.km),
+        sort: parseFeedSort(searchTerm(params.sort)),
     }));
 

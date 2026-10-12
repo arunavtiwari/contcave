@@ -2,11 +2,13 @@
 
 import { useNearLabel } from "@/hooks/useNearLabel";
 
-export default function ListingFeedHeader({ title = "Explore studios" }: { title?: string }) {
+const TITLE = "Explore studios";
+
+export default function ListingFeedHeader() {
     const { nearLabel } = useNearLabel();
 
     const formatHeading = () => {
-        if (!nearLabel) return title;
+        if (!nearLabel) return TITLE;
         const normalized = nearLabel.toLowerCase().trim();
         if (normalized === "nearby" || normalized === "you" || normalized === "current location") {
             return "Studios nearby";

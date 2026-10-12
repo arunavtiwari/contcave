@@ -1,7 +1,6 @@
-import Link from "next/link";
-
 import Container from "@/components/layout/Container";
 import ListingCard, { type ListingCardData } from "@/components/listing/ListingCard";
+import TextLink from "@/components/ui/TextLink";
 import type { SafeUser } from "@/types/user";
 
 type Props = {
@@ -18,15 +17,15 @@ export default function MoreStudios({ heading, listings, currentUser, moreHref, 
   return (
     <section aria-labelledby="more-studios-heading" className="pb-24">
       <Container>
-        <div className="max-w-280 mx-auto">
+        <div className="w-full">
           <div className="flex items-baseline justify-between gap-4 mb-4">
             <h2 id="more-studios-heading" className="text-xl font-semibold text-foreground">
               {heading}
             </h2>
             {moreHref && moreLabel && (
-              <Link href={moreHref} className="text-sm font-semibold underline text-foreground">
+              <TextLink href={moreHref} className="text-sm">
                 {moreLabel}
-              </Link>
+              </TextLink>
             )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">

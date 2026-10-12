@@ -4,25 +4,33 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import getRandomListings from "@/app/actions/getRandomListings";
 import CTA from "@/components/landing/CTA";
 import FAQ from "@/components/landing/FAQ";
+import { homeFaqs } from "@/components/landing/faqData";
 import Hero from "@/components/landing/Hero";
 import HowItWorks from "@/components/landing/HowItWorks";
 import ProductionConcierge from "@/components/landing/ProductionConcierge";
 import SocialProof from "@/components/landing/SocialProof";
 import StudioShowcase from "@/components/landing/StudioShowcase";
 import JsonLd from "@/components/seo/JsonLd";
+import { coveredCityNames } from "@/lib/listing/cities";
+import { coverageArea } from "@/lib/listing/cityPaths";
+import { truncateText } from "@/lib/richText";
 import {
   absoluteUrl,
   BRAND_NAME,
   BRAND_TITLE,
   DEFAULT_KEYWORDS,
+  META_DESCRIPTION_LENGTH,
   OG_IMAGE,
   ORGANIZATION_ID,
   SITE_URL,
   WEBSITE_ID,
 } from "@/lib/seo";
 
-const HOME_DESCRIPTION =
-  "Book the ideal shoot space for your next production with ContCave - India's trusted marketplace for photography, film, and event-ready studios." as const;
+const homeDescription = (liveIn: string[]) =>
+  truncateText(
+    `Book photography, video and podcast studios by the hour ${coverageArea(liveIn)}. Verified spaces with upfront pricing.`,
+    META_DESCRIPTION_LENGTH
+  );
 
 const serviceJsonLd = {
   "@context": "https://schema.org",
@@ -42,13 +50,13 @@ const serviceJsonLd = {
   },
 } as const;
 
-const homeJsonLd = {
+const homeJsonLd = (description: string) => ({
   "@context": "https://schema.org",
   "@type": "WebPage",
   "@id": `${SITE_URL}/#home`,
   url: SITE_URL,
   name: BRAND_TITLE,
-  description: HOME_DESCRIPTION,
+  description,
   isPartOf: { "@id": WEBSITE_ID },
   publisher: { "@id": ORGANIZATION_ID },
   inLanguage: "en-IN",
@@ -70,52 +78,56 @@ const homeJsonLd = {
       },
     ],
   },
-} as const;
+});
 
-export const metadata: Metadata = {
-  title: { absolute: BRAND_TITLE },
-  description: HOME_DESCRIPTION,
-  keywords: [...DEFAULT_KEYWORDS],
-  alternates: { canonical: "/" },
-  openGraph: {
-    title: BRAND_TITLE,
-    description: HOME_DESCRIPTION,
-    type: "website",
-    url: SITE_URL,
-    siteName: BRAND_NAME,
-    images: [{ url: absoluteUrl(OG_IMAGE), width: 1200, height: 630, alt: BRAND_NAME }],
-    locale: "en_IN",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: BRAND_TITLE,
-    description: HOME_DESCRIPTION,
-    site: "@ContCave",
-    creator: "@ContCave",
-    images: [absoluteUrl(OG_IMAGE)],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+export async function generateMetadata(): Promise<Metadata> {
+  const description = homeDescription(await coveredCityNames());
+  return {
+    title: { absolute: BRAND_TITLE },
+    description,
+    keywords: [...DEFAULT_KEYWORDS],
+    alternates: { canonical: "/" },
+    openGraph: {
+      title: BRAND_TITLE,
+      description,
+      type: "website",
+      url: SITE_URL,
+      siteName: BRAND_NAME,
+      images: [{ url: absoluteUrl(OG_IMAGE), width: 1200, height: 630, alt: BRAND_NAME }],
+      locale: "en_IN",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: BRAND_TITLE,
+      description,
+      site: "@ContCave",
+      creator: "@ContCave",
+      images: [absoluteUrl(OG_IMAGE)],
+    },
+    robots: {
       index: true,
       follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
-  },
-};
+  };
+}
 
 export default async function Home() {
-  const [currentUser, listings] = await Promise.all([
+  const [currentUser, listings, liveIn] = await Promise.all([
     getCurrentUser(),
     getRandomListings(3),
+    coveredCityNames(),
   ]);
 
   return (
     <main>
-      <JsonLd id="home-jsonld" data={[homeJsonLd, serviceJsonLd]} />
+      <JsonLd id="home-jsonld" data={[homeJsonLd(homeDescription(liveIn)), serviceJsonLd]} />
 
       {/* 1. Hero —  full-viewport, city search */}
       <Hero />
@@ -133,7 +145,11 @@ export default async function Home() {
       <ProductionConcierge />
 
       {/* 7. FAQ —  objection handling before the final ask */}
-      <FAQ />
+      <FAQ
+        items={homeFaqs(liveIn)}
+        title={<>Questions? We have <span className="text-muted-foreground italic">Answers</span></>}
+        description="Everything you need to know about booking, payments, and studio protocols."
+      />
 
       {/* 8. For Studio Owners —  CTA */}
       <CTA currentUser={currentUser} />

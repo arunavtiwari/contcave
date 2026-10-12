@@ -24,6 +24,9 @@ type FixtureInput = {
   operationalHours?: { start: string; end: string };
   minimumBookingHours?: number;
   setNames?: string[];
+  setFeatures?: string[];
+  price?: number;
+  priceRange?: [number, number];
 };
 
 const ORIGIN: LatLng = [28.6315, 77.2167];
@@ -48,13 +51,16 @@ async function createFeedListing(ownerId: string, city: string, input: FixtureIn
       locationValue: city,
       actualLocation: input.latlng ? { latlng: input.latlng, label: city, value: city } : undefined,
       ...(input.latlng ? { locationPoint: toGeoPoint(input.latlng) } : {}),
-      price: input.listingType === "CURATED" ? null : 1500,
+      price: input.listingType === "CURATED" ? null : input.price ?? 1500,
+      priceRangeMin: input.priceRange?.[0],
+      priceRangeMax: input.priceRange?.[1],
       listingType: input.listingType ?? "STANDARD",
       userId: ownerId,
       amenities: [],
       otherAmenities: [],
       type: input.type ?? [],
       venueTypes: input.venueTypes ?? [],
+      setFeatures: input.setFeatures ?? [],
       status: "VERIFIED",
       active: true,
       createdAt: new Date(input.createdAt),
@@ -92,18 +98,19 @@ async function createReservation(params: { listingId: string; userId: string; da
 async function pageAll(filters: StudioFeedFilters, origin: LatLng | null, size: number) {
   const ListingService = await getListingService();
   const ids: string[] = [];
-  let cursor: string | null = null;
-  do {
-    const page = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin }, cursor, size });
-    expect(page.origin).toEqual(origin);
-    ids.push(...page.items.map((item) => item.id));
-    cursor = page.nextCursor;
-  } while (cursor);
+  let totalPages = 1;
+  for (let page = 1; page <= totalPages; page += 1) {
+    const result = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin }, page, size });
+    expect(result.origin).toEqual(filters.sort ? null : origin);
+    ids.push(...result.items.map((item) => item.id));
+    totalPages = result.totalPages;
+  }
+  expect(totalPages).toBe(Math.max(1, Math.ceil(ids.length / size)));
   return ids;
 }
 
 test.describe("studio feed service", () => {
-  test("pages nearest-first by cursor without duplicates or gaps", async ({}, testInfo) => {
+  test("pages nearest-first by page number without duplicates or gaps", async ({}, testInfo) => {
     const suffix = `feed-geo-r${testInfo.retry}`;
     const city = `${readRunState().runId} Geo ${testInfo.retry}`;
     const { user } = await createUserFixture({ role: "OWNER", verified: true, suffix });
@@ -119,33 +126,23 @@ test.describe("studio feed service", () => {
       expect(await pageAll(filters, ORIGIN, size)).toEqual(expected);
     }
 
-    const ListingService = await getListingService();
-    const first = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN }, size: 2 });
-    expect(first.nearestKm).toBeGreaterThan(0.9);
-    expect(first.nearestKm).toBeLessThan(1.1);
-
     expect(await pageAll(filters, null, 2)).toEqual([unlocated.id, far.id, mid.id, near.id, midCurated.id]);
   });
 
-  test("keeps its place when studios change mid-scroll", async ({}, testInfo) => {
-    const suffix = `feed-stable-r${testInfo.retry}`;
-    const city = `${readRunState().runId} Stable ${testInfo.retry}`;
+  test("sorts by listed price both ways with unpriced studios last", async ({}, testInfo) => {
+    const suffix = `feed-price-r${testInfo.retry}`;
+    const city = `${readRunState().runId} Price ${testInfo.retry}`;
     const { user } = await createUserFixture({ role: "OWNER", verified: true, suffix });
-    const listings = [];
-    for (const km of [1, 2, 3, 4, 5, 6]) {
-      listings.push(await createFeedListing(user.id, city, { name: `${km}km`, latlng: offsetNorth(ORIGIN, km), createdAt: `2026-02-0${km}` }));
-    }
-    const filters = { locationValues: [city] };
-    const ListingService = await getListingService();
+    const cheap = await createFeedListing(user.id, city, { name: "Cheap", price: 800, latlng: offsetNorth(ORIGIN, 30), createdAt: "2026-06-01" });
+    const mid = await createFeedListing(user.id, city, { name: "Mid", price: 1500, latlng: offsetNorth(ORIGIN, 1), createdAt: "2026-06-02" });
+    const pricey = await createFeedListing(user.id, city, { name: "Pricey", price: 3000, createdAt: "2026-06-03" });
+    const estimated = await createFeedListing(user.id, city, { name: "Estimated", listingType: "CURATED", priceRange: [1000, 2000], createdAt: "2026-06-04" });
+    const onDemand = await createFeedListing(user.id, city, { name: "On demand", listingType: "CURATED", createdAt: "2026-06-05" });
 
-    const first = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN }, size: 2 });
-    expect(first.items.map((item) => item.id)).toEqual([listings[0].id, listings[1].id]);
-
-    await prisma.listing.update({ where: { id: listings[0].id }, data: { active: false } });
-    await createFeedListing(user.id, city, { name: "Inserted closer", latlng: offsetNorth(ORIGIN, 0.5), createdAt: "2026-02-09" });
-
-    const second = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN }, cursor: first.nextCursor, size: 2 });
-    expect(second.items.map((item) => item.id)).toEqual([listings[2].id, listings[3].id]);
+    expect(await pageAll({ locationValues: [city], sort: "price_asc" }, ORIGIN, 2))
+      .toEqual([cheap.id, estimated.id, mid.id, pricey.id, onDemand.id]);
+    expect(await pageAll({ locationValues: [city], sort: "price_desc" }, ORIGIN, 2))
+      .toEqual([pricey.id, mid.id, estimated.id, cheap.id, onDemand.id]);
   });
 
   test("category filter matches matchesCategory for every category", async ({}, testInfo) => {
@@ -160,6 +157,8 @@ test.describe("studio feed service", () => {
       { name: "Cyclorama", category: "Cyclorama Studio", type: ["Brand Campaign Shoot"], createdAt: "2026-03-05" },
       { name: "Reels", type: ["YouTube Videos", "Food & Beverage"], venueTypes: ["Café / Restaurant"], createdAt: "2026-03-06" },
       { name: "Dropped use case", type: ["Meeting"], category: "Co-working Space", createdAt: "2026-03-07" },
+      { name: "Infinity cyc", setFeatures: ["Infinity White Cyc"], createdAt: "2026-03-08" },
+      { name: "Chroma", setFeatures: ["Green Screen", "Natural Light"], createdAt: "2026-03-09" },
     ];
     const created = [];
     for (const fixture of fixtures) created.push(await createFeedListing(user.id, city, fixture));

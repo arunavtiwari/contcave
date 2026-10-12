@@ -37,19 +37,18 @@ import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData, type StudioFeedItem, type StudioFeedPage } from "@/types/listing";
 
 import {
+    buildFeedPagePipeline,
     buildFeedPipeline,
-    cursorFromRow,
-    decodeFeedCursor,
-    encodeFeedCursor,
     FEED_PAGE_SIZE,
     feedCandidatePipeline,
-    type FeedCursor,
+    type FeedPageRow,
     type FeedRow,
     type FeedSortContext,
     hydratableListingFilter,
-    nearestKmOf,
     readRawId,
+    readRawNumber,
     toStudioFeedItem,
+    UNLOCATED_SORT,
 } from "./feedQuery";
 import { resolveListingLocation } from "./location";
 import { collectListingMediaRefs, ListingMediaSource, orphanedListingMediaRefs } from "./media";
@@ -1237,7 +1236,7 @@ export class ListingService {
             studioFeedSearchParamsSchema.parse({ ...searchParams, hasSets: hasSets ? "true" : undefined })
         );
         const excludeIds = await this.unbookableListingIds(filters);
-        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, sort: { region: null, origin: null }, after: null, excludeIds }));
+        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, sort: UNLOCATED_SORT, excludeIds }));
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
         if (ids.length === 0) return [];
 
@@ -1271,25 +1270,27 @@ export class ListingService {
     static async getListingFeedPage({
         filters,
         sort,
-        cursor,
+        page = 1,
         size = FEED_PAGE_SIZE,
     }: {
         filters: StudioFeedFilters;
         sort: FeedSortContext;
-        cursor?: string | null;
+        page?: number;
         size?: number;
     }): Promise<StudioFeedPage> {
         filters = await this.withSetMatches(filters);
-        const after = cursor ? decodeFeedCursor(cursor) : null;
         const excludeIds = await this.unbookableListingIds(filters);
-        const { rows, sort: appliedSort } = await this.queryFeedRows({ filters, sort, after, limit: size + 1, excludeIds });
-        const pageRows = rows.slice(0, size);
-        const lastRow = pageRows[pageRows.length - 1];
+        const window = { filters, excludeIds, skip: (page - 1) * size, limit: size };
+        const { rows: [result], sort: appliedSort } = await this.queryFeed<FeedPageRow>(
+            filters.sort ? UNLOCATED_SORT : sort,
+            (feedSort) => buildFeedPagePipeline({ ...window, sort: feedSort })
+        );
+        const rows = result?.rows ?? [];
+        const total = readRawNumber(result?.total?.[0]?.total ?? 0);
 
         return {
-            items: await this.loadFeedItems(pageRows.map(readRawId).filter((id): id is string => !!id)),
-            nextCursor: rows.length > size && lastRow ? encodeFeedCursor(cursorFromRow(lastRow)) : null,
-            nearestKm: after ? null : nearestKmOf(pageRows),
+            items: await this.loadFeedItems(rows.map(readRawId).filter((id): id is string => !!id)),
+            totalPages: Math.max(1, Math.ceil(total / size)),
             origin: appliedSort.origin,
             region: appliedSort.region,
         };
@@ -1327,31 +1328,24 @@ export class ListingService {
         });
     }
 
-    private static async queryFeedRows(params: {
-        filters: StudioFeedFilters;
-        sort: FeedSortContext;
-        after: FeedCursor | null;
-        limit: number;
-        excludeIds: string[];
-    }): Promise<{ rows: FeedRow[]; sort: FeedSortContext }> {
-        const { sort, after } = params;
-        if (!sort.origin) return { rows: await this.runFeedPipeline(buildFeedPipeline(params)), sort };
-
+    private static async queryFeed<Row>(
+        sort: FeedSortContext,
+        build: (sort: FeedSortContext) => Record<string, unknown>[]
+    ): Promise<{ rows: Row[]; sort: FeedSortContext }> {
+        if (!sort.origin) return { rows: await this.runFeedPipeline<Row>(build(sort)), sort };
         try {
-            return { rows: await this.runFeedPipeline(buildFeedPipeline(params)), sort };
+            return { rows: await this.runFeedPipeline<Row>(build(sort)), sort };
         } catch (error) {
-            if (after) throw error;
-            // Distance sorting failed: keep the region grouping, drop distance.
             console.error("[ListingService] Location-sorted feed failed; serving region-only order.", error);
             const regionOnly = { region: sort.region, origin: null };
-            return { rows: await this.runFeedPipeline(buildFeedPipeline({ ...params, sort: regionOnly })), sort: regionOnly };
+            return { rows: await this.runFeedPipeline<Row>(build(regionOnly)), sort: regionOnly };
         }
     }
 
-    private static async runFeedPipeline(pipeline: Record<string, unknown>[]): Promise<FeedRow[]> {
+    private static async runFeedPipeline<Row = FeedRow>(pipeline: Record<string, unknown>[]): Promise<Row[]> {
         return await prisma.listing.aggregateRaw({
             pipeline: pipeline as unknown as Prisma.InputJsonValue[],
-        }) as unknown as FeedRow[];
+        }) as unknown as Row[];
     }
 
     private static async loadFeedItems(ids: string[]): Promise<StudioFeedItem[]> {
@@ -1397,7 +1391,8 @@ export class ListingService {
         origin: LatLng | null;
         limit: number;
     }) {
-        const { rows } = await this.queryFeedRows({ filters: { locationValues }, sort: { region: null, origin }, after: null, limit, excludeIds: [] });
+        const { rows } = await this.queryFeed<FeedRow>({ region: null, origin }, (feedSort) =>
+            buildFeedPipeline({ filters: { locationValues }, sort: feedSort, limit, excludeIds: [] }));
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
         if (ids.length === 0) return [];
 

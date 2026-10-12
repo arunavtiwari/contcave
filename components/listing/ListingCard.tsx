@@ -99,7 +99,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
   actionLabel,
   currentUser,
   className = "",
-  showHeart = true,
+  showHeart,
   showRating = true,
   useTilt = false,
   hideActions = false,
@@ -108,6 +108,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
   priority = false,
   showListingBadge = false,
 }) => {
+  const shouldShowHeart = showHeart ?? (!isHost && !reservation && !onEdit);
   const { getByValue } = useCities();
 
   const displayTitle = useMemo(() => getDisplayTitle(data), [data]);
@@ -181,7 +182,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
           formattedPrice={formattedPrice}
           hasSets={data?.hasSets}
           isReservation={!!reservation}
-          showHeart={showHeart}
+          showHeart={shouldShowHeart}
           listingId={String(data?.id || "")}
           currentUser={currentUser}
           onEdit={!!onEdit}
