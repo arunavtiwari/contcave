@@ -9,6 +9,9 @@ const INDEXES = {
   ListingSearchDoc: [
     { name: "ListingSearchDoc_listingId_key", key: { listingId: 1 }, unique: true },
   ],
+  Listing: [
+    { name: "Listing_previousSlugs_idx", key: { previousSlugs: 1 } },
+  ],
 };
 const NAMESPACE_NOT_FOUND = 26;
 
