@@ -53,6 +53,7 @@ import {
 } from "./feedQuery";
 import { resolveListingLocation } from "./location";
 import { collectListingMediaRefs, ListingMediaSource, orphanedListingMediaRefs } from "./media";
+import { slugHistory } from "./utils";
 
 type ListingWithRelations = Prisma.ListingGetPayload<{
     include: {
@@ -747,6 +748,9 @@ export class ListingService {
         if (listingData.unifiedSetPrice != null) listingData.unifiedSetPrice = Math.round(Number(listingData.unifiedSetPrice));
         if (listingData.price != null) listingData.price = Math.round(Number(listingData.price));
         if (listingData.slug) listingData.slug = slugify(String(listingData.slug));
+        if (listingData.slug && existingListing.slug && listingData.slug !== existingListing.slug) {
+            listingData.previousSlugs = slugHistory(existingListing.previousSlugs, existingListing.slug, String(listingData.slug));
+        }
         if ("amenities" in listingData) {
             listingData.amenities = await assertDefaultAmenitiesExist(listingData.amenities);
         }
@@ -1493,16 +1497,12 @@ export class ListingService {
         viewer?: { id: string; role: "CUSTOMER" | "OWNER" | "ADMIN" }
     ): Promise<FullListing | null> {
         const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
+        const include = { user: true, packages: true, sets: { orderBy: [{ price: "asc" as const }, { position: "asc" as const }] }, blocks: true };
 
         const listing = isObjectId
-            ? await prisma.listing.findFirst({
-                where: { id: listingId },
-                include: { user: true, packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, blocks: true }
-            })
-            : await prisma.listing.findFirst({
-                where: { slug: listingId },
-                include: { user: true, packages: true, sets: { orderBy: [{ price: "asc" }, { position: "asc" }] }, blocks: true }
-            });
+            ? await prisma.listing.findFirst({ where: { id: listingId }, include })
+            : (await prisma.listing.findFirst({ where: { slug: listingId }, include }))
+                ?? (await prisma.listing.findFirst({ where: { previousSlugs: { has: listingId } }, include }));
 
         if (!listing || (listing.archivedAt && viewer?.role !== "ADMIN")) return null;
         const includePrivateLocation = Boolean(viewer && (viewer.role === "ADMIN" || viewer.id === listing.userId));
