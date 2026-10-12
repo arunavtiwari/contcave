@@ -1,17 +1,17 @@
 import Image from "next/image";
-import Link from "next/link";
 
 import Container from "@/components/layout/Container";
 import Logo from "@/components/navbar/Logo";
 import EmailShield from "@/components/ui/EmailShield";
-import { getCityDirectory } from "@/lib/listing/cities";
+import TextLink from "@/components/ui/TextLink";
+import { placeIndex, popularSearches } from "@/lib/listing/cities";
 import { cityPath } from "@/lib/listing/cityPaths";
 
+const POPULAR_SEARCHES = 8;
+
 async function Footer() {
-  const cities = await getCityDirectory().catch((error: unknown) => {
-    console.error("[Footer] City directory unavailable:", error instanceof Error ? error.message : error);
-    return [];
-  });
+  const { all: places, covered } = await placeIndex();
+  const searches = popularSearches(covered, POPULAR_SEARCHES);
 
   return (
     <footer className="bg-muted/30 text-foreground border-t border-border">
@@ -59,35 +59,32 @@ async function Footer() {
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-6 text-sm font-medium text-center md:text-left">
             <div className="flex flex-col space-y-3">
               <p className="text-lg font-bold text-foreground">Company</p>
-              <Link href="/about" className="cursor-pointer text-muted-foreground hover:text-foreground transition-all text-sm">About</Link>
-              <Link href="/privacy-policy" className="cursor-pointer text-muted-foreground hover:text-foreground transition-all text-sm">Privacy Policy</Link>
-              <Link href="/terms-and-conditions" className="cursor-pointer text-muted-foreground hover:text-foreground transition-all text-sm">Terms & Conditions</Link>
-              <Link href="/blog" className="cursor-pointer text-muted-foreground hover:text-foreground transition-all text-sm">Blogs</Link>
+              <TextLink variant="muted" href="/about">About</TextLink>
+              <TextLink variant="muted" href="/privacy-policy">Privacy Policy</TextLink>
+              <TextLink variant="muted" href="/terms-and-conditions">Terms & Conditions</TextLink>
+              <TextLink variant="muted" href="/blog">Blogs</TextLink>
             </div>
 
             <div className="flex flex-col space-y-3">
               <p className="text-lg font-bold text-foreground">Support</p>
-              <Link rel="noopener noreferrer" target="_blank" href="https://great-nova-7ea.notion.site/26d01ecdcb528023ad9fffbb25a4f65a?v=26d01ecdcb5280399b81000c9996a2e7" className="text-muted-foreground hover:text-foreground transition-all text-sm">For Studio Owners</Link>
-              <Link href="/cancellation" className="text-muted-foreground hover:text-foreground transition-all text-sm">Cancellation Policy</Link>
+              <TextLink variant="muted" rel="noopener noreferrer" target="_blank" href="https://great-nova-7ea.notion.site/26d01ecdcb528023ad9fffbb25a4f65a?v=26d01ecdcb5280399b81000c9996a2e7">For Studio Owners</TextLink>
+              <TextLink variant="muted" href="/cancellation">Cancellation Policy</TextLink>
               <EmailShield email="info@contcave.com" className="text-muted-foreground hover:text-foreground transition-all text-sm">Contact Us</EmailShield>
             </div>
 
             <div className="flex flex-col space-y-3">
-              <p className="text-lg font-bold text-foreground">Activities</p>
-              <Link href="/studios?type=Fashion+%26+Lifestyle" className="text-muted-foreground hover:text-foreground transition-all text-sm">Fashion Shoot</Link>
-              <Link href="/studios?type=Video+%26+Film" className="text-muted-foreground hover:text-foreground transition-all text-sm">Video & Film</Link>
-              <Link href="/studios?type=Pre-Wedding" className="text-muted-foreground hover:text-foreground transition-all text-sm">Pre-Wedding Shoot</Link>
-              <Link href="/studios?venueTypes=Outdoor+%2F+Rooftop" className="text-muted-foreground hover:text-foreground transition-all text-sm">Outdoor Spaces</Link>
-              <Link href="/studios?type=Podcast+%26+Interview" className="text-muted-foreground hover:text-foreground transition-all text-sm">Podcasts</Link>
-              <Link href="/studios?type=Events+%26+Pop-Ups" className="text-muted-foreground hover:text-foreground transition-all text-sm">Events & Pop-Ups</Link>
-              <Link href="/studios?type=Product+%26+E-commerce" className="text-muted-foreground hover:text-foreground transition-all text-sm">Product Shoots</Link>
+              <p className="text-lg font-bold text-foreground">Popular Searches</p>
+              {searches.map((search) => (
+                <TextLink key={search.href} variant="muted" href={search.href}>{search.label}</TextLink>
+              ))}
             </div>
 
             <div className="flex flex-col space-y-3">
               <p className="text-lg font-bold text-foreground">Across India</p>
               <div className="grid grid-cols-1 gap-2">
-                {cities.map((city) => (
-                  <Link key={city.slug} href={cityPath(city.city)} className="text-muted-foreground hover:text-foreground transition-all text-sm">{city.city}</Link>
+                <TextLink variant="muted" href="/studios">All studios</TextLink>
+                {places.map((place) => (
+                  <TextLink key={place.slug} variant="muted" href={cityPath(place.city)}>{place.city}</TextLink>
                 ))}
               </div>
             </div>

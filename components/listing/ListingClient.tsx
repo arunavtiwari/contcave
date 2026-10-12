@@ -8,9 +8,11 @@ import CuratedReservation from "@/components/listing/CuratedReservation";
 import ListingHead from "@/components/listing/ListingHead";
 import ListingInfo from "@/components/listing/ListingInfo";
 import ListingReservation from "@/components/listing/ListingReservation";
+import ListingTitle from "@/components/listing/ListingTitle";
 import PackageSetModal from "@/components/modals/PackageSetModal";
 import { categories } from "@/components/navbar/categoriesData";
 import Callout from "@/components/ui/Callout";
+import { useStickyTop } from "@/hooks/useStickyTop";
 import {
   addDaysToDateKey,
   BOOKING_HORIZON_DAYS,
@@ -33,6 +35,7 @@ import {
   dateFromLabel,
   labelToMinutes,
 } from "@/lib/scheduling";
+import type { BreadcrumbItem } from "@/lib/seo";
 import { SafeAmenity } from "@/types/amenity";
 import { FullListing } from "@/types/listing";
 import { Package } from "@/types/package";
@@ -64,6 +67,8 @@ type Props = {
   initialSelectedSetIds?: string[];
   initialDate?: string | null;
   initialTimeSlot?: [TimeLabel, TimeLabel] | null;
+  breadcrumbs: BreadcrumbItem[];
+  path: string;
 };
 
 type AddonItem = { name?: string; price: number; qty: number };
@@ -133,6 +138,8 @@ function useAvailability(promise: Promise<ListingAvailability>) {
   return availability;
 }
 
+const PANEL_TOP_OFFSET = 96;
+
 function ListingClient({
   listing,
   isPreview = false,
@@ -146,7 +153,11 @@ function ListingClient({
   initialSelectedSetIds = [],
   initialDate = null,
   initialTimeSlot = null,
+  breadcrumbs,
+  path,
 }: Props) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const panelTop = useStickyTop(panelRef, PANEL_TOP_OFFSET);
   const availability = useAvailability(availabilityPromise);
   const reservations = availability?.reservations ?? NO_RESERVATIONS;
   const dayStatuses = availability?.dayStatuses ?? NO_DAY_STATUSES;
@@ -383,7 +394,7 @@ function ListingClient({
   return (
     <div className="pt-10">
       <Container>
-        <div className="max-w-280 mx-auto pb-24">
+        <div className="w-full pb-24">
           {isPreview && (
             <Callout role="status" icon={FiEye} title="Preview: this studio isn't live yet" className="mb-6">
               This is how guests will see it once it&apos;s approved. It&apos;s hidden from search, and bookings and enquiries are turned off until then.
@@ -396,11 +407,20 @@ function ListingClient({
               videoSrc={listing.videoSrc}
               locationValue={listing.locationValue}
               kind={kindLabel}
-              id={listing.id}
-              currentUser={currentUser}
+              breadcrumbs={breadcrumbs}
             />
-            <div className="grid grid-cols-1 md:grid-cols-7 md:gap-10 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-12 md:gap-8 lg:gap-12 mt-6">
               <ListingInfo
+                header={
+                  <ListingTitle
+                    id={listing.id}
+                    title={listing.title}
+                    locationValue={listing.locationValue}
+                    path={path}
+                    image={listing.imageSrc[0]}
+                    currentUser={currentUser}
+                  />
+                }
                 user={listing.user}
                 category={category}
                 description={listing.description}
@@ -427,57 +447,59 @@ function ListingClient({
                 processedTerms={processedTerms}
                 descriptionShouldTruncate={descriptionShouldTruncate}
               />
-              <div className="order-first mb-10 md:order-last md:col-span-3">
-                {isOwnListing ? (
-                  <div className="rounded-xl border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-                    This is your listing. Owners cannot book or enquire on their own studio.
-                  </div>
-                ) : isCurated ? (
-                  <CuratedReservation
-                    listingId={listing.id}
-                    studioName={listing.title}
-                    area={listing.locationValue}
-                    priceRangeMin={listing.priceRangeMin}
-                    priceRangeMax={listing.priceRangeMax}
-                    mapsUrl={listing.mapsUrl}
-                    websiteUrl={listing.websiteUrl}
-                    instagramHandle={listing.instagramHandle}
-                    disabled={isPreview}
-                  />
-                ) : (
-                  <ListingReservation
-                    listingId={listing.id}
-                    price={listing.price ?? 0}
-                    platformFee={0}
-                    time={timeDifferenceInHours}
-                    setSelectDateAction={selectDate}
-                    selectedDate={selectedDate}
-                    setSelectTimeSlotsAction={setSelectedTimeSlot}
-                    selectedTime={selectedTimeSlot}
-                    instantBooking={!!listing.instantBooking}
-                    availabilityLoading={!availability}
-                    disabledDates={disabledDates}
-                    disabledStartTimes={disabledPairsForPicker.starts}
-                    disabledEndTimes={disabledPairsForPicker.ends}
-                    operationalTimings={selectedOperationalTimings}
-                    selectedAddons={selectedAddons}
-                    currentUserPhone={currentUser?.phone ?? null}
-                    isAuthenticated={!!currentUser}
-                    minBookingHours={Number(listing.minimumBookingHours ?? 0)}
-                    selectedPackage={selectedPackage}
-                    hasSets={listing.hasSets && (listing.sets?.length ?? 0) >= 1}
-                    sets={listing.sets}
-                    additionalSetPricingType={listing.additionalSetPricingType}
-                    selectedSetIds={selectedSetIds}
-                    pricingResult={pricingResult}
-                    selectedPackageId={selectedPackage?.id || null}
-                    setSelectionError={setSelectionError}
-                    slotError={slotError}
-                    reservations={reservations}
-                    disabled={isPreview}
-                    contcaveNote={listing.contcaveNote}
-                  />
-                )}
+              <div className="order-first mb-10 md:order-last md:col-span-5 lg:col-span-5 xl:col-span-4">
+                <div ref={panelRef} className="md:sticky" style={{ top: panelTop }}>
+                  {isOwnListing ? (
+                    <div className="rounded-xl border border-border bg-muted/30 p-6 text-sm text-muted-foreground">
+                      This is your listing. Owners cannot book or enquire on their own studio.
+                    </div>
+                  ) : isCurated ? (
+                    <CuratedReservation
+                      listingId={listing.id}
+                      studioName={listing.title}
+                      area={listing.locationValue}
+                      priceRangeMin={listing.priceRangeMin}
+                      priceRangeMax={listing.priceRangeMax}
+                      mapsUrl={listing.mapsUrl}
+                      websiteUrl={listing.websiteUrl}
+                      instagramHandle={listing.instagramHandle}
+                      disabled={isPreview}
+                    />
+                  ) : (
+                    <ListingReservation
+                      listingId={listing.id}
+                      price={listing.price ?? 0}
+                      platformFee={0}
+                      time={timeDifferenceInHours}
+                      setSelectDateAction={selectDate}
+                      selectedDate={selectedDate}
+                      setSelectTimeSlotsAction={setSelectedTimeSlot}
+                      selectedTime={selectedTimeSlot}
+                      instantBooking={!!listing.instantBooking}
+                      availabilityLoading={!availability}
+                      disabledDates={disabledDates}
+                      disabledStartTimes={disabledPairsForPicker.starts}
+                      disabledEndTimes={disabledPairsForPicker.ends}
+                      operationalTimings={selectedOperationalTimings}
+                      selectedAddons={selectedAddons}
+                      currentUserPhone={currentUser?.phone ?? null}
+                      isAuthenticated={!!currentUser}
+                      minBookingHours={Number(listing.minimumBookingHours ?? 0)}
+                      selectedPackage={selectedPackage}
+                      hasSets={listing.hasSets && (listing.sets?.length ?? 0) >= 1}
+                      sets={listing.sets}
+                      additionalSetPricingType={listing.additionalSetPricingType}
+                      selectedSetIds={selectedSetIds}
+                      pricingResult={pricingResult}
+                      selectedPackageId={selectedPackage?.id || null}
+                      setSelectionError={setSelectionError}
+                      slotError={slotError}
+                      reservations={reservations}
+                      disabled={isPreview}
+                      contcaveNote={listing.contcaveNote}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </div>

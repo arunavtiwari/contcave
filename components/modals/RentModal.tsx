@@ -1133,7 +1133,6 @@ export default function RentModal({
         secondaryActionLabel={secondActionLabel}
         secondaryActionAction={currentStepIndex <= 0 ? undefined : onBack}
         onCloseAction={() => uiStore.onClose("rent")}
-        selfActionButton={false}
 
 
         body={
@@ -1180,11 +1179,11 @@ export default function RentModal({
         onCloseAction={() => { setShowSuccessModal(false); }}
         onSubmitAction={() => {
           setShowSuccessModal(false);
-          if (needsVerification) router.push("/dashboard/profile");
+          router.push("/dashboard/profile");
         }}
         title={needsVerification ? "Details Submitted Successfully 🎉" : isCurated ? "Curated Space Submitted 🎉" : "Listing Submitted 🎉"}
         customHeight="h-auto"
-        actionLabel={needsVerification ? "Verify your profile" : "Close"}
+        actionLabel={needsVerification ? "Verify your profile" : undefined}
         secondaryActionLabel={needsVerification ? "Later" : undefined}
         secondaryActionAction={needsVerification ? () => setShowSuccessModal(false) : undefined}
         body={

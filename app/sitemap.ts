@@ -1,8 +1,8 @@
 import { MetadataRoute } from "next";
 
-export const revalidate = 3600;
+import { absoluteUrl } from "@/lib/seo";
 
-const base = "https://contcave.com";
+export const revalidate = 3600;
 
 const latest = (dates: Date[]) =>
   dates.length ? new Date(Math.max(...dates.map((date) => date.getTime()))) : undefined;
@@ -23,20 +23,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   try {
-    const [{ getCityDirectory, publishedCategories }, { cityCategoryPath, cityPath }] = await Promise.all([
+    const [{ getPlaceDirectory, publishedCategories }, { cityCategoryPath, cityPath }] = await Promise.all([
       import("@/lib/listing/cities"),
       import("@/lib/listing/cityPaths"),
     ]);
-    for (const city of await getCityDirectory()) {
+    for (const city of await getPlaceDirectory()) {
       cityRoutes.push({
-        url: `${base}${cityPath(city.city)}`,
+        url: absoluteUrl(cityPath(city.city)),
         lastModified: new Date(city.lastModified),
         changeFrequency: "daily",
         priority: 0.8,
       });
       for (const category of publishedCategories(city)) {
         cityRoutes.push({
-          url: `${base}${cityCategoryPath(city.city, category)}`,
+          url: absoluteUrl(cityCategoryPath(city.city, category)),
           lastModified: new Date(city.lastModified),
           changeFrequency: "daily",
           priority: 0.8,
@@ -52,7 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const post of getSortedPostsData()) {
       const modified = post.updatedAt ?? post.publishedAt;
       postRoutes.push({
-        url: `${base}/blog/${post.id}`,
+        url: absoluteUrl(`/blog/${post.id}`),
         lastModified: modified ? new Date(modified) : undefined,
         changeFrequency: "monthly",
         priority: 0.7,
@@ -67,13 +67,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: base, lastModified: listingsModified, changeFrequency: "daily", priority: 1.0 },
-    { url: `${base}/studios`, lastModified: listingsModified, changeFrequency: "daily", priority: 0.9 },
-    { url: `${base}/blog`, lastModified: postsModified, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/about`, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/cancellation`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/privacy-policy`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${base}/terms-and-conditions`, changeFrequency: "yearly", priority: 0.3 },
+    { url: absoluteUrl("/"), lastModified: listingsModified, changeFrequency: "daily", priority: 1.0 },
+    { url: absoluteUrl("/studios"), lastModified: listingsModified, changeFrequency: "daily", priority: 0.9 },
+    { url: absoluteUrl("/blog"), lastModified: postsModified, changeFrequency: "weekly", priority: 0.8 },
+    { url: absoluteUrl("/about"), changeFrequency: "monthly", priority: 0.7 },
+    { url: absoluteUrl("/cancellation"), changeFrequency: "monthly", priority: 0.5 },
+    { url: absoluteUrl("/privacy-policy"), changeFrequency: "yearly", priority: 0.3 },
+    { url: absoluteUrl("/terms-and-conditions"), changeFrequency: "yearly", priority: 0.3 },
   ];
 
   return [...staticRoutes, ...cityRoutes, ...postRoutes];

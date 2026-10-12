@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
+import { minimumBookingMinutes } from "@/lib/booking/dayAvailability";
 import cloudflareImageLoader from "@/lib/cloudflare-image-loader";
+import { locationState } from "@/lib/listing/utils";
 import { truncateText } from "@/lib/richText";
 import { toHHMM } from "@/lib/scheduling";
 import {
@@ -14,6 +16,7 @@ import {
   toPlainText,
   WEBSITE_ID,
 } from "@/lib/seo";
+import { formatINR, formatNumber } from "@/lib/utils";
 import type { SafeAmenity } from "@/types/amenity";
 import type { FullListing } from "@/types/listing";
 import type { PublicReview } from "@/types/review";
@@ -34,7 +37,6 @@ type ListingBasics = {
 };
 
 const ASSET_ORIGIN = "https://assets.contcave.com/";
-const INR = new Intl.NumberFormat("en-IN");
 const SCHEMA_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const CITY_ALIASES: Record<string, string[]> = {
@@ -51,18 +53,26 @@ const CITY_ALIASES: Record<string, string[]> = {
   Allahabad: ["Prayagraj"],
 };
 
-export const positive = (value: number | null | undefined) =>
+export const withCityAlias = (city: string) => {
+  const alias = CITY_ALIASES[city]?.[0];
+  return alias ? `${city} (${alias})` : city;
+};
+
+const positive = (value: number | null | undefined) =>
   typeof value === "number" && Number.isFinite(value) && value > 0 ? value : undefined;
+
+export const hourlyPrice = (listing: { listingType?: string | null; price?: number | null }) =>
+  listing.listingType === "CURATED" ? undefined : positive(listing.price);
 
 const cityOf = (listing: ListingBasics) => listing.locationValue?.trim() || undefined;
 
-const stateOf = (listing: ListingBasics) => listing.actualLocation?.state?.trim() || undefined;
+const stateOf = (listing: ListingBasics) => locationState(listing.actualLocation);
 
 export const kindOf = (listing: Pick<ListingBasics, "venueTypes" | "category">) =>
   listing.venueTypes?.[0] || listing.category || "Studio";
 
 const minimumBookingHours = (listing: { minimumBookingHours?: number | null }) =>
-  positive(listing.minimumBookingHours) ?? 1.5;
+  minimumBookingMinutes(listing.minimumBookingHours) / 60;
 
 function amenityNamesOf(
   listing: { amenities?: string[] | null; otherAmenities?: string[] | null },
@@ -85,11 +95,11 @@ const fromPrice = (listing: ListingBasics) => positive(listing.price) ?? positiv
 
 const priceRangeOf = (listing: ListingBasics) => {
   const price = positive(listing.price);
-  if (price) return `From ₹${INR.format(price)} per hour`;
+  if (price) return `From ${formatINR(price)} per hour`;
   const min = positive(listing.priceRangeMin);
   const max = positive(listing.priceRangeMax);
-  if (min && max) return `₹${INR.format(min)}–₹${INR.format(max)} per hour`;
-  return min ? `From ₹${INR.format(min)} per hour` : undefined;
+  if (min && max) return `${formatINR(min)}–${formatINR(max)} per hour`;
+  return min ? `From ${formatINR(min)} per hour` : undefined;
 };
 
 const addressOf = (listing: ListingBasics) => ({
@@ -118,9 +128,9 @@ export function listingFacts(listing: FullListing) {
 
   return [
     city ? `${kind} in ${city}` : kind,
-    area && `${INR.format(area)} sq ft`,
+    area && `${formatNumber(area)} sq ft`,
     pax && `up to ${pax} people`,
-    price && `from ₹${INR.format(price)}/hr`,
+    price && `from ${formatINR(price)}/hr`,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -215,7 +225,7 @@ export function buildListingJsonLd(
   const images = (listing.imageSrc?.length ? listing.imageSrc : [OG_IMAGE]).map(absoluteUrl);
   const [latitude, longitude] = listing.actualLocation?.latlng ?? [];
   const area = positive(listing.carpetArea);
-  const price = listing.listingType === "CURATED" ? undefined : positive(listing.price);
+  const price = hourlyPrice(listing);
   const curatedLow = listing.listingType === "CURATED" ? fromPrice(listing) : undefined;
   const curatedMax = positive(listing.priceRangeMax);
   const curatedHigh = curatedLow && curatedMax && curatedMax >= curatedLow ? curatedMax : undefined;
@@ -366,6 +376,7 @@ export function cityCollectionJsonLd({
   name,
   description,
   city,
+  isRegion = false,
   listings,
   trail,
 }: {
@@ -373,6 +384,7 @@ export function cityCollectionJsonLd({
   name: string;
   description: string;
   city: string;
+  isRegion?: boolean;
   listings: ListingBasics[];
   trail: BreadcrumbItem[];
 }) {
@@ -387,7 +399,7 @@ export function cityCollectionJsonLd({
         name,
         description,
         isPartOf: { "@id": WEBSITE_ID },
-        about: { "@type": "City", name: city, containedInPlace: { "@type": "Country", name: "India" } },
+        about: { "@type": isRegion ? "AdministrativeArea" : "City", name: city, containedInPlace: { "@type": "Country", name: "India" } },
         mainEntity: {
           "@type": "ItemList",
           numberOfItems: listings.length,

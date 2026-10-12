@@ -27,17 +27,16 @@ import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData, type StudioFeedItem, type StudioFeedPage } from "@/types/listing";
 
 import {
+    buildFeedPagePipeline,
     buildFeedPipeline,
-    cursorFromRow,
-    decodeFeedCursor,
     distanceKmOf,
-    encodeFeedCursor,
     FEED_PAGE_SIZE,
     feedCandidatePipeline,
-    type FeedCursor,
+    type FeedPageRow,
     type FeedRow,
     hydratableListingFilter,
     readRawId,
+    readRawNumber,
     toStudioFeedItem,
 } from "./feedQuery";
 import { resolveListingLocation } from "./location";
@@ -1171,7 +1170,7 @@ export class ListingService {
 
         const filters = studioFeedSearchParamsSchema.parse({ ...searchParams, hasSets: hasSets ? "true" : undefined });
         const excludeIds = await this.unbookableListingIds(filters);
-        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, origin: null, after: null, excludeIds }));
+        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, origin: null, excludeIds }));
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
         if (ids.length === 0) return [];
 
@@ -1205,24 +1204,27 @@ export class ListingService {
     static async getListingFeedPage({
         filters,
         origin,
-        cursor,
+        page = 1,
         size = FEED_PAGE_SIZE,
     }: {
         filters: StudioFeedFilters;
         origin: LatLng | null;
-        cursor?: string | null;
+        page?: number;
         size?: number;
     }): Promise<StudioFeedPage> {
-        const after = cursor ? decodeFeedCursor(cursor) : null;
         const excludeIds = await this.unbookableListingIds(filters);
-        const { rows, origin: appliedOrigin } = await this.queryFeedRows({ filters, origin, after, limit: size + 1, excludeIds });
-        const pageRows = rows.slice(0, size);
-        const lastRow = pageRows[pageRows.length - 1];
+        const window = { filters, excludeIds, skip: (page - 1) * size, limit: size };
+        const { rows: [result], origin: appliedOrigin } = await this.queryFeed<FeedPageRow>(
+            filters.sort ? null : origin,
+            (feedOrigin) => buildFeedPagePipeline({ ...window, origin: feedOrigin })
+        );
+        const rows = result?.rows ?? [];
+        const total = readRawNumber(result?.total?.[0]?.total ?? 0);
 
         return {
-            items: await this.loadFeedItems(pageRows.map(readRawId).filter((id): id is string => !!id)),
-            nextCursor: rows.length > size && lastRow ? encodeFeedCursor(cursorFromRow(lastRow)) : null,
-            nearestKm: after ? null : distanceKmOf(pageRows[0]),
+            items: await this.loadFeedItems(rows.map(readRawId).filter((id): id is string => !!id)),
+            totalPages: Math.max(1, Math.ceil(total / size)),
+            nearestKm: distanceKmOf(result?.first?.[0]),
             origin: appliedOrigin,
         };
     }
@@ -1242,31 +1244,23 @@ export class ListingService {
         });
     }
 
-    private static async queryFeedRows(params: {
-        filters: StudioFeedFilters;
-        origin: LatLng | null;
-        after: FeedCursor | null;
-        limit: number;
-        excludeIds: string[];
-    }): Promise<{ rows: FeedRow[]; origin: LatLng | null }> {
-        const { origin, after } = params;
-        const defaultPipeline = buildFeedPipeline({ ...params, origin: null });
-        if (!origin) return { rows: await this.runFeedPipeline(defaultPipeline), origin: null };
-
-        const geoPipeline = buildFeedPipeline(params);
+    private static async queryFeed<Row>(
+        origin: LatLng | null,
+        build: (origin: LatLng | null) => Record<string, unknown>[]
+    ): Promise<{ rows: Row[]; origin: LatLng | null }> {
+        if (!origin) return { rows: await this.runFeedPipeline<Row>(build(null)), origin: null };
         try {
-            return { rows: await this.runFeedPipeline(geoPipeline), origin };
+            return { rows: await this.runFeedPipeline<Row>(build(origin)), origin };
         } catch (error) {
-            if (after) throw error;
             console.error("[ListingService] Location-sorted feed failed; serving the default order.", error);
-            return { rows: await this.runFeedPipeline(defaultPipeline), origin: null };
+            return { rows: await this.runFeedPipeline<Row>(build(null)), origin: null };
         }
     }
 
-    private static async runFeedPipeline(pipeline: Record<string, unknown>[]): Promise<FeedRow[]> {
+    private static async runFeedPipeline<Row = FeedRow>(pipeline: Record<string, unknown>[]): Promise<Row[]> {
         return await prisma.listing.aggregateRaw({
             pipeline: pipeline as unknown as Prisma.InputJsonValue[],
-        }) as unknown as FeedRow[];
+        }) as unknown as Row[];
     }
 
     private static async loadFeedItems(ids: string[]): Promise<StudioFeedItem[]> {
@@ -1309,7 +1303,8 @@ export class ListingService {
         origin: LatLng | null;
         limit: number;
     }) {
-        const { rows } = await this.queryFeedRows({ filters: { locationValues }, origin, after: null, limit, excludeIds: [] });
+        const { rows } = await this.queryFeed<FeedRow>(origin, (feedOrigin) =>
+            buildFeedPipeline({ filters: { locationValues }, origin: feedOrigin, limit, excludeIds: [] }));
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
         if (ids.length === 0) return [];
 

@@ -33,6 +33,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId, has
   return (
     <div className="flex flex-col gap-4">
       <Heading
+        as="h2"
         title="Available Packages"
         variant="h5"
       />
@@ -69,7 +70,7 @@ export default function PackageList({ packages, onSelect, selectedPackageId, has
 
               <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex-1">
-                  <h4 className="font-medium text-lg">{pkg.title}</h4>
+                  <h3 className="font-medium text-lg">{pkg.title}</h3>
 
 
                   {pkg.description && (

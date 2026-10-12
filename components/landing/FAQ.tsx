@@ -1,41 +1,31 @@
 "use client";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { HiArrowRight } from "react-icons/hi";
 
-import faqData from "@/components/landing/faqData";
 import FAQItem from "@/components/landing/FAQItem";
 import Container from "@/components/layout/Container";
 import JsonLd from "@/components/seo/JsonLd";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { FAQ_ANCHOR, faqJsonLd } from "@/lib/seo";
 import { buildWhatsAppUrl } from "@/lib/whatsapp/urls";
+import type { Faq } from "@/types/faq";
 
-const FAQ = () => {
-  const [activeFaq, setActiveFaq] = useState(1);
+type Props = {
+  items: Faq[];
+  title: ReactNode;
+  description: string;
+};
 
-  const handleFaqToggle = (id: number) => {
-    activeFaq === id ? setActiveFaq(0) : setActiveFaq(id);
-  };
-
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqData.map((faq) => ({
-      "@type": "Question",
-      name: faq.quest,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: faq.ans,
-      },
-    })),
-  };
+const FAQ = ({ items, title, description }: Props) => {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
     <>
-      <JsonLd id="faq-jsonld" data={faqSchema} />
+      <JsonLd id="faq-jsonld" data={faqJsonLd(items)} />
 
-      <section className="overflow-hidden py-section">
+      <section id={FAQ_ANCHOR} className="scroll-mt-24 overflow-hidden py-section">
 
         <Container>
           <div className="flex flex-wrap gap-8 md:flex-nowrap xl:gap-32">
@@ -53,8 +43,8 @@ const FAQ = () => {
             >
               <SectionHeader
                 badge="FAQ"
-                title={<>Questions? We have <span className="text-muted-foreground italic">Answers</span></>}
-                description="Everything you need to know about booking, payments, and studio protocols."
+                title={title}
+                description={description}
                 className="mb-12"
                 badgeClassName="md:mx-0"
               />
@@ -84,10 +74,13 @@ const FAQ = () => {
               className="animate_right md:w-3/5 lg:w-1/2"
             >
               <div className="rounded-xl bg-background border border-border mt-10 overflow-hidden">
-                {faqData.map((faq, key) => (
+                {items.map((faq, index) => (
                   <FAQItem
-                    key={key}
-                    faqData={{ ...faq, activeFaq, handleFaqToggle }}
+                    key={faq.question}
+                    question={faq.question}
+                    answer={faq.answer}
+                    isOpen={openIndex === index}
+                    onToggle={() => setOpenIndex(openIndex === index ? null : index)}
                   />
                 ))}
               </div>

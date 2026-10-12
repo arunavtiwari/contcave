@@ -20,6 +20,7 @@ import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import Skeleton from "@/components/ui/Skeleton";
+import { GST_PERCENT } from "@/constants/gst";
 import useUIStore from "@/hooks/useUIStore";
 import { minimumBookingMinutes } from "@/lib/booking/dayAvailability";
 import { normalizePhone } from "@/lib/phone";
@@ -637,7 +638,7 @@ export default function ListingReservation({
           <p>{INR.format(clampRound(platformFee || 0))}</p>
         </div>
         <div className="flex justify-between pb-3 text-foreground">
-          <p className="font-medium">GST (18%)</p>
+          <p className="font-medium">GST ({GST_PERCENT}%)</p>
           <p className="font-medium">{INR.format(gstAmount)}</p>
         </div>
         <hr />

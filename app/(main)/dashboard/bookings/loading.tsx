@@ -7,7 +7,7 @@ export default function BookingsLoading() {
   return (
     <div className="space-y-8">
       <Heading title="My Bookings" subtitle="Spaces booked by you" />
-      <BookingGridSkeleton count={6} />
+      <BookingGridSkeleton />
     </div>
   );
 }

@@ -7,28 +7,39 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import getRandomListings from "@/app/actions/getRandomListings";
 import ListingFeed from "@/components/listing/ListingFeed";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
+import PagedFeed from "@/components/listing/PagedFeed";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import EmptyState from "@/components/ui/EmptyState";
 import { isHtmlOnlyCrawler } from "@/lib/crawlers";
 import { parsePlaceLabelParam } from "@/lib/geo";
-import { findCity } from "@/lib/listing/cities";
-import { cityPath, citySlug } from "@/lib/listing/cityPaths";
+import { coveredCityNames, landingPlaceFor } from "@/lib/listing/cities";
+import { cityPath, coverageArea } from "@/lib/listing/cityPaths";
 import { toStudioFeedItem } from "@/lib/listing/feedQuery";
-import { listingPath } from "@/lib/listing/seo";
+import { collectionMetadata, listingPath } from "@/lib/listing/seo";
 import { loadStudioFeed } from "@/lib/listing/studioFeed";
-import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { pageFromParams, pagePath, pageTitle, redirectPastLastPage, type SearchParams } from "@/lib/pagination";
+import { truncateText } from "@/lib/richText";
+import { absoluteUrl, META_DESCRIPTION_LENGTH } from "@/lib/seo";
 import { studioFeedSearchParamsSchema } from "@/schemas/listing";
 
 export const dynamic = "force-dynamic";
 
-const LISTINGS_TITLE = "Book Photo & Video Studios for Rent by the Hour" as const;
-const LISTINGS_DESCRIPTION =
-  "Compare and book verified photography, video, podcast and event studios in Delhi NCR, Gurgaon, Noida, Chandigarh, Mohali and Lucknow. Hourly pricing, real photos and instant availability." as const;
+const STUDIOS_PATH = "/studios";
+const LISTINGS_TITLES = ["Book Photo & Video Studios for Rent by the Hour", "Book Photo & Video Studios for Rent"];
+const LISTINGS_KEYWORDS = [
+  "studio rental",
+  "photography studio",
+  "video shoot space",
+  "creative studio",
+  "studio for rent Delhi NCR",
+  "podcast studio for rent",
+  "studio spaces India",
+  "book studio online",
+  "hourly studio rental",
+];
 
-type SearchParams = Record<string, string | string[] | undefined>;
-
-interface HomeProps {
+interface StudiosProps {
   searchParams: Promise<SearchParams>;
 }
 
@@ -43,74 +54,47 @@ const hasActiveFilters = (searchParams: SearchParams) =>
 async function redirectToCityPage(searchParams: SearchParams) {
   const city = searchParams.locationValue;
   if (typeof city !== "string" || Object.keys(searchParams).length !== 1) return;
-  const entry = await findCity(citySlug(city));
+  const entry = await landingPlaceFor(city);
   if (entry) redirect(cityPath(entry.city));
 }
 
-export async function generateMetadata(props: HomeProps): Promise<Metadata> {
+export async function generateMetadata(props: StudiosProps): Promise<Metadata> {
   const searchParams = await props.searchParams;
-  const isFiltered = hasActiveFilters(searchParams);
+  const indexable = !hasActiveFilters(searchParams);
+  const page = pageFromParams(searchParams);
 
   return {
-    title: LISTINGS_TITLE,
-    description: LISTINGS_DESCRIPTION,
-    keywords: [
-      "studio rental",
-      "photography studio",
-      "video shoot space",
-      "creative studio",
-      "studio for rent Delhi NCR",
-      "podcast studio for rent",
-      "studio spaces India",
-      "book studio online",
-      "hourly studio rental",
-    ],
-    alternates: { canonical: "/studios" },
-    openGraph: {
-      title: LISTINGS_TITLE,
-      description: LISTINGS_DESCRIPTION,
-      url: `${SITE_URL}/studios`,
-      siteName: BRAND_NAME,
-      type: "website",
-      images: [
-        {
-          url: absoluteUrl(OG_IMAGE),
-          width: 1200,
-          height: 630,
-          alt: "ContCave Studio Listings",
-        },
-      ],
-      locale: "en_IN",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: LISTINGS_TITLE,
-      description: LISTINGS_DESCRIPTION,
-      site: "@ContCave",
-      creator: "@ContCave",
-      images: [absoluteUrl(OG_IMAGE)],
-    },
+    ...collectionMetadata({
+      title: pageTitle(LISTINGS_TITLES, page),
+      description: truncateText(
+        `Compare and book verified photography, video, podcast and event studios ${coverageArea(await coveredCityNames())}. Hourly pricing, real photos and instant availability.`,
+        META_DESCRIPTION_LENGTH
+      ),
+      path: pagePath(STUDIOS_PATH, page),
+    }),
+    keywords: LISTINGS_KEYWORDS,
     robots: {
-      index: !isFiltered,
+      index: indexable,
       follow: true,
       googleBot: {
-        index: !isFiltered,
+        index: indexable,
         follow: true,
-        ...(isFiltered ? {} : { "max-image-preview": "large", "max-snippet": -1 }),
+        ...(indexable ? { "max-image-preview": "large", "max-snippet": -1 } : {}),
       },
     },
   };
 }
 
-export default async function StudiosPage(props: HomeProps) {
-  await redirectToCityPage(await props.searchParams);
-  const feed = <HomeContent {...props} />;
-  const htmlOnlyCrawler = isHtmlOnlyCrawler((await headers()).get("user-agent"));
+export default async function StudiosPage(props: StudiosProps) {
+  const searchParams = await props.searchParams;
+  await redirectToCityPage(searchParams);
+  const feed = <StudiosFeed {...props} />;
+  const renderInline = pageFromParams(searchParams) > 1 || isHtmlOnlyCrawler((await headers()).get("user-agent"));
 
   return (
     <StudioBrowse
-      feed={htmlOnlyCrawler ? feed : (
-        <Suspense fallback={<ListingGridSkeleton count={6} hideActions />}>
+      feed={renderInline ? feed : (
+        <Suspense fallback={<ListingGridSkeleton hideActions />}>
           {feed}
         </Suspense>
       )}
@@ -118,23 +102,25 @@ export default async function StudiosPage(props: HomeProps) {
   );
 }
 
-async function HomeContent(props: HomeProps) {
+async function StudiosFeed(props: StudiosProps) {
   const searchParams = await props.searchParams;
   const isFiltered = hasActiveFilters(searchParams);
+  const page = pageFromParams(searchParams);
 
   const [feed, currentUser] = await Promise.all([
-    loadStudioFeed(feedFiltersOf(searchParams), placeLabelOf(searchParams)),
+    loadStudioFeed(feedFiltersOf(searchParams), { page, placeLabel: placeLabelOf(searchParams) }),
     getCurrentUser(),
   ]);
-  const { items } = feed.page;
+  const { items, totalPages } = feed.page;
+  redirectPastLastPage(items.length === 0, page, pagePath(STUDIOS_PATH, 1, searchParams));
   const fallbackItems = items.length === 0 ? (await getRandomListings(6)).map(toStudioFeedItem) : [];
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "@id": `${SITE_URL}/studios#itemlist`,
+    "@id": `${absoluteUrl(pagePath(STUDIOS_PATH, page))}#itemlist`,
     name: "Studios available on ContCave",
-    url: `${SITE_URL}/studios`,
+    url: absoluteUrl(pagePath(STUDIOS_PATH, page)),
     numberOfItems: items.length,
     itemListElement: items.map((item, index) => ({
       "@type": "ListItem",
@@ -169,21 +155,19 @@ async function HomeContent(props: HomeProps) {
                   Here are some popular, verified spaces available for booking.
                 </p>
               </div>
-              <ListingFeed
-                page={{ items: fallbackItems, nextCursor: null, nearestKm: null, origin: null }}
-                filters={{}}
-                currentUser={currentUser}
-              />
+              <ListingFeed items={fallbackItems} currentUser={currentUser} />
             </div>
           )}
         </div>
       ) : (
-        <ListingFeed
-          key={feed.key}
-          page={feed.page}
-          filters={feed.filters}
+        <PagedFeed
+          items={items}
           currentUser={currentUser}
           nearLabel={feed.nearLabel}
+          page={page}
+          totalPages={totalPages}
+          path={STUDIOS_PATH}
+          searchParams={searchParams}
         />
       )}
     </>

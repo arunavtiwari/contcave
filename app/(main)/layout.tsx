@@ -32,6 +32,7 @@ import {
   OG_IMAGE,
   ORGANIZATION_ID,
   SITE_URL,
+  TITLE_SUFFIX,
   WEBSITE_ID,
 } from "@/lib/seo";
 
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),
     title: {
         default: BRAND_TITLE,
-        template: `%s | ${BRAND_NAME}`,
+        template: `%s${TITLE_SUFFIX}`,
     },
     description: BRAND_DESCRIPTION,
     keywords: [...DEFAULT_KEYWORDS],

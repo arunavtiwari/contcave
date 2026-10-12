@@ -134,7 +134,7 @@ export type StudioFeedItem = Pick<
 
 export type StudioFeedPage = {
     items: StudioFeedItem[];
-    nextCursor: string | null;
+    totalPages: number;
     nearestKm: number | null;
     origin: LatLng | null;
 };

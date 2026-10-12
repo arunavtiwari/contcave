@@ -10,13 +10,11 @@ import { IoClose } from "react-icons/io5";
 import { Keyboard, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
-import HeartButton from "@/components/listing/HeartButton";
 import Modal from "@/components/modals/Modal";
 import VideoTourModal from "@/components/modals/VideoTourModal";
+import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import Button from "@/components/ui/Button";
-import Heading from "@/components/ui/Heading";
-import useCities from "@/hooks/useCities";
-import { SafeUser } from "@/types/user";
+import type { BreadcrumbItem } from "@/lib/seo";
 
 type Props = {
   title: string;
@@ -24,13 +22,10 @@ type Props = {
   kind?: string;
   imageSrc: string[];
   videoSrc?: string | null;
-  id: string;
-  currentUser?: SafeUser | null;
+  breadcrumbs: BreadcrumbItem[];
 };
 
-function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, currentUser }: Props) {
-  const { getByValue } = useCities();
-  const location = getByValue(locationValue);
+function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, breadcrumbs }: Props) {
   const altPrefix = `${title} – ${kind || "Studio"}${locationValue ? ` in ${locationValue}` : ""}`;
   const photoAlt = (index: number) => `${altPrefix}, photo ${index + 1}`;
   const [showModal, setShowModal] = useState(false);
@@ -85,23 +80,16 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
   const imageOpacityClasses = (index: number) =>
     `${loaded[index] ? "opacity-100" : "opacity-0"} transition-opacity duration-500`;
 
-  const renderImageWithSkeleton = (
-    src: string,
-    index: number,
-    extraClasses = "",
-    imageClasses = "object-cover hover:brightness-90",
-    priority = true,
-    sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-  ) => (
-    <button type="button" aria-label={`Open photo ${index + 1}`} className={`relative block w-full h-full cursor-pointer overflow-hidden ${extraClasses} ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
+  const renderImageWithSkeleton = (src: string, index: number) => (
+    <button type="button" aria-label={`Open photo ${index + 1}`} className={`relative block w-full h-full cursor-pointer overflow-hidden ${skeletonClasses(index)}`} onClick={() => handleImageClick(index)}>
       <Image
         src={src}
         alt={photoAlt(index)}
         fill
-        sizes={sizes}
-        priority={priority}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        priority
         onLoad={() => handleImageLoad(index)}
-        className={`${imageClasses} ${imageOpacityClasses(index)}`}
+        className={`object-cover hover:brightness-90 ${imageOpacityClasses(index)}`}
       />
     </button>
   );
@@ -139,7 +127,7 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
               className={`relative z-10 object-contain group-hover:scale-[1.01] transition-transform duration-300 ${imageOpacityClasses(index)}`}
             />
             {/* Photo index badge */}
-            <span className="absolute bottom-3 right-3 z-20 text-xs font-medium px-2.5 py-1 rounded-full bg-background/80 dark:bg-background/70 backdrop-blur-md text-foreground border border-border/40 select-none shadow-xs">
+            <span className="glass text-foreground border-border/40 absolute bottom-3 right-3 z-20 text-xs font-medium px-2.5 py-1 rounded-full border select-none">
               {index + 1} / {imageSrc.length}
             </span>
           </button>
@@ -155,14 +143,14 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
           label="Video tour"
           icon={HiOutlineVideoCamera}
           onClick={() => setShowVideoModal(true)}
-          variant="outline"
+          variant="glass"
           fit
         />
       )}
       <Button
         label="Show all photos"
         onClick={handleShowAllPhotos}
-        variant="outline"
+        variant="glass"
         fit
       />
     </div>
@@ -179,7 +167,7 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
           prevEl: '.swiper-button-prev-custom',
         }}
         initialSlide={selectedImageIndex || 0}
-        className="w-full aspect-4/3 lg:aspect-auto lg:h-[60vh] rounded-xl"
+        className="w-full aspect-4/3 lg:aspect-auto lg:h-[60vh] rounded-2xl"
       >
         {imageSrc.map((url, index) => (
           <SwiperSlide key={index}>
@@ -210,12 +198,7 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
 
   return (
     <>
-      <div className="flex gap-2">
-        <Heading variant="h4" as="h1" title={title} subtitle={`${location?.label}, India`} />
-        <div className="pt-1">
-          <HeartButton listingId={id} currentUser={currentUser} />
-        </div>
-      </div>
+      <Breadcrumbs items={breadcrumbs.slice(0, -1)} />
 
       {showCarousel ? (
         <div className="mt-4">
@@ -223,8 +206,8 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
         </div>
       ) : (
         <>
-          <div className="relative hidden lg:grid lg:grid-cols-2 gap-1 mt-4">
-            <button type="button" aria-label="Open photo 1" className={`relative block h-113.75 w-full cursor-pointer overflow-hidden rounded-l-lg ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
+          <div className="relative hidden lg:grid lg:grid-cols-2 gap-1 mt-4 overflow-hidden rounded-2xl">
+            <button type="button" aria-label="Open photo 1" className={`relative block h-113.75 w-full cursor-pointer overflow-hidden ${skeletonClasses(0)}`} onClick={() => handleImageClick(0)}>
               {imageSrc[0] && (
                 <Image
                   src={imageSrc[0]}
@@ -240,10 +223,10 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
 
             <div className="grid grid-rows-2 grid-cols-2 gap-1 h-113.75">
               {imageSrc[1] && renderImageWithSkeleton(imageSrc[1], 1)}
-              {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2, "rounded-tr-lg")}
+              {imageSrc[2] && renderImageWithSkeleton(imageSrc[2], 2)}
               {imageSrc[3] && renderImageWithSkeleton(imageSrc[3], 3)}
               {imageSrc[4] && (
-                <div className={`relative w-full h-full overflow-hidden rounded-br-lg ${skeletonClasses(4)}`}>
+                <div className={`relative w-full h-full overflow-hidden ${skeletonClasses(4)}`}>
                   <Image
                     src={imageSrc[4]}
                     alt={photoAlt(4)}
@@ -269,11 +252,8 @@ function ListingHead({ title, locationValue, kind, imageSrc, videoSrc, id, curre
       <Modal
         isOpen={showModal}
         onCloseAction={() => setShowModal(false)}
-        onSubmitAction={() => { }}
         title={`All Photos (${imageSrc.length})`}
         body={modalContent}
-        actionLabel=""
-        selfActionButton={true}
         customWidth="w-full md:w-5/6 lg:w-4/5 xl:w-3/4 max-w-6xl"
       />
 

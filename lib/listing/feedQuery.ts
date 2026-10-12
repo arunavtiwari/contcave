@@ -1,38 +1,40 @@
-import { z } from "zod";
-
 import { UserFacingError } from "@/lib/errors";
 import type { LatLng } from "@/lib/geo";
 import type { StudioFeedFilters } from "@/schemas/listing";
 import type { StudioFeedItem } from "@/types/listing";
 
 import { categoryMatch, findCategory } from "./categories";
+import type { FeedSort } from "./feedSort";
+import { locationState } from "./utils";
 
 type MongoDocument = Record<string, unknown>;
 type RawId = string | { $oid?: unknown };
 
-export type FeedRow = {
-    _id?: RawId;
-    hasPoint?: unknown;
-    distance?: unknown;
-    weight?: unknown;
-    createdAt?: unknown;
-};
+export type FeedRow = { _id?: RawId; hasPoint?: unknown; distance?: unknown };
 
-export type FeedCursor = { p: 0 | 1; d: number; w: 1 | 2; t: string; id: string };
+type FeedSortField = "hasPoint" | "distance" | "weight" | "hasPrice" | "price" | "createdAt" | "_id";
 
-type FeedSortField = "hasPoint" | "distance" | "weight" | "createdAt" | "_id";
+type FeedSortSpec = ReadonlyArray<readonly [FeedSortField, 1 | -1]>;
 
-export const FEED_PAGE_SIZE = 12;
+export type FeedPageRow = { rows?: FeedRow[]; first?: FeedRow[]; total?: { total?: unknown }[] };
+
+export const FEED_PAGE_SIZE = 20;
 
 const MONGO_EARTH_RADIUS_KM = 6378.1;
 
-const FEED_SORT: ReadonlyArray<readonly [FeedSortField, 1 | -1]> = [
-    ["hasPoint", -1],
-    ["distance", 1],
-    ["weight", 1],
+const NEWEST_FIRST: FeedSortSpec = [
     ["createdAt", -1],
     ["_id", 1],
 ];
+
+const NEAREST_FIRST: FeedSortSpec = [["hasPoint", -1], ["distance", 1], ["weight", 1], ...NEWEST_FIRST];
+
+const PRICE_SORTS: Record<FeedSort, FeedSortSpec> = {
+    price_asc: [["hasPrice", -1], ["price", 1], ...NEWEST_FIRST],
+    price_desc: [["hasPrice", -1], ["price", -1], ...NEWEST_FIRST],
+};
+
+const feedSortSpec = (sort: FeedSort | undefined) => (sort ? PRICE_SORTS[sort] : NEAREST_FIRST);
 
 const HYDRATABLE_INT_FIELDS = [
     "price",
@@ -53,13 +55,15 @@ const EPOCH = { $date: "1970-01-01T00:00:00.000Z" };
 
 const WEIGHT = { $cond: [{ $eq: ["$listingType", "CURATED"] }, 2, 1] };
 
-const feedCursorSchema = z.object({
-    p: z.union([z.literal(0), z.literal(1)]),
-    d: z.number().int().min(0),
-    w: z.union([z.literal(1), z.literal(2)]),
-    t: z.iso.datetime(),
-    id: z.string().regex(/^[a-f\d]{24}$/i),
-});
+const positiveOrNull = (field: string) => ({ $cond: [{ $gt: [field, 0] }, field, null] });
+
+const LISTED_PRICE = {
+    $cond: [
+        { $eq: ["$listingType", "CURATED"] },
+        { $cond: [{ $gt: ["$priceRangeMax", 0] }, positiveOrNull("$priceRangeMin"), null] },
+        positiveOrNull("$price"),
+    ],
+};
 
 export function hydratableListingFilter(
     params: { active?: boolean; status?: string; listingType?: "STANDARD" | "CURATED" } = { active: true }
@@ -86,17 +90,10 @@ export function readRawId(raw: { _id?: RawId }): string | null {
     return null;
 }
 
-const readRawNumber = (value: unknown): number => {
+export const readRawNumber = (value: unknown): number => {
     if (typeof value === "number") return value;
     const wrapped = value as { $numberDouble?: unknown; $numberInt?: unknown; $numberLong?: unknown } | null;
     return Number(wrapped?.$numberDouble ?? wrapped?.$numberInt ?? wrapped?.$numberLong);
-};
-
-const readRawDate = (value: unknown): string => {
-    const raw = (value as { $date?: unknown } | null)?.$date ?? value;
-    const epochMs = (raw as { $numberLong?: unknown } | null)?.$numberLong;
-    const date = new Date(typeof epochMs === "string" ? Number(epochMs) : (raw as string));
-    return date.toISOString();
 };
 
 function publicListingMatch(filters: StudioFeedFilters, excludeIds: string[] = []): MongoDocument {
@@ -123,61 +120,36 @@ function publicListingMatch(filters: StudioFeedFilters, excludeIds: string[] = [
     return { $and: clauses };
 }
 
-const cursorValue = (cursor: FeedCursor, field: FeedSortField) =>
-    ({
-        hasPoint: cursor.p,
-        distance: cursor.d,
-        weight: cursor.w,
-        createdAt: { $date: cursor.t },
-        _id: { $oid: cursor.id },
-    })[field];
-
-function afterCursor(cursor: FeedCursor): MongoDocument {
-    return {
-        $or: FEED_SORT.map(([field, direction], index) => ({
-            ...Object.fromEntries(FEED_SORT.slice(0, index).map(([prior]) => [prior, cursorValue(cursor, prior)])),
-            [field]: { [direction === 1 ? "$gt" : "$lt"]: cursorValue(cursor, field) },
-        })),
-    };
-}
-
 export const feedCandidatePipeline = (filters: StudioFeedFilters): MongoDocument[] => [
     { $match: publicListingMatch(filters) },
     { $project: { _id: 1 } },
 ];
 
-export function buildFeedPipeline({
-    filters,
-    origin,
-    after,
-    limit,
-    excludeIds,
-}: {
+type FeedPipelineParams = {
     filters: StudioFeedFilters;
     origin: LatLng | null;
-    after: FeedCursor | null;
     limit?: number;
     excludeIds?: string[];
-}): MongoDocument[] {
+};
+
+export function buildFeedPipeline({ filters, origin, limit, excludeIds }: FeedPipelineParams): MongoDocument[] {
     const match = publicListingMatch(filters, excludeIds);
+    const sort = feedSortSpec(filters.sort);
     const unlocated = { $match: { $and: [match, { locationPoint: null }] } };
     const source = !origin
         ? [{ $match: match }]
-        : after?.p === 0
-            ? [unlocated]
-            : [
-                {
-                    $geoNear: {
-                        near: { type: "Point", coordinates: [origin[1], origin[0]] },
-                        key: "locationPoint",
-                        distanceField: "distance",
-                        spherical: true,
-                        query: match,
-                        ...(after ? { minDistance: Math.max(0, after.d - 1) } : {}),
-                    },
+        : [
+            {
+                $geoNear: {
+                    near: { type: "Point", coordinates: [origin[1], origin[0]] },
+                    key: "locationPoint",
+                    distanceField: "distance",
+                    spherical: true,
+                    query: match,
                 },
-                { $unionWith: { coll: "Listing", pipeline: [unlocated] } },
-            ];
+            },
+            { $unionWith: { coll: "Listing", pipeline: [unlocated] } },
+        ];
 
     return [
         ...source,
@@ -187,45 +159,29 @@ export function buildFeedPipeline({
                 hasPoint: origin ? { $cond: [{ $eq: [{ $type: "$distance" }, "missing"] }, 0, 1] } : { $literal: 0 },
                 distance: origin ? { $round: [{ $ifNull: ["$distance", 0] }, 0] } : { $literal: 0 },
                 weight: WEIGHT,
+                price: LISTED_PRICE,
                 createdAt: { $ifNull: ["$createdAt", EPOCH] },
             },
         },
-        ...(after ? [{ $match: afterCursor(after) }] : []),
-        { $sort: Object.fromEntries(FEED_SORT) },
+        { $addFields: { hasPrice: { $cond: [{ $eq: ["$price", null] }, 0, 1] } } },
+        { $sort: Object.fromEntries(sort) },
         ...(limit ? [{ $limit: limit }] : []),
     ];
 }
 
-export function cursorFromRow(row: FeedRow): FeedCursor {
-    const id = readRawId(row);
-    if (!id) throw new Error("Feed row is missing its id");
-    return {
-        p: readRawNumber(row.hasPoint) === 1 ? 1 : 0,
-        d: readRawNumber(row.distance),
-        w: readRawNumber(row.weight) === 2 ? 2 : 1,
-        t: readRawDate(row.createdAt),
-        id,
-    };
-}
+export const buildFeedPagePipeline = ({ skip, limit, ...params }: FeedPipelineParams & { skip: number; limit: number }): MongoDocument[] => [
+    ...buildFeedPipeline(params),
+    {
+        $facet: {
+            rows: [...(skip ? [{ $skip: skip }] : []), { $limit: limit }],
+            first: [{ $limit: 1 }],
+            total: [{ $count: "total" }],
+        },
+    },
+];
 
 export const distanceKmOf = (row: FeedRow | undefined) =>
     row && readRawNumber(row.hasPoint) === 1 ? readRawNumber(row.distance) / 1000 : null;
-
-export const encodeFeedCursor = (cursor: FeedCursor) => Buffer.from(JSON.stringify(cursor)).toString("base64url");
-
-const parseCursorJson = (value: string): unknown => {
-    try {
-        return JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
-    } catch {
-        return null;
-    }
-};
-
-export function decodeFeedCursor(value: string): FeedCursor {
-    const parsed = feedCursorSchema.safeParse(parseCursorJson(value));
-    if (!parsed.success) throw new UserFacingError("Invalid feed cursor", 400);
-    return parsed.data;
-}
 
 type FeedItemSource = Omit<StudioFeedItem, "avgReviewRating" | "actualLocation"> & {
     avgReviewRating?: number | null;
@@ -233,7 +189,7 @@ type FeedItemSource = Omit<StudioFeedItem, "avgReviewRating" | "actualLocation">
 };
 
 export function toStudioFeedItem(listing: FeedItemSource): StudioFeedItem {
-    const state = (listing.actualLocation as { state?: unknown } | null | undefined)?.state;
+    const state = locationState(listing.actualLocation);
     return {
         id: listing.id,
         slug: listing.slug,
@@ -251,6 +207,6 @@ export function toStudioFeedItem(listing: FeedItemSource): StudioFeedItem {
         listingType: listing.listingType,
         priceRangeMin: listing.priceRangeMin,
         priceRangeMax: listing.priceRangeMax,
-        actualLocation: typeof state === "string" && state.trim() ? { state: state.trim() } : null,
+        actualLocation: state ? { state } : null,
     };
 }

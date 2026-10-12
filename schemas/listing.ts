@@ -2,7 +2,8 @@ import { z } from "zod";
 
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import { isDateKey } from "@/lib/booking/dayAvailability";
-import { isLatLng, parseLatLngParam, searchRadiusKm } from "@/lib/geo";
+import { type LatLng, parseLatLngParam, searchRadiusKm } from "@/lib/geo";
+import { type FeedSort, parseFeedSort } from "@/lib/listing/feedSort";
 import { AESTHETIC_LABELS, SET_FEATURE_LABELS, USE_CASE_LABELS, VENUE_TYPE_LABELS } from "@/lib/taxonomy";
 import { objectIdSchema } from "@/schemas/common";
 
@@ -370,24 +371,21 @@ export const deleteBlockSchema = z.object({
 
 const MAX_FEED_TERMS = 20;
 const MAX_FEED_TERM_LENGTH = 100;
-const feedTermSchema = z.string().trim().min(1).max(MAX_FEED_TERM_LENGTH);
-const feedTermsSchema = z.array(feedTermSchema).min(1).max(MAX_FEED_TERMS);
 
-export const studioFeedFiltersSchema = z.object({
-    locationValues: feedTermsSchema.optional(),
-    category: feedTermSchema.optional(),
-    type: feedTermsSchema.optional(),
-    venueTypes: feedTermsSchema.optional(),
-    aesthetics: feedTermsSchema.optional(),
-    setFeatures: feedTermsSchema.optional(),
-    hasSets: z.boolean().optional(),
-    date: z.string().refine(isDateKey, "Invalid date").optional(),
-    near: z.tuple([z.number(), z.number()]).refine(isLatLng, "Invalid location").optional(),
-    radiusKm: z.number().min(1).max(200).optional(),
-    studioCategory: feedTermSchema.optional(),
-});
-
-export type StudioFeedFilters = z.infer<typeof studioFeedFiltersSchema>;
+export type StudioFeedFilters = {
+    locationValues?: string[];
+    category?: string;
+    type?: string[];
+    venueTypes?: string[];
+    aesthetics?: string[];
+    setFeatures?: string[];
+    hasSets?: boolean;
+    date?: string;
+    near?: LatLng;
+    radiusKm?: number;
+    studioCategory?: string;
+    sort?: FeedSort;
+};
 
 const searchParamSchema = z.union([z.string(), z.array(z.string())]).optional();
 
@@ -422,6 +420,7 @@ export const studioFeedSearchParamsSchema = z
         date: searchParamSchema,
         near: searchParamSchema,
         km: searchParamSchema,
+        sort: searchParamSchema,
     })
     .transform((params): StudioFeedFilters => ({
         locationValues: searchTerms(params.locationValue),
@@ -433,5 +432,6 @@ export const studioFeedSearchParamsSchema = z
         hasSets: searchTerm(params.hasSets) === "true" || undefined,
         date: validDate(searchTerm(params.date)),
         ...nearFilter(params.near, params.km),
+        sort: parseFeedSort(searchTerm(params.sort)),
     }));
 

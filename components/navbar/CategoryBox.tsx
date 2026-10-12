@@ -7,6 +7,8 @@ import { memo, type MouseEvent, Suspense, useMemo } from "react";
 import { IconType } from "react-icons";
 
 import { useFilterNavigation } from "@/hooks/useFilterNavigation";
+import { PAGE_PARAM } from "@/lib/pagination";
+import { isPlainClick } from "@/lib/utils";
 
 type Props = {
   icon: IconType;
@@ -26,6 +28,7 @@ const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label,
     ...(city ? { locationValue: city } : {}),
     ...currentQuery,
     venueTypes: label,
+    [PAGE_PARAM]: undefined,
   };
 
   if (params?.get("venueTypes") === label) {
@@ -48,7 +51,7 @@ const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label,
   );
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (!isPlainClick(event)) return;
     event.preventDefault();
     navigate(href ?? url);
   };

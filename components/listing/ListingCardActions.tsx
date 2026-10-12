@@ -1,9 +1,22 @@
 "use client";
 
-import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import React, { useCallback, useRef, useState } from "react";
+import {
+    FiAlertTriangle,
+    FiClock,
+    FiMessageSquare,
+    FiMoreVertical,
+    FiPlusCircle,
+    FiTrash2,
+    FiUserX,
+    FiXCircle,
+} from "react-icons/fi";
 import { IoInformationCircleOutline } from "react-icons/io5";
 
 import Button from "@/components/ui/Button";
+import { useDismiss } from "@/hooks/useDismiss";
+import { cn } from "@/lib/utils";
 import { SafeReservation } from "@/types/reservation";
 
 interface ListingCardActionsProps {
@@ -47,6 +60,12 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
     actionLabel,
     isHost,
 }) => {
+    const [isMenuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    const closeMenu = useCallback(() => setMenuOpen(false), []);
+    useDismiss(menuRef, isMenuOpen, closeMenu);
+
     const completedAt = reservation?.completedAt ? new Date(reservation.completedAt) : null;
     const canAddPostBookingCharge = Boolean(
         reservation?.status === "CHECKED_IN" ||
@@ -55,44 +74,99 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
     const isPendingApproval = reservation?.status === "PENDING_APPROVAL";
     const isTerminal = Boolean(reservation && ["CANCELLED", "COMPLETED", "NO_SHOW", "REFUNDED", "PARTIALLY_REFUNDED"].includes(reservation.status));
     const showActions = onEdit || onDelete || onCancel || (isPendingApproval && isHost) || (!isPendingApproval && onChat)
-        || onCheckIn || onComplete || onNoShow || onExtend || onAddCharge;
+        || onCheckIn || onComplete || onNoShow || onExtend || onAddCharge || onShowInfo;
 
     if (!showActions) return null;
 
+    const canChat = Boolean(reservation && ["CONFIRMED", "CHECKED_IN", "COMPLETED"].includes(reservation.status));
+    const hostHasSessionAction = Boolean(isHost && (reservation?.status === "CONFIRMED" || reservation?.status === "CHECKED_IN"));
+
+    const menuItems: { label: string; icon: React.ComponentType<{ size?: number; className?: string }>; onClick: () => void; isDestructive?: boolean }[] = [];
+
+    if (reservation && onShowInfo) {
+        menuItems.push({
+            label: "View details",
+            icon: IoInformationCircleOutline,
+            onClick: () => onShowInfo(reservation),
+        });
+    }
+
+    if (reservation && onChat && canChat && hostHasSessionAction) {
+        menuItems.push({
+            label: "Chat with client",
+            icon: FiMessageSquare,
+            onClick: () => onChat(String(reservation.id)),
+        });
+    }
+
+    if (isHost && reservation?.status === "CHECKED_IN" && onExtend) {
+        menuItems.push({
+            label: "Extend session",
+            icon: FiClock,
+            onClick: () => onExtend(reservation),
+        });
+    }
+
+    if (isHost && canAddPostBookingCharge && onAddCharge && reservation) {
+        menuItems.push({
+            label: "Add services",
+            icon: FiPlusCircle,
+            onClick: () => onAddCharge(reservation, "SERVICE"),
+        });
+        menuItems.push({
+            label: "Report damage",
+            icon: FiAlertTriangle,
+            onClick: () => onAddCharge(reservation, "DAMAGE"),
+            isDestructive: true,
+        });
+    }
+
+    if (isHost && reservation?.status === "CONFIRMED" && onNoShow) {
+        menuItems.push({
+            label: "Mark no-show",
+            icon: FiUserX,
+            onClick: () => onNoShow(String(reservation.id)),
+            isDestructive: true,
+        });
+    }
+
+    if (onCancel && isPendingApproval && reservation) {
+        menuItems.push({
+            label: "Cancel request",
+            icon: FiXCircle,
+            onClick: () => onCancel(String(reservation.id)),
+            isDestructive: true,
+        });
+    }
+
+    if (isTerminal && onDelete && reservation) {
+        menuItems.push({
+            label: "Delete reservation",
+            icon: FiTrash2,
+            onClick: () => onDelete(String(reservation.id)),
+            isDestructive: true,
+        });
+    }
+
+    if (onDelete && (id || actionId) && !reservation) {
+        menuItems.push({
+            label: actionLabel || "Archive property",
+            icon: FiTrash2,
+            onClick: () => onDelete(String(actionId || id)),
+            isDestructive: true,
+        });
+    }
+
     return (
-        <div className="flex mt-3 gap-2">
-            {reservation && onShowInfo && (
-                <Button
-                    icon={IoInformationCircleOutline}
-                    variant="outline"
-                    isIconOnly={false}
-                    onClick={(e) => { e?.stopPropagation(); onShowInfo(reservation); }}
-                    disabled={disabled}
-                    size="sm"
-                    className="w-10 h-10 p-0 flex items-center justify-center shrink-0"
-                />
-            )}
-            <div className="flex gap-2 flex-1">
-                {onEdit && id && (
+        <div className="flex mt-3 items-center gap-2">
+            <div className="flex-1 min-w-0">
+                {onEdit && id && !reservation && (
                     <Button
                         label="Manage Studio"
                         href={`/dashboard/properties/${id}`}
                         disabled={disabled}
                         size="sm"
-                    />
-                )}
-
-                {onDelete && (id || actionId) && !reservation && (
-                    <Button
-                        label={actionLabel || "Delete"}
-                        variant="destructive"
-                        onClick={(e) => {
-                            e?.stopPropagation();
-                            onDelete(String(actionId || id));
-                        }}
-                        disabled={disabled}
-                        size="sm"
-                        outline
+                        className="w-full"
                     />
                 )}
 
@@ -119,60 +193,93 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                 )}
 
                 {reservation && (!isPendingApproval || !isHost) && (
-                    <div className="flex flex-col gap-2 w-full">
-                        {isHost && reservation.status === "CONFIRMED" && (
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button label="Check In" variant="success" onClick={(e) => { e?.stopPropagation(); onCheckIn?.(String(reservation.id)); }} disabled={disabled} size="sm" />
-                                <Button label="No Show" variant="outline" onClick={(e) => { e?.stopPropagation(); onNoShow?.(String(reservation.id)); }} disabled={disabled} size="sm" />
-                            </div>
+                    <>
+                        {isHost && reservation.status === "CONFIRMED" && onCheckIn && (
+                            <Button
+                                label="Check In"
+                                variant="success"
+                                onClick={(e) => { e?.stopPropagation(); onCheckIn(String(reservation.id)); }}
+                                disabled={disabled}
+                                size="sm"
+                                className="w-full"
+                            />
                         )}
-                        {isHost && reservation.status === "CHECKED_IN" && (
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button label="Complete" variant="success" onClick={(e) => { e?.stopPropagation(); onComplete?.(String(reservation.id)); }} disabled={disabled} size="sm" />
-                                <Button label="Extend" variant="outline" onClick={(e) => { e?.stopPropagation(); onExtend?.(reservation); }} disabled={disabled} size="sm" />
-                            </div>
+
+                        {isHost && reservation.status === "CHECKED_IN" && onComplete && (
+                            <Button
+                                label="Complete Session"
+                                variant="success"
+                                onClick={(e) => { e?.stopPropagation(); onComplete(String(reservation.id)); }}
+                                disabled={disabled}
+                                size="sm"
+                                className="w-full"
+                            />
                         )}
-                        {isHost && canAddPostBookingCharge && (
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button label="Add Services" variant="outline" onClick={(e) => { e?.stopPropagation(); onAddCharge?.(reservation, "SERVICE"); }} disabled={disabled} size="sm" />
-                                <Button label="Damage" variant="outline" onClick={(e) => { e?.stopPropagation(); onAddCharge?.(reservation, "DAMAGE"); }} disabled={disabled} size="sm" />
-                            </div>
-                        )}
-                        <div className="flex gap-2 w-full">
-                        {onChat && (
+
+                        {!hostHasSessionAction && onChat && (
                             <Button
                                 label={isHost ? "Chat with Client" : "Chat with Host"}
-                                variant={reservation.status === "CONFIRMED" || reservation.status === "CHECKED_IN" ? "default" : "outline"}
-                                onClick={(e) => { e?.stopPropagation(); onChat(String(reservation?.id)); }}
-                                disabled={!(reservation.status === "CONFIRMED" || reservation.status === "CHECKED_IN" || reservation.status === "COMPLETED") || disabled}
+                                variant="default"
+                                onClick={(e) => { e?.stopPropagation(); onChat(String(reservation.id)); }}
+                                disabled={!canChat || disabled}
                                 size="sm"
-                                className="flex-1 whitespace-nowrap"
+                                className="w-full"
                             />
                         )}
-                        {onCancel && isPendingApproval && (
-                            <Button
-                                label="Cancel"
-                                variant="outline"
-                                onClick={(e) => { e?.stopPropagation(); onCancel(String(reservation.id)); }}
-                                disabled={disabled}
-                                size="sm"
-                                className="flex-1"
-                            />
-                        )}
-                        {isTerminal && onDelete && (
-                            <Button
-                                label="Delete"
-                                variant="outline"
-                                onClick={(e) => { e?.stopPropagation(); onDelete(String(reservation.id)); }}
-                                disabled={disabled}
-                                size="sm"
-                                className="flex-1"
-                            />
-                        )}
-                        </div>
-                    </div>
+                    </>
                 )}
             </div>
+
+            {menuItems.length > 0 && (
+                <div ref={menuRef} className="relative shrink-0">
+                    <Button
+                        icon={FiMoreVertical}
+                        variant="outline"
+                        size="sm"
+                        aria-label="More options"
+                        onClick={(e) => {
+                            e?.stopPropagation();
+                            setMenuOpen((prev) => !prev);
+                        }}
+                        disabled={disabled}
+                        className="w-10 h-10 p-0 flex items-center justify-center shrink-0 cursor-pointer"
+                    />
+
+                    <AnimatePresence>
+                        {isMenuOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 4 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 4 }}
+                                transition={{ duration: 0.12 }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="absolute right-0 bottom-full mb-1.5 min-w-48 rounded-xl bg-background/95 backdrop-blur-xl border border-border p-1 shadow-lg z-50 flex flex-col gap-0.5"
+                            >
+                                {menuItems.map((item, idx) => (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setMenuOpen(false);
+                                            item.onClick();
+                                        }}
+                                        className={cn(
+                                            "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors cursor-pointer",
+                                            item.isDestructive
+                                                ? "text-destructive hover:bg-destructive/10"
+                                                : "text-foreground hover:bg-muted"
+                                        )}
+                                    >
+                                        <item.icon size={14} className="shrink-0" />
+                                        <span>{item.label}</span>
+                                    </button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            )}
         </div>
     );
 };

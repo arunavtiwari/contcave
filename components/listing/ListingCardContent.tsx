@@ -79,6 +79,7 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
 
             <Link href={cardHref} className="block mt-2">
                 <Heading
+                    as="h3"
                     title={displayTitle}
                     variant="h6"
                     className="text-[13px] leading-snug line-clamp-2 min-h-9"

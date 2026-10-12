@@ -5,6 +5,11 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+type ClickLike = { defaultPrevented: boolean; button: number; metaKey: boolean; ctrlKey: boolean; shiftKey: boolean; altKey: boolean };
+
+export const isPlainClick = (event: ClickLike) =>
+    !event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+
 /**
  * Generates a collision-resistant, human-readable 8-character Enterprise Booking ID.
  * Excludes confusing characters like 0, O, 1, and I for premium user experience.
@@ -87,6 +92,10 @@ export function formatISTDateTime(
         ...options,
     });
 }
+
+const NUMBER_FORMAT = new Intl.NumberFormat("en-IN");
+
+export const formatNumber = (value: number) => NUMBER_FORMAT.format(value);
 
 /**
  * Formats a number as Indian Rupees (INR) using en-IN locale.

@@ -7,7 +7,6 @@ import { getIpLocation, isBotRequest } from "@/lib/http/requestMeta";
 import type { StudioFeedFilters } from "@/schemas/listing";
 
 import { ListingService } from "./service";
-import { studioFeedKey } from "./studioFeedKey";
 
 async function getVisitorOrigin(): Promise<Nearby | null> {
     const headerList = await headers();
@@ -15,17 +14,15 @@ async function getVisitorOrigin(): Promise<Nearby | null> {
     return getIpLocation(headerList);
 }
 
-export async function loadStudioFeed(filters: StudioFeedFilters, placeLabel?: string) {
+export async function loadStudioFeed(filters: StudioFeedFilters, { page = 1, placeLabel }: { page?: number; placeLabel?: string } = {}) {
     const visitor = filters.near ? null : await getVisitorOrigin();
     const origin = filters.near ?? visitor?.latlng ?? null;
-    const page = await ListingService.getListingFeedPage({ filters, origin });
+    const feed = await ListingService.getListingFeedPage({ filters, origin, page });
 
     return {
-        key: studioFeedKey(filters, page.origin),
-        filters,
-        page,
+        page: feed,
         nearLabel: filters.near
             ? placeLabel
-            : visitor && page.origin ? nearLabelFor(visitor, page.nearestKm) : undefined,
+            : visitor && feed.origin ? nearLabelFor(visitor, feed.nearestKm) : undefined,
     };
 }
