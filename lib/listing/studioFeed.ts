@@ -13,7 +13,6 @@ import type { FeedSortContext } from "./feedQuery";
 import { findRegion, regionOfCity, regionOfPoint } from "./regions";
 import { parseSavedSearchLocation, parseSearchLocationCookie, SEARCH_LOCATION_COOKIE } from "./searchLocation";
 import { ListingService } from "./service";
-import { studioFeedKey } from "./studioFeedKey";
 
 const IP_CITY_HEADERS = ["x-vercel-ip-city", "cf-ipcity"] as const;
 
@@ -82,19 +81,16 @@ async function resolveFeedSort(
 
 export async function loadStudioFeed(
     filters: StudioFeedFilters,
-    placeLabel?: string,
-    order: BrowseSort = DEFAULT_BROWSE_SORT
+    { page = 1, placeLabel, order = DEFAULT_BROWSE_SORT }: { page?: number; placeLabel?: string; order?: BrowseSort } = {}
 ) {
     // Nearest-first needs somewhere to measure from; without a location it is the default order.
     const sort = await resolveFeedSort(filters, placeLabel, order);
     const appliedOrder = order === "distance" && !sort.origin ? DEFAULT_BROWSE_SORT : order;
-    const page = await ListingService.getListingFeedPage({ filters, sort: { ...sort, order: appliedOrder } });
 
     return {
-        key: studioFeedKey(filters, page.origin, page.region, appliedOrder),
         filters,
         order: appliedOrder,
-        page,
+        page: await ListingService.getListingFeedPage({ filters, sort: { ...sort, order: appliedOrder }, page }),
         nearLabel: filters.near ? placeLabel : undefined,
     };
 }

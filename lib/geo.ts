@@ -7,8 +7,6 @@ export type Nearby = {
 
 export const CURRENT_LOCATION_LABEL = "nearby";
 
-const NEARBY_RADIUS_KM = 150;
-
 export const isLatLng = (value: unknown): value is LatLng =>
     Array.isArray(value) &&
     value.length === 2 &&
@@ -16,9 +14,6 @@ export const isLatLng = (value: unknown): value is LatLng =>
     Math.abs(value[0]) <= 90 &&
     Math.abs(value[1]) <= 180 &&
     !(value[0] === 0 && value[1] === 0);
-
-export const nearLabelFor = ({ label }: Nearby, nearestKm: number | null) =>
-    nearestKm !== null && nearestKm <= NEARBY_RADIUS_KM ? label : undefined;
 
 const EARTH_RADIUS_KM = 6371;
 const toRadians = (degrees: number) => (degrees * Math.PI) / 180;

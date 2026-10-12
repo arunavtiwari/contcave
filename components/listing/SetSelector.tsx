@@ -87,6 +87,7 @@ export default function SetSelector({
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <Heading
+                    as="h2"
                     title="Select Sets"
                     variant="h5"
                 />

@@ -1,9 +1,10 @@
 import Footer from "@/components/layout/Footer";
+import PageOffset from "@/components/layout/PageOffset";
 
 export default function PublicPageShell({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <div className="min-h-screen pt-20">{children}</div>
+      <PageOffset>{children}</PageOffset>
       <Footer />
     </>
   );

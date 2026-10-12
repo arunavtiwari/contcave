@@ -17,7 +17,6 @@ type Props = {
   disabled?: boolean;
   customWidth?: string;
   fixedHeight?: boolean;
-  selfActionButton?: boolean;
   secondaryActionAction?: () => void;
   secondaryActionLabel?: string;
   nestedModal?: boolean;
@@ -62,7 +61,6 @@ function Modal({
   disabled,
   secondaryActionAction,
   customWidth,
-  selfActionButton,
   secondaryActionLabel,
   nestedModal,
   isLoading,
@@ -107,6 +105,9 @@ function Modal({
     onSubmitAction?.();
   }, [onSubmitAction, disabled]);
 
+  const hasPrimary = Boolean(actionLabel);
+  const hasSecondary = Boolean(secondaryActionAction && secondaryActionLabel);
+
   const handleSecondAction = useCallback(() => {
     if (disabled || !secondaryActionAction) return;
     secondaryActionAction();
@@ -147,7 +148,7 @@ function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <div className={`flex flex-col w-full bg-background rounded-2xl shadow-md overflow-hidden ${customHeight || "h-auto max-h-[90vh]"}`}>
+        <div className={`flex flex-col w-full bg-background rounded-2xl border border-border/80 overflow-hidden ${customHeight || "h-auto max-h-[90vh]"}`}>
 
           {/* Header */}
           <div className="flex items-center justify-between p-5 bg-background relative shrink-0">
@@ -163,10 +164,10 @@ function Modal({
               variant="ghost"
               rounded
               size="lg"
+              aria-label="Close dialog"
               className="opacity-80 hover:opacity-100 p-0! w-fit! h-fit!"
             />
           </div>
-
 
           <div
             ref={bodyRef}
@@ -175,10 +176,9 @@ function Modal({
             {body}
           </div>
 
-
-          {!selfActionButton && (
+          {(hasSecondary || hasPrimary) && (
             <div className="px-5 py-4 flex flex-col md:flex-row gap-3 justify-end items-center bg-muted/10 shrink-0 border-t border-border/40">
-              {secondaryActionAction && secondaryActionLabel && (
+              {hasSecondary && (
                 <Button
                   outline
                   disabled={disabled}
@@ -189,18 +189,19 @@ function Modal({
                 />
               )}
 
-              <Button
-                disabled={disabled || actionDisabled}
-                label={actionLabel}
-                onClick={handleSubmit}
-                loading={isLoading}
-                variant={primaryActionVariant}
-                rounded
-                data-testid={testId ? `${testId}-primary-action` : undefined}
-              />
+              {hasPrimary && (
+                <Button
+                  disabled={disabled || actionDisabled}
+                  label={actionLabel}
+                  onClick={handleSubmit}
+                  loading={isLoading}
+                  variant={primaryActionVariant}
+                  rounded
+                  data-testid={testId ? `${testId}-primary-action` : undefined}
+                />
+              )}
             </div>
           )}
-
 
           {footer && <div className="px-6 pb-6 shrink-0">{footer}</div>}
         </div>

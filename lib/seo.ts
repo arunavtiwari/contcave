@@ -1,10 +1,13 @@
 import { getPlainTextFromHTML } from "@/lib/richText";
+import type { Faq } from "@/types/faq";
 
 export const SITE_URL = "https://contcave.com" as const;
 export const ORGANIZATION_ID = `${SITE_URL}/#organization` as const;
 export const WEBSITE_ID = `${SITE_URL}/#website` as const;
 export const BRAND_NAME = "ContCave" as const;
-export const BRAND_TITLE = `${BRAND_NAME} | Find the Perfect Shoot Space with Ease` as const;
+export const TITLE_SUFFIX = ` | ${BRAND_NAME}` as const;
+export const TITLE_LENGTH = 60 - TITLE_SUFFIX.length;
+export const BRAND_TITLE = `Book Photography, Video & Podcast Studios on Rent${TITLE_SUFFIX}` as const;
 export const BRAND_DESCRIPTION =
   "ContCave helps creators discover, compare, and book verified studios and production-ready spaces across India." as const;
 export const OG_IMAGE = "/images/logo/logo-og.png" as const;
@@ -68,6 +71,18 @@ export const breadcrumbJsonLd = (items: BreadcrumbItem[], pageUrl: string) => ({
     position: index + 1,
     name: item.name,
     item: absoluteUrl(item.href ?? pageUrl),
+  })),
+});
+
+export const FAQ_ANCHOR = "faq";
+
+export const faqJsonLd = (faqs: Faq[]) => ({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map(({ question, answer }) => ({
+    "@type": "Question",
+    name: question,
+    acceptedAnswer: { "@type": "Answer", text: answer },
   })),
 });
 

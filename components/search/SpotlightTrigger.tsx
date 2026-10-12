@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BiSearch } from "react-icons/bi";
 import { IoSparkles } from "react-icons/io5";
 
 import Button from "@/components/ui/Button";
@@ -14,15 +13,17 @@ import { cn } from "@/lib/utils";
 const TONES = {
     light: {
         variant: "ghost",
-        button: "h-11 max-w-md bg-background pl-4 pr-2 text-foreground/80 shadow-sm hover:border-foreground/25 hover:shadow-md",
+        button: "h-11 max-w-md bg-background pl-4 pr-2 text-foreground/80 hover:bg-neutral-50/70 hover:border-foreground/25 transition-all duration-200",
         text: "text-sm",
         rotate: false,
+        shortcut: true,
     },
     glass: {
         variant: "secondary",
-        button: "h-14 max-w-lg pl-5 pr-1.5 shadow-sm backdrop-blur-2xl md:h-16 md:max-w-xl md:pl-6 lg:max-w-2xl",
-        text: "text-sm text-background/90 md:text-base",
+        button: "h-12 max-w-md px-5 shadow-sm backdrop-blur-2xl md:h-13 md:max-w-lg",
+        text: "text-sm text-background/90",
         rotate: true,
+        shortcut: false,
     },
 } as const;
 
@@ -52,7 +53,7 @@ export default function SpotlightTrigger({ tone = "light" }: { tone?: keyof type
             aria-haspopup="dialog"
             aria-label={SEARCH_CONFIG.prompt}
             onClick={() => onOpen("spotlight")}
-            className={cn("group min-w-0 justify-start gap-2.5 font-normal", style.button)}
+            className={cn("min-w-0 justify-start gap-2.5 font-normal", style.button)}
         >
             <IoSparkles size={16} className="shrink-0 text-current" aria-hidden />
             <span className={cn("min-w-0 flex-1 truncate text-left", style.text)}>
@@ -65,12 +66,7 @@ export default function SpotlightTrigger({ tone = "light" }: { tone?: keyof type
                     </>
                 )}
             </span>
-            {tone === "glass" ? (
-                <span className="flex h-11 shrink-0 items-center gap-2 rounded-full bg-background px-4 text-sm font-medium text-foreground transition-transform group-hover:scale-[1.03] md:h-13 md:px-5">
-                    <BiSearch size={16} aria-hidden />
-                    Search
-                </span>
-            ) : modifier && (
+            {style.shortcut && modifier && (
                 <span className="hidden shrink-0 items-center gap-1 md:pointer-fine:flex">
                     <Kbd>{modifier}</Kbd>
                     <Kbd>K</Kbd>

@@ -4,8 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import Script from "next/script";
-import { GTM_ID } from "@/constants/googleTagManager";
-import { CONSENT_COOKIE_NAME } from "@/lib/consent";
+
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import getCurrentUser from "@/app/actions/getCurrentUser";
@@ -25,6 +24,8 @@ import JsonLd from "@/components/seo/JsonLd";
 import ClientOnly from "@/components/ui/ClientOnly";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { Toaster } from "@/components/ui/Toast";
+import { GTM_ID } from "@/constants/googleTagManager";
+import { CONSENT_COOKIE_NAME } from "@/lib/consent";
 import {
   BRAND_DESCRIPTION,
   BRAND_LOGO,
@@ -35,6 +36,7 @@ import {
   OG_IMAGE,
   ORGANIZATION_ID,
   SITE_URL,
+  TITLE_SUFFIX,
   WEBSITE_ID,
 } from "@/lib/seo";
 
@@ -43,7 +45,7 @@ export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),
     title: {
         default: BRAND_TITLE,
-        template: `%s | ${BRAND_NAME}`,
+        template: `%s${TITLE_SUFFIX}`,
     },
     description: BRAND_DESCRIPTION,
     keywords: [...DEFAULT_KEYWORDS],

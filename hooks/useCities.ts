@@ -10,6 +10,7 @@ const indianCities = [
 
   { name: "Noida", state: "Uttar Pradesh", latlng: [28.5355, 77.3910] },
   { name: "Gurugram", state: "Haryana", latlng: [28.4595, 77.0266] },
+  { name: "Ghaziabad", state: "Uttar Pradesh", latlng: [28.6692, 77.4538] },
   { name: "Ahmedabad", state: "Gujarat", latlng: [23.0225, 72.5714] },
   { name: "Jaipur", state: "Rajasthan", latlng: [26.9124, 75.7873] },
   { name: "Lucknow", state: "Uttar Pradesh", latlng: [26.8467, 80.9462] },

@@ -17,9 +17,10 @@ const buttonVariants = cva(
         default: "bg-foreground border-foreground text-background",
         success: "bg-success border-success text-background",
         destructive: "bg-destructive border-destructive text-destructive-foreground",
-        ghost: "bg-transparent border-transparent text-foreground",
+        ghost: "bg-transparent border-transparent text-foreground hover:bg-muted",
         secondary: "bg-background/10 border-background/20 text-background",
         outline: "bg-background border-border text-foreground hover:bg-muted",
+        glass: "glass text-foreground border-border/40 hover:bg-background/80",
       },
       size: {
         sm: "h-10 px-4 text-sm",

@@ -6,11 +6,12 @@ export type StudioCategory = {
   noun: string;
   useCases?: string[];
   venueTypes?: string[];
+  setFeatures?: string[];
 };
 
 export const STUDIO_CATEGORIES: StudioCategory[] = [
   { slug: "podcast-studios", name: "Podcast Studios", noun: "podcast studio", useCases: ["Podcast & Interview"], venueTypes: ["Podcast Studio"] },
-  { slug: "photo-studios", name: "Photo Studios", noun: "photo studio", venueTypes: ["Shoot Studio"] },
+  { slug: "photo-studios", name: "Photography Studios", noun: "photography studio", venueTypes: ["Shoot Studio"] },
   { slug: "product-shoot-studios", name: "Product Shoot Studios", noun: "product shoot studio", useCases: ["Product & E-commerce"] },
   { slug: "fashion-shoot-studios", name: "Fashion Shoot Studios", noun: "fashion shoot studio", useCases: ["Fashion & Lifestyle"] },
   { slug: "video-shoot-studios", name: "Video Shoot Studios", noun: "video shoot studio", useCases: ["Video & Film"] },
@@ -20,13 +21,20 @@ export const STUDIO_CATEGORIES: StudioCategory[] = [
   { slug: "event-spaces", name: "Event Spaces", noun: "event space", useCases: ["Events & Pop-Ups"], venueTypes: ["Event Space"] },
   { slug: "recording-studios", name: "Recording Studios", noun: "recording studio", useCases: ["Music Recording"], venueTypes: ["Recording Studio"] },
   { slug: "rooftop-outdoor-shoot-locations", name: "Rooftop & Outdoor Shoot Locations", noun: "rooftop or outdoor shoot location", venueTypes: ["Outdoor / Rooftop"] },
+  { slug: "cyclorama-studios", name: "Cyclorama Studios", noun: "cyclorama studio", setFeatures: ["Cyclorama", "Infinity White Cyc"] },
+  { slug: "green-screen-studios", name: "Green Screen Studios", noun: "green screen studio", setFeatures: ["Green Screen"] },
 ];
 
 export const MIN_CATEGORY_LISTINGS = 3;
 
 export const findCategory = (slug: string) => STUDIO_CATEGORIES.find((category) => category.slug === slug);
 
-type Taxonomised = { type?: string[] | null; venueTypes?: string[] | null; category?: string | null };
+type Taxonomised = {
+  type?: string[] | null;
+  venueTypes?: string[] | null;
+  setFeatures?: string[] | null;
+  category?: string | null;
+};
 
 export function matchesCategory(listing: Taxonomised, category: StudioCategory) {
   const useCases = (listing.type ?? []).map(normaliseUseCase);
@@ -35,7 +43,8 @@ export function matchesCategory(listing: Taxonomised, category: StudioCategory) 
     : CATEGORY_TO_VENUE_TYPES[listing.category ?? ""]?.venueTypes ?? [];
   return Boolean(
     category.useCases?.some((useCase) => useCases.includes(useCase)) ||
-    category.venueTypes?.some((venueType) => venueTypes.includes(venueType))
+    category.venueTypes?.some((venueType) => venueTypes.includes(venueType)) ||
+    category.setFeatures?.some((feature) => listing.setFeatures?.includes(feature))
   );
 }
 
@@ -52,6 +61,7 @@ export function categoryMatch(category: StudioCategory): Record<string, unknown>
     return useCase !== null && Boolean(category.useCases?.includes(useCase));
   });
   const venueTypes = category.venueTypes ?? [];
+  const setFeatures = category.setFeatures ?? [];
   const legacyCategories = Object.entries(CATEGORY_TO_VENUE_TYPES)
     .filter(([, mapped]) => mapped.venueTypes.some((venueType) => venueTypes.includes(venueType)))
     .map(([legacy]) => legacy);
@@ -60,6 +70,7 @@ export function categoryMatch(category: StudioCategory): Record<string, unknown>
     $or: [
       ...(useCases.length ? [{ type: { $in: useCases } }] : []),
       ...(venueTypes.length ? [{ venueTypes: { $in: venueTypes } }] : []),
+      ...(setFeatures.length ? [{ setFeatures: { $in: setFeatures } }] : []),
       ...(legacyCategories.length ? [{ $and: [NO_VENUE_TYPES, { category: { $in: legacyCategories } }] }] : []),
     ],
   };

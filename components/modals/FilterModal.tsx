@@ -13,6 +13,7 @@ import { useFilterNavigation } from "@/hooks/useFilterNavigation";
 import { useStudioSearch } from "@/hooks/useStudioSearch";
 import useUIStore from "@/hooks/useUIStore";
 import { BOOKING_HORIZON_DAYS } from "@/lib/booking/dayAvailability";
+import { PAGE_PARAM } from "@/lib/pagination";
 import { AESTHETICS, SET_FEATURES, USE_CASES } from "@/lib/taxonomy";
 
 const TAG_FILTERS = [
@@ -72,6 +73,7 @@ const FilterModalContent = ({ city }: Props) => {
 
   const urlSearchParams = useMemo(() => {
     const next = new URLSearchParams(params ? Array.from(params.entries()) : []);
+    next.delete(PAGE_PARAM);
     if (city && !next.has("locationValue")) next.set("locationValue", city);
     return next;
   }, [params, city]);

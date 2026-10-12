@@ -517,8 +517,8 @@ const VerificationModal: React.FC<Props> = ({
       testId="verification-modal"
       onCloseAction={onCloseAction}
       title="Verification Center"
-      actionLabel={step === 3 ? "Complete" : step === 4 ? "Close" : step === 2 && !userState?.aadhaar_verified ? "Verify Document" : "Continue"}
-      onSubmitAction={step === 4 ? onCloseAction : handleNextClick}
+      actionLabel={step === 3 ? "Complete" : step === 4 ? undefined : step === 2 && !userState?.aadhaar_verified ? "Verify Document" : "Continue"}
+      onSubmitAction={step === 4 ? undefined : handleNextClick}
       disabled={isBusy}
       isLoading={busyAction === "aadhaar" || busyAction === "bank"}
       body={

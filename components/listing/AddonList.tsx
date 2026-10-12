@@ -165,6 +165,7 @@ const AddonsList: React.FC<AddonsListProps> = ({ addons = [], onChange, addonLis
   return (
     <div>
       <Heading
+        as="h2"
         title="Add-ons"
         variant="h5"
         className="mb-4"

@@ -25,7 +25,7 @@ const FavoritePage = () => {
   return (
     <div className="space-y-8">
       <Heading title="Favorites" subtitle="List of places you favorited!" />
-      <Suspense fallback={<ListingGridSkeleton count={6} hideActions />}>
+      <Suspense fallback={<ListingGridSkeleton hideActions />}>
         <FavoriteContent />
       </Suspense>
     </div>

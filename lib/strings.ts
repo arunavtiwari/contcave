@@ -1,4 +1,13 @@
-export const pluralize = (count: number, noun: string) => `${count} ${noun}${count === 1 ? "" : "s"}`;
+export const plural = (noun: string) => `${noun}s`;
+
+export const pluralWord = (count: number, noun: string) => (count === 1 ? noun : plural(noun));
+
+export const pluralize = (count: number, noun: string) => `${count} ${pluralWord(count, noun)}`;
+
+export const isAre = (count: number) => (count === 1 ? "is" : "are");
+
+export const joinList = (items: string[]) =>
+  items.length < 2 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 
 export function slugify(text: string) {
     return text

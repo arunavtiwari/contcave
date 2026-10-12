@@ -31,9 +31,7 @@ const ReservationDetailModal: React.FC<ReservationDetailModalProps> = ({
         <Modal
             isOpen={isOpen}
             onCloseAction={onCloseAction}
-            onSubmitAction={onCloseAction}
             title="Booking Information"
-            actionLabel="Close"
             body={
                 <div className="flex flex-col gap-2">
                     <p className="text-sm text-muted-foreground mb-2">

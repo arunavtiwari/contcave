@@ -25,7 +25,7 @@ const ProfileTransaction = ({ searchParams }: { searchParams: Promise<{ page?: s
   return (
     <div className="space-y-8">
       <Heading title="Transactions" subtitle="Your earnings and payouts" />
-      <Suspense fallback={<BookingGridSkeleton count={6} />}>
+      <Suspense fallback={<BookingGridSkeleton />}>
         <TransactionContent searchParams={searchParams} />
       </Suspense>
     </div>

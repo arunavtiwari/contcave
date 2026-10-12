@@ -24,7 +24,7 @@ const PropertiesPage = () => {
   return (
     <div className="space-y-8">
       <Heading title="My Properties" subtitle="Efficiently Manage, Update, and Showcase Your Listings with Ease." />
-      <Suspense fallback={<ListingGridSkeleton count={6} />}>
+      <Suspense fallback={<ListingGridSkeleton />}>
         <PropertiesContent />
       </Suspense>
     </div>

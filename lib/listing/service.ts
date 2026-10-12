@@ -38,21 +38,20 @@ import { ActualLocation, FullListing, ListingBlockData, type StudioFeedItem, typ
 
 import { DEFAULT_BROWSE_SORT } from "./browseSort";
 import {
+    buildFeedPagePipeline,
     buildFeedPipeline,
-    cursorFromRow,
-    decodeFeedCursor,
     distanceKmOf,
-    encodeFeedCursor,
     FEED_PAGE_SIZE,
     feedCandidatePipeline,
-    feedCountPipeline,
-    type FeedCursor,
+    type FeedPageRow,
     type FeedRow,
     type FeedSortContext,
     hydratableListingFilter,
     nearestKmOf,
     readRawId,
+    readRawNumber,
     toStudioFeedItem,
+    UNLOCATED_SORT,
 } from "./feedQuery";
 import { resolveListingLocation } from "./location";
 import { collectListingMediaRefs, ListingMediaSource, orphanedListingMediaRefs } from "./media";
@@ -1240,9 +1239,7 @@ export class ListingService {
             studioFeedSearchParamsSchema.parse({ ...searchParams, hasSets: hasSets ? "true" : undefined })
         );
         const excludeIds = await this.unbookableListingIds(filters);
-        const rows = await this.runFeedPipeline(
-            buildFeedPipeline({ filters, sort: { region: null, origin: null, order: DEFAULT_BROWSE_SORT }, after: null, excludeIds })
-        );
+        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, sort: UNLOCATED_SORT, excludeIds }));
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
         if (ids.length === 0) return [];
 
@@ -1276,25 +1273,23 @@ export class ListingService {
     static async getListingFeedPage({
         filters,
         sort,
-        cursor,
+        page = 1,
         size = FEED_PAGE_SIZE,
     }: {
         filters: StudioFeedFilters;
         sort: FeedSortContext;
-        cursor?: string | null;
+        page?: number;
         size?: number;
     }): Promise<StudioFeedPage> {
         filters = await this.withSetMatches(filters);
-        const after = cursor ? decodeFeedCursor(cursor) : null;
         const excludeIds = await this.unbookableListingIds(filters);
-        // Only the first page needs the total; later pages are appended to a list that already
-        // has it, and the count is a second aggregation we needn't pay for on every scroll.
-        const [{ rows, sort: appliedSort }, total] = await Promise.all([
-            this.queryFeedRows({ filters, sort, after, limit: size + 1, excludeIds }),
-            after ? Promise.resolve(null) : this.countFeedRows(filters, excludeIds),
-        ]);
-        const pageRows = rows.slice(0, size);
-        const lastRow = pageRows[pageRows.length - 1];
+        const window = { filters, excludeIds, skip: (page - 1) * size, limit: size };
+        const { rows: [result], sort: appliedSort } = await this.queryFeed<FeedPageRow>(
+            sort,
+            (feedSort) => buildFeedPagePipeline({ ...window, sort: feedSort })
+        );
+        const pageRows = result?.rows ?? [];
+        const total = readRawNumber(result?.total?.[0]?.total ?? 0);
 
         // Distance comes off the pipeline rows, not the listing documents, so it has to be
         // carried across to the items the cards are built from.
@@ -1307,21 +1302,12 @@ export class ListingService {
 
         return {
             items: await this.loadFeedItems(pageRows.map(readRawId).filter((id): id is string => !!id), distances),
-            nextCursor:
-                rows.length > size && lastRow ? encodeFeedCursor(cursorFromRow(lastRow, appliedSort.order)) : null,
-            nearestKm: after ? null : nearestKmOf(pageRows),
             total,
+            totalPages: Math.max(1, Math.ceil(total / size)),
+            nearestKm: page === 1 ? nearestKmOf(pageRows) : null,
             origin: appliedSort.origin,
             region: appliedSort.region,
         };
-    }
-
-    private static async countFeedRows(filters: StudioFeedFilters, excludeIds: string[]): Promise<number> {
-        const rows = (await this.runFeedPipeline(feedCountPipeline(filters, excludeIds))) as unknown as {
-            total?: unknown;
-        }[];
-        const total = rows[0]?.total;
-        return typeof total === "number" ? total : Number((total as { $numberInt?: string })?.$numberInt ?? 0);
     }
 
     /**
@@ -1356,20 +1342,14 @@ export class ListingService {
         });
     }
 
-    private static async queryFeedRows(params: {
-        filters: StudioFeedFilters;
-        sort: FeedSortContext;
-        after: FeedCursor | null;
-        limit: number;
-        excludeIds: string[];
-    }): Promise<{ rows: FeedRow[]; sort: FeedSortContext }> {
-        const { sort, after } = params;
-        if (!sort.origin) return { rows: await this.runFeedPipeline(buildFeedPipeline(params)), sort };
-
+    private static async queryFeed<Row>(
+        sort: FeedSortContext,
+        build: (sort: FeedSortContext) => Record<string, unknown>[]
+    ): Promise<{ rows: Row[]; sort: FeedSortContext }> {
+        if (!sort.origin) return { rows: await this.runFeedPipeline<Row>(build(sort)), sort };
         try {
-            return { rows: await this.runFeedPipeline(buildFeedPipeline(params)), sort };
+            return { rows: await this.runFeedPipeline<Row>(build(sort)), sort };
         } catch (error) {
-            if (after) throw error;
             // Distance sorting failed: keep the region grouping, drop distance. "Nearest first"
             // can't survive that, so it falls back to the relevance order rather than to an
             // arbitrary one - every studio would otherwise report the same distance of zero.
@@ -1379,14 +1359,14 @@ export class ListingService {
                 origin: null,
                 order: sort.order === "distance" ? DEFAULT_BROWSE_SORT : sort.order,
             };
-            return { rows: await this.runFeedPipeline(buildFeedPipeline({ ...params, sort: regionOnly })), sort: regionOnly };
+            return { rows: await this.runFeedPipeline<Row>(build(regionOnly)), sort: regionOnly };
         }
     }
 
-    private static async runFeedPipeline(pipeline: Record<string, unknown>[]): Promise<FeedRow[]> {
+    private static async runFeedPipeline<Row = FeedRow>(pipeline: Record<string, unknown>[]): Promise<Row[]> {
         return await prisma.listing.aggregateRaw({
             pipeline: pipeline as unknown as Prisma.InputJsonValue[],
-        }) as unknown as FeedRow[];
+        }) as unknown as Row[];
     }
 
     private static async loadFeedItems(ids: string[], distances?: Map<string, number>): Promise<StudioFeedItem[]> {
@@ -1436,7 +1416,8 @@ export class ListingService {
         origin: LatLng | null;
         limit: number;
     }) {
-        const { rows } = await this.queryFeedRows({ filters: { locationValues }, sort: { region: null, origin, order: "distance" }, after: null, limit, excludeIds: [] });
+        const { rows } = await this.queryFeed<FeedRow>({ region: null, origin, order: "distance" }, (feedSort) =>
+            buildFeedPipeline({ filters: { locationValues }, sort: feedSort, limit, excludeIds: [] }));
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
         if (ids.length === 0) return [];
 

@@ -92,9 +92,9 @@ export const SHOOT_TYPE_VENUES: Record<string, string[]> = {
     "Events & Pop-Ups": ["Event Space", "Outdoor / Rooftop", "Café / Restaurant", "Co-working"],
 };
 
-const CITY_GROUPS: Record<string, string[]> = {
-    "Delhi NCR": ["Delhi", "Noida", "Gurugram", "Faridabad"],
-    Tricity: ["Chandigarh", "Mohali"],
+export const CITY_GROUPS: Record<string, string[]> = {
+    "Delhi NCR": ["Delhi", "Noida", "Gurugram", "Faridabad", "Ghaziabad"],
+    "Chandigarh Tricity": ["Chandigarh", "Mohali"],
 };
 
 const CITY_ALIASES: Record<string, string> = {
@@ -118,7 +118,7 @@ const CITY_ALIASES: Record<string, string> = {
     mysuru: "Mysore",
     mangaluru: "Mangalore",
     chd: "Chandigarh",
-    tricity: "Tricity",
+    tricity: "Chandigarh Tricity",
 };
 
 export function normalizeText(text: string) {
