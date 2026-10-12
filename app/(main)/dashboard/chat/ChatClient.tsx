@@ -198,6 +198,7 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
 
         chatChannel.subscribe("chat", handleIncomingMessage);
         await chatChannel.attach();
+        if (isDisposed) return;
         setIsChannelReady(true);
 
         const history = await chatChannel.history({ limit: 100 });
@@ -228,26 +229,29 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
       channelRef.current = null;
       ablyRef.current = null;
 
-      if (currentChannel && handleIncomingMessage) {
-        currentChannel.unsubscribe("chat", handleIncomingMessage);
+      if (currentChannel) {
+        try {
+          if (handleIncomingMessage) currentChannel.unsubscribe("chat", handleIncomingMessage);
+          currentChannel.off();
+          if (currentChannel.state === "attached" || currentChannel.state === "attaching") {
+            void currentChannel.detach().catch(() => undefined);
+          }
+        } catch (channelError) {
+          console.warn("[ChatClient] Ignored Ably channel cleanup error:", channelError);
+        }
       }
 
       if (currentAbly) {
-        currentAbly.connection.off("failed", handleConnectionFailed);
-        currentAbly.connection.off("suspended", handleConnectionSuspended);
-        currentAbly.connection.off("connected", handleConnectionConnected);
-
-        const connectionState = currentAbly.connection.state;
-
-        if (connectionState !== "closed" && connectionState !== "closing") {
+        currentAbly.connection.off();
+        setTimeout(() => {
+          const connectionState = currentAbly.connection.state;
+          if (connectionState === "closed" || connectionState === "closing") return;
           try {
-            void Promise.resolve(currentAbly.close()).catch((closeError) => {
-              console.warn("[ChatClient] Ignored asynchronous Ably close error during cleanup:", closeError);
-            });
+            currentAbly.close();
           } catch (closeError) {
             console.warn("[ChatClient] Ignored Ably close error during cleanup:", closeError);
           }
-        }
+        }, 0);
       }
     };
   }, [reservationId, userId]);
