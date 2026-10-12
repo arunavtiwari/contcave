@@ -3,7 +3,7 @@ import { getCityDirectory } from "@/lib/listing/cities";
 import { cityPath } from "@/lib/listing/cityPaths";
 import { listingFacts, listingPath } from "@/lib/listing/seo";
 import { getSortedPostsData } from "@/lib/posts";
-import { absoluteUrl, BRAND_DESCRIPTION } from "@/lib/seo";
+import { absoluteUrl, BRAND_DESCRIPTION, FOUNDERS } from "@/lib/seo";
 
 export const revalidate = 3600;
 
@@ -44,6 +44,10 @@ export async function GET() {
     "Each listing is reviewed by the ContCave team before it is published. Guests book and pay online; curated " +
     "studios are booked through ContCave on WhatsApp. Hourly prices are shown before GST. ContCave is run by " +
     "Arkanet Ventures LLP.",
+    "",
+    "## Founders",
+    "",
+    ...FOUNDERS.map(({ name, jobTitle, sameAs }) => `- [${name}](${sameAs}): Co-founder and ${jobTitle}`),
   ];
 
   if (cities.length) {
