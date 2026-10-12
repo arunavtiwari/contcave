@@ -1,5 +1,8 @@
 const JITTER_METERS = 250;
 
+export const slugHistory = (previous: string[], current: string, next: string) =>
+    Array.from(new Set([...previous, current])).filter((slug) => slug !== next);
+
 /**
  * Clamps a number between a minimum and maximum value.
  */
