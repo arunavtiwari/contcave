@@ -58,6 +58,7 @@ export type SafeReservation = Omit<
     startTime: string;
     endTime: string;
     listing: safeListing;
+    guestName?: string | null;
     markedForDeletionAt: string | null;
     rejectReason?: string | null;
     setIds?: string[];
@@ -119,4 +120,6 @@ export interface ReservationMetadata {
     billingDetailId?: string | null;
     billingSnapshot?: Prisma.JsonValue | string | null;
     setPackageId?: string | null;
+    pax?: number | null;
+    shootType?: string | null;
 }

@@ -207,10 +207,16 @@ export function suggestWholeStudioPackage(
     return best ? { kind: "package", ...best } : { kind: "browse" };
 }
 
-/** GST charged on top of a pre-GST amount, in whole rupees — what the customer pays. */
+const roundToPaise = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+
+/**
+ * GST charged on top of a pre-GST amount, to the paisa — what the customer pays.
+ * Kept exact (not rounded to rupees) so the invoice, which works back from the amount
+ * paid, shows the same taxable value and GST the customer saw at checkout.
+ */
 export function addGst(subtotal: number): { gstAmount: number; total: number } {
-    const gstAmount = Math.round(subtotal * GST_RATE);
-    return { gstAmount, total: Math.round(subtotal + gstAmount) };
+    const gstAmount = roundToPaise(subtotal * GST_RATE);
+    return { gstAmount, total: roundToPaise(subtotal + gstAmount) };
 }
 
 /** The pre-GST value inside a GST-inclusive amount, unrounded so callers keep their own rounding. */

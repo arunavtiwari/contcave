@@ -196,7 +196,7 @@ function ReservationsClient({ reservations, currentUser }: Props) {
       </div>)}
     </div>
 
-    <ReservationDetailModal isOpen={isInfoModalOpen} onCloseAction={() => setInfoModalOpen(false)} reservation={infoReservation} />
+    <ReservationDetailModal isOpen={isInfoModalOpen} onCloseAction={() => setInfoModalOpen(false)} reservation={infoReservation} showClient />
 
     {isModalOpen && <Modal isOpen={isModalOpen} onCloseAction={() => !deletingId && setModalOpen(false)} onSubmitAction={handleConfirmAction} title={modalAction === "reject" ? "Reason for Rejecting This Booking" : "Delete Reservation"} body={modalAction === "reject" ? <div className="space-y-4"><p>Please select or specify a reason. This will be shared with the customer.</p><Select options={rejectReasonOptions} value={rejectReasonOptions.find((option) => option.value === rejectReasonOption) || null} onChange={(selection) => setRejectReasonOption((selection as SelectOption | null)?.value || "")} isDisabled={!!deletingId} placeholder="Select a reason" />{rejectReasonOption === "Other (please specify)" && <textarea className="w-full border rounded-md p-2" rows={4} placeholder="Enter brief reason (min. 10 characters)" value={rejectReasonText} onChange={(event) => setRejectReasonText(event.target.value)} disabled={!!deletingId} />}</div> : <p className="text-center">Are you sure you want to delete this reservation?</p>} actionLabel={modalAction === "reject" ? "Reject Booking" : "Delete Reservation"} secondaryActionAction={() => !deletingId && setModalOpen(false)} secondaryActionLabel="Close" />}
 

@@ -56,5 +56,7 @@ export const processPaymentSchema = z.object({
 
     setIds: z.array(z.string().regex(/^[a-f\d]{24}$/i, "Invalid set ID")).max(50).optional(),
     setPackageId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid package ID").nullable().optional(),
+    pax: z.preprocess(toNum, z.number().int("Number of people must be a whole number").min(1, "At least 1 person is required").max(1000)).optional(),
+    shootType: z.preprocess(trimStr, z.string().max(100, "Shoot type is too long").optional()),
 });
 

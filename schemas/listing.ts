@@ -144,7 +144,7 @@ export const packageSchema = packageBaseSchema.refine((data) => {
 export const addonSchema = z.object({
     id: objectIdSchema.optional(),
     name: z.string().trim().min(1).max(100),
-    price: z.number().min(0).max(10_000_000),
+    price: z.number().int("Add-on price must be a whole number of rupees").min(0).max(10_000_000),
     qty: z.number().int().min(0).max(10_000),
     imageUrl: imageSchema.optional(),
 });

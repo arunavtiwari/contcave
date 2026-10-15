@@ -1,15 +1,9 @@
-import { getValidatedBaseUrl } from "@/lib/utils";
+import { formatINR, getValidatedBaseUrl } from "@/lib/utils";
 
 import { escapeEmailHtml } from "./html";
 import { AttachmentInput, sendEmail } from "./mailer";
 
-function formatInr(value: number) {
-    return new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: "INR",
-        maximumFractionDigits: 0,
-    }).format(value);
-}
+const formatInr = formatINR;
 
 function buildReservationEmailHtml(input: {
     greetingName: string;

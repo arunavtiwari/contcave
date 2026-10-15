@@ -332,6 +332,8 @@ model Reservation {
   startTime           String
   endTime             String
   totalPrice          Float
+  pax                 Int?
+  shootType           String?
   selectedAddons      Json?
   createdAt           DateTime        @default(now())
   user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -341,7 +343,7 @@ model Reservation {
   checkedInAt         DateTime?
   completedAt         DateTime?
   noShowAt            DateTime?
-  refundAmount        Int?
+  refundAmount        Float?
   refundRecordedAt    DateTime?
   refundNote          String?
   extensionNudgeSentAt DateTime?

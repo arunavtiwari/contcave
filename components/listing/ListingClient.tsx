@@ -466,6 +466,7 @@ function ListingClient({
                     reservations={reservations}
                     disabled={isPreview}
                     contcaveNote={listing.contcaveNote}
+                    maximumPax={listing.maximumPax}
                   />
                 )}
               </div>

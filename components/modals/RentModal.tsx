@@ -94,7 +94,9 @@ const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED", i
       STEPS.LOCATION,
       STEPS.IMAGES,
       STEPS.DESCRIPTION,
+      STEPS.AMENITIES,
       STEPS.OTHERDETAILS,
+      STEPS.CUSTOMTERMS,
     ];
   }
   return [
@@ -694,7 +696,7 @@ export default function RentModal({
       [STEPS.OTHERDETAILS]: {
         id: STEPS.OTHERDETAILS,
         modalTitle: isCurated ? "List Curated Space" : "List Your Space",
-        actionLabel: isCurated ? "Publish Curated Space" : "Next",
+        actionLabel: "Next",
         validate: validateOtherDetailsStep,
         render: () => (
           <OtherDetailsStep

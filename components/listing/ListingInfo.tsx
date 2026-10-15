@@ -607,10 +607,12 @@ function ListingInfo({
         <Modal
           isOpen={isHostAboutOpen}
           onCloseAction={() => setIsHostAboutOpen(false)}
-          title={`About ${user?.name ?? "the host"}`}
+          onSubmitAction={() => setIsHostAboutOpen(false)}
+          actionLabel="Close"
           customWidth="w-full md:w-4/6 lg:w-3/6 xl:w-2/6"
           body={
             <div className="flex flex-col items-center gap-4 text-center">
+              <p className="text-lg font-semibold text-foreground">About the host</p>
               <Avatar src={hostAvatar} size={88} />
               <div className="flex flex-col gap-1">
                 <p className="text-lg font-semibold text-foreground">{user?.name}</p>

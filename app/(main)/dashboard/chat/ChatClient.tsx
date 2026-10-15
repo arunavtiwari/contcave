@@ -3,6 +3,7 @@
 import Ably from "ably";
 import Image from "next/image";
 import { FC, useEffect, useMemo, useRef, useState } from "react";
+import { FaWhatsapp } from "react-icons/fa";
 import { IoSend } from "react-icons/io5";
 
 import Heading from "@/components/ui/Heading";
@@ -14,7 +15,7 @@ import {
   normalizeAddons,
 } from "@/lib/chat/bookingDisplay";
 import type { ChatBooking } from "@/lib/chat/types";
-import { formatISTDateTime } from "@/lib/utils";
+import { formatINR, formatISTDateTime } from "@/lib/utils";
 import { SafeUser } from "@/types/user";
 
 interface ChatClientProps {
@@ -299,7 +300,22 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
 
   return (
     <div className="flex flex-col gap-5">
-      <Heading title={`Chat with ${initialBooking.listing?.title || "Host"}`} />
+      <div className="flex items-center justify-between gap-3">
+        <Heading title={`Chat with ${initialBooking.counterpartName}`} />
+        {initialBooking.counterpartWhatsAppUrl && (
+          <a
+            href={initialBooking.counterpartWhatsAppUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`WhatsApp ${initialBooking.counterpartName}`}
+            title={`WhatsApp ${initialBooking.counterpartName}`}
+            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted"
+          >
+            <FaWhatsapp size={18} className="text-[#25D366]" />
+            <span className="hidden sm:inline">WhatsApp</span>
+          </a>
+        )}
+      </div>
       <div className="flex h-[calc(100vh-180px)] w-full grow flex-col gap-5 lg:flex-row">
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-muted">
           <div className="grow overflow-y-auto p-4">
@@ -417,19 +433,19 @@ const ChatClient: FC<ChatClientProps> = ({ initialBooking, profile, reservationI
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-border pt-3">
               <span className="text-muted-foreground">Add-ons Charge:</span>
-              <span className="text-right font-bold text-foreground">₹ {addonsCharge}</span>
+              <span className="text-right font-bold text-foreground">{formatINR(addonsCharge)}</span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
               <span className="text-muted-foreground">Property Charge:</span>
               <span className="text-right font-bold text-foreground">
-                ₹ {propertyCharge}
+                {formatINR(propertyCharge)}
               </span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-border pt-3">
               <span className="font-bold text-foreground">Total:</span>
-              <span className="text-right font-bold text-foreground">₹ {initialBooking.totalPrice}</span>
+              <span className="text-right font-bold text-foreground">{formatINR(initialBooking.totalPrice)}</span>
             </div>
           </div>
         </div>

@@ -89,13 +89,16 @@ export function formatISTDateTime(
 }
 
 /**
- * Formats a number as Indian Rupees (INR) using en-IN locale.
+ * Formats a number as Indian Rupees (INR) using en-IN locale. Whole amounts show no
+ * decimals (₹1,000); amounts with paise, such as GST-inclusive totals, show two (₹1,181.18).
  */
 export function formatINR(amount: number): string {
+    const hasPaise = Math.round(amount * 100) % 100 !== 0;
     return new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: "INR",
-        maximumFractionDigits: 0,
+        minimumFractionDigits: hasPaise ? 2 : 0,
+        maximumFractionDigits: hasPaise ? 2 : 0,
     }).format(amount);
 }
 

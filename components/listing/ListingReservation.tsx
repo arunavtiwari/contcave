@@ -14,7 +14,7 @@ import { FaBolt } from "react-icons/fa";
 import { updateUser } from "@/app/actions/updateUser";
 import Calendar from "@/components/inputs/Calendar";
 import TimeSlotPicker from "@/components/inputs/TimeSlotPicker";
-import BookingSummaryModal from "@/components/modals/BookingSummaryModal";
+import BookingSummaryModal, { type ShootDetails } from "@/components/modals/BookingSummaryModal";
 import PhoneModal from "@/components/modals/PhoneModal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
@@ -26,6 +26,7 @@ import { normalizePhone } from "@/lib/phone";
 import { addGst } from "@/lib/pricing";
 import { istToDateOnly } from "@/lib/scheduling";
 import { pluralize } from "@/lib/strings";
+import { formatINR } from "@/lib/utils";
 import { Package } from "@/types/package";
 import {
   ReservationOperationalTimings,
@@ -45,11 +46,7 @@ interface SafeReservation {
   setIds?: string[];
 }
 
-const INR = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
+const INR = { format: formatINR };
 
 type Addon = { price: number; qty?: number };
 
@@ -99,6 +96,7 @@ type Props = {
   selectedPackageId?: string | null;
   setSelectionError?: string | null;
   contcaveNote?: string | null;
+  maximumPax?: number | null;
 };
 
 let cashfreePromise: Promise<Cashfree | null> | null = null;
@@ -167,6 +165,7 @@ export default function ListingReservation({
   selectedPackageId = null,
   setSelectionError = null,
   contcaveNote = null,
+  maximumPax = null,
 }: Props) {
   const uiStore = useUIStore();
 
@@ -362,7 +361,7 @@ export default function ListingReservation({
   }, [phoneInput]);
 
   const startPayment = useCallback(
-    async (controller: AbortController, billingDetailId?: string | null) => {
+    async (controller: AbortController, billingDetailId: string | null, shootDetails: ShootDetails) => {
       if (!listingId || !selectedDate || !localTimes.start || !localTimes.end)
         return;
       const startDateStr = formatLocalYmd(selectedDate);
@@ -376,6 +375,8 @@ export default function ListingReservation({
         selectedAddons: Addon[];
         instantBooking: boolean;
         billingDetailId?: string | null;
+        pax: number;
+        shootType?: string;
         setIds?: string[];
         setPackageId?: string | null;
         pricingSnapshot?: unknown;
@@ -395,6 +396,8 @@ export default function ListingReservation({
         selectedAddons,
         instantBooking: !!instantBooking,
         billingDetailId,
+        pax: shootDetails.pax,
+        shootType: shootDetails.shootType,
       };
 
       if (selectedPackage) {
@@ -480,14 +483,14 @@ export default function ListingReservation({
     setShowSummaryModal(true);
   }, [ready, isAuthenticated, uiStore, ensurePhone]);
 
-  const handleConfirmModal = useCallback((billingDetailId?: string | null) => {
+  const handleConfirmModal = useCallback((billingDetailId: string | null, shootDetails: ShootDetails) => {
     setShowSummaryModal(false);
     setIsPaying(true);
     inflight.current?.abort();
     const controller = new AbortController();
     inflight.current = controller;
 
-    startPayment(controller, billingDetailId).catch((e) => {
+    startPayment(controller, billingDetailId, shootDetails).catch((e) => {
       if (mountedRef.current && e?.name !== "AbortError") {
         setErr(e?.message || "Payment initiation failed. Please try again.");
         setIsPaying(false);
@@ -665,6 +668,7 @@ export default function ListingReservation({
         setGstDetailsAction={setGstDetails}
         instantBooking={instantBooking}
         contcaveNote={contcaveNote}
+        maximumPax={maximumPax}
       />
     </section>
   );

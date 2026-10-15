@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { ChatBooking } from "@/lib/chat/types";
+import { normalizePhone } from "@/lib/phone";
 import prisma from "@/lib/prismadb";
 import { isChatReadOnly } from "@/lib/reservation/status";
 
@@ -34,6 +35,7 @@ export async function getAuthorizedChatReservation(
       totalPrice: true,
       selectedAddons: true,
       status: true,
+      user: { select: { name: true, phone: true } },
       chatMessages: {
         orderBy: { createdAt: "desc" },
         take: 100,
@@ -45,6 +47,8 @@ export async function getAuthorizedChatReservation(
         select: {
           title: true,
           imageSrc: true,
+          userId: true,
+          user: { select: { phone: true } },
         },
       },
     },
@@ -54,7 +58,17 @@ export async function getAuthorizedChatReservation(
     return null;
   }
 
+  const viewerIsHost = reservation.listing?.userId === currentUserId;
+  const readOnly = isChatReadOnly(reservation.status);
+  const counterpartPhone = normalizePhone(
+    (viewerIsHost ? reservation.user?.phone : reservation.listing?.user?.phone) ?? undefined
+  );
+
   return {
+    counterpartName: viewerIsHost
+      ? reservation.user?.name || "Guest"
+      : reservation.listing?.title || "Host",
+    counterpartWhatsAppUrl: !readOnly && counterpartPhone ? `https://wa.me/91${counterpartPhone}` : null,
     listing: reservation.listing
       ? {
           title: reservation.listing.title,
@@ -67,7 +81,7 @@ export async function getAuthorizedChatReservation(
     totalPrice: Number(reservation.totalPrice),
     selectedAddons: reservation.selectedAddons,
     status: reservation.status,
-    readOnly: isChatReadOnly(reservation.status),
+    readOnly,
     messages: reservation.chatMessages.reverse().map((message) => ({
       id: message.id,
       text: message.text,

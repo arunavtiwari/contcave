@@ -288,6 +288,12 @@ export async function POST(req: NextRequest) {
         }
         const persistedAddons = cleanedAddons.map(({ maxAvailable: _maxAvailable, ...addon }) => addon);
 
+        if (data.pax && listing.maximumPax && data.pax > listing.maximumPax) {
+            return createErrorResponse(`This studio allows up to ${listing.maximumPax} people`, 400);
+        }
+        const pax = data.pax ?? null;
+        const shootType = data.shootType || null;
+
         const { gstAmount, total: amount } = addGst(bookingFee + addonsSum);
 
         if (Math.abs(Number(data.totalPrice) - amount) > 1) {
@@ -334,6 +340,8 @@ export async function POST(req: NextRequest) {
             billingSnapshot,
             setIds: selectedSetIds.sort(),
             setPackageId: data.setPackageId || null,
+            pax,
+            shootType,
             selectedAddons: persistedAddons.map((addon) => ({
                 id: addon.id || null,
                 name: addon.name,
@@ -400,6 +408,8 @@ export async function POST(req: NextRequest) {
                     billingSnapshot,
                     setIds: selectedSetIds,
                     setPackageId: data.setPackageId || null,
+                    pax,
+                    shootType,
                     pricingSnapshot: pricingBreakdown || {
                         durationMinutes,
                         hourlyRate: Number(listing.price),

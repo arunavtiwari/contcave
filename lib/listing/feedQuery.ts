@@ -26,10 +26,11 @@ export const FEED_PAGE_SIZE = 12;
 
 const MONGO_EARTH_RADIUS_KM = 6378.1;
 
+// Verified (standard) studios always come before curated ones; distance orders within each group.
 const FEED_SORT: ReadonlyArray<readonly [FeedSortField, 1 | -1]> = [
+    ["weight", 1],
     ["hasPoint", -1],
     ["distance", 1],
-    ["weight", 1],
     ["createdAt", -1],
     ["_id", 1],
 ];
@@ -161,9 +162,12 @@ export function buildFeedPipeline({
 }): MongoDocument[] {
     const match = publicListingMatch(filters, excludeIds);
     const unlocated = { $match: { $and: [match, { locationPoint: null }] } };
+    // Weight sorts first, so the distance shortcuts below are only safe once the cursor is in the
+    // last (curated) group; inside the verified group, curated rows of any distance are still ahead.
+    const inLastGroup = after?.w === 2;
     const source = !origin
         ? [{ $match: match }]
-        : after?.p === 0
+        : inLastGroup && after.p === 0
             ? [unlocated]
             : [
                 {
@@ -173,7 +177,7 @@ export function buildFeedPipeline({
                         distanceField: "distance",
                         spherical: true,
                         query: match,
-                        ...(after ? { minDistance: Math.max(0, after.d - 1) } : {}),
+                        ...(inLastGroup ? { minDistance: Math.max(0, after.d - 1) } : {}),
                     },
                 },
                 { $unionWith: { coll: "Listing", pipeline: [unlocated] } },
@@ -210,6 +214,12 @@ export function cursorFromRow(row: FeedRow): FeedCursor {
 
 export const distanceKmOf = (row: FeedRow | undefined) =>
     row && readRawNumber(row.hasPoint) === 1 ? readRawNumber(row.distance) / 1000 : null;
+
+/** Closest located studio among the rows; verified-first ordering means it may not be the first row. */
+export function nearestKmOf(rows: FeedRow[]): number | null {
+    const distances = rows.map(distanceKmOf).filter((km): km is number => km !== null);
+    return distances.length ? Math.min(...distances) : null;
+}
 
 export const encodeFeedCursor = (cursor: FeedCursor) => Buffer.from(JSON.stringify(cursor)).toString("base64url");
 

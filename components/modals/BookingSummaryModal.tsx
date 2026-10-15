@@ -9,6 +9,7 @@ import Callout from "@/components/ui/Callout";
 import Checkbox from "@/components/ui/Checkbox";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
+import { formatINR } from "@/lib/utils";
 import { billingSchema } from "@/schemas/billing";
 
 type GSTDetails = {
@@ -17,10 +18,16 @@ type GSTDetails = {
   billingAddress: string;
 };
 
+export type ShootDetails = {
+  pax: number;
+  shootType?: string;
+};
+
 type BookingSummaryModalProps = {
   isOpen: boolean;
   onCloseAction: () => void;
-  onConfirmAction: (billingDetailId?: string | null) => void;
+  onConfirmAction: (billingDetailId: string | null, shootDetails: ShootDetails) => void;
+  maximumPax?: number | null;
   finalTotal: number;
   bookingFee: number;
   addonsSum: number;
@@ -45,13 +52,29 @@ export default function BookingSummaryModal({
   setGstDetailsAction,
   instantBooking,
   contcaveNote,
+  maximumPax,
 }: BookingSummaryModalProps) {
+  const [pax, setPax] = useState("");
+  const [shootType, setShootType] = useState("");
+  const [paxError, setPaxError] = useState<string | null>(null);
   const [needGST, setNeedGST] = useState(false);
   const [agree, setAgree] = useState(false);
   const [gstError, setGstError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const handleConfirm = async () => {
+    const paxCount = Number(pax);
+    if (!Number.isInteger(paxCount) || paxCount < 1) {
+      setPaxError("Enter the number of people in the shoot.");
+      return;
+    }
+    if (maximumPax && paxCount > maximumPax) {
+      setPaxError(`This studio allows up to ${maximumPax} people.`);
+      return;
+    }
+    setPaxError(null);
+    const shootDetails: ShootDetails = { pax: paxCount, shootType: shootType.trim() || undefined };
+
     setSaving(true);
 
     if (needGST) {
@@ -77,7 +100,7 @@ export default function BookingSummaryModal({
 
         setGstDetailsAction({ ...gstDetails });
 
-        onConfirmAction(billingRecord.data.id || null);
+        onConfirmAction(billingRecord.data.id || null, shootDetails);
       } catch (err: unknown) {
         console.error(err);
         if (err instanceof Error) {
@@ -89,7 +112,7 @@ export default function BookingSummaryModal({
         setSaving(false);
       }
     } else {
-      onConfirmAction(null);
+      onConfirmAction(null, shootDetails);
       setSaving(false);
     }
   };
@@ -104,25 +127,51 @@ export default function BookingSummaryModal({
       <div className="space-y-3 text-muted-foreground">
         <div className="flex justify-between text-sm">
           <p>Booking Fee</p>
-          <p>₹{bookingFee}</p>
+          <p>{formatINR(bookingFee)}</p>
         </div>
         <div className="flex justify-between text-sm">
           <p>Addons</p>
-          <p>₹{addonsSum}</p>
+          <p>{formatINR(addonsSum)}</p>
         </div>
         <div className="flex justify-between text-sm">
           <p>Platform Fee</p>
-          <p>₹{platformFee}</p>
+          <p>{formatINR(platformFee)}</p>
         </div>
         <div className="flex justify-between text-sm">
           <p>GST (18%)</p>
-          <p>₹{gstAmount}</p>
+          <p>{formatINR(gstAmount)}</p>
         </div>
         <hr className="border-border/40" />
         <div className="flex justify-between font-bold text-foreground text-base">
           <p>Total</p>
-          <p>₹{finalTotal}</p>
+          <p>{formatINR(finalTotal)}</p>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Input
+          id="pax"
+          label="Number of people"
+          required
+          type="number"
+          min={1}
+          max={maximumPax || undefined}
+          placeholder={maximumPax ? `Up to ${maximumPax}` : "e.g. 4"}
+          value={pax}
+          error={paxError ?? undefined}
+          onChange={(e) => {
+            setPax(e.target.value);
+            setPaxError(null);
+          }}
+        />
+        <Input
+          id="shootType"
+          label="Type of shoot (optional)"
+          maxLength={100}
+          placeholder="e.g. Product shoot, podcast"
+          value={shootType}
+          onChange={(e) => setShootType(e.target.value)}
+        />
       </div>
 
       <div className="space-y-4">

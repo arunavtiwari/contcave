@@ -8,6 +8,7 @@ import {
     formatTimeString,
     normalizeAddons
 } from "@/lib/chat/bookingDisplay";
+import { formatINR } from "@/lib/utils";
 import { SafeReservation } from "@/types/reservation";
 
 interface BookingBreakdownProps {
@@ -56,19 +57,19 @@ const BookingBreakdown: React.FC<BookingBreakdownProps> = ({ reservation }) => {
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-border/40 pt-3">
                 <span className="text-muted-foreground">Add-ons Charge:</span>
-                <span className="text-right font-bold text-foreground">₹ {addonsCharge}</span>
+                <span className="text-right font-bold text-foreground">{formatINR(addonsCharge)}</span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
                 <span className="text-muted-foreground">Property Charge:</span>
                 <span className="text-right font-bold text-foreground">
-                    ₹ {propertyCharge}
+                    {formatINR(propertyCharge)}
                 </span>
             </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-t border-border pt-3">
                 <span className="font-bold text-foreground">Total:</span>
-                <span className="text-right font-bold text-foreground">₹ {reservation.totalPrice}</span>
+                <span className="text-right font-bold text-foreground">{formatINR(reservation.totalPrice)}</span>
             </div>
         </div>
     );

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/payments/PaymentSuccessAnimation";
 import Button from "@/components/ui/Button";
+import { formatINR } from "@/lib/utils";
 
 interface SerializedListing {
   id: string;
@@ -93,11 +94,7 @@ export default function CashfreeReturnStatusClient({
     };
   }, [status, tid]);
 
-  const inr = new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  });
+  const inr = { format: formatINR };
   
   const dateFormatter = new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
@@ -253,7 +250,7 @@ export default function CashfreeReturnStatusClient({
           )}
 
           <div className="pt-2">
-            <Button label="BACK TO LISTING" href={listingHref} className="w-full" />
+            <Button label="GO TO BOOKINGS" href="/dashboard/bookings" className="w-full" />
           </div>
         </motion.div>
       </main>

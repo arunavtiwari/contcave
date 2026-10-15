@@ -30,13 +30,13 @@ import {
     buildFeedPipeline,
     cursorFromRow,
     decodeFeedCursor,
-    distanceKmOf,
     encodeFeedCursor,
     FEED_PAGE_SIZE,
     feedCandidatePipeline,
     type FeedCursor,
     type FeedRow,
     hydratableListingFilter,
+    nearestKmOf,
     readRawId,
     toStudioFeedItem,
 } from "./feedQuery";
@@ -1168,7 +1168,7 @@ export class ListingService {
         return {
             items: await this.loadFeedItems(pageRows.map(readRawId).filter((id): id is string => !!id)),
             nextCursor: rows.length > size && lastRow ? encodeFeedCursor(cursorFromRow(lastRow)) : null,
-            nearestKm: after ? null : distanceKmOf(pageRows[0]),
+            nearestKm: after ? null : nearestKmOf(pageRows),
             origin: appliedOrigin,
         };
     }

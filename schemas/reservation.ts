@@ -55,7 +55,8 @@ export const updateAdditionalChargeSchema = z.object({
 export const recordRefundSchema = z.object({
     reservationId: objectIdSchema,
     status: z.enum(["REFUNDED", "PARTIALLY_REFUNDED"]),
-    amount: z.coerce.number().int().positive("Refund amount must be greater than zero"),
+    amount: z.coerce.number().positive("Refund amount must be greater than zero")
+        .refine((value) => Number.isInteger(Math.round(value * 100 * 1e6) / 1e6), "Refund amount can have at most 2 decimal places"),
     note: z.string().trim().max(500).optional(),
 });
 

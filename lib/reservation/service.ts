@@ -43,6 +43,7 @@ const fullReservationInclude = {
 type FullReservationPayload = Prisma.ReservationGetPayload<{ include: typeof fullReservationInclude }>;
 
 const safeReservationInclude = {
+    user: { select: { name: true } },
     listing: {
         include: {
             sets: {
@@ -422,6 +423,8 @@ export class ReservationService {
                 const setPackageId = typeof md.setPackageId === "string" && /^[a-f\d]{24}$/i.test(md.setPackageId)
                     ? md.setPackageId
                     : null;
+                const pax = typeof md.pax === "number" && Number.isInteger(md.pax) && md.pax > 0 ? md.pax : null;
+                const shootType = typeof md.shootType === "string" && md.shootType.trim() ? md.shootType.trim().slice(0, 100) : null;
                 const pricingRecord = pricingSnapshot && typeof pricingSnapshot === "object" && !Array.isArray(pricingSnapshot)
                     ? pricingSnapshot as Record<string, unknown>
                     : {};
@@ -487,6 +490,8 @@ export class ReservationService {
                         endTime,
                         totalPrice: txn.amount,
                         totalPriceInt: Math.round(txn.amount),
+                        pax,
+                        shootType,
                         setIds,
                         includedSetId,
                         setPackageId,
@@ -1217,7 +1222,8 @@ export class ReservationService {
         amount: number;
         note?: string;
     }): Promise<void> {
-        const amount = Math.max(0, Math.round(params.amount));
+        const toPaise = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+        const amount = Math.max(0, toPaise(params.amount));
         if (amount <= 0) throw new UserFacingError("Refund amount must be greater than zero");
 
         await prisma.$transaction(async (tx) => {
@@ -1235,7 +1241,7 @@ export class ReservationService {
             if (reservation.status === "REFUNDED" || reservation.status === "PARTIALLY_REFUNDED") {
                 throw new UserFacingError("A refund has already been recorded for this reservation", 409);
             }
-            const capturedAmount = Math.round(captured._sum.amount || 0);
+            const capturedAmount = toPaise(captured._sum.amount || 0);
             if (capturedAmount <= 0 || amount > capturedAmount) {
                 throw new UserFacingError("Refund amount cannot exceed the captured payment amount");
             }
@@ -1974,6 +1980,7 @@ export class ReservationService {
             additionalCharges,
             invoices,
             listing,
+            user: guest,
             ...reservation
         } = r;
         const bookedSets = listing.sets
@@ -2018,6 +2025,7 @@ export class ReservationService {
 
         return {
             ...reservation,
+            guestName: guest?.name ?? null,
             createdAt: r.createdAt.toISOString(),
             startDate: r.startDate.toISOString(),
             startTime: r.startTime,
