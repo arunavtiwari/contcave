@@ -18,7 +18,7 @@ export function buildCSP(nonce?: string): string {
         'frame-ancestors': ["'none'"],
         'object-src': ["'none'"],
 
-        'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://tagmanager.google.com'],
         'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
 
         'img-src': [
@@ -72,6 +72,7 @@ export function buildCSP(nonce?: string): string {
             'wss://*.ably.net',
             'https://capig.datah04.com',
             'https://www.googletagmanager.com',
+            'https://*.googletagmanager.com',
             'https://*.google-analytics.com',
             'https://*.analytics.google.com',
             'https://analytics.google.com',
@@ -79,20 +80,30 @@ export function buildCSP(nonce?: string): string {
             'https://stats.g.doubleclick.net',
             'https://www.googleadservices.com',
             'https://googleads.g.doubleclick.net',
+            'https://pagead2.googlesyndication.com',
+            'https://www.google.co.in',
             'https://www.google.com',
             'https://*.google.com',
             'https://vercel.live',
             'wss://vercel.live'
         ],
 
-        'frame-src': ["'self'", 'https://www.google.com', 'https://sdk.cashfree.com', 'https://sandbox.cashfree.com', 'https://cashfree.com', 'https://vercel.live', 'https://www.facebook.com'],
+        'frame-src': ["'self'", 'https://www.google.com', 'https://td.doubleclick.net', 'https://www.googletagmanager.com', 'https://sdk.cashfree.com', 'https://sandbox.cashfree.com', 'https://cashfree.com', 'https://vercel.live', 'https://www.facebook.com'],
         'script-src': [
             "'self'",
             nonce ? `'nonce-${nonce}'` : '',
             nonce ? "'strict-dynamic'" : '',
             "'wasm-unsafe-eval'",
             process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : '',
-            "'unsafe-inline'"
+            "'unsafe-inline'",
+            // Google tags. Ignored by browsers that honour 'strict-dynamic' above (the nonce already
+            // admits GTM and what it loads), but needed by older browsers and checked by GTM diagnostics.
+            'https://*.googletagmanager.com',
+            'https://tagmanager.google.com',
+            'https://www.google-analytics.com',
+            'https://www.googleadservices.com',
+            'https://googleads.g.doubleclick.net',
+            'https://connect.facebook.net'
         ].filter(Boolean)
     }
 
