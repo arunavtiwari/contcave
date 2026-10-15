@@ -2,12 +2,13 @@
 
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import React from "react";
+import React, { useEffect } from "react";
 
 import GoogleTagManagerScript from "@/components/analytics/GoogleTagManagerScript";
 import MetaPixelScript from "@/components/analytics/MetaPixelScript";
 import MetaPixelTracker from "@/components/analytics/MetaPixelTracker";
 import { useConsent } from "@/components/providers/ConsentProvider";
+import { updateConsentMode } from "@/lib/analytics/tracking";
 
 interface Props {
     nonce?: string;
@@ -16,21 +17,25 @@ interface Props {
 export default function ConsentAwareTracking({ nonce }: Props) {
     const { consent, isInitialized } = useConsent();
 
-    if (!isInitialized) return null;
+    // Keep Google Consent Mode in step with the banner; GTM itself loads for everyone.
+    useEffect(() => {
+        if (isInitialized) updateConsentMode(consent);
+    }, [consent, isInitialized]);
 
     return (
         <>
+            <GoogleTagManagerScript nonce={nonce} />
+
             {/* Analytics Category */}
-            {consent.analytics && (
+            {isInitialized && consent.analytics && (
                 <>
                     <Analytics />
                     <SpeedInsights />
-                    <GoogleTagManagerScript nonce={nonce} />
                 </>
             )}
 
             {/* Marketing Category */}
-            {consent.marketing && (
+            {isInitialized && consent.marketing && (
                 <>
                     <MetaPixelScript nonce={nonce} />
                     <MetaPixelTracker />

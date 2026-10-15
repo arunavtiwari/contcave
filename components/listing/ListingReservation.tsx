@@ -21,6 +21,7 @@ import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import Skeleton from "@/components/ui/Skeleton";
 import useUIStore from "@/hooks/useUIStore";
+import { trackBeginCheckout, type TrackedStudio } from "@/lib/analytics/tracking";
 import { minimumBookingMinutes } from "@/lib/booking/dayAvailability";
 import { normalizePhone } from "@/lib/phone";
 import { addGst } from "@/lib/pricing";
@@ -97,6 +98,8 @@ type Props = {
   setSelectionError?: string | null;
   contcaveNote?: string | null;
   maximumPax?: number | null;
+  trackingStudio?: TrackedStudio;
+  currentUserEmail?: string | null;
 };
 
 let cashfreePromise: Promise<Cashfree | null> | null = null;
@@ -166,6 +169,8 @@ export default function ListingReservation({
   setSelectionError = null,
   contcaveNote = null,
   maximumPax = null,
+  trackingStudio,
+  currentUserEmail = null,
 }: Props) {
   const uiStore = useUIStore();
 
@@ -485,6 +490,15 @@ export default function ListingReservation({
 
   const handleConfirmModal = useCallback((billingDetailId: string | null, shootDetails: ShootDetails) => {
     setShowSummaryModal(false);
+    if (trackingStudio) {
+      trackBeginCheckout({
+        studio: trackingStudio,
+        value: computedTotal,
+        tax: gstAmount,
+        bookingType: instantBooking ? "instant" : "approval",
+        user: { email: currentUserEmail, phone: customerPhone },
+      });
+    }
     setIsPaying(true);
     inflight.current?.abort();
     const controller = new AbortController();
@@ -496,7 +510,7 @@ export default function ListingReservation({
         setIsPaying(false);
       }
     });
-  }, [startPayment]);
+  }, [startPayment, trackingStudio, computedTotal, gstAmount, instantBooking, currentUserEmail, customerPhone]);
 
   return (
     <section className="bg-background rounded-xl shadow-sm border border-border/10 overflow-hidden">

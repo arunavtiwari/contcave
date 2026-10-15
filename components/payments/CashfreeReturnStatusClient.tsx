@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/payments/PaymentSuccessAnimation";
 import Button from "@/components/ui/Button";
+import { GST_RATE } from "@/constants/gst";
+import { type TrackingUser,trackPurchase } from "@/lib/analytics/tracking";
 import { formatINR } from "@/lib/utils";
 
 interface SerializedListing {
@@ -13,6 +15,9 @@ interface SerializedListing {
   title: string;
   locationValue?: string | null;
   actualLocation?: unknown;
+  category?: string | null;
+  venueTypes?: string[] | null;
+  instantBooking?: boolean | null;
 }
 
 interface SerializedReservation {
@@ -31,6 +36,8 @@ interface CashfreeReturnStatusClientProps {
   listingId: string;
   initialStatus: string;
   initialReservation: SerializedReservation | null;
+  initialPurpose: string | null;
+  trackingUser: TrackingUser | null;
 }
 
 export default function CashfreeReturnStatusClient({
@@ -38,9 +45,33 @@ export default function CashfreeReturnStatusClient({
   listingId,
   initialStatus,
   initialReservation,
+  initialPurpose,
+  trackingUser,
 }: CashfreeReturnStatusClientProps) {
   const [status, setStatus] = useState<string>(initialStatus);
   const [reservation, setReservation] = useState<SerializedReservation | null>(initialReservation);
+  const [purpose, setPurpose] = useState<string | null>(initialPurpose);
+
+  // Report the booking once it's paid. Extensions and extra charges reuse this page, so only the
+  // original booking payment counts as a purchase.
+  useEffect(() => {
+    if (status !== "SUCCESS" || !reservation?.bookingId) return;
+    if (purpose && purpose !== "BASE_BOOKING") return;
+    const listing = reservation.listing;
+    trackPurchase({
+      bookingId: reservation.bookingId,
+      totalPaid: reservation.totalPrice,
+      gstRate: GST_RATE,
+      bookingType: (listing?.instantBooking ?? reservation.status === "CONFIRMED") ? "instant" : "approval",
+      studio: {
+        id: listing?.id || listingId,
+        name: listing?.title || "Studio",
+        category: listing?.venueTypes?.[0] || listing?.category || null,
+        city: listing?.locationValue || null,
+      },
+      user: trackingUser,
+    });
+  }, [status, reservation, purpose, listingId, trackingUser]);
 
   useEffect(() => {
     if (status !== "PENDING") return;
@@ -59,6 +90,7 @@ export default function CashfreeReturnStatusClient({
           const currentStatus = res.status;
           if (currentStatus === "SUCCESS") {
             setStatus("SUCCESS");
+            setPurpose(res.purpose ?? null);
             if (res.reservation) {
               setReservation(res.reservation as unknown as SerializedReservation);
             }

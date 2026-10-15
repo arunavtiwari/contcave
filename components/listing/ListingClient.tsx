@@ -434,6 +434,8 @@ function ListingClient({
                     websiteUrl={listing.websiteUrl}
                     instagramHandle={listing.instagramHandle}
                     disabled={isPreview}
+                    studioType={kindLabel}
+                    trackingUser={currentUser ? { email: currentUser.email, phone: currentUser.phone } : null}
                   />
                 ) : (
                   <ListingReservation
@@ -467,6 +469,8 @@ function ListingClient({
                     disabled={isPreview}
                     contcaveNote={listing.contcaveNote}
                     maximumPax={listing.maximumPax}
+                    trackingStudio={{ id: listing.id, name: listing.title, category: kindLabel, city: listing.locationValue }}
+                    currentUserEmail={currentUser?.email ?? null}
                   />
                 )}
               </div>

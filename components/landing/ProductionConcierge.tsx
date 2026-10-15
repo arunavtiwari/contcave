@@ -5,6 +5,7 @@ import { FiArrowRight, FiCheck, FiX } from "react-icons/fi";
 import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { trackLead } from "@/lib/analytics/tracking";
 import { buildWhatsAppUrl } from "@/lib/whatsapp/urls";
 
 const WITHOUT_CONTCAVE =
@@ -81,6 +82,7 @@ const ProductionConcierge = () => {
               label="Plan my shoot"
               icon={FiArrowRight}
               href={whatsappHref}
+              onClick={() => trackLead({ source: "production_concierge" })}
               target="_blank"
               variant="outline"
               size="lg"

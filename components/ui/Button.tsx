@@ -157,6 +157,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
           rel={target === "_blank" ? "noopener noreferrer" : undefined}
           className={finalClasses}
           ref={ref as React.Ref<HTMLAnchorElement>}
+          onClick={onClick}
           {...commonProps}
         >
           {content}
@@ -168,6 +169,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Props>(
           rel={target === "_blank" ? "noopener noreferrer" : undefined}
           className={finalClasses}
           ref={ref as React.Ref<HTMLAnchorElement>}
+          onClick={onClick}
           {...commonProps}
         >
           {content}

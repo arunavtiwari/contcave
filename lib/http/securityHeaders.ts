@@ -77,6 +77,8 @@ export function buildCSP(nonce?: string): string {
             'https://analytics.google.com',
             'https://*.doubleclick.net',
             'https://stats.g.doubleclick.net',
+            'https://www.googleadservices.com',
+            'https://googleads.g.doubleclick.net',
             'https://www.google.com',
             'https://*.google.com',
             'https://vercel.live',

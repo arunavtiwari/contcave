@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { IoLogoWhatsapp } from "react-icons/io";
 
+import { trackLead } from "@/lib/analytics/tracking";
 import { buildWhatsAppUrl, GENERAL_ENQUIRY_MESSAGE } from "@/lib/whatsapp/urls";
 
 export default function WhatsAppFloatingButton() {
@@ -17,6 +18,7 @@ export default function WhatsAppFloatingButton() {
             rel="noopener noreferrer"
             aria-label="Chat with ContCave on WhatsApp"
             className="relative flex items-center group"
+            onClick={() => trackLead({ source: "whatsapp_floating_button" })}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
