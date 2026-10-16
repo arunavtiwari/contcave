@@ -1,5 +1,6 @@
 import type { Listing } from "@prisma/client";
 
+import type { LatLng } from "@/lib/geo";
 import type { Addon } from "@/types/addon";
 import type { Package } from "@/types/package";
 import type { AdditionalSetPricingType, ListingBlock, ListingSet } from "@/types/set";
@@ -8,11 +9,13 @@ import type { PublicUser } from "@/types/user";
 export type safeListing = Omit<
     Listing,
     | "createdAt"
+    | "updatedAt"
     | "addons"
     | "packages"
     | "operationalDays"
     | "operationalHours"
     | "actualLocation"
+    | "locationPoint"
     | "verifications"
     | "reviewedAt"
     | "reviewedById"
@@ -29,6 +32,7 @@ export type safeListing = Omit<
     | "avgReviewRating"
 > & {
     createdAt: string;
+    updatedAt?: string | null;
     addons?: Addon[] | null;
     packages?: Package[] | null;
     operationalDays?: { start?: string; end?: string } | null;
@@ -105,3 +109,33 @@ export type ListingBlockData = {
     setIds: string[];
     reason?: string | null;
 };
+
+export type StudioFeedItem = Pick<
+    Listing,
+    | "id"
+    | "slug"
+    | "title"
+    | "imageSrc"
+    | "price"
+    | "locationValue"
+    | "category"
+    | "venueTypes"
+    | "status"
+    | "hasSets"
+    | "carpetArea"
+    | "maximumPax"
+    | "listingType"
+    | "priceRangeMin"
+    | "priceRangeMax"
+> & {
+    avgReviewRating?: number;
+    actualLocation: { state: string } | null;
+};
+
+export type StudioFeedPage = {
+    items: StudioFeedItem[];
+    nextCursor: string | null;
+    nearestKm: number | null;
+    origin: LatLng | null;
+};
+

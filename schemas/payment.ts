@@ -18,6 +18,10 @@ export const paymentDetailsSchema = z.object({
         .max(100, 'Company name is too long')
         .optional()
         .nullable(),
+    companyAddress: z.string()
+        .max(500, 'Address is too long')
+        .optional()
+        .nullable(),
     gstin: z.string()
         .refine((v) => !v || v.includes('*') || /^[0-9A-Za-z]{15}$/.test(v.trim()), 'Invalid GSTIN format')
         .optional()
@@ -45,6 +49,10 @@ export const paymentDetailsFormSchema = z.object({
         .max(100, 'Company name is too long')
         .optional()
         .or(z.literal('')),
+    companyAddress: z.string()
+        .max(500, 'Company address is too long')
+        .optional()
+        .or(z.literal('')),
     gstin: z.string()
         .refine((v) => !v || v.includes('*') || /^[0-9A-Za-z]{15}$/.test(v.trim()), 'Invalid GSTIN format (15 characters)')
         .optional()
@@ -54,14 +62,14 @@ export const paymentDetailsFormSchema = z.object({
     if (!isMasked) {
         if (!/^\d+$/.test(data.accountNumber)) {
             ctx.addIssue({
-                code: z.ZodIssueCode.custom,
+                code: "custom",
                 path: ['accountNumber'],
                 message: 'Account number must contain only digits',
             });
         }
         if (data.accountNumber.length < 9) {
             ctx.addIssue({
-                code: z.ZodIssueCode.custom,
+                code: "custom",
                 path: ['accountNumber'],
                 message: 'Account number must be at least 9 digits',
             });
@@ -69,10 +77,28 @@ export const paymentDetailsFormSchema = z.object({
     }
     if (data.accountNumber !== data.reAccountNumber) {
         ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             path: ['reAccountNumber'],
             message: 'Account numbers do not match',
         });
+    }
+
+    const hasGst = Boolean(data.gstin && data.gstin.trim().length > 0 && !data.gstin.includes('*'));
+    if (hasGst) {
+        if (!data.companyName || data.companyName.trim().length < 2) {
+            ctx.addIssue({
+                code: "custom",
+                path: ['companyName'],
+                message: 'Company name is required when GST is provided',
+            });
+        }
+        if (!data.companyAddress || data.companyAddress.trim().length < 5) {
+            ctx.addIssue({
+                code: "custom",
+                path: ['companyAddress'],
+                message: 'Registered business address is required when GST is provided',
+            });
+        }
     }
 });
 

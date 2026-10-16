@@ -3,7 +3,6 @@ import "../../styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import Script from "next/script";
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
@@ -19,17 +18,20 @@ import RentModal from "@/components/modals/RentModal";
 import SearchModal from "@/components/modals/SearchModal";
 import NavbarWrapper from "@/components/navbar/NavbarWrapper";
 import GlobalProviders from "@/components/providers/GlobalProviders";
+import JsonLd from "@/components/seo/JsonLd";
 import ClientOnly from "@/components/ui/ClientOnly";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { Toaster } from "@/components/ui/Toast";
-import { safeJsonLd } from "@/lib/safeJsonLd";
 import {
-    BRAND_DESCRIPTION,
-    BRAND_NAME,
-    BRAND_TITLE,
-    DEFAULT_KEYWORDS,
-    OG_IMAGE,
-    SITE_URL,
+  BRAND_DESCRIPTION,
+  BRAND_LOGO,
+  BRAND_NAME,
+  BRAND_TITLE,
+  DEFAULT_KEYWORDS,
+  OG_IMAGE,
+  ORGANIZATION_ID,
+  SITE_URL,
+  WEBSITE_ID,
 } from "@/lib/seo";
 
 
@@ -42,9 +44,6 @@ export const metadata: Metadata = {
     description: BRAND_DESCRIPTION,
     keywords: [...DEFAULT_KEYWORDS],
     authors: [{ name: BRAND_NAME }],
-    alternates: {
-        canonical: "/",
-    },
     icons: {
         icon: [
             { url: "/favicon.ico", sizes: "48x48" },
@@ -103,18 +102,33 @@ export const viewport: Viewport = {
 const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": `${SITE_URL}/#organization`,
+    "@id": ORGANIZATION_ID,
     name: BRAND_NAME,
     legalName: "Arkanet Ventures LLP",
     url: SITE_URL,
     description: BRAND_DESCRIPTION,
-    logo: {
-        "@type": "ImageObject",
-        url: `${SITE_URL}${OG_IMAGE}`,
-        width: 1200,
-        height: 630,
-    },
+    logo: BRAND_LOGO,
     foundingDate: "2024",
+    founder: [
+        {
+            "@type": "Person",
+            name: "Arunav Tiwari",
+            jobTitle: "Chief Executive Officer",
+            sameAs: "https://www.linkedin.com/in/art-x/",
+        },
+        {
+            "@type": "Person",
+            name: "Shubham Samanta",
+            jobTitle: "Chief Technology Officer",
+            sameAs: "https://www.linkedin.com/in/sam8239/",
+        },
+        {
+            "@type": "Person",
+            name: "Harshita Betala",
+            jobTitle: "Chief Product Officer",
+            sameAs: "https://www.linkedin.com/in/harshita-betala-ab4b32169/",
+        },
+    ],
     contactPoint: {
         "@type": "ContactPoint",
         contactType: "Customer Service",
@@ -125,84 +139,26 @@ const organizationJsonLd = {
         "@type": "PostalAddress",
         addressCountry: "IN",
     },
+    areaServed: {
+        "@type": "Country",
+        name: "India",
+    },
     sameAs: [
         "https://www.instagram.com/contcave",
         "https://www.linkedin.com/company/contcave",
         "https://x.com/contcave",
     ],
-} as const;
-
-const localBusinessJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "@id": `${SITE_URL}/#localbusiness`,
-    name: BRAND_NAME,
-    legalName: "Arkanet Ventures LLP",
-    url: SITE_URL,
-    description: BRAND_DESCRIPTION,
-    image: `${SITE_URL}${OG_IMAGE}`,
-    logo: {
-        "@type": "ImageObject",
-        url: `${SITE_URL}${OG_IMAGE}`,
-        width: 1200,
-        height: 630,
-    },
-    address: {
-        "@type": "PostalAddress",
-        addressCountry: "IN",
-        addressLocality: "India",
-    },
-    areaServed: {
-        "@type": "Country",
-        name: "India",
-    },
-    priceRange: "$$",
-    telephone: "+91",
-    email: "info@contcave.com",
-    foundingDate: "2024",
-    parentOrganization: { "@id": `${SITE_URL}/#organization` },
-    sameAs: [
-        "https://www.instagram.com/contcave",
-        "https://www.linkedin.com/company/contcave",
-        "https://x.com/contcave",
-    ],
-} as const;
-
-const serviceJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "@id": `${SITE_URL}/#service`,
-    name: "Studio Booking Platform",
-    description: "Online marketplace for booking photography, video, and event studios across India",
-    provider: { "@id": `${SITE_URL}/#localbusiness` },
-    areaServed: {
-        "@type": "Country",
-        name: "India",
-    },
-    serviceType: "Studio Rental Booking",
-    offers: {
-        "@type": "Offer",
-        description: "Hourly studio rental booking service",
-    },
 } as const;
 
 const webSiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": `${SITE_URL}/#website`,
+    "@id": WEBSITE_ID,
     url: SITE_URL,
     name: BRAND_NAME,
     description: BRAND_DESCRIPTION,
-    publisher: { "@id": `${SITE_URL}/#localbusiness` },
+    publisher: { "@id": ORGANIZATION_ID },
     inLanguage: "en-IN",
-    potentialAction: {
-        "@type": "SearchAction",
-        target: {
-            "@type": "EntryPoint",
-            urlTemplate: `${SITE_URL}/home?locationValue={search_term_string}`,
-        },
-        "query-input": "required name=search_term_string",
-    },
 } as const;
 
 
@@ -223,15 +179,11 @@ export default async function RootLayout({
 
     return (
 
-        <html lang="en">
+        <html lang="en-IN">
             <head>
-                <Script
+                <JsonLd
                     id="organization-jsonld"
-                    type="application/ld+json"
-                    nonce={nonce}
-                    dangerouslySetInnerHTML={{
-                        __html: safeJsonLd([organizationJsonLd, localBusinessJsonLd, webSiteJsonLd, serviceJsonLd]),
-                    }}
+                    data={[organizationJsonLd, webSiteJsonLd]}
                 />
             </head>
             <body className={GeistSans.className}>
@@ -249,8 +201,10 @@ export default async function RootLayout({
                         <CookieConsent />
                     </ClientOnly>
                     {children}
-                    <WhatsAppFloatingButton />
-                    <ScrollToTop />
+                    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-center gap-3">
+                        <WhatsAppFloatingButton />
+                        <ScrollToTop />
+                    </div>
                 </GlobalProviders>
             </body>
         </html>

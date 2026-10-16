@@ -38,7 +38,7 @@
     {
       "id": "p-intro",
       "blockType": "paragraph",
-      "content": "If you've been comparing studio rental price per hour listings against full-day packages, the confusion is understandable — one studio quotes ₹1,500 an hour, another quotes ₹9,000 for a full day, and neither number tells you which is actually cheaper for your shoot. Studio pricing in India isn't standardised the way a cab fare is: it depends on studio type, what gear is included, the city and area, and how each host structures hourly versus package rates. This guide breaks down how studio rental price per hour compares to full-day and half-day packages, what typically pushes the number up or down, the rough break-even point where a full-day booking starts paying for itself, and the hidden costs that change your real per-hour spend — whether you're booking a photography, podcast, or video studio in Delhi NCR."
+      "content": "If you've been comparing studio rental price per hour listings against full-day packages, the confusion is understandable: one studio quotes ₹1,500 an hour, another quotes ₹9,000 for a full day, and neither number tells you which is actually cheaper for your shoot. Studio pricing in India isn't standardised the way a cab fare is: it depends on studio type, what gear is included, the city and area, and how each host structures hourly versus package rates. This guide breaks down how studio rental price per hour compares to full-day and half-day packages, what typically pushes the number up or down, the rough break-even point where a full-day booking starts paying for itself, and the hidden costs that change your real per-hour spend, whether you're booking a photography, podcast, or video studio in Delhi NCR."
     },
     {
       "id": "h-factors",
@@ -54,11 +54,11 @@
       "id": "list-factors",
       "blockType": "list",
       "items": [
-        "Studio type — a bare photography space, a fully mic'd podcast room, and a video studio with grip and lighting gear are priced on different scales",
-        "Included equipment — strobes, LED panels, backdrops, and mics can be bundled into the rate or billed as add-ons",
-        "City and area — a studio in a high-rent commercial pocket of South Delhi or Gurugram typically costs more per hour than one in an outer suburb, even with similar specs",
-        "Usable size — floor area and ceiling height affect what kind of shoot the space can host, which feeds into pricing",
-        "Minimum booking duration — a studio with a 2-hour minimum prices differently than one that rents in single-hour slots"
+        "Studio type: a bare photography space, a fully mic'd podcast room, and a video studio with grip and lighting gear are priced on different scales",
+        "Included equipment: strobes, LED panels, backdrops, and mics can be bundled into the rate or billed as add-ons",
+        "City and area: a studio in a high-rent commercial pocket of South Delhi or Gurugram typically costs more per hour than one in an outer suburb, even with similar specs",
+        "Usable size: floor area and ceiling height affect what kind of shoot the space can host, which feeds into pricing",
+        "Minimum booking duration: a studio with a 2-hour minimum prices differently than one that rents in single-hour slots"
       ]
     },
     {
@@ -69,7 +69,7 @@
     {
       "id": "p-typical-rates",
       "blockType": "paragraph",
-      "content": "These are broad, conservative ranges observed across the market rather than fixed prices — always confirm the exact rate and inclusions with the host before booking, since a low headline number sometimes excludes lights or backdrops."
+      "content": "These are broad, conservative ranges observed across the market rather than fixed prices: always confirm the exact rate and inclusions with the host before booking, since a low headline number sometimes excludes lights or backdrops."
     },
     {
       "id": "list-typical-rates",
@@ -89,7 +89,7 @@
     {
       "id": "p-packages",
       "blockType": "paragraph",
-      "content": "Most studios that offer full-day packages (typically an 8–10 hour slot) price them below what the same hours would cost at the plain hourly rate — often in the range of a 15–30% discount, though this varies host to host. The logic is straightforward from the studio's side: a single long booking means one setup, one client, and no gap-cleaning or re-briefing between back-to-back short slots, so the host passes some of that saved overhead back as a lower effective rate. Half-day packages (4–5 hours) usually sit between the hourly rate and the full-day discount, and are worth asking for even if a listing only advertises hourly and full-day options — many hosts will quote one informally if you ask."
+      "content": "Most studios that offer full-day packages (typically an 8–10 hour slot) price them below what the same hours would cost at the plain hourly rate, often in the range of a 15–30% discount, though this varies host to host. The logic is straightforward from the studio's side: a single long booking means one setup, one client, and no gap-cleaning or re-briefing between back-to-back short slots, so the host passes some of that saved overhead back as a lower effective rate. Half-day packages (4–5 hours) usually sit between the hourly rate and the full-day discount, and are worth asking for even if a listing only advertises hourly and full-day options: many hosts will quote one informally if you ask."
     },
     {
       "id": "h-breakeven",
@@ -99,12 +99,12 @@
     {
       "id": "p-breakeven",
       "blockType": "paragraph",
-      "content": "You can work out the break-even point for any studio with one division: full-day package price divided by the hourly rate. If a studio charges ₹1,500 an hour and its full-day package is ₹9,000, the break-even is 6 hours — book for 6 hours or more and the full-day package is cheaper than paying hourly; book for less and hourly wins. This is why a 3-hour product shoot almost always makes sense as an hourly booking, while a full day of content batching — say, a YouTuber recording multiple videos back-to-back, or a brand shooting a full catalogue — usually crosses the break-even point and justifies the package rate. Always run this math against the specific studio's actual numbers rather than assuming a fixed rule, since minimum durations and overtime rates shift the calculation."
+      "content": "You can work out the break-even point for any studio with one division: full-day package price divided by the hourly rate. If a studio charges ₹1,500 an hour and its full-day package is ₹9,000, the break-even is 6 hours: book for 6 hours or more and the full-day package is cheaper than paying hourly; book for less and hourly wins. This is why a 3-hour product shoot almost always makes sense as an hourly booking, while a full day of content batching (say, a YouTuber recording multiple videos back-to-back, or a brand shooting a full catalogue) usually crosses the break-even point and justifies the package rate. Always run this math against the specific studio's actual numbers rather than assuming a fixed rule, since minimum durations and overtime rates shift the calculation."
     },
     {
       "id": "quote-breakeven",
       "blockType": "quote",
-      "content": "As a rule of thumb, once your shoot crosses roughly two-thirds of a studio's working day — around 5–6 hours in an 8-hour day — a full-day package usually works out cheaper than paying the hourly rate for the same hours."
+      "content": "As a rule of thumb, once your shoot crosses roughly two-thirds of a studio's working day (around 5–6 hours in an 8-hour day), a full-day package usually works out cheaper than paying the hourly rate for the same hours."
     },
     {
       "id": "h-hidden-costs",
@@ -120,11 +120,11 @@
       "id": "list-hidden-costs",
       "blockType": "list",
       "items": [
-        "Setup and breakdown time — some studios count this inside your paid slot, others bill it separately before and after",
-        "Overtime granularity — running 15 minutes over can cost a full extra hour at some studios and a prorated amount at others",
-        "GST — confirm whether the quoted number is inclusive or exclusive before comparing two listings",
-        "Equipment add-ons — lights, extra backdrops, and green screens are sometimes billed on top of a 'bare space' rate",
-        "Footfall or crew charges — some studios cap the number of people included at the base rate and charge per extra person"
+        "Setup and breakdown time: some studios count this inside your paid slot, others bill it separately before and after",
+        "Overtime granularity: running 15 minutes over can cost a full extra hour at some studios and a prorated amount at others",
+        "GST: confirm whether the quoted number is inclusive or exclusive before comparing two listings",
+        "Equipment add-ons: lights, extra backdrops, and green screens are sometimes billed on top of a 'bare space' rate",
+        "Footfall or crew charges: some studios cap the number of people included at the base rate and charge per extra person"
       ]
     },
     {
@@ -150,7 +150,7 @@
     {
       "id": "p-faq2",
       "blockType": "paragraph",
-      "content": "It depends entirely on how many hours you actually need. For short shoots of 2–4 hours, the hourly rate is usually cheaper. Once your shoot approaches the studio's break-even point — commonly around 5–6 hours in an 8-hour day — a full-day package typically works out cheaper overall."
+      "content": "It depends entirely on how many hours you actually need. For short shoots of 2–4 hours, the hourly rate is usually cheaper. Once your shoot approaches the studio's break-even point (commonly around 5–6 hours in an 8-hour day), a full-day package typically works out cheaper overall."
     },
     {
       "id": "h-faq3",
@@ -160,7 +160,7 @@
     {
       "id": "p-faq3",
       "blockType": "paragraph",
-      "content": "Divide the studio's full-day package price by its hourly rate to get the exact break-even hour count for that studio — it commonly falls between 5 and 7 hours, but always check the specific numbers rather than assuming a fixed figure, since packages and hourly rates vary by host."
+      "content": "Divide the studio's full-day package price by its hourly rate to get the exact break-even hour count for that studio: it commonly falls between 5 and 7 hours, but always check the specific numbers rather than assuming a fixed figure, since packages and hourly rates vary by host."
     },
     {
       "id": "h-faq4",
@@ -170,7 +170,7 @@
     {
       "id": "p-faq4",
       "blockType": "paragraph",
-      "content": "Often, but not always — this is one of the details worth confirming before you book rather than assuming. Some full-day packages build in setup and breakdown as part of the slot, while others expect you to fit both inside your booked hours."
+      "content": "Often, but not always: this is one of the details worth confirming before you book rather than assuming. Some full-day packages build in setup and breakdown as part of the slot, while others expect you to fit both inside your booked hours."
     },
     {
       "id": "h-faq5",

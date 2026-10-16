@@ -1,4 +1,6 @@
+import { toGeoPoint } from "../../lib/listing/location";
 import {
+  CONNAUGHT_PLACE,
   createUserFixture,
   prisma,
 } from "./support/db";
@@ -29,10 +31,11 @@ test.describe("feed filtering staging flow", () => {
         locationValue: "Delhi",
         propertyStateCode: "07",
         actualLocation: {
-          latlng: [28.62868, 77.21905],
+          latlng: CONNAUGHT_PLACE,
           label: "Delhi",
           value: "Delhi",
         },
+        locationPoint: toGeoPoint(CONNAUGHT_PLACE),
         price: 1500,
         userId: owner.id,
         status: "VERIFIED",
@@ -65,10 +68,11 @@ test.describe("feed filtering staging flow", () => {
         locationValue: "Noida",
         propertyStateCode: "09",
         actualLocation: {
-          latlng: [28.62868, 77.21905],
+          latlng: CONNAUGHT_PLACE,
           label: "Noida",
           value: "Noida",
         },
+        locationPoint: toGeoPoint(CONNAUGHT_PLACE),
         price: 3500,
         userId: owner.id,
         status: "VERIFIED",
@@ -78,17 +82,17 @@ test.describe("feed filtering staging flow", () => {
     });
 
     // 4. Filter by Location: Delhi
-    await gotoApp(page, "/home?locationValue=Delhi");
+    await gotoApp(page, "/studios?locationValue=Delhi");
     await expect(page.getByText(titleDelhi)).toBeVisible({ timeout: 25_000 });
     await expect(page.getByText(titleNoida)).toBeHidden({ timeout: 15_000 });
 
     // 5. Filter by Location: Noida
-    await gotoApp(page, "/home?locationValue=Noida");
+    await gotoApp(page, "/studios?locationValue=Noida");
     await expect(page.getByText(titleNoida)).toBeVisible({ timeout: 25_000 });
     await expect(page.getByText(titleDelhi)).toBeHidden({ timeout: 15_000 });
 
     // 6. Filter by Location: Delhi + Multi-set (hasSets=true)
-    await gotoApp(page, "/home?locationValue=Delhi&hasSets=true");
+    await gotoApp(page, "/studios?locationValue=Delhi&hasSets=true");
     await expect(page.getByText(titleDelhi)).toBeVisible({ timeout: 25_000 });
     await expect(page.getByText(titleNoida)).toBeHidden({ timeout: 15_000 });
 

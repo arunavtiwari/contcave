@@ -36,7 +36,7 @@
       {
         "children": [
           {
-            "text": "A plain-language guide to studio lighting for beginners — when natural light is enough, when you need an artificial setup, and how to pick a studio that has the right one for your shoot."
+            "text": "A plain-language guide to studio lighting for beginners: when natural light is enough, when you need an artificial setup, and how to pick a studio that has the right one for your shoot."
           }
         ]
       }
@@ -52,7 +52,7 @@
     {
       "id": "p-intro",
       "blockType": "paragraph",
-      "content": "Most creators searching for studio lighting for beginners aren't trying to become gaffers — they just want their next shoot to not look flat, yellow, or harshly shadowed. The good news is you don't need to master lighting theory before booking a studio; you need to know one thing well: whether your shoot calls for natural light or an artificial setup, and what each actually gives you. This guide breaks down the difference in plain terms, when to pick which, and what to check before you book a studio slot around it."
+      "content": "Most creators searching for studio lighting for beginners aren't trying to become gaffers: they just want their next shoot to not look flat, yellow, or harshly shadowed. The good news is you don't need to master lighting theory before booking a studio; you need to know one thing well: whether your shoot calls for natural light or an artificial setup, and what each actually gives you. This guide breaks down the difference in plain terms, when to pick which, and what to check before you book a studio slot around it."
     },
     {
       "id": "h-natural",
@@ -62,7 +62,7 @@
     {
       "id": "p-natural",
       "blockType": "paragraph",
-      "content": "Natural light studios are built around large windows, skylights, or open bays that let daylight become the main source. It's soft by default because it's already diffused by clouds, glass, or distance, which is why it flatters skin tones and textures without much extra work. It's also free and instantly recognisable in the frame — a lot of the \"natural,\" lifestyle-feeling content that does well on Instagram and YouTube is shot this way on purpose, not lit to look staged."
+      "content": "Natural light studios are built around large windows, skylights, or open bays that let daylight become the main source. It's soft by default because it's already diffused by clouds, glass, or distance, which is why it flatters skin tones and textures without much extra work. It's also free and instantly recognisable in the frame: a lot of the \"natural,\" lifestyle-feeling content that does well on Instagram and YouTube is shot this way on purpose, not lit to look staged."
     },
     {
       "id": "list-natural",
@@ -70,7 +70,7 @@
       "items": [
         "Best for: portraits, lifestyle content, fashion and beauty reels, food photography, newborn and family shoots",
         "Strength: soft, flattering falloff with minimal setup or gear knowledge required",
-        "Limitation: tied to the clock — you're shooting within whatever window of usable daylight the studio has that day",
+        "Limitation: tied to the clock, so you're shooting within whatever window of usable daylight the studio has that day",
         "Limitation: weather and season change the light's quality and colour temperature from one booking to the next"
       ]
     },
@@ -82,16 +82,16 @@
     {
       "id": "p-artificial",
       "blockType": "paragraph",
-      "content": "Artificial lighting means the studio's own lights — continuous LEDs or strobes/flash — are doing the work instead of the sun. The trade-off is the opposite of natural light: more setup, but full control. You decide direction, softness, brightness, and colour temperature, and you get identical results whether you're shooting at 11am or 9pm. That consistency matters a lot for anything that needs repeat sessions to match, like a product catalogue, a recurring podcast or YouTube format, or a brand shoot with a strict colour palette."
+      "content": "Artificial lighting means the studio's own lights (continuous LEDs or strobes/flash) are doing the work instead of the sun. The trade-off is the opposite of natural light: more setup, but full control. You decide direction, softness, brightness, and colour temperature, and you get identical results whether you're shooting at 11am or 9pm. That consistency matters a lot for anything that needs repeat sessions to match, like a product catalogue, a recurring podcast or YouTube format, or a brand shoot with a strict colour palette."
     },
     {
       "id": "list-artificial",
       "blockType": "list",
       "items": [
-        "Continuous lights (LED panels/softboxes): stay on while you shoot, so what you see is what you get — easiest for beginners and for video, since you can judge exposure before pressing record",
+        "Continuous lights (LED panels/softboxes): stay on while you shoot, so what you see is what you get, which makes them easiest for beginners and for video, since you can judge exposure before pressing record",
         "Strobes/flash: short, powerful bursts of light, better for freezing motion and overpowering a bright or mixed-light room, but you can't preview the exact effect the way you can with continuous light",
         "Best for: product photography, catalogue and ecommerce shoots, talking-head video, podcasts, any brand content that needs to look identical across multiple sessions",
-        "Limitation: needs a studio with an actual lighting kit and, ideally, someone who knows how to set it — a room with lights sitting in a corner isn't the same as a lit setup"
+        "Limitation: needs a studio with an actual lighting kit and, ideally, someone who knows how to set it, since a room with lights sitting in a corner isn't the same as a lit setup"
       ]
     },
     {
@@ -108,11 +108,11 @@
       "id": "list-choose",
       "blockType": "list",
       "items": [
-        "One-off portrait, lifestyle reel, or fashion content and you can shoot in daylight hours — go natural light, it's cheaper and needs no gear knowledge",
-        "Product or catalogue shoot that has to look the same across dozens of items or multiple visits — go artificial, so lighting doesn't drift session to session",
-        "Evening or late-night shoot, or a studio slot outside daylight hours — artificial is your only real option",
-        "Podcast, interview, or talking-head video — artificial continuous light, since it needs to stay flat and consistent for the whole recording, not shift as the sun moves",
-        "Not sure yet — many Delhi NCR studios offer both in one space; ask if the natural-light area and the lit set are bookable separately or together"
+        "One-off portrait, lifestyle reel, or fashion content and you can shoot in daylight hours: go natural light, it's cheaper and needs no gear knowledge",
+        "Product or catalogue shoot that has to look the same across dozens of items or multiple visits: go artificial, so lighting doesn't drift session to session",
+        "Evening or late-night shoot, or a studio slot outside daylight hours: artificial is your only real option",
+        "Podcast, interview, or talking-head video: artificial continuous light, since it needs to stay flat and consistent for the whole recording, not shift as the sun moves",
+        "Not sure yet: many Delhi NCR studios offer both in one space; ask if the natural-light area and the lit set are bookable separately or together"
       ]
     },
     {
@@ -128,7 +128,7 @@
     {
       "id": "p-hybrid",
       "blockType": "paragraph",
-      "content": "You don't have to pick one exclusively. A common and easy setup for beginners is to use a window as the main light source and add a single artificial light — often just a reflector or a small LED panel — to fill in shadows on the darker side of the frame. This is standard practice in a lot of Delhi NCR studios that have a natural-light bay near a window along with a basic lighting kit on standby. It gets you the soft, natural look with fewer of the natural-light downsides, like a subject's face going dark when clouds pass over."
+      "content": "You don't have to pick one exclusively. A common and easy setup for beginners is to use a window as the main light source and add a single artificial light (often just a reflector or a small LED panel) to fill in shadows on the darker side of the frame. This is standard practice in a lot of Delhi NCR studios that have a natural-light bay near a window along with a basic lighting kit on standby. It gets you the soft, natural look with fewer of the natural-light downsides, like a subject's face going dark when clouds pass over."
     },
     {
       "id": "list-hybrid",
@@ -137,7 +137,7 @@
         "Use the window as your key (main) light and position your subject facing it, not with their back to it",
         "Add a reflector on the shadow side to bounce light back without changing its warm, natural colour",
         "If natural light is fading, bring in one continuous LED at low power to extend the session rather than reshoot another day",
-        "Avoid mixing warm window light with a cool-toned LED without correcting one of them — mismatched colour temperature is the most common beginner lighting mistake"
+        "Avoid mixing warm window light with a cool-toned LED without correcting one of them: mismatched colour temperature is the most common beginner lighting mistake"
       ]
     },
     {
@@ -154,9 +154,9 @@
       "id": "list-checking",
       "blockType": "list",
       "items": [
-        "Ask whether the lighting kit is continuous, strobe, or both — this changes how you shoot and whether it suits stills or video",
+        "Ask whether the lighting kit is continuous, strobe, or both: this changes how you shoot and whether it suits stills or video",
         "Confirm how many lights and modifiers (softboxes, umbrellas, reflectors) are included versus available as paid add-ons",
-        "Check if setup time is billed separately or included in your hourly slot — lighting setup can eat 20-30 minutes if you're doing it yourself",
+        "Check if setup time is billed separately or included in your hourly slot: lighting setup can eat 20-30 minutes if you're doing it yourself",
         "For natural-light studios, ask which direction the main window faces and what time the light is best, especially for a South Delhi or Gurugram booking in winter when daylight hours are shorter"
       ]
     },
@@ -173,7 +173,7 @@
     {
       "id": "p-faq1",
       "blockType": "paragraph",
-      "content": "Natural light is generally easier to start with because it needs no gear knowledge — position your subject near a window and you're most of the way to a flattering shot. Artificial light gives you more control and consistency but has a small learning curve around direction, softness, and colour temperature. Most beginners start with natural light and add one artificial light, like a reflector or LED panel, once they need more control."
+      "content": "Natural light is generally easier to start with because it needs no gear knowledge: position your subject near a window and you're most of the way to a flattering shot. Artificial light gives you more control and consistency but has a small learning curve around direction, softness, and colour temperature. Most beginners start with natural light and add one artificial light, like a reflector or LED panel, once they need more control."
     },
     {
       "id": "h-faq2",
@@ -183,7 +183,7 @@
     {
       "id": "p-faq2",
       "blockType": "paragraph",
-      "content": "Continuous lights stay on the whole time, so you see the exact lighting effect before you shoot — this makes them easier for beginners and is essential for video, where the light needs to be on throughout. Strobes fire a brief, powerful flash timed to the shutter, which is better for freezing motion and for overpowering bright ambient light, but you can't preview the final look the same way."
+      "content": "Continuous lights stay on the whole time, so you see the exact lighting effect before you shoot: this makes them easier for beginners and is essential for video, where the light needs to be on throughout. Strobes fire a brief, powerful flash timed to the shutter, which is better for freezing motion and for overpowering bright ambient light, but you can't preview the final look the same way."
     },
     {
       "id": "h-faq3",
@@ -213,7 +213,7 @@
     {
       "id": "p-faq5",
       "blockType": "paragraph",
-      "content": "For consistent, catalogue-ready product shots, yes — artificial lighting is worth it because it lets you replicate the exact same setup across dozens or hundreds of SKUs and across multiple shoot days. Natural light can work for a handful of hero shots, but it's hard to keep results identical once weather or time of day changes between sessions."
+      "content": "For consistent, catalogue-ready product shots, yes: artificial lighting is worth it because it lets you replicate the exact same setup across dozens or hundreds of SKUs and across multiple shoot days. Natural light can work for a handful of hero shots, but it's hard to keep results identical once weather or time of day changes between sessions."
     },
     {
       "id": "h-contcave",
@@ -223,7 +223,7 @@
     {
       "id": "p-contcave",
       "blockType": "paragraph",
-      "content": "ContCave lists both natural-light and fully-equipped artificial-lighting studios across Delhi NCR in one place, with what's actually included in each listing — continuous or strobe, how many lights, and whether an assistant is available — instead of you finding out after you arrive. You can compare studios by lighting setup and transparent hourly pricing, and book the slot that matches your shoot instantly."
+      "content": "ContCave lists both natural-light and fully-equipped artificial-lighting studios across Delhi NCR in one place, with what's actually included in each listing (continuous or strobe, how many lights, and whether an assistant is available), instead of you finding out after you arrive. You can compare studios by lighting setup and transparent hourly pricing, and book the slot that matches your shoot instantly."
     },
     {
       "id": "list-contcave",
@@ -250,7 +250,7 @@
       "items": [
         "Pick natural light for one-off portraits, lifestyle content, and daytime shoots you don't need to repeat exactly",
         "Pick artificial lighting for products, podcasts, and anything that needs to match across multiple sessions",
-        "Use continuous lights if you're new to artificial setups — you can see the result before you shoot",
+        "Use continuous lights if you're new to artificial setups: you can see the result before you shoot",
         "Mix a window with one reflector or LED panel for an easy, flattering hybrid setup",
         "Confirm what lighting gear is actually included before booking, not just that a studio is \"fully equipped\""
       ]
