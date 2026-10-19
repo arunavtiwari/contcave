@@ -15,12 +15,18 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 58 | Corporate Headshot & LinkedIn Photography Studios in India | corporate headshot studio india | studio-guides | brands |
 | 59 | Gaming & Streaming Studio Setup for Twitch and YouTube Creators | gaming streaming studio india | content-creation | creators |
 | 60 | Studio Equipment Insurance & Damage Liability: A Host's Guide | studio insurance for hosts india | host-guides | hosts |
 | 61 | Fitness & Yoga Content Studios: What Creators Need to Shoot Workouts | fitness studio for content shoot india | studio-guides | creators |
 | 62 | Cooking & Recipe Video Studios: Kitchen Setup for Food Creators | cooking studio rental india | studio-guides | creators |
 | 63 | Budget Studio Shoots for Student & Campus Creators | studio for student creators india | content-creation | creators |
+| 64 | Finance & Edtech Explainer Video Studios: Whiteboard & Screen-Record Setups | finance content studio india | content-creation | creators |
+| 65 | Regional & Vernacular Language Content Studios: What Changes | vernacular content studio india | creator-economy | creators |
+| 66 | Pet Photography & Pet-Friendly Studios in India | pet friendly photography studio india | studio-guides | creators, brands |
+| 67 | Fashion Lookbook vs Ecommerce Catalogue Shoots: Studio Setup Differences | ecommerce catalogue shoot studio india | content-creation | brands |
+| 68 | Studio Soundproofing Basics: What Hosts Should Invest In | soundproof studio for hosts india | host-guides | hosts |
+| 69 | Behind-the-Scenes Content: Studio Etiquette for a Second Shooter | bts content studio shoot india | content-creation | creators |
+| 70 | Monsoon-Proofing Your Studio Booking: Backup Plans for Outdoor Shoots | monsoon studio booking india | booking-tips | creators, brands |
 
 ## Published
 
@@ -98,3 +104,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-10-12 | 34 | studio-with-makeup-room-india |
 | 2026-10-26 | 35 | festive-season-studio-booking-india |
 | 2026-10-16 | 36 | voice-over-recording-studio-india |
+| 2026-10-19 | 58 | corporate-headshot-studio-india |
