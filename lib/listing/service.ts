@@ -6,6 +6,15 @@ import { loadDayAvailabilities } from "@/lib/availability";
 import { addDaysToDateKey, BOOKING_HORIZON_DAYS, isBookable, istDateKey } from "@/lib/booking/dayAvailability";
 import { UserFacingError } from "@/lib/errors";
 import type { LatLng } from "@/lib/geo";
+import {
+    type EquipmentItem,
+    hasLightsIncluded,
+    type ListingAccess,
+    normalizeAccessInput,
+    normalizeEquipmentInput,
+    type PackageEquipmentRef,
+    validPackageEquipment,
+} from "@/lib/listing/equipment";
 import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isRichTextEmpty } from "@/lib/richText";
@@ -261,6 +270,7 @@ interface PackageCompare {
     requiredSetCount: number | null;
     fixedAddOn: number | null;
     eligibleSetIds: string[];
+    includedEquipment?: PackageEquipmentRef[];
     isActive: boolean;
 }
 
@@ -285,7 +295,8 @@ function isPackageEqual(a: PackageCompare, b: PackageCompare): boolean {
         a.fixedAddOn === b.fixedAddOn &&
         a.isActive === b.isActive &&
         JSON.stringify(a.features) === JSON.stringify(b.features) &&
-        JSON.stringify(a.eligibleSetIds) === JSON.stringify(b.eligibleSetIds)
+        JSON.stringify(a.eligibleSetIds) === JSON.stringify(b.eligibleSetIds) &&
+        JSON.stringify(a.includedEquipment ?? []) === JSON.stringify(b.includedEquipment ?? [])
     );
 }
 
@@ -460,8 +471,12 @@ export class ListingService {
             hasSets, setsHaveSamePrice, unifiedSetPrice, additionalSetPricingType, sets,
             terms, slug,
             priceRangeMin, priceRangeMax, mapsUrl, websiteUrl, instagramHandle, contactEmail,
-            videoSrc,
+            videoSrc, equipmentPolicy, equipment, access,
         } = validated;
+        const normalizedEquipment = normalizeEquipmentInput(equipment as EquipmentItem[] | undefined);
+        const normalizedAccess = normalizeAccessInput(access as ListingAccess | null | undefined);
+        const hasEquipmentDetails = Boolean(equipmentPolicy) || normalizedEquipment.length > 0;
+        const detailsConfirmedBy = allowCurated ? "ops" : "owner";
 
         if (listingType === "CURATED" && !allowCurated) {
             throw new UserFacingError("Only administrators can create curated listings");
@@ -528,6 +543,17 @@ export class ListingService {
                     additionalSetPricingType: additionalSetPricingType as AdditionalSetPricingType || null,
                     customTerms: isRichTextEmpty(customTerms as string) ? null : String(customTerms).trim(),
                     videoSrc: videoSrc || null,
+                    equipmentPolicy: equipmentPolicy ?? null,
+                    equipment: { set: normalizedEquipment },
+                    access: { set: normalizedAccess },
+                    detailsStatus: {
+                        set: {
+                            equipment: hasEquipmentDetails ? "confirmed" : "missing",
+                            access: normalizedAccess ? "confirmed" : "missing",
+                            confirmedAt: hasEquipmentDetails || normalizedAccess ? new Date() : null,
+                            confirmedBy: hasEquipmentDetails || normalizedAccess ? detailsConfirmedBy : null,
+                        },
+                    },
                 },
             });
 
@@ -577,6 +603,10 @@ export class ListingService {
                         requiredSetCount: hasSets && p.requiredSetCount ? Math.max(1, Number(p.requiredSetCount) || 1) : null,
                         fixedAddOn: p.fixedAddOn != null ? Math.max(0, Number(p.fixedAddOn)) : null,
                         eligibleSetIds: hasSets ? eligibleSetIds : [],
+                        includedEquipment: validPackageEquipment(
+                            (p as { includedEquipment?: PackageEquipmentRef[] }).includedEquipment,
+                            normalizedEquipment
+                        ),
                         isActive: p.isActive !== false,
                         listingId: listing.id,
                     };
@@ -679,6 +709,28 @@ export class ListingService {
             }
         }
         const sanitizedListingData = sanitizeListingJsonFields(listingData as Record<string, unknown>);
+        const nextEquipment = "equipment" in listingData
+            ? normalizeEquipmentInput(listingData.equipment as EquipmentItem[] | undefined)
+            : (existingListing.equipment as EquipmentItem[]);
+        const touchesEquipment = "equipment" in listingData || "equipmentPolicy" in listingData;
+        const touchesAccess = "access" in listingData;
+        if ("equipment" in listingData) sanitizedListingData.equipment = { set: nextEquipment };
+        if (touchesAccess) {
+            sanitizedListingData.access = { set: normalizeAccessInput(listingData.access as ListingAccess | null | undefined) };
+        }
+        if (touchesEquipment || touchesAccess) {
+            // Saving these fields through the listing form confirms them: by the owner, or by ops when an admin edits.
+            const previousStatus = existingListing.detailsStatus;
+            const confirmedBy = existingListing.userId === userId ? "owner" : "ops";
+            sanitizedListingData.detailsStatus = {
+                set: {
+                    equipment: touchesEquipment ? "confirmed" : previousStatus?.equipment ?? "missing",
+                    access: touchesAccess ? "confirmed" : previousStatus?.access ?? "missing",
+                    confirmedAt: new Date(),
+                    confirmedBy,
+                },
+            };
+        }
 
         // Check if main listing actually has changes
         const hasMainListingChanges = Object.keys(sanitizedListingData).some(key => {
@@ -856,6 +908,10 @@ export class ListingService {
                         requiredSetCount: nextHasSets && p.requiredSetCount ? Number(p.requiredSetCount) : null,
                         fixedAddOn: p.fixedAddOn != null ? Math.max(0, Number(p.fixedAddOn)) : null,
                         eligibleSetIds: nextHasSets ? eligibleSetIds : [],
+                        includedEquipment: validPackageEquipment(
+                            (p as { includedEquipment?: PackageEquipmentRef[] }).includedEquipment,
+                            nextEquipment
+                        ),
                         isActive: p.isActive !== false,
                         listingId,
                     };
@@ -1237,13 +1293,16 @@ export class ListingService {
                 priceRangeMin: true,
                 priceRangeMax: true,
                 actualLocation: true,
+                equipmentPolicy: true,
+                equipment: true,
+                detailsStatus: true,
             },
         });
         const byId = new Map(listings.map((listing) => [listing.id, listing]));
         return ids
             .map((id) => byId.get(id))
             .filter((listing): listing is NonNullable<typeof listing> => Boolean(listing))
-            .map(toStudioFeedItem);
+            .map((listing) => ({ ...toStudioFeedItem(listing), lightsIncluded: hasLightsIncluded(listing) }));
     }
 
     static async getRandomListings(limit: number = 3): Promise<FullListing[]> {

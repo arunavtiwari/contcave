@@ -3,6 +3,14 @@ import { z } from "zod";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import { isDateKey } from "@/lib/booking/dayAvailability";
 import { isLatLng, parseLatLngParam, searchRadiusKm } from "@/lib/geo";
+import {
+    EQUIPMENT_CATEGORIES,
+    EQUIPMENT_POLICIES,
+    EQUIPMENT_PRICE_UNITS,
+    EQUIPMENT_PRICING,
+    LIFT_TYPES,
+    PARKING_TYPES,
+} from "@/lib/listing/equipment";
 import { AESTHETIC_LABELS, SET_FEATURE_LABELS, USE_CASE_LABELS, VENUE_TYPE_LABELS } from "@/lib/taxonomy";
 import { objectIdSchema } from "@/schemas/common";
 
@@ -116,6 +124,39 @@ export const listingSetSchema = z.object({
 });
 
 
+export const EQUIPMENT_ITEM_ID_PATTERN = /^(eq_[a-z0-9]{6,32}|[a-f\d]{24})$/i;
+
+export const packageEquipmentRefSchema = z.object({
+    equipmentId: z.string().regex(EQUIPMENT_ITEM_ID_PATTERN, "Invalid equipment reference"),
+    quantity: z.number().int().min(1).max(100),
+});
+
+export const equipmentItemSchema = z.object({
+    id: z.string().regex(EQUIPMENT_ITEM_ID_PATTERN, "Invalid equipment id"),
+    name: z.string().trim().min(1, "Equipment name is required").max(100),
+    category: z.enum(EQUIPMENT_CATEGORIES),
+    quantity: z.number().int().min(1, "Quantity must be at least 1").max(500),
+    pricing: z.enum(EQUIPMENT_PRICING),
+    price: z.number().int("Price must be a whole number of rupees").min(1).max(10_000_000).optional().nullable(),
+    priceUnit: z.enum(EQUIPMENT_PRICE_UNITS).optional().nullable(),
+    availableQty: z.number().int().min(0).max(500).optional().nullable(),
+    image: imageSchema.optional().nullable(),
+    legacyAddonId: z.string().max(100).optional().nullable(),
+    sortOrder: z.number().int().min(0).max(1000).default(0),
+}).superRefine((item, ctx) => {
+    if (item.pricing === "paid" && (item.price == null || item.price < 1)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Add a price for "${item.name}"`, path: ["price"] });
+    }
+});
+
+export const listingAccessSchema = z.object({
+    floor: z.number().int().min(-5).max(200).nullable().optional(),
+    lift: z.enum(LIFT_TYPES).nullable().optional(),
+    parking: z.enum(PARKING_TYPES).nullable().optional(),
+    vehicleLoadIn: z.boolean().nullable().optional(),
+    loadInNote: z.string().trim().max(140, "Load-in note must be 140 characters or fewer").nullable().optional(),
+});
+
 export const packageBaseSchema = z.object({
     id: objectIdSchema.optional(),
     title: z.string().min(3, "Title too short").max(200, "Title too long"),
@@ -127,6 +168,7 @@ export const packageBaseSchema = z.object({
     requiredSetCount: z.number().int().min(1).max(50).optional().nullable(),
     fixedAddOn: z.number().int().min(0).max(10_000_000).optional().nullable(),
     eligibleSetIds: z.array(objectIdSchema).max(50).optional(),
+    includedEquipment: z.array(packageEquipmentRefSchema).max(50).optional(),
     isActive: z.boolean().default(true),
 });
 
@@ -241,6 +283,9 @@ export const listingBaseSchema = z.object({
     packages: z.array(packageSchema).max(50).optional(),
 
     addons: z.array(addonSchema).max(100).optional(),
+    equipmentPolicy: z.enum(EQUIPMENT_POLICIES).nullable().optional(),
+    equipment: z.array(equipmentItemSchema).max(100).optional(),
+    access: listingAccessSchema.nullable().optional(),
     verifications: verificationSchema.optional().nullable(),
     agreementSignature: signatureSchema.optional().nullable(),
     videoSrc: temporaryMediaUrlSchema.optional().nullable(),
@@ -252,6 +297,18 @@ export const hasActivePackage = (packages: ReadonlyArray<{ isActive?: boolean | 
     (packages ?? []).some((pkg) => pkg.isActive !== false);
 
 export const listingSchema = listingBaseSchema.superRefine((data, ctx) => {
+    if (data.equipment) {
+        const ids = data.equipment.map((item) => item.id);
+        if (new Set(ids).size !== ids.length) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Each equipment item needs a unique id", path: ["equipment"] });
+        }
+        const known = new Set(ids);
+        data.packages?.forEach((pkg, index) => {
+            if (pkg.includedEquipment?.some((ref) => !known.has(ref.equipmentId))) {
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: "A package includes equipment this listing doesn't have", path: ["packages", index, "includedEquipment"] });
+            }
+        });
+    }
     const openingIndex = data.operationalHours ? TIME_SLOTS.indexOf(data.operationalHours.start) : -1;
     const closingIndex = data.operationalHours ? TIME_SLOTS.lastIndexOf(data.operationalHours.end) : -1;
     const operatingHours = openingIndex >= 0 && closingIndex > openingIndex

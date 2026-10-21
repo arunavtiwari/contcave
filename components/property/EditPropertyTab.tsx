@@ -4,8 +4,10 @@ import React from "react";
 import { IoMdClose } from "react-icons/io";
 import { TbVideoPlus } from "react-icons/tb";
 
+import AccessEditor from "@/components/inputs/AccessEditor";
 import AddonsSelection from "@/components/inputs/AddonsSelection";
 import AmenitiesCheckbox from "@/components/inputs/AmenitySelection";
+import EquipmentEditor from "@/components/inputs/EquipmentEditor";
 import ImageReorderGrid from "@/components/inputs/ImageReorderGrid";
 import ImageUpload from "@/components/inputs/ImageUpload";
 import PackagesForm from "@/components/inputs/PackagesForm";
@@ -23,6 +25,7 @@ import Select, { SelectOption } from "@/components/ui/Select";
 import Switch from "@/components/ui/Switch";
 import Textarea from "@/components/ui/Textarea";
 import { TIME_SLOTS } from "@/constants/timeSlots";
+import type { EquipmentItem, EquipmentPolicy, ListingAccess } from "@/lib/listing/equipment";
 import { listingLocationValue } from "@/lib/listing/location";
 import { slugify } from "@/lib/strings";
 import { AESTHETICS, SET_FEATURES, USE_CASE_LABELS, VENUE_TYPES } from "@/lib/taxonomy";
@@ -70,6 +73,19 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
   canEditContcaveNote = false,
 }) => {
   const isCurated = initialListing.listingType === "CURATED";
+  const equipmentItems = (initialListing.equipment ?? []) as EquipmentItem[];
+  const showLegacyAddons = equipmentItems.length === 0 && (initialListing.addons?.length ?? 0) > 0;
+  const equipmentField = (
+    <FormField label="Equipment" description="Included gear, paid extras and items on request" variant="horizontal" align="start">
+      <EquipmentEditor
+        value={{ policy: (initialListing.equipmentPolicy as EquipmentPolicy | null) ?? null, items: equipmentItems }}
+        onChange={({ policy, items }) => {
+          if (policy !== (initialListing.equipmentPolicy ?? null)) handleInputChange("equipmentPolicy", policy);
+          if (items !== equipmentItems) handleInputChange("equipment", items);
+        }}
+      />
+    </FormField>
+  );
 
   return (
     <div className="flex flex-col gap-5 sm:gap-8">
@@ -288,21 +304,28 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
             customAmenities={initialListing.otherAmenities}
           />
 
-          <AddonsSelection
-            label="Addons"
-            variant="horizontal"
-            initialSelectedAddons={initialListing.addons}
-            addons={addons}
-            onSelectedAddonsChange={handleAddonChange}
-          />
-          <div className="flex justify-end -mt-8">
-            <CustomAddonModal
-              save={(value) => {
-                const updated = [...addons, { ...value, price: 0, qty: 0, imageUrl: value.imageUrl ?? "" }];
-                setAddons(updated);
-              }}
-            />
-          </div>
+          {showLegacyAddons && (
+            // Legacy add-ons, kept until this listing's add-ons are migrated into Equipment.
+            <>
+              <AddonsSelection
+                label="Addons"
+                variant="horizontal"
+                initialSelectedAddons={initialListing.addons}
+                addons={addons}
+                onSelectedAddonsChange={handleAddonChange}
+              />
+              <div className="flex justify-end -mt-8">
+                <CustomAddonModal
+                  save={(value) => {
+                    const updated = [...addons, { ...value, price: 0, qty: 0, imageUrl: value.imageUrl ?? "" }];
+                    setAddons(updated);
+                  }}
+                />
+              </div>
+            </>
+          )}
+
+          {equipmentField}
 
           <PackagesForm
             label="Packages"
@@ -311,9 +334,19 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
             onChange={handlePackagesChange}
             availableSets={initialListing.hasSets ? (initialListing.sets ?? []) : []}
             required={Boolean(initialListing.hasSets)}
+            equipmentItems={equipmentItems}
           />
         </>
       )}
+
+      {isCurated && equipmentField}
+
+      <FormField label="Access and load-in" description="Leave anything you're unsure about blank" variant="horizontal" align="start">
+        <AccessEditor
+          value={(initialListing.access as ListingAccess | null) ?? null}
+          onChange={(access) => handleInputChange("access", access)}
+        />
+      </FormField>
 
       <Input
         id="carpetArea"

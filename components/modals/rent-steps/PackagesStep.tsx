@@ -5,6 +5,7 @@ import React from "react";
 import PackagesForm from "@/components/inputs/PackagesForm";
 import { SetEditorItem } from "@/components/inputs/SetsEditor";
 import Heading from "@/components/ui/Heading";
+import type { EquipmentItem } from "@/lib/listing/equipment";
 import { Package } from "@/types/package";
 
 interface PackagesStepProps {
@@ -13,6 +14,7 @@ interface PackagesStepProps {
   sets: SetEditorItem[];
   setValue: (name: string, value: unknown, options?: unknown) => void;
   error?: string;
+  equipmentItems?: EquipmentItem[];
 }
 
 const PackagesStep: React.FC<PackagesStepProps> = ({
@@ -21,6 +23,7 @@ const PackagesStep: React.FC<PackagesStepProps> = ({
   sets,
   setValue,
   error,
+  equipmentItems = [],
 }) => {
   return (
     <div className="flex flex-col gap-4">
@@ -30,6 +33,7 @@ const PackagesStep: React.FC<PackagesStepProps> = ({
         onChange={(v) => setValue("packages", v, { shouldDirty: true, shouldValidate: true })}
         availableSets={hasSets ? (sets as never) : []}
         required={hasSets}
+        equipmentItems={equipmentItems}
         error={error}
       />
     </div>

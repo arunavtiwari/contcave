@@ -3,6 +3,7 @@
 import { IoCheckmark } from "react-icons/io5";
 
 import Heading from "@/components/ui/Heading";
+import { equipmentAnchorId, type EquipmentItem, packageEquipmentChip } from "@/lib/listing/equipment";
 import { Package } from "@/types/package";
 
 interface Props {
@@ -10,6 +11,12 @@ interface Props {
   onSelect?: (pkg: Package | null) => void;
   selectedPackageId?: string | null;
   hasSets?: boolean;
+  /** This listing's visible equipment; packages referencing it render inclusion chips. */
+  equipmentItems?: EquipmentItem[];
+}
+
+function scrollToEquipment(equipmentId: string) {
+  document.getElementById(equipmentAnchorId(equipmentId))?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 const INR = new Intl.NumberFormat("en-IN", {
@@ -18,7 +25,8 @@ const INR = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
 });
 
-export default function PackageList({ packages, onSelect, selectedPackageId, hasSets = false }: Props) {
+export default function PackageList({ packages, onSelect, selectedPackageId, hasSets = false, equipmentItems = [] }: Props) {
+  const equipmentById = new Map(equipmentItems.map((item) => [item.id, item]));
 
   const handleSelect = (pkg: Package) => {
     if (selectedPackageId === pkg.id) {
@@ -78,13 +86,46 @@ export default function PackageList({ packages, onSelect, selectedPackageId, has
                     </p>
                   )}
 
-                  {pkg.features?.length > 0 && (
-                    <ul className="mt-2 flex flex-col gap-1 text-muted-foreground list-disc list-inside text-sm">
-                      {pkg.features.map((f, i) => (
-                        <li key={i}>{f}</li>
-                      ))}
-                    </ul>
-                  )}
+                  {(() => {
+                    const included = (pkg.includedEquipment ?? [])
+                      .map((ref) => ({ ref, item: equipmentById.get(ref.equipmentId) }))
+                      .filter((entry): entry is { ref: { equipmentId: string; quantity: number }; item: EquipmentItem } => !!entry.item);
+                    if (included.length === 0) {
+                      // Package not migrated to structured equipment yet: keep the free-text bullets.
+                      return pkg.features?.length > 0 && (
+                        <ul className="mt-2 flex flex-col gap-1 text-muted-foreground list-disc list-inside text-sm">
+                          {pkg.features.map((f, i) => (
+                            <li key={i}>{f}</li>
+                          ))}
+                        </ul>
+                      );
+                    }
+                    return (
+                      <div className="mt-2 flex flex-col gap-1.5">
+                        <p className="text-xs font-medium text-muted-foreground">Included in this package</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {included.map(({ ref, item }) => (
+                            <button
+                              key={ref.equipmentId}
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                scrollToEquipment(ref.equipmentId);
+                              }}
+                              className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs text-foreground hover:bg-muted"
+                            >
+                              {packageEquipmentChip(item, ref.quantity)}
+                            </button>
+                          ))}
+                          {pkg.features?.map((extra, i) => (
+                            <span key={`extra-${i}`} className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
+                              {extra}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
                     <span className="font-semibold text-foreground">

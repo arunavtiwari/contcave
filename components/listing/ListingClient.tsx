@@ -7,6 +7,7 @@ import Container from "@/components/layout/Container";
 import CuratedReservation from "@/components/listing/CuratedReservation";
 import ListingHead from "@/components/listing/ListingHead";
 import ListingInfo from "@/components/listing/ListingInfo";
+import ListingQuickFacts from "@/components/listing/ListingQuickFacts";
 import ListingReservation from "@/components/listing/ListingReservation";
 import PackageSetModal from "@/components/modals/PackageSetModal";
 import { categories } from "@/components/navbar/categoriesData";
@@ -21,6 +22,7 @@ import {
   istDateKey,
   minutesToLabel,
 } from "@/lib/booking/dayAvailability";
+import { includedEquipmentSummary, visibleAccess, visibleEquipment } from "@/lib/listing/equipment";
 import {
   calculateSetPricing,
   suggestWholeStudioPackage,
@@ -152,6 +154,13 @@ function ListingClient({
   const googleCalendarEvents = availability?.googleCalendarEvents ?? NO_CALENDAR_EVENTS;
 
   const isOwnListing = Boolean(currentUser?.id && currentUser.id === listing.userId);
+  const detailsViewer = { isOwnerOrAdmin: isOwnListing || currentUser?.role === "ADMIN" };
+  const equipment = visibleEquipment(listing, detailsViewer);
+  const access = visibleAccess(listing, detailsViewer);
+  const isCuratedListing = listing.listingType === "CURATED";
+  const equipmentIncludedLabel = isCuratedListing && listing.detailsStatus?.confirmedBy !== "owner"
+    ? "Listed as included"
+    : "Included";
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<[TimeLabel | null, TimeLabel | null]>([null, null]);
   const [selectedAddons, setSelectedAddons] = useState<AddonItem[]>([]);
@@ -161,6 +170,20 @@ function ListingClient({
   }, [selectedDate]);
   const [timeDifferenceInHours, setTimeDifferenceInHours] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const includedEquipmentLabel = (() => {
+    if (!equipment) return null;
+    const packageRefs = selectedPackage?.includedEquipment ?? [];
+    if (packageRefs.length > 0) {
+      const byId = new Map(equipment.items.map((item) => [item.id, item]));
+      return includedEquipmentSummary(
+        packageRefs
+          .map((ref) => byId.get(ref.equipmentId))
+          .filter((item): item is NonNullable<typeof item> => !!item)
+          .map((item) => ({ ...item, pricing: "included" }))
+      );
+    }
+    return equipment.policy === "all_bookings" ? includedEquipmentSummary(equipment.items) : null;
+  })();
 
   const [selectedSetIds, setSelectedSetIds] = useState<string[]>(initialSelectedSetIds);
   const [isPackageSetModalOpen, setIsPackageSetModalOpen] = useState(false);
@@ -390,6 +413,12 @@ function ListingClient({
               id={listing.id}
               currentUser={currentUser}
             />
+            <ListingQuickFacts
+              carpetArea={listing.carpetArea}
+              maximumPax={listing.maximumPax}
+              access={access}
+              equipment={equipment}
+            />
             <div className="grid grid-cols-1 md:grid-cols-7 md:gap-10 mt-6">
               <ListingInfo
                 user={listing.user}
@@ -417,6 +446,11 @@ function ListingClient({
                 processedDescription={processedDescription}
                 processedTerms={processedTerms}
                 descriptionShouldTruncate={descriptionShouldTruncate}
+                equipment={equipment}
+                access={access}
+                equipmentIncludedLabel={equipmentIncludedLabel}
+                equipmentNote={isCuratedListing ? "Indicative details shared by the studio. Confirm with ContCave before your shoot." : null}
+                equipmentDisabled={isPreview || isCuratedListing}
               />
               <div className="order-first mb-10 md:order-last md:col-span-3">
                 {isOwnListing ? (
@@ -469,6 +503,7 @@ function ListingClient({
                     disabled={isPreview}
                     contcaveNote={listing.contcaveNote}
                     maximumPax={listing.maximumPax}
+                    includedEquipmentLabel={includedEquipmentLabel}
                     trackingStudio={{ id: listing.id, name: listing.title, category: kindLabel, city: listing.locationValue }}
                     currentUserEmail={currentUser?.email ?? null}
                   />

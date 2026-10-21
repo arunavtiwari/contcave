@@ -13,6 +13,7 @@ interface ListingCardContentProps {
     locationLabel: string;
     carpetArea?: number;
     maximumPax?: number;
+    lightsIncluded?: boolean;
     ratingValue?: number;
     reviewCount?: number;
     showRating?: boolean;
@@ -26,6 +27,7 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
     locationLabel,
     carpetArea,
     maximumPax,
+    lightsIncluded,
     ratingValue,
     reviewCount,
     showRating,
@@ -84,6 +86,10 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
                     className="text-[13px] leading-snug line-clamp-2 min-h-9"
                 />
             </Link>
+
+            {lightsIncluded && (
+                <Pill label="Lights included" variant="success" size="xs" className="mt-1.5" />
+            )}
 
         </div>
     );

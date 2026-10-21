@@ -42,6 +42,7 @@ export interface ListingCardData {
   listingType?: "STANDARD" | "CURATED";
   priceRangeMin?: number | null;
   priceRangeMax?: number | null;
+  lightsIncluded?: boolean;
   slug?: string | null;
   href?: string;
 }
@@ -197,6 +198,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
           locationLabel={locationLabel}
           carpetArea={data?.carpetArea ?? undefined}
           maximumPax={data?.maximumPax ?? undefined}
+          lightsIncluded={Boolean(data?.lightsIncluded)}
           ratingValue={ratingValue}
           reviewCount={data?.reviewCount}
           showRating={showRating}

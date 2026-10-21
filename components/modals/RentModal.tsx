@@ -13,14 +13,18 @@ import React, {
 import { FieldPath, Resolver, SubmitHandler, useForm } from "react-hook-form";
 
 import { createListingAction } from "@/app/actions/listingActions";
+import AccessEditor from "@/components/inputs/AccessEditor";
+import EquipmentEditor from "@/components/inputs/EquipmentEditor";
 import { ListingDetails } from "@/components/inputs/OtherListingDetails";
 import { SetEditorItem } from "@/components/inputs/SetsEditor";
 import { VerificationDocument, VerificationPayload } from "@/components/inputs/SpaceVerification";
 import { SignatureMeta, TermsRef } from "@/components/inputs/TermsAndConditions";
 import Modal from "@/components/modals/Modal";
+import Heading from "@/components/ui/Heading";
 import { toast } from "@/components/ui/Toast";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useUIStore from "@/hooks/useUIStore";
+import type { EquipmentItem } from "@/lib/listing/equipment";
 import { listingLocationIssues, listingLocationValue } from "@/lib/listing/location";
 import { collectUploadedMediaRefs, uploadListingMedia } from "@/lib/listing/mediaUpload";
 import { isRichTextEmpty } from "@/lib/richText";
@@ -67,6 +71,8 @@ enum STEPS {
   PACKAGES,
   VERIFICATION,
   TERMS,
+  EQUIPMENT,
+  ACCESS,
 }
 
 const STEP_TEST_IDS: Record<STEPS, string> = {
@@ -84,6 +90,8 @@ const STEP_TEST_IDS: Record<STEPS, string> = {
   [STEPS.PACKAGES]: "packages",
   [STEPS.VERIFICATION]: "verification",
   [STEPS.TERMS]: "terms",
+  [STEPS.EQUIPMENT]: "equipment",
+  [STEPS.ACCESS]: "access",
 };
 
 const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED", isContcave: boolean) => {
@@ -92,9 +100,11 @@ const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED", i
       ...(isContcave ? [STEPS.LISTING_TYPE] : []),
       STEPS.CATEGORY,
       STEPS.LOCATION,
+      STEPS.ACCESS,
       STEPS.IMAGES,
       STEPS.DESCRIPTION,
       STEPS.AMENITIES,
+      STEPS.EQUIPMENT,
       STEPS.OTHERDETAILS,
       STEPS.CUSTOMTERMS,
     ];
@@ -103,11 +113,13 @@ const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED", i
     ...(isContcave ? [STEPS.LISTING_TYPE] : []),
     STEPS.CATEGORY,
     STEPS.LOCATION,
+    STEPS.ACCESS,
     STEPS.IMAGES,
     STEPS.VIDEO,
     STEPS.DESCRIPTION,
     STEPS.AMENITIES,
-    STEPS.ADDONS,
+    // Paid equipment is what guests add to a booking, so it replaces the old Add-ons step.
+    STEPS.EQUIPMENT,
     STEPS.OTHERDETAILS,
     STEPS.CUSTOMTERMS,
     ...(hasSets ? [STEPS.SETS] : []),
@@ -237,6 +249,9 @@ export default function RentModal({
       amenities: [],
       otherAmenities: [],
       addons: [],
+      equipmentPolicy: null,
+      equipment: [],
+      access: null,
       type: [],
       venueTypes: [],
       aesthetics: [],
@@ -287,6 +302,9 @@ export default function RentModal({
   const terms = watch("terms");
   const signature = watch("agreementSignature");
   const otherAmenities = watch("otherAmenities");
+  const equipmentPolicy = watch("equipmentPolicy") ?? null;
+  const equipmentItems = watch("equipment");
+  const accessDetails = watch("access") ?? null;
   const customTerms = watch("customTerms");
   const listingDetails = useMemo<ListingDetails>(() => ({
     carpetArea: carpetArea || 0,
@@ -582,6 +600,19 @@ export default function RentModal({
     return trigger("packages");
   }, [trigger]);
 
+  const equipmentErrors = errors.equipment as unknown as Array<{ name?: { message?: string }; price?: { message?: string } } | undefined> | undefined;
+  const equipmentError = Array.isArray(equipmentErrors)
+    ? equipmentErrors.map((item) => item?.name?.message || item?.price?.message).find(Boolean)
+    : (errors.equipment as { message?: string } | undefined)?.message;
+
+  const validateEquipmentStep = useCallback(async () => {
+    return trigger(["equipmentPolicy", "equipment"]);
+  }, [trigger]);
+
+  const validateAccessStep = useCallback(async () => {
+    return trigger("access");
+  }, [trigger]);
+
   const validateCustomTermsStep = useCallback(async () => {
     return trigger("customTerms");
   }, [trigger]);
@@ -693,6 +724,48 @@ export default function RentModal({
           />
         ),
       },
+      [STEPS.EQUIPMENT]: {
+        id: STEPS.EQUIPMENT,
+        modalTitle: "List Your Space",
+        actionLabel: "Next",
+        validate: validateEquipmentStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading
+              title="Equipment"
+              subtitle="Tell guests what gear comes with a booking, what they can add for a price, and what's available on request"
+              variant="h5"
+            />
+            <EquipmentEditor
+              value={{ policy: equipmentPolicy, items: equipmentItems ?? [] }}
+              onChange={({ policy, items }) => {
+                setValue("equipmentPolicy", policy, { shouldDirty: true });
+                setValue("equipment", items as RentModalFormValues["equipment"], { shouldDirty: true, shouldValidate: Boolean(errors.equipment) });
+              }}
+              error={equipmentError}
+            />
+          </div>
+        ),
+      },
+      [STEPS.ACCESS]: {
+        id: STEPS.ACCESS,
+        modalTitle: isCurated ? "List Curated Space" : "List Your Space",
+        actionLabel: "Next",
+        validate: validateAccessStep,
+        render: () => (
+          <div className="flex flex-col gap-4">
+            <Heading
+              title="Access and load-in"
+              subtitle="Help crews plan how they'll bring gear in. Skip anything you're not sure about"
+              variant="h5"
+            />
+            <AccessEditor
+              value={accessDetails}
+              onChange={(access) => setValue("access", access as RentModalFormValues["access"], { shouldDirty: true, shouldValidate: Boolean(errors.access) })}
+            />
+          </div>
+        ),
+      },
       [STEPS.OTHERDETAILS]: {
         id: STEPS.OTHERDETAILS,
         modalTitle: isCurated ? "List Curated Space" : "List Your Space",
@@ -745,6 +818,7 @@ export default function RentModal({
             sets={sets as SetEditorItem[]}
             setValue={setValue as never}
             error={packagesError}
+            equipmentItems={(equipmentItems ?? []) as EquipmentItem[]}
           />
         ),
       },
@@ -778,6 +852,12 @@ export default function RentModal({
       },
     }),
     [
+      accessDetails,
+      equipmentError,
+      equipmentItems,
+      equipmentPolicy,
+      validateAccessStep,
+      validateEquipmentStep,
       actualLocation,
       additionalSetPricingType,
       addressError,
@@ -876,6 +956,9 @@ export default function RentModal({
       amenities: [],
       otherAmenities: [],
       addons: [],
+      equipmentPolicy: null,
+      equipment: [],
+      access: null,
       type: [],
       venueTypes: [],
       aesthetics: [],
@@ -1029,6 +1112,9 @@ export default function RentModal({
         amenities: Array.isArray(data.amenities) ? data.amenities : [],
         otherAmenities: Array.isArray(data.otherAmenities) ? data.otherAmenities : [],
         addons: mediaResults.addons,
+        equipmentPolicy: data.equipmentPolicy ?? null,
+        equipment: data.equipment ?? [],
+        access: data.access ?? null,
         carpetArea: data.carpetArea || 0,
         operationalHours: (data.operationalHours?.start && data.operationalHours?.end) ? {
           start: String(data.operationalHours.start),

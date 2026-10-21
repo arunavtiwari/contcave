@@ -156,6 +156,9 @@ export function usePropertyEdit(listing: FullListing, predefinedAddons: Addon[])
       addIfChanged("contactEmail", initialListing.contactEmail, originalListing.contactEmail);
       addIfChanged("amenities", initialListing.amenities, originalListing.amenities);
       addIfChanged("otherAmenities", initialListing.otherAmenities, originalListing.otherAmenities);
+      addIfChanged("equipmentPolicy", initialListing.equipmentPolicy ?? null, originalListing.equipmentPolicy ?? null);
+      addIfChanged("equipment", initialListing.equipment ?? [], originalListing.equipment ?? []);
+      addIfChanged("access", initialListing.access ?? null, originalListing.access ?? null);
       addIfChanged("type", initialListing.type, originalListing.type);
       addIfChanged("venueTypes", initialListing.venueTypes, originalListing.venueTypes);
       addIfChanged("aesthetics", initialListing.aesthetics, originalListing.aesthetics);

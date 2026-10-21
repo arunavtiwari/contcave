@@ -15,6 +15,10 @@ export function curatedEnquiryMessage(studioName: string, area: string): string 
     return `Hi ContCave, I'm interested in ${studioName} in ${area}. Could you share pricing details and availability?`;
 }
 
+export function equipmentRequestMessage(studioName: string, itemName: string): string {
+    return `Hi ContCave, I'm looking at ${studioName}. Is the ${itemName} available on request, and what would it cost?`;
+}
+
 export function previewLinkExpiredMessage(studioName: string): string {
     return `Hi ContCave, my preview link for ${studioName} has expired. Could you send me a new one?`;
 }

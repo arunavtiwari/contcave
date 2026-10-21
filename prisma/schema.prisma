@@ -208,6 +208,54 @@ type GeoPoint {
   coordinates Float[]
 }
 
+/// One piece of gear a listing offers. Paid items double as booking add-ons (see lib/listing/equipment.ts).
+type ListingEquipmentItem {
+  id            String
+  name          String
+  /// lighting | modifiers | backdrops | grip | audio | camera | props | crew | other
+  category      String
+  quantity      Int     @default(1)
+  /// included | paid | on_request
+  pricing       String
+  /// INR, only when pricing = paid
+  price         Int?
+  /// per_booking | per_hour
+  priceUnit     String?
+  /// Mirrors the old add-on "Only N available" cap
+  availableQty  Int?
+  image         String?
+  /// Original add-on id, kept so past bookings that reference it still resolve
+  legacyAddonId String?
+  sortOrder     Int     @default(0)
+}
+
+/// How crews physically get in. Every field is optional: null means unknown and is hidden, never shown as "no".
+type ListingAccess {
+  /// 0 = ground, -1 = basement
+  floor         Int?
+  /// none | passenger | goods
+  lift          String?
+  /// free_onsite | paid_onsite | street | none
+  parking       String?
+  vehicleLoadIn Boolean?
+  loadInNote    String?
+}
+
+type ListingDetailsStatus {
+  /// missing | extracted | confirmed
+  equipment   String?
+  /// missing | extracted | confirmed
+  access      String?
+  confirmedAt DateTime?
+  /// owner | ops
+  confirmedBy String?
+}
+
+type PackageEquipmentRef {
+  equipmentId String
+  quantity    Int    @default(1)
+}
+
 model Listing {
   id                       String                    @id @default(auto()) @map("_id") @db.ObjectId
   title                    String
@@ -268,6 +316,13 @@ model Listing {
 
   blocks                   ListingBlock[]
 
+  // Equipment and access (null / absent = unknown; the UI hides unknown data)
+  /// all_bookings | packages_only | none
+  equipmentPolicy          String?
+  equipment                ListingEquipmentItem[]
+  access                   ListingAccess?
+  detailsStatus            ListingDetailsStatus?
+
   // Curated listing fields
   listingType              ListingType               @default(STANDARD)
   curatedSource            String?
@@ -301,6 +356,7 @@ model Package {
   requiredSetCount Int?
 
   fixedAddOn       Int?
+  includedEquipment PackageEquipmentRef[]
   eligibleSetIds   String[] @db.ObjectId
   isActive         Boolean  @default(true)
   listingId        String   @db.ObjectId

@@ -12,7 +12,9 @@ import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import getReviews from "@/app/actions/getReviews";
 import { checkBookingAction } from "@/app/actions/reservationActions";
+import AccessDetails from "@/components/listing/AccessDetails";
 import AddonsList from "@/components/listing/AddonList";
+import EquipmentSection from "@/components/listing/EquipmentSection";
 import ListingCategory from "@/components/listing/ListingCategory";
 import Offers from "@/components/listing/Offers";
 import PackageList from "@/components/listing/PackageList";
@@ -28,6 +30,7 @@ import StarRating from "@/components/ui/StarRating";
 import Textarea from "@/components/ui/Textarea";
 import useCities from "@/hooks/useCities";
 import { isLatLng } from "@/lib/geo";
+import type { EquipmentItem, EquipmentPolicy, ListingAccess } from "@/lib/listing/equipment";
 import type { WholeStudioSuggestion } from "@/lib/pricing";
 import { getPlainTextFromHTML, isRichTextEmpty } from "@/lib/richText";
 import { formatISTDate } from "@/lib/utils";
@@ -85,6 +88,14 @@ type Props = {
   processedDescription?: string | null;
   processedTerms?: string | null;
   descriptionShouldTruncate?: boolean;
+
+  /** Structured equipment visible to this viewer; null keeps the legacy Add-ons block. */
+  equipment?: { policy: EquipmentPolicy | null; items: EquipmentItem[] } | null;
+  /** Structured access details visible to this viewer; null shows nothing extra. */
+  access?: ListingAccess | null;
+  equipmentIncludedLabel?: string;
+  equipmentNote?: string | null;
+  equipmentDisabled?: boolean;
 };
 
 function ListingInfo({
@@ -110,7 +121,12 @@ function ListingInfo({
   isSetSelectionDisabled = false,
   processedDescription,
   processedTerms,
-  descriptionShouldTruncate
+  descriptionShouldTruncate,
+  equipment = null,
+  access = null,
+  equipmentIncludedLabel = "Included",
+  equipmentNote = null,
+  equipmentDisabled = false,
 }: Props) {
   const { getByValue } = useCities();
   const coordinates = getByValue(locationValue)?.latlng;
@@ -383,7 +399,21 @@ function ListingInfo({
         </>
       )}
 
-      {Array.isArray(fullListing.addons) && fullListing.addons.length > 0 && (
+      {equipment ? (
+        <>
+          <EquipmentSection
+            policy={equipment.policy}
+            items={equipment.items}
+            studioName={fullListing.title}
+            includedLabel={equipmentIncludedLabel}
+            note={equipmentNote}
+            onAddonsChange={relayAddons}
+            disabled={equipmentDisabled}
+          />
+          <Divider />
+        </>
+      ) : Array.isArray(fullListing.addons) && fullListing.addons.length > 0 && (
+        // Legacy Add-ons block, kept until this listing's equipment is migrated.
         <>
           <AddonsList addons={fullListing.addons} onChange={relayAddons} addonList={addonList} />
           <Divider />
@@ -400,6 +430,7 @@ function ListingInfo({
               }}
               selectedPackageId={selectedPackage?.id}
               hasSets={fullListing.hasSets}
+              equipmentItems={equipment?.items}
             />
           </section>
           <Divider />
@@ -409,6 +440,7 @@ function ListingInfo({
       <div className="flex flex-col gap-4">
         <Heading title="Where you'll be" variant="h5" />
         <Map center={getValidCenter() as [number, number] | undefined} />
+        {access && <AccessDetails access={access} />}
       </div>
 
       <Divider />

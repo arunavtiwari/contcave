@@ -8,6 +8,7 @@ import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/
 import { checkBookingSlot, parseTimeToMinutes } from "@/lib/availability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { getClientIp } from "@/lib/http/requestMeta";
+import { bookableAddons } from "@/lib/listing/equipment";
 import { addGst, calculateSetPricing, validateSetSelection } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
@@ -232,9 +233,13 @@ export async function POST(req: NextRequest) {
         const requestedAddons = sanitizeAddons(data.selectedAddons);
         let addonsSum = 0;
 
-        const listingAddons = Array.isArray(listing.addons)
-            ? (listing.addons as Array<{ id?: string; name?: string; price?: number; qty?: number }>)
-            : [];
+        // Paid equipment books as add-ons too; migrated items keep their original add-on id.
+        const listingAddons = bookableAddons(
+            Array.isArray(listing.addons)
+                ? (listing.addons as Array<{ id?: string; name?: string; price?: number; qty?: number }>)
+                : [],
+            listing.equipment
+        );
         const selectedAddons = new Map<string, {
             id?: string;
             name: string;

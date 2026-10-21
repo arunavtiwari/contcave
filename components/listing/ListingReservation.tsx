@@ -99,6 +99,8 @@ type Props = {
   contcaveNote?: string | null;
   maximumPax?: number | null;
   trackingStudio?: TrackedStudio;
+  /** e.g. "Lighting kit (3 lights)" when this booking comes with included gear. */
+  includedEquipmentLabel?: string | null;
   currentUserEmail?: string | null;
 };
 
@@ -170,6 +172,7 @@ export default function ListingReservation({
   contcaveNote = null,
   maximumPax = null,
   trackingStudio,
+  includedEquipmentLabel = null,
   currentUserEmail = null,
 }: Props) {
   const uiStore = useUIStore();
@@ -639,6 +642,12 @@ export default function ListingReservation({
           )}
           <p>{INR.format(clampRound(bookingFee))}</p>
         </div>
+        {includedEquipmentLabel && (
+          <div className="flex justify-between gap-3">
+            <p>Included equipment: {includedEquipmentLabel}</p>
+            <p>{INR.format(0)}</p>
+          </div>
+        )}
         <div className="flex justify-between">
           <p>Addons</p>
           <p>{INR.format(clampRound(addonsSum))}</p>

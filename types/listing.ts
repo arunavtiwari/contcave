@@ -130,6 +130,8 @@ export type StudioFeedItem = Pick<
 > & {
     avgReviewRating?: number;
     actualLocation: { state: string } | null;
+    /** Confirmed: equipment comes with every booking and includes at least one light. */
+    lightsIncluded?: boolean;
 };
 
 export type StudioFeedPage = {

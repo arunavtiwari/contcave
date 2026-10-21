@@ -10,5 +10,6 @@ export interface Package {
 
     fixedAddOn?: number | null;
     eligibleSetIds?: string[];
+    includedEquipment?: { equipmentId: string; quantity: number }[];
     isActive?: boolean;
 }
