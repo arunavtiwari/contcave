@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 59 | Gaming & Streaming Studio Setup for Twitch and YouTube Creators | gaming streaming studio india | content-creation | creators |
 | 60 | Studio Equipment Insurance & Damage Liability: A Host's Guide | studio insurance for hosts india | host-guides | hosts |
 | 61 | Fitness & Yoga Content Studios: What Creators Need to Shoot Workouts | fitness studio for content shoot india | studio-guides | creators |
 | 62 | Cooking & Recipe Video Studios: Kitchen Setup for Food Creators | cooking studio rental india | studio-guides | creators |
@@ -105,3 +104,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-10-26 | 35 | festive-season-studio-booking-india |
 | 2026-10-16 | 36 | voice-over-recording-studio-india |
 | 2026-10-19 | 58 | corporate-headshot-studio-india |
+| 2026-10-21 | 59 | gaming-streaming-studio-india |
