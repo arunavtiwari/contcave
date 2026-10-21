@@ -69,6 +69,7 @@ async function Footer() {
               <p className="text-lg font-bold text-foreground">Support</p>
               <Link rel="noopener noreferrer" target="_blank" href="https://great-nova-7ea.notion.site/26d01ecdcb528023ad9fffbb25a4f65a?v=26d01ecdcb5280399b81000c9996a2e7" className="text-muted-foreground hover:text-foreground transition-all text-sm">For Studio Owners</Link>
               <Link href="/cancellation" className="text-muted-foreground hover:text-foreground transition-all text-sm">Cancellation Policy</Link>
+              <Link href="/verified-vs-curated" className="text-muted-foreground hover:text-foreground transition-all text-sm">Verified vs Curated</Link>
               <EmailShield email="info@contcave.com" className="text-muted-foreground hover:text-foreground transition-all text-sm">Contact Us</EmailShield>
             </div>
 

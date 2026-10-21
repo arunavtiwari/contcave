@@ -10,7 +10,6 @@ import {
   cityTrail,
   describeCity,
   findCity,
-  venueTypeLinks,
 } from "@/lib/listing/cities";
 import { cityPath } from "@/lib/listing/cityPaths";
 import { cityCollectionJsonLd, collectionMetadata, UNPUBLISHED_COLLECTION_METADATA } from "@/lib/listing/seo";
@@ -52,7 +51,6 @@ export default async function CityStudiosPage(props: { params: Promise<RoutePara
       <StudioBrowse
         title={title}
         city={entry.city}
-        venueTypeHrefs={venueTypeLinks(entry)}
         feed={<ListingFeed key={feed.key} page={feed.page} filters={feed.filters} currentUser={currentUser} />}
       />
     </>

@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { IconType } from "react-icons";
-import { IoMdClose } from "react-icons/io";
 import { LuCheck, LuCookie, LuSettings, LuShieldCheck } from "react-icons/lu";
 
 import { useConsent } from "@/components/providers/ConsentProvider";
@@ -13,7 +12,7 @@ import Switch from "@/components/ui/Switch";
 import { cn } from "@/lib/utils";
 
 const CookieConsentBanner = () => {
-    const { consent, isInitialized, updateConsent, acceptAll, declineAll } = useConsent();
+    const { consent, isInitialized, updateConsent, acceptAll } = useConsent();
     const [isVisible, setIsVisible] = useState(false);
     const [isManaging, setIsManaging] = useState(false);
     const [tempConsent, setTempConsent] = useState(consent);
@@ -45,11 +44,6 @@ const CookieConsentBanner = () => {
         setIsVisible(false);
     };
 
-    const handleDeclineAll = () => {
-        declineAll();
-        setIsVisible(false);
-    };
-
     const toggleType = (type: keyof typeof tempConsent) => {
         if (type === "necessary") return;
         setTempConsent((prev) => ({ ...prev, [type]: !prev[type] }));
@@ -63,58 +57,33 @@ const CookieConsentBanner = () => {
                     animate={{ y: 0, opacity: 1, scale: 1 }}
                     exit={{ y: 100, opacity: 0, scale: 0.95 }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:max-w-120 z-9999"
+                    // Compact and anchored bottom-left so it never covers the WhatsApp / scroll buttons
+                    // pinned bottom-right; on phones it stops short of that column.
+                    className="fixed bottom-4 left-4 right-20 z-9999 md:bottom-6 md:left-6 md:right-auto md:max-w-sm"
+                    role="dialog"
+                    aria-label="Cookie preferences"
                 >
-                    <div className="relative overflow-hidden bg-background/70 backdrop-blur-md border border-border/50 rounded-2xl shadow-sm p-4">
+                    <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-background/70 p-4 shadow-sm backdrop-blur-md">
                         <div className="relative z-10">
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="p-2 bg-foreground/5 rounded-lg text-foreground ring-1 ring-foreground/20">
-                                    <LuCookie size={24} className="animate-pulse" />
-                                </div>
-                                <div className="w-full">
-                                    <Heading
-                                        title="Cookie Preference"
-                                        variant="h5"
-                                        subtitle="Privacy Control Center"
-                                        subtitleClassName="text-foreground/60!"
-                                    />
-                                </div>
-                                <Button
-                                    icon={IoMdClose}
-                                    variant="ghost"
-                                    rounded
-                                    onClick={() => setIsVisible(false)}
-                                    size="sm"
-                                    fit
-                                    className="h-fit! mb-3!"
-                                />
-                            </div>
-
                             {!isManaging ? (
                                 <>
-                                    <p className="text-foreground/60 text-sm leading-relaxed mb-6 text-center">
-                                        We use premium cookies to enhance your journey, serve personalized experiences, and analyze our traffic. Your data security is our priority.
-                                    </p>
-                                    <div className="flex flex-col gap-5">
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <Button
-                                                label="Accept All"
-                                                onClick={handleAcceptAll}
-                                            />
-                                            <Button
-                                                label="Manage"
-                                                variant="outline"
-                                                icon={LuSettings}
-                                                onClick={() => setIsManaging(true)}
-                                            />
-                                        </div>
+                                    <div className="mb-1.5 flex items-center gap-2">
+                                        <LuCookie size={18} className="shrink-0 text-foreground/80" aria-hidden="true" />
+                                        <p className="text-sm font-semibold text-foreground">Cookie Preferences</p>
+                                    </div>
+                                    <div className="mb-3">
+                                        <p className="text-xs leading-relaxed text-foreground/70">
+                                            We use cookies to run the site, understand traffic and measure our ads. Choose what you&apos;re happy with.
+                                        </p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Button label="Accept all" size="sm" onClick={handleAcceptAll} />
                                         <Button
-                                            label="Decline non-essential"
-                                            variant="ghost"
+                                            label="Manage"
                                             size="sm"
-                                            fit
-                                            onClick={handleDeclineAll}
-                                            className="text-muted-foreground hover:text-foreground text-xs font-semibold underline underline-offset-4 mx-auto h-fit!"
+                                            variant="outline"
+                                            icon={LuSettings}
+                                            onClick={() => setIsManaging(true)}
                                         />
                                     </div>
                                 </>

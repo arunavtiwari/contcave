@@ -106,13 +106,21 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
       }
     };
 
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    };
+
     document.addEventListener("pointerdown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
     window.addEventListener("resize", scheduleCoordsUpdate);
     window.addEventListener("scroll", scheduleCoordsUpdate, true);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
       document.removeEventListener("pointerdown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
       window.removeEventListener("resize", scheduleCoordsUpdate);
       window.removeEventListener("scroll", scheduleCoordsUpdate, true);
     };
@@ -145,6 +153,8 @@ const UserMenu = memo(function UserMenu({ currentUser }: Props) {
           ref={triggerRef}
           onClick={toggleOpen}
           aria-label="Open user menu"
+          aria-expanded={isOpen}
+          aria-haspopup="menu"
           variant="ghost"
           size="md"
           outline

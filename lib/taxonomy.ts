@@ -7,6 +7,8 @@
 export interface TaxonomyItem {
   slug: string;
   label: string;
+  /** Optional heading the pickers group options under. Never stored. */
+  group?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -22,6 +24,7 @@ export const USE_CASES: TaxonomyItem[] = [
   { slug: "podcast_interview", label: "Podcast & Interview" },
   { slug: "ugc_reels", label: "UGC & Reels" },
   { slug: "event_party", label: "Events & Pop-Ups" },
+  { slug: "workshop_class", label: "Workshops & Classes" },
   { slug: "sound_recording", label: "Music Recording" },
 ];
 
@@ -46,10 +49,9 @@ export const USE_CASE_LEGACY_MAP: Record<string, string | null> = {
   "Film & Music Video Shoot": "Video & Film",
   "Brand Campaign Shoot": "Video & Film",
   "Pre-Wedding Shoot": "Pre-Wedding",
-  "Workshops & Classes": "Events & Pop-Ups",
   "Events & Pop-Ups": "Events & Pop-Ups",
   // legacy single-word slugs (service.ts legacyTypeMap)
-  Workshop: "Events & Pop-Ups",
+  Workshop: "Workshops & Classes",
   Podcast: "Podcast & Interview",
   Interview: "Podcast & Interview",
   Meeting: null, // drop
@@ -117,6 +119,17 @@ export const AESTHETICS: TaxonomyItem[] = [
   { slug: "dark_moody", label: "Dark & Moody" },
   { slug: "natural_greenery", label: "Natural & Greenery" },
   { slug: "editorial_architectural", label: "Editorial & Architectural" },
+  { slug: "scandinavian", label: "Scandinavian" },
+  { slug: "japandi", label: "Japandi" },
+  { slug: "mediterranean", label: "Mediterranean" },
+  { slug: "art_deco", label: "Art Deco" },
+  { slug: "royal_heritage", label: "Royal & Heritage" },
+  { slug: "tropical", label: "Tropical" },
+  { slug: "monochrome", label: "Monochrome" },
+  { slug: "cottagecore", label: "Cottagecore" },
+  { slug: "futuristic_neon", label: "Futuristic & Neon" },
+  { slug: "corporate_professional", label: "Corporate & Professional" },
+  { slug: "playful_kids", label: "Playful & Kids" },
 ];
 
 export const AESTHETIC_LABELS = AESTHETICS.map((a) => a.label) as [
@@ -127,24 +140,52 @@ export const AESTHETIC_LABELS = AESTHETICS.map((a) => a.label) as [
 // ---------------------------------------------------------------------------
 // Axis 4a — Set features  (stored in Listing.setFeatures and ListingSet.setFeatures)
 // ---------------------------------------------------------------------------
+// Labels are stored on listings and sets, so existing labels must never be renamed or removed;
+// new options are appended. `group` only controls how pickers lay them out.
 export const SET_FEATURES: TaxonomyItem[] = [
-  { slug: "cyclorama", label: "Cyclorama" },
-  { slug: "infinity_white_cyc", label: "Infinity White Cyc" },
-  { slug: "green_screen", label: "Green Screen" },
-  { slug: "natural_light", label: "Natural Light" },
-  { slug: "blackout_controllable", label: "Blackout / Controllable" },
-  { slug: "skylight", label: "Skylight" },
-  { slug: "paper_backdrops", label: "Paper Backdrops" },
-  { slug: "coloured_backdrops", label: "Coloured Backdrops" },
-  { slug: "printed_backdrops", label: "Printed Backdrops" },
-  { slug: "high_ceilings", label: "High Ceilings" },
-  { slug: "exposed_brick", label: "Exposed Brick" },
-  { slug: "white_walls", label: "White Walls" },
-  { slug: "wooden_panels", label: "Wooden Panels" },
-  { slug: "hardwood_floor", label: "Hardwood Floor" },
-  { slug: "concrete_floor", label: "Concrete Floor" },
-  { slug: "open_floor_plan", label: "Open Floor Plan" },
-  { slug: "raw_space", label: "Raw Space" },
+  // Lifestyle sets
+  { slug: "kitchen_set", label: "Kitchen", group: "Lifestyle sets" },
+  { slug: "living_room_set", label: "Living Room", group: "Lifestyle sets" },
+  { slug: "bedroom_set", label: "Bedroom", group: "Lifestyle sets" },
+  { slug: "dining_set", label: "Dining", group: "Lifestyle sets" },
+  { slug: "bathroom_vanity_set", label: "Bathroom / Vanity", group: "Lifestyle sets" },
+  { slug: "study_library_set", label: "Study / Library", group: "Lifestyle sets" },
+  { slug: "home_office_set", label: "Home Office", group: "Lifestyle sets" },
+  { slug: "kids_room_set", label: "Kids' Room", group: "Lifestyle sets" },
+  { slug: "cafe_bar_counter", label: "Café / Bar Counter", group: "Lifestyle sets" },
+  { slug: "boutique_retail_set", label: "Boutique / Retail", group: "Lifestyle sets" },
+  { slug: "office_boardroom_set", label: "Office / Boardroom", group: "Lifestyle sets" },
+  { slug: "heritage_royal_set", label: "Heritage / Royal", group: "Lifestyle sets" },
+  { slug: "pool_set", label: "Pool", group: "Lifestyle sets" },
+  { slug: "garden_set", label: "Garden", group: "Lifestyle sets" },
+  { slug: "rooftop_terrace_set", label: "Rooftop / Terrace", group: "Lifestyle sets" },
+  // Backdrops and walls
+  { slug: "infinity_white_cyc", label: "Infinity White Cyc", group: "Backdrops & walls" },
+  { slug: "cyclorama", label: "Cyclorama", group: "Backdrops & walls" },
+  { slug: "coloured_backdrops", label: "Coloured Backdrops", group: "Backdrops & walls" },
+  { slug: "green_screen", label: "Green Screen", group: "Backdrops & walls" },
+  { slug: "paper_backdrops", label: "Paper Backdrops", group: "Backdrops & walls" },
+  { slug: "printed_backdrops", label: "Printed Backdrops", group: "Backdrops & walls" },
+  { slug: "white_walls", label: "White Walls", group: "Backdrops & walls" },
+  { slug: "textured_wall", label: "Textured Wall", group: "Backdrops & walls" },
+  { slug: "exposed_brick", label: "Exposed Brick", group: "Backdrops & walls" },
+  { slug: "wooden_panels", label: "Wooden Panels", group: "Backdrops & walls" },
+  { slug: "arches", label: "Arches", group: "Backdrops & walls" },
+  // Light
+  { slug: "natural_light", label: "Natural Light", group: "Light" },
+  { slug: "skylight", label: "Skylight", group: "Light" },
+  { slug: "blackout_controllable", label: "Blackout / Controllable", group: "Light" },
+  { slug: "large_windows", label: "Large Windows", group: "Light" },
+  // Space (flooring and raw space are kept because listings already use them)
+  { slug: "multiple_sets", label: "Multiple Sets", group: "Space" },
+  { slug: "movable_walls", label: "Movable Walls", group: "Space" },
+  { slug: "high_ceilings", label: "High Ceilings", group: "Space" },
+  { slug: "open_floor_plan", label: "Open Floor Plan", group: "Space" },
+  { slug: "outdoor_area", label: "Outdoor Area", group: "Space" },
+  { slug: "ground_floor_vehicle_access", label: "Ground Floor / Vehicle Access", group: "Space" },
+  { slug: "raw_space", label: "Raw Space", group: "Space" },
+  { slug: "hardwood_floor", label: "Hardwood Floor", group: "Space" },
+  { slug: "concrete_floor", label: "Concrete Floor", group: "Space" },
 ];
 
 export const SET_FEATURE_LABELS = SET_FEATURES.map((f) => f.label) as [

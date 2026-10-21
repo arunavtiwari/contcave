@@ -11,9 +11,8 @@ import {
   cityTrail,
   describeCityCategory,
   findCity,
-  venueTypeLinks,
 } from "@/lib/listing/cities";
-import { cityCategoryPath, cityPath } from "@/lib/listing/cityPaths";
+import { cityCategoryPath } from "@/lib/listing/cityPaths";
 import { cityCollectionJsonLd, collectionMetadata, UNPUBLISHED_COLLECTION_METADATA } from "@/lib/listing/seo";
 import { loadStudioFeed } from "@/lib/listing/studioFeed";
 
@@ -53,12 +52,6 @@ export default async function CityCategoryPage(props: { params: Promise<RoutePar
   const title = titleFor(category, entry.city);
   const trail = [...cityTrail(entry.city), { name: category.name }];
 
-  const activeVenueType = category.venueTypes?.[0];
-  const venueTypeHrefs = {
-    ...venueTypeLinks(entry),
-    ...(activeVenueType ? { [activeVenueType]: cityPath(entry.city) } : {}),
-  };
-
   return (
     <>
       <JsonLd
@@ -75,8 +68,6 @@ export default async function CityCategoryPage(props: { params: Promise<RoutePar
       <StudioBrowse
         title={title}
         city={entry.city}
-        venueTypeHrefs={venueTypeHrefs}
-        activeVenueType={activeVenueType}
         feed={<ListingFeed key={feed.key} page={feed.page} filters={feed.filters} currentUser={currentUser} />}
       />
     </>

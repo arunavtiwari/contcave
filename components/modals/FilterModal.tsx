@@ -131,15 +131,22 @@ const FilterModalContent = ({ city }: Props) => {
       </section>
 
       <section className="pt-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Space Features</p>
-        <div className="flex flex-wrap gap-2">
-          {SET_FEATURES.map((f) => (
-            <Pill
-              key={f.slug}
-              label={f.label}
-              variant={selectedSetFeatures.includes(f.label) ? "solid" : "secondary"}
-              onClick={() => toggle(f.label, selectedSetFeatures, setSelectedSetFeatures)}
-            />
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Sets & Space Features</p>
+        <div className="flex flex-col gap-4">
+          {Array.from(new Set(SET_FEATURES.map((f) => f.group ?? "Other"))).map((group) => (
+            <div key={group} className="flex flex-col gap-2">
+              <p className="text-xs text-muted-foreground">{group}</p>
+              <div className="flex flex-wrap gap-2">
+                {SET_FEATURES.filter((f) => (f.group ?? "Other") === group).map((f) => (
+                  <Pill
+                    key={f.slug}
+                    label={f.label}
+                    variant={selectedSetFeatures.includes(f.label) ? "solid" : "secondary"}
+                    onClick={() => toggle(f.label, selectedSetFeatures, setSelectedSetFeatures)}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </section>

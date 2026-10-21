@@ -120,7 +120,7 @@ export const listingSetSchema = z.object({
     price: z.number().int().min(1, "Set price must be at least ₹1").max(10000000, "Price exceeds limit"),
     position: z.number().int().optional(),
     aesthetics: z.array(z.enum(AESTHETIC_LABELS)).max(6).optional().default([]),
-    setFeatures: z.array(z.enum(SET_FEATURE_LABELS)).max(17).optional().default([]),
+    setFeatures: z.array(z.enum(SET_FEATURE_LABELS)).max(SET_FEATURE_LABELS.length).optional().default([]),
 });
 
 
@@ -264,7 +264,7 @@ export const listingBaseSchema = z.object({
     type: z.array(z.enum(USE_CASE_LABELS)).max(20).optional(),
     venueTypes: z.array(z.enum(VENUE_TYPE_LABELS)).max(7).optional().default([]),
     aesthetics: z.array(z.enum(AESTHETIC_LABELS)).max(6).optional().default([]),
-    setFeatures: z.array(z.enum(SET_FEATURE_LABELS)).max(17).optional().default([]),
+    setFeatures: z.array(z.enum(SET_FEATURE_LABELS)).max(SET_FEATURE_LABELS.length).optional().default([]),
 
 
     instantBooking: z.boolean().default(false),
@@ -442,6 +442,10 @@ export const studioFeedFiltersSchema = z.object({
     near: z.tuple([z.number(), z.number()]).refine(isLatLng, "Invalid location").optional(),
     radiusKm: z.number().min(1).max(200).optional(),
     studioCategory: feedTermSchema.optional(),
+    /** "What's the shoot?" filter, e.g. "backdrop" (see lib/listing/shootPurposes.ts). */
+    purpose: feedTermSchema.optional(),
+    /** Server-resolved: listings whose sets match the purpose. Never read from the URL. */
+    purposeSetListingIds: z.array(objectIdSchema).optional(),
 });
 
 export type StudioFeedFilters = z.infer<typeof studioFeedFiltersSchema>;
@@ -479,6 +483,7 @@ export const studioFeedSearchParamsSchema = z
         date: searchParamSchema,
         near: searchParamSchema,
         km: searchParamSchema,
+        purpose: searchParamSchema,
     })
     .transform((params): StudioFeedFilters => ({
         locationValues: searchTerms(params.locationValue),
@@ -489,6 +494,7 @@ export const studioFeedSearchParamsSchema = z
         setFeatures: searchTerms(params.setFeatures),
         hasSets: searchTerm(params.hasSets) === "true" || undefined,
         date: validDate(searchTerm(params.date)),
+        purpose: searchTerm(params.purpose),
         ...nearFilter(params.near, params.km),
     }));
 

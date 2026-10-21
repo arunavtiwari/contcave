@@ -11,7 +11,7 @@ import { type BreadcrumbItem, META_DESCRIPTION_LENGTH } from "@/lib/seo";
 import { pluralize } from "@/lib/strings";
 import { formatINR } from "@/lib/utils";
 
-import { cityCategoryPath, cityPath, citySlug } from "./cityPaths";
+import { cityPath, citySlug } from "./cityPaths";
 
 const joinList = (items: string[]) =>
   items.length < 2 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
@@ -112,13 +112,6 @@ export const publishedCategories = (entry: CityEntry) =>
   STUDIO_CATEGORIES
     .filter((category) => (entry.categoryCounts[category.slug] ?? 0) >= MIN_CATEGORY_LISTINGS)
     .sort((a, b) => entry.categoryCounts[b.slug] - entry.categoryCounts[a.slug]);
-
-export const venueTypeLinks = (entry: CityEntry): Record<string, string> =>
-  Object.fromEntries(
-    publishedCategories(entry).flatMap((category) =>
-      (category.venueTypes ?? []).map((venueType) => [venueType, cityCategoryPath(entry.city, category)])
-    )
-  );
 
 export async function findCity(slug: string) {
   return (await getCityDirectory()).find((entry) => entry.slug === slug);

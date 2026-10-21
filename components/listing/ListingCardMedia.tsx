@@ -233,7 +233,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                                     <span className="text-[10px] opacity-70">/ hr</span>
                                 </>
                             ) : (
-                                <span className="text-xs">Price on Demand</span>
+                                <span className="text-xs">Enquire</span>
                             )
                         ) : (
                             <>

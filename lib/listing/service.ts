@@ -15,6 +15,7 @@ import {
     type PackageEquipmentRef,
     validPackageEquipment,
 } from "@/lib/listing/equipment";
+import { findShootPurpose } from "@/lib/listing/shootPurposes";
 import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isRichTextEmpty } from "@/lib/richText";
@@ -344,7 +345,9 @@ function sanitizePublicLocation(value: unknown): ActualLocation | null {
 }
 
 export class ListingService {
-    static async getHydratableListingIds(params: { active?: boolean; status?: string } = { active: true }): Promise<string[]> {
+    static async getHydratableListingIds(
+        params: { active?: boolean; status?: string; listingType?: "STANDARD" | "CURATED" } = { active: true }
+    ): Promise<string[]> {
         const rawListings = await prisma.listing.findRaw({
             filter: hydratableListingFilter(params) as Prisma.InputJsonObject,
             options: { projection: { _id: 1 } },
@@ -1215,6 +1218,7 @@ export class ListingService {
         cursor?: string | null;
         size?: number;
     }): Promise<StudioFeedPage> {
+        filters = await this.withPurposeSetListings(filters);
         const after = cursor ? decodeFeedCursor(cursor) : null;
         const excludeIds = await this.unbookableListingIds(filters);
         const { rows, origin: appliedOrigin } = await this.queryFeedRows({ filters, origin, after, limit: size + 1, excludeIds });
@@ -1227,6 +1231,17 @@ export class ListingService {
             nearestKm: after ? null : nearestKmOf(pageRows),
             origin: appliedOrigin,
         };
+    }
+
+    /** A purpose can match on set-level features; sets are a separate collection, so look those listings up first. */
+    private static async withPurposeSetListings(filters: StudioFeedFilters): Promise<StudioFeedFilters> {
+        const purpose = findShootPurpose(filters.purpose);
+        if (!purpose?.setFeatures?.length) return { ...filters, purposeSetListingIds: undefined };
+        const sets = await prisma.listingSet.findMany({
+            where: { setFeatures: { hasSome: purpose.setFeatures } },
+            select: { listingId: true },
+        });
+        return { ...filters, purposeSetListingIds: Array.from(new Set(sets.map((set) => set.listingId))) };
     }
 
     private static async unbookableListingIds(filters: StudioFeedFilters): Promise<string[]> {
@@ -1309,7 +1324,8 @@ export class ListingService {
         limit = Number.isFinite(limit)
             ? Math.min(12, Math.max(1, Math.floor(limit)))
             : 3;
-        const hydratableIds = await this.getHydratableListingIds({ active: true, status: "VERIFIED" });
+        // Featured picks must be bookable: curated listings are enquiry-only, so they're left out.
+        const hydratableIds = await this.getHydratableListingIds({ active: true, status: "VERIFIED", listingType: "STANDARD" });
         const count = hydratableIds.length;
 
         if (count === 0) return [];

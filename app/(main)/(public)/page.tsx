@@ -9,7 +9,6 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import ProductionConcierge from "@/components/landing/ProductionConcierge";
 import SocialProof from "@/components/landing/SocialProof";
 import StudioShowcase from "@/components/landing/StudioShowcase";
-import VerifiedVsCurated from "@/components/landing/VerifiedVsCurated";
 import JsonLd from "@/components/seo/JsonLd";
 import {
   absoluteUrl,
@@ -129,9 +128,6 @@ export default async function Home() {
 
       {/* 4. Social Proof —  video + 2-row reviews, trust right after seeing the product */}
       <SocialProof />
-
-      {/* 5. Curated vs Verified —  trust/differentiation reinforcement */}
-      <VerifiedVsCurated currentUser={currentUser} />
 
       {/* 6. Production Concierge —  dark feature card + WhatsApp CTA */}
       <ProductionConcierge />

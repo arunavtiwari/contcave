@@ -6,6 +6,7 @@ import type { StudioFeedFilters } from "@/schemas/listing";
 import type { StudioFeedItem } from "@/types/listing";
 
 import { categoryMatch, findCategory } from "./categories";
+import { findShootPurpose, shootPurposeMatch } from "./shootPurposes";
 
 type MongoDocument = Record<string, unknown>;
 type RawId = string | { $oid?: unknown };
@@ -115,6 +116,8 @@ function publicListingMatch(filters: StudioFeedFilters, excludeIds: string[] = [
         const [lat, lng] = filters.near;
         clauses.push({ locationPoint: { $geoWithin: { $centerSphere: [[lng, lat], filters.radiusKm / MONGO_EARTH_RADIUS_KM] } } });
     }
+    const purpose = findShootPurpose(filters.purpose);
+    if (purpose) clauses.push(shootPurposeMatch(purpose, filters.purposeSetListingIds));
     if (filters.studioCategory) {
         const category = findCategory(filters.studioCategory);
         if (!category) throw new UserFacingError("Unknown studio category", 400);

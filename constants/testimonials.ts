@@ -29,7 +29,7 @@ export const reviews = [
   },
   {
     quote:
-      "Recieved quality clients than anything we got through social media.",
+      "Received quality clients than anything we got through social media.",
     name: "Aman",
     role: "Studio Owner · Lucknow",
     initials: "AM",

@@ -2,7 +2,7 @@ const faqData = [
   {
     id: 1,
     quest: "How does ContCave work?",
-    ans: "Browse verified studios on our platform and book the space that fits your shoot. Every studio has been reviewed by our team - equipment, lighting, space size, and shoot suitability are all confirmed before listing. Once you book, we handle coordination through to shoot day.",
+    ans: "Browse studios, compare them, and book the space that fits your shoot. Verified studios are confirmed by their owners: pricing, availability and details are kept up to date, and you can book and pay instantly. Curated studios are spaces our team has found and compiled from public information so you can discover more options; their details aren't yet confirmed by the owner, so you enquire and we check pricing and availability for you. Once you book, we handle coordination through to shoot day.",
   },
   {
     id: 2,

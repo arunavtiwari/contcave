@@ -8,32 +8,31 @@ import FilterModal from "@/components/modals/FilterModal";
 import CategoryBox from "@/components/navbar/CategoryBox";
 import Button from "@/components/ui/Button";
 
-import { categories } from "./categoriesData";
+import { purposeCategories } from "./purposeCategories";
 
 
 type Props = {
   city?: string;
-  venueTypeHrefs?: Record<string, string>;
-  activeVenueType?: string;
 };
 
-const CategoriesContent = memo(function CategoriesContent({ city, venueTypeHrefs, activeVenueType }: Props) {
+const CategoriesContent = memo(function CategoriesContent({ city }: Props) {
   const params = useSearchParams();
-  const venueType = useMemo(() => params?.get("venueTypes"), [params]);
+  const purpose = useMemo(() => params?.get("purpose"), [params]);
 
   const categoryItems = useMemo(
     () =>
-      categories.map((item) => (
+      purposeCategories.map((item) => (
         <CategoryBox
-          key={item.label}
+          key={item.slug}
           icon={item.icon}
           label={item.label}
-          selected={(activeVenueType ?? venueType) === item.label}
+          value={item.slug}
+          description={item.description}
+          selected={purpose === item.slug}
           city={city}
-          href={venueTypeHrefs?.[item.label]}
         />
       )),
-    [venueType, city, venueTypeHrefs, activeVenueType]
+    [purpose, city]
   );
 
   return (
@@ -53,9 +52,9 @@ const Categories = memo(function Categories(props: Props) {
     <Suspense fallback={
       <div className="mt-4 mb-6 w-full flex flex-row items-center justify-between gap-2 border-b border-border">
         <div className="flex-1 overflow-x-auto hide-scrollbar flex gap-4 items-center">
-          {categories.map((item) => (
-            <div key={item.label} className="flex flex-col items-center justify-center gap-2 p-3 border-b-2 border-transparent text-muted-foreground">
-              <item.icon size={26} />
+          {purposeCategories.map((item) => (
+            <div key={item.slug} className="flex flex-col items-center justify-center gap-1 px-3 py-2 border-b-2 border-transparent text-muted-foreground">
+              <item.icon size={20} />
               <div className="font-medium text-xs w-fit whitespace-nowrap">{item.label}</div>
             </div>
           ))}

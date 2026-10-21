@@ -11,16 +11,14 @@ type Props = {
   feed: ReactNode;
   title?: string;
   city?: string;
-  venueTypeHrefs?: Record<string, string>;
-  activeVenueType?: string;
 };
 
-export default function StudioBrowse({ feed, title, city, venueTypeHrefs, activeVenueType }: Props) {
+export default function StudioBrowse({ feed, title, city }: Props) {
   return (
     <main>
       <Container>
         <FilterNavigationProvider>
-          <Categories city={city} venueTypeHrefs={venueTypeHrefs} activeVenueType={activeVenueType} />
+          <Categories city={city} />
           <NearLabelProvider>
             <ListingFeedHeader title={title} />
             <PendingFeed>{feed}</PendingFeed>

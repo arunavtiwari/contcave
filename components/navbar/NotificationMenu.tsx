@@ -65,12 +65,20 @@ const NotificationMenu = memo(function NotificationMenu({ currentUser }: Props) 
             }
         };
 
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") return;
+            setIsOpen(false);
+            triggerRef.current?.focus();
+        };
+
         document.addEventListener("pointerdown", handleClickOutside);
+        document.addEventListener("keydown", handleEscape);
         window.addEventListener("resize", updateCoords);
         window.addEventListener("scroll", updateCoords, true);
 
         return () => {
             document.removeEventListener("pointerdown", handleClickOutside);
+            document.removeEventListener("keydown", handleEscape);
             window.removeEventListener("resize", updateCoords);
             window.removeEventListener("scroll", updateCoords, true);
         };
