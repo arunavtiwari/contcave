@@ -3,7 +3,7 @@
 import { IoCheckmark } from "react-icons/io5";
 
 import Heading from "@/components/ui/Heading";
-import { equipmentAnchorId, type EquipmentItem, packageEquipmentChip, packageEquipmentFor } from "@/lib/listing/equipment";
+import { EQUIPMENT_REVEAL_EVENT, type EquipmentItem, packageEquipmentChip, packageEquipmentFor } from "@/lib/listing/equipment";
 import { Package } from "@/types/package";
 
 interface Props {
@@ -17,7 +17,8 @@ interface Props {
 }
 
 function scrollToEquipment(equipmentId: string) {
-  document.getElementById(equipmentAnchorId(equipmentId))?.scrollIntoView({ behavior: "smooth", block: "center" });
+  // The Equipment section may be collapsed; it opens itself and scrolls to the item.
+  window.dispatchEvent(new CustomEvent(EQUIPMENT_REVEAL_EVENT, { detail: equipmentId }));
 }
 
 const INR = new Intl.NumberFormat("en-IN", {

@@ -152,7 +152,7 @@ export function lightingTier(items: EquipmentItem[]): LightingTier {
 }
 
 export const LIGHTING_TIER_LABELS: Record<Exclude<LightingTier, null>, string> = {
-    pro: "Pro lighting kit included",
+    pro: "Pro Equipment",
     basic: "Lighting kit included",
 };
 
@@ -212,6 +212,9 @@ export function groupEquipment(items: EquipmentItem[]) {
 }
 
 export const equipmentAnchorId = (equipmentId: string) => `equipment-item-${equipmentId}`;
+
+/** Window event a package chip fires so the (collapsible) Equipment section opens and shows the item. */
+export const EQUIPMENT_REVEAL_EVENT = "contcave:equipment-reveal";
 
 /**
  * The add-on id a paid item books under. Migrated items keep their original add-on id, so

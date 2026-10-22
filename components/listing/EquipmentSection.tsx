@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { IconType } from "react-icons";
-import { FiBox, FiCamera, FiImage, FiMic, FiPackage, FiSun, FiTool, FiUmbrella, FiUsers } from "react-icons/fi";
+import { FiBox, FiCamera, FiChevronDown, FiImage, FiMic, FiPackage, FiSun, FiTool, FiUmbrella, FiUsers } from "react-icons/fi";
 
-import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import {
     addonIdFor,
     EQUIPMENT_CATEGORY_LABELS,
     EQUIPMENT_POLICY_COPY,
+    EQUIPMENT_REVEAL_EVENT,
     equipmentAnchorId,
     type EquipmentCategory,
     equipmentCountSummary,
@@ -50,6 +50,7 @@ type Props = {
 };
 
 export default function EquipmentSection({ policy, items, studioName, includedLabel, note, onAddonsChange, disabled }: Props) {
+    const [open, setOpen] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [quantities, setQuantities] = useState<Record<string, number>>({});
     const groups = useMemo(() => groupEquipment(items), [items]);
@@ -77,19 +78,51 @@ export default function EquipmentSection({ policy, items, studioName, includedLa
         setQuantities((prev) => ({ ...prev, [item.id]: Math.max(0, Math.min(next, cap)) }));
     }, []);
 
+    // Package chips ask to reveal an item; open the section (and the full list) before scrolling.
+    useEffect(() => {
+        const reveal = (event: Event) => {
+            const id = (event as CustomEvent<string>).detail;
+            if (!items.some((item) => item.id === id)) return;
+            setOpen(true);
+            setExpanded(true);
+            requestAnimationFrame(() => {
+                document.getElementById(equipmentAnchorId(id))?.scrollIntoView({ behavior: "smooth", block: "center" });
+            });
+        };
+        window.addEventListener(EQUIPMENT_REVEAL_EVENT, reveal);
+        return () => window.removeEventListener(EQUIPMENT_REVEAL_EVENT, reveal);
+    }, [items]);
+
     const summary = equipmentCountSummary(items);
     let rowIndex = 0;
 
     return (
         <section className="flex flex-col gap-4" aria-labelledby="equipment-heading">
             <div className="flex flex-col gap-1">
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <Heading id="equipment-heading" title="Equipment" variant="h5" />
-                    {summary && <span className="text-sm text-muted-foreground">{summary}</span>}
-                </div>
+                <h2 id="equipment-heading">
+                    <button
+                        type="button"
+                        onClick={() => setOpen((value) => !value)}
+                        aria-expanded={open}
+                        aria-controls="equipment-list"
+                        className="flex w-full items-center justify-between gap-4 text-left"
+                    >
+                        <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <span className="text-lg font-bold leading-[1.4] text-foreground">Equipment</span>
+                            {summary && <span className="text-sm font-normal text-muted-foreground">{summary}</span>}
+                        </span>
+                        <FiChevronDown
+                            size={20}
+                            aria-hidden="true"
+                            className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+                        />
+                    </button>
+                </h2>
                 {policy && <p className="text-sm text-muted-foreground">{EQUIPMENT_POLICY_COPY[policy]}</p>}
                 {note && <p className="text-xs text-muted-foreground/80">{note}</p>}
             </div>
+
+            <div id="equipment-list" hidden={!open} className="flex flex-col gap-4">
 
             {groups.map((group) => {
                 const Icon = CATEGORY_ICONS[group.category];
@@ -143,6 +176,7 @@ export default function EquipmentSection({ policy, items, studioName, includedLa
                     {expanded ? "Show fewer items" : `Show all ${items.length} items`}
                 </button>
             )}
+            </div>
         </section>
     );
 }
