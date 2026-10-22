@@ -123,7 +123,8 @@ export function visibleEquipment(listing: EquipmentFields, viewer: { isOwnerOrAd
     if (!detailsVisible(listing.detailsStatus?.equipment, viewer)) return null;
     const items = [...(listing.equipment ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
     const policy = isPolicy(listing.equipmentPolicy) ? listing.equipmentPolicy : null;
-    if (items.length === 0 && !policy) return null;
+    // Nothing listed means nothing to show, whatever the policy says.
+    if (items.length === 0) return null;
     return { policy, items };
 }
 
