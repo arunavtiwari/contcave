@@ -22,7 +22,7 @@ import {
   istDateKey,
   minutesToLabel,
 } from "@/lib/booking/dayAvailability";
-import { includedEquipmentSummary, visibleAccess, visibleEquipment } from "@/lib/listing/equipment";
+import { includedEquipmentSummary, packageEquipmentFor, visibleAccess, visibleEquipment } from "@/lib/listing/equipment";
 import {
   calculateSetPricing,
   suggestWholeStudioPackage,
@@ -172,15 +172,9 @@ function ListingClient({
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const includedEquipmentLabel = (() => {
     if (!equipment) return null;
-    const packageRefs = selectedPackage?.includedEquipment ?? [];
-    if (packageRefs.length > 0) {
-      const byId = new Map(equipment.items.map((item) => [item.id, item]));
-      return includedEquipmentSummary(
-        packageRefs
-          .map((ref) => byId.get(ref.equipmentId))
-          .filter((item): item is NonNullable<typeof item> => !!item)
-          .map((item) => ({ ...item, pricing: "included" }))
-      );
+    if (selectedPackage) {
+      const packageItems = packageEquipmentFor(selectedPackage.includedEquipment, equipment.items, equipment.policy);
+      return includedEquipmentSummary(packageItems.map(({ item, quantity }) => ({ ...item, quantity, pricing: "included" })));
     }
     return equipment.policy === "all_bookings" ? includedEquipmentSummary(equipment.items) : null;
   })();

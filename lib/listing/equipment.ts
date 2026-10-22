@@ -324,3 +324,26 @@ export function validPackageEquipment(
         .filter((ref) => known.has(ref.equipmentId))
         .map((ref) => ({ equipmentId: ref.equipmentId, quantity: Math.max(1, Math.round(ref.quantity || 1)) }));
 }
+
+/**
+ * Everything a package comes with. Under "every booking", included gear comes with packages
+ * too, so it's added automatically; the package's own picks add anything beyond that.
+ */
+export function packageEquipmentFor(
+    refs: PackageEquipmentRef[] | null | undefined,
+    items: EquipmentItem[],
+    policy: string | null | undefined
+): Array<{ item: EquipmentItem; quantity: number }> {
+    const byId = new Map(items.map((item) => [item.id, item]));
+    const result = new Map<string, { item: EquipmentItem; quantity: number }>();
+    if (policy === "all_bookings") {
+        for (const item of items) {
+            if (item.pricing === "included") result.set(item.id, { item, quantity: Math.max(1, item.quantity || 1) });
+        }
+    }
+    for (const ref of refs ?? []) {
+        const item = byId.get(ref.equipmentId);
+        if (item && !result.has(item.id)) result.set(item.id, { item, quantity: Math.max(1, ref.quantity || 1) });
+    }
+    return Array.from(result.values());
+}

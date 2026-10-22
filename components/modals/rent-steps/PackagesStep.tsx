@@ -15,6 +15,7 @@ interface PackagesStepProps {
   setValue: (name: string, value: unknown, options?: unknown) => void;
   error?: string;
   equipmentItems?: EquipmentItem[];
+  equipmentPolicy?: string | null;
 }
 
 const PackagesStep: React.FC<PackagesStepProps> = ({
@@ -24,6 +25,7 @@ const PackagesStep: React.FC<PackagesStepProps> = ({
   setValue,
   error,
   equipmentItems = [],
+  equipmentPolicy = null,
 }) => {
   return (
     <div className="flex flex-col gap-4">
@@ -34,6 +36,7 @@ const PackagesStep: React.FC<PackagesStepProps> = ({
         availableSets={hasSets ? (sets as never) : []}
         required={hasSets}
         equipmentItems={equipmentItems}
+        equipmentPolicy={equipmentPolicy}
         error={error}
       />
     </div>

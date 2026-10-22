@@ -819,6 +819,7 @@ export default function RentModal({
             setValue={setValue as never}
             error={packagesError}
             equipmentItems={(equipmentItems ?? []) as EquipmentItem[]}
+            equipmentPolicy={equipmentPolicy}
           />
         ),
       },

@@ -431,6 +431,7 @@ function ListingInfo({
               selectedPackageId={selectedPackage?.id}
               hasSets={fullListing.hasSets}
               equipmentItems={equipment?.items}
+              equipmentPolicy={equipment?.policy ?? null}
             />
           </section>
           <Divider />

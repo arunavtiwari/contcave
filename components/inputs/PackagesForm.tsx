@@ -9,6 +9,7 @@ import FormField from "@/components/ui/FormField";
 import Input from "@/components/ui/Input";
 import Pill from "@/components/ui/Pill";
 import type { EquipmentItem } from "@/lib/listing/equipment";
+import { cn } from "@/lib/utils";
 import { SETS_REQUIRE_PACKAGE_MESSAGE } from "@/schemas/listing";
 import { Package } from "@/types/package";
 import { ListingSet } from "@/types/set";
@@ -21,6 +22,8 @@ interface PackagesFormProps {
   availableSets?: ListingSet[];
   /** This listing's equipment, so a package can include specific items. */
   equipmentItems?: EquipmentItem[];
+  /** The listing's equipment policy; under "every booking", included gear is in every package already. */
+  equipmentPolicy?: string | null;
   label?: string;
   description?: string;
   required?: boolean;
@@ -34,6 +37,7 @@ export default function PackagesForm({
   onChange,
   availableSets = [],
   equipmentItems = [],
+  equipmentPolicy = null,
   label,
   description,
   required,
@@ -73,6 +77,13 @@ export default function PackagesForm({
       },
     ]);
   };
+
+  const namedEquipment = equipmentItems.filter((item) => item.name.trim());
+  // Under "every booking", included gear is in every package automatically; only other items are picked.
+  const autoIncludedEquipment = equipmentPolicy === "all_bookings"
+    ? namedEquipment.filter((item) => item.pricing === "included")
+    : [];
+  const pickableEquipment = namedEquipment.filter((item) => !autoIncludedEquipment.includes(item));
 
   const setIncludedEquipment = (index: number, refs: { equipmentId: string; quantity: number }[]) => {
     updatePackages(packages.map((pkg, i) => (i === index ? { ...pkg, includedEquipment: refs } : pkg)));
@@ -167,49 +178,95 @@ export default function PackagesForm({
               </div>
             </div>
 
-            {equipmentItems.length > 0 && (
-              <FormField label="Equipment included" description="Pick gear from your Equipment list. A paid item included here is covered by the package price.">
-                <div className="flex flex-col gap-2">
-                  {equipmentItems.filter((item) => item.name.trim()).map((item) => {
-                    const refs = pkg.includedEquipment ?? [];
-                    const ref = refs.find((r) => r.equipmentId === item.id);
-                    return (
-                      <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
-                        <Checkbox
-                          id={`pkg-${idx}-eq-${item.id}`}
-                          label={item.name}
-                          checked={Boolean(ref)}
-                          onCheckedChange={(checked) =>
-                            setIncludedEquipment(
-                              idx,
-                              checked
-                                ? [...refs, { equipmentId: item.id, quantity: Math.max(1, item.quantity || 1) }]
-                                : refs.filter((r) => r.equipmentId !== item.id)
-                            )
-                          }
-                        />
-                        {ref && (
-                          <div className="w-20">
-                            <Input
-                              id={`pkg-${idx}-eq-qty-${item.id}`}
-                              type="number"
-                              aria-label={`Quantity of ${item.name} in this package`}
-                              value={ref.quantity}
-                              onNumberChange={(qty) =>
-                                setIncludedEquipment(
-                                  idx,
-                                  refs.map((r) => (r.equipmentId === item.id ? { ...r, quantity: Math.max(1, qty) } : r))
-                                )
-                              }
-                            />
-                          </div>
-                        )}
+            {namedEquipment.length > 0 && (() => {
+              const refs = pkg.includedEquipment ?? [];
+              const allSelected = pickableEquipment.length > 0 && pickableEquipment.every((item) => refs.some((r) => r.equipmentId === item.id));
+              return (
+                <FormField
+                  label="Equipment included"
+                  description={autoIncludedEquipment.length > 0
+                    ? "Gear marked Included comes with every booking, so it's already in this package. Pick any extras the package price covers."
+                    : "Pick the gear this package comes with. A paid item included here is covered by the package price."}
+                >
+                  <div className="flex flex-col gap-3">
+                    {autoIncludedEquipment.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 rounded-lg bg-success/5 p-3">
+                        {autoIncludedEquipment.map((item) => (
+                          <span key={item.id} className="rounded-full border border-success/30 bg-background px-2.5 py-1 text-xs text-foreground">
+                            ✓ {item.quantity > 1 ? `${item.quantity} × ${item.name}` : item.name}
+                          </span>
+                        ))}
                       </div>
-                    );
-                  })}
-                </div>
-              </FormField>
-            )}
+                    )}
+
+                    {pickableEquipment.length > 0 && (
+                      <>
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-xs font-medium text-muted-foreground">
+                            {autoIncludedEquipment.length > 0 ? "Add extras to this package" : `${refs.length} of ${pickableEquipment.length} selected`}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setIncludedEquipment(
+                              idx,
+                              allSelected
+                                ? refs.filter((r) => !pickableEquipment.some((item) => item.id === r.equipmentId))
+                                : [
+                                  ...refs,
+                                  ...pickableEquipment
+                                    .filter((item) => !refs.some((r) => r.equipmentId === item.id))
+                                    .map((item) => ({ equipmentId: item.id, quantity: Math.max(1, item.quantity || 1) })),
+                                ]
+                            )}
+                            className="text-xs font-semibold underline underline-offset-4"
+                          >
+                            {allSelected ? "Clear" : "Select all"}
+                          </button>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {pickableEquipment.map((item) => {
+                            const ref = refs.find((r) => r.equipmentId === item.id);
+                            return (
+                              <div key={item.id} className={cn("flex items-center justify-between gap-3 rounded-lg border px-3 py-2", ref ? "border-foreground/30" : "border-border")}>
+                                <Checkbox
+                                  id={`pkg-${idx}-eq-${item.id}`}
+                                  label={item.pricing === "paid" ? `${item.name} (paid)` : item.name}
+                                  checked={Boolean(ref)}
+                                  onCheckedChange={(checked) =>
+                                    setIncludedEquipment(
+                                      idx,
+                                      checked
+                                        ? [...refs, { equipmentId: item.id, quantity: Math.max(1, item.quantity || 1) }]
+                                        : refs.filter((r) => r.equipmentId !== item.id)
+                                    )
+                                  }
+                                />
+                                {ref && (
+                                  <div className="w-20">
+                                    <Input
+                                      id={`pkg-${idx}-eq-qty-${item.id}`}
+                                      type="number"
+                                      aria-label={`Quantity of ${item.name} in this package`}
+                                      value={ref.quantity}
+                                      onNumberChange={(qty) =>
+                                        setIncludedEquipment(
+                                          idx,
+                                          refs.map((r) => (r.equipmentId === item.id ? { ...r, quantity: Math.max(1, qty) } : r))
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </FormField>
+              );
+            })()}
 
             <FormField
               label={equipmentItems.length > 0 ? "Other inclusions" : "Features"}

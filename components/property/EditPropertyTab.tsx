@@ -335,6 +335,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
             availableSets={initialListing.hasSets ? (initialListing.sets ?? []) : []}
             required={Boolean(initialListing.hasSets)}
             equipmentItems={equipmentItems}
+            equipmentPolicy={initialListing.equipmentPolicy ?? null}
           />
         </>
       )}
