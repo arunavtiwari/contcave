@@ -148,6 +148,7 @@ export function usePropertyEdit(listing: FullListing, predefinedAddons: Addon[])
       addIfChanged("actualLocation", initialListing.actualLocation, originalListing.actualLocation);
       addIfChanged("propertyStateCode", initialListing.propertyStateCode, originalListing.propertyStateCode);
       addIfChanged("price", initialListing.price, originalListing.price);
+      addIfChanged("extraHourPrice", initialListing.extraHourPrice ?? null, originalListing.extraHourPrice ?? null);
       addIfChanged("priceRangeMin", initialListing.priceRangeMin, originalListing.priceRangeMin);
       addIfChanged("priceRangeMax", initialListing.priceRangeMax, originalListing.priceRangeMax);
       addIfChanged("mapsUrl", initialListing.mapsUrl, originalListing.mapsUrl);

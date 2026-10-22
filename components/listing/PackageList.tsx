@@ -1,9 +1,10 @@
 "use client";
 
+import { FiChevronDown } from "react-icons/fi";
 import { IoCheckmark } from "react-icons/io5";
 
 import Heading from "@/components/ui/Heading";
-import { EQUIPMENT_REVEAL_EVENT, type EquipmentItem, packageEquipmentChip, packageEquipmentFor } from "@/lib/listing/equipment";
+import { EQUIPMENT_REVEAL_EVENT, type EquipmentItem, lightingTier, packageEquipmentChip, packageEquipmentFor } from "@/lib/listing/equipment";
 import { Package } from "@/types/package";
 
 interface Props {
@@ -99,29 +100,49 @@ export default function PackageList({ packages, onSelect, selectedPackageId, has
                         </ul>
                       );
                     }
+                    // A package that covers every bookable piece of gear gets one line instead of a list.
+                    const coversAll = equipmentItems
+                      .filter((item) => item.pricing !== "on_request")
+                      .every((item) => included.some((entry) => entry.item.id === item.id));
                     return (
                       <div className="mt-2 flex flex-col gap-1.5">
-                        <p className="text-xs font-medium text-muted-foreground">Included in this package</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {included.map(({ item, quantity }) => (
-                            <button
-                              key={item.id}
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                scrollToEquipment(item.id);
-                              }}
-                              className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs text-foreground hover:bg-muted"
-                            >
-                              {packageEquipmentChip(item, quantity)}
-                            </button>
-                          ))}
-                          {pkg.features?.map((extra, i) => (
-                            <span key={`extra-${i}`} className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
-                              {extra}
-                            </span>
-                          ))}
-                        </div>
+                        {coversAll ? (
+                          <p className="flex items-center gap-1.5 text-sm font-medium text-success">
+                            <IoCheckmark size={16} aria-hidden="true" />
+                            {lightingTier(equipmentItems) === "pro" ? "All pro equipment included" : "All equipment included"}
+                          </p>
+                        ) : (
+                          <details className="group" onClick={(event) => event.stopPropagation()}>
+                            <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+                              Equipment included ({included.length})
+                              <FiChevronDown size={16} aria-hidden="true" className="text-muted-foreground transition-transform group-open:rotate-180" />
+                            </summary>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {included.map(({ item, quantity }) => (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    scrollToEquipment(item.id);
+                                  }}
+                                  className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs text-foreground hover:bg-muted"
+                                >
+                                  {packageEquipmentChip(item, quantity)}
+                                </button>
+                              ))}
+                            </div>
+                          </details>
+                        )}
+                        {pkg.features?.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {pkg.features.map((extra, i) => (
+                              <span key={`extra-${i}`} className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
+                                {extra}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     );
                   })()}

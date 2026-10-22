@@ -10,6 +10,7 @@ import { UserFacingError } from "@/lib/errors";
 import { InvoiceService } from "@/lib/invoice/service";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
+import { extraHourRate } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
 import { LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
 import { canCreatePostBookingCharge } from "@/lib/reservation/status";
@@ -296,7 +297,7 @@ export class PostBookingService {
           oldEndTime: reservation.endTime,
           requestedEndTime,
           extraAmount,
-          listingRateAtTime: reservation.listing.price || null,
+          listingRateAtTime: extraHourRate(reservation.listing) || null,
           paymentTokenHash: hash,
           expiresAt,
         },

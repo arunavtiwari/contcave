@@ -23,6 +23,7 @@ import {
   minutesToLabel,
 } from "@/lib/booking/dayAvailability";
 import { includedEquipmentSummary, packageEquipmentFor, visibleAccess, visibleEquipment } from "@/lib/listing/equipment";
+import { extraHourRate } from "@/lib/pricing";
 import {
   calculateSetPricing,
   suggestWholeStudioPackage,
@@ -498,6 +499,7 @@ function ListingClient({
                     contcaveNote={listing.contcaveNote}
                     maximumPax={listing.maximumPax}
                     includedEquipmentLabel={includedEquipmentLabel}
+                    extraHourPrice={extraHourRate(listing)}
                     trackingStudio={{ id: listing.id, name: listing.title, category: kindLabel, city: listing.locationValue }}
                     currentUserEmail={currentUser?.email ?? null}
                   />

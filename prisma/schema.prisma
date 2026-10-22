@@ -271,6 +271,8 @@ model Listing {
   propertyStateCode        String?
   userId                   String                    @db.ObjectId
   price                    Int?
+  /// Rate for each hour beyond the booked time (INR). Required for bookable listings; old listings were backfilled with `price`.
+  extraHourPrice           Int?
   user                     User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   reservations             Reservation[]
   amenities                String[]

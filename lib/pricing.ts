@@ -223,3 +223,8 @@ export function addGst(subtotal: number): { gstAmount: number; total: number } {
 export function amountBeforeGst(totalInclGst: number): number {
     return totalInclGst / (1 + GST_RATE);
 }
+
+/** Rate charged for each hour beyond the booked time. Falls back to the base rate for listings saved before the field existed. */
+export function extraHourRate(listing: { extraHourPrice?: number | null; price?: number | null }): number {
+    return Number(listing.extraHourPrice ?? listing.price ?? 0);
+}

@@ -234,6 +234,21 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
         />
       )}
 
+      {!isCurated && (
+        <Input
+          id="extraHourPrice"
+          label="Extra hour rate"
+          description="Charged per hour when a booking runs over"
+          variant="horizontal"
+          type="number"
+          formatPrice
+          required
+          placeholder="Extra hour rate"
+          value={initialListing.extraHourPrice ?? initialListing.price ?? ""}
+          onNumberChange={(val) => handleInputChange("extraHourPrice", val > 0 ? val : null)}
+        />
+      )}
+
       <ListingLocationFields
         variant="horizontal"
         showMap={false}

@@ -246,6 +246,10 @@ export const listingBaseSchema = z.object({
 
 
     price: z.coerce.number().min(0).max(10000000),
+    extraHourPrice: z.preprocess(
+        (value) => (value === "" || value === null || value === undefined ? null : Number(value)),
+        z.number().int("Extra hour rate must be a whole number of rupees").min(1, "Extra hour rate must be at least ₹1").max(10_000_000).nullable()
+    ).optional(),
     minimumBookingHours: z.coerce.number().int().min(0).max(24, "Minimum booking duration must fit within one operating day"),
     maximumPax: z.coerce.number().min(0).max(10000),
     carpetArea: z.coerce.number().min(0).max(1000000),
@@ -297,6 +301,9 @@ export const hasActivePackage = (packages: ReadonlyArray<{ isActive?: boolean | 
     (packages ?? []).some((pkg) => pkg.isActive !== false);
 
 export const listingSchema = listingBaseSchema.superRefine((data, ctx) => {
+    if (data.listingType !== "CURATED" && data.extraHourPrice == null) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Extra hour rate is required", path: ["extraHourPrice"] });
+    }
     if (data.equipment) {
         const ids = data.equipment.map((item) => item.id);
         if (new Set(ids).size !== ids.length) {

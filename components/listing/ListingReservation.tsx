@@ -101,6 +101,8 @@ type Props = {
   trackingStudio?: TrackedStudio;
   /** e.g. "Lighting kit (3 lights)" when this booking comes with included gear. */
   includedEquipmentLabel?: string | null;
+  /** Rate per hour if the shoot runs over. */
+  extraHourPrice?: number;
   currentUserEmail?: string | null;
 };
 
@@ -173,6 +175,7 @@ export default function ListingReservation({
   maximumPax = null,
   trackingStudio,
   includedEquipmentLabel = null,
+  extraHourPrice = 0,
   currentUserEmail = null,
 }: Props) {
   const uiStore = useUIStore();
@@ -518,17 +521,24 @@ export default function ListingReservation({
   return (
     <section className="bg-background rounded-xl shadow-sm border border-border/10 overflow-hidden">
       <div className="flex items-center justify-between p-4">
-        <p
-          className="flex gap-1 text-2xl font-semibold"
-          id={`${sectionId}-title`}
-        >
-          {selectedPackage
-            ? INR.format(Number(selectedPackage.offeredPrice || 0))
-            : INR.format(price)}{" "}
-          <span className="text-muted-foreground font-normal">
-            {selectedPackage ? " (package)" : "/ hour"}
-          </span>
-        </p>
+        <div className="flex flex-col gap-0.5">
+          <p
+            className="flex gap-1 text-2xl font-semibold"
+            id={`${sectionId}-title`}
+          >
+            {selectedPackage
+              ? INR.format(Number(selectedPackage.offeredPrice || 0))
+              : INR.format(price)}{" "}
+            <span className="text-muted-foreground font-normal">
+              {selectedPackage ? " (package)" : "/ hour"}
+            </span>
+          </p>
+          {extraHourPrice > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Extra hour: {INR.format(extraHourPrice)} / hour
+            </p>
+          )}
+        </div>
 
         <Pill
           label={instantBooking ? "Instant Book" : "Request to Book"}

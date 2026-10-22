@@ -226,6 +226,7 @@ export default function RentModal({
     formState: { errors },
     reset,
     trigger,
+    getFieldState,
   } = useForm<RentModalFormValues>({
     resolver: zodResolver(listingSchema) as unknown as Resolver<RentModalFormValues>,
     mode: "onTouched",
@@ -240,6 +241,7 @@ export default function RentModal({
       title: "",
       description: "",
       price: 0,
+      extraHourPrice: null,
       priceRangeMin: null,
       priceRangeMax: null,
       mapsUrl: "",
@@ -303,6 +305,13 @@ export default function RentModal({
   const signature = watch("agreementSignature");
   const otherAmenities = watch("otherAmenities");
   const equipmentPolicy = watch("equipmentPolicy") ?? null;
+  const watchedPrice = watch("price");
+  // Extra hour rate starts as the hourly price; once the owner edits it, it's theirs.
+  useEffect(() => {
+    if (getFieldState("extraHourPrice").isDirty) return;
+    const price = Number(watchedPrice);
+    if (price > 0) setValue("extraHourPrice", price, { shouldValidate: false });
+  }, [watchedPrice, getFieldState, setValue]);
   const equipmentItems = watch("equipment");
   const accessDetails = watch("access") ?? null;
   const customTerms = watch("customTerms");
@@ -427,13 +436,17 @@ export default function RentModal({
 
   const validateDescriptionStep = useCallback(async () => {
     const fieldsToValidate: (keyof RentModalFormValues)[] = ["title", "description"];
-    if (!isCurated) fieldsToValidate.push("price");
+    if (!isCurated) fieldsToValidate.push("price", "extraHourPrice");
     const isValid = await trigger(fieldsToValidate);
     if (!isValid) return false;
     if (!isCurated) {
       const currentPrice = Number(watch("price"));
       if (currentPrice <= 0) {
         toast.error("Price must be greater than 0");
+        return false;
+      }
+      if (!(Number(watch("extraHourPrice")) >= 1)) {
+        toast.error("Please enter the extra hour rate");
         return false;
       }
     }
@@ -948,6 +961,7 @@ export default function RentModal({
       title: "",
       description: "",
       price: 0,
+      extraHourPrice: null,
       priceRangeMin: null,
       priceRangeMax: null,
       mapsUrl: "",
@@ -1105,6 +1119,7 @@ export default function RentModal({
           latlng: data.actualLocation!.latlng as [number, number]
         },
         price: isListingCurated ? 0 : Number(data.price),
+        extraHourPrice: isListingCurated ? null : Number(data.extraHourPrice),
         priceRangeMin: isListingCurated ? (data.priceRangeMin ?? null) : null,
         priceRangeMax: isListingCurated ? (data.priceRangeMax ?? null) : null,
         mapsUrl: data.mapsUrl || null,

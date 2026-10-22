@@ -74,16 +74,29 @@ const DescriptionStep: React.FC<DescriptionStepProps> = ({
           </p>
         </div>
       ) : (
-        <Input
-          id="price"
-          label="Price per hour"
-          formatPrice
-          type="number"
-          disabled={isLoading}
-          register={register("price")}
-          errors={errors}
-          required
-        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input
+            id="price"
+            label="Price per hour"
+            formatPrice
+            type="number"
+            disabled={isLoading}
+            register={register("price")}
+            errors={errors}
+            required
+          />
+          <Input
+            id="extraHourPrice"
+            label="Extra hour rate"
+            description="Charged per hour when a booking runs over"
+            formatPrice
+            type="number"
+            disabled={isLoading}
+            register={register("extraHourPrice")}
+            errors={errors}
+            required
+          />
+        </div>
       )}
     </div>
   );

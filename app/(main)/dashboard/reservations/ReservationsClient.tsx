@@ -21,8 +21,12 @@ import ListingCard from "@/components/listing/ListingCard";
 import Modal from "@/components/modals/Modal";
 import ReservationDetailModal from "@/components/modals/ReservationDetailModal";
 import Select, { SelectOption } from "@/components/ui/Select";
+import { extraHourRate } from "@/lib/pricing";
 import { SafeReservation } from "@/types/reservation";
 import { SafeUser } from "@/types/user";
+
+/** Suggested extension price: the extra hour rate, pro-rated by minute. The host can still edit it. */
+const extensionPriceFor = (hourlyRate: number, minutes: number) => Math.max(1, Math.ceil((hourlyRate * minutes) / 60));
 
 const rejectReasonOptions: SelectOption[] = [
   { value: "Studio unavailable for the selected date/time", label: "Studio unavailable for the selected date/time" },
@@ -101,13 +105,17 @@ function ReservationsClient({ reservations, currentUser }: Props) {
   }, [router]);
 
   const handleExtend = useCallback((reservation: SafeReservation) => {
-    const hourlyRate = Number(reservation.listing?.price || 0);
+    const hourlyRate = reservation.listing ? extraHourRate(reservation.listing) : 0;
     setExtensionReservation(reservation); setExtensionDuration(30);
-    setExtensionAmount(Math.max(1, Math.ceil(hourlyRate / 2))); setExtensionAvailability(null);
+    setExtensionAmount(extensionPriceFor(hourlyRate, 30)); setExtensionAvailability(null);
     getExtensionAvailabilityAction({ reservationId: reservation.id }).then((res) => {
       if (res.success && res.data) {
         setExtensionAvailability(res.data);
-        if (res.data.maxDurationMinutes > 0) setExtensionDuration(Math.min(30, res.data.maxDurationMinutes));
+        if (res.data.maxDurationMinutes > 0) {
+          const minutes = Math.min(30, res.data.maxDurationMinutes);
+          setExtensionDuration(minutes);
+          setExtensionAmount(extensionPriceFor(hourlyRate, minutes));
+        }
       } else toast.error(res.error || "Unable to check extension availability");
     });
   }, []);
@@ -202,7 +210,11 @@ function ReservationsClient({ reservations, currentUser }: Props) {
 
     {extensionReservation && <Modal isOpen onCloseAction={() => !deletingId && setExtensionReservation(null)} onSubmitAction={submitExtension} title="Extend Session" body={<div className="space-y-4">
       {extensionAvailability && <p className="text-sm text-muted-foreground">{extensionAvailability.maxDurationMinutes > 0 ? `Available until ${extensionAvailability.maxEndTime} (${extensionAvailability.maxDurationMinutes} minutes)` : extensionAvailability.reason || "No extension slot is available"}</p>}
-      <label className="block text-sm font-medium">Duration (minutes)<input className="mt-1 w-full rounded-md border border-border bg-background p-2" type="number" min={1} max={extensionAvailability?.maxDurationMinutes || undefined} value={extensionDuration} onChange={(event) => setExtensionDuration(Number(event.target.value))} disabled={!!deletingId} /></label>
+      <label className="block text-sm font-medium">Duration (minutes)<input className="mt-1 w-full rounded-md border border-border bg-background p-2" type="number" min={1} max={extensionAvailability?.maxDurationMinutes || undefined} value={extensionDuration} onChange={(event) => {
+        const minutes = Number(event.target.value);
+        setExtensionDuration(minutes);
+        if (extensionReservation?.listing) setExtensionAmount(extensionPriceFor(extraHourRate(extensionReservation.listing), minutes));
+      }} disabled={!!deletingId} /></label>
       <label className="block text-sm font-medium">Amount<input className="mt-1 w-full rounded-md border border-border bg-background p-2" type="number" min={1} value={extensionAmount} onChange={(event) => setExtensionAmount(Number(event.target.value))} disabled={!!deletingId} /></label>
     </div>} actionLabel="Send Payment Link" actionDisabled={Boolean(extensionAvailability && (extensionAvailability.maxDurationMinutes <= 0 || extensionDuration > extensionAvailability.maxDurationMinutes)) || extensionDuration < 1 || extensionAmount < 1} secondaryActionAction={() => !deletingId && setExtensionReservation(null)} secondaryActionLabel="Close" />}
 

@@ -152,7 +152,7 @@ export function lightingTier(items: EquipmentItem[]): LightingTier {
 }
 
 export const LIGHTING_TIER_LABELS: Record<Exclude<LightingTier, null>, string> = {
-    pro: "Pro Equipment",
+    pro: "Pro equipment included",
     basic: "Lighting kit included",
 };
 

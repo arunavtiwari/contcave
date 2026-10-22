@@ -474,7 +474,7 @@ export class ListingService {
             hasSets, setsHaveSamePrice, unifiedSetPrice, additionalSetPricingType, sets,
             terms, slug,
             priceRangeMin, priceRangeMax, mapsUrl, websiteUrl, instagramHandle, contactEmail,
-            videoSrc, equipmentPolicy, equipment, access,
+            videoSrc, equipmentPolicy, equipment, access, extraHourPrice,
         } = validated;
         const normalizedEquipment = normalizeEquipmentInput(equipment as EquipmentItem[] | undefined);
         const normalizedAccess = normalizeAccessInput(access as ListingAccess | null | undefined);
@@ -546,6 +546,7 @@ export class ListingService {
                     additionalSetPricingType: additionalSetPricingType as AdditionalSetPricingType || null,
                     customTerms: isRichTextEmpty(customTerms as string) ? null : String(customTerms).trim(),
                     videoSrc: videoSrc || null,
+                    extraHourPrice: listingType === "CURATED" ? null : extraHourPrice ?? null,
                     equipmentPolicy: equipmentPolicy ?? null,
                     equipment: { set: normalizedEquipment },
                     access: { set: normalizedAccess },
@@ -674,6 +675,9 @@ export class ListingService {
             listingData.contcaveNote = listingData.contcaveNote || null;
         }
         const nextPrice = listingData.price ?? existingListing.price;
+        if ("extraHourPrice" in listingData && nextListingType !== "CURATED" && listingData.extraHourPrice == null) {
+            throw new UserFacingError("Extra hour rate is required");
+        }
         const nextPriceRangeMin = "priceRangeMin" in listingData ? listingData.priceRangeMin : existingListing.priceRangeMin;
         const nextPriceRangeMax = "priceRangeMax" in listingData ? listingData.priceRangeMax : existingListing.priceRangeMax;
         if (nextPriceRangeMin != null && nextPriceRangeMax != null && Number(nextPriceRangeMin) > Number(nextPriceRangeMax)) {
