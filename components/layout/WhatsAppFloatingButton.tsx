@@ -16,12 +16,12 @@ export default function WhatsAppFloatingButton() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Chat with ContCave on WhatsApp"
-            className="fixed bottom-6 right-5 z-50 flex items-center gap-2 group"
+            className="relative flex items-center group"
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
             {hovered && (
-                <span className="hidden md:inline-block bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap animate-in fade-in slide-in-from-right-2 duration-150">
+                <span className="absolute right-full mr-2 hidden md:inline-block bg-foreground text-background text-xs font-medium px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap animate-in fade-in slide-in-from-right-2 duration-150">
                     Any special requirements? Chat with us
                 </span>
             )}

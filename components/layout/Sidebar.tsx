@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ listingId, menuType = "mai
                         <div className="mt-5 hidden sm:block">
                             <Button
                                 label="Preview"
-                                href={`/listings/${listingId}`}
+                                href={`/studio/${listingId}`}
                                 target="_blank"
                                 variant="outline"
                                 rounded

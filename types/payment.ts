@@ -6,6 +6,7 @@ export interface PaymentProfile {
     accountNumber?: string;
     ifscCode?: string;
     companyName?: string;
+    companyAddress?: string;
     gstin?: string;
     [key: string]: unknown;
 }

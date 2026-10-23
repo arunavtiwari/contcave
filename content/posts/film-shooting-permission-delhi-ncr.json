@@ -1,0 +1,357 @@
+{
+  "id": "film-shooting-permission-delhi-ncr",
+  "title": "Shooting Permission in Delhi: 2026 Guide for Short Film Crews",
+  "categories": [
+    {
+      "id": "booking-tips",
+      "title": "Booking Tips",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Booking Tips",
+          "id": "bc-booking-tips"
+        }
+      ],
+      "createdAt": "2026-10-12T00:00:00Z",
+      "updatedAt": "2026-10-12T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-12T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A practical guide to shooting permission in Delhi NCR for short filmmakers, YouTubers and microdrama crews: when you need it, how to apply, what it reportedly costs, and how to avoid the permit question altogether."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Shooting Permission in Delhi: 2026 Guide for Short Film Crews"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "If you are planning a short film, YouTube sketch or microdrama on Delhi streets, the fear is familiar: a tripod goes up, a PCR van pulls up, and the day is over. Getting shooting permission in Delhi is less mysterious than it sounds, but it does take lead time, paperwork and, for many locations, real money. This guide covers when you need permission, how e-Film Clearance works, reported fees, how Noida and Gurugram differ, and when a private studio removes the problem. Treat it as general information and confirm current rules and fees on the official portal before you apply."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "Do you actually need shooting permission in Delhi?"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "The short answer depends on two things: whose land you are on, and how visible your production is."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "You will generally need permission on public land or government-controlled property: roads and flyovers, municipal parks, markets, Delhi Metro premises, tourist sites such as Dilli Haat, and protected monuments. Anything that blocks traffic, uses a generator or brings a visible crew draws attention."
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "You usually do not need a government permit on private property where the owner has given consent, such as a café, a friend's flat, a farmhouse or a rented studio. Get that consent in writing (a simple signed letter or email with dates, timings and crew size), because a guard or neighbour may still ask."
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "The grey zone is the handheld creator. A solo vlogger on a phone is rarely treated like a film crew; add tripods, lights, a boom and several actors and you look like a production."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Rule of thumb: if your setup takes more than two minutes to pack away, assume someone will ask for paperwork."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "How e-Film Clearance in Delhi works"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "Under the Delhi Film Policy 2022, the Delhi Tourism and Transportation Development Corporation (DTTDC) runs a single-window e-Film Clearance portal. The policy describes it as linking more than 25 agencies, including civic bodies, police and transport authorities, so you do not have to visit each office separately. The operational guidelines state that registration on the portal is free and that approvals are meant to be cleared within 15 calendar days of a complete application."
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "A per-application processing fee has been reported at about ₹17,700 including 18 per cent GST under the operational guidelines. Location charges from the agency that owns the site are on top of that. Fees and rules get revised, so check the current schedule on the portal before you budget."
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "The policy also introduced an annual Delhi Film Card, reported at ₹1 lakh, which offers discounts to frequent producers, and a ₹30 crore Delhi Film Fund aimed at feature films. Most short-film and YouTube crews will not need the card, and you should not assume the fund covers shorts."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Delhi film shooting permit fees: what has been reported"
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "In September 2025, Deccan Herald and Business Standard reported a round of fee revisions intended to attract more shoots to Delhi. The figures below are as reported at the time; treat them as indicative and confirm before applying."
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "MCD shooting charges: cut from ₹75,000 per day to ₹15,000 for an 8-hour slot, or ₹25,000 plus GST for 24 hours, at MCD properties such as parks and municipal buildings",
+        "PWD (roads and flyovers under the Public Works Department): base charge reported at ₹10,000",
+        "Dilli Haat (INA) and the Garden of Five Senses: reported at ₹80,000 plus GST per day",
+        "Delhi Metro: reported at roughly ₹2–3 lakh depending on the line, station and timing, with night or non-operational hours handled differently",
+        "Delhi Film Card: ₹1 lakh annually, for producers who shoot often"
+      ]
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "For a short, the arithmetic is sobering: one MCD day plus the processing fee nears ₹33,000 before you pay an actor, and a Metro scene can exceed an entire indie budget."
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "Monuments are a separate track. Protected monuments come under the Archaeological Survey of India (ASI), which has its own permission process and charges. Check directly with the ASI for the specific monument rather than relying on second-hand figures."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "How to apply, step by step"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "Here is a realistic sequence for a small crew. Start at least three to four weeks before your shoot date so the 15-day window has room for corrections."
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Week 1: Lock the script and a scene-by-scene location list. Decide which scenes truly need public locations and which can move indoors.",
+        "Week 1: Register on the e-Film Clearance portal and read the current operational guidelines and fee schedule.",
+        "Week 1–2: Prepare documents and submit one complete application per location bundle, as the portal requires.",
+        "Week 2–3: Respond quickly to any queries from the agencies. Delays usually come from incomplete paperwork, not the system itself.",
+        "Week 3–4: Download approvals, print copies for each location, and share them with your line producer and location lead.",
+        "Shoot day: Keep printed and digital copies on set, and have one person whose only job is to handle anyone asking for permission."
+      ]
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Documents typically requested include the following. The exact list varies by agency, so check the portal."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "A short synopsis of the script, especially the scenes at the location",
+        "A shooting schedule with dates, timings and duration per location",
+        "Crew and cast list, with the number of people on set",
+        "Location list with exact addresses or stretches of road",
+        "Equipment list, including any vehicles or generators",
+        "ID and address proof for the producer or applicant",
+        "Undertakings on safety, cleanliness, traffic and indemnity"
+      ]
+    },
+    {
+      "id": "quote-2",
+      "blockType": "quote",
+      "content": "Pro tip: ask for a slightly wider time window than you need. Shoots overrun, and a permit that expires at 6 PM sharp does not care that you are one take away."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Noida and Gurugram shoot permission"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "Delhi NCR spans three states, so the process changes when you cross the border."
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Noida and Greater Noida are in Uttar Pradesh. The state's Film Bandhu body runs a single-window system for shooting permissions, and the UP film policy also offers incentives, though these are mostly aimed at larger productions. Apply through Film Bandhu for public locations in Noida, and expect local police and the Noida Authority to be part of the chain."
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Gurugram is in Haryana. Haryana has announced single-window clearance through its film and entertainment promotion setup, with earlier reports suggesting approvals, including police clearance, within about seven working days. Those reports are older, so confirm the current process and timelines with the state before relying on them."
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "Private properties in both cities (malls, offices, societies, farmhouses) need owner consent, and often carry their own shoot charges, so ask early."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Plan B, and when a studio removes the permit problem"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "Even with a permit, outdoor shoots face rain, crowds, traffic noise and VIP road closures. Build in a backup."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Keep one or two cover scenes that can be shot indoors if the location falls through",
+        "Shoot exteriors as short, tight pick-ups and move dialogue-heavy scenes indoors where sound is controllable",
+        "Use establishing shots of the city (filmed handheld, with minimal footprint) to sell the location, then cut to interiors"
+      ]
+    },
+    {
+      "id": "p-19",
+      "blockType": "paragraph",
+      "content": "For many shorts, the smartest move is to shoot most of the script on private property. A studio or natural-light space needs only the owner's consent, which the booking covers. Bedrooms, offices, cafés and most dialogue scenes can be dressed in a studio for a fraction of one public-location fee, with no crowd and clean sound."
+    },
+    {
+      "id": "quote-3",
+      "blockType": "quote",
+      "content": "Rule of thumb: shoot the city for 10 per cent of your runtime and the drama for 90 per cent in a space you control."
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "FAQs: Shooting permission in Delhi"
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "Do I need permission to shoot a short film in Delhi?"
+    },
+    {
+      "id": "p-20",
+      "blockType": "paragraph",
+      "content": "If you are filming on public land, roads, Metro premises, government sites or monuments with a visible crew and equipment, you generally need permission through the e-Film Clearance portal or the relevant agency. On private property, written consent from the owner is usually what you need. A solo creator filming handheld is in a grey zone; the more it looks like a production, the more likely you will be asked for paperwork."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "How much does it cost to shoot in Delhi Metro?"
+    },
+    {
+      "id": "p-21",
+      "blockType": "paragraph",
+      "content": "Trade press reported in September 2025 that Metro shoots cost roughly ₹2–3 lakh, depending on the line, station and timing. That is on top of any portal processing fee. Confirm current charges with the Delhi Metro Rail Corporation through the clearance process before planning a Metro scene."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "How do I apply for film shooting permission in Delhi?"
+    },
+    {
+      "id": "p-22",
+      "blockType": "paragraph",
+      "content": "Register on the e-Film Clearance portal run by DTTDC, then submit an application with your synopsis, schedule, crew list, locations, equipment and ID, plus any undertakings the agencies require. Pay the applicable processing fee and location charges, and track queries on the portal."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "How long does Delhi shooting permission take?"
+    },
+    {
+      "id": "p-23",
+      "blockType": "paragraph",
+      "content": "The Delhi Film Policy 2022 operational guidelines promise clearance within 15 calendar days of a complete application. In practice, allow three to four weeks so you have time to fix any missing documents."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-24",
+      "blockType": "paragraph",
+      "content": "When a scene does not need the city behind it, ContCave lets you browse and compare studios across Delhi, Gurugram and Noida in one place, with hourly pricing shown upfront. You can check listing photos, amenities, add-ons and packages, read reviews from past bookings, and message the host about crew size, power and set dressing before you book and pay online. Booking a private studio means the owner's consent is part of the deal, so your interiors are covered without a permit file."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-25",
+      "blockType": "paragraph",
+      "content": "Shooting permission in Delhi is manageable if you start early and keep public locations to the scenes that truly need them. Fees for parks, tourist sites and especially the Metro can swallow a short-film budget, so plan with care and confirm everything on the official portal."
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "List every scene and mark which ones genuinely need a public location",
+        "Apply on e-Film Clearance at least three to four weeks before your shoot",
+        "Use Film Bandhu for Noida and Haryana's single-window route for Gurugram",
+        "Get written consent for every private location, including studios",
+        "Move dialogue-heavy scenes into a bookable studio to save time, money and sound"
+      ]
+    }
+  ],
+  "slug": "film-shooting-permission-delhi-ncr",
+  "meta": {
+    "title": "Shooting Permission in Delhi: 2026 Guide for Short Film Crews",
+    "description": "Shooting permission in Delhi explained: e-Film Clearance steps, reported MCD and Metro fees, Noida and Gurugram rules, and when a ContCave studio wins."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-12T04:00:00Z",
+  "updatedAt": "2026-10-12T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "shooting permission in delhi",
+    "film shooting permission delhi",
+    "delhi film shooting permit fees",
+    "e-film clearance delhi",
+    "delhi film policy 2022",
+    "mcd shooting charges",
+    "delhi metro shooting cost",
+    "noida gurugram shoot permission",
+    "shooting permission noida",
+    "shooting permission gurugram",
+    "film bandhu up",
+    "haryana film shooting permission",
+    "short film shooting permission",
+    "youtube shoot permission delhi",
+    "outdoor shoot permission delhi ncr",
+    "dttdc film clearance",
+    "shooting permit cost 2026",
+    "public location shoot delhi",
+    "monument shoot permission asi",
+    "microdrama shoot delhi",
+    "shoot without permission delhi police",
+    "studio vs location shoot",
+    "studio on rent delhi ncr",
+    "book studio for short film",
+    "ContCave"
+  ]
+}

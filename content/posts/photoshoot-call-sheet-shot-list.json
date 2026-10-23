@@ -1,0 +1,378 @@
+{
+  "id": "photoshoot-call-sheet-shot-list",
+  "title": "Photoshoot Call Sheet Template and Shot List for Studio Shoots",
+  "categories": [
+    {
+      "id": "booking-tips",
+      "title": "Booking Tips",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Booking Tips",
+          "id": "bc-booking-tips"
+        }
+      ],
+      "createdAt": "2026-10-14T00:00:00Z",
+      "updatedAt": "2026-10-14T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-14T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A working call sheet and shot list template for agencies running client shoots in rented studios, with a sample IST timeline, a client approval rule and buffer maths that keep you inside your booked hours."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Photoshoot Call Sheet Template and Shot List for Studio Shoots"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "Most rented-studio shoots do not overrun because the photographer is slow. They overrun because the client arrived at 11 instead of 10, three SKUs were still in a courier van, nobody agreed who signs off each frame, and the last hour turned into overtime at the studio's rate. A clear photoshoot call sheet template and a shot list that everyone has read the night before fix most of that. This guide gives agencies and in-house brand teams a working template, written as lists you can copy into a doc or sheet, plus a sample shoot-day timeline in IST, a simple rule for client approvals on set, and the buffer maths that keeps setup and strike inside the hours you actually booked."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "Why booked studio hours disappear"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "Trade press has reported for a while that brands are moving more creative work in-house and that agencies are shifting from retainers to project mandates with tighter budgets. Whatever the reason, the effect on shoot day is the same: fewer paid hours, more SKUs per hour, and less patience for an invoice line that says overtime. The hours usually leak in predictable places."
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Unclear call times, so the stylist arrives with the client instead of an hour before",
+        "Products missing, unsteamed or without labels when the first setup is ready",
+        "Client feedback arriving in a group chat after the set has been struck",
+        "Approvals happening frame by frame instead of at agreed checkpoints",
+        "Strike and load-out starting at the slot end time, not before it"
+      ]
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "A call sheet and a shot list are the two documents that prevent this. They do different jobs, and you need both."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Call sheet fields: the template"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "The call sheet answers who, where and when. Send it 24 to 48 hours before the shoot and resend if anything changes. Keep it to one page if you can."
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Project name, client, shoot date and day of the week",
+        "Studio name, full address, floor, nearest landmark and a pin you have checked yourself",
+        "Parking notes: how many cars, where drivers wait, any society or building entry rules",
+        "Booked slot start and end time, plus the time load-in may begin if the host allows early access",
+        "Individual call times for each person: photographer, assistants, stylist, hair and make-up, models, client",
+        "Crew and talent contacts: name, role, phone number",
+        "Shoot schedule in blocks, with first frame and wrap times",
+        "Reference to the current shot list (write \"see shot list v3\" rather than pasting it in)",
+        "Wardrobe, props and product list, with who is bringing what",
+        "Moodboard reference and any brand guidelines the team must follow",
+        "Meals and breaks: lunch time, dietary notes, who orders",
+        "Emergency contacts, nearest hospital and the studio host's number",
+        "Payment and add-on notes: what is included in the booking, what is extra"
+      ]
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "If a person on the shoot cannot answer \"what time do I arrive and who do I call if I'm late\" from the call sheet alone, it is not finished."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Shot list columns: the template"
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "The shot list answers what gets made. For product and brand shoots it should be organised by setup, not by SKU, because changing a background or light costs far more time than swapping a product on the same set."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Shot number",
+        "Setup or set name (white sweep, tabletop, lifestyle corner)",
+        "SKU code and product name",
+        "Variant: colour, flavour, size",
+        "Angle or framing: front, 45 degrees, top-down, detail, in-hand",
+        "Background and props",
+        "Model or hands needed (yes or no)",
+        "Output: crop ratios and placements, such as 1:1 marketplace, 4:5 feed, 9:16 story",
+        "Priority: must-have or nice-to-have",
+        "Status: shot, approved, reshoot",
+        "Approver initials and time"
+      ]
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "Mark priorities honestly. When the day slips, the team should know which 20 percent of the list can be dropped without a call to the account director."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "How long a brand photoshoot takes: realistic shot counts"
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Throughput depends on category and how much styling each frame needs. These are working assumptions for planning, not promises, and your photographer's own numbers should override them."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Packshots on white with one light setup: often 15 to 30 finished angles an hour once the set is locked",
+        "Styled tabletop or lifestyle product frames: closer to 4 to 8 an hour",
+        "On-model catalogue looks: depends heavily on changes and hair and make-up resets",
+        "Hero campaign frames: sometimes only 2 or 3 setups in a full day"
+      ]
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "Build the shot list, count the setups, multiply by your per-setup estimate, then add buffer. If the total does not fit the slot, cut the list or book more hours before the day, not on it."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Sample shoot-day timeline in IST"
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Here is a plan for a nine-hour booking from 9:00 AM to 6:00 PM in a Delhi NCR studio, shooting about 40 SKUs across two setups. Adjust the blocks to your slot."
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "9:00 to 10:00 AM: load-in, unpack products, steam and label, build set one, test lighting and tethering",
+        "9:30 AM: stylist and assistants on set; hair and make-up starts if a model is booked",
+        "10:00 AM: client call time, moodboard walkthrough, sign-off on the first test frame",
+        "10:15 AM: first frame on set one",
+        "12:00 PM: client review checkpoint one on the tethered station",
+        "1:00 to 1:45 PM: lunch, set change to set two during the break",
+        "1:45 PM: client sign-off on the first frame of set two",
+        "3:30 PM: client review checkpoint two, flag any reshoots",
+        "4:30 PM: pick-ups and reshoots only",
+        "5:00 PM: last frame, final selects confirmed with the client",
+        "5:00 to 5:45 PM: strike, repack products, return studio props, check for damage",
+        "5:45 PM: walk-through with the host, out before 6:00 PM"
+      ]
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "Lunch is the cheapest time to change a set because nobody is waiting on it. Plan your biggest changeover there."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Client approval on set: one rule that saves an hour"
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "Set up a tethered review station, a laptop or monitor connected to the camera, where the client sits and sees each frame as it lands. Then agree one rule before the shoot starts."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "The client signs off the first frame of every new setup: light, background, angle and styling",
+        "After that, the team shoots the rest of that setup without stopping for each frame",
+        "Review checkpoints happen at fixed times, not whenever someone asks",
+        "Reshoot requests are logged on the shot list with initials, so nothing is lost in a chat thread",
+        "Final selects are confirmed before strike, while the set still exists"
+      ]
+    },
+    {
+      "id": "quote-2",
+      "blockType": "quote",
+      "content": "Approve the setup, not every frame. One sign-off per set change is the difference between 30 frames an hour and 10."
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "Budget buffer for setup and strike inside your hours"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "Studio bookings run on the clock from slot start to slot end, and most hosts count load-in and load-out within that window. Check each listing's rules and ask the host before booking. Then budget like this."
+    },
+    {
+      "id": "list-7",
+      "blockType": "list",
+      "items": [
+        "Setup: 45 to 60 minutes for a simple product set, longer for lifestyle builds or a cyclorama paint touch-up",
+        "Each set change: 20 to 40 minutes depending on lights and backgrounds",
+        "Strike and pack-down: 30 to 45 minutes, more if you have many products to recount",
+        "Contingency: hold back about 10 to 15 percent of the shooting time for reshoots and delays"
+      ]
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "On a nine-hour booking that leaves roughly six to six and a half hours of actual shooting. If the shot list needs eight, you need a longer slot or a second day, and it is far cheaper to book that upfront than to pay overtime on the evening."
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "FAQs: photoshoot call sheets and shot lists"
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "What goes in a call sheet?"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "Call times for each person, the studio address with parking notes, crew and talent contacts, the day's schedule, a reference to the shot list, wardrobe and props, the moodboard and emergency contacts. Add the booked slot times so everyone knows the hard end."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "How do I make a shot list for a product shoot?"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Start from the SKU list, then group shots by setup so you change lights and backgrounds as few times as possible. Give each line an angle, a crop ratio, a priority and a status column, and share it with the client for approval before shoot day."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "How long does a brand photoshoot take?"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "A simple packshot day can cover dozens of SKUs, while a styled campaign may manage only a few setups. Count your setups, estimate time per setup with your photographer, and add setup, strike and roughly 10 to 15 percent buffer."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "What is the difference between a shot list and a call sheet?"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "The call sheet is logistics: who comes, when and where. The shot list is creative scope: what frames get made, in what order and for which placements. The call sheet points to the shot list; it does not replace it."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "Your timeline is only as good as the studio slot it sits in. On ContCave you can browse and compare studios across Delhi NCR in one place, see hourly pricing upfront, and check listing photos, amenities, add-ons and packages before you commit. You can message the host to confirm load-in rules, parking and power for your tethered station, read reviews from past bookings, and book and pay online with a published cancellation policy you can share with your client."
+    },
+    {
+      "id": "h-15",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-19",
+      "blockType": "paragraph",
+      "content": "A good shoot day is mostly decided the night before. If the call sheet, shot list and approval rule are agreed in advance, the booked hours go into frames instead of phone calls and overtime."
+    },
+    {
+      "id": "list-8",
+      "blockType": "list",
+      "items": [
+        "Send the call sheet 24 to 48 hours ahead with individual call times",
+        "Organise the shot list by setup and mark must-have shots",
+        "Agree the approval rule and set up a tethered review station",
+        "Budget setup, strike and buffer inside the booked slot",
+        "Confirm load-in and overtime terms with the host before you book"
+      ]
+    }
+  ],
+  "slug": "photoshoot-call-sheet-shot-list",
+  "meta": {
+    "title": "Photoshoot Call Sheet Template and Shot List for Studio Shoots",
+    "description": "A photoshoot call sheet template and shot list for agencies booking studios by the hour. Plan call times, SKUs and approvals with ContCave studios."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-14T04:00:00Z",
+  "updatedAt": "2026-10-14T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "photoshoot call sheet template",
+    "call sheet for photoshoot",
+    "shot list for product shoot",
+    "brand shoot shot list",
+    "photoshoot planning sheet",
+    "shoot day schedule",
+    "client approval on set",
+    "product shoot checklist",
+    "photoshoot production template",
+    "call sheet vs shot list",
+    "how to make a shot list",
+    "brand photoshoot timeline",
+    "studio shoot planning india",
+    "photoshoot planning delhi",
+    "studio shoot delhi ncr",
+    "product shoot studio gurugram",
+    "product shoot studio noida",
+    "studio overtime charges",
+    "tethered shooting client review",
+    "ecommerce shoot planning",
+    "shoot day planning 2026",
+    "call sheet for agencies",
+    "shot list for brands",
+    "studio booking checklist for agencies",
+    "ContCave"
+  ]
+}
