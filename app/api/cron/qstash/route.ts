@@ -7,7 +7,7 @@ import { getCurrentMonthToDatePeriod, getPreviousMonthPeriod, InvoiceService } f
 import { sendBookingReminderForReservation, sendBookingReminders } from "@/lib/maintenance/bookingReminders";
 import { processAndRecordMaintenanceJob } from "@/lib/maintenance/logger";
 import { runDueSplits } from "@/lib/maintenance/payoutSplits";
-import { autoCompleteCheckedInReservations, expireAdditionalCharges, expireExtensionRequests, sendExtensionNudges } from "@/lib/maintenance/postBooking";
+import { autoCompleteEndedReservations, expireAdditionalCharges, expireExtensionRequests, sendExtensionNudges } from "@/lib/maintenance/postBooking";
 import { assertNoFailedMaintenanceResults } from "@/lib/maintenance/results";
 import { ReservationService } from "@/lib/reservation/service";
 import { ReviewReminderService } from "@/lib/review/reminders";
@@ -96,7 +96,7 @@ async function handleQstashJob(body: {
       rawResult = results;
     } else if (body.job === "auto-complete") {
       if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
-      const results = await autoCompleteCheckedInReservations(1, body.reservationId);
+      const results = await autoCompleteEndedReservations(1, body.reservationId);
       assertNoFailedMaintenanceResults(results);
       rawResult = results;
     } else if (body.job === "booking-reminder") {
@@ -125,7 +125,7 @@ async function handleQstashJob(body: {
           break;
         }
         case "post-booking-complete": {
-          const results = await autoCompleteCheckedInReservations(200);
+          const results = await autoCompleteEndedReservations(200);
           assertNoFailedMaintenanceResults(results);
           rawResult = results;
           break;

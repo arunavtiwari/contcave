@@ -15,6 +15,7 @@ import {
   AdminVoucherRow,
   getAdminBookingDetailAction,
   getAdminBookingOperations,
+  markPayoutPaidManuallyAction,
   retryAdminInvoiceEmailAction,
   retryAdminVoucherEmailAction,
 } from "@/app/actions/adminBookingActions";
@@ -674,6 +675,8 @@ export default function AdminBookingsClient({
   const [isNavigating, startNavTransition] = useTransition();
   const [pendingInvoiceId, setPendingInvoiceId] = useState<string | null>(null);
   const [pendingVoucherId, setPendingVoucherId] = useState<string | null>(null);
+  const [manualPayout, setManualPayout] = useState<AdminPayoutRow | null>(null);
+  const [manualPayoutReference, setManualPayoutReference] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<AdminBookingRow | null>(null);
   const [bookingDetail, setBookingDetail] = useState<AdminBookingDetail | null>(null);
   const [isCreateOfflineBookingModalOpen, setIsCreateOfflineBookingModalOpen] = useState(false);
@@ -745,6 +748,30 @@ export default function AdminBookingsClient({
         return;
       }
       toast.success("Invoice email retry queued");
+      router.refresh();
+    });
+  };
+
+  const confirmManualPayout = () => {
+    if (!manualPayout) return;
+    const payout = manualPayout;
+    startTransition(async () => {
+      const res = await markPayoutPaidManuallyAction({
+        transactionId: payout.id,
+        reference: manualPayoutReference.trim() || undefined,
+      });
+      if (!res.success || !res.data) {
+        toast.error(res.error || "Couldn't mark the payout as paid");
+        return;
+      }
+      const paidAt = res.data.paidAt;
+      setData((current) => ({
+        ...current,
+        payouts: current.payouts.map((row) => (row.id === payout.id ? { ...row, payoutSplitAt: paidAt, payoutDoneAt: paidAt } : row)),
+      }));
+      setManualPayout(null);
+      setManualPayoutReference("");
+      toast.success("Payout marked as paid. It won't be paid out automatically.");
       router.refresh();
     });
   };
@@ -1128,7 +1155,18 @@ export default function AdminBookingsClient({
                     <TableCell className="text-xs">{payout.vendorConfigured ? "Configured" : <MutedDash title="Vendor is not configured" />}</TableCell>
                     <TableCell className="text-right">{formatINR(payout.payoutAmount || 0)}</TableCell>
                     <TableCell className="text-center">
-                      <CompactPill label={payout.payoutDoneAt ? "Done" : payout.payoutSplitAt ? "Split" : "Pending"} variant={payout.payoutDoneAt ? "success" : "warning"} />
+                      <div className="flex flex-col items-center gap-1.5">
+                        <CompactPill label={payout.payoutDoneAt ? "Done" : payout.payoutSplitAt ? "Split" : "Pending"} variant={payout.payoutDoneAt ? "success" : "warning"} />
+                        {!payout.payoutDoneAt && !payout.payoutSplitAt && payout.status === "SUCCESS" && (
+                          <button
+                            type="button"
+                            onClick={() => { setManualPayout(payout); setManualPayoutReference(""); }}
+                            className="text-xs font-medium underline underline-offset-4 hover:text-foreground"
+                          >
+                            Mark paid
+                          </button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -1137,6 +1175,37 @@ export default function AdminBookingsClient({
           </Table>
         ) : <EmptyTable label="No payouts found." />
       )}
+
+      <Modal
+        isOpen={Boolean(manualPayout)}
+        onCloseAction={() => !isPending && setManualPayout(null)}
+        onSubmitAction={confirmManualPayout}
+        title="Mark payout as paid"
+        actionLabel={isPending ? "Saving..." : "Mark as paid"}
+        secondaryActionLabel="Cancel"
+        secondaryActionAction={() => setManualPayout(null)}
+        disabled={isPending}
+        body={
+          <div className="flex flex-col gap-4 text-sm">
+            <p className="text-muted-foreground">
+              Use this after you&apos;ve paid the studio yourself, for example with a manual Cashfree transfer.
+              {" "}<span className="font-medium text-foreground">{formatINR(manualPayout?.payoutAmount || 0)}</span> for booking{" "}
+              <span className="font-mono text-foreground">{manualPayout?.bookingId || manualPayout?.id}</span> ({manualPayout?.studioName}) will be
+              recorded as paid and never paid out automatically.
+            </p>
+            <label className="flex flex-col gap-1.5 font-medium text-foreground">
+              Transfer reference (optional)
+              <input
+                className="h-10 rounded-lg border border-border bg-background px-3 text-sm font-normal"
+                placeholder="Cashfree transfer ID or UTR"
+                maxLength={120}
+                value={manualPayoutReference}
+                onChange={(event) => setManualPayoutReference(event.target.value)}
+              />
+            </label>
+          </div>
+        }
+      />
 
       {optimisticTab === "audit" && (
         data.audits.length > 0 || isNavigating ? (

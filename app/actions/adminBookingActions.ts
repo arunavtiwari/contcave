@@ -14,6 +14,7 @@ import {
 import { UserFacingError } from "@/lib/errors";
 import { InvoiceService } from "@/lib/invoice/service";
 import { PaymentVoucherService } from "@/lib/payment-voucher/service";
+import { PayoutService } from "@/lib/payout/service";
 import prisma from "@/lib/prismadb";
 import { isAdmin } from "@/lib/user/permissions";
 import { createAdminOfflineBookingSchema } from "@/schemas/offlineBooking";
@@ -697,6 +698,19 @@ export const getAdminBookingDetailAction = createAction(
         reservationMarkedForDeletion: false,
       })),
     };
+  }
+);
+
+export const markPayoutPaidManuallyAction = createAction(
+  z.object({
+    transactionId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid transaction ID"),
+    reference: z.string().trim().max(120).optional(),
+  }),
+  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  async ({ transactionId, reference }, { user }) => {
+    const result = await PayoutService.markPaidManually({ transactionId, adminId: user.id, reference });
+    revalidatePath("/admin/dashboard/bookings");
+    return result;
   }
 );
 

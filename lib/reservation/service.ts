@@ -20,6 +20,7 @@ import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import { calculatePayoutDetails, hasValidGST } from "@/lib/payout/utils";
 import prisma from "@/lib/prismadb";
 import { isReservationSlotUniqueConflict, LISTING_WIDE_SLOT_ID } from "@/lib/reservation/slots";
+import { hasSessionEnded } from "@/lib/reservation/status";
 import { formatReservationDate, parseReservationEndTimeForDate, parseReservationTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
 import { generateBookingId } from "@/lib/utils";
@@ -1066,8 +1067,8 @@ export class ReservationService {
         if (now.getTime() < startAt.getTime() - 30 * 60 * 1000) {
             throw new UserFacingError("Check-in opens 30 minutes before the scheduled start time");
         }
-        if (now.getTime() > endAt.getTime() + 2 * 60 * 60 * 1000) {
-            throw new UserFacingError("Check-in window has closed for this booking");
+        if (now.getTime() >= endAt.getTime()) {
+            throw new UserFacingError("Check-in closed when this booking ended. It will be completed automatically.");
         }
 
         const checkedInAt = now;
@@ -1100,18 +1101,22 @@ export class ReservationService {
         const resv = await this.getFullReservationOrThrow(reservationId);
         if (!options.system) this.assertHost(resv, userId, options.allowAdmin);
 
-        if (this.currentStatus(resv) !== "CHECKED_IN" || !resv.checkedInAt) {
+        // Hosts complete checked-in sessions. The system also completes confirmed bookings nobody
+        // checked in (e.g. hosts who only use WhatsApp) once the booked slot is over, so payouts still happen.
+        const status = this.currentStatus(resv);
+        const isCheckedIn = status === "CHECKED_IN" && Boolean(resv.checkedInAt);
+        const isEndedWithoutCheckIn = Boolean(options.system) && status === "CONFIRMED"
+            && hasSessionEnded({ startDate: resv.startDate, startTime: resv.startTime, endTime: resv.endTime });
+        if (!isCheckedIn && !isEndedWithoutCheckIn) {
             throw new UserFacingError("Only checked-in reservations can be completed");
         }
 
         const completedAt = new Date();
         const transitioned = await prisma.$transaction(async (tx) => {
             const update = await tx.reservation.updateMany({
-                where: {
-                    id: reservationId,
-                    status: "CHECKED_IN",
-                    checkedInAt: { not: null },
-                },
+                where: isCheckedIn
+                    ? { id: reservationId, status: "CHECKED_IN", checkedInAt: { not: null } }
+                    : { id: reservationId, status: "CONFIRMED" },
                 data: {
                     status: "COMPLETED",
                     completedAt,
@@ -1153,9 +1158,11 @@ export class ReservationService {
 
         if (!transitioned) return;
 
-        await this.writeSystemMessage(reservationId, options.system
-            ? "This session was automatically completed after the checked-in booking ended."
-            : "Host marked this session as completed."
+        await this.writeSystemMessage(reservationId, !options.system
+            ? "Host marked this session as completed."
+            : isCheckedIn
+                ? "This session was automatically completed after the checked-in booking ended."
+                : "This session was automatically completed after the booking time ended."
         );
         await scheduleQstashJob(
             { job: "review-reminder", reservationId },
@@ -1172,9 +1179,13 @@ export class ReservationService {
         }
 
         const startAt = parseReservationTimeForDate(resv.startDate, resv.startTime);
-        if (!startAt) throw new UserFacingError("Reservation schedule is invalid");
+        const endAt = parseReservationEndTimeForDate(resv.startDate, resv.endTime);
+        if (!startAt || !endAt) throw new UserFacingError("Reservation schedule is invalid");
         if (Date.now() < startAt.getTime() + 30 * 60 * 1000) {
             throw new UserFacingError("No-show can be marked 30 minutes after the scheduled start time");
+        }
+        if (Date.now() >= endAt.getTime()) {
+            throw new UserFacingError("No-show can only be marked before the booking ends. It will be completed automatically.");
         }
 
         await prisma.$transaction(async (tx) => {

@@ -14,23 +14,39 @@ export async function expireAdditionalCharges(limit = 200, chargeId?: string) {
   return await PostBookingService.expireAdditionalCharges(limit, chargeId);
 }
 
-export async function autoCompleteCheckedInReservations(limit = 200, reservationId?: string) {
+/**
+ * Completes bookings once they're over, which is what schedules the owner payout:
+ * - checked-in sessions 2 hours after the end (room for extensions), and
+ * - confirmed bookings nobody checked in (hosts who run everything on WhatsApp) right after the end.
+ *
+ * Un-checked-in bookings are only auto-completed if they ended in the last 48 hours, so switching this
+ * on never sweeps up old bookings that may already have been settled by hand; those stay for admin.
+ */
+const UNCHECKED_AUTO_COMPLETE_WINDOW_HOURS = 48;
+
+export async function autoCompleteEndedReservations(limit = 200, reservationId?: string) {
   const now = new Date();
   const reservations = await prisma.reservation.findMany({
     where: {
       ...(reservationId ? { id: reservationId } : {}),
-      status: "CHECKED_IN",
-      checkedInAt: { not: null },
       markedForDeletion: false,
+      startDate: { lte: now },
+      OR: [
+        { status: "CHECKED_IN", checkedInAt: { not: null } },
+        { status: "CONFIRMED", OR: [{ checkedInAt: null }, { checkedInAt: { isSet: false } }] },
+      ],
     },
-    select: { id: true, startDate: true, endTime: true },
+    select: { id: true, status: true, startDate: true, endTime: true },
     take: limit,
   });
 
   const results: Array<{ id: string; status: "completed" | "skipped" | "failed"; error?: string }> = [];
   for (const reservation of reservations) {
     const endAt = parseReservationEndTimeForDate(reservation.startDate, reservation.endTime);
-    if (!endAt || addHours(endAt, 2).getTime() > now.getTime()) {
+    const checkedIn = reservation.status === "CHECKED_IN";
+    const dueAt = endAt && (checkedIn ? addHours(endAt, 2) : endAt);
+    const tooOld = !checkedIn && endAt && addHours(endAt, UNCHECKED_AUTO_COMPLETE_WINDOW_HOURS).getTime() < now.getTime();
+    if (!dueAt || dueAt.getTime() > now.getTime() || tooOld) {
       results.push({ id: reservation.id, status: "skipped" });
       continue;
     }

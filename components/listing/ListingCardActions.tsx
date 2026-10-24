@@ -4,6 +4,7 @@ import React from "react";
 import { IoInformationCircleOutline } from "react-icons/io5";
 
 import Button from "@/components/ui/Button";
+import { canCheckInNow, canMarkNoShowNow, hasSessionEnded } from "@/lib/reservation/status";
 import { SafeReservation } from "@/types/reservation";
 
 interface ListingCardActionsProps {
@@ -53,6 +54,14 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
         (reservation?.status === "COMPLETED" && completedAt && Date.now() - completedAt.getTime() <= 24 * 60 * 60 * 1000)
     );
     const isPendingApproval = reservation?.status === "PENDING_APPROVAL";
+    // Same windows the server enforces: check-in from 30 min before start, no-show from 30 min after,
+    // both closing when the slot ends (the booking then completes automatically).
+    const session = reservation?.startDate && reservation.startTime && reservation.endTime
+        ? { startDate: reservation.startDate, startTime: reservation.startTime, endTime: reservation.endTime }
+        : null;
+    const checkInOpen = session ? canCheckInNow(session) : false;
+    const noShowOpen = session ? canMarkNoShowNow(session) : false;
+    const sessionEnded = session ? hasSessionEnded(session) : false;
     const isTerminal = Boolean(reservation && ["CANCELLED", "COMPLETED", "NO_SHOW", "REFUNDED", "PARTIALLY_REFUNDED"].includes(reservation.status));
     const showActions = onEdit || onDelete || onCancel || (isPendingApproval && isHost) || (!isPendingApproval && onChat)
         || onCheckIn || onComplete || onNoShow || onExtend || onAddCharge;
@@ -121,9 +130,14 @@ const ListingCardActions: React.FC<ListingCardActionsProps> = ({
                 {reservation && (!isPendingApproval || !isHost) && (
                     <div className="flex flex-col gap-2 w-full">
                         {isHost && reservation.status === "CONFIRMED" && (
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button label="Check In" variant="success" onClick={(e) => { e?.stopPropagation(); onCheckIn?.(String(reservation.id)); }} disabled={disabled} size="sm" />
-                                <Button label="No Show" variant="outline" onClick={(e) => { e?.stopPropagation(); onNoShow?.(String(reservation.id)); }} disabled={disabled} size="sm" />
+                            <div className="flex flex-col gap-1.5">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button label="Check In" variant="success" onClick={(e) => { e?.stopPropagation(); onCheckIn?.(String(reservation.id)); }} disabled={disabled || !checkInOpen} size="sm" />
+                                    <Button label="No Show" variant="outline" onClick={(e) => { e?.stopPropagation(); onNoShow?.(String(reservation.id)); }} disabled={disabled || !noShowOpen} size="sm" />
+                                </div>
+                                {sessionEnded && (
+                                    <p className="text-[11px] text-muted-foreground">Booking time is over. It will be marked completed automatically.</p>
+                                )}
                             </div>
                         )}
                         {isHost && reservation.status === "CHECKED_IN" && (

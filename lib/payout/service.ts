@@ -1,11 +1,14 @@
 
+import { Prisma } from "@prisma/client";
 import { formatInTimeZone } from "date-fns-tz";
 
 import { createOrderSplit } from "@/lib/cashfree/easySplit";
 import { sendPayoutProcessedOwner } from "@/lib/email/templates";
+import { UserFacingError } from "@/lib/errors";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
 import { formatReservationDate } from "@/lib/reservation/time";
+import { auditService } from "@/lib/security/audit";
 import { WhatsappService } from "@/lib/whatsapp/service";
 
 function toErrorMessage(error: unknown) {
@@ -13,6 +16,56 @@ function toErrorMessage(error: unknown) {
 }
 
 export class PayoutService {
+    /**
+     * Records an owner payout made outside the automatic split (e.g. a manual Cashfree transfer).
+     * Setting payoutSplitAt takes the transaction out of processDueSplits for good, so it can't be
+     * paid twice even after automatic payouts are switched back on.
+     */
+    static async markPaidManually(params: { transactionId: string; adminId: string; reference?: string | null; note?: string | null }) {
+        const txn = await prisma.transaction.findUnique({
+            where: { id: params.transactionId },
+            select: { id: true, status: true, metadata: true, payoutSplitAt: true, payoutDoneAt: true },
+        });
+        if (!txn) throw new UserFacingError("Transaction not found", 404);
+        if (txn.status !== "SUCCESS") throw new UserFacingError("Only successful payments can be paid out", 409);
+        if (txn.payoutSplitAt || txn.payoutDoneAt) throw new UserFacingError("This payout is already marked as done", 409);
+
+        const paidAt = new Date();
+        const manualPayout = {
+            paidAt: paidAt.toISOString(),
+            markedBy: params.adminId,
+            reference: params.reference?.trim() || null,
+            note: params.note?.trim() || null,
+        };
+        const previousMetadata = txn.metadata && typeof txn.metadata === "object" && !Array.isArray(txn.metadata)
+            ? (txn.metadata as Prisma.JsonObject)
+            : {};
+
+        const claimed = await prisma.transaction.updateMany({
+            where: {
+                id: txn.id,
+                status: "SUCCESS",
+                OR: [{ payoutSplitAt: null }, { payoutSplitAt: { isSet: false } }],
+            },
+            data: {
+                payoutSplitAt: paidAt,
+                payoutDoneAt: paidAt,
+                payoutDueAt: null,
+                metadata: { ...previousMetadata, manualPayout },
+            },
+        });
+        if (claimed.count !== 1) throw new UserFacingError("This payout was processed by someone else just now", 409);
+
+        await auditService.log({
+            userId: params.adminId,
+            action: "PAYOUT_MARKED_PAID_MANUALLY",
+            resource: "Transaction",
+            resourceId: txn.id,
+            metadata: manualPayout,
+        });
+        return { transactionId: txn.id, paidAt: manualPayout.paidAt };
+    }
+
     static async processDueSplits(limit = 200): Promise<Array<{ id: string; ok: boolean; error?: string }>> {
         const now = new Date();
         const splitSafeCreatedAt = new Date(now.getTime() - 2 * 60 * 1000);
@@ -24,8 +77,9 @@ export class PayoutService {
                 reservation: {
                     is: {
                         markedForDeletion: false,
+                        // Completed by the host or automatically after the slot ended (with or without a check-in).
                         OR: [
-                            { status: "COMPLETED", checkedInAt: { not: null } },
+                            { status: "COMPLETED", completedAt: { not: null } },
                             { status: "NO_SHOW", noShowAt: { not: null } },
                         ],
                     }
