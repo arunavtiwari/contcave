@@ -64,18 +64,29 @@ const uploadMediaItems = async (
   return urls;
 };
 
-export function collectUploadedMediaRefs(media: {
-  imageSrc: string[];
-  videoSrc: string | null;
-  sets: { images?: string[] }[];
-  addons: { imageUrl?: string }[];
-}): string[] {
-  return [
-    ...media.imageSrc,
+type MediaRefsSource = {
+  imageSrc?: (string | File)[] | null;
+  videoSrc?: string | null;
+  sets?: { images?: (string | File)[] | null }[] | null;
+  addons?: { imageUrl?: string | null }[] | null;
+};
+
+const mediaRefsOf = (media: MediaRefsSource): string[] =>
+  [
+    ...(media.imageSrc ?? []),
     ...(media.videoSrc ? [media.videoSrc] : []),
-    ...media.sets.flatMap((set) => set.images ?? []),
-    ...media.addons.map((addon) => addon.imageUrl ?? ""),
-  ].filter(Boolean);
+    ...(media.sets ?? []).flatMap((set) => set.images ?? []),
+    ...(media.addons ?? []).map((addon) => addon.imageUrl ?? ""),
+  ].filter((ref): ref is string => typeof ref === "string" && ref.length > 0);
+
+/**
+ * Files this save uploaded, i.e. refs in the upload result that weren't already saved URLs in
+ * the form. Only these may be discarded if the save fails: existing photos must never be sent
+ * to cleanup, or a failed save could delete images the listing still shows.
+ */
+export function collectUploadedMediaRefs(result: MediaRefsSource, before: MediaRefsSource): string[] {
+  const existing = new Set(mediaRefsOf(before));
+  return mediaRefsOf(result).filter((ref) => !existing.has(ref));
 }
 
 export async function uploadListingMedia<

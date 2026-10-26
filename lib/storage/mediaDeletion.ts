@@ -2,7 +2,7 @@ import "server-only";
 
 import { scheduleQstashJob } from "@/lib/cron/qstash";
 import { deleteStoredMedia, isOwnedMediaRef, MediaDeletionOutcome } from "@/lib/storage/mediaCleanup";
-import { collectUserMediaRefs } from "@/lib/storage/referencedMedia";
+import { collectRefsInUseAnywhere, collectUserMediaRefs } from "@/lib/storage/referencedMedia";
 
 const MAX_REFS_PER_DISPATCH = 500;
 
@@ -32,8 +32,11 @@ export async function executeMediaDeletion(params: {
     if (refs.length === 0) return { deleted: 0, failed: 0 };
 
     try {
-        const inUse = await collectUserMediaRefs(params.ownerId);
-        const removable = refs.filter((ref) => !inUse.has(ref));
+        const [ownerRefs, usedAnywhere] = await Promise.all([
+            collectUserMediaRefs(params.ownerId),
+            collectRefsInUseAnywhere(refs),
+        ]);
+        const removable = refs.filter((ref) => !ownerRefs.has(ref) && !usedAnywhere.has(ref));
         if (removable.length === 0) return { deleted: 0, failed: 0 };
 
         const sourceIds = params.sourceId ? [params.sourceId] : [];

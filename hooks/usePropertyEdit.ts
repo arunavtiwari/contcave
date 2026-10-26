@@ -129,7 +129,12 @@ export function usePropertyEdit(listing: FullListing, predefinedAddons: Addon[])
         createMissingAddonIds: false,
       });
 
-      uploadedMediaRefs.push(...collectUploadedMediaRefs(mediaResults));
+      uploadedMediaRefs.push(...collectUploadedMediaRefs(mediaResults, {
+        imageSrc: initialListing.imageSrc,
+        videoSrc: initialListing.videoSrc,
+        sets: initialListing.hasSets ? initialListing.sets : [],
+        addons: initialListing.addons,
+      }));
 
       const payload: Record<string, unknown> = {};
       const originalListing = originalListingRef.current;

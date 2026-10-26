@@ -1057,7 +1057,12 @@ export default function RentModal({
         addons: data.addons,
       });
 
-      uploadedMediaRefs.push(...collectUploadedMediaRefs(mediaResults));
+      uploadedMediaRefs.push(...collectUploadedMediaRefs(mediaResults, {
+        imageSrc: remoteImages,
+        videoSrc: data.videoSrc,
+        sets: data.hasSets ? data.sets : [],
+        addons: data.addons,
+      }));
 
       if (mediaResults.imageSrc.length === 0) {
         throw new Error("Please upload at least one image");

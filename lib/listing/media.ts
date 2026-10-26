@@ -2,6 +2,7 @@ export interface ListingMediaSource {
     imageSrc?: unknown;
     videoSrc?: unknown;
     addons?: unknown;
+    equipment?: unknown;
     verifications?: unknown;
     sets?: unknown;
 }
@@ -40,6 +41,9 @@ export function collectListingMediaRefs(source: ListingMediaSource): Set<string>
 
     if (Array.isArray(source.addons)) {
         source.addons.forEach((addon) => addRecordRef(refs, addon, "imageUrl"));
+    }
+    if (Array.isArray(source.equipment)) {
+        source.equipment.forEach((item) => addRecordRef(refs, item, "image"));
     }
 
     if (Array.isArray(source.sets)) {
