@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 61 | Fitness & Yoga Content Studios: What Creators Need to Shoot Workouts | fitness studio for content shoot india | studio-guides | creators |
 | 62 | Cooking & Recipe Video Studios: Kitchen Setup for Food Creators | cooking studio rental india | studio-guides | creators |
 | 63 | Budget Studio Shoots for Student & Campus Creators | studio for student creators india | content-creation | creators |
 | 64 | Finance & Edtech Explainer Video Studios: Whiteboard & Screen-Record Setups | finance content studio india | content-creation | creators |
@@ -105,3 +104,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-10-19 | 58 | corporate-headshot-studio-india |
 | 2026-10-21 | 59 | gaming-streaming-studio-india |
 | 2026-10-23 | 60 | studio-insurance-for-hosts-india |
+| 2026-10-26 | 61 | fitness-studio-for-content-shoot-india |
