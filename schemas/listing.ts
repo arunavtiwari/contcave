@@ -453,6 +453,9 @@ export const studioFeedFiltersSchema = z.object({
     purpose: feedTermSchema.optional(),
     /** Server-resolved: listings whose sets match the purpose. Never read from the URL. */
     purposeSetListingIds: z.array(objectIdSchema).optional(),
+    /** Server-resolved: listings whose sets carry a requested aesthetic / set feature. Never read from the URL. */
+    aestheticSetListingIds: z.array(objectIdSchema).optional(),
+    setFeatureSetListingIds: z.array(objectIdSchema).optional(),
 });
 
 export type StudioFeedFilters = z.infer<typeof studioFeedFiltersSchema>;

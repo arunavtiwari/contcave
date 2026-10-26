@@ -78,9 +78,9 @@ async function Footer() {
               <Link href="/studios?type=Fashion+%26+Lifestyle" className="text-muted-foreground hover:text-foreground transition-all text-sm">Fashion Shoot</Link>
               <Link href="/studios?type=Video+%26+Film" className="text-muted-foreground hover:text-foreground transition-all text-sm">Video & Film</Link>
               <Link href="/studios?type=Pre-Wedding" className="text-muted-foreground hover:text-foreground transition-all text-sm">Pre-Wedding Shoot</Link>
-              <Link href="/studios?venueTypes=Outdoor+%2F+Rooftop" className="text-muted-foreground hover:text-foreground transition-all text-sm">Outdoor Spaces</Link>
-              <Link href="/studios?type=Podcast+%26+Interview" className="text-muted-foreground hover:text-foreground transition-all text-sm">Podcasts</Link>
-              <Link href="/studios?type=Events+%26+Pop-Ups" className="text-muted-foreground hover:text-foreground transition-all text-sm">Events & Pop-Ups</Link>
+              <Link href="/studios?purpose=backdrop" className="text-muted-foreground hover:text-foreground transition-all text-sm">Backdrop Shoots</Link>
+              <Link href="/studios?purpose=podcast" className="text-muted-foreground hover:text-foreground transition-all text-sm">Podcasts</Link>
+              <Link href="/studios?purpose=event" className="text-muted-foreground hover:text-foreground transition-all text-sm">Events & Workshops</Link>
               <Link href="/studios?type=Product+%26+E-commerce" className="text-muted-foreground hover:text-foreground transition-all text-sm">Product Shoots</Link>
             </div>
 

@@ -1178,7 +1178,9 @@ export class ListingService {
         const { userId, hasSets, ...searchParams } = params;
         if (userId) return this.getOwnerListings(userId);
 
-        const filters = studioFeedSearchParamsSchema.parse({ ...searchParams, hasSets: hasSets ? "true" : undefined });
+        const filters = await this.withSetMatches(
+            studioFeedSearchParamsSchema.parse({ ...searchParams, hasSets: hasSets ? "true" : undefined })
+        );
         const excludeIds = await this.unbookableListingIds(filters);
         const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, origin: null, after: null, excludeIds }));
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
@@ -1222,7 +1224,7 @@ export class ListingService {
         cursor?: string | null;
         size?: number;
     }): Promise<StudioFeedPage> {
-        filters = await this.withPurposeSetListings(filters);
+        filters = await this.withSetMatches(filters);
         const after = cursor ? decodeFeedCursor(cursor) : null;
         const excludeIds = await this.unbookableListingIds(filters);
         const { rows, origin: appliedOrigin } = await this.queryFeedRows({ filters, origin, after, limit: size + 1, excludeIds });
@@ -1237,15 +1239,21 @@ export class ListingService {
         };
     }
 
-    /** A purpose can match on set-level features; sets are a separate collection, so look those listings up first. */
-    private static async withPurposeSetListings(filters: StudioFeedFilters): Promise<StudioFeedFilters> {
+    /**
+     * Set-level tags live on ListingSet, a separate collection, so listings whose *sets* match the
+     * purpose, aesthetics or set features are looked up first. These ids always come from here,
+     * never from the request.
+     */
+    private static async withSetMatches(filters: StudioFeedFilters): Promise<StudioFeedFilters> {
+        const listingIdsWithSets = async (where: Prisma.ListingSetWhereInput) =>
+            Array.from(new Set((await prisma.listingSet.findMany({ where, select: { listingId: true } })).map((set) => set.listingId)));
         const purpose = findShootPurpose(filters.purpose);
-        if (!purpose?.setFeatures?.length) return { ...filters, purposeSetListingIds: undefined };
-        const sets = await prisma.listingSet.findMany({
-            where: { setFeatures: { hasSome: purpose.setFeatures } },
-            select: { listingId: true },
-        });
-        return { ...filters, purposeSetListingIds: Array.from(new Set(sets.map((set) => set.listingId))) };
+        const [purposeSetListingIds, aestheticSetListingIds, setFeatureSetListingIds] = await Promise.all([
+            purpose?.setFeatures?.length ? listingIdsWithSets({ setFeatures: { hasSome: purpose.setFeatures } }) : undefined,
+            filters.aesthetics?.length ? listingIdsWithSets({ aesthetics: { hasSome: filters.aesthetics } }) : undefined,
+            filters.setFeatures?.length ? listingIdsWithSets({ setFeatures: { hasSome: filters.setFeatures } }) : undefined,
+        ]);
+        return { ...filters, purposeSetListingIds, aestheticSetListingIds, setFeatureSetListingIds };
     }
 
     private static async unbookableListingIds(filters: StudioFeedFilters): Promise<string[]> {

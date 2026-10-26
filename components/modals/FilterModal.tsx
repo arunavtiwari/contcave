@@ -7,7 +7,7 @@ import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import { useFilterNavigation } from "@/hooks/useFilterNavigation";
-import { AESTHETICS, SET_FEATURES, USE_CASES, VENUE_TYPES } from "@/lib/taxonomy";
+import { AESTHETICS, SET_FEATURES, USE_CASES } from "@/lib/taxonomy";
 
 type Props = { city?: string };
 
@@ -20,7 +20,6 @@ const FilterModalContent = ({ city }: Props) => {
     const list = (key: string) => params?.get(key)?.split(",").filter(Boolean) ?? [];
     return {
       types: list("type"),
-      venueTypes: list("venueTypes"),
       aesthetics: list("aesthetics"),
       setFeatures: list("setFeatures"),
     };
@@ -28,19 +27,16 @@ const FilterModalContent = ({ city }: Props) => {
 
   const activeFilterCount = [
     applied.types.length > 0,
-    applied.venueTypes.length > 0,
     applied.aesthetics.length > 0,
     applied.setFeatures.length > 0,
   ].filter(Boolean).length;
 
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedVenueTypes, setSelectedVenueTypes] = useState<string[]>([]);
   const [selectedAesthetics, setSelectedAesthetics] = useState<string[]>([]);
   const [selectedSetFeatures, setSelectedSetFeatures] = useState<string[]>([]);
 
   const openFilters = () => {
     setSelectedTypes(applied.types);
-    setSelectedVenueTypes(applied.venueTypes);
     setSelectedAesthetics(applied.aesthetics);
     setSelectedSetFeatures(applied.setFeatures);
     setIsOpen(true);
@@ -62,8 +58,8 @@ const FilterModalContent = ({ city }: Props) => {
     if (selectedTypes.length > 0) nextParams.set("type", selectedTypes.join(","));
     else nextParams.delete("type");
 
-    if (selectedVenueTypes.length > 0) nextParams.set("venueTypes", selectedVenueTypes.join(","));
-    else nextParams.delete("venueTypes");
+    // Venue type is no longer a filter; drop it from older links so it can't silently narrow results.
+    nextParams.delete("venueTypes");
 
     if (selectedAesthetics.length > 0) nextParams.set("aesthetics", selectedAesthetics.join(","));
     else nextParams.delete("aesthetics");
@@ -79,7 +75,6 @@ const FilterModalContent = ({ city }: Props) => {
     const nextParams = new URLSearchParams(urlSearchParams.toString());
     ["type", "venueTypes", "aesthetics", "setFeatures"].forEach((k) => nextParams.delete(k));
     setSelectedTypes([]);
-    setSelectedVenueTypes([]);
     setSelectedAesthetics([]);
     setSelectedSetFeatures([]);
     navigate(`/studios?${nextParams.toString()}`);
@@ -89,7 +84,7 @@ const FilterModalContent = ({ city }: Props) => {
   const body = (
     <div className="divide-y divide-border">
       <section className="pb-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Shoot Type</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Shoot type</p>
         <div className="flex flex-wrap gap-2">
           {USE_CASES.map((u) => (
             <Pill
@@ -102,19 +97,6 @@ const FilterModalContent = ({ city }: Props) => {
         </div>
       </section>
 
-      <section className="py-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Venue Type</p>
-        <div className="flex flex-wrap gap-2">
-          {VENUE_TYPES.map((v) => (
-            <Pill
-              key={v.slug}
-              label={v.label}
-              variant={selectedVenueTypes.includes(v.label) ? "solid" : "secondary"}
-              onClick={() => toggle(v.label, selectedVenueTypes, setSelectedVenueTypes)}
-            />
-          ))}
-        </div>
-      </section>
 
       <section className="py-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Aesthetics</p>

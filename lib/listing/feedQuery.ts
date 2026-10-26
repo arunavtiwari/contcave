@@ -109,7 +109,17 @@ function publicListingMatch(filters: StudioFeedFilters, excludeIds: string[] = [
     if (filters.category) clauses.push({ category: filters.category });
     for (const field of TAXONOMY_FILTERS) {
         const terms = filters[field];
-        if (terms) clauses.push({ [field]: { $in: terms } });
+        if (!terms) continue;
+        // Studios with sets keep aesthetics and set features on each set, not on the listing,
+        // so those filters also match listings whose sets carry the tag (resolved by the caller).
+        const setListingIds = field === "aesthetics"
+            ? filters.aestheticSetListingIds
+            : field === "setFeatures"
+                ? filters.setFeatureSetListingIds
+                : undefined;
+        clauses.push(setListingIds?.length
+            ? { $or: [{ [field]: { $in: terms } }, { _id: { $in: setListingIds.map((id) => ({ $oid: id })) } }] }
+            : { [field]: { $in: terms } });
     }
     if (filters.hasSets) clauses.push({ hasSets: true });
     if (filters.near && filters.radiusKm) {
