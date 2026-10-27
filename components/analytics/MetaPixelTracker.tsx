@@ -33,10 +33,11 @@ export default function MetaPixelTracker() {
     if (!consent.marketing || !META_PIXEL_ID || !pixelReady) return;
 
     const url = pathname || "/";
+    if (window.location.pathname !== url) return;
     if (url === lastTrackedRef.current) return;
     lastTrackedRef.current = url;
     if (/^\/(dashboard|admin|pay|payments|api|auth)(?:\/|$)/.test(url)) return;
-    pageview();
+    pageview(undefined, url);
   }, [pathname, searchParams, consent.marketing, pixelReady]);
 
   return null;

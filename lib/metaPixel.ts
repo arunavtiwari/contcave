@@ -30,10 +30,19 @@ const META_CUSTOM_DATA_KEYS = new Set([
   "status",
 ]);
 
-function sendMetaCapiEvent(name: MetaStandardEventName, eventId: string, params: Record<string, unknown>) {
+function sendMetaCapiEvent(
+  name: MetaStandardEventName,
+  eventId: string,
+  params: Record<string, unknown>,
+  eventSourcePath?: string,
+) {
   if (typeof window === "undefined" || !hasMarketingConsent()) return;
 
   const url = new URL(window.location.href);
+  const sourcePath =
+    eventSourcePath?.startsWith("/") && !eventSourcePath.startsWith("//")
+      ? eventSourcePath.split(/[?#]/, 1)[0] || "/"
+      : url.pathname;
   const customData = Object.fromEntries(
     Object.entries(params).filter(([key, value]) =>
       META_CUSTOM_DATA_KEYS.has(key)
@@ -43,7 +52,7 @@ function sendMetaCapiEvent(name: MetaStandardEventName, eventId: string, params:
   const payload = {
     event_name: name,
     event_id: eventId,
-    event_source_url: `${url.origin}${url.pathname}`,
+    event_source_url: `${url.origin}${sourcePath}`,
     ...(Object.keys(customData).length ? { custom_data: customData } : {}),
     ...(url.searchParams.get("fbclid") ? { fbclid: url.searchParams.get("fbclid") } : {}),
   };
@@ -57,19 +66,20 @@ function sendMetaCapiEvent(name: MetaStandardEventName, eventId: string, params:
   }).catch(() => undefined);
 }
 
-export function pageview(eventId?: string): string | null {
-  return trackEvent(MetaStandardEvent.PageView, {}, eventId);
+export function pageview(eventId?: string, eventSourcePath?: string): string | null {
+  return trackEvent(MetaStandardEvent.PageView, {}, eventId, eventSourcePath);
 }
 
 export function trackEvent(
   name: MetaStandardEventName,
   params: Record<string, unknown> = {},
   eventId?: string,
+  eventSourcePath?: string,
 ): string | null {
   if (!hasMarketingConsent() || !isFbqAvailable()) return null;
   const id = eventId || generateEventId();
   window.fbq("track", name, params, { eventID: id });
-  sendMetaCapiEvent(name, id, params);
+  sendMetaCapiEvent(name, id, params, eventSourcePath);
   return id;
 }
 
