@@ -18,6 +18,7 @@ declare global {
             push?: (...args: unknown[]) => void;
         };
         _fbq?: typeof window.fbq;
+        __CC_META_PIXEL_READY__?: boolean;
     }
 }
 

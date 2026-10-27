@@ -16,6 +16,7 @@ import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useUIStore from "@/hooks/useUIStore";
+import { trackSignup } from "@/lib/analytics/tracking";
 import { getAuthErrorMessage } from "@/lib/errors";
 import { RegisterSchema, registerSchema } from "@/schemas/auth";
 
@@ -51,6 +52,7 @@ function RegisterModal() {
         return;
       }
 
+      trackSignup({ method: "email", accountType: "customer" });
       const callback = await signIn("credentials", {
         email: data.email,
         password: data.password,

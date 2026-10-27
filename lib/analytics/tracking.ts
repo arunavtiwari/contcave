@@ -1,6 +1,6 @@
 import { MetaStandardEvent } from "@/constants/metaPixel";
 import type { StoredConsent } from "@/lib/consent";
-import { trackEvent as trackMetaEvent } from "@/lib/metaPixel";
+import { generateEventId, trackEvent as trackMetaEvent } from "@/lib/metaPixel";
 
 /*
  * GA4 ecommerce events for Google Tag Manager, plus the matching Meta Pixel events.
@@ -48,20 +48,15 @@ function pushDataLayer(event: DataLayerEvent) {
     window.dataLayer.push(event);
 }
 
-/** GA4 requires the previous ecommerce object to be cleared before pushing a new one. */
-function pushEcommerceEvent(event: DataLayerEvent) {
+/** Clear the prior ecommerce object on every event to prevent stale item/value data leaking forward. */
+function pushTrackedEvent(event: DataLayerEvent) {
     pushDataLayer({ ecommerce: null });
     pushDataLayer(event);
 }
 
-export type TrackingUser = { email?: string | null; phone?: string | null };
-
-/** Enhanced-conversions user data: email lowercased, phone in E.164 (+91 for 10-digit numbers). */
-function userData(user?: TrackingUser | null) {
-    const email = user?.email?.trim().toLowerCase() || undefined;
-    const digits = user?.phone?.replace(/\D/g, "") || "";
-    const phone_number = digits.length === 10 ? `+91${digits}` : digits.length > 10 ? `+${digits}` : undefined;
-    return email || phone_number ? { email, phone_number } : undefined;
+/** GA4 requires the previous ecommerce object to be cleared before pushing a new one. */
+function pushEcommerceEvent(event: DataLayerEvent) {
+    pushTrackedEvent(event);
 }
 
 export type TrackedStudio = {
@@ -81,19 +76,140 @@ const studioItem = (studio: TrackedStudio) => ({
 
 const roundToPaise = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
-/** Customer clicked Confirm & Continue on the Booking Summary. `value` excludes GST. */
+function pageType(pathname: string) {
+    if (pathname === "/") return "home";
+    if (/^\/studio\//.test(pathname) || /^\/listings?\//.test(pathname)) return "studio";
+    if (/^\/studios(?:\/|$)/.test(pathname)) return "listing";
+    return "content";
+}
+
+function safeTrackedPath(pathname: string) {
+    if (/^\/(dashboard|admin|pay|payments|api|auth)(?:\/|$)/.test(pathname)) {
+        return `/${pathname.split("/")[1]}`;
+    }
+    return pathname.slice(0, 160) || "/";
+}
+
+function trackingContext(pathname = typeof window === "undefined" ? "/" : window.location.pathname) {
+    const path = safeTrackedPath(pathname);
+    const origin = typeof window === "undefined" ? "" : window.location.origin;
+    return {
+        page_type: pageType(pathname),
+        page_path: path,
+        ...(origin ? { page_location: `${origin}${path}` } : {}),
+    };
+}
+
+function isPrivateTrackingPath(pathname: string) {
+    return /^\/(dashboard|admin|pay|payments|api|auth)(?:\/|$)/.test(pathname);
+}
+
+export function trackPageView(pathname?: string) {
+    if (typeof window === "undefined") return;
+    const currentPath = pathname || window.location.pathname;
+    if (isPrivateTrackingPath(currentPath)) return;
+    pushTrackedEvent({
+        event: "page_view",
+        event_id: generateEventId(),
+        ...trackingContext(currentPath),
+        page_title: document.title.slice(0, 120),
+    });
+}
+
+export function trackStudioView(studio: TrackedStudio) {
+    const eventId = generateEventId();
+    pushEcommerceEvent({
+        event: "view_item",
+        event_id: eventId,
+        ...trackingContext(),
+        ecommerce: { currency: "INR", items: [studioItem(studio)] },
+    });
+    trackMetaEvent(MetaStandardEvent.ViewContent, {
+        content_ids: [studio.id],
+        content_name: studio.name,
+        content_type: "product",
+        ...(studio.category ? { content_category: studio.category } : {}),
+    }, eventId);
+}
+
+export function trackDateSelection(studio?: TrackedStudio | null) {
+    pushTrackedEvent({
+        event: "select_date",
+        event_id: generateEventId(),
+        ...trackingContext(),
+        ...(studio ? { ecommerce: { currency: "INR", items: [studioItem(studio)] } } : {}),
+    });
+}
+
+export function trackTimeSelection(studio?: TrackedStudio | null) {
+    pushTrackedEvent({
+        event: "select_time",
+        event_id: generateEventId(),
+        ...trackingContext(),
+        ...(studio ? { ecommerce: { currency: "INR", items: [studioItem(studio)] } } : {}),
+    });
+}
+
+export function trackCheckoutStep(params: { step: "personal_details" | "review_booking"; studio?: TrackedStudio | null }) {
+    pushTrackedEvent({
+        event: "checkout_step",
+        event_id: generateEventId(),
+        step_name: params.step,
+        ...trackingContext(),
+        ...(params.studio ? { ecommerce: { currency: "INR", items: [studioItem(params.studio)] } } : {}),
+    });
+}
+
+export function trackWhatsAppContact(params: { source?: string; studio?: TrackedStudio | null } = {}) {
+    const eventId = generateEventId();
+    pushTrackedEvent({
+        event: "whatsapp_contact",
+        event_id: eventId,
+        contact_method: "whatsapp",
+        contact_source: params.source || "whatsapp_link",
+        ...trackingContext(),
+        ...(params.studio ? { ecommerce: { currency: "INR", items: [studioItem(params.studio)] } } : {}),
+    });
+    trackMetaEvent(MetaStandardEvent.Contact, {
+        content_type: "product",
+        ...(params.studio ? { content_ids: [params.studio.id], content_name: params.studio.name } : {}),
+    }, eventId);
+}
+
+export function trackOutboundLinkClick(hostname: string, opensNewTab: boolean) {
+    pushTrackedEvent({
+        event: "outbound_link_click",
+        event_id: generateEventId(),
+        outbound_host: hostname.slice(0, 120).toLowerCase(),
+        opens_new_tab: opensNewTab,
+        ...trackingContext(),
+    });
+}
+
+export function trackNewTabLinkClick(pathname: string) {
+    if (isPrivateTrackingPath(pathname)) return;
+    pushTrackedEvent({
+        event: "new_tab_link_click",
+        event_id: generateEventId(),
+        destination_path: safeTrackedPath(pathname),
+        ...trackingContext(),
+    });
+}
+
+/** Customer began checkout from the booking flow. `value` excludes GST. */
 export function trackBeginCheckout(params: {
     studio: TrackedStudio;
     value: number;
     tax: number;
     bookingType: "instant" | "approval";
-    user?: TrackingUser | null;
 }) {
     const value = roundToPaise(params.value);
+    const eventId = generateEventId();
     pushEcommerceEvent({
         event: "begin_checkout",
+        event_id: eventId,
         booking_type: params.bookingType,
-        user_data: userData(params.user),
+        ...trackingContext(),
         ecommerce: {
             value,
             tax: roundToPaise(params.tax),
@@ -107,7 +223,7 @@ export function trackBeginCheckout(params: {
         content_ids: [params.studio.id],
         content_type: "product",
         num_items: 1,
-    });
+    }, eventId);
 }
 
 const PURCHASE_SENT_KEY = (bookingId: string) => `cc_purchase_sent:${bookingId}`;
@@ -142,17 +258,18 @@ export function trackPurchase(params: {
     gstRate: number;
     studio: TrackedStudio;
     bookingType: "instant" | "approval";
-    user?: TrackingUser | null;
 }) {
     if (typeof window === "undefined" || !params.bookingId || purchaseAlreadySent(params.bookingId)) return;
     markPurchaseSent(params.bookingId);
 
     const value = roundToPaise(params.totalPaid / (1 + params.gstRate));
     const tax = roundToPaise(params.totalPaid - value);
+    const eventId = `purchase:${params.bookingId}`;
     pushEcommerceEvent({
         event: "purchase",
+        event_id: eventId,
         booking_type: params.bookingType,
-        user_data: userData(params.user),
+        ...trackingContext(),
         ecommerce: {
             transaction_id: params.bookingId,
             value,
@@ -168,30 +285,72 @@ export function trackPurchase(params: {
         content_type: "product",
         num_items: 1,
         order_id: params.bookingId,
-    });
+    }, eventId);
 }
 
-/** Enquiry started, e.g. a WhatsApp "Request Price" or concierge click. */
+/** Successful customer or owner registration; never pass email or phone to analytics. */
+const SIGNUP_SENT_KEY = (eventId: string) => `cc_signup_sent:${eventId}`;
+
+function signupAlreadySent(eventId: string) {
+    try {
+        return window.localStorage.getItem(SIGNUP_SENT_KEY(eventId)) === "1";
+    } catch {
+        return false;
+    }
+}
+
+function markSignupSent(eventId: string) {
+    try {
+        window.localStorage.setItem(SIGNUP_SENT_KEY(eventId), "1");
+    } catch {
+        // Tracking still works when browser storage is unavailable.
+    }
+}
+
+export function trackSignup(params: {
+    method: "email" | "google";
+    accountType?: "customer" | "owner";
+    eventId?: string;
+}) {
+    if (typeof window === "undefined") return;
+    const eventId = params.eventId || generateEventId();
+    if (signupAlreadySent(eventId)) return;
+    markSignupSent(eventId);
+
+    pushTrackedEvent({
+        event: "sign_up",
+        event_id: eventId,
+        method: params.method,
+        ...(params.accountType ? { account_type: params.accountType } : {}),
+        ...trackingContext(),
+    });
+    trackMetaEvent(MetaStandardEvent.CompleteRegistration, {
+        ...(params.accountType ? { content_name: params.accountType } : {}),
+        status: "complete",
+    }, eventId);
+}
+
 export function trackLead(params: {
     source: string;
     city?: string | null;
     shootType?: string | null;
     budgetRange?: string | null;
     studio?: TrackedStudio | null;
-    user?: TrackingUser | null;
 }) {
-    pushDataLayer({
+    const eventId = generateEventId();
+    pushTrackedEvent({
         event: "generate_lead",
+        event_id: eventId,
         lead_source: params.source,
         city: params.city || params.studio?.city || undefined,
         shoot_type: params.shootType || undefined,
         budget_range: params.budgetRange || undefined,
         studio_id: params.studio?.id,
         studio_name: params.studio?.name,
-        user_data: userData(params.user),
+        ...trackingContext(),
     });
     trackMetaEvent(MetaStandardEvent.Lead, {
         content_name: params.studio?.name ?? params.source,
         ...(params.studio ? { content_ids: [params.studio.id] } : {}),
-    });
+    }, eventId);
 }

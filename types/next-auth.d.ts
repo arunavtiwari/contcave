@@ -4,6 +4,8 @@ import { UserRole } from "@/types/user";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
+    signupEventId?: string;
+    signupEventCreatedAt?: number;
     user: {
       id: string;
       name?: string | null;

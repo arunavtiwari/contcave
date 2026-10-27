@@ -1,4 +1,3 @@
-import getCurrentUser from "@/app/actions/getCurrentUser";
 import getReservation from "@/app/actions/getReservation";
 import getTransaction from "@/app/actions/getTransaction";
 
@@ -23,10 +22,7 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
         );
     }
 
-    const [transaction, currentUser] = await Promise.all([
-        getTransaction({ tid }).catch(() => null),
-        getCurrentUser().catch(() => null),
-    ]);
+    const transaction = await getTransaction({ tid }).catch(() => null);
     const reservation = transaction?.reservation ?? (await getReservation({ tid }).catch(() => null));
 
     const txStatus = String(transaction?.status ?? "PENDING").toUpperCase();
@@ -46,7 +42,6 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
             initialStatus={txStatus}
             initialReservation={serializedReservation}
             initialPurpose={transaction?.purpose ?? null}
-            trackingUser={currentUser ? { email: currentUser.email, phone: currentUser.phone } : null}
         />
     );
 }

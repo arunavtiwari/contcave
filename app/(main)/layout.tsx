@@ -8,6 +8,7 @@ import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import ConsentAwareTracking from "@/components/analytics/ConsentAwareTracking";
+import JourneyEventTracker from "@/components/analytics/JourneyEventTracker";
 import CookieConsent from "@/components/layout/CookieConsentBanner";
 import GlobalScrollFix from "@/components/layout/GlobalScrollFix";
 import WhatsAppFloatingButton from "@/components/layout/WhatsAppFloatingButton";
@@ -191,6 +192,7 @@ export default async function RootLayout({
                     <GlobalScrollFix />
                     <NavbarWrapper />
                     <ConsentAwareTracking nonce={nonce} />
+                    <JourneyEventTracker />
                     <ClientOnly>
                         <Toaster />
                         <SearchModal />

@@ -5,7 +5,6 @@ import { useTransition } from "react";
 import { IoLogoWhatsapp } from "react-icons/io";
 
 import { trackEnquiryAction } from "@/app/actions/listingActions";
-import { type TrackingUser,trackLead } from "@/lib/analytics/tracking";
 import { cn } from "@/lib/utils";
 import { buildWhatsAppUrl, curatedEnquiryMessage } from "@/lib/whatsapp/urls";
 
@@ -22,7 +21,6 @@ interface CuratedReservationProps {
     instagramHandle?: string | null;
     disabled?: boolean;
     studioType?: string | null;
-    trackingUser?: TrackingUser | null;
 }
 
 export default function CuratedReservation({
@@ -36,18 +34,12 @@ export default function CuratedReservation({
     instagramHandle,
     disabled = false,
     studioType,
-    trackingUser,
 }: CuratedReservationProps) {
     const [, startTransition] = useTransition();
 
     const waUrl = buildWhatsAppUrl(curatedEnquiryMessage(studioName, area));
 
     function handleEnquiry() {
-        trackLead({
-            source: "curated_request_price",
-            studio: { id: listingId, name: studioName, category: studioType, city: area },
-            user: trackingUser,
-        });
         startTransition(() => {
             trackEnquiryAction(listingId).catch(() => {});
         });
@@ -79,6 +71,11 @@ export default function CuratedReservation({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={handleEnquiry}
+                data-tracking-source="curated_request_price"
+                data-studio-id={listingId}
+                data-studio-name={studioName}
+                data-studio-category={studioType || ""}
+                data-studio-city={area}
                 aria-disabled={disabled}
                 tabIndex={disabled ? -1 : undefined}
                 className={cn(
