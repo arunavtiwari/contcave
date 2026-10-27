@@ -32,12 +32,13 @@ export default function MetaPixelTracker() {
   useEffect(() => {
     if (!consent.marketing || !META_PIXEL_ID || !pixelReady) return;
 
-    const url = pathname || "/";
-    if (window.location.pathname !== url) return;
-    if (url === lastTrackedRef.current) return;
-    lastTrackedRef.current = url;
-    if (/^\/(dashboard|admin|pay|payments|api|auth)(?:\/|$)/.test(url)) return;
-    pageview(undefined, url);
+    const routePath = pathname || "/";
+    const currentPath = window.location.pathname || "/";
+    if (currentPath !== routePath) return;
+    if (currentPath === lastTrackedRef.current) return;
+    lastTrackedRef.current = currentPath;
+    if (/^\/(dashboard|admin|pay|payments|api|auth)(?:\/|$)/.test(currentPath)) return;
+    pageview(undefined, currentPath);
   }, [pathname, searchParams, consent.marketing, pixelReady]);
 
   return null;

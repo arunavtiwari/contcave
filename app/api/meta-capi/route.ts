@@ -67,16 +67,33 @@ export async function POST(request: NextRequest) {
             event_name, event_id, event_source_url, custom_data,
             user_email, user_phone, user_id, fbclid,
         } = parsed.data;
-        if (event_source_url && new URL(event_source_url).origin !== configuredOrigin) {
+        const sourceUrl = event_source_url ? new URL(event_source_url) : undefined;
+        if (sourceUrl && sourceUrl.origin !== configuredOrigin) {
             return NextResponse.json({ error: "Invalid event source URL" }, { status: 400 });
         }
+
+        const referer = request.headers.get("referer");
+        let refererPath: string | undefined;
+        if (referer) {
+            try {
+                const refererUrl = new URL(referer);
+                if (refererUrl.origin === configuredOrigin) refererPath = refererUrl.pathname;
+            } catch {
+                // Ignore malformed or non-URL referrers and keep the client URL.
+            }
+        }
+        const sourceEventUrl = sourceUrl && sourceUrl.pathname !== "/"
+            ? sourceUrl.toString()
+            : refererPath
+                ? `${configuredOrigin}${refererPath}`
+                : sourceUrl?.toString();
 
         const cookieHeader = request.headers.get("cookie") ?? "";
         const payload: CAPIEventPayload = {
             event_name,
             event_time: Math.floor(Date.now() / 1000),
             event_id,
-            event_source_url,
+            event_source_url: sourceEventUrl,
             action_source: "website",
             user_data: {
                 client_ip_address: getClientIp(request.headers),
