@@ -24,8 +24,20 @@ export function getBaseUrl(): string {
         return window.location.origin;
     }
 
+    // A preview deployment must validate against its own host, not the production APP_URL.
+    if (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+
     if (process.env.APP_URL) {
         return process.env.APP_URL.replace(/\/$/, "");
+    }
+
+    const vercelHost = process.env.VERCEL_ENV === "production"
+        ? process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL
+        : process.env.VERCEL_URL;
+    if (vercelHost) {
+        return `https://${vercelHost}`;
     }
 
     return "http://localhost:3000";
