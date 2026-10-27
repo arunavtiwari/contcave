@@ -2,26 +2,21 @@
 
 import { z } from "zod";
 
-import { headers } from "next/headers";
-
 import { createAction } from "@/lib/actions-utils";
 import { isLatLng } from "@/lib/geo";
-import { getIpLocation } from "@/lib/http/requestMeta";
+import { findRegion } from "@/lib/listing/regions";
 import { ListingService } from "@/lib/listing/service";
 import { studioFeedFiltersSchema } from "@/schemas/listing";
 
 const loadMoreStudiosSchema = z.object({
     filters: studioFeedFiltersSchema,
     origin: z.tuple([z.number(), z.number()]).refine(isLatLng, "Invalid origin").nullable(),
+    region: z.string().max(60).nullable().optional(),
     cursor: z.string().min(1).max(512),
 });
 
-export const loadMoreStudios = createAction(loadMoreStudiosSchema, {}, async ({ filters, origin, cursor }) =>
-    ListingService.getListingFeedPage({ filters, origin, cursor })
+// Later pages keep the order the first page was built with.
+export const loadMoreStudios = createAction(loadMoreStudiosSchema, {}, async ({ filters, origin, region, cursor }) =>
+    ListingService.getListingFeedPage({ filters, sort: { origin, region: findRegion(region)?.slug ?? null }, cursor })
 );
-
-export const getVisitorLocationAction = createAction(z.object({}), {}, async () => {
-    const headerList = await headers();
-    return getIpLocation(headerList);
-});
 

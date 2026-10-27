@@ -6,6 +6,7 @@ import type { StudioFeedFilters } from "@/schemas/listing";
 import type { StudioFeedItem } from "@/types/listing";
 
 import { categoryMatch, findCategory } from "./categories";
+import { findRegion, regionCityKeys } from "./regions";
 import { findShootPurpose, shootPurposeMatch } from "./shootPurposes";
 
 type MongoDocument = Record<string, unknown>;
@@ -13,28 +14,65 @@ type RawId = string | { $oid?: unknown };
 
 export type FeedRow = {
     _id?: RawId;
+    regionMatch?: unknown;
+    bucket?: unknown;
     hasPoint?: unknown;
     distance?: unknown;
     weight?: unknown;
+    quality?: unknown;
     createdAt?: unknown;
 };
 
-export type FeedCursor = { p: 0 | 1; d: number; w: 1 | 2; t: string; id: string };
+/**
+ * How the visitor is located. `region` comes from a saved/entered location, GPS or the IP city;
+ * `origin` only from a precise location (GPS or an entered place), never from IP.
+ */
+export type FeedSortContext = { region: string | null; origin: LatLng | null };
 
-type FeedSortField = "hasPoint" | "distance" | "weight" | "createdAt" | "_id";
+export type FeedCursor = { r: 0 | 1; b: number; w: 1 | 2; q: number; d: number; t: string; id: string };
+
+type FeedSortField = "regionMatch" | "bucket" | "weight" | "quality" | "distance" | "createdAt" | "_id";
 
 export const FEED_PAGE_SIZE = 12;
 
 const MONGO_EARTH_RADIUS_KM = 6378.1;
 
-// Verified (standard) studios always come before curated ones; distance orders within each group.
+/**
+ * Relevance order. Steps that don't apply are projected as a constant, so they're no-ops:
+ * no region known → regionMatch is 0 for everyone; no precise location → bucket and distance are 0.
+ * Verified sits *inside* the location groups, so a nearby curated studio isn't pushed below
+ * verified studios in another city.
+ */
 const FEED_SORT: ReadonlyArray<readonly [FeedSortField, 1 | -1]> = [
+    ["regionMatch", -1],
+    ["bucket", 1],
     ["weight", 1],
-    ["hasPoint", -1],
+    ["quality", -1],
     ["distance", 1],
     ["createdAt", -1],
     ["_id", 1],
 ];
+
+/** Distance buckets in metres: 0–5 km, 5–15 km, 15–30 km, 30+ km; studios with no map point last. */
+const DISTANCE_BUCKETS_M = [5_000, 15_000, 30_000];
+const NO_POINT_BUCKET = DISTANCE_BUCKETS_M.length + 1;
+const NO_POINT_DISTANCE = 1_000_000_000;
+
+/**
+ * Listing quality, higher first. A starting point while there are few reviews: photo count
+ * (capped at 20) plus average rating × 4 (up to 20). Tune here; nothing else depends on the scale.
+ */
+const QUALITY_SCORE = {
+    $round: [
+        {
+            $add: [
+                { $min: [{ $size: { $ifNull: ["$imageSrc", []] } }, 20] },
+                { $multiply: [{ $ifNull: ["$avgReviewRating", 0] }, 4] },
+            ],
+        },
+        0,
+    ],
+};
 
 const HYDRATABLE_INT_FIELDS = [
     "price",
@@ -56,9 +94,11 @@ const EPOCH = { $date: "1970-01-01T00:00:00.000Z" };
 const WEIGHT = { $cond: [{ $eq: ["$listingType", "CURATED"] }, 2, 1] };
 
 const feedCursorSchema = z.object({
-    p: z.union([z.literal(0), z.literal(1)]),
-    d: z.number().int().min(0),
+    r: z.union([z.literal(0), z.literal(1)]),
+    b: z.number().int().min(0).max(NO_POINT_BUCKET),
     w: z.union([z.literal(1), z.literal(2)]),
+    q: z.number().int().min(0).max(1000),
+    d: z.number().int().min(0),
     t: z.iso.datetime(),
     id: z.string().regex(/^[a-f\d]{24}$/i),
 });
@@ -139,9 +179,11 @@ function publicListingMatch(filters: StudioFeedFilters, excludeIds: string[] = [
 
 const cursorValue = (cursor: FeedCursor, field: FeedSortField) =>
     ({
-        hasPoint: cursor.p,
-        distance: cursor.d,
+        regionMatch: cursor.r,
+        bucket: cursor.b,
         weight: cursor.w,
+        quality: cursor.q,
+        distance: cursor.d,
         createdAt: { $date: cursor.t },
         _id: { $oid: cursor.id },
     })[field];
@@ -160,50 +202,65 @@ export const feedCandidatePipeline = (filters: StudioFeedFilters): MongoDocument
     { $project: { _id: 1 } },
 ];
 
+const NO_DISTANCE = { $eq: [{ $type: "$distance" }, "missing"] };
+
+function regionMatchExpression(regionSlug: string | null) {
+    const region = findRegion(regionSlug);
+    if (!region) return { $literal: 0 };
+    return { $cond: [{ $in: [{ $toLower: { $ifNull: ["$locationValue", ""] } }, regionCityKeys(region)] }, 1, 0] };
+}
+
+const DISTANCE_BUCKET = {
+    $switch: {
+        branches: [
+            { case: NO_DISTANCE, then: NO_POINT_BUCKET },
+            ...DISTANCE_BUCKETS_M.map((limit, index) => ({ case: { $lt: ["$distance", limit] }, then: index })),
+        ],
+        default: DISTANCE_BUCKETS_M.length,
+    },
+};
+
 export function buildFeedPipeline({
     filters,
-    origin,
+    sort,
     after,
     limit,
     excludeIds,
 }: {
     filters: StudioFeedFilters;
-    origin: LatLng | null;
+    sort: FeedSortContext;
     after: FeedCursor | null;
     limit?: number;
     excludeIds?: string[];
 }): MongoDocument[] {
     const match = publicListingMatch(filters, excludeIds);
-    const unlocated = { $match: { $and: [match, { locationPoint: null }] } };
-    // Weight sorts first, so the distance shortcuts below are only safe once the cursor is in the
-    // last (curated) group; inside the verified group, curated rows of any distance are still ahead.
-    const inLastGroup = after?.w === 2;
+    const { origin } = sort;
     const source = !origin
         ? [{ $match: match }]
-        : inLastGroup && after.p === 0
-            ? [unlocated]
-            : [
-                {
-                    $geoNear: {
-                        near: { type: "Point", coordinates: [origin[1], origin[0]] },
-                        key: "locationPoint",
-                        distanceField: "distance",
-                        spherical: true,
-                        query: match,
-                        ...(inLastGroup ? { minDistance: Math.max(0, after.d - 1) } : {}),
-                    },
+        : [
+            {
+                $geoNear: {
+                    near: { type: "Point", coordinates: [origin[1], origin[0]] },
+                    key: "locationPoint",
+                    distanceField: "distance",
+                    spherical: true,
+                    query: match,
                 },
-                { $unionWith: { coll: "Listing", pipeline: [unlocated] } },
-            ];
+            },
+            { $unionWith: { coll: "Listing", pipeline: [{ $match: { $and: [match, { locationPoint: null }] } }] } },
+        ];
 
     return [
         ...source,
         {
             $project: {
                 _id: 1,
-                hasPoint: origin ? { $cond: [{ $eq: [{ $type: "$distance" }, "missing"] }, 0, 1] } : { $literal: 0 },
-                distance: origin ? { $round: [{ $ifNull: ["$distance", 0] }, 0] } : { $literal: 0 },
+                regionMatch: regionMatchExpression(sort.region),
+                bucket: origin ? DISTANCE_BUCKET : { $literal: 0 },
+                hasPoint: origin ? { $cond: [NO_DISTANCE, 0, 1] } : { $literal: 0 },
+                distance: origin ? { $round: [{ $ifNull: ["$distance", NO_POINT_DISTANCE] }, 0] } : { $literal: 0 },
                 weight: WEIGHT,
+                quality: QUALITY_SCORE,
                 createdAt: { $ifNull: ["$createdAt", EPOCH] },
             },
         },
@@ -217,9 +274,11 @@ export function cursorFromRow(row: FeedRow): FeedCursor {
     const id = readRawId(row);
     if (!id) throw new Error("Feed row is missing its id");
     return {
-        p: readRawNumber(row.hasPoint) === 1 ? 1 : 0,
-        d: readRawNumber(row.distance),
+        r: readRawNumber(row.regionMatch) === 1 ? 1 : 0,
+        b: readRawNumber(row.bucket) || 0,
         w: readRawNumber(row.weight) === 2 ? 2 : 1,
+        q: readRawNumber(row.quality) || 0,
+        d: readRawNumber(row.distance) || 0,
         t: readRawDate(row.createdAt),
         id,
     };

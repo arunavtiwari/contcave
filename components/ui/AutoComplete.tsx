@@ -5,9 +5,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FiCheck } from 'react-icons/fi';
 import { LuLocateFixed, LuMapPin } from 'react-icons/lu';
 import { components, type OptionProps } from "react-select";
+import { toast } from 'sonner';
 
 import Select, { SelectOption } from '@/components/ui/Select';
-import { getVisitorLocationAction } from '@/app/actions/studioFeedActions';
 import { distanceKm } from '@/lib/geo';
 
 const LIBRARIES: Libraries = ['places'];
@@ -215,34 +215,12 @@ export default function AutoComplete({
 
     // 1. Handle "Nearby" / GPS Location Option with Guaranteed Selection
     if (placeOption.isNearby || placeOption.place_id === '__NEARBY__') {
+      // GPS unavailable or denied: ask for an area instead. IP lookups resolve to the ISP gateway
+      // in India (often the wrong locality), so they're never used as a "nearby" point.
       const fallbackToIpLocation = async () => {
-        let latlng: LatLngTuple = [28.6139, 77.2090];
-        try {
-          const res = await getVisitorLocationAction({});
-          if (res.success && res.data?.latlng) {
-            latlng = res.data.latlng;
-          }
-        } catch {
-          // fallback to default coords
-        }
-
-        const resolvedOption: PlaceOption = {
-          value: "Nearby",
-          label: "Nearby",
-          place_id: '__CURRENT_LOCATION__',
-          main_text: "Nearby",
-          secondary_text: "Current area",
-          latlng,
-          radiusKm: null,
-        };
-
-        setCurrentValue(resolvedOption);
-        onChange({
-          display_name: "Nearby",
-          name: "Nearby",
-          latlng,
-          radiusKm: null,
-        });
+        setCurrentValue(null);
+        onClear?.();
+        toast.error("Couldn't get your location. Please enter an area or city instead.");
       };
 
       if (typeof window === "undefined" || !navigator.geolocation) {

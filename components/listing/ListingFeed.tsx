@@ -41,7 +41,7 @@ const appendUnique = (current: StudioFeedItem[], next: StudioFeedItem[]) => {
 };
 
 function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
-  const feedKey = page.nextCursor ? studioFeedKey(filters, page.origin) : null;
+  const feedKey = page.nextCursor ? studioFeedKey(filters, page.origin, page.region) : null;
   const [{ items, cursor }, setFeed] = useState<LoadedFeed>(
     () => (feedKey && loadedFeeds.get(feedKey)) || { items: page.items, cursor: page.nextCursor }
   );
@@ -63,7 +63,7 @@ function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
     loadingRef.current = true;
     setLoadState("loading");
     try {
-      const result = await loadMoreStudios({ filters, origin: page.origin, cursor });
+      const result = await loadMoreStudios({ filters, origin: page.origin, region: page.region, cursor });
       if (!result.success || !result.data) throw new Error(result.error);
       const next = result.data;
       setFeed((current) => ({ items: appendUnique(current.items, next.items), cursor: next.nextCursor }));
@@ -73,7 +73,7 @@ function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
     } finally {
       loadingRef.current = false;
     }
-  }, [cursor, filters, page.origin]);
+  }, [cursor, filters, page.origin, page.region]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;

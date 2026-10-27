@@ -167,6 +167,7 @@ model User {
   paymentVouchers         PaymentVoucher[]
   markedForDeletion       Boolean           @default(false)
   markedForDeletionAt     DateTime?
+  searchLocation          SavedSearchLocation?
 
   verification_stage Int       @default(0) // 0=none, 1=contact, 2=aadhaar, 3=bank
   aadhaar_verified   Boolean   @default(false)
@@ -249,6 +250,15 @@ type ListingDetailsStatus {
   confirmedAt DateTime?
   /// owner | ops
   confirmedBy String?
+}
+
+/// A location the user chose for browsing studios (GPS or an entered place). Never set from IP.
+type SavedSearchLocation {
+  label  String
+  lat    Float
+  lng    Float
+  /// Region slug from lib/listing/regions.ts, e.g. "delhi-ncr"
+  region String?
 }
 
 type PackageEquipmentRef {

@@ -5,7 +5,6 @@ import { TIME_SLOTS } from "@/constants/timeSlots";
 import { loadDayAvailabilities } from "@/lib/availability";
 import { addDaysToDateKey, BOOKING_HORIZON_DAYS, isBookable, istDateKey } from "@/lib/booking/dayAvailability";
 import { UserFacingError } from "@/lib/errors";
-import type { LatLng } from "@/lib/geo";
 import {
     type EquipmentItem,
     hasLightsIncluded,
@@ -45,6 +44,7 @@ import {
     feedCandidatePipeline,
     type FeedCursor,
     type FeedRow,
+    type FeedSortContext,
     hydratableListingFilter,
     nearestKmOf,
     readRawId,
@@ -1182,7 +1182,7 @@ export class ListingService {
             studioFeedSearchParamsSchema.parse({ ...searchParams, hasSets: hasSets ? "true" : undefined })
         );
         const excludeIds = await this.unbookableListingIds(filters);
-        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, origin: null, after: null, excludeIds }));
+        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, sort: { region: null, origin: null }, after: null, excludeIds }));
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
         if (ids.length === 0) return [];
 
@@ -1215,19 +1215,19 @@ export class ListingService {
 
     static async getListingFeedPage({
         filters,
-        origin,
+        sort,
         cursor,
         size = FEED_PAGE_SIZE,
     }: {
         filters: StudioFeedFilters;
-        origin: LatLng | null;
+        sort: FeedSortContext;
         cursor?: string | null;
         size?: number;
     }): Promise<StudioFeedPage> {
         filters = await this.withSetMatches(filters);
         const after = cursor ? decodeFeedCursor(cursor) : null;
         const excludeIds = await this.unbookableListingIds(filters);
-        const { rows, origin: appliedOrigin } = await this.queryFeedRows({ filters, origin, after, limit: size + 1, excludeIds });
+        const { rows, sort: appliedSort } = await this.queryFeedRows({ filters, sort, after, limit: size + 1, excludeIds });
         const pageRows = rows.slice(0, size);
         const lastRow = pageRows[pageRows.length - 1];
 
@@ -1235,7 +1235,8 @@ export class ListingService {
             items: await this.loadFeedItems(pageRows.map(readRawId).filter((id): id is string => !!id)),
             nextCursor: rows.length > size && lastRow ? encodeFeedCursor(cursorFromRow(lastRow)) : null,
             nearestKm: after ? null : nearestKmOf(pageRows),
-            origin: appliedOrigin,
+            origin: appliedSort.origin,
+            region: appliedSort.region,
         };
     }
 
@@ -1273,22 +1274,22 @@ export class ListingService {
 
     private static async queryFeedRows(params: {
         filters: StudioFeedFilters;
-        origin: LatLng | null;
+        sort: FeedSortContext;
         after: FeedCursor | null;
         limit: number;
         excludeIds: string[];
-    }): Promise<{ rows: FeedRow[]; origin: LatLng | null }> {
-        const { origin, after } = params;
-        const defaultPipeline = buildFeedPipeline({ ...params, origin: null });
-        if (!origin) return { rows: await this.runFeedPipeline(defaultPipeline), origin: null };
+    }): Promise<{ rows: FeedRow[]; sort: FeedSortContext }> {
+        const { sort, after } = params;
+        if (!sort.origin) return { rows: await this.runFeedPipeline(buildFeedPipeline(params)), sort };
 
-        const geoPipeline = buildFeedPipeline(params);
         try {
-            return { rows: await this.runFeedPipeline(geoPipeline), origin };
+            return { rows: await this.runFeedPipeline(buildFeedPipeline(params)), sort };
         } catch (error) {
             if (after) throw error;
-            console.error("[ListingService] Location-sorted feed failed; serving the default order.", error);
-            return { rows: await this.runFeedPipeline(defaultPipeline), origin: null };
+            // Distance sorting failed: keep the region grouping, drop distance.
+            console.error("[ListingService] Location-sorted feed failed; serving region-only order.", error);
+            const regionOnly = { region: sort.region, origin: null };
+            return { rows: await this.runFeedPipeline(buildFeedPipeline({ ...params, sort: regionOnly })), sort: regionOnly };
         }
     }
 

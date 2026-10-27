@@ -7,6 +7,7 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import getRandomListings from "@/app/actions/getRandomListings";
 import ListingFeed from "@/components/listing/ListingFeed";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
+import LocationBar from "@/components/listing/LocationBar";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import EmptyState from "@/components/ui/EmptyState";
@@ -148,6 +149,7 @@ async function HomeContent(props: HomeProps) {
   return (
     <>
       {items.length > 0 && <JsonLd id="home-listings-jsonld" data={jsonLd} />}
+      <LocationBar location={feed.location} isLoggedIn={Boolean(currentUser)} />
       {items.length === 0 ? (
         <div className="space-y-10">
           <EmptyState
@@ -170,7 +172,7 @@ async function HomeContent(props: HomeProps) {
                 </p>
               </div>
               <ListingFeed
-                page={{ items: fallbackItems, nextCursor: null, nearestKm: null, origin: null }}
+                page={{ items: fallbackItems, nextCursor: null, nearestKm: null, origin: null, region: null }}
                 filters={{}}
                 currentUser={currentUser}
               />

@@ -94,7 +94,7 @@ async function pageAll(filters: StudioFeedFilters, origin: LatLng | null, size: 
   const ids: string[] = [];
   let cursor: string | null = null;
   do {
-    const page = await ListingService.getListingFeedPage({ filters, origin, cursor, size });
+    const page = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin }, cursor, size });
     expect(page.origin).toEqual(origin);
     ids.push(...page.items.map((item) => item.id));
     cursor = page.nextCursor;
@@ -120,7 +120,7 @@ test.describe("studio feed service", () => {
     }
 
     const ListingService = await getListingService();
-    const first = await ListingService.getListingFeedPage({ filters, origin: ORIGIN, size: 2 });
+    const first = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN }, size: 2 });
     expect(first.nearestKm).toBeGreaterThan(0.9);
     expect(first.nearestKm).toBeLessThan(1.1);
 
@@ -138,13 +138,13 @@ test.describe("studio feed service", () => {
     const filters = { locationValues: [city] };
     const ListingService = await getListingService();
 
-    const first = await ListingService.getListingFeedPage({ filters, origin: ORIGIN, size: 2 });
+    const first = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN }, size: 2 });
     expect(first.items.map((item) => item.id)).toEqual([listings[0].id, listings[1].id]);
 
     await prisma.listing.update({ where: { id: listings[0].id }, data: { active: false } });
     await createFeedListing(user.id, city, { name: "Inserted closer", latlng: offsetNorth(ORIGIN, 0.5), createdAt: "2026-02-09" });
 
-    const second = await ListingService.getListingFeedPage({ filters, origin: ORIGIN, cursor: first.nextCursor, size: 2 });
+    const second = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN }, cursor: first.nextCursor, size: 2 });
     expect(second.items.map((item) => item.id)).toEqual([listings[2].id, listings[3].id]);
   });
 
@@ -276,7 +276,7 @@ test.describe("studio feed service", () => {
     const ListingService = await getListingService();
     const forged = Buffer.from(JSON.stringify({ p: 1, d: 1.5, w: 1, t: "yesterday", id: "nope" })).toString("base64url");
     for (const cursor of ["not-a-cursor", forged]) {
-      await expect(ListingService.getListingFeedPage({ filters: {}, origin: null, cursor })).rejects.toThrow("Invalid feed cursor");
+      await expect(ListingService.getListingFeedPage({ filters: {}, sort: { region: null, origin: null }, cursor })).rejects.toThrow("Invalid feed cursor");
     }
   });
 

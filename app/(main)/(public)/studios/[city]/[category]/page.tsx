@@ -4,6 +4,7 @@ import { cache } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import ListingFeed from "@/components/listing/ListingFeed";
+import LocationBar from "@/components/listing/LocationBar";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import { findCategory, MIN_CATEGORY_LISTINGS, type StudioCategory } from "@/lib/listing/categories";
@@ -68,7 +69,12 @@ export default async function CityCategoryPage(props: { params: Promise<RoutePar
       <StudioBrowse
         title={title}
         city={entry.city}
-        feed={<ListingFeed key={feed.key} page={feed.page} filters={feed.filters} currentUser={currentUser} />}
+        feed={(
+          <>
+            <LocationBar location={feed.location} isLoggedIn={Boolean(currentUser)} />
+            <ListingFeed key={feed.key} page={feed.page} filters={feed.filters} currentUser={currentUser} />
+          </>
+        )}
       />
     </>
   );
