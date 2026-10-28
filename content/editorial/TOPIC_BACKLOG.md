@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 62 | Cooking & Recipe Video Studios: Kitchen Setup for Food Creators | cooking studio rental india | studio-guides | creators |
 | 63 | Budget Studio Shoots for Student & Campus Creators | studio for student creators india | content-creation | creators |
 | 64 | Finance & Edtech Explainer Video Studios: Whiteboard & Screen-Record Setups | finance content studio india | content-creation | creators |
 | 65 | Regional & Vernacular Language Content Studios: What Changes | vernacular content studio india | creator-economy | creators |
@@ -105,3 +104,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-10-21 | 59 | gaming-streaming-studio-india |
 | 2026-10-23 | 60 | studio-insurance-for-hosts-india |
 | 2026-10-26 | 61 | fitness-studio-for-content-shoot-india |
+| 2026-10-28 | 62 | cooking-studio-rental-india |
