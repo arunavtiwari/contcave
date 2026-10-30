@@ -137,7 +137,7 @@ export type StudioFeedItem = Pick<
 export type StudioFeedPage = {
     items: StudioFeedItem[];
     totalPages: number;
-    /** Precise location the order was built from (GPS / entered place), never IP. */
+    /** Location the order was built from: GPS, an entered place or, approximately, IP. */
     origin: LatLng | null;
     /** Region the order was grouped by, e.g. "delhi-ncr". */
     region: string | null;

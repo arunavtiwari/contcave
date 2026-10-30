@@ -15,10 +15,10 @@ type RawId = string | { $oid?: unknown };
 export type FeedRow = { _id?: RawId };
 
 /**
- * How the visitor is located. `region` comes from a saved/entered location, GPS or the IP city;
- * `origin` only from a precise location (GPS or an entered place), never from IP.
+ * How the visitor is located. `region` comes from a saved/entered location, GPS or IP;
+ * `origin` from a precise location (GPS or an entered place) or, marked `approximate`, from IP.
  */
-export type FeedSortContext = { region: string | null; origin: LatLng | null };
+export type FeedSortContext = { region: string | null; origin: LatLng | null; approximate?: boolean };
 
 export const UNLOCATED_SORT: FeedSortContext = { region: null, origin: null };
 
@@ -59,9 +59,16 @@ const PRICE_SORTS: Record<FeedSort, FeedSortSpec> = {
 
 const feedSortSpec = (sort: FeedSort | undefined) => (sort ? PRICE_SORTS[sort] : RELEVANCE_FIRST);
 
-/** Distance buckets in metres: 0–5 km, 5–15 km, 15–30 km, 30+ km; studios with no map point last. */
-const DISTANCE_BUCKETS_M = [5_000, 15_000, 30_000];
-const NO_POINT_BUCKET = DISTANCE_BUCKETS_M.length + 1;
+/**
+ * Distance buckets in metres; studios with no map point last. A precise location ranks by area
+ * (0–5, 5–15, 15–30, 30+ km). An IP location is only right to the city, so it ranks by city scale
+ * (0–50, 50–300, 300–1000, 1000+ km) and leaves the order inside a city to listing quality.
+ */
+const DISTANCE_BUCKETS_M = {
+    precise: [5_000, 15_000, 30_000],
+    approximate: [50_000, 300_000, 1_000_000],
+} as const;
+const NO_POINT_BUCKET = DISTANCE_BUCKETS_M.precise.length + 1;
 const NO_POINT_DISTANCE = 1_000_000_000;
 
 /**
@@ -189,15 +196,15 @@ function regionMatchExpression(regionSlug: string | null) {
     return { $cond: [{ $in: [{ $toLower: { $ifNull: ["$locationValue", ""] } }, regionCityKeys(region)] }, 1, 0] };
 }
 
-const DISTANCE_BUCKET = {
+const distanceBucket = (limits: readonly number[]) => ({
     $switch: {
         branches: [
             { case: NO_DISTANCE, then: NO_POINT_BUCKET },
-            ...DISTANCE_BUCKETS_M.map((limit, index) => ({ case: { $lt: ["$distance", limit] }, then: index })),
+            ...limits.map((limit, index) => ({ case: { $lt: ["$distance", limit] }, then: index })),
         ],
-        default: DISTANCE_BUCKETS_M.length,
+        default: limits.length,
     },
-};
+});
 
 type FeedPipelineParams = {
     filters: StudioFeedFilters;
@@ -231,7 +238,7 @@ export function buildFeedPipeline({ filters, sort, limit, excludeIds }: FeedPipe
             $project: {
                 _id: 1,
                 regionMatch: regionMatchExpression(sort.region),
-                bucket: origin ? DISTANCE_BUCKET : { $literal: 0 },
+                bucket: origin ? distanceBucket(DISTANCE_BUCKETS_M[sort.approximate ? "approximate" : "precise"]) : { $literal: 0 },
                 distance: origin ? { $round: [{ $ifNull: ["$distance", NO_POINT_DISTANCE] }, 0] } : { $literal: 0 },
                 weight: WEIGHT,
                 quality: QUALITY_SCORE,

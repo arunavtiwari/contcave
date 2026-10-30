@@ -4,35 +4,21 @@ import { cookies, headers } from "next/headers";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import type { LatLng } from "@/lib/geo";
-import { isBotRequest } from "@/lib/http/requestMeta";
+import { getIpLocation, isBotRequest } from "@/lib/http/requestMeta";
 import type { StudioFeedFilters } from "@/schemas/listing";
 
 import type { FeedSortContext } from "./feedQuery";
-import { findRegion, regionOfCity, regionOfPoint } from "./regions";
+import { findRegion, nearestRegion, regionOfPoint } from "./regions";
 import { type FeedLocationSummary, parseSavedSearchLocation, parseSearchLocationCookie, SEARCH_LOCATION_COOKIE } from "./searchLocation";
 import { ListingService } from "./service";
-
-const IP_CITY_HEADERS = ["x-vercel-ip-city", "cf-ipcity"] as const;
-
-function ipCity(headerList: Headers): string | null {
-    for (const name of IP_CITY_HEADERS) {
-        const value = headerList.get(name);
-        if (!value) continue;
-        try {
-            return decodeURIComponent(value);
-        } catch {
-            return value;
-        }
-    }
-    return null;
-}
 
 /**
  * Where the visitor is, in priority order:
  *   1. a place searched in the URL (`near`),
  *   2. a location they chose (cookie, then their profile),
- *   3. the IP city, only to pick a served metro region; IP is never used for distance
- *      because Indian ISP gateways resolve to the wrong locality,
+ *   3. the IP location, first visits only: nearest served region first, then city-scale
+ *      distance, because IP is right to the city but not the locality. The bar names the
+ *      region only when the visitor is inside one,
  *   4. nothing: default verified-first order.
  */
 async function resolveFeedSort(
@@ -59,11 +45,12 @@ async function resolveFeedSort(
         };
     }
 
-    const region = isBotRequest(headerList) ? null : regionOfCity(ipCity(headerList));
-    if (region) {
+    const visitor = isBotRequest(headerList) ? null : getIpLocation(headerList);
+    if (visitor) {
+        const region = regionOfPoint(visitor.latlng);
         return {
-            sort: { region: region.slug, origin: null },
-            location: { label: region.name, regionName: region.name, source: "ip" },
+            sort: { region: (region ?? nearestRegion(visitor.latlng))?.slug ?? null, origin: visitor.latlng, approximate: true },
+            location: region ? { label: region.name, regionName: region.name, source: "ip" } : null,
         };
     }
 
