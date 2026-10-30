@@ -90,7 +90,7 @@ const ToolbarButton = ({
       size === "md" ? "p-2" : "p-1 w-8 h-8 text-center",
       active
         ? "bg-foreground text-background shadow-sm scale-105"
-        : "hover:bg-foreground/5 text-foreground/70 hover:text-foreground active:scale-95",
+        : "hover:bg-foreground/5 text-foreground/70 hover:text-foreground",
       disabled && "opacity-20 pointer-events-none",
       className
     )}

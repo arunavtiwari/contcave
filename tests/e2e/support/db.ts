@@ -3,6 +3,8 @@ import crypto from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+import type { LatLng } from "../../../lib/geo";
+import { toGeoPoint } from "../../../lib/listing/location";
 import { getE2EConnectionEnv } from "./env";
 import { readRunState, trackCreated } from "./run-state";
 
@@ -10,6 +12,8 @@ const env = getE2EConnectionEnv();
 process.env.DATABASE_URL = env.databaseUrl;
 
 export const prisma = new PrismaClient();
+
+export const CONNAUGHT_PLACE: LatLng = [28.62868, 77.21905];
 
 export type QAAccount = {
   email: string;
@@ -213,12 +217,13 @@ export async function createActiveListingFixture(ownerId: string, suffix: string
       locationValue: "Delhi",
       propertyStateCode: "07",
       actualLocation: {
-        latlng: [28.62868, 77.21905],
+        latlng: CONNAUGHT_PLACE,
         label: "Delhi",
         value: "Delhi",
         display_name: "Connaught Place, New Delhi, Delhi, India",
         state: "Delhi",
       },
+      locationPoint: toGeoPoint(CONNAUGHT_PLACE),
       price: 1500,
       userId: ownerId,
       amenities: [],
@@ -309,10 +314,11 @@ export async function createReviewListingFixture(params: {
       category: "Indoor Studio",
       locationValue: "Delhi",
       actualLocation: {
-        latlng: [28.62868, 77.21905],
+        latlng: CONNAUGHT_PLACE,
         label: "Delhi",
         display_name: "Connaught Place, New Delhi, Delhi, India",
       },
+      locationPoint: toGeoPoint(CONNAUGHT_PLACE),
       price: 2200,
       userId: params.ownerId,
       amenities: ["WiFi", "Changing Room"],

@@ -122,7 +122,7 @@ export default function CashfreeReturnStatusClient({
   const isConfirmed = status === "SUCCESS" && reservation?.status === "CONFIRMED";
   const isPendingApproval = status === "SUCCESS" && reservation?.status === "PENDING_APPROVAL";
 
-  const listingHref = listingId ? `/listings/${listingId}` : "/";
+  const listingHref = listingId ? `/studio/${listingId}` : "/";
 
   if (status === "PENDING") {
     return (

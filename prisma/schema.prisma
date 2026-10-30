@@ -178,6 +178,10 @@ model User {
   verified_via       String[]  @default([])
   verified_at        DateTime?
   aadhaar_last4      String?
+
+  @@index([role, markedForDeletion])
+  @@index([markedForDeletion, createdAt])
+  @@index([is_verified, verification_stage])
 }
 
 model Account {
@@ -199,6 +203,11 @@ model Account {
   @@index([userId])
 }
 
+type GeoPoint {
+  type        String
+  coordinates Float[]
+}
+
 model Listing {
   id                       String                    @id @default(auto()) @map("_id") @db.ObjectId
   title                    String
@@ -206,9 +215,11 @@ model Listing {
   description              String
   imageSrc                 String[]
   createdAt                DateTime                  @default(now())
+  updatedAt                DateTime?                 @updatedAt
   category                 String
   locationValue            String
   actualLocation           Json?
+  locationPoint            GeoPoint?
   propertyStateCode        String?
   userId                   String                    @db.ObjectId
   price                    Int?
@@ -227,6 +238,7 @@ model Listing {
   verifications            Json?
   terms                    Boolean?
   customTerms              String?
+  contcaveNote             String?
 
   reviews                  Review[]
   DayStatus                DayStatus[]
@@ -269,6 +281,7 @@ model Listing {
   notifyReminderAt         DateTime?
   inConversation           Boolean                   @default(false)
   enquiryCount             Int                       @default(0)
+  mediaPurgedAt            DateTime?
 
   @@index([userId])
   @@index([listingType])
@@ -375,6 +388,7 @@ model Reservation {
   @@index([reviewReminderSentAt])
   @@index([userId, hiddenByGuestAt])
   @@index([listingId, hiddenByOwnerAt])
+  @@index([createdAt])
 }
 
 model ReservationSlot {
@@ -451,6 +465,7 @@ model PaymentDetails {
   accountNumber           String
   ifscCode                String
   companyName             String?
+  companyAddress          String?
   gstin                   String?
   cashfreeVendorId        String?
   accountNumberIV         String?
@@ -550,6 +565,7 @@ model Transaction {
   @@index([status])
   @@index([payoutDueAt])
   @@index([payoutSplitAt])
+  @@index([createdAt])
 }
 
 model ExtensionRequest {
@@ -671,6 +687,9 @@ model Invoice {
   @@index([status])
   @@index([idempotencyKey])
   @@index([periodStart, periodEnd])
+  @@index([createdAt])
+  @@index([documentType, createdAt])
+  @@index([status, createdAt])
 }
 
 model InvoiceSequence {
@@ -726,6 +745,7 @@ model PaymentVoucher {
   @@index([voucherType])
   @@index([status])
   @@index([financialYear, voucherType])
+  @@index([createdAt])
 }
 
 model PaymentVoucherSequence {
@@ -760,6 +780,7 @@ model AuditLog {
   @@index([userId])
   @@index([action])
   @@index([createdAt])
+  @@index([resource, createdAt])
 }
 
 model ListingSet {

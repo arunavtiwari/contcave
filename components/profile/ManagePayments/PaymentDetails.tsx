@@ -30,6 +30,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
         register,
         handleSubmit,
         reset,
+        watch,
         formState: { errors, isDirty },
     } = useForm<PaymentDetailsFormValues>({
         resolver: zodResolver(paymentDetailsFormSchema),
@@ -40,9 +41,13 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
             reAccountNumber: "",
             ifscCode: "",
             companyName: "",
+            companyAddress: "",
             gstin: "",
         },
     });
+
+    const gstinValue = watch("gstin");
+    const hasGst = Boolean(gstinValue && gstinValue.trim().length > 0 && !gstinValue.includes("*"));
 
     const populateForm = useCallback((data: PaymentProfile | null) => {
         if (data) {
@@ -53,6 +58,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                 reAccountNumber: data.accountNumber || "",
                 ifscCode: data.ifscCode || "",
                 companyName: data.companyName || "",
+                companyAddress: data.companyAddress || "",
                 gstin: data.gstin || "",
             });
             setHasExistingData(Boolean(data && Object.keys(data).length > 1));
@@ -64,6 +70,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                 reAccountNumber: "",
                 ifscCode: "",
                 companyName: "",
+                companyAddress: "",
                 gstin: "",
             });
             setHasExistingData(false);
@@ -95,6 +102,9 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
 
                 if (values.companyName) {
                     form.append("companyName", values.companyName.trim());
+                }
+                if (values.companyAddress) {
+                    form.append("companyAddress", values.companyAddress.trim());
                 }
                 if (values.gstin) {
                     form.append("gstin", values.gstin.toUpperCase().trim());
@@ -235,7 +245,8 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                     <legend className="sr-only">Tax Information</legend>
                     <Input
                         id="companyName"
-                        label="Company Name (optional)"
+                        label={hasGst ? "Company Name (required for GST)" : "Company Name (optional)"}
+                        required={hasGst}
                         variant="horizontal"
                         labelWidth={DEFAULT_LABEL_WIDTH}
                         size="md"
@@ -243,6 +254,18 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ profile, paymentDetails
                         register={register("companyName")}
                         errors={errors}
                         placeholder="e.g. Acme Studios Pvt Ltd"
+                    />
+                    <Input
+                        id="companyAddress"
+                        label={hasGst ? "Registered Address (required for GST)" : "Registered Address (optional)"}
+                        required={hasGst}
+                        variant="horizontal"
+                        labelWidth={DEFAULT_LABEL_WIDTH}
+                        size="md"
+                        disabled={!isEditing || isPending}
+                        register={register("companyAddress")}
+                        errors={errors}
+                        placeholder="e.g. 123 Studio Road, Sector 5, Mumbai"
                     />
                     <Input
                         id="gstin"
