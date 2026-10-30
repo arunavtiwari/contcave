@@ -74,6 +74,17 @@ async function Footer() {
             </div>
 
             <div className="flex flex-col space-y-3">
+              <p className="text-lg font-bold text-foreground">Activities</p>
+              <TextLink variant="muted" href="/studios?type=Fashion+%26+Lifestyle">Fashion Shoot</TextLink>
+              <TextLink variant="muted" href="/studios?type=Video+%26+Film">Video & Film</TextLink>
+              <TextLink variant="muted" href="/studios?type=Pre-Wedding">Pre-Wedding Shoot</TextLink>
+              <TextLink variant="muted" href="/studios?purpose=backdrop">Backdrop Shoots</TextLink>
+              <TextLink variant="muted" href="/studios?purpose=podcast">Podcasts</TextLink>
+              <TextLink variant="muted" href="/studios?purpose=event">Events & Workshops</TextLink>
+              <TextLink variant="muted" href="/studios?type=Product+%26+E-commerce">Product Shoots</TextLink>
+            </div>
+
+            <div className="flex flex-col space-y-3">
               <p className="text-lg font-bold text-foreground">Popular Searches</p>
               {searches.map((search) => (
                 <TextLink key={search.href} variant="muted" href={search.href}>{search.label}</TextLink>
