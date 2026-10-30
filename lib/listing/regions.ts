@@ -48,22 +48,14 @@ const normalize = (value: string) => value.trim().toLowerCase();
 
 export const findRegion = (slug: string | null | undefined) => REGIONS.find((region) => region.slug === slug) ?? null;
 
-/** Region for a city name (listing locationValue or IP city), or null if we don't serve it. */
-export function regionOfCity(city: string | null | undefined): Region | null {
-    if (!city) return null;
-    const target = normalize(city);
-    return REGIONS.find((region) => region.cities.some((name) => normalize(name) === target)) ?? null;
-}
+const regionsByDistance = (latlng: LatLng) =>
+    REGIONS.map((region) => ({ region, km: distanceKm(latlng, region.center) })).sort((a, b) => a.km - b.km);
 
-/** Region a precise point falls in (nearest centre within that region's radius), or null. */
-export function regionOfPoint(latlng: LatLng): Region | null {
-    let best: { region: Region; km: number } | null = null;
-    for (const region of REGIONS) {
-        const km = distanceKm(latlng, region.center);
-        if (km <= region.radiusKm && (!best || km < best.km)) best = { region, km };
-    }
-    return best?.region ?? null;
-}
+/** Region a point falls in (nearest centre within that region's radius), or null. */
+export const regionOfPoint = (latlng: LatLng): Region | null =>
+    regionsByDistance(latlng).find(({ region, km }) => km <= region.radiusKm)?.region ?? null;
+
+export const nearestRegion = (latlng: LatLng): Region | null => regionsByDistance(latlng)[0]?.region ?? null;
 
 /** Lower-cased city names per region, for matching Listing.locationValue in the feed query. */
 export const regionCityKeys = (region: Region) => region.cities.map(normalize);
