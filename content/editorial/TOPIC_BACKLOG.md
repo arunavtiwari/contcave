@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 63 | Budget Studio Shoots for Student & Campus Creators | studio for student creators india | content-creation | creators |
 | 64 | Finance & Edtech Explainer Video Studios: Whiteboard & Screen-Record Setups | finance content studio india | content-creation | creators |
 | 65 | Regional & Vernacular Language Content Studios: What Changes | vernacular content studio india | creator-economy | creators |
 | 66 | Pet Photography & Pet-Friendly Studios in India | pet friendly photography studio india | studio-guides | creators, brands |
@@ -105,3 +104,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-10-23 | 60 | studio-insurance-for-hosts-india |
 | 2026-10-26 | 61 | fitness-studio-for-content-shoot-india |
 | 2026-10-28 | 62 | cooking-studio-rental-india |
+| 2026-10-30 | 63 | studio-for-student-creators-india |
