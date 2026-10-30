@@ -4,30 +4,15 @@ import { cookies, headers } from "next/headers";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import type { LatLng } from "@/lib/geo";
-import { isBotRequest } from "@/lib/http/requestMeta";
+import { getIpLocation, isBotRequest } from "@/lib/http/requestMeta";
 import type { StudioFeedFilters } from "@/schemas/listing";
 
 import type { BrowseLocation } from "./browseLocation";
 import { type BrowseSort, DEFAULT_BROWSE_SORT } from "./browseSort";
 import type { FeedSortContext } from "./feedQuery";
-import { findRegion, regionOfCity, regionOfPoint } from "./regions";
+import { findRegion, nearestRegion, regionOfPoint } from "./regions";
 import { parseSavedSearchLocation, parseSearchLocationCookie, SEARCH_LOCATION_COOKIE } from "./searchLocation";
 import { ListingService } from "./service";
-
-const IP_CITY_HEADERS = ["x-vercel-ip-city", "cf-ipcity"] as const;
-
-function ipCity(headerList: Headers): string | null {
-    for (const name of IP_CITY_HEADERS) {
-        const value = headerList.get(name);
-        if (!value) continue;
-        try {
-            return decodeURIComponent(value);
-        } catch {
-            return value;
-        }
-    }
-    return null;
-}
 
 /**
  * The location the visitor actually chose: a place searched in the URL (`near`) first, then one
@@ -60,7 +45,8 @@ export async function pickedBrowseLocation(
 /**
  * Where the visitor is, in priority order:
  *   1. a location they picked (see `pickedBrowseLocation`),
- *   2. the IP city, only to pick a served metro region; IP is never used for distance,
+ *   2. the IP location, only to pick a metro region (the one it falls in, else the nearest
+ *      served one); IP is never used for distance,
  *   3. nothing: default verified-first order.
  */
 async function resolveFeedSort(
@@ -75,7 +61,8 @@ async function resolveFeedSort(
     }
 
     const headerList = await headers();
-    const region = isBotRequest(headerList) ? null : regionOfCity(ipCity(headerList));
+    const visitor = isBotRequest(headerList) ? null : getIpLocation(headerList);
+    const region = visitor ? regionOfPoint(visitor.latlng) ?? nearestRegion(visitor.latlng) : null;
     return { region: region?.slug ?? null, origin: null, order };
 }
 
