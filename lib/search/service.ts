@@ -16,9 +16,9 @@ import { findLocality } from "@/lib/search/localities";
 import { matchCandidate } from "@/lib/search/match";
 import { buildOffer } from "@/lib/search/offer";
 import { parseQuery, prepareQueryText } from "@/lib/search/parse";
-import { bm25Scores, dotProduct, rankByScore, reciprocalRankFusion } from "@/lib/search/rank";
+import { bm25Scores, rankByScore, reciprocalRankFusion } from "@/lib/search/rank";
 import { budgetTotal, overBudgetBy, scoreResult } from "@/lib/search/score";
-import { embedQuery, loadSearchDocs, type SearchDoc } from "@/lib/search/searchDoc";
+import { loadSearchDocs } from "@/lib/search/searchDoc";
 import type { ResultFacts, ResultView, ScoredCandidate, SearchCandidate, SearchView } from "@/lib/search/types";
 import { expandCities, extractTerms, resolveCityName } from "@/lib/search/vocabulary";
 import { normaliseUseCase } from "@/lib/taxonomy";
@@ -144,21 +144,11 @@ async function loadDays(listingIds: string[], dates: string[], now: Date) {
     return byListing;
 }
 
-function featureScores(evaluated: Evaluated[], parsed: ParsedQuery, text: string, docs: Map<string, SearchDoc>, queryVector: Float32Array | null) {
+function featureScores(evaluated: Evaluated[], parsed: ParsedQuery, text: string, docs: Map<string, string>) {
     const wantsTags = parsed.needs.length + parsed.vibes.length + parsed.venueTypes.length > 0;
-    const ids = evaluated.map(({ candidate }) => candidate.id);
     const tagList = wantsTags ? rankByScore(new Map(evaluated.map(({ candidate, facts }) => [candidate.id, facts.match.coverage]))) : [];
-    const keywordList = rankByScore(bm25Scores(text, new Map(ids.flatMap((id) => {
-        const doc = docs.get(id);
-        return doc ? [[id, doc.text] as const] : [];
-    }))));
-    const semanticList = queryVector
-        ? rankByScore(new Map(ids.flatMap((id) => {
-            const vector = docs.get(id)?.vector;
-            return vector ? [[id, dotProduct(queryVector, vector)] as const] : [];
-        })))
-        : [];
-    const fused = reciprocalRankFusion([tagList, keywordList, semanticList], SEARCH_CONFIG.rrfK);
+    const keywordList = rankByScore(bm25Scores(text, docs));
+    const fused = reciprocalRankFusion([tagList, keywordList], SEARCH_CONFIG.rrfK);
     return (id: string) => (fused.size ? fused.get(id) ?? 0 : null);
 }
 
@@ -239,7 +229,6 @@ export type ResolvedQuery = {
     parsed: ParsedQuery;
     source: "ai" | "rules";
     text: string;
-    queryVector: Float32Array | null;
     parseMs: number;
 };
 
@@ -247,15 +236,11 @@ export async function resolveQuery(request: SearchRequest, context: SearchContex
     if (!request.query && !Object.keys(request.overrides).length) return null;
     const startedAt = Date.now();
     const text = prepareQueryText(request.query);
-    const [parsed, queryVector] = await Promise.all([
-        parseQuery(text, { today: istDateKey(context.now), allowAi: context.allowAi }),
-        embedQuery(text, context.allowAi),
-    ]);
+    const parsed = await parseQuery(text, { today: istDateKey(context.now), allowAi: context.allowAi });
     return {
         parsed: applyOverrides(parsed.parsed, request.overrides),
         source: parsed.source,
         text,
-        queryVector,
         parseMs: Date.now() - startedAt,
     };
 }
@@ -266,7 +251,7 @@ export async function runAiSearch(
     context: SearchContext,
 ): Promise<AiSearchOutcome> {
     const startedAt = Date.now();
-    const { parsed, text, queryVector } = resolved;
+    const { parsed, text } = resolved;
     const session = (extra: Partial<SessionRecord> = {}): SessionRecord => ({
         query: text,
         parsed,
@@ -318,7 +303,7 @@ export async function runAiSearch(
     ]);
 
     const evaluated = candidates.map((candidate) => evaluate(candidate, parsed, days.get(candidate.id) ?? [], referencePoint));
-    const feature = featureScores(evaluated, parsed, text, docs, queryVector);
+    const feature = featureScores(evaluated, parsed, text, docs);
     for (const entry of evaluated) entry.score = scoreResult(entry.candidate, parsed, entry.facts, feature(entry.candidate.id));
 
     const standard = evaluated.filter((entry) => entry.candidate.listingType !== "CURATED");

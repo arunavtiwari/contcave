@@ -937,7 +937,5 @@ model ListingSearchDoc {
   listingId String   @unique @db.ObjectId
   text      String
   hash      String
-  model     String?
-  embedding Bytes?
   updatedAt DateTime @updatedAt
 }
