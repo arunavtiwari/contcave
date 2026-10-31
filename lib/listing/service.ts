@@ -19,6 +19,7 @@ import { findShootPurpose } from "@/lib/listing/shootPurposes";
 import prisma from "@/lib/prismadb";
 import { parseReservationEndTimeForDate } from "@/lib/reservation/time";
 import { isRichTextEmpty } from "@/lib/richText";
+import { queueSearchReindex } from "@/lib/search/reindex";
 import { generateUniqueSlug } from "@/lib/slug";
 import { dispatchMediaDeletion } from "@/lib/storage/mediaDeletion";
 import { slugify } from "@/lib/strings";
@@ -397,10 +398,12 @@ function sanitizePublicLocation(value: unknown): ActualLocation | null {
 
 export class ListingService {
     static async getHydratableListingIds(
-        params: { active?: boolean; status?: string; listingType?: "STANDARD" | "CURATED" } = { active: true }
+        params: { active?: boolean; status?: string; listingType?: "STANDARD" | "CURATED" } = { active: true },
+        ids?: string[],
     ): Promise<string[]> {
+        const filter = hydratableListingFilter(params);
         const rawListings = await prisma.listing.findRaw({
-            filter: hydratableListingFilter(params) as Prisma.InputJsonObject,
+            filter: (ids ? { $and: [filter, { _id: { $in: ids.map((id) => ({ $oid: id })) } }] } : filter) as Prisma.InputJsonObject,
             options: { projection: { _id: 1 } },
         }) as unknown as RawListingId[];
 
@@ -1065,6 +1068,8 @@ export class ListingService {
             });
         }
 
+        if (hasChanges) await queueSearchReindex(listingId);
+
         const updatedListing = await ListingService.findById(listingId, { id: userId, role: allowAdmin ? "ADMIN" : "OWNER" });
         if (!updatedListing) {
             throw new UserFacingError(hasChanges ? "Listing update failed" : "Listing not found", hasChanges ? 500 : 404);
@@ -1171,6 +1176,7 @@ export class ListingService {
         if (updated.count !== 1) {
             throw new UserFacingError("Archived listings cannot be reviewed", 409);
         }
+        await queueSearchReindex(listingId);
     }
 
     /**

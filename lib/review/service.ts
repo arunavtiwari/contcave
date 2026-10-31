@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { UserFacingError } from "@/lib/errors";
 import prisma from "@/lib/prismadb";
+import { queueSearchReindex } from "@/lib/search/reindex";
 import { SafeReview } from "@/types/review";
 
 export class ReviewService {
@@ -58,6 +59,7 @@ export class ReviewService {
                 return review;
             });
 
+            await queueSearchReindex(listingId);
             return { ...review, createdAt: review.createdAt.toISOString() };
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -89,7 +91,7 @@ export class ReviewService {
         if (trimmedName.length < 2) throw new UserFacingError("Guest name is required");
         if (rating < 1 || rating > 5) throw new UserFacingError("Rating must be between 1 and 5");
 
-        return await prisma.$transaction(async (tx) => {
+        const review = await prisma.$transaction(async (tx) => {
             const listing = await tx.listing.findUnique({ where: { id: listingId }, select: { id: true } });
             if (!listing) throw new UserFacingError("Listing not found", 404);
 
@@ -117,6 +119,8 @@ export class ReviewService {
 
             return review;
         });
+        await queueSearchReindex(listingId);
+        return review;
     }
 
     /**
@@ -151,5 +155,6 @@ export class ReviewService {
                 data: { avgReviewRating: aggregate._avg.rating || 0 }
             });
         });
+        await queueSearchReindex(review.listingId);
     }
 }

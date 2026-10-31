@@ -3,8 +3,9 @@ import { Client } from "@upstash/qstash";
 import { getValidatedBaseUrl } from "@/lib/utils";
 
 export type QstashJobPayload = {
-  job: "pending-approval-expiry" | "extension-expiry" | "additional-charge-expiry" | "auto-complete" | "booking-reminder" | "review-reminder" | "delete-media";
+  job: "pending-approval-expiry" | "extension-expiry" | "additional-charge-expiry" | "auto-complete" | "booking-reminder" | "review-reminder" | "delete-media" | "search-index-listing";
   reservationId?: string;
+  listingId?: string;
   extensionId?: string;
   chargeId?: string;
   refs?: string[];
@@ -36,7 +37,7 @@ export async function scheduleQstashJob(payload: QstashJobPayload, runAt: Date) 
     return null;
   }
   const delay = Math.max(0, Math.ceil((runAt.getTime() - Date.now()) / 1000));
-  const entityId = payload.reservationId || payload.extensionId || payload.chargeId || "global";
+  const entityId = payload.reservationId || payload.extensionId || payload.chargeId || payload.listingId || "global";
   // A reschedule for a materially different due time must not be collapsed into
   // the existing delivery. Handlers are idempotent, so an already-delivered job
   // remains safe if a provider retry or reconciliation path overlaps it.
