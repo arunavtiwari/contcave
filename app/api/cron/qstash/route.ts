@@ -32,6 +32,7 @@ const QSTASH_JOBS = [
   "month-end-invoices",
   "delete-media",
   "search-index-refresh",
+  "search-index-listing",
 ] as const;
 
 type QstashJob = (typeof QSTASH_JOBS)[number];
@@ -62,6 +63,7 @@ async function handleQstashJob(body: {
   chargeId?: unknown;
   refs?: unknown;
   ownerId?: unknown;
+  listingId?: unknown;
 } | null) {
   if (!body || !isQstashJob(body.job)) {
     return NextResponse.json({ success: false, error: "Unknown QStash job" }, { status: 400 });
@@ -96,6 +98,9 @@ async function handleQstashJob(body: {
     } else if (body.job === "review-reminder") {
       if (!isObjectId(body.reservationId)) return NextResponse.json({ success: false, error: "A valid reservationId is required" }, { status: 400 });
       rawResult = await ReviewReminderService.sendForReservation(body.reservationId);
+    } else if (body.job === "search-index-listing") {
+      if (!isObjectId(body.listingId)) return NextResponse.json({ success: false, error: "A valid listingId is required" }, { status: 400 });
+      rawResult = await refreshSearchDocs([body.listingId]);
     } else if (
       isE2eEffectDisabled("E2E_DISABLE_RECURRING_QSTASH")
       || isE2eEffectDisabled("E2E_DISABLE_EMAIL_SEND")

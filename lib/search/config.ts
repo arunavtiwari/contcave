@@ -30,6 +30,7 @@ export const SEARCH_CONFIG = {
         reasonsTopN: 3,
     },
     sessionTtlMs: 90 * DAY_SECONDS * 1000,
+    reindexDebounceMs: MINUTE_MS,
     suggest: { minChars: 2, limit: 6, debounceMs: 200, perMinute: 240, indexSeconds: 600, prefixExpansions: 3, recentLimit: 5 },
     prompt: "Describe your shoot, or search a studio or area",
     promptShort: "Describe your shoot",

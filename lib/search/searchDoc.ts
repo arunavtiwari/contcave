@@ -57,9 +57,12 @@ function buildSearchText(source: SearchDocSource) {
 
 const hashOf = (text: string) => createHash("sha256").update(text).digest("hex");
 
-export async function refreshSearchDocs() {
-    const ids = await ListingService.getHydratableListingIds({ active: true, status: "VERIFIED" });
-    const existing = await prisma.listingSearchDoc.findMany({ select: { listingId: true, hash: true } });
+export async function refreshSearchDocs(listingIds?: string[]) {
+    const ids = await ListingService.getHydratableListingIds({ active: true, status: "VERIFIED" }, listingIds);
+    const existing = await prisma.listingSearchDoc.findMany({
+        where: listingIds ? { listingId: { in: listingIds } } : undefined,
+        select: { listingId: true, hash: true },
+    });
     const known = new Map(existing.map((doc) => [doc.listingId, doc]));
     const results: { id: string; status: "indexed" | "removed" }[] = [];
 
@@ -83,10 +86,13 @@ export async function refreshSearchDocs() {
 
     const live = new Set(ids);
     const stale = existing.map((doc) => doc.listingId).filter((id) => !live.has(id));
-    if (stale.length) {
-        await prisma.listingSearchDoc.deleteMany({ where: { listingId: { in: stale } } });
-        results.push(...stale.map((id) => ({ id, status: "removed" as const })));
+    if (!stale.length) return results;
+    if (!listingIds && !ids.length) {
+        console.warn("[ai-search] No live listings found; keeping existing search docs.");
+        return results;
     }
+    await prisma.listingSearchDoc.deleteMany({ where: { listingId: { in: stale } } });
+    results.push(...stale.map((id) => ({ id, status: "removed" as const })));
     return results;
 }
 
