@@ -71,10 +71,3 @@ export function bm25Scores(query: string, documents: Map<string, string>): Map<s
     }
     return scores;
 }
-
-export function dotProduct(a: Float32Array, b: Float32Array) {
-    const length = Math.min(a.length, b.length);
-    let sum = 0;
-    for (let index = 0; index < length; index++) sum += a[index] * b[index];
-    return sum;
-}

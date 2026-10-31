@@ -21,11 +21,10 @@ export const SEARCH_CONFIG = {
     distanceHalfScoreKm: 8,
     areaCaveatKm: 3,
     rating: { priorMean: 4.3, priorWeight: 5 },
-    timeoutsMs: { parse: 4000, embed: 800, reasons: 9000, index: 15000 },
+    timeoutsMs: { parse: 4000, reasons: 9000 },
     ai: {
-        models: { gemini: ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"], embedding: "@cf/baai/bge-m3" },
+        models: { gemini: ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite"] },
         perModelPerMinute: 14,
-        embedPerMinute: 60,
         perClientPerMinute: 6,
         breakerDefaultMs: MINUTE_MS,
         reasonsTopN: 3,
