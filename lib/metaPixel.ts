@@ -83,6 +83,19 @@ export function trackEvent(
   return id;
 }
 
+/** Send only the server copy when a GTM Pixel tag owns the browser event. */
+export function trackServerEvent(
+  name: MetaStandardEventName,
+  params: Record<string, unknown> = {},
+  eventId?: string,
+  eventSourcePath?: string,
+): string | null {
+  if (!hasMarketingConsent()) return null;
+  const id = eventId || generateEventId();
+  sendMetaCapiEvent(name, id, params, eventSourcePath);
+  return id;
+}
+
 export function trackCustomEvent(
   name: string,
   params: Record<string, unknown> = {},

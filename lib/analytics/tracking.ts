@@ -1,6 +1,6 @@
 import { MetaStandardEvent } from "@/constants/metaPixel";
 import type { StoredConsent } from "@/lib/consent";
-import { generateEventId, trackEvent as trackMetaEvent } from "@/lib/metaPixel";
+import { generateEventId, trackEvent as trackMetaEvent, trackServerEvent as trackMetaServerEvent } from "@/lib/metaPixel";
 
 /*
  * GA4 ecommerce events for Google Tag Manager, plus the matching Meta Pixel events.
@@ -172,7 +172,7 @@ export function trackWhatsAppContact(params: { source?: string; studio?: Tracked
         ...trackingContext(),
         ...(params.studio ? { ecommerce: { currency: "INR", items: [studioItem(params.studio)] } } : {}),
     });
-    trackMetaEvent(MetaStandardEvent.Contact, {
+    trackMetaServerEvent(MetaStandardEvent.Contact, {
         content_type: "product",
         ...(params.studio ? { content_ids: [params.studio.id], content_name: params.studio.name } : {}),
     }, eventId);
