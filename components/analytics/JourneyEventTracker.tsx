@@ -1,13 +1,11 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import {
   type TrackedStudio,
   trackNewTabLinkClick,
   trackOutboundLinkClick,
-  trackPageView,
   trackWhatsAppContact,
 } from "@/lib/analytics/tracking";
 
@@ -18,12 +16,6 @@ const isPrivatePath = (pathname: string) =>
   /^\/(dashboard|admin|pay|payments|api|auth)(?:\/|$)/.test(pathname);
 
 export default function JourneyEventTracker() {
-  const pathname = usePathname();
-
-  useEffect(() => {
-    trackPageView(pathname || "/");
-  }, [pathname]);
-
   useEffect(() => {
     const onDocumentClick = (event: MouseEvent) => {
       if (event.defaultPrevented || !(event.target instanceof Element)) return;

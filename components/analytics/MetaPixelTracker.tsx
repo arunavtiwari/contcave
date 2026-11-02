@@ -1,22 +1,33 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useConsent } from "@/components/providers/ConsentProvider";
 import { META_PIXEL_ID } from "@/constants/metaPixel";
+import { trackPageView } from "@/lib/analytics/tracking";
 import { pageview } from "@/lib/metaPixel";
 
 export default function MetaPixelTracker() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const lastTrackedRef = useRef<string>("");
+  const lastTrackedPathRef = useRef<string>("");
+  const pageViewRef = useRef<{ path: string; eventId: string } | null>(null);
+  const lastMetaEventIdRef = useRef<string | null>(null);
   const [pixelReady, setPixelReady] = useState(false);
   const { consent } = useConsent();
 
   useEffect(() => {
+    const routePath = pathname || "/";
+    const currentPath = window.location.pathname || "/";
+    if (currentPath !== routePath || currentPath === lastTrackedPathRef.current) return;
+
+    lastTrackedPathRef.current = currentPath;
+    const eventId = trackPageView(currentPath);
+    pageViewRef.current = eventId ? { path: currentPath, eventId } : null;
+  }, [pathname]);
+
+  useEffect(() => {
     if (!consent.marketing) {
-      lastTrackedRef.current = "";
       setPixelReady(false);
       return;
     }
@@ -34,12 +45,13 @@ export default function MetaPixelTracker() {
 
     const routePath = pathname || "/";
     const currentPath = window.location.pathname || "/";
-    if (currentPath !== routePath) return;
-    if (currentPath === lastTrackedRef.current) return;
-    lastTrackedRef.current = currentPath;
-    if (/^\/(dashboard|admin|pay|payments|api|auth)(?:\/|$)/.test(currentPath)) return;
-    pageview(undefined, currentPath);
-  }, [pathname, searchParams, consent.marketing, pixelReady]);
+    const pageView = pageViewRef.current;
+    if (currentPath !== routePath || !pageView || pageView.path !== currentPath) return;
+    if (lastMetaEventIdRef.current === pageView.eventId) return;
+
+    const sentEventId = pageview(pageView.eventId, pageView.path);
+    if (sentEventId) lastMetaEventIdRef.current = sentEventId;
+  }, [pathname, consent.marketing, pixelReady]);
 
   return null;
 }

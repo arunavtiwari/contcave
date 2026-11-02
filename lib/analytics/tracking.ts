@@ -104,16 +104,18 @@ function isPrivateTrackingPath(pathname: string) {
     return /^\/(dashboard|admin|pay|payments|api|auth)(?:\/|$)/.test(pathname);
 }
 
-export function trackPageView(pathname?: string) {
-    if (typeof window === "undefined") return;
+export function trackPageView(pathname?: string): string | null {
+    if (typeof window === "undefined") return null;
     const currentPath = pathname || window.location.pathname;
-    if (isPrivateTrackingPath(currentPath)) return;
+    if (isPrivateTrackingPath(currentPath)) return null;
+    const eventId = generateEventId();
     pushTrackedEvent({
         event: "page_view",
-        event_id: generateEventId(),
+        event_id: eventId,
         ...trackingContext(currentPath),
         page_title: document.title.slice(0, 120),
     });
+    return eventId;
 }
 
 export function trackStudioView(studio: TrackedStudio) {

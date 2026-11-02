@@ -25,6 +25,7 @@ export default function ConsentAwareTracking({ nonce }: Props) {
     return (
         <>
             <GoogleTagManagerScript nonce={nonce} />
+            <MetaPixelTracker />
 
             {/* Analytics Category */}
             {isInitialized && consent.analytics && (
@@ -35,12 +36,7 @@ export default function ConsentAwareTracking({ nonce }: Props) {
             )}
 
             {/* Marketing Category */}
-            {isInitialized && consent.marketing && (
-                <>
-                    <MetaPixelScript nonce={nonce} />
-                    <MetaPixelTracker />
-                </>
-            )}
+            {isInitialized && consent.marketing && <MetaPixelScript nonce={nonce} />}
         </>
     );
 }
