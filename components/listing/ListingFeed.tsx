@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { loadMoreStudios } from "@/app/actions/studioFeedActions";
 import ListingCard from "@/components/listing/ListingCard";
 import Button from "@/components/ui/Button";
+import { BROWSE_GRID_ANCHOR_ID } from "@/hooks/useBrowseLocation";
 import { useNearLabel } from "@/hooks/useNearLabel";
 import { studioFeedKey } from "@/lib/listing/studioFeedKey";
 import type { StudioFeedFilters } from "@/schemas/listing";
@@ -92,6 +93,7 @@ function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
   return (
     <div className="space-y-8 pb-24">
       <div
+        id={BROWSE_GRID_ANCHOR_ID}
         aria-busy={loadState === "loading"}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 overflow-x-hidden"
       >

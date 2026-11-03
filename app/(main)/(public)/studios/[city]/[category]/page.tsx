@@ -15,7 +15,7 @@ import {
 } from "@/lib/listing/cities";
 import { cityCategoryPath } from "@/lib/listing/cityPaths";
 import { cityCollectionJsonLd, collectionMetadata, UNPUBLISHED_COLLECTION_METADATA } from "@/lib/listing/seo";
-import { loadStudioFeed } from "@/lib/listing/studioFeed";
+import { loadStudioFeed, pickedBrowseLocation } from "@/lib/listing/studioFeed";
 
 type RouteParams = { city: string; category: string };
 
@@ -69,9 +69,11 @@ export default async function CityCategoryPage(props: { params: Promise<RoutePar
       <StudioBrowse
         title={title}
         city={entry.city}
+        initialLocation={await pickedBrowseLocation(feed.filters)}
+        isLoggedIn={Boolean(currentUser)}
         feed={(
           <>
-            <LocationBar location={feed.location} isLoggedIn={Boolean(currentUser)} />
+            <LocationBar />
             <ListingFeed key={feed.key} page={feed.page} filters={feed.filters} currentUser={currentUser} />
           </>
         )}
