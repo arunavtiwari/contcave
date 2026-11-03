@@ -1,13 +1,29 @@
 "use client";
 
+import "swiper/css";
+import "swiper/css/navigation";
+
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { BsPatchCheckFill } from "react-icons/bs";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 import Container from "@/components/layout/Container";
 import SectionHeader from "@/components/ui/SectionHeader";
 import StarRating from "@/components/ui/StarRating";
 import { reviews } from "@/constants/testimonials";
+
+const REVIEWS_PER_PAGE = 4;
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const pages: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    pages.push(items.slice(i, i + size));
+  }
+  return pages;
+}
 
 interface ReviewCardProps {
   review: (typeof reviews)[number];
@@ -112,13 +128,42 @@ const SocialProof = () => {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             viewport={{ once: true }}
-            className="flex min-w-0 flex-1 flex-col gap-5"
+            className="min-w-0 flex-1"
           >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2">
-              {reviews.map((review, i) => (
-                <ReviewCard key={i} review={review} />
+            <Swiper
+              modules={[Navigation]}
+              navigation={{ nextEl: ".reviews-next", prevEl: ".reviews-prev" }}
+              slidesPerView={1}
+            >
+              {chunk(reviews, REVIEWS_PER_PAGE).map((page, i) => (
+                <SwiperSlide key={i}>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {page.map((review, j) => (
+                      <ReviewCard key={j} review={review} />
+                    ))}
+                  </div>
+                </SwiperSlide>
               ))}
-            </div>
+            </Swiper>
+
+            {reviews.length > REVIEWS_PER_PAGE && (
+              <div className="mt-5 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  aria-label="Previous reviews"
+                  className="reviews-prev flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border text-foreground transition hover:bg-background [&.swiper-button-disabled]:pointer-events-none [&.swiper-button-disabled]:opacity-30"
+                >
+                  <FiChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next reviews"
+                  className="reviews-next flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border text-foreground transition hover:bg-background [&.swiper-button-disabled]:pointer-events-none [&.swiper-button-disabled]:opacity-30"
+                >
+                  <FiChevronRight size={16} />
+                </button>
+              </div>
+            )}
           </motion.div>
         </div>
       </Container>

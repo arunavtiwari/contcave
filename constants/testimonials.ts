@@ -8,6 +8,27 @@ export const reviews = [
   },
   {
     quote:
+      "Had a great experience booking a studio through Contcave. The entire process was smooth, well-coordinated, and professionally managed. Harshita was extremely helpful, responsive, and organised, ensuring everything was taken care of perfectly. It's refreshing to work with a team that understands the requirements of a shoot and makes the entire experience hassle-free. Highly recommend Contcave to anyone looking for shooting locations in Delhi. Looking forward to working with them again!",
+    name: "Sangh Priya Abhilash",
+    role: "NasDaily 1000X Producer",
+    initials: "SA",
+  },
+  {
+    quote:
+      "The studio was spacious and has multiple sets, perfect for various kinds of content creation. The best part is they provide good quality professional lights and other important services like editing and strategising. Thanks to Contcave that I got everything under one roof.",
+    name: "Sonal Verma",
+    role: "Content Creator",
+    initials: "SV",
+  },
+  {
+    quote:
+      "I discovered some beautiful studios on ContCave, it was super easy and seamless to book. I found such cool studios in Delhi to shoot my festive content. It's so convenient.",
+    name: "Nishtha G Malik",
+    role: "Content Creator",
+    initials: "NM",
+  },
+  {
+    quote:
       "We did product shoot for our upcoming collection. It was a great experience, finding studio with ContCave",
     name: "Cosmoksha",
     role: "Owner · Product Shoot",

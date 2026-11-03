@@ -7,7 +7,6 @@ import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
-import { HERO_HIGHLIGHTS } from "@/constants/landing";
 import { useStudioSearch } from "@/hooks/useStudioSearch";
 import useUIStore from "@/hooks/useUIStore";
 
@@ -118,19 +117,6 @@ const Hero = () => {
                 variant="h1"
                 className="mb-6 text-background! max-w-2xl"
               />
-
-              <div className="mb-6 flex flex-wrap gap-2">
-                {HERO_HIGHLIGHTS.map((highlight: string) => (
-                  // Animated per pill: opacity on a parent stops the glass blur from rendering.
-                  <Pill
-                    key={highlight}
-                    label={highlight}
-                    variant="glass"
-                    size="sm"
-                    className="animate-hero-rise motion-reduce:animate-none"
-                  />
-                ))}
-              </div>
 
               <div className="flex flex-col gap-6">
                 <div className="w-full">
