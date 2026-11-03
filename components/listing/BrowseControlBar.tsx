@@ -28,20 +28,38 @@ function FiltersButton() {
  * reachable however far down the grid the visitor has scrolled.
  */
 export default function BrowseControlBar() {
-    const { location, openPicker, clearLocation, detectState } = useBrowseLocation();
+    const { location, openPicker, clearLocation, detectState, cancelDetect } = useBrowseLocation();
     const locating = detectState === "locating";
 
     if (!location) {
         return (
             <div className="mb-6 flex items-center gap-2 md:hidden">
-                <button
-                    type="button"
-                    onClick={openPicker}
-                    className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-full border border-border bg-background px-4 text-left text-sm font-medium text-foreground transition hover:bg-muted"
-                >
-                    <FiMapPin size={16} aria-hidden="true" className="shrink-0 text-muted-foreground" />
-                    <span className="truncate">{locating ? "Finding you…" : "Where's your shoot?"}</span>
-                </button>
+                {locating ? (
+                    // A wait with no way out is worse than no location at all.
+                    <button
+                        type="button"
+                        onClick={cancelDetect}
+                        className="flex h-11 min-w-0 flex-1 items-center justify-between gap-2 rounded-full border border-border bg-background px-4 text-sm font-medium text-foreground"
+                    >
+                        <span className="flex min-w-0 items-center gap-2">
+                            <span
+                                aria-hidden="true"
+                                className="size-3.5 shrink-0 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground"
+                            />
+                            <span className="truncate">Finding you…</span>
+                        </span>
+                        <span className="shrink-0 text-muted-foreground">Cancel</span>
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={openPicker}
+                        className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-full border border-border bg-background px-4 text-left text-sm font-medium text-foreground transition hover:bg-muted"
+                    >
+                        <FiMapPin size={16} aria-hidden="true" className="shrink-0 text-muted-foreground" />
+                        <span className="truncate">Where&apos;s your shoot?</span>
+                    </button>
+                )}
                 <SortMenu compact />
                 <FiltersButton />
             </div>

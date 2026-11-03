@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { loadMoreStudios } from "@/app/actions/studioFeedActions";
 import ListingCard from "@/components/listing/ListingCard";
+import NoNearbyStudiosBanner from "@/components/listing/NoNearbyStudiosBanner";
 import Button from "@/components/ui/Button";
 import { BROWSE_GRID_ANCHOR_ID } from "@/hooks/useBrowseLocation";
 import { useFeedSummary } from "@/hooks/useFeedSummary";
@@ -93,8 +94,20 @@ function ListingFeed({ page, filters, currentUser, nearLabel, order = DEFAULT_BR
     return () => observer.disconnect();
   }, [cursor, loadState, loadMore]);
 
+  // The closest studio among those we loaded; under a non-distance order it may not be first.
+  const nearest = items.reduce<StudioFeedItem | null>(
+    (closest, item) =>
+      typeof item.distanceKm === "number" &&
+        (closest?.distanceKm == null || item.distanceKm < closest.distanceKm)
+        ? item
+        : closest,
+    null
+  );
+
   return (
     <div className="space-y-8 pb-24">
+      <NoNearbyStudiosBanner nearestKm={page.nearestKm} nearestCity={nearest?.locationValue ?? null} />
+
       <div
         id={BROWSE_GRID_ANCHOR_ID}
         aria-busy={loadState === "loading"}

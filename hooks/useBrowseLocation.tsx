@@ -248,6 +248,7 @@ function BrowseLocationState({ initialLocation, isLoggedIn, children }: Provider
         places.load();
         if (typeof navigator === "undefined" || !navigator.geolocation) {
             setDetectState("unavailable");
+            setPickerOpen(true);
             return;
         }
 
@@ -278,6 +279,10 @@ function BrowseLocationState({ initialLocation, isLoggedIn, children }: Provider
                 if (request.cancelled) return;
                 gpsRequest.current = null;
                 setDetectState(error.code === error.PERMISSION_DENIED ? "denied" : "unavailable");
+                // Detect can be fired from the collapsed control, where there is nowhere to say
+                // what went wrong. Opening the picker puts the explanation on screen next to the
+                // search box the visitor now has to use instead.
+                setPickerOpen(true);
             },
             { enableHighAccuracy: false, timeout: GPS_TIMEOUT_MS, maximumAge: GPS_MAX_AGE_MS }
         );
