@@ -134,10 +134,18 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        return NextResponse.json({
-            success: true,
-            events_received: result.events_received,
-        });
+            return NextResponse.json({
+      success: true,
+      events_received: result.events_received,
+      ...(process.env.VERCEL_ENV === "preview"
+        ? {
+            debug: {
+              event_id: payload.event_id,
+              event_source_url: payload.event_source_url,
+            },
+          }
+        : {}),
+    });
     } catch (err) {
         console.error("[Meta CAPI Route] Error:", err);
         return NextResponse.json(
