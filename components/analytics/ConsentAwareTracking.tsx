@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import React, { useEffect } from "react";
 
-import GoogleTagManagerScript from "@/components/analytics/GoogleTagManagerScript";
+
 import MetaPixelScript from "@/components/analytics/MetaPixelScript";
 import MetaPixelTracker from "@/components/analytics/MetaPixelTracker";
 import { useConsent } from "@/components/providers/ConsentProvider";
@@ -24,7 +24,7 @@ export default function ConsentAwareTracking({ nonce }: Props) {
 
     return (
         <>
-            <GoogleTagManagerScript nonce={nonce} />
+            <MetaPixelTracker />
 
             {/* Analytics Category */}
             {isInitialized && consent.analytics && (
@@ -35,12 +35,7 @@ export default function ConsentAwareTracking({ nonce }: Props) {
             )}
 
             {/* Marketing Category */}
-            {isInitialized && consent.marketing && (
-                <>
-                    <MetaPixelScript nonce={nonce} />
-                    <MetaPixelTracker />
-                </>
-            )}
+            {isInitialized && consent.marketing && <MetaPixelScript nonce={nonce} />}
         </>
     );
 }

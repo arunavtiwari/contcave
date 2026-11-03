@@ -12,6 +12,7 @@ import ListingReservation from "@/components/listing/ListingReservation";
 import PackageSetModal from "@/components/modals/PackageSetModal";
 import { categories } from "@/components/navbar/categoriesData";
 import Callout from "@/components/ui/Callout";
+import { type TrackedStudio,trackStudioView } from "@/lib/analytics/tracking";
 import {
   addDaysToDateKey,
   BOOKING_HORIZON_DAYS,
@@ -293,7 +294,18 @@ function ListingClient({
     [listing.category]
   );
   const kindLabel = listing.venueTypes?.[0] || listing.category || "Studio";
+  const trackingStudio = useMemo<TrackedStudio>(() => ({
+    id: listing.id,
+    name: listing.title,
+    category: kindLabel,
+    city: listing.locationValue,
+  }), [listing.id, listing.title, kindLabel, listing.locationValue]);
 
+  useEffect(() => {
+    if (!isPreview && !isOwnListing && currentUser?.role !== "ADMIN") {
+      trackStudioView(trackingStudio);
+    }
+  }, [isPreview, isOwnListing, currentUser?.role, trackingStudio]);
 
 
   const availableSetIds = useMemo(() => {
@@ -464,7 +476,6 @@ function ListingClient({
                     instagramHandle={listing.instagramHandle}
                     disabled={isPreview}
                     studioType={kindLabel}
-                    trackingUser={currentUser ? { email: currentUser.email, phone: currentUser.phone } : null}
                   />
                 ) : (
                   <ListingReservation
@@ -500,8 +511,7 @@ function ListingClient({
                     maximumPax={listing.maximumPax}
                     includedEquipmentLabel={includedEquipmentLabel}
                     extraHourPrice={extraHourRate(listing)}
-                    trackingStudio={{ id: listing.id, name: listing.title, category: kindLabel, city: listing.locationValue }}
-                    currentUserEmail={currentUser?.email ?? null}
+                    trackingStudio={trackingStudio}
                   />
                 )}
               </div>

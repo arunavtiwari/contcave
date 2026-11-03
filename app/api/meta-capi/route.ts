@@ -34,7 +34,17 @@ export async function POST(request: NextRequest) {
         }
         const configuredOrigin = getValidatedBaseUrl();
         const requestOrigin = request.headers.get("origin");
-        if (process.env.NODE_ENV === "production" && requestOrigin !== configuredOrigin) {
+        const requestUrl = request.nextUrl;
+        const isSameOriginVercelPreview =
+            process.env.VERCEL_ENV === "preview"
+            && requestUrl.protocol === "https:"
+            && requestUrl.hostname.endsWith(".vercel.app")
+            && requestOrigin === requestUrl.origin;
+        if (
+            process.env.NODE_ENV === "production"
+            && requestOrigin !== configuredOrigin
+            && !isSameOriginVercelPreview
+        ) {
             return NextResponse.json({ error: "Invalid request origin" }, { status: 403 });
         }
         if (!hasMarketingConsent(request.headers.get("cookie") || "")) {
@@ -67,16 +77,41 @@ export async function POST(request: NextRequest) {
             event_name, event_id, event_source_url, custom_data,
             user_email, user_phone, user_id, fbclid,
         } = parsed.data;
-        if (event_source_url && new URL(event_source_url).origin !== configuredOrigin) {
+        const sourceUrl = event_source_url ? new URL(event_source_url) : undefined;
+        if (
+            sourceUrl
+            && sourceUrl.origin !== configuredOrigin
+            && !(isSameOriginVercelPreview && sourceUrl.origin === requestUrl.origin)
+        ) {
             return NextResponse.json({ error: "Invalid event source URL" }, { status: 400 });
         }
+
+        const referer = request.headers.get("referer");
+        let refererPath: string | undefined;
+        if (referer) {
+            try {
+                const refererUrl = new URL(referer);
+                if (
+                    refererUrl.origin === configuredOrigin
+                    || (isSameOriginVercelPreview && refererUrl.origin === requestUrl.origin)
+                ) refererPath = refererUrl.pathname;
+            } catch {
+                // Ignore malformed or non-URL referrers and keep the client URL.
+            }
+        }
+        const sourcePath = sourceUrl && sourceUrl.pathname !== "/"
+            ? sourceUrl.pathname
+            : refererPath;
+        const sourceEventUrl = sourcePath
+            ? `${configuredOrigin}${sourcePath}`
+            : sourceUrl?.toString();
 
         const cookieHeader = request.headers.get("cookie") ?? "";
         const payload: CAPIEventPayload = {
             event_name,
             event_time: Math.floor(Date.now() / 1000),
             event_id,
-            event_source_url,
+            event_source_url: sourceEventUrl,
             action_source: "website",
             user_data: {
                 client_ip_address: getClientIp(request.headers),
@@ -99,10 +134,18 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        return NextResponse.json({
-            success: true,
-            events_received: result.events_received,
-        });
+            return NextResponse.json({
+      success: true,
+      events_received: result.events_received,
+      ...(process.env.VERCEL_ENV === "preview"
+        ? {
+            debug: {
+              event_id: payload.event_id,
+              event_source_url: payload.event_source_url,
+            },
+          }
+        : {}),
+    });
     } catch (err) {
         console.error("[Meta CAPI Route] Error:", err);
         return NextResponse.json(

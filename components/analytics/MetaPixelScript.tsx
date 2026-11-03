@@ -31,7 +31,8 @@ export default function MetaPixelScript({ nonce }: { nonce?: string }) {
   s.parentNode.insertBefore(t,s)
 }(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','${META_PIXEL_ID}');
-fbq('track','PageView');
+window.__CC_META_PIXEL_READY__=true;
+window.dispatchEvent(new Event('cc-meta-pixel-ready'));
 `,
                 }}
             />

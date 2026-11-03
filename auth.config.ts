@@ -44,6 +44,7 @@ export const authConfig = {
     pages: {
         signIn: "/",
         error: "/",
+        newUser: "/auth/new-user",
     },
     debug: false,
     session: {
@@ -90,7 +91,12 @@ export const authConfig = {
 
             return true;
         },
-        async jwt({ token, account, user }) {
+        async jwt({ token, account, user, trigger }) {
+            if (trigger === "signUp") {
+                token.ccSignupEventId = globalThis.crypto.randomUUID();
+                token.ccSignupEventCreatedAt = Date.now();
+            }
+
             if (account && user) {
                 token.id = user.id;
 
@@ -122,6 +128,12 @@ export const authConfig = {
             }
             if (token.is_verified !== undefined) {
                 session.user.is_verified = token.is_verified as boolean;
+            }
+            if (typeof token.ccSignupEventId === "string") {
+                session.signupEventId = token.ccSignupEventId;
+            }
+            if (typeof token.ccSignupEventCreatedAt === "number") {
+                session.signupEventCreatedAt = token.ccSignupEventCreatedAt;
             }
 
             return session;

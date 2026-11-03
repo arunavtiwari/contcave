@@ -7,7 +7,7 @@ import getTransaction from "@/app/actions/getTransaction";
 import PaymentAnimation from "@/components/payments/PaymentSuccessAnimation";
 import Button from "@/components/ui/Button";
 import { GST_RATE } from "@/constants/gst";
-import { type TrackingUser,trackPurchase } from "@/lib/analytics/tracking";
+import { trackPurchase } from "@/lib/analytics/tracking";
 import { formatINR } from "@/lib/utils";
 
 interface SerializedListing {
@@ -37,7 +37,6 @@ interface CashfreeReturnStatusClientProps {
   initialStatus: string;
   initialReservation: SerializedReservation | null;
   initialPurpose: string | null;
-  trackingUser: TrackingUser | null;
 }
 
 export default function CashfreeReturnStatusClient({
@@ -46,7 +45,6 @@ export default function CashfreeReturnStatusClient({
   initialStatus,
   initialReservation,
   initialPurpose,
-  trackingUser,
 }: CashfreeReturnStatusClientProps) {
   const [status, setStatus] = useState<string>(initialStatus);
   const [reservation, setReservation] = useState<SerializedReservation | null>(initialReservation);
@@ -69,9 +67,8 @@ export default function CashfreeReturnStatusClient({
         category: listing?.venueTypes?.[0] || listing?.category || null,
         city: listing?.locationValue || null,
       },
-      user: trackingUser,
     });
-  }, [status, reservation, purpose, listingId, trackingUser]);
+  }, [status, reservation, purpose, listingId]);
 
   useEffect(() => {
     if (status !== "PENDING") return;
