@@ -7,6 +7,7 @@ import { HiLocationMarker } from "react-icons/hi";
 import LocationPickerBody from "@/components/listing/LocationPickerBody";
 import { useBrowseLocation } from "@/hooks/useBrowseLocation";
 import { useLocationPicker } from "@/hooks/useLocationPicker";
+import { MD_BREAKPOINT, useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
 
 /**
@@ -18,6 +19,9 @@ export default function LocationCombobox() {
     const { location, pickerOpen, openPicker, closePicker, clearLocation, detect, detectState, cancelDetect } =
         useBrowseLocation();
     const picker = useLocationPicker();
+    // Below md the phone sheet is the picker; mounting this dropdown as well would put a second
+    // combobox in the accessibility tree, hidden to the eye but not to a screen reader.
+    const isDesktop = useMediaQuery(MD_BREAKPOINT);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -124,7 +128,7 @@ export default function LocationCombobox() {
                 )}
             </div>
 
-            {pickerOpen && (
+            {pickerOpen && isDesktop && (
                 // Absolute, so opening the picker never moves the grid underneath it.
                 <div className="absolute left-0 top-[58px] z-50 w-[440px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-border bg-background shadow-xl">
                     <LocationPickerBody
