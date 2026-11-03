@@ -2,11 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { FiMapPin, FiNavigation } from "react-icons/fi";
+import { FiNavigation } from "react-icons/fi";
 import { toast } from "sonner";
 
 import { saveSearchLocationAction } from "@/app/actions/searchLocationActions";
 import AutoComplete from "@/components/ui/AutoComplete";
+import { useNearLabel } from "@/hooks/useNearLabel";
 import type { LatLng } from "@/lib/geo";
 import { regionOfPoint } from "@/lib/listing/regions";
 import {
@@ -55,9 +56,15 @@ const toSaved = (label: string, latlng: LatLng): SavedSearchLocation => ({
     region: regionOfPoint(latlng)?.slug ?? null,
 });
 
-/** "Showing studios in {Region} · Change", with GPS detection and an area search to set it. */
+/**
+ * The compact label/"Detect my location" control renders in ListingFeedHeader,
+ * in line with the page title - this component only owns the data/actions
+ * (bridged up via useNearLabel, since it resolves behind a Suspense boundary
+ * the header sits above) and the expanded manual-search panel.
+ */
 export default function LocationBar({ location, isLoggedIn }: Props) {
     const router = useRouter();
+    const { setLocationBar } = useNearLabel();
     const [editing, setEditing] = useState(false);
     const [detecting, setDetecting] = useState(false);
     const restoredRef = useRef(false);
@@ -101,28 +108,25 @@ export default function LocationBar({ location, isLoggedIn }: Props) {
         );
     };
 
-    const summary = location
+    const summaryLabel = location
         ? location.source === "search"
-            ? `Showing studios near ${location.label}`
-            : `Showing studios in ${location.regionName ?? location.label}`
+            ? location.label
+            : (location.regionName ?? location.label)
         : null;
 
-    if (summary && !editing) {
-        return (
-            <div className="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-                <FiMapPin size={16} className="text-foreground" aria-hidden="true" />
-                <span className="text-foreground">{summary}</span>
-                {location?.source !== "search" && (
-                    <>
-                        <span aria-hidden="true">·</span>
-                        <button type="button" onClick={() => setEditing(true)} className="font-medium text-foreground underline underline-offset-4">
-                            Change
-                        </button>
-                    </>
-                )}
-            </div>
-        );
-    }
+    useEffect(() => {
+        setLocationBar({
+            label: summaryLabel,
+            detecting,
+            onDetect: detect,
+            onEdit: () => setEditing(true),
+        });
+        // detect/onEdit close over the latest location/isLoggedIn/router already;
+        // re-push whenever the values they depend on change.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [summaryLabel, detecting, location, isLoggedIn, router]);
+
+    if (!editing) return null;
 
     return (
         <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-4 sm:flex-row sm:items-center">
@@ -130,7 +134,7 @@ export default function LocationBar({ location, isLoggedIn }: Props) {
                 type="button"
                 onClick={detect}
                 disabled={detecting}
-                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
+                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-60"
             >
                 <FiNavigation size={15} aria-hidden="true" />
                 {detecting ? "Detecting…" : "Detect my location"}
@@ -144,20 +148,16 @@ export default function LocationBar({ location, isLoggedIn }: Props) {
                     onChange={(place) => void persist(toSaved(place.name, place.latlng as LatLng))}
                 />
             </div>
-            {(editing || location?.source === "saved") && (
-                <div className="flex shrink-0 gap-3 text-sm">
-                    {location?.source === "saved" && (
-                        <button type="button" onClick={() => void persist(null)} className="text-muted-foreground underline underline-offset-4">
-                            Clear
-                        </button>
-                    )}
-                    {editing && (
-                        <button type="button" onClick={() => setEditing(false)} className="text-muted-foreground underline underline-offset-4">
-                            Cancel
-                        </button>
-                    )}
-                </div>
-            )}
+            <div className="flex shrink-0 gap-3 text-sm">
+                {location?.source === "saved" && (
+                    <button type="button" onClick={() => void persist(null)} className="text-muted-foreground underline underline-offset-4">
+                        Clear
+                    </button>
+                )}
+                <button type="button" onClick={() => setEditing(false)} className="text-muted-foreground underline underline-offset-4">
+                    Cancel
+                </button>
+            </div>
         </div>
     );
 }

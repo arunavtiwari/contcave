@@ -15,7 +15,7 @@ const HowItWorks = () => {
           title="How it Works"
         />
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {STEPS.map(({ Icon, step, title, body }, i) => (
             <motion.div
               key={step}

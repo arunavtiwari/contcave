@@ -120,22 +120,22 @@ export default async function Home() {
       {/* 1. Hero —  full-viewport, city search */}
       <Hero />
 
-      {/* 2. How It Works —  3-step flow, orients first-time visitors before showing product */}
-      <HowItWorks />
-
-      {/* 3. Studio Showcase —  3-card grid with live data */}
-      <StudioShowcase listings={listings} />
-
-      {/* 4. Social Proof —  video + 2-row reviews, trust right after seeing the product */}
+      {/* 2. Social Proof —  video + 2-row reviews, trust right after seeing the product */}
       <SocialProof />
 
-      {/* 6. Production Concierge —  dark feature card + WhatsApp CTA */}
+      {/* 3. How It Works —  3-step flow, orients first-time visitors before showing product */}
+      <HowItWorks />
+
+      {/* 4. Studio Showcase —  3-card grid with live data */}
+      <StudioShowcase listings={listings} />
+
+      {/* 5. Production Concierge —  dark feature card + WhatsApp CTA */}
       <ProductionConcierge />
 
-      {/* 7. FAQ —  objection handling before the final ask */}
+      {/* 6. FAQ —  objection handling before the final ask */}
       <FAQ />
 
-      {/* 8. For Studio Owners —  CTA */}
+      {/* 7. For Studio Owners —  CTA */}
       <CTA currentUser={currentUser} />
     </main>
   );

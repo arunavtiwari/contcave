@@ -52,15 +52,25 @@
 	   borders, background tints, and whitespace rather than shadows. */
 
 	/* 4. Layout & Spacing Tokens */
-	--spacing-section: 7rem;
+	--spacing-section: 4rem;
 	--spacing-card-p: 2rem;
 	--font-serif: Georgia, serif;
 }
 
 @layer utilities {
+	/* Sections stack directly against each other with no margin between
+	   them, so this padding is paid twice at every boundary (bottom of one
+	   section + top of the next) — keep the base value modest. */
 	.py-section {
-		padding-top: var(--spacing-section);
-		padding-bottom: var(--spacing-section);
+		padding-top: 3rem;
+		padding-bottom: 3rem;
+	}
+
+	@media (min-width: 768px) {
+		.py-section {
+			padding-top: var(--spacing-section);
+			padding-bottom: var(--spacing-section);
+		}
 	}
 }
 
