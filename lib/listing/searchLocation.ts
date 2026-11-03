@@ -53,10 +53,3 @@ export function parseSearchLocationCookie(raw: string | undefined | null): Saved
 }
 
 export const serializeSearchLocation = (location: SavedSearchLocation) => encodeURIComponent(JSON.stringify(location));
-
-/** What the location bar shows: the region name when we serve the area, else the place label. */
-export type FeedLocationSummary = {
-    label: string;
-    regionName: string | null;
-    source: "search" | "saved" | "ip";
-};

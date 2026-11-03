@@ -12,7 +12,7 @@ import type { BrowseLocation } from "./browseLocation";
 import { type BrowseSort, DEFAULT_BROWSE_SORT } from "./browseSort";
 import type { FeedSortContext } from "./feedQuery";
 import { findRegion, regionOfCity, regionOfPoint } from "./regions";
-import { type FeedLocationSummary, parseSavedSearchLocation, parseSearchLocationCookie, SEARCH_LOCATION_COOKIE } from "./searchLocation";
+import { parseSavedSearchLocation, parseSearchLocationCookie, SEARCH_LOCATION_COOKIE } from "./searchLocation";
 import { ListingService } from "./service";
 import { studioFeedKey } from "./studioFeedKey";
 
@@ -69,32 +69,17 @@ async function resolveFeedSort(
     filters: StudioFeedFilters,
     placeLabel: string | undefined,
     order: BrowseSort
-): Promise<{ sort: FeedSortContext; location: FeedLocationSummary | null }> {
+): Promise<FeedSortContext> {
     const picked = await pickedBrowseLocation(filters, placeLabel);
     if (picked) {
         const origin: LatLng = [picked.lat, picked.lng];
-        const region = findRegion(picked.region);
-        return {
-            sort: { region: region?.slug ?? null, origin, order },
-            location: {
-                label: picked.label,
-                regionName: region?.name ?? null,
-                source: filters.near ? "search" : "saved",
-            },
-        };
+        return { region: findRegion(picked.region)?.slug ?? null, origin, order };
     }
 
     const headerList = await headers();
     const isBot = userAgent({ headers: headerList }).isBot || isHtmlOnlyCrawler(headerList.get("user-agent"));
     const region = isBot ? null : regionOfCity(ipCity(headerList));
-    if (region) {
-        return {
-            sort: { region: region.slug, origin: null, order },
-            location: { label: region.name, regionName: region.name, source: "ip" },
-        };
-    }
-
-    return { sort: { region: null, origin: null, order }, location: null };
+    return { region: region?.slug ?? null, origin: null, order };
 }
 
 export async function loadStudioFeed(
@@ -103,7 +88,7 @@ export async function loadStudioFeed(
     order: BrowseSort = DEFAULT_BROWSE_SORT
 ) {
     // Nearest-first needs somewhere to measure from; without a location it is the default order.
-    const { sort, location } = await resolveFeedSort(filters, placeLabel, order);
+    const sort = await resolveFeedSort(filters, placeLabel, order);
     const appliedOrder = order === "distance" && !sort.origin ? DEFAULT_BROWSE_SORT : order;
     const page = await ListingService.getListingFeedPage({ filters, sort: { ...sort, order: appliedOrder } });
 
@@ -112,7 +97,6 @@ export async function loadStudioFeed(
         filters,
         order: appliedOrder,
         page,
-        location,
         nearLabel: filters.near ? placeLabel : undefined,
     };
 }

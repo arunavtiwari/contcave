@@ -58,7 +58,7 @@ const matchesCity = (segment: string, city: string) => {
 };
 
 /** The segments of an address that name areas, innermost first, premises and state removed. */
-export function localitySegments(displayName: string): string[] {
+function localitySegments(displayName: string): string[] {
     const segments = displayName
         .split(",")
         .map(stripPin)

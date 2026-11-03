@@ -24,15 +24,9 @@ import {
     pushRecentLocation,
     readRecentLocations,
 } from "@/lib/listing/browseLocation";
+import { persistBrowseLocation, readStoredBrowseLocation } from "@/lib/listing/browseLocationStorage";
 import { type BrowseSort, DEFAULT_BROWSE_SORT, parseBrowseSort, SORT_NEEDS_LOCATION } from "@/lib/listing/browseSort";
 import { regionOfPoint } from "@/lib/listing/regions";
-import {
-    parseSavedSearchLocation,
-    SEARCH_LOCATION_COOKIE,
-    SEARCH_LOCATION_MAX_AGE_SECONDS,
-    SEARCH_LOCATION_STORAGE_KEY,
-    serializeSearchLocation,
-} from "@/lib/listing/searchLocation";
 
 /** The grid scrolls back into view after a pick changes the results underneath it. */
 export const BROWSE_GRID_ANCHOR_ID = "studio-grid";
@@ -64,30 +58,6 @@ type BrowseLocationContextValue = {
 };
 
 const BrowseLocationContext = createContext<BrowseLocationContextValue | null>(null);
-
-function writeCookie(location: BrowseLocation | null) {
-    document.cookie = location
-        ? `${SEARCH_LOCATION_COOKIE}=${serializeSearchLocation(location)}; path=/; max-age=${SEARCH_LOCATION_MAX_AGE_SECONDS}; SameSite=Lax`
-        : `${SEARCH_LOCATION_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
-}
-
-function writeStorage(location: BrowseLocation | null) {
-    try {
-        if (location) window.localStorage.setItem(SEARCH_LOCATION_STORAGE_KEY, JSON.stringify(location));
-        else window.localStorage.removeItem(SEARCH_LOCATION_STORAGE_KEY);
-    } catch {
-        // Storage can be unavailable (private mode); the cookie still carries the choice.
-    }
-}
-
-function readStorage(): BrowseLocation | null {
-    try {
-        const raw = window.localStorage.getItem(SEARCH_LOCATION_STORAGE_KEY);
-        return raw ? parseSavedSearchLocation(JSON.parse(raw)) : null;
-    } catch {
-        return null;
-    }
-}
 
 /** Scrolls up to the grid, never down - a pick shouldn't push the controls off-screen. */
 function scrollToGrid() {
@@ -162,9 +132,9 @@ function BrowseLocationState({ initialLocation, isLoggedIn, children }: Provider
     useEffect(() => {
         if (restored.current || serverLocation) return;
         restored.current = true;
-        const stored = readStorage();
+        const stored = readStoredBrowseLocation();
         if (!stored) return;
-        writeCookie(stored);
+        persistBrowseLocation(stored);
         setOptimistic(stored);
         refresh();
     }, [serverLocation, refresh]);
@@ -192,8 +162,7 @@ function BrowseLocationState({ initialLocation, isLoggedIn, children }: Provider
         (next: BrowseLocation) => {
             setOptimistic(next);
             setRecents(pushRecentLocation(next));
-            writeCookie(next);
-            writeStorage(next);
+            persistBrowseLocation(next);
             setPickerOpen(false);
             setDetectState("idle");
             trackLocationSet(next.source);
@@ -215,8 +184,7 @@ function BrowseLocationState({ initialLocation, isLoggedIn, children }: Provider
 
     const clearLocation = useCallback(() => {
         setOptimistic(null);
-        writeCookie(null);
-        writeStorage(null);
+        persistBrowseLocation(null);
         setPickerOpen(false);
         setDetectState("idle");
         trackLocationCleared();
