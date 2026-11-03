@@ -8,6 +8,7 @@ import ListingCardContent from "@/components/listing/ListingCardContent";
 import ListingCardMedia from "@/components/listing/ListingCardMedia";
 import Skeleton from "@/components/ui/Skeleton";
 import useCities from "@/hooks/useCities";
+import { formatDistanceKm } from "@/lib/listing/browseLocation";
 import { formatISTDate } from "@/lib/utils";
 import {
   formatPrice,
@@ -45,6 +46,8 @@ export interface ListingCardData {
   lightsIncluded?: boolean;
   slug?: string | null;
   href?: string;
+  distanceKm?: number | null;
+  locality?: string | null;
 }
 
 interface ListingCardProps {
@@ -76,6 +79,8 @@ interface ListingCardProps {
   isHost?: boolean;
   priority?: boolean;
   showListingBadge?: boolean;
+  /** Show how far away this studio is; set when the feed is ordered by distance. */
+  showDistance?: boolean;
 }
 
 const ListingCard: React.FC<ListingCardProps> = ({
@@ -107,8 +112,14 @@ const ListingCard: React.FC<ListingCardProps> = ({
   isHost = false,
   priority = false,
   showListingBadge = false,
+  showDistance = false,
 }) => {
   const { getByValue } = useCities();
+
+  const distanceLabel = useMemo(
+    () => (showDistance && typeof data?.distanceKm === "number" ? formatDistanceKm(data.distanceKm) : null),
+    [showDistance, data?.distanceKm]
+  );
 
   const displayTitle = useMemo(() => getDisplayTitle(data), [data]);
   const locationLabel = useMemo(() => getLocationLabel(data, getByValue), [data, getByValue]);
@@ -190,12 +201,15 @@ const ListingCard: React.FC<ListingCardProps> = ({
           totalPrice={reservation?.totalPrice}
           priority={priority}
           showListingBadge={showListingBadge}
+          distanceLabel={distanceLabel}
         />
 
         <ListingCardContent
           displayTitle={displayTitle}
           cardHref={cardHref}
           locationLabel={locationLabel}
+          distanceLabel={distanceLabel}
+          locality={data?.locality}
           carpetArea={data?.carpetArea ?? undefined}
           maximumPax={data?.maximumPax ?? undefined}
           lightsIncluded={Boolean(data?.lightsIncluded)}

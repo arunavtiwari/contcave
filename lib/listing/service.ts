@@ -44,6 +44,7 @@ import {
     encodeFeedCursor,
     FEED_PAGE_SIZE,
     feedCandidatePipeline,
+    feedCountPipeline,
     type FeedCursor,
     type FeedRow,
     type FeedSortContext,
@@ -1231,7 +1232,12 @@ export class ListingService {
         filters = await this.withSetMatches(filters);
         const after = cursor ? decodeFeedCursor(cursor) : null;
         const excludeIds = await this.unbookableListingIds(filters);
-        const { rows, sort: appliedSort } = await this.queryFeedRows({ filters, sort, after, limit: size + 1, excludeIds });
+        // Only the first page needs the total; later pages are appended to a list that already
+        // has it, and the count is a second aggregation we needn't pay for on every scroll.
+        const [{ rows, sort: appliedSort }, total] = await Promise.all([
+            this.queryFeedRows({ filters, sort, after, limit: size + 1, excludeIds }),
+            after ? Promise.resolve(null) : this.countFeedRows(filters, excludeIds),
+        ]);
         const pageRows = rows.slice(0, size);
         const lastRow = pageRows[pageRows.length - 1];
 
@@ -1249,9 +1255,18 @@ export class ListingService {
             nextCursor:
                 rows.length > size && lastRow ? encodeFeedCursor(cursorFromRow(lastRow, appliedSort.order)) : null,
             nearestKm: after ? null : nearestKmOf(pageRows),
+            total,
             origin: appliedSort.origin,
             region: appliedSort.region,
         };
+    }
+
+    private static async countFeedRows(filters: StudioFeedFilters, excludeIds: string[]): Promise<number> {
+        const rows = (await this.runFeedPipeline(feedCountPipeline(filters, excludeIds))) as unknown as {
+            total?: unknown;
+        }[];
+        const total = rows[0]?.total;
+        return typeof total === "number" ? total : Number((total as { $numberInt?: string })?.$numberInt ?? 0);
     }
 
     /**

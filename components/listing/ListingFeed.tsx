@@ -6,7 +6,7 @@ import { loadMoreStudios } from "@/app/actions/studioFeedActions";
 import ListingCard from "@/components/listing/ListingCard";
 import Button from "@/components/ui/Button";
 import { BROWSE_GRID_ANCHOR_ID } from "@/hooks/useBrowseLocation";
-import { useNearLabel } from "@/hooks/useNearLabel";
+import { useFeedSummary } from "@/hooks/useFeedSummary";
 import { type BrowseSort, DEFAULT_BROWSE_SORT } from "@/lib/listing/browseSort";
 import { studioFeedKey } from "@/lib/listing/studioFeedKey";
 import type { StudioFeedFilters } from "@/schemas/listing";
@@ -52,11 +52,11 @@ function ListingFeed({ page, filters, currentUser, nearLabel, order = DEFAULT_BR
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const loadingRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const { setNearLabel } = useNearLabel();
+  const { setFeedSummary } = useFeedSummary();
 
   useEffect(() => {
-    setNearLabel(nearLabel ?? null);
-  }, [nearLabel, setNearLabel]);
+    setFeedSummary({ nearLabel: nearLabel ?? null, total: page.total });
+  }, [nearLabel, page.total, setFeedSummary]);
 
   useEffect(() => {
     if (feedKey) rememberFeed(feedKey, { items, cursor });
@@ -107,6 +107,7 @@ function ListingFeed({ page, filters, currentUser, nearLabel, order = DEFAULT_BR
             currentUser={currentUser}
             priority={index < 4}
             showListingBadge
+            showDistance={order === "distance"}
           />
         ))}
         {loadState === "loading" &&

@@ -4,7 +4,6 @@ import { cache } from "react";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import ListingFeed from "@/components/listing/ListingFeed";
-import LocationBar from "@/components/listing/LocationBar";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import { parseBrowseSort } from "@/lib/listing/browseSort";
@@ -64,7 +63,6 @@ export default async function CityStudiosPage(props: {
         isLoggedIn={Boolean(currentUser)}
         feed={(
           <>
-            <LocationBar />
             <ListingFeed key={feed.key} page={feed.page} filters={feed.filters} currentUser={currentUser} order={feed.order} />
           </>
         )}

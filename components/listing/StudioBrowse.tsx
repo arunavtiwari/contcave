@@ -5,8 +5,8 @@ import ListingFeedHeader from "@/components/listing/ListingFeedHeader";
 import PendingFeed from "@/components/listing/PendingFeed";
 import Categories from "@/components/navbar/Categories";
 import { BrowseLocationProvider } from "@/hooks/useBrowseLocation";
+import { FeedSummaryProvider } from "@/hooks/useFeedSummary";
 import { FilterNavigationProvider } from "@/hooks/useFilterNavigation";
-import { NearLabelProvider } from "@/hooks/useNearLabel";
 import type { BrowseLocation } from "@/lib/listing/browseLocation";
 
 type Props = {
@@ -25,10 +25,10 @@ export default function StudioBrowse({ feed, title, city, initialLocation, isLog
         <FilterNavigationProvider>
           <BrowseLocationProvider initialLocation={initialLocation} isLoggedIn={isLoggedIn}>
             <Categories city={city} />
-            <NearLabelProvider>
+            <FeedSummaryProvider>
               <ListingFeedHeader title={title} />
               <PendingFeed>{feed}</PendingFeed>
-            </NearLabelProvider>
+            </FeedSummaryProvider>
           </BrowseLocationProvider>
         </FilterNavigationProvider>
       </Container>

@@ -264,6 +264,12 @@ export const feedCandidatePipeline = (filters: StudioFeedFilters): MongoDocument
     { $project: { _id: 1 } },
 ];
 
+/** How many studios match, for the "24 studios · nearest to Noida first" line. */
+export const feedCountPipeline = (filters: StudioFeedFilters, excludeIds: string[] = []): MongoDocument[] => [
+    { $match: publicListingMatch(filters, excludeIds) },
+    { $count: "total" },
+];
+
 const NO_DISTANCE = { $eq: [{ $type: "$distance" }, "missing"] };
 
 function regionMatchExpression(regionSlug: string | null) {

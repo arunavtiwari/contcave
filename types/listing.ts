@@ -142,6 +142,8 @@ export type StudioFeedPage = {
     items: StudioFeedItem[];
     nextCursor: string | null;
     nearestKm: number | null;
+    /** How many studios match in total; only counted for the first page. */
+    total: number | null;
     /** Precise location the order was built from (GPS / entered place), never IP. */
     origin: LatLng | null;
     /** Region the order was grouped by, e.g. "delhi-ncr". */
