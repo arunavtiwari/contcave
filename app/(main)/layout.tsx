@@ -3,7 +3,9 @@ import "../../styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-
+import Script from "next/script";
+import { GTM_ID } from "@/constants/googleTagManager";
+import { CONSENT_COOKIE_NAME } from "@/lib/consent";
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
 import getCurrentUser from "@/app/actions/getCurrentUser";
@@ -186,7 +188,44 @@ export default async function RootLayout({
                     id="organization-jsonld"
                     data={[organizationJsonLd, webSiteJsonLd]}
                 />
-            </head>
+                    {GTM_ID && (
+          <Script
+            id="gtm-base"
+            strategy="beforeInteractive"
+            nonce={nonce}
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                window.gtag = window.gtag || function(){window.dataLayer.push(arguments);};
+                gtag('consent', 'default', {
+                  ad_storage: 'denied',
+                  ad_user_data: 'denied',
+                  ad_personalization: 'denied',
+                  analytics_storage: 'denied',
+                  wait_for_update: 500
+                });
+                try {
+                  var c = JSON.parse(localStorage.getItem(${JSON.stringify(CONSENT_COOKIE_NAME)}) || 'null');
+                  if (c) {
+                    var a = c.marketing ? 'granted' : 'denied';
+                    gtag('consent', 'update', {
+                      ad_storage: a,
+                      ad_user_data: a,
+                      ad_personalization: a,
+                      analytics_storage: c.analytics ? 'granted' : 'denied'
+                    });
+                  }
+                } catch (e) {}
+                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;
+                j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                })(window,document,'script','dataLayer',${JSON.stringify(GTM_ID)});
+              `,
+            }}
+          />
+        )}
+</head>
             <body className={GeistSans.className}>
                 <GlobalProviders>
                     <GlobalScrollFix />
