@@ -7,6 +7,7 @@ import ListingFeed from "@/components/listing/ListingFeed";
 import LocationBar from "@/components/listing/LocationBar";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
+import { parseBrowseSort } from "@/lib/listing/browseSort";
 import { findCategory, MIN_CATEGORY_LISTINGS, type StudioCategory } from "@/lib/listing/categories";
 import {
   cityTrail,
@@ -43,13 +44,20 @@ export async function generateMetadata({ params }: { params: Promise<RouteParams
   });
 }
 
-export default async function CityCategoryPage(props: { params: Promise<RouteParams> }) {
-  const { city, category: categorySlug } = await props.params;
+export default async function CityCategoryPage(props: {
+  params: Promise<RouteParams>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [{ city, category: categorySlug }, searchParams] = await Promise.all([props.params, props.searchParams]);
   const [page, currentUser] = await Promise.all([loadPage(city, categorySlug), getCurrentUser()]);
   if (!page) notFound();
 
   const { entry, category, description } = page;
-  const feed = await loadStudioFeed({ locationValues: entry.locationValues, studioCategory: category.slug });
+  const feed = await loadStudioFeed(
+    { locationValues: entry.locationValues, studioCategory: category.slug },
+    undefined,
+    parseBrowseSort(searchParams.sort)
+  );
   const title = titleFor(category, entry.city);
   const trail = [...cityTrail(entry.city), { name: category.name }];
 
@@ -74,7 +82,7 @@ export default async function CityCategoryPage(props: { params: Promise<RoutePar
         feed={(
           <>
             <LocationBar />
-            <ListingFeed key={feed.key} page={feed.page} filters={feed.filters} currentUser={currentUser} />
+            <ListingFeed key={feed.key} page={feed.page} filters={feed.filters} currentUser={currentUser} order={feed.order} />
           </>
         )}
       />

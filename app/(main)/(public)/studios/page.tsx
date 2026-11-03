@@ -13,6 +13,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import EmptyState from "@/components/ui/EmptyState";
 import { isHtmlOnlyCrawler } from "@/lib/crawlers";
 import { parsePlaceLabelParam } from "@/lib/geo";
+import { parseBrowseSort } from "@/lib/listing/browseSort";
 import { findCity } from "@/lib/listing/cities";
 import { cityPath, citySlug } from "@/lib/listing/cityPaths";
 import { toStudioFeedItem } from "@/lib/listing/feedQuery";
@@ -136,7 +137,7 @@ async function HomeContent(props: HomeProps) {
   const isFiltered = hasActiveFilters(searchParams);
 
   const [feed, currentUser] = await Promise.all([
-    loadStudioFeed(feedFiltersOf(searchParams), placeLabelOf(searchParams)),
+    loadStudioFeed(feedFiltersOf(searchParams), placeLabelOf(searchParams), parseBrowseSort(searchParams.sort)),
     getCurrentUser(),
   ]);
   const { items } = feed.page;
@@ -197,6 +198,7 @@ async function HomeContent(props: HomeProps) {
           page={feed.page}
           filters={feed.filters}
           currentUser={currentUser}
+          order={feed.order}
           nearLabel={feed.nearLabel}
         />
       )}

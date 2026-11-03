@@ -132,6 +132,10 @@ export type StudioFeedItem = Pick<
     actualLocation: { state: string } | null;
     /** Confirmed: equipment comes with every booking and includes at least one light. */
     lightsIncluded?: boolean;
+    /** The area, e.g. "Siri Fort, New Delhi"; null when the address yields nothing dependable. */
+    locality: string | null;
+    /** How far from the visitor's location, when there is one and this studio is on the map. */
+    distanceKm?: number | null;
 };
 
 export type StudioFeedPage = {

@@ -7,6 +7,7 @@ import ListingCard from "@/components/listing/ListingCard";
 import Button from "@/components/ui/Button";
 import { BROWSE_GRID_ANCHOR_ID } from "@/hooks/useBrowseLocation";
 import { useNearLabel } from "@/hooks/useNearLabel";
+import { type BrowseSort, DEFAULT_BROWSE_SORT } from "@/lib/listing/browseSort";
 import { studioFeedKey } from "@/lib/listing/studioFeedKey";
 import type { StudioFeedFilters } from "@/schemas/listing";
 import type { StudioFeedItem, StudioFeedPage } from "@/types/listing";
@@ -21,6 +22,8 @@ type Props = {
   filters: StudioFeedFilters;
   currentUser?: SafeUser | null;
   nearLabel?: string;
+  /** The order the first page was built with; later pages must keep it. */
+  order?: BrowseSort;
 };
 
 type LoadState = "idle" | "loading" | "error";
@@ -41,8 +44,8 @@ const appendUnique = (current: StudioFeedItem[], next: StudioFeedItem[]) => {
   return [...current, ...next.filter((item) => !seen.has(item.id))];
 };
 
-function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
-  const feedKey = page.nextCursor ? studioFeedKey(filters, page.origin, page.region) : null;
+function ListingFeed({ page, filters, currentUser, nearLabel, order = DEFAULT_BROWSE_SORT }: Props) {
+  const feedKey = page.nextCursor ? studioFeedKey(filters, page.origin, page.region, order) : null;
   const [{ items, cursor }, setFeed] = useState<LoadedFeed>(
     () => (feedKey && loadedFeeds.get(feedKey)) || { items: page.items, cursor: page.nextCursor }
   );
@@ -64,7 +67,7 @@ function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
     loadingRef.current = true;
     setLoadState("loading");
     try {
-      const result = await loadMoreStudios({ filters, origin: page.origin, region: page.region, cursor });
+      const result = await loadMoreStudios({ filters, origin: page.origin, region: page.region, order, cursor });
       if (!result.success || !result.data) throw new Error(result.error);
       const next = result.data;
       setFeed((current) => ({ items: appendUnique(current.items, next.items), cursor: next.nextCursor }));
@@ -74,7 +77,7 @@ function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
     } finally {
       loadingRef.current = false;
     }
-  }, [cursor, filters, page.origin, page.region]);
+  }, [cursor, filters, order, page.origin, page.region]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;

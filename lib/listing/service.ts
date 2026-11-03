@@ -35,10 +35,12 @@ import {
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData, type StudioFeedItem, type StudioFeedPage } from "@/types/listing";
 
+import { DEFAULT_BROWSE_SORT } from "./browseSort";
 import {
     buildFeedPipeline,
     cursorFromRow,
     decodeFeedCursor,
+    distanceKmOf,
     encodeFeedCursor,
     FEED_PAGE_SIZE,
     feedCandidatePipeline,
@@ -1182,7 +1184,9 @@ export class ListingService {
             studioFeedSearchParamsSchema.parse({ ...searchParams, hasSets: hasSets ? "true" : undefined })
         );
         const excludeIds = await this.unbookableListingIds(filters);
-        const rows = await this.runFeedPipeline(buildFeedPipeline({ filters, sort: { region: null, origin: null }, after: null, excludeIds }));
+        const rows = await this.runFeedPipeline(
+            buildFeedPipeline({ filters, sort: { region: null, origin: null, order: DEFAULT_BROWSE_SORT }, after: null, excludeIds })
+        );
         const ids = rows.map(readRawId).filter((id): id is string => !!id);
         if (ids.length === 0) return [];
 
@@ -1231,9 +1235,19 @@ export class ListingService {
         const pageRows = rows.slice(0, size);
         const lastRow = pageRows[pageRows.length - 1];
 
+        // Distance comes off the pipeline rows, not the listing documents, so it has to be
+        // carried across to the items the cards are built from.
+        const distances = new Map<string, number>();
+        for (const row of pageRows) {
+            const id = readRawId(row);
+            const km = distanceKmOf(row);
+            if (id && km !== null) distances.set(id, km);
+        }
+
         return {
-            items: await this.loadFeedItems(pageRows.map(readRawId).filter((id): id is string => !!id)),
-            nextCursor: rows.length > size && lastRow ? encodeFeedCursor(cursorFromRow(lastRow)) : null,
+            items: await this.loadFeedItems(pageRows.map(readRawId).filter((id): id is string => !!id), distances),
+            nextCursor:
+                rows.length > size && lastRow ? encodeFeedCursor(cursorFromRow(lastRow, appliedSort.order)) : null,
             nearestKm: after ? null : nearestKmOf(pageRows),
             origin: appliedSort.origin,
             region: appliedSort.region,
@@ -1286,9 +1300,15 @@ export class ListingService {
             return { rows: await this.runFeedPipeline(buildFeedPipeline(params)), sort };
         } catch (error) {
             if (after) throw error;
-            // Distance sorting failed: keep the region grouping, drop distance.
+            // Distance sorting failed: keep the region grouping, drop distance. "Nearest first"
+            // can't survive that, so it falls back to the relevance order rather than to an
+            // arbitrary one - every studio would otherwise report the same distance of zero.
             console.error("[ListingService] Location-sorted feed failed; serving region-only order.", error);
-            const regionOnly = { region: sort.region, origin: null };
+            const regionOnly: FeedSortContext = {
+                region: sort.region,
+                origin: null,
+                order: sort.order === "distance" ? DEFAULT_BROWSE_SORT : sort.order,
+            };
             return { rows: await this.runFeedPipeline(buildFeedPipeline({ ...params, sort: regionOnly })), sort: regionOnly };
         }
     }
@@ -1299,7 +1319,7 @@ export class ListingService {
         }) as unknown as FeedRow[];
     }
 
-    private static async loadFeedItems(ids: string[]): Promise<StudioFeedItem[]> {
+    private static async loadFeedItems(ids: string[], distances?: Map<string, number>): Promise<StudioFeedItem[]> {
         if (ids.length === 0) return [];
         const listings = await prisma.listing.findMany({
             where: { id: { in: ids } },
@@ -1330,7 +1350,11 @@ export class ListingService {
         return ids
             .map((id) => byId.get(id))
             .filter((listing): listing is NonNullable<typeof listing> => Boolean(listing))
-            .map((listing) => ({ ...toStudioFeedItem(listing), lightsIncluded: hasLightsIncluded(listing) }));
+            .map((listing) => ({
+                ...toStudioFeedItem(listing),
+                lightsIncluded: hasLightsIncluded(listing),
+                distanceKm: distances?.get(listing.id) ?? null,
+            }));
     }
 
     static async getRandomListings(limit: number = 3): Promise<FullListing[]> {
