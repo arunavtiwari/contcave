@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { isLatLng, type LatLng } from "@/lib/geo";
 
+import { BROWSE_LOCATION_SOURCES, type BrowseLocation } from "./browseLocation";
 import { findRegion, regionOfPoint } from "./regions";
 
 /**
@@ -13,18 +14,16 @@ export const SEARCH_LOCATION_COOKIE = "cc_location";
 export const SEARCH_LOCATION_STORAGE_KEY = "cc_location";
 export const SEARCH_LOCATION_MAX_AGE_SECONDS = 365 * 24 * 60 * 60;
 
-export type SavedSearchLocation = {
-    label: string;
-    lat: number;
-    lng: number;
-    region: string | null;
-};
+/** The stored form of the browsing location; same shape the location control works in. */
+export type SavedSearchLocation = BrowseLocation;
 
-const savedSearchLocationSchema = z.object({
+export const savedSearchLocationSchema = z.object({
     label: z.string().trim().min(1).max(120),
     lat: z.number(),
     lng: z.number(),
     region: z.string().max(60).nullable().optional(),
+    placeId: z.string().max(200).nullable().optional(),
+    source: z.enum(BROWSE_LOCATION_SOURCES).nullable().optional(),
 });
 
 /** Validates a stored location; the region is re-derived so a stale or forged slug can't stick. */
@@ -38,6 +37,9 @@ export function parseSavedSearchLocation(value: unknown): SavedSearchLocation | 
         lat: latlng[0],
         lng: latlng[1],
         region: regionOfPoint(latlng)?.slug ?? findRegion(parsed.data.region)?.slug ?? null,
+        placeId: parsed.data.placeId ?? null,
+        // Locations saved before `source` existed were all entered places.
+        source: parsed.data.source ?? "search",
     };
 }
 
@@ -51,10 +53,3 @@ export function parseSearchLocationCookie(raw: string | undefined | null): Saved
 }
 
 export const serializeSearchLocation = (location: SavedSearchLocation) => encodeURIComponent(JSON.stringify(location));
-
-/** What the location bar shows: the region name when we serve the area, else the place label. */
-export type FeedLocationSummary = {
-    label: string;
-    regionName: string | null;
-    source: "search" | "saved" | "ip";
-};

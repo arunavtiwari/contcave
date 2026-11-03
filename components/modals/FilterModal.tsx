@@ -1,12 +1,13 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { FiSliders } from "react-icons/fi";
 
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import { useFilterNavigation } from "@/hooks/useFilterNavigation";
+import useUIStore from "@/hooks/useUIStore";
 import { AESTHETICS, SET_FEATURES, USE_CASES } from "@/lib/taxonomy";
 
 type Props = { city?: string };
@@ -14,7 +15,11 @@ type Props = { city?: string };
 const FilterModalContent = ({ city }: Props) => {
   const { navigate } = useFilterNavigation();
   const params = useSearchParams();
-  const [isOpen, setIsOpen] = useState(false);
+  // Opening lives in the shared UI store so the mobile control bar can raise the same
+  // modal as the toolbar button, instead of a second copy with its own state.
+  const uiStore = useUIStore();
+  const isOpen = uiStore.modals.filter;
+  const setIsOpen = (open: boolean) => (open ? uiStore.onOpen("filter") : uiStore.onClose("filter"));
 
   const applied = useMemo(() => {
     const list = (key: string) => params?.get(key)?.split(",").filter(Boolean) ?? [];
@@ -35,12 +40,15 @@ const FilterModalContent = ({ city }: Props) => {
   const [selectedAesthetics, setSelectedAesthetics] = useState<string[]>([]);
   const [selectedSetFeatures, setSelectedSetFeatures] = useState<string[]>([]);
 
-  const openFilters = () => {
+  const openFilters = () => uiStore.onOpen("filter");
+
+  // The draft starts from what is applied, however the modal was opened.
+  useEffect(() => {
+    if (!isOpen) return;
     setSelectedTypes(applied.types);
     setSelectedAesthetics(applied.aesthetics);
     setSelectedSetFeatures(applied.setFeatures);
-    setIsOpen(true);
-  };
+  }, [isOpen, applied]);
 
   const urlSearchParams = useMemo(() => {
     const next = new URLSearchParams(params ? Array.from(params.entries()) : []);

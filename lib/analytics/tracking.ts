@@ -195,3 +195,18 @@ export function trackLead(params: {
         ...(params.studio ? { content_ids: [params.studio.id] } : {}),
     });
 }
+
+/** The visitor set a browsing location, and how they picked it. */
+export function trackLocationSet(source: "gps" | "search" | "recent" | "popular") {
+    pushDataLayer({ event: "location_set", location_source: source });
+}
+
+/** The visitor cleared the browsing location, dropping back to the recommended order. */
+export function trackLocationCleared() {
+    pushDataLayer({ event: "location_cleared" });
+}
+
+/** The visitor changed the feed order, e.g. "distance" or "price_asc". */
+export function trackSortChanged(value: string) {
+    pushDataLayer({ event: "sort_changed", sort_value: value });
+}

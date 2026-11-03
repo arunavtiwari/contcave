@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React from "react";
 import { AiFillStar } from "react-icons/ai";
+import { FiMapPin } from "react-icons/fi";
 
 import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
@@ -19,6 +20,9 @@ interface ListingCardContentProps {
     showRating?: boolean;
     reservationDate?: string;
     reservationTime?: string;
+    /** Set when the feed is ordered by distance: the area and how far away it is. */
+    distanceLabel?: string | null;
+    locality?: string | null;
 }
 
 const ListingCardContent: React.FC<ListingCardContentProps> = ({
@@ -33,6 +37,8 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
     showRating,
     reservationDate,
     reservationTime,
+    distanceLabel,
+    locality,
 }) => {
     const locationLine = reservationDate
         ? `${reservationDate}${reservationTime ? ` • ${reservationTime}` : ""}`
@@ -74,9 +80,24 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
                     </div>
                 )}
 
-                <p className="max-w-[45%] shrink-0 truncate pt-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider leading-none">
-                    {locationLine}
-                </p>
+                {/* Once the list is ordered by distance, how far away a studio is matters more
+                    than which city it is in. On a phone the distance is already on the photo,
+                    so this spot carries the area instead of repeating it. */}
+                {distanceLabel ? (
+                    <>
+                        <p className="hidden shrink-0 items-center gap-1 pt-1 text-[11px] font-bold leading-none text-foreground md:flex">
+                            <FiMapPin size={11} aria-hidden="true" />
+                            {distanceLabel}
+                        </p>
+                        <p className="max-w-[55%] shrink-0 truncate pt-1.5 text-[11px] font-medium leading-none text-muted-foreground md:hidden">
+                            {locality ?? locationLine}
+                        </p>
+                    </>
+                ) : (
+                    <p className="max-w-[45%] shrink-0 truncate pt-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider leading-none">
+                        {locationLine}
+                    </p>
+                )}
             </div>
 
             <Link href={cardHref} className="block mt-2">
@@ -86,6 +107,10 @@ const ListingCardContent: React.FC<ListingCardContentProps> = ({
                     className="text-[13px] leading-snug line-clamp-2 min-h-9"
                 />
             </Link>
+
+            {distanceLabel && locality && (
+                <p className="mt-1 hidden truncate text-[13px] text-muted-foreground md:block">{locality}</p>
+            )}
 
             {lightsIncluded && (
                 <Pill label="Lights included" variant="success" size="xs" className="mt-1.5" />

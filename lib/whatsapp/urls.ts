@@ -25,3 +25,7 @@ export function previewLinkExpiredMessage(studioName: string): string {
 
 export const GENERAL_ENQUIRY_MESSAGE =
     "Hi ContCave, I have a special requirement for a shoot. Could you help me find the right studio?";
+
+export function cityRequestMessage(city: string): string {
+    return `Hi ContCave, I'm looking for a studio in ${city}. Do you have anything there, or could you help me find one?`;
+}

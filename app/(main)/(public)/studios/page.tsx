@@ -7,17 +7,17 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import getRandomListings from "@/app/actions/getRandomListings";
 import ListingFeed from "@/components/listing/ListingFeed";
 import ListingGridSkeleton from "@/components/listing/ListingGridSkeleton";
-import LocationBar from "@/components/listing/LocationBar";
 import StudioBrowse from "@/components/listing/StudioBrowse";
 import JsonLd from "@/components/seo/JsonLd";
 import EmptyState from "@/components/ui/EmptyState";
 import { isHtmlOnlyCrawler } from "@/lib/crawlers";
 import { parsePlaceLabelParam } from "@/lib/geo";
+import { parseBrowseSort } from "@/lib/listing/browseSort";
 import { findCity } from "@/lib/listing/cities";
 import { cityPath, citySlug } from "@/lib/listing/cityPaths";
 import { toStudioFeedItem } from "@/lib/listing/feedQuery";
 import { listingPath } from "@/lib/listing/seo";
-import { loadStudioFeed } from "@/lib/listing/studioFeed";
+import { loadStudioFeed, pickedBrowseLocation } from "@/lib/listing/studioFeed";
 import { absoluteUrl, BRAND_NAME, OG_IMAGE, SITE_URL } from "@/lib/seo";
 import { studioFeedSearchParamsSchema } from "@/schemas/listing";
 
@@ -104,12 +104,24 @@ export async function generateMetadata(props: HomeProps): Promise<Metadata> {
 }
 
 export default async function StudiosPage(props: HomeProps) {
-  await redirectToCityPage(await props.searchParams);
+  const searchParams = await props.searchParams;
+  await redirectToCityPage(searchParams);
+
+  // Resolved here rather than inside HomeContent: the location control renders with the page
+  // shell, above the feed's Suspense boundary, so it can't wait on the feed query.
+  const [initialLocation, currentUser, headerList] = await Promise.all([
+    pickedBrowseLocation(feedFiltersOf(searchParams), placeLabelOf(searchParams)),
+    getCurrentUser(),
+    headers(),
+  ]);
+
   const feed = <HomeContent {...props} />;
-  const htmlOnlyCrawler = isHtmlOnlyCrawler((await headers()).get("user-agent"));
+  const htmlOnlyCrawler = isHtmlOnlyCrawler(headerList.get("user-agent"));
 
   return (
     <StudioBrowse
+      initialLocation={initialLocation}
+      isLoggedIn={Boolean(currentUser)}
       feed={htmlOnlyCrawler ? feed : (
         <Suspense fallback={<ListingGridSkeleton count={6} hideActions />}>
           {feed}
@@ -124,7 +136,7 @@ async function HomeContent(props: HomeProps) {
   const isFiltered = hasActiveFilters(searchParams);
 
   const [feed, currentUser] = await Promise.all([
-    loadStudioFeed(feedFiltersOf(searchParams), placeLabelOf(searchParams)),
+    loadStudioFeed(feedFiltersOf(searchParams), placeLabelOf(searchParams), parseBrowseSort(searchParams.sort)),
     getCurrentUser(),
   ]);
   const { items } = feed.page;
@@ -149,7 +161,6 @@ async function HomeContent(props: HomeProps) {
   return (
     <>
       {items.length > 0 && <JsonLd id="home-listings-jsonld" data={jsonLd} />}
-      <LocationBar location={feed.location} isLoggedIn={Boolean(currentUser)} />
       {items.length === 0 ? (
         <div className="space-y-10">
           <EmptyState
@@ -172,7 +183,7 @@ async function HomeContent(props: HomeProps) {
                 </p>
               </div>
               <ListingFeed
-                page={{ items: fallbackItems, nextCursor: null, nearestKm: null, origin: null, region: null }}
+                page={{ items: fallbackItems, nextCursor: null, nearestKm: null, total: null, origin: null, region: null }}
                 filters={{}}
                 currentUser={currentUser}
               />
@@ -185,6 +196,7 @@ async function HomeContent(props: HomeProps) {
           page={feed.page}
           filters={feed.filters}
           currentUser={currentUser}
+          order={feed.order}
           nearLabel={feed.nearLabel}
         />
       )}

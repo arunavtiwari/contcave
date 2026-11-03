@@ -4,7 +4,10 @@ import { useRouter } from "next/navigation";
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useTransition } from "react";
 
 type FilterNavigation = {
+  /** Pushes a history entry, so Back undoes the change. */
   navigate: (href: string) => void;
+  /** Swaps the current history entry - for tweaks Back shouldn't have to step through. */
+  replace: (href: string) => void;
   refresh: () => void;
   isPending: boolean;
 };
@@ -18,8 +21,12 @@ function useTransitionNavigation(): FilterNavigation {
     (href: string) => startTransition(() => router.push(href, { scroll: false })),
     [router]
   );
+  const replace = useCallback(
+    (href: string) => startTransition(() => router.replace(href, { scroll: false })),
+    [router]
+  );
   const refresh = useCallback(() => startTransition(() => router.refresh()), [router]);
-  return useMemo(() => ({ navigate, refresh, isPending }), [navigate, refresh, isPending]);
+  return useMemo(() => ({ navigate, replace, refresh, isPending }), [navigate, replace, refresh, isPending]);
 }
 
 export function FilterNavigationProvider({ children }: { children: ReactNode }) {

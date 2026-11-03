@@ -254,11 +254,16 @@ type ListingDetailsStatus {
 
 /// A location the user chose for browsing studios (GPS or an entered place). Never set from IP.
 type SavedSearchLocation {
-  label  String
-  lat    Float
-  lng    Float
+  label   String
+  lat     Float
+  lng     Float
   /// Region slug from lib/listing/regions.ts, e.g. "delhi-ncr"
-  region String?
+  region  String?
+  /// Google place id of the picked area, when it came from the autocomplete.
+  placeId String?
+  /// How it was picked: "gps" | "search" | "recent" | "popular". Absent on locations
+  /// saved before this field existed - treat those as "search" (see lib/listing/browseLocation.ts).
+  source  String?
 }
 
 type PackageEquipmentRef {

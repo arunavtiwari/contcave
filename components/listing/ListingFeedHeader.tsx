@@ -1,14 +1,19 @@
 "use client";
 
-import { FiMapPin, FiNavigation } from "react-icons/fi";
-
-import Button from "@/components/ui/Button";
-import { useNearLabel } from "@/hooks/useNearLabel";
+import BrowseControlBar from "@/components/listing/BrowseControlBar";
+import BrowseResultLine from "@/components/listing/BrowseResultLine";
+import LocationCombobox from "@/components/listing/LocationCombobox";
+import LocationSheet from "@/components/listing/LocationSheet";
+import SortMenu from "@/components/listing/SortMenu";
+import { useBrowseLocation } from "@/hooks/useBrowseLocation";
+import { useFeedSummary } from "@/hooks/useFeedSummary";
+import { cn } from "@/lib/utils";
 
 export default function ListingFeedHeader({ title = "Explore studios" }: { title?: string }) {
-    const { nearLabel, locationBar } = useNearLabel();
+    const { nearLabel } = useFeedSummary();
+    const { location } = useBrowseLocation();
 
-    const formatHeading = () => {
+    const heading = () => {
         if (!nearLabel) return title;
         const normalized = nearLabel.toLowerCase().trim();
         if (normalized === "nearby" || normalized === "you" || normalized === "current location") {
@@ -18,42 +23,27 @@ export default function ListingFeedHeader({ title = "Explore studios" }: { title
     };
 
     return (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-foreground">
-                {formatHeading()}
-            </h1>
+        <>
+            <div className="mb-4 flex flex-col gap-4 md:mb-6 md:flex-row md:items-start md:justify-between">
+                <div className="min-w-0">
+                    <h1 className="truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                        {heading()}
+                    </h1>
+                    {/* Once a location is set the phone layout shows this inside the sticky bar
+                        instead, so it travels with the controls it describes. */}
+                    <div className={cn(location && "hidden md:block")}>
+                        <BrowseResultLine />
+                    </div>
+                </div>
 
-            {locationBar.label ? (
-                <div className="flex shrink-0 items-center gap-1.5 text-sm">
-                    <FiMapPin size={15} className="text-foreground" aria-hidden="true" />
-                    <span className="text-foreground">{locationBar.label}</span>
-                    <button
-                        type="button"
-                        onClick={locationBar.onEdit}
-                        className="font-medium text-foreground underline underline-offset-4"
-                    >
-                        Change
-                    </button>
+                <div className="hidden shrink-0 flex-wrap items-center justify-end gap-2 md:flex">
+                    <LocationCombobox />
+                    <SortMenu />
                 </div>
-            ) : (
-                <div className="flex shrink-0 items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={locationBar.onEdit}
-                        className="text-sm font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
-                    >
-                        Enter manually
-                    </button>
-                    <Button
-                        label={locationBar.detecting ? "Detecting…" : "Detect my location"}
-                        icon={FiNavigation}
-                        size="sm"
-                        rounded
-                        disabled={locationBar.detecting}
-                        onClick={locationBar.onDetect}
-                    />
-                </div>
-            )}
-        </div>
+            </div>
+
+            <BrowseControlBar />
+            <LocationSheet />
+        </>
     );
 }

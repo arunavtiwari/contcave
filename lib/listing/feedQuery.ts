@@ -5,7 +5,9 @@ import type { LatLng } from "@/lib/geo";
 import type { StudioFeedFilters } from "@/schemas/listing";
 import type { StudioFeedItem } from "@/types/listing";
 
+import type { BrowseSort } from "./browseSort";
 import { categoryMatch, findCategory } from "./categories";
+import { deriveLocality } from "./locality";
 import { findRegion, regionCityKeys } from "./regions";
 import { findShootPurpose, shootPurposeMatch } from "./shootPurposes";
 
@@ -20,18 +22,50 @@ export type FeedRow = {
     distance?: unknown;
     weight?: unknown;
     quality?: unknown;
+    price?: unknown;
+    rating?: unknown;
+    present?: unknown;
     createdAt?: unknown;
 };
 
 /**
- * How the visitor is located. `region` comes from a saved/entered location, GPS or the IP city;
- * `origin` only from a precise location (GPS or an entered place), never from IP.
+ * How the visitor is located and how they asked for the feed to be ordered. `region` comes from
+ * a saved/entered location, GPS or the IP city; `origin` only from a precise location (GPS or an
+ * entered place), never from IP.
  */
-export type FeedSortContext = { region: string | null; origin: LatLng | null };
+export type FeedSortContext = { region: string | null; origin: LatLng | null; order: BrowseSort };
 
-export type FeedCursor = { r: 0 | 1; b: number; w: 1 | 2; q: number; d: number; t: string; id: string };
+/**
+ * Keyset pagination state. Every field a given order sorts on has to be in here for the
+ * "rows after this one" filter to be exact, so which fields are set depends on the order;
+ * a cursor is only ever read back under the order that produced it.
+ */
+export type FeedCursor = {
+    /** regionMatch */ r?: 0 | 1;
+    /** distance bucket */ b?: number;
+    /** presence flag for the ordering key */ h?: 0 | 1;
+    /** curated/verified weight */ w?: 1 | 2;
+    /** quality score */ q?: number;
+    /** distance in metres */ d?: number;
+    /** sortable price in rupees */ p?: number;
+    /** rating × 100 */ g?: number;
+    /** createdAt */ t?: string;
+    id: string;
+};
 
-type FeedSortField = "regionMatch" | "bucket" | "weight" | "quality" | "distance" | "createdAt" | "_id";
+type FeedSortField =
+    | "regionMatch"
+    | "bucket"
+    | "present"
+    | "weight"
+    | "quality"
+    | "distance"
+    | "price"
+    | "rating"
+    | "createdAt"
+    | "_id";
+
+type FeedSortSpec = ReadonlyArray<readonly [FeedSortField, 1 | -1]>;
 
 export const FEED_PAGE_SIZE = 12;
 
@@ -43,7 +77,7 @@ const MONGO_EARTH_RADIUS_KM = 6378.1;
  * Verified sits *inside* the location groups, so a nearby curated studio isn't pushed below
  * verified studios in another city.
  */
-const FEED_SORT: ReadonlyArray<readonly [FeedSortField, 1 | -1]> = [
+const RECOMMENDED_SORT: FeedSortSpec = [
     ["regionMatch", -1],
     ["bucket", 1],
     ["weight", 1],
@@ -52,6 +86,22 @@ const FEED_SORT: ReadonlyArray<readonly [FeedSortField, 1 | -1]> = [
     ["createdAt", -1],
     ["_id", 1],
 ];
+
+/**
+ * The explicit orders. Each leads with `present`, the flag for "this studio has the thing we're
+ * ordering by", so studios with no map point, no price or no rating sort last instead of
+ * pretending to be at zero. `_id` closes every order to keep paging stable through ties.
+ *
+ * `distance` is a plain distance sort: it deliberately drops the region grouping and the curated
+ * weight that `recommended` applies, because "Nearest first" has to mean nearest.
+ */
+const FEED_SORTS: Record<BrowseSort, FeedSortSpec> = {
+    recommended: RECOMMENDED_SORT,
+    distance: [["present", -1], ["distance", 1], ["_id", 1]],
+    price_asc: [["present", -1], ["price", 1], ["_id", 1]],
+    price_desc: [["present", -1], ["price", -1], ["_id", 1]],
+    rating: [["present", -1], ["rating", -1], ["_id", 1]],
+};
 
 /** Distance buckets in metres: 0–5 km, 5–15 km, 15–30 km, 30+ km; studios with no map point last. */
 const DISTANCE_BUCKETS_M = [5_000, 15_000, 30_000];
@@ -94,12 +144,15 @@ const EPOCH = { $date: "1970-01-01T00:00:00.000Z" };
 const WEIGHT = { $cond: [{ $eq: ["$listingType", "CURATED"] }, 2, 1] };
 
 const feedCursorSchema = z.object({
-    r: z.union([z.literal(0), z.literal(1)]),
-    b: z.number().int().min(0).max(NO_POINT_BUCKET),
-    w: z.union([z.literal(1), z.literal(2)]),
-    q: z.number().int().min(0).max(1000),
-    d: z.number().int().min(0),
-    t: z.iso.datetime(),
+    r: z.union([z.literal(0), z.literal(1)]).optional(),
+    b: z.number().int().min(0).max(NO_POINT_BUCKET).optional(),
+    h: z.union([z.literal(0), z.literal(1)]).optional(),
+    w: z.union([z.literal(1), z.literal(2)]).optional(),
+    q: z.number().int().min(0).max(1000).optional(),
+    d: z.number().int().min(0).optional(),
+    p: z.number().int().min(0).optional(),
+    g: z.number().int().min(0).max(500).optional(),
+    t: z.iso.datetime().optional(),
     id: z.string().regex(/^[a-f\d]{24}$/i),
 });
 
@@ -177,21 +230,30 @@ function publicListingMatch(filters: StudioFeedFilters, excludeIds: string[] = [
     return { $and: clauses };
 }
 
-const cursorValue = (cursor: FeedCursor, field: FeedSortField) =>
-    ({
-        regionMatch: cursor.r,
-        bucket: cursor.b,
-        weight: cursor.w,
-        quality: cursor.q,
-        distance: cursor.d,
-        createdAt: { $date: cursor.t },
-        _id: { $oid: cursor.id },
-    })[field];
+const CURSOR_READERS: Record<Exclude<FeedSortField, "_id">, (cursor: FeedCursor) => unknown> = {
+    regionMatch: (cursor) => cursor.r,
+    bucket: (cursor) => cursor.b,
+    present: (cursor) => cursor.h,
+    weight: (cursor) => cursor.w,
+    quality: (cursor) => cursor.q,
+    distance: (cursor) => cursor.d,
+    price: (cursor) => cursor.p,
+    rating: (cursor) => cursor.g,
+    createdAt: (cursor) => (cursor.t === undefined ? undefined : { $date: cursor.t }),
+};
 
-function afterCursor(cursor: FeedCursor): MongoDocument {
+/** A cursor missing a field its order sorts on can't be paged from, so it's rejected outright. */
+function cursorValue(cursor: FeedCursor, field: FeedSortField): unknown {
+    if (field === "_id") return { $oid: cursor.id };
+    const value = CURSOR_READERS[field](cursor);
+    if (value === undefined) throw new UserFacingError("Invalid feed cursor", 400);
+    return value;
+}
+
+function afterCursor(cursor: FeedCursor, spec: FeedSortSpec): MongoDocument {
     return {
-        $or: FEED_SORT.map(([field, direction], index) => ({
-            ...Object.fromEntries(FEED_SORT.slice(0, index).map(([prior]) => [prior, cursorValue(cursor, prior)])),
+        $or: spec.map(([field, direction], index) => ({
+            ...Object.fromEntries(spec.slice(0, index).map(([prior]) => [prior, cursorValue(cursor, prior)])),
             [field]: { [direction === 1 ? "$gt" : "$lt"]: cursorValue(cursor, field) },
         })),
     };
@@ -200,6 +262,12 @@ function afterCursor(cursor: FeedCursor): MongoDocument {
 export const feedCandidatePipeline = (filters: StudioFeedFilters): MongoDocument[] => [
     { $match: publicListingMatch(filters) },
     { $project: { _id: 1 } },
+];
+
+/** How many studios match, for the "24 studios · nearest to Noida first" line. */
+export const feedCountPipeline = (filters: StudioFeedFilters, excludeIds: string[] = []): MongoDocument[] => [
+    { $match: publicListingMatch(filters, excludeIds) },
+    { $count: "total" },
 ];
 
 const NO_DISTANCE = { $eq: [{ $type: "$distance" }, "missing"] };
@@ -220,6 +288,35 @@ const DISTANCE_BUCKET = {
     },
 };
 
+/**
+ * What a card shows as the price, and what the price sorts on: the hourly rate for bookable
+ * studios, and the bottom of the quoted range for curated ones, which carry no `price`.
+ */
+const SORT_PRICE = {
+    $let: {
+        vars: { hourly: { $ifNull: ["$price", 0] }, quoted: { $ifNull: ["$priceRangeMin", 0] } },
+        in: { $cond: [{ $gt: ["$$hourly", 0] }, "$$hourly", "$$quoted"] },
+    },
+};
+
+/** Rating as an integer so it round-trips through the cursor without float drift. */
+const SORT_RATING = { $round: [{ $multiply: [{ $ifNull: ["$avgReviewRating", 0] }, 100] }, 0] };
+
+/** "Has the thing this order sorts by", so studios that don't sort last rather than first. */
+function presentExpression(order: BrowseSort, hasOrigin: boolean): MongoDocument {
+    switch (order) {
+        case "distance":
+            return hasOrigin ? { $cond: [NO_DISTANCE, 0, 1] } : { $literal: 1 };
+        case "price_asc":
+        case "price_desc":
+            return { $cond: [{ $gt: [SORT_PRICE, 0] }, 1, 0] };
+        case "rating":
+            return { $cond: [{ $gt: [SORT_RATING, 0] }, 1, 0] };
+        default:
+            return { $literal: 0 };
+    }
+}
+
 export function buildFeedPipeline({
     filters,
     sort,
@@ -234,7 +331,9 @@ export function buildFeedPipeline({
     excludeIds?: string[];
 }): MongoDocument[] {
     const match = publicListingMatch(filters, excludeIds);
-    const { origin } = sort;
+    const { origin, order } = sort;
+    // $geoNear runs whenever there's an origin, even under a price or rating order: the cards
+    // show how far away each studio is regardless of what the list is sorted by.
     const source = !origin
         ? [{ $match: match }]
         : [
@@ -250,6 +349,8 @@ export function buildFeedPipeline({
             { $unionWith: { coll: "Listing", pipeline: [{ $match: { $and: [match, { locationPoint: null }] } }] } },
         ];
 
+    const spec = FEED_SORTS[order];
+
     return [
         ...source,
         {
@@ -261,27 +362,39 @@ export function buildFeedPipeline({
                 distance: origin ? { $round: [{ $ifNull: ["$distance", NO_POINT_DISTANCE] }, 0] } : { $literal: 0 },
                 weight: WEIGHT,
                 quality: QUALITY_SCORE,
+                price: SORT_PRICE,
+                rating: SORT_RATING,
+                present: presentExpression(order, Boolean(origin)),
                 createdAt: { $ifNull: ["$createdAt", EPOCH] },
             },
         },
-        ...(after ? [{ $match: afterCursor(after) }] : []),
-        { $sort: Object.fromEntries(FEED_SORT) },
+        ...(after ? [{ $match: afterCursor(after, spec) }] : []),
+        { $sort: Object.fromEntries(spec) },
         ...(limit ? [{ $limit: limit }] : []),
     ];
 }
 
-export function cursorFromRow(row: FeedRow): FeedCursor {
+const CURSOR_WRITERS: Record<Exclude<FeedSortField, "_id">, (row: FeedRow, cursor: FeedCursor) => void> = {
+    regionMatch: (row, cursor) => { cursor.r = readRawNumber(row.regionMatch) === 1 ? 1 : 0; },
+    bucket: (row, cursor) => { cursor.b = readRawNumber(row.bucket) || 0; },
+    present: (row, cursor) => { cursor.h = readRawNumber(row.present) === 1 ? 1 : 0; },
+    weight: (row, cursor) => { cursor.w = readRawNumber(row.weight) === 2 ? 2 : 1; },
+    quality: (row, cursor) => { cursor.q = readRawNumber(row.quality) || 0; },
+    distance: (row, cursor) => { cursor.d = readRawNumber(row.distance) || 0; },
+    price: (row, cursor) => { cursor.p = readRawNumber(row.price) || 0; },
+    rating: (row, cursor) => { cursor.g = readRawNumber(row.rating) || 0; },
+    createdAt: (row, cursor) => { cursor.t = readRawDate(row.createdAt); },
+};
+
+/** Records only the fields this order sorts on, which is exactly what paging it needs. */
+export function cursorFromRow(row: FeedRow, order: BrowseSort): FeedCursor {
     const id = readRawId(row);
     if (!id) throw new Error("Feed row is missing its id");
-    return {
-        r: readRawNumber(row.regionMatch) === 1 ? 1 : 0,
-        b: readRawNumber(row.bucket) || 0,
-        w: readRawNumber(row.weight) === 2 ? 2 : 1,
-        q: readRawNumber(row.quality) || 0,
-        d: readRawNumber(row.distance) || 0,
-        t: readRawDate(row.createdAt),
-        id,
-    };
+    const cursor: FeedCursor = { id };
+    for (const [field] of FEED_SORTS[order]) {
+        if (field !== "_id") CURSOR_WRITERS[field](row, cursor);
+    }
+    return cursor;
 }
 
 export const distanceKmOf = (row: FeedRow | undefined) =>
@@ -309,15 +422,20 @@ export function decodeFeedCursor(value: string): FeedCursor {
     return parsed.data;
 }
 
-type FeedItemSource = Omit<StudioFeedItem, "avgReviewRating" | "actualLocation"> & {
+type FeedItemSource = Omit<StudioFeedItem, "avgReviewRating" | "actualLocation" | "locality"> & {
     avgReviewRating?: number | null;
     actualLocation?: unknown;
 };
 
 export function toStudioFeedItem(listing: FeedItemSource): StudioFeedItem {
-    const state = (listing.actualLocation as { state?: unknown } | null | undefined)?.state;
+    const actual = listing.actualLocation as { state?: unknown; display_name?: unknown } | null | undefined;
+    const state = actual?.state;
     return {
         id: listing.id,
+        locality: deriveLocality({
+            displayName: typeof actual?.display_name === "string" ? actual.display_name : null,
+            city: listing.locationValue,
+        }),
         slug: listing.slug,
         title: listing.title,
         imageSrc: listing.imageSrc.slice(0, 5),

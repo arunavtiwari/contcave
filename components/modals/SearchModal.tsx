@@ -15,6 +15,8 @@ import { type SearchPlace, useStudioSearch } from "@/hooks/useStudioSearch";
 import useUIStore from "@/hooks/useUIStore";
 import { BOOKING_HORIZON_DAYS } from "@/lib/booking/dayAvailability";
 import { formatLatLngParam, searchRadiusKm } from "@/lib/geo";
+import { persistBrowseLocation } from "@/lib/listing/browseLocationStorage";
+import { regionOfPoint } from "@/lib/listing/regions";
 
 const Map = dynamic(() => import("@/components/map/Map"), { ssr: false });
 
@@ -55,6 +57,22 @@ function SearchModalContent() {
   const search = (next: { where: SearchPlace | null; date: Date | null; hasSets: boolean }) => {
     const query = qs.parse(params?.toString() ?? "");
     for (const key of REPLACED_PARAMS) delete query[key];
+
+    // The browse page's location control reads the same stored location, so a place searched
+    // here has to be written through too - otherwise the two disagree the moment the `near`
+    // param leaves the URL, and the older of them wins.
+    persistBrowseLocation(
+      next.where
+        ? {
+          label: next.where.label,
+          placeId: null,
+          lat: next.where.latlng[0],
+          lng: next.where.latlng[1],
+          region: regionOfPoint(next.where.latlng)?.slug ?? null,
+          source: "search",
+        }
+        : null
+    );
 
     const url = qs.stringifyUrl(
       {

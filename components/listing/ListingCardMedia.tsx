@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
+import { FiMapPin } from "react-icons/fi";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 
 import HeartButton from "@/components/listing/HeartButton";
@@ -30,6 +31,7 @@ interface ListingCardMediaProps {
     totalPrice?: number;
     priority?: boolean;
     showListingBadge?: boolean;
+    distanceLabel?: string | null;
 }
 
 const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
@@ -52,6 +54,7 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
     totalPrice,
     priority = false,
     showListingBadge = false,
+    distanceLabel,
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -248,6 +251,15 @@ const ListingCardMedia: React.FC<ListingCardMediaProps> = ({
                 size="sm"
                 className="absolute bottom-3 right-3 z-20"
             />
+
+            {/* On mobile the meta row is too tight to carry the distance as well, so it rides on
+                the photo instead - opposite the price, which keeps its corner. */}
+            {distanceLabel && (
+                <div className="absolute bottom-3 left-3 z-20 flex items-center gap-1 rounded-full bg-foreground/80 px-2 py-1 text-[11px] font-semibold text-background backdrop-blur-md md:hidden">
+                    <FiMapPin size={11} aria-hidden="true" />
+                    {distanceLabel}
+                </div>
+            )}
 
             {!onEdit && showHeart && (
                 <div className="absolute top-3 right-3 z-30">

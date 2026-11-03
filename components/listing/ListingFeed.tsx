@@ -4,8 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { loadMoreStudios } from "@/app/actions/studioFeedActions";
 import ListingCard from "@/components/listing/ListingCard";
+import NoNearbyStudiosBanner from "@/components/listing/NoNearbyStudiosBanner";
 import Button from "@/components/ui/Button";
-import { useNearLabel } from "@/hooks/useNearLabel";
+import { BROWSE_GRID_ANCHOR_ID } from "@/hooks/useBrowseLocation";
+import { useFeedSummary } from "@/hooks/useFeedSummary";
+import { type BrowseSort, DEFAULT_BROWSE_SORT } from "@/lib/listing/browseSort";
 import { studioFeedKey } from "@/lib/listing/studioFeedKey";
 import type { StudioFeedFilters } from "@/schemas/listing";
 import type { StudioFeedItem, StudioFeedPage } from "@/types/listing";
@@ -20,6 +23,8 @@ type Props = {
   filters: StudioFeedFilters;
   currentUser?: SafeUser | null;
   nearLabel?: string;
+  /** The order the first page was built with; later pages must keep it. */
+  order?: BrowseSort;
 };
 
 type LoadState = "idle" | "loading" | "error";
@@ -40,19 +45,19 @@ const appendUnique = (current: StudioFeedItem[], next: StudioFeedItem[]) => {
   return [...current, ...next.filter((item) => !seen.has(item.id))];
 };
 
-function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
-  const feedKey = page.nextCursor ? studioFeedKey(filters, page.origin, page.region) : null;
+function ListingFeed({ page, filters, currentUser, nearLabel, order = DEFAULT_BROWSE_SORT }: Props) {
+  const feedKey = page.nextCursor ? studioFeedKey(filters, page.origin, page.region, order) : null;
   const [{ items, cursor }, setFeed] = useState<LoadedFeed>(
     () => (feedKey && loadedFeeds.get(feedKey)) || { items: page.items, cursor: page.nextCursor }
   );
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const loadingRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const { setNearLabel } = useNearLabel();
+  const { setFeedSummary } = useFeedSummary();
 
   useEffect(() => {
-    setNearLabel(nearLabel ?? null);
-  }, [nearLabel, setNearLabel]);
+    setFeedSummary({ nearLabel: nearLabel ?? null, total: page.total });
+  }, [nearLabel, page.total, setFeedSummary]);
 
   useEffect(() => {
     if (feedKey) rememberFeed(feedKey, { items, cursor });
@@ -63,7 +68,7 @@ function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
     loadingRef.current = true;
     setLoadState("loading");
     try {
-      const result = await loadMoreStudios({ filters, origin: page.origin, region: page.region, cursor });
+      const result = await loadMoreStudios({ filters, origin: page.origin, region: page.region, order, cursor });
       if (!result.success || !result.data) throw new Error(result.error);
       const next = result.data;
       setFeed((current) => ({ items: appendUnique(current.items, next.items), cursor: next.nextCursor }));
@@ -73,7 +78,7 @@ function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
     } finally {
       loadingRef.current = false;
     }
-  }, [cursor, filters, page.origin, page.region]);
+  }, [cursor, filters, order, page.origin, page.region]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -89,9 +94,22 @@ function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
     return () => observer.disconnect();
   }, [cursor, loadState, loadMore]);
 
+  // The closest studio among those we loaded; under a non-distance order it may not be first.
+  const nearest = items.reduce<StudioFeedItem | null>(
+    (closest, item) =>
+      typeof item.distanceKm === "number" &&
+        (closest?.distanceKm == null || item.distanceKm < closest.distanceKm)
+        ? item
+        : closest,
+    null
+  );
+
   return (
     <div className="space-y-8 pb-24">
+      <NoNearbyStudiosBanner nearestKm={page.nearestKm} nearestCity={nearest?.locationValue ?? null} />
+
       <div
+        id={BROWSE_GRID_ANCHOR_ID}
         aria-busy={loadState === "loading"}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 overflow-x-hidden"
       >
@@ -102,6 +120,7 @@ function ListingFeed({ page, filters, currentUser, nearLabel }: Props) {
             currentUser={currentUser}
             priority={index < 4}
             showListingBadge
+            showDistance={order === "distance"}
           />
         ))}
         {loadState === "loading" &&

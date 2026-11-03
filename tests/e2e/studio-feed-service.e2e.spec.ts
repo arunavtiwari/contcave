@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 
 import { addDaysToDateKey, buildDayAvailability, checkExtensionWindow, checkWindow, isBookable, istDateKey } from "../../lib/booking/dayAvailability";
 import type { LatLng } from "../../lib/geo";
+import type { BrowseSort } from "../../lib/listing/browseSort";
 import { matchesCategory, STUDIO_CATEGORIES } from "../../lib/listing/categories";
 import { resolveListingLocation, toGeoPoint } from "../../lib/listing/location";
 import type { StudioFeedFilters } from "../../schemas/listing";
@@ -24,6 +25,8 @@ type FixtureInput = {
   operationalHours?: { start: string; end: string };
   minimumBookingHours?: number;
   setNames?: string[];
+  price?: number | null;
+  avgReviewRating?: number;
 };
 
 const ORIGIN: LatLng = [28.6315, 77.2167];
@@ -48,7 +51,8 @@ async function createFeedListing(ownerId: string, city: string, input: FixtureIn
       locationValue: city,
       actualLocation: input.latlng ? { latlng: input.latlng, label: city, value: city } : undefined,
       ...(input.latlng ? { locationPoint: toGeoPoint(input.latlng) } : {}),
-      price: input.listingType === "CURATED" ? null : 1500,
+      price: input.price !== undefined ? input.price : input.listingType === "CURATED" ? null : 1500,
+      ...(input.avgReviewRating !== undefined ? { avgReviewRating: input.avgReviewRating } : {}),
       listingType: input.listingType ?? "STANDARD",
       userId: ownerId,
       amenities: [],
@@ -89,12 +93,17 @@ async function createReservation(params: { listingId: string; userId: string; da
   trackCreated("reservation", reservation.id);
 }
 
-async function pageAll(filters: StudioFeedFilters, origin: LatLng | null, size: number) {
+async function pageAll(
+  filters: StudioFeedFilters,
+  origin: LatLng | null,
+  size: number,
+  order: BrowseSort = "recommended"
+) {
   const ListingService = await getListingService();
   const ids: string[] = [];
   let cursor: string | null = null;
   do {
-    const page = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin }, cursor, size });
+    const page = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin, order }, cursor, size });
     expect(page.origin).toEqual(origin);
     ids.push(...page.items.map((item) => item.id));
     cursor = page.nextCursor;
@@ -120,11 +129,68 @@ test.describe("studio feed service", () => {
     }
 
     const ListingService = await getListingService();
-    const first = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN }, size: 2 });
+    const first = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN, order: "recommended" }, size: 2 });
     expect(first.nearestKm).toBeGreaterThan(0.9);
     expect(first.nearestKm).toBeLessThan(1.1);
 
     expect(await pageAll(filters, null, 2)).toEqual([unlocated.id, far.id, mid.id, near.id, midCurated.id]);
+  });
+
+  test("pages each explicit order by cursor, with absent values last", async ({}, testInfo) => {
+    const suffix = `feed-order-r${testInfo.retry}`;
+    const city = `${readRunState().runId} Order ${testInfo.retry}`;
+    const { user } = await createUserFixture({ role: "OWNER", verified: true, suffix });
+
+    // Deliberately created in an order that matches none of the sorts, so a sort that silently
+    // did nothing would not accidentally pass.
+    const far = await createFeedListing(user.id, city, { name: "Far cheap top", latlng: offsetNorth(ORIGIN, 30), price: 500, avgReviewRating: 4.9, createdAt: "2026-03-01" });
+    const near = await createFeedListing(user.id, city, { name: "Near dear mid", latlng: offsetNorth(ORIGIN, 2), price: 9000, avgReviewRating: 3.1, createdAt: "2026-03-02" });
+    const mid = await createFeedListing(user.id, city, { name: "Mid mid low", latlng: offsetNorth(ORIGIN, 10), price: 2500, avgReviewRating: 1.5, createdAt: "2026-03-03" });
+    // No coordinates, no price and no rating: last under every explicit order.
+    const bare = await createFeedListing(user.id, city, { name: "Bare", price: null, createdAt: "2026-03-04" });
+    const filters = { locationValues: [city] };
+
+    const expected: Record<BrowseSort, string[]> = {
+      recommended: [near.id, mid.id, far.id, bare.id],
+      distance: [near.id, mid.id, far.id, bare.id],
+      price_asc: [far.id, mid.id, near.id, bare.id],
+      price_desc: [near.id, mid.id, far.id, bare.id],
+      rating: [far.id, near.id, mid.id, bare.id],
+    };
+
+    // Every page size exercises a different cursor boundary between the sort keys.
+    for (const [order, ids] of Object.entries(expected) as [BrowseSort, string[]][]) {
+      for (const size of [1, 2, 3, 12]) {
+        expect(await pageAll(filters, ORIGIN, size, order), `${order} at size ${size}`).toEqual(ids);
+      }
+    }
+
+    const ListingService = await getListingService();
+    const page = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN, order: "price_asc" }, size: 12 });
+    const byId = new Map(page.items.map((item) => [item.id, item]));
+    // Distance rides along even when the list is ordered by something else, because the cards show it.
+    expect(byId.get(near.id)?.distanceKm).toBeGreaterThan(1.9);
+    expect(byId.get(near.id)?.distanceKm).toBeLessThan(2.1);
+    expect(byId.get(bare.id)?.distanceKm).toBeNull();
+  });
+
+  test("rejects a cursor that lacks the keys its order sorts on", async ({}, testInfo) => {
+    const suffix = `feed-cursor-order-r${testInfo.retry}`;
+    const city = `${readRunState().runId} CursorOrder ${testInfo.retry}`;
+    const { user } = await createUserFixture({ role: "OWNER", verified: true, suffix });
+    for (const km of [1, 2]) {
+      await createFeedListing(user.id, city, { name: `${km}km`, latlng: offsetNorth(ORIGIN, km), createdAt: `2026-04-0${km}` });
+    }
+    const filters = { locationValues: [city] };
+    const ListingService = await getListingService();
+
+    // A price cursor carries `p` but none of the relevance keys, so reading it back under
+    // `recommended` has to fail loudly rather than page from a missing value.
+    const priced = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN, order: "price_asc" }, size: 1 });
+    expect(priced.nextCursor).toBeTruthy();
+    await expect(
+      ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN, order: "recommended" }, cursor: priced.nextCursor, size: 1 })
+    ).rejects.toThrow("Invalid feed cursor");
   });
 
   test("keeps its place when studios change mid-scroll", async ({}, testInfo) => {
@@ -138,13 +204,13 @@ test.describe("studio feed service", () => {
     const filters = { locationValues: [city] };
     const ListingService = await getListingService();
 
-    const first = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN }, size: 2 });
+    const first = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN, order: "recommended" }, size: 2 });
     expect(first.items.map((item) => item.id)).toEqual([listings[0].id, listings[1].id]);
 
     await prisma.listing.update({ where: { id: listings[0].id }, data: { active: false } });
     await createFeedListing(user.id, city, { name: "Inserted closer", latlng: offsetNorth(ORIGIN, 0.5), createdAt: "2026-02-09" });
 
-    const second = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN }, cursor: first.nextCursor, size: 2 });
+    const second = await ListingService.getListingFeedPage({ filters, sort: { region: null, origin: ORIGIN, order: "recommended" }, cursor: first.nextCursor, size: 2 });
     expect(second.items.map((item) => item.id)).toEqual([listings[2].id, listings[3].id]);
   });
 
@@ -276,7 +342,7 @@ test.describe("studio feed service", () => {
     const ListingService = await getListingService();
     const forged = Buffer.from(JSON.stringify({ p: 1, d: 1.5, w: 1, t: "yesterday", id: "nope" })).toString("base64url");
     for (const cursor of ["not-a-cursor", forged]) {
-      await expect(ListingService.getListingFeedPage({ filters: {}, sort: { region: null, origin: null }, cursor })).rejects.toThrow("Invalid feed cursor");
+      await expect(ListingService.getListingFeedPage({ filters: {}, sort: { region: null, origin: null, order: "recommended" }, cursor })).rejects.toThrow("Invalid feed cursor");
     }
   });
 

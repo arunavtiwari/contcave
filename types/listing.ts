@@ -132,12 +132,18 @@ export type StudioFeedItem = Pick<
     actualLocation: { state: string } | null;
     /** Confirmed: equipment comes with every booking and includes at least one light. */
     lightsIncluded?: boolean;
+    /** The area, e.g. "Siri Fort, New Delhi"; null when the address yields nothing dependable. */
+    locality: string | null;
+    /** How far from the visitor's location, when there is one and this studio is on the map. */
+    distanceKm?: number | null;
 };
 
 export type StudioFeedPage = {
     items: StudioFeedItem[];
     nextCursor: string | null;
     nearestKm: number | null;
+    /** How many studios match in total; only counted for the first page. */
+    total: number | null;
     /** Precise location the order was built from (GPS / entered place), never IP. */
     origin: LatLng | null;
     /** Region the order was grouped by, e.g. "delhi-ncr". */

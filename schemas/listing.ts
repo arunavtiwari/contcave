@@ -476,9 +476,19 @@ const validDate = (value?: string) => (value && isDateKey(value) ? value : undef
 
 const firstParam = (value?: string | string[]) => (Array.isArray(value) ? value[0] : value);
 
+/**
+ * `near` alone only gives the feed an origin to measure from; a radius is applied only when
+ * `km` asks for one. That split is what lets the location control sort by distance without
+ * narrowing the feed, so picking a city we don't serve yet still shows the closest studios
+ * instead of an empty state. The navbar search keeps sending `km` and keeps filtering.
+ */
 function nearFilter(near?: string | string[], km?: string | string[]) {
     const latlng = parseLatLngParam(firstParam(near));
-    return latlng ? { near: latlng, radiusKm: searchRadiusKm(Number(firstParam(km))) } : {};
+    if (!latlng) return {};
+    const radius = Number(firstParam(km));
+    return Number.isFinite(radius) && radius > 0
+        ? { near: latlng, radiusKm: searchRadiusKm(radius) }
+        : { near: latlng };
 }
 
 export const studioFeedSearchParamsSchema = z
