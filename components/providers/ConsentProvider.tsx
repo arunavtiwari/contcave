@@ -22,8 +22,8 @@ interface ConsentContextType {
 const COOKIE_NAME = "CC_CONSENT";
 const DEFAULT_CONSENT: ConsentState = {
     necessary: true,
-    analytics: false,
-    marketing: false,
+    analytics: true,
+    marketing: true,
 };
 
 const ConsentContext = createContext<ConsentContextType | undefined>(undefined);

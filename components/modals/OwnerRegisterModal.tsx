@@ -15,6 +15,7 @@ import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useUIStore from "@/hooks/useUIStore";
+import { trackSignup } from "@/lib/analytics/tracking";
 import { getAuthErrorMessage } from "@/lib/errors";
 import { type OwnerRegisterSchema, ownerRegisterSchema } from "@/schemas/auth";
 
@@ -51,6 +52,7 @@ function OwnerRegisterModal() {
                 return;
             }
 
+            trackSignup({ method: "email", accountType: "owner" });
             const callback = await signIn("credentials", {
                 email: data.email,
                 password: data.password,

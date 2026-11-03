@@ -21,7 +21,13 @@ import Heading from "@/components/ui/Heading";
 import Pill from "@/components/ui/Pill";
 import Skeleton from "@/components/ui/Skeleton";
 import useUIStore from "@/hooks/useUIStore";
-import { trackBeginCheckout, type TrackedStudio } from "@/lib/analytics/tracking";
+import {
+  trackBeginCheckout,
+  trackCheckoutStep,
+  trackDateSelection,
+  type TrackedStudio,
+  trackTimeSelection,
+} from "@/lib/analytics/tracking";
 import { minimumBookingMinutes } from "@/lib/booking/dayAvailability";
 import { normalizePhone } from "@/lib/phone";
 import { addGst } from "@/lib/pricing";
@@ -103,7 +109,6 @@ type Props = {
   includedEquipmentLabel?: string | null;
   /** Rate per hour if the shoot runs over. */
   extraHourPrice?: number;
-  currentUserEmail?: string | null;
 };
 
 let cashfreePromise: Promise<Cashfree | null> | null = null;
@@ -176,7 +181,6 @@ export default function ListingReservation({
   trackingStudio,
   includedEquipmentLabel = null,
   extraHourPrice = 0,
-  currentUserEmail = null,
 }: Props) {
   const uiStore = useUIStore();
 
@@ -318,6 +322,7 @@ export default function ListingReservation({
   const handleTimeSelect = useCallback(
     (value: TimeLabel | null, field: "start" | "end") => {
       setErr(null);
+      if (value && trackingStudio) trackTimeSelection(trackingStudio);
       if (selectedPackage && field === "start") {
         setLocalTimes({ start: value, end: null });
         return;
@@ -326,7 +331,7 @@ export default function ListingReservation({
         field === "start" ? { start: value, end: null } : { ...prev, end: value }
       );
     },
-    [selectedPackage]
+    [selectedPackage, trackingStudio]
   );
 
   const formatLocalYmd = (d: Date) => {
@@ -362,6 +367,7 @@ export default function ListingReservation({
       }
       setCustomerPhone(normalized);
       setShowPhoneModal(false);
+      if (trackingStudio) trackCheckoutStep({ step: "review_booking", studio: trackingStudio });
       setShowSummaryModal(true);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Unable to save phone. Try again.";
@@ -369,7 +375,7 @@ export default function ListingReservation({
     } finally {
       setPhoneSaving(false);
     }
-  }, [phoneInput]);
+  }, [phoneInput, trackingStudio]);
 
   const startPayment = useCallback(
     async (controller: AbortController, billingDetailId: string | null, shootDetails: ShootDetails) => {
@@ -489,22 +495,23 @@ export default function ListingReservation({
       uiStore.onOpen("login");
       return;
     }
-    if (!ensurePhone()) return;
-
-    setShowSummaryModal(true);
-  }, [ready, isAuthenticated, uiStore, ensurePhone]);
-
-  const handleConfirmModal = useCallback((billingDetailId: string | null, shootDetails: ShootDetails) => {
-    setShowSummaryModal(false);
     if (trackingStudio) {
       trackBeginCheckout({
         studio: trackingStudio,
         value: computedTotal,
         tax: gstAmount,
         bookingType: instantBooking ? "instant" : "approval",
-        user: { email: currentUserEmail, phone: customerPhone },
       });
+      trackCheckoutStep({ step: "personal_details", studio: trackingStudio });
     }
+    if (!ensurePhone()) return;
+    if (trackingStudio) trackCheckoutStep({ step: "review_booking", studio: trackingStudio });
+
+    setShowSummaryModal(true);
+  }, [ready, isAuthenticated, uiStore, ensurePhone, trackingStudio, computedTotal, gstAmount, instantBooking]);
+
+  const handleConfirmModal = useCallback((billingDetailId: string | null, shootDetails: ShootDetails) => {
+    setShowSummaryModal(false);
     setIsPaying(true);
     inflight.current?.abort();
     const controller = new AbortController();
@@ -516,7 +523,7 @@ export default function ListingReservation({
         setIsPaying(false);
       }
     });
-  }, [startPayment, trackingStudio, computedTotal, gstAmount, instantBooking, currentUserEmail, customerPhone]);
+  }, [startPayment]);
 
   return (
     <section className="bg-background rounded-xl shadow-sm border border-border/10 overflow-hidden">
@@ -567,6 +574,7 @@ export default function ListingReservation({
           disabledDates={disabledDates}
           onChange={(value) => {
             if (isValidDate(value)) {
+              if (trackingStudio) trackDateSelection(trackingStudio);
               setSelectDateAction(value);
               setHasPickedDate(true);
               setErr(null);

@@ -50,7 +50,24 @@ const CookieConsentBanner = () => {
     };
 
     return (
-        <AnimatePresence>
+        <>
+            {!isVisible && (
+                <button
+                    type="button"
+                    aria-label="Open cookie preferences"
+                    title="Cookie preferences"
+                    onClick={() => {
+                        setTempConsent(consent);
+                        setIsManaging(true);
+                        setIsVisible(true);
+                    }}
+                    className="fixed bottom-4 left-4 z-50 inline-flex h-10 items-center gap-2 rounded-full border border-border bg-background/90 px-4 text-xs font-medium text-foreground shadow-md backdrop-blur transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
+                >
+                    <LuCookie size={16} aria-hidden="true" />
+                    <span>Cookie settings</span>
+                </button>
+            )}
+            <AnimatePresence>
             {isVisible && (
                 <motion.div
                     initial={{ y: 100, opacity: 0, scale: 0.95 }}
@@ -134,7 +151,8 @@ const CookieConsentBanner = () => {
                     </div>
                 </motion.div>
             )}
-        </AnimatePresence>
+            </AnimatePresence>
+        </>
     );
 };
 
