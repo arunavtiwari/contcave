@@ -15,12 +15,18 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 65 | Regional & Vernacular Language Content Studios: What Changes | vernacular content studio india | creator-economy | creators |
 | 66 | Pet Photography & Pet-Friendly Studios in India | pet friendly photography studio india | studio-guides | creators, brands |
 | 67 | Fashion Lookbook vs Ecommerce Catalogue Shoots: Studio Setup Differences | ecommerce catalogue shoot studio india | content-creation | brands |
 | 68 | Studio Soundproofing Basics: What Hosts Should Invest In | soundproof studio for hosts india | host-guides | hosts |
 | 69 | Behind-the-Scenes Content: Studio Etiquette for a Second Shooter | bts content studio shoot india | content-creation | creators |
 | 70 | Monsoon-Proofing Your Studio Booking: Backup Plans for Outdoor Shoots | monsoon studio booking india | booking-tips | creators, brands |
+| 71 | Video Podcast Studio Setups: Why Audio-Only Isn't Enough Anymore | video podcast studio india | studio-guides | creators |
+| 72 | Booking a Studio for a Creator Collab or Multi-Guest Shoot | studio for creator collab shoot india | booking-tips | creators |
+| 73 | Unboxing & PR Package Video Studios for Creators | unboxing video studio india | content-creation | creators, brands |
+| 74 | Studio Options for Tier 2 and Tier 3 City Creators | studio for creators in tier 2 cities india | creator-economy | creators |
+| 75 | Comedy & Stand-Up Content Studios: What Changes for a Live-Feel Set | comedy content studio india | content-creation | creators |
+| 76 | Multi-Camera Setup for Interview & Panel Podcasts | multi camera podcast studio india | studio-guides | creators, hosts |
+| 77 | Accessible Studios: What Hosts Should Offer for Differently-Abled Creators | accessible studio for creators india | host-guides | hosts |
 
 ## Published
 
@@ -105,3 +111,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-10-28 | 62 | cooking-studio-rental-india |
 | 2026-10-30 | 63 | studio-for-student-creators-india |
 | 2026-11-02 | 64 | finance-content-studio-india |
+| 2026-11-04 | 65 | vernacular-content-studio-india |
