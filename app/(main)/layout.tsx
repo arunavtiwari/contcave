@@ -3,7 +3,6 @@ import "../../styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import Script from "next/script";
 import { GTM_ID } from "@/constants/googleTagManager";
 import { CONSENT_COOKIE_NAME } from "@/lib/consent";
 import getAddons from "@/app/actions/getAddons";
@@ -184,17 +183,13 @@ export default async function RootLayout({
 
         <html lang="en-IN">
             <head>
-                <JsonLd
-                    id="organization-jsonld"
-                    data={[organizationJsonLd, webSiteJsonLd]}
-                />
-                    {GTM_ID && (
-          <Script
-            id="gtm-base"
-            strategy="beforeInteractive"
-            nonce={nonce}
-            dangerouslySetInnerHTML={{
-              __html: `
+                           <head>
+                {GTM_ID && (
+                    <script
+                        id="gtm-base"
+                        nonce={nonce}
+                        dangerouslySetInnerHTML={{
+                            __html: `
                 window.dataLayer = window.dataLayer || [];
                 window.gtag = window.gtag || function(){window.dataLayer.push(arguments);};
                 gtag('consent', 'default', {
@@ -222,11 +217,14 @@ export default async function RootLayout({
                 j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
                 })(window,document,'script','dataLayer',${JSON.stringify(GTM_ID)});
               `,
-            }}
-          />
-        )}
-</head>
-            <body className={GeistSans.className}>
+                        }}
+                    />
+                )}
+                <JsonLd
+                    id="organization-jsonld"
+                    data={[organizationJsonLd, webSiteJsonLd]}
+                />
+            </head>tSans.className}>
                 <GlobalProviders>
                     <GlobalScrollFix />
                     <NavbarWrapper />
