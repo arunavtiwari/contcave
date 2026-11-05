@@ -183,7 +183,6 @@ export default async function RootLayout({
 
         <html lang="en-IN">
             <head>
-                           <head>
                 {GTM_ID && (
                     <script
                         id="gtm-base"
@@ -224,7 +223,8 @@ export default async function RootLayout({
                     id="organization-jsonld"
                     data={[organizationJsonLd, webSiteJsonLd]}
                 />
-            </head>tSans.className}>
+            </head>
+            <body className={GeistSans.className}>
                 <GlobalProviders>
                     <GlobalScrollFix />
                     <NavbarWrapper />
