@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 66 | Pet Photography & Pet-Friendly Studios in India | pet friendly photography studio india | studio-guides | creators, brands |
 | 67 | Fashion Lookbook vs Ecommerce Catalogue Shoots: Studio Setup Differences | ecommerce catalogue shoot studio india | content-creation | brands |
 | 68 | Studio Soundproofing Basics: What Hosts Should Invest In | soundproof studio for hosts india | host-guides | hosts |
 | 69 | Behind-the-Scenes Content: Studio Etiquette for a Second Shooter | bts content studio shoot india | content-creation | creators |
@@ -112,3 +111,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-10-30 | 63 | studio-for-student-creators-india |
 | 2026-11-02 | 64 | finance-content-studio-india |
 | 2026-11-04 | 65 | vernacular-content-studio-india |
+| 2026-11-06 | 66 | pet-friendly-photography-studio-india |
