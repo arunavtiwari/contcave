@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
             accountNumber: validated.accountNumber,
             ifscCode: validated.ifscCode,
             companyName: validated.companyName === '' ? null : validated.companyName || undefined,
+            companyAddress: validated.companyAddress === '' ? null : validated.companyAddress || undefined,
             gstin: validated.gstin === '' ? null : validated.gstin || undefined,
         });
 

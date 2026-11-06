@@ -31,7 +31,7 @@ export class PayoutService {
                     }
                 },
                 cfOrderId: { not: null },
-                payoutDueAt: { lte: now },
+                payoutDueAt: { not: null, lte: now },
                 OR: [{ payoutSplitAt: null }, { payoutSplitAt: { isSet: false } }],
             },
             include: {

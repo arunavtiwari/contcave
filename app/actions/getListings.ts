@@ -5,8 +5,7 @@ import { ListingService } from "@/lib/listing/service";
 
 export interface IListingsParams {
   userId?: string;
-  startDate?: string;
-  endDate?: string;
+  date?: string;
   locationValue?: string;
   category?: string;
   type?: string;

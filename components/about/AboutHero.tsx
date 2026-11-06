@@ -69,7 +69,7 @@ const AboutHero = () => {
                     >
                         <Button
                             label="Explore Our Network"
-                            href="/home"
+                            href="/studios"
                             variant="secondary"
                             rounded
                             fit

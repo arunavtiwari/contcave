@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { PaymentDetails } from '@prisma/client';
+import type { PaymentDetails } from '@prisma/client';
 
 import prisma from "@/lib/prismadb";
 import { encryptionService } from "@/lib/security/encryption";
@@ -12,6 +12,7 @@ export interface PaymentDetailsData {
     accountNumber?: string;
     ifscCode: string;
     companyName?: string | null;
+    companyAddress?: string | null;
     gstin?: string | null;
     cashfreeVendorId?: string;
     accountNumberIV?: string;
@@ -28,6 +29,7 @@ export interface UpsertPaymentDetailsInput {
     accountNumber?: string;
     ifscCode?: string;
     companyName?: string | null;
+    companyAddress?: string | null;
     gstin?: string | null;
     cashfreeVendorId?: string;
 }
@@ -41,6 +43,7 @@ export interface SanitizedPaymentDetails {
     reAccountNumber: string;
     ifscCode: string;
     companyName?: string | null;
+    companyAddress?: string | null;
     gstin?: string | null;
     cashfreeVendorId?: string | null;
     createdAt: string;
@@ -143,6 +146,7 @@ export function decryptAndSanitizePaymentDetails(paymentDetails: PaymentDetails)
         reAccountNumber: maskedAccountNumber,
         ifscCode: decrypted.ifscCode,
         companyName: decrypted.companyName,
+        companyAddress: decrypted.companyAddress,
         gstin: decrypted.gstin ? maskGstin(decrypted.gstin) : null,
         cashfreeVendorId: decrypted.cashfreeVendorId ? encryptionService.mask(decrypted.cashfreeVendorId) : null,
         createdAt: decrypted.createdAt.toISOString(),
@@ -178,6 +182,7 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
             commonData.ifscCodeIV = data.ifscCodeIV ?? null;
         }
         if (data.companyName !== undefined) commonData.companyName = data.companyName ?? null;
+        if (data.companyAddress !== undefined) commonData.companyAddress = data.companyAddress ?? null;
 
         if (data.gstin !== undefined) {
             commonData.gstin = data.gstin;
@@ -219,6 +224,7 @@ export async function upsertPaymentDetails(data: PaymentDetailsData): Promise<Pa
                 ifscCode: data.ifscCode,
                 ifscCodeIV: data.ifscCodeIV ?? null,
                 companyName: data.companyName ?? null,
+                companyAddress: data.companyAddress ?? null,
                 gstin: data.gstin ?? null,
                 gstinIV: data.gstinIV ?? null,
                 cashfreeVendorId: data.cashfreeVendorId ?? null,

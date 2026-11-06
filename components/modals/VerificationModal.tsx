@@ -85,12 +85,16 @@ const VerificationModal: React.FC<Props> = ({
       bankName: "",
       ifscCode: "",
       gstNumber: "",
+      companyName: "",
+      companyAddress: "",
     },
     mode: "onBlur"
   });
 
   const emailValue = watch("email");
   const phoneValue = watch("phone");
+  const gstNumberValue = watch("gstNumber");
+  const hasGst = Boolean(gstNumberValue && gstNumberValue.trim().length > 0);
   const isBusy = busyAction !== null;
 
   useEffect(() => {
@@ -109,6 +113,8 @@ const VerificationModal: React.FC<Props> = ({
         bankName: "",
         ifscCode: "",
         gstNumber: "",
+        companyName: "",
+        companyAddress: "",
       });
     }
   }, [isOpen, currentUser, reset]);
@@ -214,6 +220,8 @@ const VerificationModal: React.FC<Props> = ({
         ...vendorPayload,
         ...(gstin ? { gstin } : {}),
         bankName: data.bankName,
+        companyName: data.companyName?.trim() || undefined,
+        companyAddress: data.companyAddress?.trim() || undefined,
       });
       if (!bankResult.success || !bankResult.data?.user) {
         throw new Error(bankResult.error || "Bank verification failed");
@@ -348,7 +356,6 @@ const VerificationModal: React.FC<Props> = ({
                 values={aadhaarPreview}
                 onChange={(values) => setAadhaarPreview(values.slice(-1))}
                 onFilesChange={(files) => setAadhaarFile(files.at(-1) || null)}
-                deferUpload
                 multiple={false}
                 allowedTypes={["image/jpeg", "image/jpg", "image/png", "application/pdf"]}
                 maxSize={5 * 1024 * 1024}
@@ -442,8 +449,32 @@ const VerificationModal: React.FC<Props> = ({
                 register={register("gstNumber")}
                 errors={errors}
                 disabled={isBusy}
-                placeholder="11XXXXXXXXXX1Z0"
+                placeholder="07AAAAA0000A1Z5"
+                maxLength={15}
+                className="uppercase"
               />
+              <div className="md:col-span-2">
+                <Input
+                  id="companyName"
+                  label={hasGst ? "Registered Company Name (required for GST)" : "Company / Business Name (optional)"}
+                  required={hasGst}
+                  register={register("companyName")}
+                  errors={errors}
+                  disabled={isBusy}
+                  placeholder="e.g. Acme Studios Pvt Ltd"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Input
+                  id="companyAddress"
+                  label={hasGst ? "Registered Business Address (required for GST)" : "Registered Business Address (optional)"}
+                  required={hasGst}
+                  register={register("companyAddress")}
+                  errors={errors}
+                  disabled={isBusy}
+                  placeholder="Official address as registered under GST for invoices"
+                />
+              </div>
             </div>
           )}
         </div>

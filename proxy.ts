@@ -1,7 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 import { createErrorResponse, handleRouteError } from '@/lib/api-utils'
+import { isAdminDomainHost } from '@/lib/http/adminHost'
 import { getClientIp } from '@/lib/http/requestMeta'
+import { buildCSP, SECURITY_HEADERS } from '@/lib/http/securityHeaders'
 
 type RateRecord = {
     count: number
@@ -60,16 +62,15 @@ function hasDedicatedRequestGuard(pathname: string): boolean {
         || pathname.startsWith('/api/pay/charge/')
 }
 
-function isAdminDomainHost(hostname: string): boolean {
-    const host = hostname.split(':')[0]?.toLowerCase() ?? ''
-    return host === 'admin.contcave.com'
-        || host === 'staging.admin.contcave.com'
-        || host.startsWith('admin.')
-        || host.includes('.admin.')
-}
-
 function isAuthApiPath(pathname: string): boolean {
     return pathname === '/api/auth' || pathname.startsWith('/api/auth/')
+}
+
+function isAllowedAdminApiPath(pathname: string): boolean {
+    return isAuthApiPath(pathname)
+        || pathname.startsWith('/api/documents/')
+        || pathname.startsWith('/api/admin/')
+        || pathname.startsWith('/api/upload/')
 }
 
 function cleanupStore(now: number): void {
@@ -114,107 +115,8 @@ function logSecurityEvent(
     console.warn(`[Security Event] ${event}`, JSON.stringify({ timestamp, event, ...context }))
 }
 
-function buildCSP(nonce: string): string {
-
-    const directives: Record<string, string[]> = {
-        'default-src': ["'self'"],
-        'base-uri': ["'self'"],
-        'form-action': ["'self'", 'https://sandbox.cashfree.com', 'https://api.cashfree.com', 'https://sbox.cashfree.com', 'https://www.facebook.com'],
-        'frame-ancestors': ["'none'"],
-        'object-src': ["'none'"],
-
-        'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-        'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
-
-        'img-src': [
-            "'self'",
-            'data:',
-            'blob:',
-            'https:',
-            'https://maps.gstatic.com',
-            'https://maps.googleapis.com',
-            'https://lh3.googleusercontent.com',
-            process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL || '',
-            'https://api.producthunt.com',
-            'https://m.media-amazon.com',
-            'https://encrypted-tbn0.gstatic.com',
-            'https://encrypted-tbn3.gstatic.com',
-            'https://boxtudio.in',
-            'https://www.elinchrom.com',
-            'https://cdn-icons-png.flaticon.com',
-            'https://www.facebook.com'
-        ],
-
-        'media-src': [
-            "'self'",
-            'blob:',
-            process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL || '',
-        ],
-
-        'connect-src': [
-            "'self'",
-            'ws:',
-            'wss:',
-            'blob:',
-            'data:',
-            'https://api.cashfree.com',
-            'https://sdk.cashfree.com',
-            'https://*.r2.cloudflarestorage.com',
-            process.env.NEXT_PUBLIC_CLOUDFLARE_PUBLIC_URL || '',
-            'https://maps.googleapis.com',
-            'https://fonts.googleapis.com',
-            'https://fonts.gstatic.com',
-            'https://graph.facebook.com',
-            'https://connect.facebook.net',
-            'https://www.facebook.com',
-            'https://www.googleapis.com',
-            'https://vitals.vercel-insights.com',
-            'https://*.ably.io',
-            'wss://*.ably.io',
-            'https://*.ably-realtime.com',
-            'wss://*.ably-realtime.com',
-            'https://*.ably.net',
-            'wss://*.ably.net',
-            'https://capig.datah04.com',
-            'https://vercel.live',
-            'wss://vercel.live'
-        ],
-
-        'frame-src': ["'self'", 'https://www.google.com', 'https://sdk.cashfree.com', 'https://sandbox.cashfree.com', 'https://cashfree.com', 'https://vercel.live', 'https://www.facebook.com'],
-        'script-src': [
-            "'self'",
-            `'nonce-${nonce}'`,
-            "'strict-dynamic'",
-            "'wasm-unsafe-eval'",
-            process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : '',
-            "'unsafe-inline'"
-        ].filter(Boolean)
-    }
-
-    return Object.entries(directives)
-        .map(([k, v]) => `${k} ${Array.from(new Set(v)).join(' ')}`)
-        .join('; ')
-}
-
-function permissionsPolicyForPath(pathname: string): string {
-    const allowGeo =
-        pathname === '/home'
-
-    return [
-        'camera=()',
-        'microphone=()',
-        allowGeo ? 'geolocation=(self)' : 'geolocation=()'
-    ].join(', ')
-}
-
-function applySecurityHeaders(res: NextResponse, pathname: string, nonce: string): void {
-    res.headers.set('X-DNS-Prefetch-Control', 'on')
-    res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
-    res.headers.set('X-Frame-Options', 'DENY')
-    res.headers.set('X-Content-Type-Options', 'nosniff')
-    res.headers.set('X-XSS-Protection', '1; mode=block')
-    res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-    res.headers.set('Permissions-Policy', permissionsPolicyForPath(pathname))
+function applySecurityHeaders(res: NextResponse, nonce: string): void {
+    for (const [key, value] of Object.entries(SECURITY_HEADERS)) res.headers.set(key, value)
     res.headers.set('Content-Security-Policy', buildCSP(nonce))
 }
 
@@ -239,11 +141,10 @@ function applyCors(req: NextRequest, res: NextResponse): void {
 function finalizeResponse(
     request: NextRequest,
     response: NextResponse,
-    pathname: string,
     nonce: string,
     start: number
 ): NextResponse {
-    applySecurityHeaders(response, pathname, nonce)
+    applySecurityHeaders(response, nonce)
     applyCors(request, response)
     response.headers.set('X-Response-Time', `${Date.now() - start}ms`)
     return response
@@ -258,11 +159,11 @@ export async function proxy(request: NextRequest) {
 
     const isAdminDomain = isAdminDomainHost(hostname)
     if (isAdminDomain) {
-        if (pathname.startsWith('/api') && !isAuthApiPath(pathname)) {
-            return finalizeResponse(request, new NextResponse(null, { status: 404 }), pathname, nonce, start)
+        if (pathname.startsWith('/api') && !isAllowedAdminApiPath(pathname)) {
+            return finalizeResponse(request, new NextResponse(null, { status: 404 }), nonce, start)
         }
 
-        if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next') && !isAuthApiPath(pathname)) {
+        if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
             const url = new URL(request.nextUrl)
             url.pathname = `/admin${pathname === '/' ? '' : pathname}`
             const requestHeaders = new Headers(request.headers)
@@ -271,13 +172,12 @@ export async function proxy(request: NextRequest) {
             return finalizeResponse(
                 request,
                 NextResponse.rewrite(url, { request: { headers: requestHeaders } }),
-                pathname,
                 nonce,
                 start
             )
         }
     } else if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-        return finalizeResponse(request, new NextResponse(null, { status: 404 }), pathname, nonce, start)
+        return finalizeResponse(request, new NextResponse(null, { status: 404 }), nonce, start)
     }
 
     const method = request.method
@@ -296,7 +196,6 @@ export async function proxy(request: NextRequest) {
             return finalizeResponse(
                 request,
                 createErrorResponse('Invalid request origin', 403),
-                pathname,
                 nonce,
                 start
             )
@@ -324,7 +223,7 @@ export async function proxy(request: NextRequest) {
             res.headers.set('X-RateLimit-Reset', String(Math.ceil(rl.resetTime / 1000)))
             if (rl.blockedUntil) res.headers.set('X-RateLimit-Blocked-Until', String(Math.ceil(rl.blockedUntil / 1000)))
 
-            applySecurityHeaders(res, pathname, nonce)
+            applySecurityHeaders(res, nonce)
             applyCors(request, res)
             res.headers.set('X-Response-Time', `${Date.now() - start}ms`)
             return res
@@ -335,7 +234,7 @@ export async function proxy(request: NextRequest) {
         requestHeaders.set('Content-Security-Policy', contentSecurityPolicy)
         const res = NextResponse.next({ request: { headers: requestHeaders } })
 
-        applySecurityHeaders(res, pathname, nonce)
+        applySecurityHeaders(res, nonce)
         applyCors(request, res)
 
         res.headers.set('X-RateLimit-Limit', String(RATE_LIMIT.maxRequests))
@@ -354,7 +253,7 @@ export async function proxy(request: NextRequest) {
         })
 
         const res = handleRouteError(err, `proxy: ${pathname}`)
-        applySecurityHeaders(res, pathname, nonce)
+        applySecurityHeaders(res, nonce)
         applyCors(request, res)
         res.headers.set('X-Response-Time', `${Date.now() - start}ms`)
         return res

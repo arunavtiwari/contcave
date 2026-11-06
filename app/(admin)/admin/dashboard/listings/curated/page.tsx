@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import getAmenities from "@/app/actions/getAmenities";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import CreateCuratedListingForm from "@/components/admin/CreateCuratedListingForm";
 
@@ -9,10 +10,12 @@ export default async function CreateCuratedListingPage() {
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") redirect("/admin");
 
+    const amenities = await getAmenities();
+
     return (
         <div className="max-w-2xl mx-auto px-4 py-8">
             <div className="rounded-2xl border border-border bg-background p-6">
-                <CreateCuratedListingForm />
+                <CreateCuratedListingForm amenities={amenities} />
             </div>
         </div>
     );

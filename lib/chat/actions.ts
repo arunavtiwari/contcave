@@ -1,19 +1,15 @@
 "use server";
 
-import Ably from "ably";
-import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
-import { getAblyApiKey } from "@/lib/ably-server";
+import { publishRealtime } from "@/lib/ably-server";
 import { getClientIp } from "@/lib/http/requestMeta";
 import prisma from "@/lib/prismadb";
 import { ACTIVE_RESERVATION_STATUSES, isChatReadOnly } from "@/lib/reservation/status";
 import { rateLimit } from "@/lib/security/rateLimit";
+import { withTransientRetry } from "@/lib/transient-retry";
 
-/**
- * Resets the unread count for the current user in a specific reservation chat.
- */
 export async function markAsRead(reservationId: string) {
     try {
         if (!/^[a-f\d]{24}$/i.test(reservationId)) return { success: false, error: "Invalid reservation" };
@@ -29,21 +25,18 @@ export async function markAsRead(reservationId: string) {
 
         const isOwner = reservation.listing.userId === currentUser.id;
         const isGuest = reservation.userId === currentUser.id;
+        if (!isOwner && !isGuest) return { success: false, error: "Reservation not found" };
 
-        if (isOwner) {
-            await prisma.reservation.updateMany({
-                where: { id: reservationId, lastMessageAt: reservation.lastMessageAt },
-                data: { unreadCountOwner: 0 }
-            });
-        } else if (isGuest) {
-            await prisma.reservation.updateMany({
-                where: { id: reservationId, lastMessageAt: reservation.lastMessageAt },
-                data: { unreadCountGuest: 0 }
-            });
-        } else return { success: false, error: "Reservation not found" };
+        const unread = isOwner ? reservation.unreadCountOwner : reservation.unreadCountGuest;
+        if (!unread) return { success: true };
 
-        revalidatePath("/dashboard/chat");
-        revalidatePath("/");
+        const cleared = await prisma.reservation.updateMany({
+            where: { id: reservationId, lastMessageAt: reservation.lastMessageAt },
+            data: isOwner ? { unreadCountOwner: 0 } : { unreadCountGuest: 0 },
+        });
+        if (cleared.count > 0) {
+            await publishRealtime([{ channel: `notifications:${currentUser.id}`, name: "mark_as_read", data: { reservationId } }]);
+        }
         return { success: true };
     } catch (error) {
         console.error("[markAsRead] Error:", error);
@@ -80,7 +73,7 @@ export async function sendChatMessage(reservationId: string, text: string) {
         if (isChatReadOnly(reservation.status)) return { success: false, error: "This chat is read-only because the booking is complete." };
 
         const recipientId = isOwner ? reservation.userId : reservation.listing.userId;
-        const message = await prisma.$transaction(async (tx) => {
+        const message = await withTransientRetry(() => prisma.$transaction(async (tx) => {
             const updated = await tx.reservation.updateMany({
                 where: { id: reservationId, status: { in: ACTIVE_RESERVATION_STATUSES } },
                 data: {
@@ -102,37 +95,22 @@ export async function sendChatMessage(reservationId: string, text: string) {
                 },
                 select: { id: true, createdAt: true },
             });
-        });
+        }));
 
-        const ablyApiKey = getAblyApiKey();
-        if (ablyApiKey) {
-            const ably = new Ably.Rest({ key: ablyApiKey });
-            await Promise.allSettled([
-                ably.channels.get(`chat:${reservationId}`).publish("chat", {
-                    id: message.id,
-                    text: trimmed,
-                    senderId: currentUser.id,
-                    email: currentUser.email || currentUser.id,
-                    name: currentUser.name || "User",
-                    timestamp: message.createdAt.toISOString(),
-                }),
-                ably.channels.get(`notifications:${recipientId}`).publish("new_message", { reservationId }),
-            ]);
-        }
-
-        revalidatePath("/dashboard/chat");
-
-        return {
-            success: true,
-            data: {
-                id: message.id,
-                text: trimmed,
-                senderId: currentUser.id,
-                email: currentUser.email || currentUser.id,
-                name: currentUser.name || "User",
-                timestamp: message.createdAt.toISOString(),
-            }
+        const sent = {
+            id: message.id,
+            text: trimmed,
+            senderId: currentUser.id,
+            email: currentUser.email || currentUser.id,
+            name: currentUser.name || "User",
+            timestamp: message.createdAt.toISOString(),
         };
+        await publishRealtime([
+            { channel: `chat:${reservationId}`, name: "chat", data: sent },
+            { channel: `notifications:${recipientId}`, name: "new_message", data: { reservationId } },
+        ]);
+
+        return { success: true, data: sent };
     } catch (error) {
         console.error("[sendChatMessage] Error:", error);
         if (error instanceof Error && error.message === "Chat became read-only") {

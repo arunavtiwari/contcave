@@ -30,7 +30,14 @@ export default async function getReviews(listingId: string): Promise<PublicRevie
         });
 
         return reviews.map((review) => ({
-            ...review,
+            id: review.id,
+            listingId: review.listingId,
+            rating: review.rating,
+            comment: review.comment,
+            source: review.source,
+            guestName: review.guestName,
+            guestRole: review.guestRole,
+            user: review.user,
             createdAt: review.createdAt.toISOString(),
         }));
     } catch (error) {

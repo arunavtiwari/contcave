@@ -3,21 +3,27 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import qs from "query-string";
-import { memo, Suspense, useMemo } from "react";
+import { memo, type MouseEvent, Suspense, useMemo } from "react";
 import { IconType } from "react-icons";
+
+import { useFilterNavigation } from "@/hooks/useFilterNavigation";
 
 type Props = {
   icon: IconType;
   label: string;
   selected?: boolean;
+  city?: string;
+  href?: string;
 };
 
-const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label, selected }: Props) {
+const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label, selected, city, href }: Props) {
   const params = useSearchParams();
+  const { navigate } = useFilterNavigation();
 
   const currentQuery = params ? qs.parse(params.toString()) : {};
 
   const updatedQuery: Record<string, string | string[] | null | undefined> = {
+    ...(city ? { locationValue: city } : {}),
     ...currentQuery,
     venueTypes: label,
   };
@@ -28,7 +34,7 @@ const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label,
 
   const url = qs.stringifyUrl(
     {
-      url: "/home",
+      url: "/studios",
       query: updatedQuery,
     },
     { skipNull: true }
@@ -41,8 +47,14 @@ const CategoryBoxContent = memo(function CategoryBoxContent({ icon: Icon, label,
     [selected]
   );
 
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    navigate(href ?? url);
+  };
+
   return (
-    <Link href={url} className={className}>
+    <Link href={href ?? url} className={className} onClick={handleClick}>
       <Icon size={26} />
       <div className="font-medium text-xs w-fit whitespace-nowrap">{label}</div>
     </Link>

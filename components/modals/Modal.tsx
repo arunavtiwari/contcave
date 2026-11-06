@@ -9,11 +9,11 @@ import Heading from "@/components/ui/Heading";
 type Props = {
   isOpen?: boolean;
   onCloseAction: () => void;
-  onSubmitAction: () => void;
+  onSubmitAction?: () => void;
   title?: string;
   body?: React.ReactElement;
   footer?: React.ReactElement;
-  actionLabel: string;
+  actionLabel?: string;
   disabled?: boolean;
   customWidth?: string;
   fixedHeight?: boolean;
@@ -57,7 +57,7 @@ function Modal({
   onSubmitAction,
   title,
   body,
-  actionLabel,
+  actionLabel = "",
   footer,
   disabled,
   secondaryActionAction,
@@ -104,7 +104,7 @@ function Modal({
 
   const handleSubmit = useCallback(() => {
     if (disabled) return;
-    onSubmitAction();
+    onSubmitAction?.();
   }, [onSubmitAction, disabled]);
 
   const handleSecondAction = useCallback(() => {

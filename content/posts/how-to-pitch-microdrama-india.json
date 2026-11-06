@@ -1,0 +1,312 @@
+{
+  "id": "how-to-pitch-microdrama-india",
+  "title": "How to Pitch a Microdrama in India: 2026 Guide for Creators",
+  "categories": [
+    {
+      "id": "creator-economy",
+      "title": "Creator Economy",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Creator Economy",
+          "id": "bc-creator-economy"
+        }
+      ],
+      "createdAt": "2026-10-18T00:00:00Z",
+      "updatedAt": "2026-10-18T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-18T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A practical guide for writers, directors and small production houses on pitching vertical microdramas to Indian apps, from the hook and episode map to a studio-shot pilot and a contract that protects you."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "How to Pitch a Microdrama in India: 2026 Guide for Creators"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "Vertical drama apps in India are commissioning at a pace long-form streaming never did, yet most writers and small production houses still do not know how to pitch a microdrama in India in a way that gets a reply. A vertical series is judged on different things from a feature or an OTT show: the hook in the first seconds, the cliffhanger rhythm across dozens of episodes, and whether you can actually deliver on a tight budget. This guide covers who is buying, what a vertical pitch should contain, how to shoot a short proof-of-concept pilot, and the contract terms to check before you sign."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "Who is buying vertical series in India right now"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "The buyer list has grown quickly since 2025. Active Indian vertical drama apps include Kuku TV from Kuku FM, Story TV from Eloelo, Quick TV from ShareChat, Chai Shots from Chai Bisket (Telugu-first), ReelSaga, Flick TV, Pocket TV, Amazon MX Fatafat, Zee's Bullet and Balaji's Kutingg. Each has its own genres, languages and preferred episode lengths, so watch a dozen shows on an app before you pitch to it."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "Money is flowing into the category. TechCrunch reported that Kuku raised an $85 million Series C in October 2025, and smaller players have raised seed rounds reported at around $5 million for Chai Shots, about $2.3 million for Flick TV and about $2.1 million for ReelSaga. Funded apps need a steady pipeline of shows, which is the opening for new voices."
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "indiantelevision reported that Kuku TV works with independent filmmakers, writers and production houses, not only in-house teams.",
+        "Kuku TV ran a talent hunt called Drama Drop with a reported ₹40 lakh prize pool: four winners receiving ₹10 lakh each plus a production deal. Entries may well have closed, but it shows that apps actively look for outside creators. Watch the apps' official channels for the next call.",
+        "Variety reported in 2026 that Applause Entertainment and Story TV announced a microdrama co-production slate. Adapting existing IP, such as a novel, a web series or a popular audio show, is another route in."
+      ]
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Submission processes change often. Before you send anything, check the app's official website, creator portal or verified social handles for the current submission route, and never pay anyone a fee to get your script read."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "What a vertical series pitch deck must include"
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "Keep the deck short, around 10 to 12 slides, and make every slide answer one question a commissioning team will ask."
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Logline: one sentence with the protagonist, the conflict and the twist. Revenge, romance, hidden identity and family drama dominate these apps, so show your spin on a familiar engine.",
+        "The hook: what happens in the first 10 seconds of episode one. Write it out as a beat, not a promise.",
+        "Cliffhanger cadence: how every episode ends on a question, reveal or reversal, with a bigger turn every 8 to 10 episodes, since viewers on many apps have to unlock later episodes and need a reason to pay.",
+        "Episode map: a one-line summary for every episode across 50 to 90 episodes, grouped into arcs.",
+        "Sample scripts: three to five full episode scripts, starting with episode one.",
+        "Cast and look: character notes, casting ideas and a few reference frames shot or composed in 9:16.",
+        "Budget and schedule: a line-item total, number of shoot days and number of sets.",
+        "Proof of concept: a link-ready pilot or sizzle, plus anything you have made before.",
+        "Team: who writes, directs and produces, and what each has delivered."
+      ]
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Pitch the first 10 seconds and the last 10 seconds of every episode. Everything in between is what the commissioning team trusts you to fill."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Write the hook and the episode map first"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "A strong episode map does more for a vertical pitch than a long synopsis. Start with the ending and work back, so every arc builds to a reveal. Each episode should run roughly one to two minutes and carry a single beat: a confrontation, a discovery or a decision. If an episode has two beats, split it; if it has none, merge it."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Write the first line of dialogue for episode one before anything else. If it does not grab you, it will not grab a scrolling viewer.",
+        "Keep the main cast to four to six characters so the show is cheap to shoot and easy to follow.",
+        "Set the story in two or three locations that can be built or found in one place. Commissioning teams notice when a script is shootable.",
+        "Mark every episode ending in your map with its hook type, so you can spot runs of weak endings."
+      ]
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Shoot a 2–3 episode pilot as proof of concept"
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Nothing persuades like footage. A pilot of two or three episodes shows that you can find actors who hold a close-up, frame for a phone screen and land a cliffhanger. It also tests your budget assumptions before a platform holds you to them."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Pick the first two or three episodes, since they carry the hook and the first cliffhanger.",
+        "Book one studio that can stand in for your main set, rather than chasing several locations.",
+        "Plan for a single day: a short morning for lighting and blocking, then shooting both episodes in set order.",
+        "Use the same lead actors you intend to cast, if you can, so the pilot sells them too.",
+        "Record clean dialogue with lavalier microphones and a boom. Bad sound kills a pilot faster than modest lighting.",
+        "Cut the episodes in 9:16 with burnt-in subtitles, exactly as they would appear on the app."
+      ]
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "Keep the pilot spend modest and proportional. It is a sample, not the show, and its job is to make a commissioning executive press play on the next episode."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Writer pay and contract checklist"
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Pay in this segment is still settling. bestmediainfo reported that microdrama writers earn roughly ₹15,000 to ₹1 lakh per project. A writer survey reported by Storyboard18 found about 90 percent earned under ₹75,000 per project, about 72 percent had no written contract and about 81 percent faced unlimited revisions. Those numbers are the best argument for getting terms in writing before you start."
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Fee: a fixed amount per episode or per project, with what it covers stated clearly.",
+        "Revisions: a cap, such as two rounds per draft, with extra rounds paid.",
+        "Payment timeline: a signing advance, milestones tied to delivery, and a deadline for payment after each milestone.",
+        "Credits: your name and role on screen and in the app listing.",
+        "Rights: which rights you assign, for which languages and territories, and whether you keep anything such as sequel, adaptation or dubbing rights.",
+        "Kill fee: what you are paid if the show is dropped after you deliver.",
+        "Bonuses: any upside if the series crosses a viewership threshold or gets a second season."
+      ]
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "If you are a production house, add delivery specs, ownership of raw footage, a payment schedule that matches your shoot spend, and who pays for reshoots requested after delivery. Have a lawyer read anything that assigns rights."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "FAQs: How to Pitch a Microdrama in India"
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "How do I submit a script to Kuku TV?"
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "indiantelevision has reported that Kuku TV works with independent writers, filmmakers and production houses. Check Kuku TV's official website and verified social handles for the current submission route or the next talent hunt, as processes change, and send a short deck, episode map and sample scripts rather than a full screenplay."
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "How much do microdrama writers get paid in India?"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "bestmediainfo reported a range of roughly ₹15,000 to ₹1 lakh per project. A survey reported by Storyboard18 found most writers earned under ₹75,000 per project, so negotiate fee, revisions and payment dates in writing."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "Do microdrama apps work with independent filmmakers?"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Yes. Kuku TV has been reported to work with independent creators, and talent hunts such as Drama Drop have offered production deals. A shot pilot and a realistic budget make an independent pitch far easier to say yes to."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "What should a vertical series pitch include?"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "A logline, the first-10-second hook, cliffhanger cadence, an episode map for 50 to 90 episodes, three to five sample scripts, cast and look, budget and schedule, and a proof-of-concept pilot."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "A pilot lives or dies on one good shoot day. ContCave lets you browse and compare studios across Delhi NCR in one place, see hourly pricing upfront, and check listing photos, amenities, add-ons and packages hosts offer before you commit. Read reviews from past bookings, message the host to confirm the space can pass for your main set, then book and pay online with a published cancellation policy."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Commissioning teams buy shows they can picture on a phone and trust you to deliver on budget. Lead with the hook, prove it with footage, and protect yourself with a written contract."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "Watch a dozen shows on the app you are targeting before you write a word.",
+        "Build an episode map with a marked hook at the end of every episode.",
+        "Shoot a two-to-three episode pilot in one studio day, in 9:16 with clean sound.",
+        "Keep your deck to 10 to 12 slides, including a real budget and schedule.",
+        "Put fee, revision cap, credits, rights and payment dates in writing before you start."
+      ]
+    }
+  ],
+  "slug": "how-to-pitch-microdrama-india",
+  "meta": {
+    "title": "How to Pitch a Microdrama in India: 2026 Guide for Creators",
+    "description": "How to pitch a microdrama in India: what apps like Kuku TV look for, a vertical series pitch deck outline, a pilot plan and a contract checklist. ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-18T04:00:00Z",
+  "updatedAt": "2026-10-18T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "how to pitch microdrama india",
+    "microdrama pitch",
+    "microdrama script submission",
+    "kuku tv content partner",
+    "write for kuku tv",
+    "microdrama writer pay india",
+    "vertical series pitch deck",
+    "pitch a vertical series",
+    "microdrama apps india",
+    "Kuku TV",
+    "Story TV",
+    "Quick TV",
+    "Chai Shots",
+    "ReelSaga",
+    "microdrama pilot shoot",
+    "proof of concept pilot",
+    "screenwriter contract india",
+    "writer fee per project india",
+    "microdrama production house delhi ncr",
+    "vertical drama writers delhi",
+    "microdrama pitch 2026",
+    "for screenwriters",
+    "for indie filmmakers",
+    "for small production houses",
+    "for youtube sketch creators",
+    "ContCave"
+  ]
+}

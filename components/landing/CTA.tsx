@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 import Container from "@/components/layout/Container";
@@ -14,14 +15,17 @@ interface CTAProps {
 
 const CTA: React.FC<CTAProps> = ({ currentUser }) => {
   const uiStore = useUIStore();
+  const router = useRouter();
 
   const handleListStudio = useCallback(() => {
-    if (currentUser) {
-      uiStore.onOpen("rent");
-    } else {
+    if (!currentUser) {
       uiStore.onOpen("login");
+      return;
     }
-  }, [currentUser, uiStore]);
+
+    if (currentUser.role === "ADMIN" || currentUser.role === "OWNER") uiStore.onOpen("rent");
+    else router.push("/dashboard/profile");
+  }, [currentUser, router, uiStore]);
 
   return (
     <section className="py-section">

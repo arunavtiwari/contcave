@@ -112,3 +112,38 @@ users/{userId}/billing/vouchers/{financialYear}/{voucherType}/{voucherId}/{vouch
 2. Listing isolation: listing-owned assets are grouped under `users/{ownerId}/listings/{listingId}`.
 3. Erasure support: deleting a user can recursively remove `users/{userId}/`.
 4. Listing cleanup: deleting a listing can recursively remove `users/{ownerId}/listings/{listingId}/`.
+
+## Bucket CORS Configuration (Mandatory)
+
+Direct browser-to-R2 uploads (PUT requests with presigned URLs) require CORS configuration on **BOTH** buckets:
+1. Public bucket (`CLOUDFLARE_R2_BUCKET_NAME`, e.g., `contcave-prod`)
+2. Private bucket (`CLOUDFLARE_R2_PRIVATE_BUCKET_NAME`, e.g., `contcave-private`)
+
+If CORS is missing on either bucket, the browser preflight `OPTIONS` request fails with `CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource` and `Failed to fetch`.
+
+### Required CORS Policy (Cloudflare Dashboard > R2 > Bucket > Settings > CORS Policy)
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "https://contcave.com",
+      "https://staging.contcave.com",
+      "http://localhost:3000"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "PUT",
+      "HEAD"
+    ],
+    "AllowedHeaders": [
+      "*"
+    ],
+    "ExposeHeaders": [
+      "ETag"
+    ],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+

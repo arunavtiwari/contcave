@@ -1,0 +1,331 @@
+{
+  "id": "quick-commerce-product-images-blinkit-zepto",
+  "title": "Blinkit Product Image Requirements: A Studio Pack-Shot Plan",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Content Creation",
+          "id": "bc-content-creation"
+        }
+      ],
+      "createdAt": "2026-10-16T00:00:00Z",
+      "updatedAt": "2026-10-16T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-16T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "What D2C food, beauty and FMCG brands are commonly asked for when onboarding to Blinkit, Zepto and Swiggy Instamart, and a studio plan to shoot every SKU and variant in one booked session."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Blinkit Product Image Requirements: A Studio Pack-Shot Plan"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "If your brand has just got a yes from a quick-commerce category manager, the next email usually asks for a catalogue sheet and product images for every SKU, often within days. Founders searching for Blinkit product image requirements quickly find that there is no single official page to follow. This guide sets out what brands are commonly asked for by Blinkit, Zepto and Swiggy Instamart, then gives you a practical studio plan: a per-SKU shot list, how to light glossy, foil and transparent packs, how to shoot a flavours-by-sizes variant matrix efficiently in an hour-booked studio, and how to name and export files so onboarding does not bounce back."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "What the platforms actually ask for"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "Be clear on one thing first: none of these platforms publishes an official public image specification. Requirements reach brands through seller onboarding teams and category managers, and they can differ by category and change over time. Always work from the latest brief your onboarding contact sends you."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "That said, brands and catalogue agencies commonly report a similar baseline."
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "At least three images per SKU",
+        "A front of pack image on a clean white background, at about 1000x1000 pixels or larger",
+        "A back of pack image, or a clear shot of the nutrition, ingredient or usage panel",
+        "A lifestyle or \"picker\" image showing the product in use, in hand or in context"
+      ]
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Catalogue sheets are commonly reported to ask for the EAN or barcode, MRP, net quantity, shelf life, product dimensions and HSN code alongside the images. Pull these from your packaging artwork and compliance files before the shoot, because a mismatch between the photographed MRP and the sheet is an easy reason for rejection."
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "There is also a useful designer rule of thumb that is not platform policy: the product name and pack size should read clearly when the front of pack image is shrunk to a 200x200 thumbnail. Quick-commerce shoppers scroll fast on small screens, and the thumbnail is the whole shop window."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Shrink your hero shot to the size of a fingernail on your phone. If you cannot tell the flavour and the grams, neither can the shopper."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Why the catalogue shoot deserves a real studio"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "Quick commerce has become a serious ad channel as well as a sales channel. exchange4media has reported an estimate of roughly ₹3,000 to 3,500 crore in quick-commerce ad revenue, and other trade estimates since have gone higher. Whatever the exact number, brands are paying to push SKUs onto the first screen, and an unclear or mismatched pack image wastes that spend. Phone shots on a dining table rarely survive a 200 pixel crop with readable text, consistent white and no colour cast. A few hours in a studio with a white sweep or a tabletop setup usually costs less than the rework."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Per-SKU shot list"
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Plan every SKU with the same list so retouching and export can be batched."
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Front of pack, straight on, on seamless white, product filling most of the frame",
+        "Front of pack at a slight three-quarter angle to show depth (useful for the gallery)",
+        "Back of pack or nutrition, ingredients and FSSAI panel, shot flat and sharp enough to read",
+        "Side panels if they carry key claims, usage instructions or batch information",
+        "Picker or lifestyle image: in hand, on a kitchen counter, on a vanity, or with the food served",
+        "Detail shot for texture: a swatch, a pour, a scoop, the product out of the pack",
+        "Pack-size comparison shot if the SKU has multiple sizes"
+      ]
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "The first three are the onboarding minimum in most reports. The rest help conversion and give your performance team ad creatives from the same session."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Lighting glossy, foil and transparent packs"
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Packaging is where most catalogue shoots lose time. Plan the light for the hardest pack type in your range first."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Glossy cartons and pouches: use large soft sources, such as a softbox or a diffusion scrim, and angle them so reflections fall off the label rather than across the product name. A polarising filter can help cut glare.",
+        "Foil and metallic packs: foil reflects everything around it, including the camera. Surround the product with white bounce cards and diffusion to create clean, even reflections, and use black cards where you want edge definition.",
+        "Transparent bottles and jars: light from behind or the sides through diffusion so the liquid glows and the edges read as clean lines. Black cards placed just out of frame give a crisp outline against white.",
+        "Crinkled pouches: lightly fill or stuff them so the front panel sits flat, and smooth creases before each frame.",
+        "Labels: wipe every pack with a microfibre cloth; dust and fingerprints show up badly on white."
+      ]
+    },
+    {
+      "id": "quote-2",
+      "blockType": "quote",
+      "content": "Lock one lighting setup per packaging type and shoot every SKU of that type before you touch a light again."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Plan a variant matrix for an hour-booked studio"
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "A range with four flavours in three sizes is twelve SKUs, and with six or seven images each you are looking at 70 to 85 finished files. That fits in a single day only if you shoot in the right order."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Group SKUs by packaging type first, then by size, then by flavour",
+        "Shoot all front-of-pack frames for one size together, swapping only the product",
+        "Change height and framing once per size, not once per flavour",
+        "Batch back-of-pack and panel shots on a separate flat-lay setup",
+        "Do picker and lifestyle images last, on a styled corner, once the white set is wrapped"
+      ]
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "For planning, many teams assume that straightforward white packshots move quickly once the set is locked, while styled lifestyle images take far longer each. Agree estimates with your photographer, then add setup, strike and a buffer for reshoots inside the booked hours."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Naming and export conventions"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "Your onboarding contact may give you a format. If not, use one that is consistent and machine-friendly."
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Name by SKU or EAN, then image type and sequence, for example EAN_front_01, EAN_back_01, EAN_picker_01",
+        "Use lowercase or consistent case, no spaces, no special characters",
+        "Export square images at 1000x1000 or larger unless told otherwise, with the product centred and consistent margins across the range",
+        "Keep a pure white background on front of pack images",
+        "Save sRGB JPEGs for upload and keep the master files",
+        "Keep one folder per SKU, plus a master sheet linking file names to the catalogue data"
+      ]
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "FAQs: quick commerce product images"
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "How do I sell on Blinkit as a brand?"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Brands typically apply through the platform's seller or brand partnership channels and are then handled by an onboarding or category team. Expect to share business and compliance documents, a catalogue sheet and product images. Confirm current steps directly with Blinkit, as the process can change."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "What images does Zepto need?"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "Zepto does not publish an official public image spec. Brands commonly report a front of pack on white, a back of pack or nutrition panel, and a lifestyle image per SKU. Treat that as a baseline and follow the brief your category manager sends."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "What is a picker image?"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "It is generally used to mean a contextual or lifestyle image that helps a shopper recognise and choose the product, such as the pack in hand or the product in use. Ask your onboarding contact how they define it for your category."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "What catalogue details does Instamart ask for?"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Brands commonly report fields such as EAN or barcode, MRP, net quantity, shelf life, dimensions and HSN code, along with images. Check the exact template with your Instamart contact before you fill it in."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "A pack-shot day needs a clean white set, room for a lifestyle corner and enough hours to finish the matrix. On ContCave you can browse and compare studios across Delhi NCR, see hourly pricing upfront, and check listing photos, amenities, add-ons and packages hosts offer. Message the host before booking to confirm backdrops and lighting, read reviews from past bookings, and book and pay online."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "Quick-commerce image rules are not published, but the common baseline is clear and easy to plan for. Shoot to that baseline, test every hero at thumbnail size and match every image to the catalogue sheet."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "Get the latest image and catalogue brief from your onboarding contact",
+        "Build a per-SKU shot list with front, back and picker images",
+        "Group the variant matrix by packaging type and size",
+        "Test front of pack images at 200x200 before export",
+        "Book enough studio hours for setup, strike and reshoots"
+      ]
+    }
+  ],
+  "slug": "quick-commerce-product-images-blinkit-zepto",
+  "meta": {
+    "title": "Blinkit Product Image Requirements: A Studio Pack-Shot Plan",
+    "description": "Blinkit product image requirements explained for D2C brands, plus a per-SKU studio shot list for Zepto and Instamart. Book the right studio on ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-16T04:00:00Z",
+  "updatedAt": "2026-10-16T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "blinkit product image requirements",
+    "quick commerce catalogue shoot",
+    "how to list product on blinkit",
+    "zepto seller catalogue images",
+    "instamart product listing images",
+    "front of pack photo",
+    "back of pack photo",
+    "picker image",
+    "quick commerce product photography",
+    "packshot photography",
+    "product photography on white",
+    "blinkit seller onboarding",
+    "sell on blinkit as a brand",
+    "fmcg product photography india",
+    "d2c product shoot",
+    "beauty product photography",
+    "food packaging photography",
+    "catalogue shoot delhi",
+    "product photography studio delhi ncr",
+    "packshot studio gurugram",
+    "product shoot studio noida",
+    "ecommerce catalogue shoot cost",
+    "product image naming convention",
+    "variant matrix shoot",
+    "quick commerce listing 2026",
+    "product shoot for d2c brands",
+    "ContCave"
+  ]
+}

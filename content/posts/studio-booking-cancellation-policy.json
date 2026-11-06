@@ -1,0 +1,298 @@
+{
+  "id": "studio-booking-cancellation-policy",
+  "title": "Studio Booking Cancellation Policy: Refund Rules Explained",
+  "categories": [
+    {
+      "id": "booking-tips",
+      "title": "Booking Tips",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Booking Tips",
+          "id": "bc-booking-tips"
+        }
+      ],
+      "createdAt": "2026-10-09T00:00:00Z",
+      "updatedAt": "2026-10-09T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-09T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "Cancellation terms for studio bookings in India are rarely standard — this guide breaks down notice periods, refund percentages, and deposit rules so you know what to expect before you pay."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Studio Booking Cancellation Policy: Refund Rules Explained"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "If you have ever paid for a studio slot and then had a shoot fall through, you already know why a clear studio booking cancellation policy matters. Plans change — a client reschedules, a model drops out, the weather ruins an outdoor pickup shot you needed first. What happens to your money next depends entirely on the notice period, the refund percentage, and whether any part of your payment was a non-refundable deposit. In India, these terms are rarely standardised: every studio writes its own rules, often buried in a WhatsApp confirmation message rather than a proper policy page. This guide lays out how cancellation and refund terms for studio rentals usually work, what counts as fair, and what to check before you confirm a booking."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "What a Studio Booking Cancellation Policy Usually Covers"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "A workable cancellation policy answers four questions before you ever need it: how much notice counts as \"in time,\" what percentage comes back at each notice tier, whether the security deposit is treated separately from the rental fee, and how long the refund takes to actually land in your account. Most independent studios in Delhi NCR handle this informally — a verbal \"we'll adjust it\" or a one-line clause on an invoice. That's workable for a one-off booking, but it leaves both sides guessing when a cancellation actually happens."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "The safer pattern, and the one marketplaces like ContCave push studios toward, is a written policy visible at the time of booking: exact hour cutoffs, exact refund percentages, and a plain statement on deposits. If a studio can't tell you its cancellation terms before you pay, treat that as a flag, not a formality."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Notice Periods and Refund Percentages to Expect"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Across studio rentals generally, the policy is usually tiered by how far in advance you cancel, not a flat yes-or-no. A typical structure looks like this:"
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Cancel 48–72 hours or more before your slot: full or near-full refund of the rental fee.",
+        "Cancel 24–48 hours before: a partial refund, commonly in the 50–75% range.",
+        "Cancel inside 24 hours, or no-show: little to no refund, since the studio has usually already turned away other bookings for that slot.",
+        "Reschedule instead of cancel: many hosts waive the fee entirely if you move the booking to another slot within a set window (often 7–14 days), since they don't lose the day's revenue."
+      ]
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "These bands aren't a legal standard — they're the common shape you'll see across hourly-rental spaces. Always confirm the exact hours and percentages for the specific studio you're booking, since a few hosts still run same-day cancellations with zero refund regardless of notice."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "As a rule of thumb: never book a studio whose cancellation terms you can't see in writing before you pay. A verbal \"it'll be fine\" is unenforceable the day you actually need the refund."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Security Deposits: Refundable or Not?"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "Many studios in Delhi, Noida, and Gurugram take a security deposit on top of the rental fee — typically to cover equipment damage, overtime, or a no-show. Three things decide whether you see that money again:"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Damage-contingent deposits are refundable in full if the space and any provided gear come back undamaged, usually processed within a few business days of the shoot.",
+        "Booking-confirmation deposits (a smaller amount paid just to hold the slot) are frequently non-refundable on guest-initiated cancellation, even when the rest of the rental fee is partly refunded.",
+        "GST and payment gateway charges are sometimes non-refundable even on a full cancellation, since the platform or processor has already deducted them — check whether quoted refund percentages are of the base rental fee or the total amount paid."
+      ]
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Ask the host to state, in writing, which bucket your deposit falls into before you pay it. \"Deposit\" is used loosely enough in this industry that it can mean three different things depending on who you ask."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "When the Host Has to Cancel Your Booking"
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "Cancellation policies usually read one-sided — all about what you lose if you cancel — but a fair one also covers the reverse. If a host cancels your confirmed slot (equipment failure, double-booking, a building issue), you should get a full refund of everything you paid, including any deposit, with no deduction for processing. Any responsible studio or marketplace will also try to help you rebook a comparable slot at short notice rather than leaving you to start over."
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "If a host cancels repeatedly or with no clear reason, treat that as a signal about reliability, not just a one-off refund issue — it's worth factoring into whether you book with them again."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Rescheduling Instead of Cancelling"
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "If your shoot date has moved but the shoot itself hasn't been cancelled, ask about rescheduling before you ask about a refund. Most hosts would rather move your slot than lose the booking entirely, and rescheduling usually comes with a smaller fee (or none) compared to cancelling outright. A few things to confirm before you reschedule:"
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Is there a cap on how many times you can reschedule one booking for free?",
+        "Does the new slot need to be booked within a fixed window (commonly 7–14 days)?",
+        "If the new slot is priced higher (peak hours, festive season demand), do you pay the difference?"
+      ]
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "For recurring bookers — brands running monthly shoots, podcasters recording weekly — a studio that offers flexible rescheduling without penalty is usually worth more than one offering a marginally lower hourly rate."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "FAQs: Studio Booking Cancellation Policy"
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "What is a reasonable notice period for a studio booking cancellation?"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "Most studios treat 48–72 hours before your slot as the cutoff for a full or near-full refund, with reduced refunds inside that window. There's no single legal standard in India, so the exact cutoff depends on the studio — always confirm it before you pay."
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "Can I get a full refund if I cancel last minute?"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Usually not. Cancelling inside 24 hours of your slot, or not showing up, typically forfeits most or all of the rental fee, since the studio has already blocked that time and likely turned away other bookings. Some hosts will still offer a reschedule instead of a refund in these cases."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "Is the security deposit refundable if I cancel my booking?"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "It depends on what the deposit was for. A damage deposit tied to equipment or the space is usually refunded in full if nothing is damaged, while a smaller deposit paid just to confirm the slot is often non-refundable on guest cancellation. Ask the host to clarify which applies before paying."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "What happens if the host cancels on me?"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "You should receive a full refund, including any deposit, with no deductions. A reliable host or marketplace will also offer to help you find an alternative slot at short notice."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "Does GST apply to cancellation or refund amounts?"
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Refunds are usually processed on the base rental amount, with GST and payment gateway charges sometimes non-refundable depending on the studio's invoicing setup. Check whether a quoted refund percentage applies to the total you paid or just the pre-tax rental fee."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "ContCave lists each studio's hourly pricing and booking terms upfront, before you pay, so you're not relying on a verbal promise about refunds. Because every booking runs through one platform, cancellation and rescheduling terms are visible and consistent across studios in Delhi NCR, rather than varying invoice to invoice. If a host cancels on you, ContCave's instant booking flow makes it easier to compare and rebook an equivalent space without starting your search from zero."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "A studio booking cancellation policy is only useful if you read it before you need it, not after. Treat it the same way you'd treat any other contract term — confirm it, screenshot it, and plan your shoot timeline with some buffer against last-minute changes."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Ask for the exact notice-period cutoffs and refund percentages in writing before you pay.",
+        "Clarify what your deposit actually covers — damage, confirmation, or both.",
+        "Confirm what happens, step by step, if the host cancels on you instead.",
+        "Prefer studios that offer free or low-cost rescheduling over a rigid refund-only policy.",
+        "Compare cancellation terms across studios the same way you'd compare hourly rates."
+      ]
+    }
+  ],
+  "slug": "studio-booking-cancellation-policy",
+  "meta": {
+    "title": "Studio Booking Cancellation Policy: Refund Rules Explained",
+    "description": "A clear studio booking cancellation policy guide for India — notice periods, refund percentages, and deposits. See how ContCave keeps cancellations fair."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-09T04:00:00Z",
+  "updatedAt": "2026-10-09T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "studio booking cancellation policy",
+    "studio rental cancellation policy",
+    "studio cancellation policy india",
+    "cancellation charges studio booking",
+    "refund policy studio rental",
+    "studio booking refund rules",
+    "delhi ncr",
+    "noida",
+    "gurugram",
+    "south delhi",
+    "india",
+    "security deposit refund",
+    "cancellation fee",
+    "notice period",
+    "reschedule booking",
+    "hourly studio booking",
+    "last minute cancellation",
+    "full refund",
+    "partial refund",
+    "non-refundable deposit",
+    "host cancels booking",
+    "for creators",
+    "for hosts",
+    "for photographers",
+    "for brands",
+    "2026",
+    "booking tips",
+    "ContCave"
+  ]
+}

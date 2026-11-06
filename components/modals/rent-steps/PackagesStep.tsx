@@ -12,6 +12,7 @@ interface PackagesStepProps {
   hasSets: boolean;
   sets: SetEditorItem[];
   setValue: (name: string, value: unknown, options?: unknown) => void;
+  error?: string;
 }
 
 const PackagesStep: React.FC<PackagesStepProps> = ({
@@ -19,6 +20,7 @@ const PackagesStep: React.FC<PackagesStepProps> = ({
   hasSets,
   sets,
   setValue,
+  error,
 }) => {
   return (
     <div className="flex flex-col gap-4">
@@ -27,6 +29,8 @@ const PackagesStep: React.FC<PackagesStepProps> = ({
         value={packages || []}
         onChange={(v) => setValue("packages", v, { shouldDirty: true, shouldValidate: true })}
         availableSets={hasSets ? (sets as never) : []}
+        required={hasSets}
+        error={error}
       />
     </div>
   );

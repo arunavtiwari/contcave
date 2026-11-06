@@ -1,0 +1,330 @@
+{
+  "id": "microdrama-production-cost-india",
+  "title": "Microdrama Production Cost in India: 2026 Budget Breakdown",
+  "categories": [
+    {
+      "id": "creator-economy",
+      "title": "Creator Economy",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Creator Economy",
+          "id": "bc-creator-economy"
+        }
+      ],
+      "createdAt": "2026-10-09T00:00:00Z",
+      "updatedAt": "2026-10-09T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-09T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A line-by-line look at what a vertical microdrama costs to produce in India, how each line scales with episode count, and where indie producers can safely save without hurting the show."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Microdrama Production Cost in India: 2026 Budget Breakdown"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "If you are an indie producer, a small production house in Delhi NCR or a YouTube sketch team thinking about vertical drama, the first question is always money. Getting the microdrama production cost in India right decides whether a platform deal leaves you with a margin or a loss. This guide gives you the numbers trade press has reported, a line-item budget with how each line scales, a worked example with its assumptions spelt out, and a clear list of where you can save and where you should not."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "What trade press reports a microdrama costs"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "Vertical drama apps such as Kuku TV, Story TV, Quick TV, Chai Shots, ReelSaga and Amazon MX Fatafat commission or license series made of dozens of one-to-two-minute episodes. Budgets are far lower than long-form streaming, and the published figures are worth knowing before you build your own."
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "exchange4media reported per-episode costs of roughly ₹20,000 to ₹50,000, or about ₹8,000 to ₹9,000 per minute of finished content.",
+        "The same reporting put a full series at roughly ₹10 lakh to ₹15 lakh, against ₹25 lakh to ₹1 crore or more per episode for a modest OTT original.",
+        "The Established reported that a series can be shot in three to four days at an average of about ₹15 lakh, and that Kuku TV releases around 300 shows a month.",
+        "exchange4media also reported that AI tools are cutting post-production, dubbing and localisation costs by roughly 20 to 25 percent."
+      ]
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "Treat these as indicative ranges, not rate cards. They describe what established Mumbai-based houses have been spending, and most vertical dramas are still shot in Mumbai. That is exactly why there is room for Delhi NCR crews who can deliver at the same price with less travel and lower location costs."
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Why microdramas are cheaper than OTT shows"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "The savings are structural, not just a matter of paying people less. A microdrama is usually written around two or three sets, a small principal cast and a tight number of shoot days. Most episodes are dialogue scenes in medium shot, framed for a phone screen, so you need fewer setups, smaller lighting packages and no wide establishing coverage."
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Shoot days are compressed: three to five days for a full series instead of weeks.",
+        "Cast and crew are booked as a block, so day rates do the work rather than long contracts.",
+        "There is little or no VFX, and colour and sound passes are lighter.",
+        "Episodes are short, so editing is fast once the assembly cut exists."
+      ]
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Rule of thumb: a microdrama budget is mostly people multiplied by days. Cut a shoot day and you cut almost every line at once."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "Line-item microdrama budget: what each line covers and how it scales"
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "Here is the budget structure we recommend. Every line either scales with episode count, with shoot days, or stays roughly fixed. Knowing which is which tells you what changes when a platform asks for 80 episodes instead of 50."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Writing: series bible, episode map and scripts. Scales with episode count, though many writers quote per project.",
+        "Cast: leads, supporting roles and day players. Scales with shoot days, so tight scheduling matters more than negotiating rates.",
+        "Crew: director, DOP, camera assistant, gaffer, sound recordist, assistant director, continuity, art and makeup. Scales with shoot days.",
+        "Location or studio days: scales with days and hours. A multi-set studio removes company moves, which saves crew hours too.",
+        "Art and props: mostly fixed per set, which is why reusable sets are so valuable.",
+        "Wardrobe and makeup: scales with the number of characters and costume changes, not with episodes.",
+        "Camera, lighting and sound gear: scales with shoot days; hire as a package where you can.",
+        "Food and transport: scales with headcount and days.",
+        "Post-production: edit, colour, sound mix, subtitles and any dubbing. Scales with finished runtime.",
+        "Music: often a fixed package of themes and stings reused across episodes.",
+        "Contingency: keep 10 percent of the total. Overtime and a reshoot will find it."
+      ]
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "A worked example budget (assumptions, not data)"
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "The figures below are an illustration to show the maths, not quotes. Plug in rates you are actually offered. Assumptions: 60 episodes of about 90 seconds each, around 90 minutes of finished content, one lead pair plus five supporting actors, four shoot days of 12 hours, three interior sets in one studio and half a day outdoors."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Writing: ₹1 lakh to ₹1.5 lakh for the bible, episode map and 60 scripts.",
+        "Cast: ₹2.5 lakh to ₹3.5 lakh across four days.",
+        "Crew: ₹2 lakh to ₹2.5 lakh for a lean crew of 10 to 12.",
+        "Studio days: ₹1 lakh to ₹1.5 lakh, depending on the hourly rates and any multi-day packages hosts offer.",
+        "Art and props: ₹50,000 to ₹80,000 across three sets.",
+        "Wardrobe and makeup: ₹40,000 to ₹60,000.",
+        "Gear: ₹1 lakh to ₹1.3 lakh for camera, lenses, lights and sound.",
+        "Food and transport: ₹50,000 to ₹70,000.",
+        "Post-production: ₹1.2 lakh to ₹1.8 lakh.",
+        "Music: ₹30,000 to ₹50,000.",
+        "Contingency at 10 percent: roughly ₹1 lakh to ₹1.5 lakh."
+      ]
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "That lands at roughly ₹11.5 lakh to ₹16 lakh, or about ₹19,000 to ₹27,000 per episode. The per-episode figure sits inside the range trade press has described, and the series total brushes the top of it. Notice that per minute it comes out higher than the reported ₹8,000 to ₹9,000. Established houses hit that figure by reusing sets, cast and post pipelines across many series. Your first show will usually cost more per minute than your fifth, so price your second pitch with that learning curve in mind."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Where to save on a vertical series budget"
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "The best savings come from the schedule and the script, not from squeezing day rates."
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Write for a single location or a small cluster of sets. Every extra location adds a company move, a recce and a fresh lighting setup.",
+        "Reuse sets across episodes and even across series. A bedroom, office and cafe can serve many storylines with a change of props.",
+        "Block-shoot by set, not by episode. Shoot every scene in the office across all 60 episodes before you move.",
+        "Book a studio with several sets under one roof, so moving from bedroom to office is a 20-minute relight rather than a half-day move.",
+        "Lock the script before day one. Rewrites on set cost crew overtime.",
+        "Use AI-assisted tools for rough subtitles, transcription and first-pass dubbing, then have a human check them.",
+        "Keep the cast small and give each actor more scenes per day."
+      ]
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Where not to cut corners"
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Some lines look tempting to trim but cost you the deal."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "Sound: viewers forgive soft focus on a phone but not muddy dialogue. Budget for a proper recordist and lavalier microphones, and treat the room.",
+        "Cast: the lead pair sells the hook in the first few seconds. A stronger lead is often the cheapest way to lift retention.",
+        "Continuity: block shooting out of order only works if someone tracks costume, props and makeup for every scene.",
+        "Food and rest: a crew pushed through 14-hour days on poor food makes mistakes that you pay for in post.",
+        "Contingency: producers who skip it end up cutting episodes or eating losses when a day overruns."
+      ]
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "FAQs: Microdrama Production Cost in India"
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "How much does it cost to make a microdrama in India?"
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "Trade press has reported full series budgets of roughly ₹10 lakh to ₹15 lakh, with The Established citing an average of about ₹15 lakh for a show shot in three to four days. Your figure depends on episode count, cast, shoot days and how many sets you need."
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "What is the per-episode cost of a vertical series?"
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "exchange4media reported roughly ₹20,000 to ₹50,000 per episode, or about ₹8,000 to ₹9,000 per minute of content. Expect the higher end on a first production, before you have reusable sets and a settled crew."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "Can you shoot a microdrama for under ₹10 lakh?"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "It is possible with fewer episodes, a very small cast, two or three sets and a three-day shoot, but plan carefully. Cut the number of days and locations before you cut sound quality or lead casting."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "Why are microdramas cheaper than OTT shows?"
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "They use few sets, small casts, compressed three-to-five-day shoots, simple dialogue coverage and light post. A modest OTT original was reported at ₹25 lakh to ₹1 crore or more per episode; a whole microdrama series often costs less than one of those."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "Studio days are one of the few budget lines you can lock before the shoot, and they affect every other line through company moves. ContCave lets producers browse and compare studios across Delhi NCR in one place, see hourly pricing upfront, check listing photos, amenities, add-ons and packages hosts offer, and read reviews from past bookings. You can message a host before booking to confirm how many sets or zones the space has and whether multi-day bookings work, then book and pay online with a published cancellation policy."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "A microdrama budget is people multiplied by days, shaped by how many sets the script demands. Build your numbers line by line, test them against the ranges trade press has reported, and save on schedule and locations rather than on sound or cast."
+    },
+    {
+      "id": "list-7",
+      "blockType": "list",
+      "items": [
+        "Build a line-item budget and mark each line as scaling with episodes, days or neither.",
+        "Rewrite the script around two or three reusable sets before you cost it.",
+        "Shortlist multi-set studios in Delhi NCR and compare hourly rates for a four-day block.",
+        "Protect sound, lead casting and a 10 percent contingency.",
+        "Track your actual per-minute cost on the first series and use it to price the next pitch."
+      ]
+    }
+  ],
+  "slug": "microdrama-production-cost-india",
+  "meta": {
+    "title": "Microdrama Production Cost in India: 2026 Budget Breakdown",
+    "description": "What does a microdrama really cost to make in India? A line-item vertical series budget, a worked example and where to save safely, from ContCave."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-09T04:00:00Z",
+  "updatedAt": "2026-10-09T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "microdrama production cost india",
+    "microdrama budget",
+    "vertical series budget india",
+    "micro drama per episode cost",
+    "how much does a microdrama cost to make",
+    "microdrama budget in lakhs",
+    "vertical drama production budget",
+    "vertical drama cost per minute",
+    "microdrama production house delhi",
+    "microdrama shoot delhi ncr",
+    "vertical series production gurugram",
+    "microdrama shoot noida",
+    "short drama app production cost",
+    "Kuku TV series budget",
+    "microdrama vs ott budget",
+    "indie producer budget template",
+    "line item film budget india",
+    "studio rental for web series",
+    "low budget web series india",
+    "vertical drama 2026",
+    "microdrama cost 2026",
+    "for indie producers",
+    "for small production houses",
+    "for youtube sketch creators",
+    "ContCave"
+  ]
+}

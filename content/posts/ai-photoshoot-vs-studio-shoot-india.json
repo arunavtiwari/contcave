@@ -1,0 +1,353 @@
+{
+  "id": "ai-photoshoot-vs-studio-shoot-india",
+  "title": "AI Photoshoot for Clothing Brands vs Studio Shoot: 2026 Guide",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [
+        {
+          "doc": "home",
+          "label": "Home",
+          "id": "bc-home"
+        },
+        {
+          "doc": "blogs",
+          "label": "Blogs",
+          "id": "bc-blogs"
+        },
+        {
+          "doc": "category",
+          "label": "Content Creation",
+          "id": "bc-content-creation"
+        }
+      ],
+      "createdAt": "2026-10-22T00:00:00Z",
+      "updatedAt": "2026-10-22T00:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-10-22T04:00:00Z",
+  "authors": [
+    "ContCave Editorial"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "AI on-model images are cheap and fast, but marketplaces and customers judge you on the real garment. Here is how Indian fashion and D2C brands can split work between AI and the studio without inviting returns."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "AI Photoshoot for Clothing Brands vs Studio Shoot: 2026 Guide"
+    },
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "If you run catalogue at an Indian fashion or D2C label, you have probably been pitched an AI photoshoot for clothing brand use at a fraction of what your last model shoot cost. It is genuinely useful for some jobs. It is also a fast way to lose a marketplace listing or inflate returns if you use it for the wrong ones. This guide lays out what AI images do well, where a real studio shoot still matters, what the marketplace rules actually say (and don't), the honest cost picture, and a hybrid workflow with a use-case checklist you can apply to your next drop."
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "What an AI model photoshoot actually does"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "Most AI model photoshoot tools in India work in one of two ways. The first takes a photo of your real garment (flat-lay, ghost mannequin or hanger) and drapes it onto a generated model or swaps the background. The second generates the whole image, garment included, from a prompt or a rough reference. These are very different things."
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "A real garment placed on an AI model still shows a product you actually shipped, though the drape, fit and length are the software's guess. An invented garment, or one the AI \"improves\" by smoothing fabric, changing the print scale or shifting the colour, shows something the customer cannot receive."
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Background swaps and lifestyle scenes from a real product photo: lowest risk",
+        "Real garment on an AI model: moderate risk, mostly around fit and drape",
+        "Fully generated garment or heavy \"enhancement\": highest risk, often not allowed"
+      ]
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Are AI images allowed on Myntra, Flipkart and Meesho?"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "The short answer is that the rules are ambiguous and still evolving. The common thread across Indian marketplaces is that images must accurately represent the real product the customer will receive: colour, print, construction and what is included in the pack."
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "For Myntra, we could not find a clearly published policy that specifically addresses AI-generated model images. That does not mean anything goes. It means the accuracy rules in your seller agreement and catalogue guidelines apply, and a cataloguing team can reject or delist images that misrepresent the product. Flipkart's seller guidelines are similarly focused on accuracy and image specifications. For Meesho, third-party seller guides summarise the position as not allowing fully AI-fabricated product images; we have not seen the primary wording, so treat that as a strong signal rather than settled text."
+    },
+    {
+      "id": "quote-1",
+      "blockType": "quote",
+      "content": "Rule of thumb: if the garment in the image is not a photograph of the garment in the box, assume a marketplace can reject it, whatever the tool vendor says."
+    },
+    {
+      "id": "p-6",
+      "blockType": "paragraph",
+      "content": "Before you scale any AI workflow, read the current image policy inside your seller panel for each marketplace, save a copy with the date, and ask your account manager in writing if anything is unclear."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "The real cost comparison"
+    },
+    {
+      "id": "p-7",
+      "blockType": "paragraph",
+      "content": "Vendor-quoted rates for AI on-model images run roughly ₹13 to ₹25 per image. The same vendors put traditional shoots at roughly ₹500 to ₹2,000 per image once you add model fees, photographer, studio, styling, hair and make-up, and retouching. Treat both numbers carefully: they come from companies selling AI tools, so the comparison is framed to flatter AI, and a well-planned studio day can bring the per-image cost of a real shoot down considerably."
+    },
+    {
+      "id": "p-8",
+      "blockType": "paragraph",
+      "content": "The per-image number also hides costs that only show up later:"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Rework when a marketplace rejects images or asks for originals",
+        "Returns when colour, length or fit in the image does not match the garment",
+        "Time spent fixing AI artefacts: hands, collars, buttons, prints that warp at seams",
+        "Brand trust if customers start posting \"what I ordered vs what I got\" comparisons"
+      ]
+    },
+    {
+      "id": "p-9",
+      "blockType": "paragraph",
+      "content": "Trade press, including Storyboard18, has reported that AI is putting pressure on the traditional agency production model and that more brands are moving catalogue execution in-house."
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Where a studio shoot still earns its money"
+    },
+    {
+      "id": "p-10",
+      "blockType": "paragraph",
+      "content": "A studio shoot is worth paying for wherever accuracy drives the purchase decision or the return rate. In apparel, that covers more than people expect."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Hero images: the first image on a listing does most of the selling and needs to be the real garment, correctly coloured",
+        "Colour accuracy: shoot with a grey card or colour checker under controlled light so your images match the fabric, especially for maroons, mustards, teals and pastels that cameras and AI both drift on",
+        "Fabric texture: close-ups of weave, embroidery, zari, prints and finishes that customers zoom into on mobile",
+        "Fit and drape: a real model of a stated size, with the size noted on the listing, answers \"will this fit me\" better than any generated body",
+        "Video: short on-model walk or turn clips for product pages and reels are still far easier to shoot than to fake convincingly"
+      ]
+    },
+    {
+      "id": "p-11",
+      "blockType": "paragraph",
+      "content": "A realistic single-day plan in a rented catalogue studio looks like this: two hours for light setup, colour checks and the first look, then roughly 12 to 20 looks across the remaining time with one model, depending on outfit changes and the number of angles per look."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "A hybrid workflow that respects policy"
+    },
+    {
+      "id": "p-12",
+      "blockType": "paragraph",
+      "content": "The most useful approach for most Indian D2C brands is not AI or studio, but a split where each does what it is good at."
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Shoot every SKU for real in the studio: hero front, back, side, detail close-up, and a size-labelled on-model shot",
+        "Shoot a colour reference for each colourway under the same light",
+        "Use AI only on top of those real photos: background variants for seasonal campaigns, festive scenes for Diwali or wedding season, social creatives and ad testing",
+        "Use AI for ideation before the shoot: moodboards, pose references, set and colour palette ideas to brief your photographer",
+        "Check every AI output against the real garment before it goes anywhere near a marketplace"
+      ]
+    },
+    {
+      "id": "p-13",
+      "blockType": "paragraph",
+      "content": "Keep a simple log of which images are AI-assisted and which tool produced them. If a marketplace or customer queries an image, you can answer quickly."
+    },
+    {
+      "id": "quote-2",
+      "blockType": "quote",
+      "content": "Pro tip: lock your colour first. Shoot the real garment with a colour checker, then let AI play with everything around it, never the garment itself."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Risks to manage: returns, disclosure and likeness"
+    },
+    {
+      "id": "p-14",
+      "blockType": "paragraph",
+      "content": "Returns are the biggest commercial risk. If AI drapes a kurta two inches longer than it is or renders a dusty pink as coral, customers notice on delivery. Watch return reasons such as \"colour different from image\" and \"fit not as shown\" for any SKUs where you used AI on-model images."
+    },
+    {
+      "id": "p-15",
+      "blockType": "paragraph",
+      "content": "Disclosure is the second. Indian rules on labelling AI-generated content are developing, and marketplaces may add their own requirements. If you use AI imagery in ads or listings, keep records and follow any disclosure rules your platforms and advertising guidelines set."
+    },
+    {
+      "id": "p-16",
+      "blockType": "paragraph",
+      "content": "Likeness and consent is the third. Some tools generate models that may resemble real people, and some let you upload a face. Only use a real person's likeness with written consent that covers AI use, and check the tool's terms on who owns the generated images and whether your uploads train their models."
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "Decision checklist by use case"
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "Marketplace hero image: studio shoot, real garment, accurate colour",
+        "Fabric and detail close-ups: studio shoot",
+        "Size and fit reference shots: studio shoot with a real model and stated size",
+        "Product video and reels: studio shoot",
+        "Seasonal or festive background variants of an existing real photo: AI, where marketplace policy allows",
+        "Social ads and A/B creative testing: AI on top of real product photos",
+        "Pre-shoot moodboards and pose references: AI",
+        "Very high SKU count basics (plain tees, socks) on your own website: AI on-model can be reasonable if colour is verified, but test returns first"
+      ]
+    },
+    {
+      "id": "h-9",
+      "blockType": "heading",
+      "content": "FAQs: AI photoshoots vs studio shoots"
+    },
+    {
+      "id": "h-10",
+      "blockType": "heading",
+      "content": "Are AI model photos allowed on Myntra or Flipkart?"
+    },
+    {
+      "id": "p-17",
+      "blockType": "paragraph",
+      "content": "There is no clearly published Myntra policy we could find that addresses AI model images directly, and both Myntra and Flipkart emphasise that images must accurately show the product. A real garment on an AI model may be accepted; an invented or altered garment is risky. Check the current image policy in your seller panel and confirm with your account manager."
+    },
+    {
+      "id": "h-11",
+      "blockType": "heading",
+      "content": "Is an AI photoshoot cheaper than a model shoot?"
+    },
+    {
+      "id": "p-18",
+      "blockType": "paragraph",
+      "content": "Per image, usually yes. Vendor-quoted rates run roughly ₹13 to ₹25 per AI image against roughly ₹500 to ₹2,000 per image for traditional shoots, though those figures come from AI vendors. Once you count rejections, rework and returns, the gap narrows, and an efficient in-house studio day can cut traditional costs significantly."
+    },
+    {
+      "id": "h-12",
+      "blockType": "heading",
+      "content": "Will AI images increase returns?"
+    },
+    {
+      "id": "p-19",
+      "blockType": "paragraph",
+      "content": "They can, if the image misrepresents colour, length, fit or texture. The risk is lowest when AI only changes the background around a real, colour-accurate photo, and highest when it generates or reshapes the garment. Track return reasons by SKU to see the real effect for your catalogue."
+    },
+    {
+      "id": "h-13",
+      "blockType": "heading",
+      "content": "Can I use AI for Meesho?"
+    },
+    {
+      "id": "p-20",
+      "blockType": "paragraph",
+      "content": "Third-party seller guides report that Meesho does not allow fully AI-fabricated product images. Using a real product photo with a cleaned-up background is a different case, but read Meesho's current guidelines in the supplier panel before uploading anything AI-assisted."
+    },
+    {
+      "id": "h-14",
+      "blockType": "heading",
+      "content": "Why book with ContCave"
+    },
+    {
+      "id": "p-21",
+      "blockType": "paragraph",
+      "content": "When you need the real-product half of a hybrid workflow, ContCave lets you browse and compare catalogue, cyclorama and natural-light studios across Delhi, Gurugram and Noida in one place. You can see hourly pricing upfront, check listing photos, amenities, add-ons and packages, read reviews from past bookings, and message the host about lighting, steamers or rails before you book and pay online."
+    },
+    {
+      "id": "h-15",
+      "blockType": "heading",
+      "content": "Final takeaways"
+    },
+    {
+      "id": "p-22",
+      "blockType": "paragraph",
+      "content": "AI is a genuinely useful tool for catalogue teams, but it works best on top of accurate photographs of your real garments, not instead of them. Spend studio time where accuracy sells and prevents returns, and let AI handle variety and volume where policy allows."
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "Read and save the current image policy in each marketplace seller panel this week",
+        "List your SKUs by risk and decide which need real on-model shots",
+        "Book one studio day for heroes, close-ups, colour references and short video",
+        "Use AI only on real photos, and log which images are AI-assisted",
+        "Compare return reasons for AI and real-shot SKUs after 30 days"
+      ]
+    }
+  ],
+  "slug": "ai-photoshoot-vs-studio-shoot-india",
+  "meta": {
+    "title": "AI Photoshoot for Clothing Brands vs Studio Shoot: 2026 Guide",
+    "description": "AI photoshoot for clothing brand or a real studio shoot? Costs, marketplace rules, return risk and a hybrid workflow, from the ContCave studio team."
+  },
+  "_status": "published",
+  "createdAt": "2026-10-22T04:00:00Z",
+  "updatedAt": "2026-10-22T04:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-cc-edit",
+      "name": "ContCave Editorial"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "ai photoshoot for clothing brand",
+    "ai model photoshoot india",
+    "ai vs real product photography",
+    "ai catalogue shoot cost",
+    "ai fashion photoshoot",
+    "virtual try on catalogue",
+    "are ai images allowed on myntra",
+    "ai images for meesho",
+    "ai on-model images",
+    "catalogue shoot india",
+    "apparel catalogue photography",
+    "on-model photoshoot cost",
+    "studio shoot for clothing brand",
+    "fashion studio delhi ncr",
+    "catalogue studio gurugram",
+    "product photography noida",
+    "ecommerce fashion photography india",
+    "hybrid ai studio workflow",
+    "d2c brand photoshoot",
+    "catalogue shoot for d2c brands",
+    "marketplace image guidelines india",
+    "fashion catalogue returns",
+    "ai product images 2026",
+    "catalogue shoot price per image",
+    "book catalogue studio delhi",
+    "ContCave"
+  ]
+}
