@@ -7,10 +7,12 @@ const db = vi.hoisted(() => ({
 }));
 const liveListingIds = vi.hoisted(() => vi.fn());
 const scheduleQstashJob = vi.hoisted(() => vi.fn());
+const after = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/prismadb", () => ({ default: db }));
 vi.mock("@/lib/listing/service", () => ({ ListingService: { getHydratableListingIds: liveListingIds } }));
 vi.mock("@/lib/cron/qstash", () => ({ scheduleQstashJob }));
+vi.mock("next/server", () => ({ after }));
 
 const { refreshSearchDocs } = await import("@/lib/search/searchDoc");
 const { queueSearchReindex } = await import("@/lib/search/reindex");
@@ -21,6 +23,9 @@ const LIVE_FILTER = { active: true, status: "VERIFIED" };
 
 beforeEach(() => {
     vi.clearAllMocks();
+    after.mockImplementation(() => {
+        throw new Error("`after` was called outside a request scope.");
+    });
     db.listing.findMany.mockResolvedValue([]);
     db.amenities.findMany.mockResolvedValue([]);
     db.listingSearchDoc.findMany.mockResolvedValue([{ listingId: LIVE, hash: "x" }, { listingId: GONE, hash: "y" }]);
@@ -61,5 +66,18 @@ describe("queueSearchReindex", () => {
         const [first, second] = scheduleQstashJob.mock.calls;
         expect(first).toEqual([{ job: "search-index-listing", listingId: LIVE }, new Date("2026-10-31T10:01:00Z")]);
         expect(second).toEqual(first);
+    });
+
+    it("queues after the response inside a request, so the save never waits on QStash", async () => {
+        const tasks: (() => Promise<void>)[] = [];
+        after.mockImplementation((task: () => Promise<void>) => {
+            tasks.push(task);
+        });
+
+        await queueSearchReindex(LIVE);
+        expect(scheduleQstashJob).not.toHaveBeenCalled();
+
+        await tasks[0]();
+        expect(scheduleQstashJob).toHaveBeenCalledWith({ job: "search-index-listing", listingId: LIVE }, expect.any(Date));
     });
 });
