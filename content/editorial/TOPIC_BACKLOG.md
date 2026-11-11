@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 68 | Studio Soundproofing Basics: What Hosts Should Invest In | soundproof studio for hosts india | host-guides | hosts |
 | 69 | Behind-the-Scenes Content: Studio Etiquette for a Second Shooter | bts content studio shoot india | content-creation | creators |
 | 70 | Monsoon-Proofing Your Studio Booking: Backup Plans for Outdoor Shoots | monsoon studio booking india | booking-tips | creators, brands |
 | 71 | Video Podcast Studio Setups: Why Audio-Only Isn't Enough Anymore | video podcast studio india | studio-guides | creators |
@@ -112,3 +111,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-11-04 | 65 | vernacular-content-studio-india |
 | 2026-11-06 | 66 | pet-friendly-photography-studio-india |
 | 2026-11-09 | 67 | ecommerce-catalogue-vs-lookbook-shoot-studio-india |
+| 2026-11-11 | 68 | soundproof-studio-for-hosts-india |
