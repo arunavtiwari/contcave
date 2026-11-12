@@ -1,0 +1,187 @@
+{
+  "id": "led-wall-virtual-production-vs-green-screen-india",
+  "title": "LED Wall vs Green Screen in India: Cost, Quality and When Each Makes Sense",
+  "categories": [
+    {
+      "id": "studio-guides",
+      "title": "Studio Guides",
+      "breadcrumbs": [],
+      "createdAt": "2026-11-12T05:00:00Z",
+      "updatedAt": "2026-11-12T05:00:00Z"
+    }
+  ],
+  "publishedAt": "2026-11-12T05:00:00Z",
+  "authors": [
+    "Samiksha | ContCave Studio Relations"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A practical comparison of LED wall virtual production and green screen for Indian indie films, music videos and ads: how they differ, what each costs, and what to confirm before you book."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "An LED wall (virtual production) and a green screen both let you place actors in a location that does not exist on set. The difference is when the work happens. A green screen pushes most of it into post-production. An LED wall does much of it on the shoot day. That changes your budget, your schedule and the questions you need to ask a studio."
+    },
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "LED wall or green screen: the short answer"
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Choose an LED wall when the scene has reflective surfaces (cars, glass, jewellery, chrome), when you need several environments in one day, or when post-production time is short.",
+        "Choose a green screen when the budget is tight on the shoot day, the shots are wide or fast-moving, or the background change is simple and you have VFX capacity afterwards."
+      ]
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "How do LED walls and green screens differ on set?"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Light and reflections: an LED wall emits light, so the scene lights the actors and props and shows up in reflective surfaces. A green screen reflects green onto subjects (spill), which has to be removed in post and is harder on glass, metal and fine hair.",
+        "What the cast sees: on an LED wall the actors and director see the background live. On a green screen they perform against a flat colour and rely on the VFX plan.",
+        "Post-production: green screen shots need keying, rotoscoping and compositing. LED wall shots capture background and foreground together, so there is much less of this, though grading and some clean-up remain.",
+        "Camera and software: an LED wall needs camera tracking and a real-time engine (commonly Unreal Engine) so the background shifts correctly with the camera. Green screen work can use tracking markers and solve the camera move later.",
+        "Physical limits: an LED wall has a fixed size and curve. Very wide shots, fast camera moves and shots close to the panels can show their limits, including moiré patterns if the pixel pitch is too coarse for your lens and distance."
+      ]
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "How much does each cost in India?"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "These are planning ranges for a one-day shoot, not quotes. Rates vary by city, studio, wall size and crew, so ask for an itemised quote. They exclude your camera, crew, talent and GST (see our note on [GST on studio rental](/blog/gst-on-studio-rental-india))."
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Green screen route: studio floor ₹15,000–₹35,000 per day, lighting and gaffer team ₹15,000–₹30,000 per day, and keying, rotoscoping and compositing ₹40,000–₹1,00,000+ over 2–4 weeks. Total roughly ₹70,000–₹1,65,000+.",
+        "LED wall route: studio, wall and tracking system ₹80,000–₹2,00,000 per day, technician or operator ₹20,000–₹50,000, and lighter post-production ₹10,000–₹20,000. Total roughly ₹1,10,000–₹2,70,000+.",
+        "Often missed on the LED route: the virtual environments. If the studio does not already have the scene you need, someone has to build and test it before the shoot, and that is a separate cost and lead time."
+      ]
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "In practice the LED route costs more on the day and less afterwards, so it tends to pay off when many shots reuse the same setups or when the VFX clean-up on a green screen would be heavy. For one or two simple background swaps, a green screen is usually cheaper. For the studio side of that route, see [green screen studio rental in Delhi NCR](/blog/green-screen-studio-rental-delhi-ncr)."
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "When is an LED wall worth it?"
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Reflective subjects such as cars, glass bottles, jewellery or metallic props, where green spill removal is expensive.",
+        "Several environments in one day, such as a street, an interior and a landscape, without moving the crew.",
+        "Tight delivery dates, where weeks of keying and compositing do not fit the schedule.",
+        "Projects where the cast needs to react to the environment, such as a music video or a [microdrama](/blog/microdrama-studio-india)."
+      ]
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "When is a green screen the better choice?"
+    },
+    {
+      "id": "list-5",
+      "blockType": "list",
+      "items": [
+        "The shoot-day budget is limited and you have time and VFX skills for post-production.",
+        "Wide shots, fast camera moves or stunts that go beyond what a wall can cover.",
+        "Simple background replacement where the background is soft or secondary.",
+        "You need a large clean backdrop for several people or a full-length product shoot."
+      ]
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "What should you ask a studio before booking an LED wall?"
+    },
+    {
+      "id": "list-6",
+      "blockType": "list",
+      "items": [
+        "What are the wall's dimensions and curve, and what is the pixel pitch? Finer pitch is better for close shots.",
+        "Who builds or supplies the environments, in what format, and how far ahead do they need them?",
+        "Is the tracking system and an operator included in the day rate?",
+        "Can you test your scene and your camera and lens on the wall before the shoot day?",
+        "Which frame rates and shutter settings does the wall support with your camera?",
+        "Can brightness and colour temperature be adjusted on the day, and what are the overtime charges?"
+      ]
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Is virtual production cheaper than green screen?"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Usually not on the day rate. It can be cheaper overall when it removes a lot of VFX work. Compare the total of studio, crew and post-production for your specific shots, not the day rate alone. Our guides to [music video shoot budgets](/blog/music-video-shoot-budget-india) and [short film budgets](/blog/short-film-budget-india) show where studio costs sit in a full production."
+    },
+    {
+      "id": "h-8",
+      "blockType": "heading",
+      "content": "Where can you find LED wall or green screen studios?"
+    },
+    {
+      "id": "p-5",
+      "blockType": "paragraph",
+      "content": "Green screen and cyclorama studios are widely available. LED wall studios are far fewer, so confirm availability and specifications directly. You can [browse studios on ContCave](/studios) by city and shoot type, and use our [studio booking checklist](/blog/studio-booking-checklist) for the questions to settle before you pay."
+    }
+  ],
+  "slug": "led-wall-virtual-production-vs-green-screen-india",
+  "meta": {
+    "title": "LED Wall vs Green Screen in India: Cost and When to Use Each",
+    "description": "LED wall vs green screen for Indian indie films, music videos and ads: how they differ, rough day costs, when each fits, and what to ask a studio."
+  },
+  "_status": "published",
+  "createdAt": "2026-11-12T05:00:00Z",
+  "updatedAt": "2026-11-12T05:00:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-samiksha",
+      "name": "Samiksha"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "led wall vs green screen",
+    "virtual production cost india",
+    "led wall studio india",
+    "virtual production studio india",
+    "green screen studio rental",
+    "led volume studio rental",
+    "virtual production for indie filmmakers",
+    "in-camera vfx",
+    "unreal engine virtual production",
+    "music video production india",
+    "microdrama production",
+    "film studio rental india"
+  ]
+}

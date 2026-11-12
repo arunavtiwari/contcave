@@ -1,0 +1,158 @@
+{
+  "id": "ai-vs-real-shoot-d2c-brands-india",
+  "title": "AI vs Real Shoots for D2C Brands in India: What to Generate and What to Shoot",
+  "categories": [
+    {
+      "id": "content-creation",
+      "title": "Content Creation",
+      "breadcrumbs": [],
+      "createdAt": "2026-11-12T04:30:00Z",
+      "updatedAt": "2026-11-12T04:30:00Z"
+    }
+  ],
+  "publishedAt": "2026-11-12T04:30:00Z",
+  "authors": [
+    "Himanshi"
+  ],
+  "hero": {
+    "type": "text",
+    "richText": [
+      {
+        "children": [
+          {
+            "text": "A task-by-task guide for D2C brands on when AI-generated content is enough and when you should shoot the product, the people or the claim for real."
+          }
+        ]
+      }
+    ],
+    "links": []
+  },
+  "layout": [
+    {
+      "id": "p-1",
+      "blockType": "paragraph",
+      "content": "Use AI for ideas, drafts and internal mockups. Shoot anything that shows the actual product, a real person or a claim a customer will rely on. That is the short version. The rest of this guide breaks it down by task so you can decide quickly. For a comparison focused on photography, see [AI photoshoots vs studio shoots in India](/blog/ai-photoshoot-vs-studio-shoot-india)."
+    },
+    {
+      "id": "h-1",
+      "blockType": "heading",
+      "content": "Should you use AI or a real shoot? A task-by-task guide"
+    },
+    {
+      "id": "list-1",
+      "blockType": "list",
+      "items": [
+        "Moodboards and concept ideas: AI is fine.",
+        "Script hooks and ad copy variants to test: AI is fine, then edit.",
+        "Background or scene mockups for internal pitches: AI is fine.",
+        "Product page and marketplace images: shoot the real product.",
+        "Apparel, jewellery, beauty and skincare visuals: shoot, because fit, texture, colour and finish matter to the buyer.",
+        "Founder videos, testimonials and creator content: shoot, because the value is a real person.",
+        "Podcasts and interviews: record, because audio quality and the real speaker are the product.",
+        "Resizing, background clean-up, captions and transcripts: AI tools save time, but check the output."
+      ]
+    },
+    {
+      "id": "h-2",
+      "blockType": "heading",
+      "content": "Why should product images be shot, not generated?"
+    },
+    {
+      "id": "list-2",
+      "blockType": "list",
+      "items": [
+        "Accuracy: colour, texture, scale and fit are what buyers judge. AI images often change small details, and a mismatch between the image and the product is a common reason for returns and complaints.",
+        "Platform rules: marketplaces and ad platforms expect images that represent the product accurately. Check each platform's current guidelines. Our guides cover [quick-commerce product images](/blog/quick-commerce-product-images-blinkit-zepto) and [marketplace image sizes](/blog/marketplace-product-image-size-india).",
+        "Reusable source material: a real photo of the product is also the base for any later AI edits, variations or retouching.",
+        "Rights: if a real model appears in your content, usage rights apply either way. See [model fees and usage rights](/blog/model-fees-usage-rights-india)."
+      ]
+    },
+    {
+      "id": "h-3",
+      "blockType": "heading",
+      "content": "Where does AI actually save time and money?"
+    },
+    {
+      "id": "list-3",
+      "blockType": "list",
+      "items": [
+        "Early concepts: test several looks and set ideas before you book a studio or pay for props.",
+        "Ad testing: draft many hook and headline variations, then shoot only the strongest.",
+        "Planning: turn a rough idea into a shot list or call sheet draft (see [photoshoot call sheet and shot list](/blog/photoshoot-call-sheet-shot-list)).",
+        "Post-production support: transcripts, audio clean-up, resizing and formatting for different platforms."
+      ]
+    },
+    {
+      "id": "h-4",
+      "blockType": "heading",
+      "content": "What does a workflow that uses both look like?"
+    },
+    {
+      "id": "list-4",
+      "blockType": "list",
+      "items": [
+        "Pre-production: use AI for concepts, moodboards and copy options. Plan the real shoot around the winners.",
+        "Shoot day: capture product stills, lifestyle shots, short videos and creator content in one booking, so you have a library for the next few weeks. [Shooting products on a budget](/blog/product-shoot-on-a-budget) and [SKUs per hour for ecommerce shoots](/blog/ecommerce-product-shoot-skus-per-hour) help you plan the day.",
+        "Post-production: use AI tools for repetitive tasks, and keep a person responsible for colour accuracy, final selection and checking each image against the real product."
+      ]
+    },
+    {
+      "id": "h-5",
+      "blockType": "heading",
+      "content": "Can you use AI-generated product images on Amazon or other marketplaces?"
+    },
+    {
+      "id": "p-2",
+      "blockType": "paragraph",
+      "content": "Check the marketplace's current image policy before you do. In general they expect images that show the product as it is, so a real photo is the safer base for the main listing images. If you use AI for supporting visuals, make sure they do not change the product's look, size or features."
+    },
+    {
+      "id": "h-6",
+      "blockType": "heading",
+      "content": "Are AI product photos cheaper than a studio shoot?"
+    },
+    {
+      "id": "p-3",
+      "blockType": "paragraph",
+      "content": "Per image, often yes for backgrounds and variations. But you still need accurate source photos, and the time spent prompting, fixing artefacts and re-checking details adds up. Compare the full cost, including corrections and possible returns, rather than the cost per image. A single studio day can cover many products and formats; see [studio rental price per hour](/blog/studio-rental-price-per-hour) and [product photography studios for D2C brands](/blog/product-photography-studio-d2c-brands) for what to expect."
+    },
+    {
+      "id": "h-7",
+      "blockType": "heading",
+      "content": "Where can you book a studio for a product shoot?"
+    },
+    {
+      "id": "p-4",
+      "blockType": "paragraph",
+      "content": "Browse [studios on ContCave](/studios) by city and shoot type, and compare price, hours and what is included before you book."
+    }
+  ],
+  "slug": "ai-vs-real-shoot-d2c-brands-india",
+  "meta": {
+    "title": "AI vs Real Shoots for D2C Brands: What to Use When",
+    "description": "AI vs a real shoot for D2C brands in India: which tasks suit AI, which need real photography or video, and how to combine both in one workflow."
+  },
+  "_status": "published",
+  "createdAt": "2026-11-12T04:30:00Z",
+  "updatedAt": "2026-11-12T04:30:00Z",
+  "enablePremiumContent": false,
+  "populatedAuthors": [
+    {
+      "id": "author-himanshi",
+      "name": "Himanshi"
+    }
+  ],
+  "premiumContent": [],
+  "tags": [
+    "ai vs real photoshoot",
+    "ai product photography vs studio",
+    "ai generated product images ecommerce",
+    "d2c brand content production india",
+    "product photoshoot vs ai",
+    "ai ad creatives vs real shoot",
+    "when to use ai for content",
+    "product photography india",
+    "studio shoot for d2c brands",
+    "ecommerce product images"
+  ]
+}
