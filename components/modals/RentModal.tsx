@@ -24,6 +24,7 @@ import Heading from "@/components/ui/Heading";
 import { toast } from "@/components/ui/Toast";
 import { OPENING_HOURS_MAX_END, OPENING_HOURS_MIN_START, TIME_SLOTS } from "@/constants/timeSlots";
 import useUIStore from "@/hooks/useUIStore";
+import { trackListingSubmitted } from "@/lib/analytics/tracking";
 import type { EquipmentItem } from "@/lib/listing/equipment";
 import { listingLocationIssues, listingLocationValue } from "@/lib/listing/location";
 import { collectUploadedMediaRefs, uploadListingMedia } from "@/lib/listing/mediaUpload";
@@ -1187,6 +1188,7 @@ export default function RentModal({
         throw new Error("Listing creation failed: No listing ID returned");
       }
 
+      if (!isCurated) trackListingSubmitted({ listingId: createdListingId });
       setShowSuccessModal(true);
       toast.success(isCurated ? "Curated space created successfully!" : "Listing created successfully!");
     } catch (error: unknown) {

@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { z } from "zod";
 
+import { CONSENT_COOKIE_NAME } from "@/lib/consent";
+
 const consentSchema = z.object({
     necessary: z.boolean().default(true),
     analytics: z.boolean().default(false),
@@ -19,7 +21,8 @@ interface ConsentContextType {
     declineAll: () => void;
 }
 
-const COOKIE_NAME = "CC_CONSENT";
+const COOKIE_NAME = CONSENT_COOKIE_NAME;
+// Opted in by default; the banner lets a visitor switch categories off.
 const DEFAULT_CONSENT: ConsentState = {
     necessary: true,
     analytics: true,
@@ -62,7 +65,7 @@ export const ConsentProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         // Also set a cookie for server-side awareness if needed
         const expires = new Date(Date.now() + 365 * 864e5).toUTCString();
-        document.cookie = `${COOKIE_NAME}=${JSON.stringify(state)}; expires=${expires}; path=/; SameSite=Lax`;
+        document.cookie = `${COOKIE_NAME}=${encodeURIComponent(JSON.stringify(state))}; expires=${expires}; path=/; SameSite=Lax`;
 
         // Dispatch event for non-React scripts
         window.dispatchEvent(new CustomEvent("consent-update", { detail: state }));

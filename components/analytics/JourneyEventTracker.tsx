@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 import {
+  trackContactClick,
   type TrackedStudio,
   trackNewTabLinkClick,
   trackOutboundLinkClick,
@@ -34,9 +35,19 @@ export default function JourneyEventTracker() {
         || event.ctrlKey
         || event.button === 1;
 
+      if (destination.protocol === "mailto:" || destination.protocol === "tel:") {
+        if (!isPrivatePath(window.location.pathname)) {
+          trackContactClick(destination.protocol === "tel:" ? "phone" : "email");
+        }
+        return;
+      }
+      if (destination.protocol !== "http:" && destination.protocol !== "https:") return;
+
       if (isWhatsAppHost(destination.hostname)) {
         if (isPrivatePath(window.location.pathname)) return;
         const data = anchor.dataset;
+        // The link reports its own conversion (e.g. a lead); don't count the click twice.
+        if (data.trackingIgnore === "whatsapp") return;
         const studio: TrackedStudio | null = data.studioId && data.studioName
           ? {
               id: data.studioId,
@@ -45,9 +56,7 @@ export default function JourneyEventTracker() {
               city: data.studioCity || null,
             }
           : null;
-        const source = data.trackingSource === "curated_request_price"
-          ? "curated_request_price"
-          : "whatsapp_link";
+        const source = data.trackingSource || "whatsapp_link";
         trackWhatsAppContact({ source, studio });
         return;
       }

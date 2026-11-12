@@ -22,6 +22,7 @@ import Pill from "@/components/ui/Pill";
 import Skeleton from "@/components/ui/Skeleton";
 import useUIStore from "@/hooks/useUIStore";
 import {
+  trackAddPaymentInfo,
   trackBeginCheckout,
   trackCheckoutStep,
   trackDateSelection,
@@ -502,9 +503,12 @@ export default function ListingReservation({
         tax: gstAmount,
         bookingType: instantBooking ? "instant" : "approval",
       });
-      trackCheckoutStep({ step: "personal_details", studio: trackingStudio });
     }
-    if (!ensurePhone()) return;
+    if (!ensurePhone()) {
+      // Only customers without a saved phone number see the personal-details step.
+      if (trackingStudio) trackCheckoutStep({ step: "personal_details", studio: trackingStudio });
+      return;
+    }
     if (trackingStudio) trackCheckoutStep({ step: "review_booking", studio: trackingStudio });
 
     setShowSummaryModal(true);
@@ -513,6 +517,14 @@ export default function ListingReservation({
   const handleConfirmModal = useCallback((billingDetailId: string | null, shootDetails: ShootDetails) => {
     setShowSummaryModal(false);
     setIsPaying(true);
+    if (trackingStudio) {
+      trackAddPaymentInfo({
+        studio: trackingStudio,
+        value: computedTotal,
+        tax: gstAmount,
+        bookingType: instantBooking ? "instant" : "approval",
+      });
+    }
     inflight.current?.abort();
     const controller = new AbortController();
     inflight.current = controller;
@@ -523,7 +535,7 @@ export default function ListingReservation({
         setIsPaying(false);
       }
     });
-  }, [startPayment]);
+  }, [startPayment, trackingStudio, computedTotal, gstAmount, instantBooking]);
 
   return (
     <section className="bg-background rounded-xl shadow-sm border border-border/10 overflow-hidden">

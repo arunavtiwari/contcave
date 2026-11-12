@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Script from "next/script";
 import React from "react";
 
@@ -13,13 +12,12 @@ export default function MetaPixelScript({ nonce }: { nonce?: string }) {
     if (!isInitialized || !META_PIXEL_ID || !consent.marketing) return null;
 
     return (
-        <>
-            <Script
-                id="meta-pixel-base"
-                strategy="afterInteractive"
-                nonce={nonce}
-                dangerouslySetInnerHTML={{
-                    __html: `
+        <Script
+            id="meta-pixel-base"
+            strategy="afterInteractive"
+            nonce={nonce}
+            dangerouslySetInnerHTML={{
+                __html: `
 !function(f,b,e,v,n,t,s){
   if(f.fbq)return;n=f.fbq=function(){n.callMethod?
   n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -34,19 +32,7 @@ fbq('init','${META_PIXEL_ID}');
 window.__CC_META_PIXEL_READY__=true;
 window.dispatchEvent(new Event('cc-meta-pixel-ready'));
 `,
-                }}
-            />
-            <noscript>
-                <Image
-                    height={1}
-                    width={1}
-                    style={{ display: "none" }}
-                    src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
-                    alt="Meta Pixel"
-                    unoptimized
-                    priority
-                />
-            </noscript>
-        </>
+            }}
+        />
     );
 }

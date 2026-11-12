@@ -1,12 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { auth } from "@/auth";
 import { MetaStandardEvent } from "@/constants/metaPixel";
 import { hasMarketingConsent } from "@/lib/consent";
 import { getClientIp } from "@/lib/http/requestMeta";
 import {
     buildFbc,
+    extractFbc,
     extractFbp,
+    normalizeIndianPhone,
     sendServerEvent,
     sha256,
 } from "@/lib/metaPixel.server";
@@ -21,9 +24,6 @@ const eventSchema = z.object({
     custom_data: z.record(z.string(), z.unknown()).refine((value) => {
         try { return JSON.stringify(value).length <= 10_000; } catch { return false; }
     }, "custom_data is too large").optional(),
-    user_email: z.string().trim().email().max(255).optional(),
-    user_phone: z.string().trim().regex(/^\+?\d{8,15}$/).optional(),
-    user_id: z.string().trim().min(1).max(100).optional(),
     fbclid: z.string().trim().max(500).regex(/^[A-Za-z0-9._-]+$/).optional(),
 });
 
@@ -73,10 +73,7 @@ export async function POST(request: NextRequest) {
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
         }
-        const {
-            event_name, event_id, event_source_url, custom_data,
-            user_email, user_phone, user_id, fbclid,
-        } = parsed.data;
+        const { event_name, event_id, event_source_url, custom_data, fbclid } = parsed.data;
         const sourceUrl = event_source_url ? new URL(event_source_url) : undefined;
         if (
             sourceUrl
@@ -107,6 +104,11 @@ export async function POST(request: NextRequest) {
             : sourceUrl?.toString();
 
         const cookieHeader = request.headers.get("cookie") ?? "";
+        // Signed-in visitors are matched by their own account details, read from the session
+        // on the server and hashed before they leave it; the browser never sends them.
+        const sessionUser = await auth().then((session) => session?.user, () => undefined);
+        const userEmail = sessionUser?.email || undefined;
+        const userPhone = normalizeIndianPhone(sessionUser?.phone);
         const payload: CAPIEventPayload = {
             event_name,
             event_time: Math.floor(Date.now() / 1000),
@@ -117,10 +119,12 @@ export async function POST(request: NextRequest) {
                 client_ip_address: getClientIp(request.headers),
                 client_user_agent: request.headers.get("user-agent") ?? undefined,
                 fbp: extractFbp(cookieHeader),
-                fbc: buildFbc(fbclid),
-                ...(user_email ? { em: sha256(user_email) } : {}),
-                ...(user_phone ? { ph: sha256(user_phone) } : {}),
-                ...(user_id ? { external_id: sha256(user_id) } : {}),
+                // The Pixel's own click-ID cookie outlives the landing page; the URL's fbclid
+                // only covers the first hit, before that cookie exists.
+                fbc: extractFbc(cookieHeader) ?? buildFbc(fbclid),
+                ...(userEmail ? { em: sha256(userEmail) } : {}),
+                ...(userPhone ? { ph: sha256(userPhone) } : {}),
+                ...(sessionUser?.id ? { external_id: sha256(sessionUser.id) } : {}),
             },
             custom_data,
         };
@@ -134,18 +138,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-            return NextResponse.json({
-      success: true,
-      events_received: result.events_received,
-      ...(process.env.VERCEL_ENV === "preview"
-        ? {
-            debug: {
-              event_id: payload.event_id,
-              event_source_url: payload.event_source_url,
-            },
-          }
-        : {}),
-    });
+        return NextResponse.json({
+            success: true,
+            events_received: result.events_received,
+            ...(process.env.VERCEL_ENV === "preview"
+                ? { debug: { event_id: payload.event_id, event_source_url: payload.event_source_url } }
+                : {}),
+        });
     } catch (err) {
         console.error("[Meta CAPI Route] Error:", err);
         return NextResponse.json(

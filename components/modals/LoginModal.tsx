@@ -15,6 +15,7 @@ import Divider from "@/components/ui/Divider";
 import Heading from "@/components/ui/Heading";
 import Input from "@/components/ui/Input";
 import useUIStore from "@/hooks/useUIStore";
+import { trackLogin } from "@/lib/analytics/tracking";
 import { getAuthErrorMessage } from "@/lib/errors";
 import { type LoginSchema, loginSchema } from "@/schemas/auth";
 
@@ -49,6 +50,7 @@ function LoginModal() {
         const friendlyMessage = getAuthErrorMessage(callback.error);
         toast.error(friendlyMessage, { id: "Login_Error_1" });
       } else if (callback?.ok) {
+        trackLogin("email");
         toast.success("Login successful", { id: "Login_Successfully" });
         router.refresh();
         uiStore.onClose("login");

@@ -206,6 +206,7 @@ function EquipmentStatus({
                 href={buildWhatsAppUrl(equipmentRequestMessage(studioName, item.name))}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-tracking-source="equipment_on_request"
                 aria-disabled={disabled}
                 className={cn("shrink-0", disabled && "pointer-events-none opacity-50")}
             >

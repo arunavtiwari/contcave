@@ -299,7 +299,8 @@ function ListingClient({
     name: listing.title,
     category: kindLabel,
     city: listing.locationValue,
-  }), [listing.id, listing.title, kindLabel, listing.locationValue]);
+    price: listing.price,
+  }), [listing.id, listing.title, kindLabel, listing.locationValue, listing.price]);
 
   useEffect(() => {
     if (!isPreview && !isOwnListing && currentUser?.role !== "ADMIN") {

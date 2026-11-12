@@ -24,6 +24,8 @@ export default function MetaPixelTracker() {
     lastTrackedPathRef.current = currentPath;
     const eventId = trackPageView(currentPath);
     pageViewRef.current = eventId ? { path: currentPath, eventId } : null;
+    // Sent straight away; lib/metaPixel holds it until the Pixel script has loaded.
+    if (eventId) lastMetaEventIdRef.current = pageview(eventId, currentPath);
   }, [pathname]);
 
   useEffect(() => {
@@ -40,6 +42,7 @@ export default function MetaPixelTracker() {
     return () => window.removeEventListener("cc-meta-pixel-ready", onReady);
   }, [consent.marketing]);
 
+  // Marketing consent switched on after this page was viewed: send the PageView it missed.
   useEffect(() => {
     if (!consent.marketing || !META_PIXEL_ID || !pixelReady) return;
 

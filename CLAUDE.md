@@ -109,6 +109,10 @@ The listing card is composed from three sub-components in `components/listing/`:
 
 `ListingCardData` in `ListingCard.tsx` is the shared interface; `safeListing` satisfies it directly so no mapping is needed in `ListingFeed`.
 
+## Analytics and tracking
+
+GTM loads once in `app/(main)/layout.tsx`; GA4 and Google Ads are configured inside the container. All dataLayer events go through `lib/analytics/tracking.ts`, which also sends the matching Meta Pixel + Conversions API event under a shared `event_id`. Visitors are opted in until they decline in the cookie banner. `docs/tracking-events.md` is the event map — update it when adding or changing an event.
+
 ## Key external services
 
 | Service | Purpose | Config env vars |
