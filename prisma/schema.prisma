@@ -944,3 +944,77 @@ model ListingSearchDoc {
   hash      String
   updatedAt DateTime @updatedAt
 }
+
+// ─── Concierge (customer-facing AI assistant: web chat first, WhatsApp next) ───
+// See docs/concierge.md. Money and availability are never stored here: they are
+// read live from the listing and reservation models by the tool layer.
+
+enum ConciergeChannel {
+  WEB
+  WHATSAPP
+}
+
+enum ConciergeStatus {
+  OPEN
+  HANDED_OFF
+  CLOSED
+}
+
+model ConciergeConversation {
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  channel          ConciergeChannel @default(WEB)
+  /// Anonymous id from an httpOnly cookie (web) or the sender's number (WhatsApp).
+  visitorId        String
+  userId           String?          @db.ObjectId
+  status           ConciergeStatus  @default(OPEN)
+  /// What we know about the shoot so far (lib/concierge/brief.ts).
+  brief            Json?
+  /// The model's message history (Anthropic `messages`), appended to and never edited so the prompt cache holds.
+  history          Json
+  /// What the customer saw: [{ id, role, text, cards, at }].
+  transcript       Json
+  turnCount        Int              @default(0)
+  inputTokens      Int              @default(0)
+  outputTokens     Int              @default(0)
+  cacheReadTokens  Int              @default(0)
+  cacheWriteTokens Int              @default(0)
+  handoffReason    String?
+  crmContactId     String?
+  crmEnquiryId     String?
+  lastMessageAt    DateTime         @default(now())
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([visitorId, lastMessageAt])
+  @@index([userId, lastMessageAt])
+  @@index([status, lastMessageAt])
+}
+
+/// A shareable page of studios the concierge picked: /shortlist/<token>.
+model ConciergeShortlist {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  token          String   @unique
+  conversationId String   @db.ObjectId
+  listingIds     String[] @db.ObjectId
+  date           String?
+  note           String?
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+
+  @@index([conversationId])
+}
+
+/// One row per tool call the concierge makes: the audit trail and the cost/latency log.
+model ConciergeToolCall {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String   @db.ObjectId
+  tool           String
+  input          Json
+  ok             Boolean
+  error          String?
+  ms             Int
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([tool, createdAt])
+}
