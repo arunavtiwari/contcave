@@ -1,4 +1,4 @@
-import { MetaStandardEvent } from "@/constants/metaPixel";
+import { META_PIXEL_ID, MetaStandardEvent } from "@/constants/metaPixel";
 import { hasMarketingConsent as hasMarketingConsentCookie } from "@/lib/consent";
 import type { MetaStandardEventName } from "@/types/metaPixel";
 
@@ -9,13 +9,8 @@ export function generateEventId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
-function hasMarketingConsent(): boolean {
-  if (typeof window === "undefined") return false;
-  return hasMarketingConsentCookie(document.cookie);
-}
-
-function isFbqAvailable(): boolean {
-  return typeof window !== "undefined" && typeof window.fbq === "function";
+function canTrack(): boolean {
+  return typeof window !== "undefined" && !!META_PIXEL_ID && hasMarketingConsentCookie(document.cookie);
 }
 
 const META_CUSTOM_DATA_KEYS = new Set([
@@ -28,6 +23,7 @@ const META_CUSTOM_DATA_KEYS = new Set([
   "currency",
   "order_id",
   "status",
+  "search_string",
 ]);
 
 function sendMetaCapiEvent(
@@ -36,8 +32,6 @@ function sendMetaCapiEvent(
   params: Record<string, unknown>,
   eventSourcePath?: string,
 ) {
-  if (typeof window === "undefined" || !hasMarketingConsent()) return;
-
   const url = new URL(window.location.href);
   const sourcePath =
     eventSourcePath?.startsWith("/") && !eventSourcePath.startsWith("//")
@@ -66,19 +60,57 @@ function sendMetaCapiEvent(
   }).catch(() => undefined);
 }
 
+/*
+ * The Pixel script loads after hydration, but events such as Purchase and ViewContent fire as
+ * the page mounts. Browser events raised before the Pixel is ready wait here and are sent, in
+ * order, as soon as MetaPixelScript announces it.
+ */
+type PendingPixelEvent = { name: MetaStandardEventName; params: Record<string, unknown>; eventId: string };
+const MAX_PENDING_PIXEL_EVENTS = 25;
+const pendingPixelEvents: PendingPixelEvent[] = [];
+let waitingForPixel = false;
+
+function isPixelReady(): boolean {
+  return window.__CC_META_PIXEL_READY__ === true && typeof window.fbq === "function";
+}
+
+function flushPendingPixelEvents() {
+  waitingForPixel = false;
+  const events = pendingPixelEvents.splice(0);
+  if (!canTrack() || !isPixelReady()) return;
+  for (const event of events) {
+    window.fbq("track", event.name, event.params, { eventID: event.eventId });
+  }
+}
+
+function sendPixelEvent(name: MetaStandardEventName, params: Record<string, unknown>, eventId: string) {
+  if (isPixelReady()) {
+    window.fbq("track", name, params, { eventID: eventId });
+    return;
+  }
+  if (pendingPixelEvents.length < MAX_PENDING_PIXEL_EVENTS) {
+    pendingPixelEvents.push({ name, params, eventId });
+  }
+  if (!waitingForPixel) {
+    waitingForPixel = true;
+    window.addEventListener("cc-meta-pixel-ready", flushPendingPixelEvents, { once: true });
+  }
+}
+
 export function pageview(eventId?: string, eventSourcePath?: string): string | null {
   return trackEvent(MetaStandardEvent.PageView, {}, eventId, eventSourcePath);
 }
 
+/** Send an event through the browser Pixel and the Conversions API under one shared event ID. */
 export function trackEvent(
   name: MetaStandardEventName,
   params: Record<string, unknown> = {},
   eventId?: string,
   eventSourcePath?: string,
 ): string | null {
-  if (!hasMarketingConsent() || !isFbqAvailable()) return null;
+  if (!canTrack()) return null;
   const id = eventId || generateEventId();
-  window.fbq("track", name, params, { eventID: id });
+  sendPixelEvent(name, params, id);
   sendMetaCapiEvent(name, id, params, eventSourcePath);
   return id;
 }
@@ -90,18 +122,8 @@ export function trackServerEvent(
   eventId?: string,
   eventSourcePath?: string,
 ): string | null {
-  if (!hasMarketingConsent()) return null;
+  if (!canTrack()) return null;
   const id = eventId || generateEventId();
   sendMetaCapiEvent(name, id, params, eventSourcePath);
   return id;
-}
-
-export function trackCustomEvent(
-  name: string,
-  params: Record<string, unknown> = {},
-): string | null {
-  if (!hasMarketingConsent() || !isFbqAvailable()) return null;
-  const eventId = generateEventId();
-  window.fbq("trackCustom", name, params, { eventID: eventId });
-  return eventId;
 }

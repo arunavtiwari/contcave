@@ -13,6 +13,7 @@ import Checkbox from "@/components/ui/Checkbox";
 import Heading from "@/components/ui/Heading";
 import { type SearchPlace, useStudioSearch } from "@/hooks/useStudioSearch";
 import useUIStore from "@/hooks/useUIStore";
+import { trackSearch } from "@/lib/analytics/tracking";
 import { BOOKING_HORIZON_DAYS } from "@/lib/booking/dayAvailability";
 import { formatLatLngParam, searchRadiusKm } from "@/lib/geo";
 import { persistBrowseLocation } from "@/lib/listing/browseLocationStorage";
@@ -89,6 +90,11 @@ function SearchModalContent() {
       { skipNull: true, skipEmptyString: true }
     );
 
+    trackSearch({
+      place: next.where?.label,
+      date: next.date ? format(next.date, "yyyy-MM-dd") : null,
+      hasSets: next.hasSets,
+    });
     uiStore.onClose("search");
     router.push(url);
   };

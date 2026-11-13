@@ -16,6 +16,7 @@ export default function WhatsAppFloatingButton() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Chat with ContCave on WhatsApp"
+            data-tracking-source="floating_button"
             className="relative flex items-center group"
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}

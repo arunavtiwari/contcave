@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useOptimistic } from "react";
 import { toast } from "sonner";
 
 import { toggleFavoriteAction } from "@/app/actions/favoriteActions";
+import { trackAddToWishlist } from "@/lib/analytics/tracking";
 import { SafeUser } from "@/types/user";
 
 import useUIStore from "./useUIStore";
@@ -48,6 +49,7 @@ function useFavorite({ listingId, currentUser }: Props) {
           return;
         }
 
+        if (response.data?.isFavorite) trackAddToWishlist(listingId);
         router.refresh();
         toast.success(
           response.data?.isFavorite ? "Added to favourites" : "Removed from favourites",

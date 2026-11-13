@@ -47,6 +47,19 @@ export function extractFbp(cookieString = ""): string | undefined {
   return cookieString.match(/(?:^|;\s*)_fbp=([^;]+)/)?.[1];
 }
 
+export function extractFbc(cookieString = ""): string | undefined {
+  const value = cookieString.match(/(?:^|;\s*)_fbc=([^;]+)/)?.[1];
+  return value && /^fb\.\d\.\d+\.[A-Za-z0-9._-]+$/.test(value) ? value : undefined;
+}
+
+/** Meta matches phone numbers as digits with the country code; ours are stored as 10 digits. */
+export function normalizeIndianPhone(phone: string | null | undefined): string | undefined {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (digits.length === 10) return `91${digits}`;
+  if (digits.length === 12 && digits.startsWith("91")) return digits;
+  return undefined;
+}
+
 export function buildFbc(fbclid: string | null | undefined): string | undefined {
   if (!fbclid) return undefined;
   return `fb.1.${Date.now()}.${fbclid}`;

@@ -4,7 +4,6 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import React, { useEffect } from "react";
 
-
 import MetaPixelScript from "@/components/analytics/MetaPixelScript";
 import MetaPixelTracker from "@/components/analytics/MetaPixelTracker";
 import { useConsent } from "@/components/providers/ConsentProvider";

@@ -44,6 +44,7 @@ export default function NoNearbyStudiosBanner({ nearestKm, nearestCity }: Props)
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackLead({ source: "no_studios_in_city", city: place })}
+                data-tracking-ignore="whatsapp"
                 className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-foreground underline underline-offset-4 hover:opacity-80"
             >
                 Ask us to find you a space in {place}

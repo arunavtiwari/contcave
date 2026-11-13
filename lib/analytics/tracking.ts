@@ -5,10 +5,12 @@ import { generateEventId, trackEvent as trackMetaEvent, trackServerEvent as trac
 /*
  * GA4 ecommerce events for Google Tag Manager, plus the matching Meta Pixel events.
  *
- * GTM loads for every visitor under Consent Mode v2 (see GoogleTagManagerScript), so these
- * pushes always reach the dataLayer; Google's tags decide what they may store or send from
- * the consent state. Meta's helpers stay gated on marketing consent, since Meta has no
- * equivalent of Consent Mode.
+ * GTM loads for every visitor under Consent Mode v2 (the loader is in app/(main)/layout.tsx),
+ * so these pushes always reach the dataLayer; Google's tags decide what they may store or send
+ * from the consent state. Meta's helpers stay gated on marketing consent, since Meta has no
+ * equivalent of Consent Mode. Visitors are opted in until they decline in the cookie banner.
+ *
+ * docs/tracking-events.md lists every event, where it fires and what it maps to.
  */
 
 type DataLayerEvent = Record<string, unknown>;
@@ -54,27 +56,30 @@ function pushTrackedEvent(event: DataLayerEvent) {
     pushDataLayer(event);
 }
 
-/** GA4 requires the previous ecommerce object to be cleared before pushing a new one. */
-function pushEcommerceEvent(event: DataLayerEvent) {
-    pushTrackedEvent(event);
-}
-
 export type TrackedStudio = {
     id: string;
     name: string;
     /** Studio type, e.g. "Podcast Studio". */
     category?: string | null;
     city?: string | null;
+    /** Hourly rate in INR, excluding GST. */
+    price?: number | null;
 };
 
-const studioItem = (studio: TrackedStudio) => ({
+const roundToPaise = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+
+const isPrice = (value: unknown): value is number =>
+    typeof value === "number" && Number.isFinite(value) && value > 0;
+
+/** One booking is one item; `price` defaults to the studio's hourly rate. */
+const studioItem = (studio: TrackedStudio, price: number | null | undefined = studio.price) => ({
     item_id: studio.id,
     item_name: studio.name,
     ...(studio.category ? { item_category: studio.category } : {}),
     ...(studio.city ? { item_category2: studio.city } : {}),
+    ...(isPrice(price) ? { price: roundToPaise(price) } : {}),
+    quantity: 1,
 });
-
-const roundToPaise = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
 function pageType(pathname: string) {
     if (pathname === "/") return "home";
@@ -120,17 +125,22 @@ export function trackPageView(pathname?: string): string | null {
 
 export function trackStudioView(studio: TrackedStudio) {
     const eventId = generateEventId();
-    pushEcommerceEvent({
+    pushTrackedEvent({
         event: "view_item",
         event_id: eventId,
         ...trackingContext(),
-        ecommerce: { currency: "INR", items: [studioItem(studio)] },
+        ecommerce: {
+            currency: "INR",
+            ...(isPrice(studio.price) ? { value: roundToPaise(studio.price) } : {}),
+            items: [studioItem(studio)],
+        },
     });
     trackMetaEvent(MetaStandardEvent.ViewContent, {
         content_ids: [studio.id],
         content_name: studio.name,
         content_type: "product",
         ...(studio.category ? { content_category: studio.category } : {}),
+        ...(isPrice(studio.price) ? { value: roundToPaise(studio.price), currency: "INR" } : {}),
     }, eventId);
 }
 
@@ -188,6 +198,16 @@ export function trackOutboundLinkClick(hostname: string, opensNewTab: boolean) {
     });
 }
 
+/** A click on an email or phone link. The address or number itself is never sent. */
+export function trackContactClick(method: "email" | "phone") {
+    pushTrackedEvent({
+        event: "contact_click",
+        event_id: generateEventId(),
+        contact_method: method,
+        ...trackingContext(),
+    });
+}
+
 export function trackNewTabLinkClick(pathname: string) {
     if (isPrivateTrackingPath(pathname)) return;
     pushTrackedEvent({
@@ -198,7 +218,12 @@ export function trackNewTabLinkClick(pathname: string) {
     });
 }
 
-/** Customer began checkout from the booking flow. `value` excludes GST. */
+let lastBeginCheckoutKey: string | null = null;
+
+/**
+ * Customer began checkout from the booking flow. `value` excludes GST. Pressing Reserve again
+ * for the same studio and amount doesn't start a second checkout.
+ */
 export function trackBeginCheckout(params: {
     studio: TrackedStudio;
     value: number;
@@ -206,8 +231,11 @@ export function trackBeginCheckout(params: {
     bookingType: "instant" | "approval";
 }) {
     const value = roundToPaise(params.value);
+    const checkoutKey = `${params.studio.id}:${value}`;
+    if (checkoutKey === lastBeginCheckoutKey) return;
+    lastBeginCheckoutKey = checkoutKey;
     const eventId = generateEventId();
-    pushEcommerceEvent({
+    pushTrackedEvent({
         event: "begin_checkout",
         event_id: eventId,
         booking_type: params.bookingType,
@@ -216,7 +244,7 @@ export function trackBeginCheckout(params: {
             value,
             tax: roundToPaise(params.tax),
             currency: "INR",
-            items: [studioItem(params.studio)],
+            items: [studioItem(params.studio, value)],
         },
     });
     trackMetaEvent(MetaStandardEvent.InitiateCheckout, {
@@ -225,6 +253,37 @@ export function trackBeginCheckout(params: {
         content_ids: [params.studio.id],
         content_type: "product",
         num_items: 1,
+    }, eventId);
+}
+
+/** Customer confirmed the booking summary and is being sent to the payment gateway. */
+export function trackAddPaymentInfo(params: {
+    studio: TrackedStudio;
+    value: number;
+    tax: number;
+    bookingType: "instant" | "approval";
+}) {
+    const value = roundToPaise(params.value);
+    const eventId = generateEventId();
+    pushTrackedEvent({
+        event: "add_payment_info",
+        event_id: eventId,
+        booking_type: params.bookingType,
+        payment_type: "cashfree",
+        ...trackingContext(),
+        ecommerce: {
+            value,
+            tax: roundToPaise(params.tax),
+            currency: "INR",
+            payment_type: "cashfree",
+            items: [studioItem(params.studio, value)],
+        },
+    });
+    trackMetaEvent(MetaStandardEvent.AddPaymentInfo, {
+        value,
+        currency: "INR",
+        content_ids: [params.studio.id],
+        content_type: "product",
     }, eventId);
 }
 
@@ -267,7 +326,7 @@ export function trackPurchase(params: {
     const value = roundToPaise(params.totalPaid / (1 + params.gstRate));
     const tax = roundToPaise(params.totalPaid - value);
     const eventId = `purchase:${params.bookingId}`;
-    pushEcommerceEvent({
+    pushTrackedEvent({
         event: "purchase",
         event_id: eventId,
         booking_type: params.bookingType,
@@ -277,7 +336,7 @@ export function trackPurchase(params: {
             value,
             tax,
             currency: "INR",
-            items: [studioItem(params.studio)],
+            items: [studioItem(params.studio, value)],
         },
     });
     trackMetaEvent(MetaStandardEvent.Purchase, {
@@ -354,6 +413,65 @@ export function trackLead(params: {
     trackMetaEvent(MetaStandardEvent.Lead, {
         content_name: params.studio?.name ?? params.source,
         ...(params.studio ? { content_ids: [params.studio.id] } : {}),
+    }, eventId);
+}
+
+/** Returning user signed in. Sign-ups are reported by trackSignup instead. */
+export function trackLogin(method: "email" | "google") {
+    pushTrackedEvent({
+        event: "login",
+        event_id: generateEventId(),
+        method,
+        ...trackingContext(),
+    });
+}
+
+/** Studio search submitted from the search modal. */
+export function trackSearch(params: { place?: string | null; date?: string | null; hasSets?: boolean }) {
+    const eventId = generateEventId();
+    const searchTerm = params.place?.slice(0, 100) || "";
+    pushTrackedEvent({
+        event: "search",
+        event_id: eventId,
+        search_term: searchTerm || "(any location)",
+        ...(params.date ? { search_date: params.date } : {}),
+        search_has_sets: !!params.hasSets,
+        ...trackingContext(),
+    });
+    trackMetaEvent(MetaStandardEvent.Search, {
+        ...(searchTerm ? { search_string: searchTerm } : {}),
+        content_type: "product",
+    }, eventId);
+}
+
+/** Studio saved to favourites. Removing a favourite is not tracked. */
+export function trackAddToWishlist(studioId: string) {
+    const eventId = generateEventId();
+    pushTrackedEvent({
+        event: "add_to_wishlist",
+        event_id: eventId,
+        ...trackingContext(),
+        ecommerce: { currency: "INR", items: [{ item_id: studioId, quantity: 1 }] },
+    });
+    trackMetaEvent(MetaStandardEvent.AddToWishlist, {
+        content_ids: [studioId],
+        content_type: "product",
+    }, eventId);
+}
+
+/** A host submitted a new studio listing: the supply-side conversion. */
+export function trackListingSubmitted(params: { listingId: string; category?: string | null }) {
+    const eventId = `listing:${params.listingId}`;
+    pushTrackedEvent({
+        event: "listing_submitted",
+        event_id: eventId,
+        listing_id: params.listingId,
+        ...(params.category ? { listing_category: params.category } : {}),
+        ...trackingContext(),
+    });
+    trackMetaEvent(MetaStandardEvent.SubmitApplication, {
+        content_ids: [params.listingId],
+        content_name: "studio_listing",
     }, eventId);
 }
 

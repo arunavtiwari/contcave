@@ -24,6 +24,10 @@ export function parseConsentCookie(cookieHeader: string): StoredConsent | null {
   }
 }
 
+/**
+ * Visitors are opted in by default: marketing tracking is allowed until they switch it off in
+ * the cookie banner, so a missing or unreadable cookie counts as consent.
+ */
 export function hasMarketingConsent(cookieHeader: string): boolean {
-  return parseConsentCookie(cookieHeader)?.marketing === true;
+  return parseConsentCookie(cookieHeader)?.marketing !== false;
 }
