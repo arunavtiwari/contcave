@@ -13,6 +13,7 @@ import ConsentAwareTracking from "@/components/analytics/ConsentAwareTracking";
 import JourneyEventTracker from "@/components/analytics/JourneyEventTracker";
 import CookieConsent from "@/components/layout/CookieConsentBanner";
 import GlobalScrollFix from "@/components/layout/GlobalScrollFix";
+import ConciergeWidget from "@/components/concierge/ConciergeWidget";
 import WhatsAppFloatingButton from "@/components/layout/WhatsAppFloatingButton";
 import LoginModal from "@/components/modals/LoginModal";
 import OwnerRegisterModal from "@/components/modals/OwnerRegisterModal";
@@ -242,7 +243,8 @@ export default async function RootLayout({
                         <CookieConsent />
                     </ClientOnly>
                     {children}
-                    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-center gap-3">
+                    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+                        {process.env.CONCIERGE_ENABLED !== "false" && <ConciergeWidget />}
                         <WhatsAppFloatingButton />
                         <ScrollToTop />
                     </div>

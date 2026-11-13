@@ -11,6 +11,7 @@
 		"lint:fix": "eslint . --fix",
 		"type-check": "tsc --noEmit",
 		"check": "npm run type-check && npm run lint",
+		"test:unit": "node --conditions=react-server --import tsx --test \"tests/unit/**/*.test.ts\"",
 		"test:e2e": "playwright test",
 		"test:e2e:headed": "playwright test --headed",
 		"test:e2e:staging": "playwright test --project=staging-chromium",
