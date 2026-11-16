@@ -48,6 +48,13 @@ const normalize = (value: string) => value.trim().toLowerCase();
 
 export const findRegion = (slug: string | null | undefined) => REGIONS.find((region) => region.slug === slug) ?? null;
 
+/** Region for a city name (listing locationValue or IP city), or null if we don't serve it. */
+export function regionOfCity(city: string | null | undefined): Region | null {
+    if (!city) return null;
+    const target = normalize(city);
+    return REGIONS.find((region) => region.cities.some((name) => normalize(name) === target)) ?? null;
+}
+
 const regionsByDistance = (latlng: LatLng) =>
     REGIONS.map((region) => ({ region, km: distanceKm(latlng, region.center) })).sort((a, b) => a.km - b.km);
 

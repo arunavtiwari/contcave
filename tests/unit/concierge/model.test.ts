@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
-import { after, before, describe, it } from "node:test";
+import { afterAll, beforeAll, describe, it } from "vitest";
 
 import { chatJson, chatStream, ModelError } from "@/lib/concierge/model";
 
@@ -11,7 +11,7 @@ const seen: { auth?: string; body: Record<string, unknown> }[] = [];
 
 const chunk = (delta: Record<string, unknown>, finish: string | null = null) => `data: ${JSON.stringify({ choices: [{ index: 0, delta, finish_reason: finish }] })}\n\n`;
 
-before(async () => {
+beforeAll(async () => {
     server = http.createServer((req, res) => {
         let raw = "";
         req.on("data", (data) => (raw += data));
@@ -60,7 +60,7 @@ before(async () => {
     process.env.CONCIERGE_LLM_API_KEY = "test-key";
 });
 
-after(() => new Promise<void>((resolve) => server.close(() => resolve())));
+afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
 
 describe("model client", () => {
     it("streams text and assembles tool calls sent in fragments", async () => {

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 
 import { mergeBrief } from "@/lib/concierge/brief";
 import { HELP_ARTICLES, searchHelp } from "@/lib/concierge/help";
