@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
+
 import { afterAll, beforeAll, describe, it } from "vitest";
 
 import { chatJson, chatStream, ModelError } from "@/lib/concierge/model";
