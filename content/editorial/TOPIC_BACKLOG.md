@@ -15,7 +15,6 @@ append a fresh batch at the bottom, keeping this file's format.
 
 | # | Working title | Primary keyword | Category | Audience |
 |---|---|---|---|---|
-| 70 | Monsoon-Proofing Your Studio Booking: Backup Plans for Outdoor Shoots | monsoon studio booking india | booking-tips | creators, brands |
 | 71 | Video Podcast Studio Setups: Why Audio-Only Isn't Enough Anymore | video podcast studio india | studio-guides | creators |
 | 72 | Booking a Studio for a Creator Collab or Multi-Guest Shoot | studio for creator collab shoot india | booking-tips | creators |
 | 73 | Unboxing & PR Package Video Studios for Creators | unboxing video studio india | content-creation | creators, brands |
@@ -112,3 +111,4 @@ Existing posts (pre-backlog) live in `content/posts/`:
 | 2026-11-09 | 67 | ecommerce-catalogue-vs-lookbook-shoot-studio-india |
 | 2026-11-11 | 68 | soundproof-studio-for-hosts-india |
 | 2026-11-13 | 69 | bts-content-studio-shoot-india |
+| 2026-11-16 | 70 | monsoon-proofing-studio-booking-india |
