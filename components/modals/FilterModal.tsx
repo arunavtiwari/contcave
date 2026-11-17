@@ -145,21 +145,24 @@ const FilterModalContent = ({ city }: Props) => {
 
   return (
     <div className="shrink-0">
-      <Button
-        label="Filters"
-        icon={FiSliders}
-        variant="ghost"
-        size="sm"
-        fit
-        onClick={openFilters}
-        className="bg-muted border border-border hover:bg-muted/80 h-9 px-3 gap-1.5 font-medium"
-      >
-        {activeFilterCount > 0 && (
-          <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-foreground text-background text-[10px] font-bold leading-none">
-            {activeFilterCount}
-          </span>
-        )}
-      </Button>
+      {/* Phones open this from the Filters button in BrowseControlBar, so this button is desktop-only. */}
+      <div className="hidden md:block">
+        <Button
+          label="Filters"
+          icon={FiSliders}
+          variant="ghost"
+          size="sm"
+          fit
+          onClick={openFilters}
+          className="bg-muted border border-border hover:bg-muted/80 h-9 px-3 gap-1.5 font-medium"
+        >
+          {activeFilterCount > 0 && (
+            <span className="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-foreground text-background text-[10px] font-bold leading-none">
+              {activeFilterCount}
+            </span>
+          )}
+        </Button>
+      </div>
 
       <Modal
         isOpen={isOpen}
@@ -179,7 +182,7 @@ const FilterModalContent = ({ city }: Props) => {
 const FilterModal = ({ city }: Props) => {
   return (
     <Suspense fallback={
-      <div className="shrink-0">
+      <div className="hidden shrink-0 md:block">
         <Button
           label="Filters"
           icon={FiSliders}

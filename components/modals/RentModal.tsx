@@ -119,7 +119,7 @@ const getActiveSteps = (hasSets: boolean, listingType: "STANDARD" | "CURATED", i
     STEPS.VIDEO,
     STEPS.DESCRIPTION,
     STEPS.AMENITIES,
-    // Paid equipment is what guests add to a booking, so it replaces the old Add-ons step.
+    STEPS.ADDONS,
     STEPS.EQUIPMENT,
     STEPS.OTHERDETAILS,
     STEPS.CUSTOMTERMS,

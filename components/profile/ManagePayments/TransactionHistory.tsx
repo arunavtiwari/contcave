@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { FiDownload, FiEye } from "react-icons/fi";
 
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
@@ -133,6 +134,32 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                                     <span>{datePart} </span>|
                                     <span> {timePart}</span>
                                 </div>
+                                {transaction.invoiceId && (
+                                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                                        <span className="text-xs text-muted-foreground">
+                                            Invoice <span className="font-mono text-foreground">{transaction.invoiceNumber}</span>
+                                        </span>
+                                        <Button
+                                            href={`/api/documents/invoices/${transaction.invoiceId}`}
+                                            target="_blank"
+                                            icon={FiEye}
+                                            isIconOnly
+                                            outline
+                                            size="sm"
+                                            aria-label={`View invoice ${transaction.invoiceNumber}`}
+                                            tooltip="View invoice"
+                                        />
+                                        <Button
+                                            href={`/api/documents/invoices/${transaction.invoiceId}?download=1`}
+                                            icon={FiDownload}
+                                            isIconOnly
+                                            outline
+                                            size="sm"
+                                            aria-label={`Download invoice ${transaction.invoiceNumber}`}
+                                            tooltip="Download invoice"
+                                        />
+                                    </div>
+                                )}
                             </div>
                             <div className="w-full lg:basis-[58%]">
                                 <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-6">

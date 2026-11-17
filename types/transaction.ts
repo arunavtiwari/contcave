@@ -19,6 +19,9 @@ export interface Transaction {
     bookingId?: string;
     listingId?: string;
     failureReason?: string;
+    /** Customer tax invoice for this payment, once its PDF is stored. */
+    invoiceId?: string;
+    invoiceNumber?: string;
 }
 
 export interface CreateTransactionData {

@@ -74,7 +74,6 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
 }) => {
   const isCurated = initialListing.listingType === "CURATED";
   const equipmentItems = (initialListing.equipment ?? []) as EquipmentItem[];
-  const showLegacyAddons = equipmentItems.length === 0 && (initialListing.addons?.length ?? 0) > 0;
   const equipmentField = (
     <FormField label="Equipment" description="Included gear, paid extras and items on request" variant="horizontal" align="start">
       <EquipmentEditor
@@ -319,9 +318,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
             customAmenities={initialListing.otherAmenities}
           />
 
-          {showLegacyAddons && (
-            // Legacy add-ons, kept until this listing's add-ons are migrated into Equipment.
-            <>
+          <>
               <AddonsSelection
                 label="Addons"
                 variant="horizontal"
@@ -337,8 +334,7 @@ const EditPropertyTab: React.FC<EditPropertyTabProps> = ({
                   }}
                 />
               </div>
-            </>
-          )}
+          </>
 
           {equipmentField}
 

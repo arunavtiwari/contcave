@@ -59,7 +59,7 @@ const Categories = memo(function Categories(props: Props) {
             </div>
           ))}
         </div>
-        <div className="shrink-0">
+        <div className="hidden shrink-0 md:block">
           <Button
             label="Filters"
             icon={FiSliders}

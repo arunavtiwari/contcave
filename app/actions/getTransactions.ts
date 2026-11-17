@@ -92,6 +92,26 @@ export async function getTransactionsPage(
             take: limit,
         });
 
+        // Customer invoices for these payments, in one query. Only stored PDFs are linked; the
+        // document route checks that the viewer is the customer or the studio's owner.
+        const invoices = transactions.length > 0
+            ? await prisma.invoice.findMany({
+                where: {
+                    transactionId: { in: transactions.map((transaction) => transaction.id) },
+                    documentType: { in: ["CUSTOMER_STUDIO_TAX_INVOICE", "CUSTOMER_ARKANET_TAX_INVOICE"] },
+                    invoiceUrl: { not: "" },
+                },
+                select: { id: true, invoiceNumber: true, transactionId: true },
+                orderBy: { createdAt: "desc" },
+            })
+            : [];
+        const invoiceByTransaction = new Map<string, { id: string; invoiceNumber: string }>();
+        for (const invoice of invoices) {
+            if (invoice.transactionId && !invoiceByTransaction.has(invoice.transactionId)) {
+                invoiceByTransaction.set(invoice.transactionId, invoice);
+            }
+        }
+
         const transformedTransactions = transactions.map((transaction) => ({
             id: transaction.id,
             businessName:
@@ -107,6 +127,8 @@ export async function getTransactionsPage(
             reservationId: transaction.reservationId || undefined,
             listingId: transaction.listingId || undefined,
             bookingId: transaction.bookingId || transaction.reservation?.bookingId || undefined,
+            invoiceId: invoiceByTransaction.get(transaction.id)?.id,
+            invoiceNumber: invoiceByTransaction.get(transaction.id)?.invoiceNumber,
         }));
 
         return {

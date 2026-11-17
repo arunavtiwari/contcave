@@ -137,7 +137,25 @@ function ListingInfo({
     return [location?.latlng, exact, coordinates].find(isLatLng);
   }, [fullListing.actualLocation, coordinates]);
 
-  const relayAddons = useCallback((addons: Addon[]) => onAddonChange(addons), [onAddonChange]);
+  // Paid equipment and add-ons are picked in separate blocks; the booking gets both selections.
+  const equipmentSelection = useRef<Addon[]>([]);
+  const addonSelection = useRef<Addon[]>([]);
+  const relayEquipment = useCallback((selected: Addon[]) => {
+    equipmentSelection.current = selected;
+    onAddonChange([...selected, ...addonSelection.current]);
+  }, [onAddonChange]);
+  const relayAddons = useCallback((selected: Addon[]) => {
+    addonSelection.current = selected;
+    onAddonChange([...equipmentSelection.current, ...selected]);
+  }, [onAddonChange]);
+
+  // Add-ons already migrated into Equipment are shown there, not twice.
+  const listingAddons = useMemo(() => {
+    const list = Array.isArray(fullListing.addons) ? (fullListing.addons as Addon[]) : [];
+    if (!equipment) return list;
+    const migrated = new Set(equipment.items.map((item) => item.legacyAddonId || item.id).filter(Boolean));
+    return list.filter((addon) => !(addon.id && migrated.has(addon.id)));
+  }, [fullListing.addons, equipment]);
 
   const packages = Array.isArray(fullListing.packages) ? fullListing.packages : [];
   const hasPackages = packages.length > 0;
@@ -407,15 +425,16 @@ function ListingInfo({
             studioName={fullListing.title}
             includedLabel={equipmentIncludedLabel}
             note={equipmentNote}
-            onAddonsChange={relayAddons}
+            onAddonsChange={relayEquipment}
             disabled={equipmentDisabled}
           />
           <Divider />
         </>
-      ) : Array.isArray(fullListing.addons) && fullListing.addons.length > 0 && (
-        // Legacy Add-ons block, kept until this listing's equipment is migrated.
+      ) : null}
+
+      {listingAddons.length > 0 && (
         <>
-          <AddonsList addons={fullListing.addons} onChange={relayAddons} addonList={addonList} />
+          <AddonsList addons={listingAddons} onChange={relayAddons} addonList={addonList} />
           <Divider />
         </>
       )}
