@@ -10,6 +10,7 @@ import { GST_STATE_NAMES_BY_CODE, isValidGstStateCode } from "@/constants/gstSta
 import { isE2eEffectDisabled } from "@/lib/e2e-guards";
 import { escapeEmailHtml } from "@/lib/email/html";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
+import { deliverableEmail } from "@/lib/email/placeholder";
 import { sendCustomerPaymentInvoice, sendReservationConfirmationCustomer } from "@/lib/email/templates";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import { hasValidGST } from "@/lib/payout/utils";
@@ -632,11 +633,11 @@ export class InvoiceService {
         legalName: billing.companyName,
         address: billing.billingAddress,
         gstin: billing.gstin,
-        email: transaction.user.email,
+        email: deliverableEmail(transaction.user.email),
       }
       : {
-        name: transaction.user.name || transaction.user.email || "Customer",
-        email: transaction.user.email,
+        name: transaction.user.name || deliverableEmail(transaction.user.email) || "Customer",
+        email: deliverableEmail(transaction.user.email),
       };
 
     const pdfData: InvoicePDFData = {
@@ -733,7 +734,7 @@ export class InvoiceService {
 
     if (!invoice?.reservation || !invoice.transaction) throw new Error("Invoice payment details are incomplete");
     if (invoice.emailSentAt) return invoice;
-    if (!invoice.user.email) {
+    if (!deliverableEmail(invoice.user.email)) {
       return await prisma.invoice.update({
         where: { id: invoice.id },
         data: { status: "DELIVERY_BLOCKED", emailError: "Recipient email is missing" },
@@ -790,7 +791,7 @@ export class InvoiceService {
             ? "additional services"
             : "studio booking";
       await sendCustomerPaymentInvoice({
-        toEmail: invoice.user.email,
+        toEmail: invoice.user.email as string,
         toName: invoice.user.name || "Valued Customer",
         studioName: invoice.reservation.listing.title,
         bookingId: invoice.reservation.bookingId,
@@ -890,12 +891,30 @@ export class InvoiceService {
     const ownerGstinForCommission = documentType === "OWNER_MONTHLY_COMMISSION_INVOICE"
       ? assertValidGstin(ownerGstin, "Studio owner")
       : ownerGstin || null;
-    const totalBookingBase = roundMoney(relevantTxns.reduce((sum, txn) => {
-      const base = txn.baseAmountBeforeGst || roundMoney(amountBeforeGst(txn.amount));
-      return sum + base;
-    }, 0));
-    const commissionAmount = roundMoney(totalBookingBase * (PLATFORM_COMMISSION_PERCENT / 100));
-    const billOfSupplyAmount = roundMoney(relevantTxns.reduce((sum, txn) => sum + (txn.payoutAmountToOwner || 0), 0));
+    // Offline bookings record the payout as ₹0 / done on the transaction and keep the real
+    // figures in the stored payout breakdown, so that breakdown is used for them here.
+    const storedBreakdown = (txn: (typeof relevantTxns)[number]) => {
+      const breakdown = (txn.metadata as { payoutBreakdown?: unknown } | null)?.payoutBreakdown as
+        | { commission?: unknown; studioAmount?: unknown; payout?: unknown }
+        | undefined;
+      return breakdown && typeof breakdown.commission === "number" && typeof breakdown.payout === "number"
+        ? {
+          commission: breakdown.commission,
+          studioSupply: typeof breakdown.studioAmount === "number" ? breakdown.studioAmount : breakdown.payout,
+        }
+        : null;
+    };
+    const commissionFor = (txn: (typeof relevantTxns)[number]) => {
+      const stored = storedBreakdown(txn);
+      if (stored) return roundMoney(stored.commission);
+      const base = roundMoney(txn.baseAmountBeforeGst || amountBeforeGst(txn.amount));
+      return roundMoney(base * (PLATFORM_COMMISSION_PERCENT / 100));
+    };
+    const studioSupplyFor = (txn: (typeof relevantTxns)[number]) =>
+      roundMoney(storedBreakdown(txn)?.studioSupply ?? (txn.payoutAmountToOwner || 0));
+
+    const commissionAmount = roundMoney(relevantTxns.reduce((sum, txn) => sum + commissionFor(txn), 0));
+    const billOfSupplyAmount = roundMoney(relevantTxns.reduce((sum, txn) => sum + studioSupplyFor(txn), 0));
 
     const amount = documentType === "OWNER_MONTHLY_COMMISSION_INVOICE" ? commissionAmount : billOfSupplyAmount;
     const taxBreakup = documentType === "OWNER_MONTHLY_COMMISSION_INVOICE"
@@ -916,22 +935,22 @@ export class InvoiceService {
 
     const lineItems: InvoiceLineItem[] = documentType === "OWNER_MONTHLY_COMMISSION_INVOICE"
       ? relevantTxns.map((txn) => {
-        const base = roundMoney(txn.baseAmountBeforeGst || amountBeforeGst(txn.amount));
+        const commission = commissionFor(txn);
         return applyTaxRatesToLineItem({
           description: txn.bookingId || txn.reservation?.bookingId || "Booking",
           subText: `${txn.user.name || "Customer"} - ${txn.reservation?.listing.title || "Studio"}`,
           sac: DEFAULT_SAC_CODE,
           quantity: "1",
-          rate: roundMoney(base * (PLATFORM_COMMISSION_PERCENT / 100)),
-          taxableValue: roundMoney(base * (PLATFORM_COMMISSION_PERCENT / 100)),
+          rate: commission,
+          taxableValue: commission,
         }, taxBreakup);
       })
       : relevantTxns.map((txn) => applyTaxRatesToLineItem({
         description: txn.bookingId || txn.reservation?.bookingId || "Studio service",
         subText: `${txn.user.name || "Customer"} - ${txn.reservation?.listing.title || "Studio"}`,
         quantity: "1",
-        rate: roundMoney(txn.payoutAmountToOwner || 0),
-        taxableValue: roundMoney(txn.payoutAmountToOwner || 0),
+        rate: studioSupplyFor(txn),
+        taxableValue: studioSupplyFor(txn),
       }, taxBreakup));
 
     const pdfData: InvoicePDFData = {
@@ -1031,7 +1050,7 @@ export class InvoiceService {
     if (!invoice) throw new Error("Invoice not found");
     if (invoice.emailSentAt) return invoice;
     if (!invoice.invoiceUrl) throw new Error("Invoice PDF is not stored");
-    if (!invoice.user.email) {
+    if (!deliverableEmail(invoice.user.email)) {
       return await prisma.invoice.update({
         where: { id: invoice.id },
         data: { status: "DELIVERY_BLOCKED", emailError: "Recipient email is missing" },
@@ -1078,7 +1097,7 @@ export class InvoiceService {
       }
 
       await sendEmail({
-        toEmail: invoice.user.email,
+        toEmail: invoice.user.email as string,
         toName: invoice.user.name || "",
         subject: getInvoiceEmailSubject(invoice),
         html: getInvoiceEmailHtml(invoice, invoice.user.name),
@@ -1156,7 +1175,7 @@ export class InvoiceService {
     if (!isInvoiceEligible(invoice.reservation)) throw new Error("Cannot send customer invoice before booking confirmation");
     if (invoice.emailSentAt) return invoice;
     if (!invoice.invoiceUrl) throw new Error("Invoice PDF is not stored");
-    if (!invoice.user.email) {
+    if (!deliverableEmail(invoice.user.email)) {
       return await prisma.invoice.update({
         where: { id: invoice.id },
         data: { status: "DELIVERY_BLOCKED", emailError: "Recipient email is missing" },
@@ -1200,7 +1219,7 @@ export class InvoiceService {
       const attachment = await downloadInvoiceAttachment(invoice);
       if (!attachment) throw new Error("Invoice attachment unavailable");
       await sendReservationConfirmationCustomer({
-        toEmail: invoice.user.email,
+        toEmail: invoice.user.email as string,
         toName: invoice.user.name || "Valued Customer",
         studioName: invoice.reservation.listing.title,
         bookingId: invoice.reservation.bookingId,

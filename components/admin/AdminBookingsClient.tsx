@@ -20,6 +20,7 @@ import {
   retryAdminVoucherEmailAction,
 } from "@/app/actions/adminBookingActions";
 import AdminTabs from "@/components/admin/AdminTabs";
+import PayoutBreakdownTable from "@/components/admin/PayoutBreakdownTable";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
@@ -38,6 +39,7 @@ import {
 } from "@/components/ui/Table";
 import Tooltip from "@/components/ui/Tooltip";
 import { downloadCsv } from "@/lib/csv";
+import type { PayoutBreakdown } from "@/lib/payout/breakdown";
 import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
 
 // Form-heavy and only reachable behind a button, so its bundle stays out of the initial
@@ -361,6 +363,11 @@ function BookingDetailModal({
   const addons = normalizeAddons(detail.selectedAddons);
   const pricingSnapshot = asRecord(detail.pricingSnapshot);
   const hasPricingSnapshot = Object.keys(pricingSnapshot).length > 0;
+  // Stored on offline bookings at creation; it is the payout and tax record for those bookings.
+  const storedBreakdown = asRecord(pricingSnapshot.payoutBreakdown);
+  const payoutBreakdown = typeof storedBreakdown.model === "string" && typeof storedBreakdown.payout === "number"
+    ? (storedBreakdown as unknown as PayoutBreakdown)
+    : null;
   const status = bookingStatus(booking);
 
   return (
@@ -422,6 +429,17 @@ function BookingDetailModal({
                           size="sm"
                           aria-label="View invoice PDF"
                           tooltip="View invoice PDF"
+                        />
+                      ) : null}
+                      {booking.customerInvoiceUrl ? (
+                        <Button
+                          href={`${booking.customerInvoiceUrl}?download=1`}
+                          icon={FiDownload}
+                          isIconOnly
+                          outline
+                          size="sm"
+                          aria-label="Download invoice PDF"
+                          tooltip="Download invoice PDF"
                         />
                       ) : null}
                     </div>
@@ -506,6 +524,12 @@ function BookingDetailModal({
               <div className="py-2 text-sm text-muted-foreground">No payment vouchers or refunds issued for this booking.</div>
             )}
           </DetailSection>
+
+          {payoutBreakdown ? (
+            <DetailSection title="Payout Breakdown">
+              <PayoutBreakdownTable breakdown={payoutBreakdown} />
+            </DetailSection>
+          ) : null}
 
           <DetailSection title="Booking Composition">
             <div className="grid gap-4 lg:grid-cols-3">
@@ -941,6 +965,16 @@ export default function AdminBookingsClient({
                                   ? `Invoice: ${booking.customerInvoiceNumber}`
                                   : "View invoice PDF"
                               }
+                            />
+                          ) : null}
+                          {booking.customerInvoiceUrl ? (
+                            <Button
+                              href={`${booking.customerInvoiceUrl}?download=1`}
+                              icon={FiDownload}
+                              isIconOnly
+                              outline
+                              aria-label="Download customer invoice"
+                              tooltip="Download invoice"
                             />
                           ) : null}
                           <Button

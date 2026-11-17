@@ -9,24 +9,30 @@ import { isAdmin } from "@/lib/user/permissions";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = { page?: string; pageSize?: string; status?: string; view?: string };
+type SearchParams = { page?: string; pageSize?: string; status?: string; view?: string; q?: string; city?: string };
 
 async function ListingsData({
     page,
     pageSize,
     selectedStatus,
     listingType,
+    search,
+    city,
 }: {
     page: number;
     pageSize: number;
     selectedStatus: "ALL" | "PENDING" | "VERIFIED" | "REJECTED";
     listingType: "STANDARD" | "CURATED";
+    search: string;
+    city: string;
 }) {
     const data = await getAdminListingReviewPage({
         page,
         pageSize,
         status: selectedStatus === "ALL" ? undefined : selectedStatus,
         listingType,
+        search,
+        city,
     });
 
     return <AdminListingsClient {...data} selectedStatus={selectedStatus} listingType={listingType} />;
@@ -52,6 +58,8 @@ export default async function AdminListingsPage({ searchParams }: { searchParams
                 pageSize={pageSize}
                 selectedStatus={selectedStatus}
                 listingType={listingType}
+                search={params.q?.trim() || ""}
+                city={params.city?.trim() || ""}
             />
         </Suspense>
     );

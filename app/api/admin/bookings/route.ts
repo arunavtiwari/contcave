@@ -19,7 +19,13 @@ export async function POST(request: NextRequest) {
       return jsonResult.response;
     }
 
-    const validation = createAdminOfflineBookingSchema.safeParse(jsonResult.data);
+    // Payout fields were added after this route shipped; default them for older callers.
+    const validation = createAdminOfflineBookingSchema.safeParse({
+      commissionPercent: 12,
+      nonGstModel: "principal",
+      studioHasNoPan: false,
+      ...jsonResult.data,
+    });
     if (!validation.success) {
       return createErrorResponse(
         validation.error.issues[0]?.message || "Invalid booking data",

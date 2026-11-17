@@ -372,6 +372,10 @@ export class ListingService {
         pageSize: number;
         status?: string;
         listingType: "STANDARD" | "CURATED";
+        /** Matches the listing name, or the owner's name or email. */
+        search?: string;
+        /** Exact city (Listing.locationValue), case-insensitive. */
+        city?: string;
     }): Promise<{
         ids: string[];
         total: number;
@@ -388,7 +392,33 @@ export class ListingService {
             listingType: params.listingType,
         });
         // Same hydratability rules, but across both listing types so one pass can tally both.
-        const countFilter = hydratableListingFilter({});
+        const baseCountFilter = hydratableListingFilter({});
+
+        // Search and city narrow both the rows and the tab counts, so the counts match what's shown.
+        const narrowing: Record<string, unknown>[] = [];
+        const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const city = params.city?.trim();
+        if (city) {
+            narrowing.push({ locationValue: { $regex: `^${escapeRegex(city)}$`, $options: "i" } });
+        }
+        const search = params.search?.trim().slice(0, 100);
+        if (search) {
+            // Raw query with an escaped pattern: Prisma's `contains` on MongoDB passes the text
+            // through as a regex, so input like "([" would fail the query.
+            const pattern = { $regex: escapeRegex(search), $options: "i" };
+            const owners = await prisma.user.findRaw({
+                filter: { $or: [{ name: pattern }, { email: pattern }] },
+                options: { projection: { _id: 1 }, limit: 500 },
+            }) as unknown as RawListingId[];
+            const ownerIds = owners.map(readRawId).filter((id): id is string => !!id);
+            narrowing.push({
+                $or: [
+                    { title: pattern },
+                    ...(ownerIds.length > 0 ? [{ userId: { $in: ownerIds.map((id) => ({ $oid: id })) } }] : []),
+                ],
+            });
+        }
+        const countFilter = narrowing.length > 0 ? { $and: [baseCountFilter, ...narrowing] } : baseCountFilter;
 
         const result = await prisma.listing.aggregateRaw({
             pipeline: [

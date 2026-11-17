@@ -6,11 +6,15 @@ import React, { useEffect, useMemo, useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   FiAlertCircle,
+  FiCheckCircle,
   FiClock,
   FiCreditCard,
+  FiDownload,
+  FiEye,
   FiHome,
   FiLayers,
   FiPackage,
+  FiPieChart,
   FiUser,
 } from "react-icons/fi";
 import { toast } from "sonner";
@@ -20,6 +24,7 @@ import {
   getAdminStudioForOfflineBookingAction,
   getAdminStudiosForOfflineBookingAction,
 } from "@/app/actions/adminBookingActions";
+import PayoutBreakdownTable from "@/components/admin/PayoutBreakdownTable";
 import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Checkbox from "@/components/ui/Checkbox";
@@ -30,7 +35,8 @@ import Select, { SelectOption } from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Textarea from "@/components/ui/Textarea";
 import { GST_RATE } from "@/constants/gst";
-import { AdminStudioOption, AdminStudioSummary } from "@/lib/admin/offlineBooking";
+import type { AdminStudioOption, AdminStudioSummary, OfflineBookingCreationResult } from "@/lib/admin/offlineBooking";
+import { computePayoutBreakdown, panFromGstin } from "@/lib/payout/breakdown";
 import { addGst, calculateSetPricing } from "@/lib/pricing";
 import { cn, formatINR } from "@/lib/utils";
 import {
@@ -158,6 +164,8 @@ export default function CreateOfflineBookingModal({
   const [selectedSetIds, setSelectedSetIds] = useState<string[]>([]);
   const [showCustomerGst, setShowCustomerGst] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  // Set once the booking is created, so the dialog can offer the invoice for download.
+  const [created, setCreated] = useState<OfflineBookingCreationResult | null>(null);
 
   const defaultDate = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
@@ -196,6 +204,11 @@ export default function CreateOfflineBookingModal({
       paymentMadeVia: "Bank Transfer (NEFT/RTGS/IMPS)",
       paymentTerms: "100% advance payment received offline",
       internalNotes: "",
+      commissionPercent: 12,
+      nonGstModel: "principal",
+      customStudioPrice: null,
+      studioPan: "",
+      studioHasNoPan: false,
     },
   });
 
@@ -206,6 +219,31 @@ export default function CreateOfflineBookingModal({
   const priceWithGst = Number.isFinite(watchPrice) && watchPrice > 0
     ? addGst(watchPrice)
     : null;
+
+  const watchCommission = watch("commissionPercent");
+  const watchNonGstModel = watch("nonGstModel");
+  const watchStudioPan = watch("studioPan");
+  const watchHasNoPan = watch("studioHasNoPan");
+  const watchCustomStudioPrice = watch("customStudioPrice");
+  const watchStateCode = watch("propertyStateCode");
+  const studioHasGstin = Boolean(selectedStudio?.gstin);
+
+  // Live preview; the server recomputes the same breakdown and stores it with the booking.
+  const payoutBreakdown = useMemo(() => {
+    if (!selectedStudio || !Number.isFinite(watchPrice) || watchPrice <= 0) return null;
+    return computePayoutBreakdown({
+      baseValue: watchPrice,
+      studioGstin: selectedStudio.gstin || null,
+      propertyStateCode: watchStateCode || selectedStudio.propertyStateCode,
+      nonGstModel: watchNonGstModel,
+      studioPan: watchStudioPan,
+      studioHasNoPan: watchHasNoPan,
+      fyGrossSoFar: selectedStudio.ownerFyGrossSoFar,
+      commissionPct: (Number.isFinite(watchCommission) ? watchCommission : 12) / 100,
+      customStudioPrice: Number.isFinite(watchCustomStudioPrice) ? watchCustomStudioPrice : null,
+    });
+  }, [selectedStudio, watchPrice, watchStateCode, watchNonGstModel, watchStudioPan, watchHasNoPan, watchCommission, watchCustomStudioPrice]);
+  const isBlocked = Boolean(payoutBreakdown?.blockedReason);
 
   // Fetch available studios when modal opens
   useEffect(() => {
@@ -317,6 +355,10 @@ export default function CreateOfflineBookingModal({
       setValue("studioAddress", studio.address, { shouldValidate: true });
       setValue("studioGst", studio.gstin || "", { shouldValidate: true });
       setValue("propertyStateCode", studio.propertyStateCode || "07", { shouldValidate: true });
+      setValue("nonGstModel", "principal");
+      setValue("studioPan", "");
+      setValue("studioHasNoPan", false);
+      setValue("customStudioPrice", null);
 
       // Default sets: If studio has sets, select all sets (Entire Studio) by default
       const defaultSetIds = studio.hasSets && studio.sets.length > 0
@@ -455,27 +497,38 @@ export default function CreateOfflineBookingModal({
           return;
         }
 
-        const details = res.data;
-        toast.success(
-          `Booking ${details?.bookingId || ""} created successfully! Invoice generated.`,
-          { duration: 5000 }
-        );
+        const details = res.data as OfflineBookingCreationResult;
+        toast.success(`Booking ${details.bookingId} created.`, { duration: 5000 });
 
+        // Stay open on a summary so the invoice can be downloaded, which is the only way to
+        // share it when no customer email was given.
         resetStudioCaches();
-        reset();
-        setSelectedStudio(null);
-        setSelectedStudioId(null);
-        setSelectedSetIds([]);
-        setShowCustomerGst(false);
-        onClose();
+        setCreated(details);
         router.refresh();
-        onSuccess?.();
       } catch (err) {
         const message = err instanceof Error ? err.message : "An unexpected error occurred";
         setServerError(message);
         toast.error(message);
       }
     });
+  };
+
+  const resetForm = () => {
+    reset();
+    setSelectedStudio(null);
+    setSelectedStudioId(null);
+    setSelectedSetIds([]);
+    setShowCustomerGst(false);
+    setServerError(null);
+  };
+
+  const handleClose = () => {
+    if (created) {
+      setCreated(null);
+      resetForm();
+      onSuccess?.();
+    }
+    onClose();
   };
 
   const studioOptions: SelectOption[] = useMemo(() => {
@@ -673,8 +726,12 @@ export default function CreateOfflineBookingModal({
             <FiUser size={15} />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground">2. Customer Details</h3>
-            <p className="text-xs text-muted-foreground">Booking confirmation, invoice PDF & WhatsApp sent here</p>
+            <h3 className="text-sm font-semibold text-foreground">
+              2. Customer Details <span className="font-normal text-muted-foreground">(optional)</span>
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Add an email to send the invoice and a phone for WhatsApp. Leave them blank to skip, and download the invoice after creating the booking.
+            </p>
           </div>
         </div>
 
@@ -683,7 +740,6 @@ export default function CreateOfflineBookingModal({
             <Input
               id="customerName"
               label="Customer Name"
-              required
               register={register("customerName")}
               error={errors.customerName?.message}
               disabled={isPending}
@@ -692,23 +748,21 @@ export default function CreateOfflineBookingModal({
             <Input
               id="customerPhone"
               label="Customer Phone (for WhatsApp)"
-              required
               register={register("customerPhone")}
               error={errors.customerPhone?.message}
               disabled={isPending}
               placeholder="e.g. 9876543210"
-              description="WhatsApp confirmation will be sent here"
+              description="Blank = no WhatsApp"
             />
             <Input
               id="customerEmail"
               label="Customer Email (for Invoice)"
               type="email"
-              required
               register={register("customerEmail")}
               error={errors.customerEmail?.message}
               disabled={isPending}
               placeholder="client@example.com"
-              description="Invoice PDF will be attached to email"
+              description="Blank = no invoice email"
             />
           </div>
 
@@ -1078,32 +1132,191 @@ export default function CreateOfflineBookingModal({
         </div>
       </section>
 
+      {/* SECTION 5: PAYOUT BREAKDOWN */}
+      <section className="rounded-xl border border-border bg-muted/20 p-4 sm:p-5">
+        <div className="flex items-center gap-2 border-b border-border pb-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <FiPieChart size={15} />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">5. Payout Breakdown</h3>
+            <p className="text-xs text-muted-foreground">Commission, GST, TCS and TDS, and what the studio receives. Saved with the booking.</p>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-4">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Input
+              id="commissionPercent"
+              label="Commission %"
+              type="number"
+              step="0.5"
+              min="0"
+              required
+              register={register("commissionPercent", { valueAsNumber: true })}
+              error={errors.commissionPercent?.message}
+              disabled={isPending}
+            />
+
+            {selectedStudio && !studioHasGstin ? (
+              <>
+                <Controller
+                  name="nonGstModel"
+                  control={control}
+                  render={({ field }) => {
+                    const options: SelectOption[] = [
+                      { value: "principal", label: "B · Principal (we resell at 88%)" },
+                      { value: "passthrough", label: "C · Pass-through (what-if only)" },
+                    ];
+                    return (
+                      <Select
+                        id="nonGstModel"
+                        label="Non-GST studio model"
+                        required
+                        options={options}
+                        value={options.find((o) => o.value === field.value) || null}
+                        onChange={(opt) => field.onChange((opt as SelectOption | null)?.value || "principal")}
+                        isDisabled={isPending}
+                        error={errors.nonGstModel?.message}
+                      />
+                    );
+                  }}
+                />
+                <Input
+                  id="studioPan"
+                  label="Studio PAN"
+                  register={register("studioPan")}
+                  error={errors.studioPan?.message}
+                  disabled={isPending || watchHasNoPan}
+                  placeholder="ABCDE1234F"
+                  description="Sets the 194C rate: 1% individual/HUF, 2% others"
+                />
+              </>
+            ) : selectedStudio ? (
+              <div className="sm:col-span-2 text-xs text-muted-foreground self-center">
+                GST studio (model A). PAN read from the GSTIN:{" "}
+                <span className="font-mono text-foreground">{panFromGstin(selectedStudio.gstin) || "unreadable"}</span>
+              </div>
+            ) : null}
+          </div>
+
+          {selectedStudio && !studioHasGstin ? (
+            <div className="grid gap-3 sm:grid-cols-3">
+              {watchNonGstModel === "principal" ? (
+                <Input
+                  id="customStudioPrice"
+                  label="Custom studio price (optional)"
+                  type="number"
+                  formatPrice
+                  register={register("customStudioPrice", {
+                    setValueAs: (v) => (v === "" || v === null || v === undefined ? null : Number(v)),
+                  })}
+                  error={errors.customStudioPrice?.message}
+                  disabled={isPending}
+                  description="Overrides the booking value for the studio's share"
+                />
+              ) : <div />}
+              <div className="sm:col-span-2 self-center">
+                <Checkbox
+                  id="studioHasNoPan"
+                  label="Studio has no PAN (TDS at 20%)"
+                  checked={Boolean(watchHasNoPan)}
+                  onCheckedChange={(checked) => {
+                    setValue("studioHasNoPan", checked, { shouldValidate: true });
+                    if (checked) setValue("studioPan", "", { shouldValidate: true });
+                  }}
+                  disabled={isPending}
+                />
+              </div>
+            </div>
+          ) : null}
+
+          {payoutBreakdown ? (
+            <>
+              <PayoutBreakdownTable breakdown={payoutBreakdown} />
+              <p className="text-[11px] text-muted-foreground">
+                Booked through ContCave by this studio owner so far this FY: {formatINR(selectedStudio?.ownerFyGrossSoFar ?? 0)} (ex-GST), used for the TDS thresholds.
+              </p>
+            </>
+          ) : (
+            <div className="rounded-xl border border-dashed border-border p-3.5 text-center text-xs text-muted-foreground">
+              Select a studio and enter a price to see the payout breakdown.
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* FOOTER ACTIONS */}
       <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
         <Button
           type="button"
           label="Cancel"
           outline
-          onClick={onClose}
+          onClick={handleClose}
           disabled={isPending}
         />
         <Button
           type="submit"
           label={isPending ? "Creating Booking & Generating Invoice…" : "Create Booking"}
-          disabled={isPending}
+          disabled={isPending || isBlocked}
         />
       </div>
     </form>
   );
 
+  const invoiceHref = created?.invoiceId ? `/api/documents/invoices/${created.invoiceId}` : null;
+  const successBody = created ? (
+    <div className="space-y-5">
+      <div className="flex items-start gap-3 rounded-xl border border-success/30 bg-success/10 p-4">
+        <FiCheckCircle className="mt-0.5 shrink-0 text-success" size={18} />
+        <div className="text-sm">
+          <div className="font-semibold text-foreground">Booking {created.bookingId} created</div>
+          <div className="mt-0.5 text-muted-foreground">
+            {created.invoiceNumber ? <>Invoice <span className="font-mono text-foreground">{created.invoiceNumber}</span> generated.</> : "The invoice is still being generated. It will appear on the booking once ready."}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-2 text-sm sm:grid-cols-2">
+        <div className="rounded-lg border border-border p-3">
+          <div className="text-[11px] uppercase text-muted-foreground">Invoice email</div>
+          <div className="mt-0.5 text-foreground">
+            {!created.customerEmailProvided ? "Not sent: no customer email" : created.emailSent ? "Sent to the customer" : "Not sent yet; retry from Failures"}
+          </div>
+        </div>
+        <div className="rounded-lg border border-border p-3">
+          <div className="text-[11px] uppercase text-muted-foreground">WhatsApp</div>
+          <div className="mt-0.5 text-foreground">
+            {!created.customerPhoneProvided ? "Not sent: no customer phone" : created.whatsappSent ? "Sent to the customer" : "Not sent"}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Payout breakdown (saved)</div>
+        <PayoutBreakdownTable breakdown={created.payoutBreakdown} />
+      </div>
+
+      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
+        {invoiceHref ? (
+          <>
+            <Button label="View invoice" icon={FiEye} outline fit href={invoiceHref} target="_blank" />
+            <Button label="Download invoice" icon={FiDownload} fit href={`${invoiceHref}?download=1`} />
+          </>
+        ) : null}
+        <Button label="Done" outline={Boolean(invoiceHref)} fit onClick={handleClose} />
+      </div>
+    </div>
+  ) : null;
+
   return (
     <Modal
       isOpen={isOpen}
-      onCloseAction={onClose}
+      onCloseAction={handleClose}
       onSubmitAction={() => {}}
-      title="Create Booking"
+      title={created ? "Booking Created" : "Create Booking"}
       customWidth="max-w-4xl"
-      body={modalBody}
+      body={successBody ?? modalBody}
       selfActionButton
       actionLabel=""
     />

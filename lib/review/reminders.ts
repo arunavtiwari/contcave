@@ -1,3 +1,4 @@
+import { deliverableEmail } from "@/lib/email/placeholder";
 import { sendReviewReminderCustomer } from "@/lib/email/templates";
 import prisma from "@/lib/prismadb";
 import { formatReservationDate } from "@/lib/reservation/time";
@@ -42,7 +43,7 @@ export class ReviewReminderService {
       || reservation.completedAt.getTime() + REVIEW_REMINDER_DELAY_MS > now.getTime()
       || reservation.reviewReminderSentAt
       || reservation.Review.length > 0
-      || !reservation.user.email) {
+      || !deliverableEmail(reservation.user.email)) {
       return { reservationId, status: "skipped" };
     }
 
@@ -78,7 +79,7 @@ export class ReviewReminderService {
       }
 
       await sendReviewReminderCustomer({
-        toEmail: reservation.user.email,
+        toEmail: reservation.user.email as string,
         toName: reservation.user.name || "there",
         studioName: reservation.listing.title,
         startDate: formatReservationDate(reservation.startDate),

@@ -4,6 +4,7 @@ import { checkBookingSlot, parseTimeToMinutes } from "@/lib/availability";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund } from "@/lib/cashfree/cashfree";
 import { scheduleQstashJob } from "@/lib/cron/qstash";
+import { deliverableEmail } from "@/lib/email/placeholder";
 import {
     sendReservationCancelledOwner,
     sendReservationConfirmationCustomer,
@@ -669,7 +670,7 @@ export class ReservationService {
 
             const documentNeedsEmail = Boolean(document && !document.emailSentAt);
             const hasPendingNotification =
-                Boolean(fullResv.user.email && !txn?.emailSentCustomer) ||
+                Boolean(deliverableEmail(fullResv.user.email) && !txn?.emailSentCustomer) ||
                 Boolean(fullResv.listing.user.email && !txn?.emailSentOwner) ||
                 Boolean(fullResv.user.phone && !txn?.whatsappSentCustomer) ||
                 Boolean(fullResv.listing.user.phone && !txn?.whatsappSentHost) ||
@@ -695,7 +696,7 @@ export class ReservationService {
         const locationLink = getListingLocationLink(listing);
         const addons = formatSelectedAddons(md.selectedAddons);
         const isInstant = resv.status === "CONFIRMED" || listing.instantBooking === true;
-        const customerEmail = resv.user.email;
+        const customerEmail = deliverableEmail(resv.user.email);
         const ownerEmail = listing.user.email;
         const customerPhone = resv.user.phone;
         const ownerPhone = listing.user.phone;
@@ -1319,7 +1320,7 @@ export class ReservationService {
         const timeStr = `${resv.startTime} to ${resv.endTime}`;
         const location = getListingLocation(resv.listing);
         const locationLink = getListingLocationLink(resv.listing);
-        const customerEmail = resv.user.email;
+        const customerEmail = deliverableEmail(resv.user.email);
         const customerPhone = resv.user.phone;
         const ownerEmail = resv.listing.user.email;
         const ownerPhone = resv.listing.user.phone;
@@ -1661,7 +1662,7 @@ export class ReservationService {
             include: { user: true }
         });
 
-        if (!txn || !txn.user?.email || txn.emailSentFailed) return;
+        if (!txn || !deliverableEmail(txn.user?.email) || txn.emailSentFailed) return;
 
         try {
             const { sendReservationFailedEmail } = await import("@/lib/email/templates");
@@ -1671,7 +1672,7 @@ export class ReservationService {
             });
 
             await sendReservationFailedEmail({
-                toEmail: txn.user.email,
+                toEmail: txn.user.email as string,
                 toName: txn.user.name || "Customer",
                 orderId: txn.cfOrderId || "N/A"
             });

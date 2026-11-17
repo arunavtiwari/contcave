@@ -125,6 +125,10 @@ export type AdminListingReviewPage = {
     counts: Record<"ALL" | AdminListingStatus, number>;
     curatedCounts: Record<"ALL" | AdminListingStatus, number>;
     curatedTotal: number;
+    /** Cities with at least one listing, for the city filter. */
+    cities: string[];
+    search: string;
+    city: string;
 };
 
 export async function getAdminListingReviews(status?: AdminListingStatus, listingId?: string) {
@@ -272,6 +276,8 @@ export async function getAdminListingReviewPage(params: {
     pageSize?: number;
     status?: AdminListingStatus;
     listingType?: "STANDARD" | "CURATED";
+    search?: string;
+    city?: string;
 } = {}): Promise<AdminListingReviewPage> {
     const currentUser = await getCurrentUser();
     if (!currentUser || currentUser.role !== "ADMIN") throw new UserFacingError("Unauthorized", 403);
@@ -283,12 +289,19 @@ export async function getAdminListingReviewPage(params: {
         ? Math.min(100, Math.max(10, Math.floor(params.pageSize)))
         : 10;
     const listingType = params.listingType || "STANDARD";
-    const pageData = await ListingService.getHydratableListingReviewFacets({
-        page,
-        pageSize,
-        status: params.status,
-        listingType,
-    });
+    const search = typeof params.search === "string" ? params.search.trim().slice(0, 100) : "";
+    const city = typeof params.city === "string" ? params.city.trim().slice(0, 100) : "";
+    const [pageData, cities] = await Promise.all([
+        ListingService.getHydratableListingReviewFacets({
+            page,
+            pageSize,
+            status: params.status,
+            listingType,
+            search: search || undefined,
+            city: city || undefined,
+        }),
+        getAdminListingCities(),
+    ]);
     const tallies = (byStatus: Record<string, number>) => ({
         ALL: Object.values(byStatus).reduce((sum, count) => sum + count, 0),
         PENDING: byStatus.PENDING || 0,
@@ -307,6 +320,9 @@ export async function getAdminListingReviewPage(params: {
             counts,
             curatedCounts,
             curatedTotal: curatedCounts.ALL,
+            cities,
+            search,
+            city,
         };
     }
 
@@ -351,7 +367,25 @@ export async function getAdminListingReviewPage(params: {
         counts,
         curatedCounts,
         curatedTotal: curatedCounts.ALL,
+        cities,
+        search,
+        city,
     };
+}
+
+/** Distinct listing cities, merged case-insensitively and sorted, for the admin city filter. */
+async function getAdminListingCities(): Promise<string[]> {
+    const rows = await prisma.listing.findMany({
+        where: { OR: [{ archivedAt: null }, { archivedAt: { isSet: false } }] },
+        distinct: ["locationValue"],
+        select: { locationValue: true },
+    });
+    const byKey = new Map<string, string>();
+    for (const row of rows) {
+        const name = row.locationValue?.trim();
+        if (name && !byKey.has(name.toLowerCase())) byKey.set(name.toLowerCase(), name);
+    }
+    return [...byKey.values()].sort((a, b) => a.localeCompare(b));
 }
 
 export async function getAdminListingReviewDetail(listingId: string) {

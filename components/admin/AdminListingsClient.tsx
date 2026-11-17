@@ -14,6 +14,7 @@ import {
     FiFileText,
     FiLayers,
     FiMapPin,
+    FiSearch,
     FiShield,
     FiStar,
     FiX,
@@ -34,6 +35,7 @@ import Modal from "@/components/modals/Modal";
 import Button from "@/components/ui/Button";
 import Pill from "@/components/ui/Pill";
 import SafeHtml from "@/components/ui/SafeHtml";
+import Select, { type SelectOption } from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import StatCard from "@/components/ui/StatCard";
 import {
@@ -574,7 +576,20 @@ type AdminListingsClientProps = {
     counts: Record<"ALL" | ListingStatus, number>;
     curatedCounts?: Record<"ALL" | ListingStatus, number>;
     curatedTotal: number;
+    cities?: string[];
+    search?: string;
+    city?: string;
 };
+
+type ListingFilters = { search: string; city: string };
+
+/** The listings URL for a view, keeping search and city filters when set. */
+function listingsHref(view: ViewMode, status: string, page: number, pageSize: number, filters: ListingFilters) {
+    const search = new URLSearchParams({ view, status, page: String(page), pageSize: String(pageSize) });
+    if (filters.search) search.set("q", filters.search);
+    if (filters.city) search.set("city", filters.city);
+    return `/admin/dashboard/listings?${search.toString()}`;
+}
 
 export default function AdminListingsClient({
     listings,
@@ -586,6 +601,9 @@ export default function AdminListingsClient({
     counts,
     curatedCounts = DEFAULT_STATUS_COUNTS,
     curatedTotal,
+    cities = [],
+    search = "",
+    city = "",
 }: AdminListingsClientProps) {
     const router = useRouter();
     const publicUrl = usePublicSiteUrl();
@@ -615,6 +633,9 @@ export default function AdminListingsClient({
     const [optimisticView, setOptimisticView] = useState<ViewMode>(listingType);
     const [optimisticStatus, setOptimisticStatus] = useState<"ALL" | ListingStatus>(selectedStatus);
     const [isNavigating, startNavTransition] = useTransition();
+    const [filters, setFilters] = useState<ListingFilters>({ search, city });
+    const [searchInput, setSearchInput] = useState(search);
+    const [cityOptions, setCityOptions] = useState<string[]>(cities);
 
     const [prevListingType, setPrevListingType] = useState(listingType);
     if (listingType !== prevListingType) {
@@ -731,18 +752,14 @@ export default function AdminListingsClient({
         nextView: ViewMode,
         nextStatus = optimisticStatus,
         nextPage = 1,
-        nextPageSize = pageData.pageSize
+        nextPageSize = pageData.pageSize,
+        nextFilters = filters
     ) => {
         setOptimisticView(nextView);
         setOptimisticStatus(nextStatus);
+        setFilters(nextFilters);
 
-        const search = new URLSearchParams({
-            view: nextView,
-            status: nextStatus,
-            page: String(nextPage),
-            pageSize: String(nextPageSize),
-        });
-        window.history.pushState(null, "", `/admin/dashboard/listings?${search.toString()}`);
+        window.history.pushState(null, "", listingsHref(nextView, nextStatus, nextPage, nextPageSize, nextFilters));
 
         startNavTransition(async () => {
             try {
@@ -751,7 +768,10 @@ export default function AdminListingsClient({
                     pageSize: nextPageSize,
                     status: nextStatus === "ALL" ? undefined : nextStatus,
                     listingType: nextView,
+                    search: nextFilters.search,
+                    city: nextFilters.city,
                 });
+                setCityOptions(res.cities);
                 setPageData({
                     listings: res.listings,
                     total: res.total,
@@ -776,8 +796,11 @@ export default function AdminListingsClient({
                 : "PENDING";
             const p = Number(params.get("page")) || 1;
             const ps = Number(params.get("pageSize")) || pageData.pageSize;
+            const f = { search: params.get("q") || "", city: params.get("city") || "" };
             setOptimisticView(view);
             setOptimisticStatus(s);
+            setFilters(f);
+            setSearchInput(f.search);
             startNavTransition(async () => {
                 try {
                     const res = await getAdminListingReviewPage({
@@ -785,6 +808,8 @@ export default function AdminListingsClient({
                         pageSize: ps,
                         status: s === "ALL" ? undefined : s,
                         listingType: view,
+                        search: f.search,
+                        city: f.city,
                     });
                     setPageData({
                         listings: res.listings,
@@ -803,6 +828,21 @@ export default function AdminListingsClient({
         window.addEventListener("popstate", handlePopState);
         return () => window.removeEventListener("popstate", handlePopState);
     }, [pageData.pageSize]);
+
+    // Typing searches after a short pause, from page 1.
+    useEffect(() => {
+        const next = searchInput.trim();
+        if (next === filters.search) return;
+        const timer = window.setTimeout(() => navigate(viewMode, status, 1, pageData.pageSize, { ...filters, search: next }), 350);
+        return () => window.clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchInput]);
+
+    const cityChoices: SelectOption[] = useMemo(
+        () => cityOptions.map((name) => ({ value: name, label: name })),
+        [cityOptions]
+    );
+    const hasFilters = Boolean(filters.search || filters.city);
 
     const resetConfirm = () => {
         setConfirmAction(null);
@@ -831,6 +871,8 @@ export default function AdminListingsClient({
                         pageSize: pageData.pageSize,
                         status: optimisticStatus === "ALL" ? undefined : optimisticStatus,
                         listingType: optimisticView,
+                        search: filters.search,
+                        city: filters.city,
                     });
                     setPageData({
                         listings: res.listings,
@@ -900,12 +942,54 @@ export default function AdminListingsClient({
                     </TabsList>
                 </Tabs>
 
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <label className="relative flex-1 sm:max-w-sm">
+                        <span className="sr-only">Search listings</span>
+                        <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={15} />
+                        <input
+                            type="search"
+                            value={searchInput}
+                            onChange={(event) => setSearchInput(event.target.value)}
+                            placeholder="Search by studio name, owner name or email"
+                            className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                            data-testid="admin-listing-search"
+                        />
+                    </label>
+                    <div className="sm:w-56">
+                        <Select
+                            id="admin-listing-city"
+                            aria-label="Filter by city"
+                            placeholder="All cities"
+                            isSearchable
+                            isClearable
+                            options={cityChoices}
+                            value={cityChoices.find((option) => option.value === filters.city) || null}
+                            onChange={(option) => navigate(viewMode, status, 1, pageData.pageSize, {
+                                ...filters,
+                                city: (option as SelectOption | null)?.value || "",
+                            })}
+                        />
+                    </div>
+                    {hasFilters && (
+                        <button
+                            type="button"
+                            className="text-xs font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                            onClick={() => {
+                                setSearchInput("");
+                                navigate(viewMode, status, 1, pageData.pageSize, { search: "", city: "" });
+                            }}
+                        >
+                            Clear filters
+                        </button>
+                    )}
+                </div>
+
                 {viewMode === "CURATED" ? (
                     curatedListings.length === 0 && !isNavigating ? (
                         <EmptyTable
                             icon={FiLayers}
-                            label="No curated listings in this view"
-                            description={status === "ALL" ? "Create one using the button above." : "Change the status filter to review another queue."}
+                            label={hasFilters ? "No curated listings match these filters" : "No curated listings in this view"}
+                            description={hasFilters ? "Try another name or city, or clear the filters." : status === "ALL" ? "Create one using the button above." : "Change the status filter to review another queue."}
                         />
                     ) : (
                         <Table
@@ -917,7 +1001,7 @@ export default function AdminListingsClient({
                                     pageSizeOptions={[10, 20, 50]}
                                     onPageSizeChange={(newSize) => navigate(viewMode, status, 1, newSize)}
                                     label="curated listings"
-                                    hrefForPage={(nextPage, nextSize) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}&pageSize=${nextSize || pageData.pageSize}`}
+                                    hrefForPage={(nextPage, nextSize) => listingsHref(viewMode, status, nextPage, nextSize || pageData.pageSize, filters)}
                                     onPageChange={(nextPage) => navigate(viewMode, status, nextPage, pageData.pageSize)}
                                 />
                             }
@@ -967,9 +1051,20 @@ export default function AdminListingsClient({
                                         return (
                                             <TableRow key={listing.id}>
                                                 <TableCell>
-                                                    <div className={cn("flex items-center gap-2", NAME_COLUMN_WIDTH)}>
-                                                        <span className="min-w-0 truncate font-medium text-sm text-foreground" title={listing.title}>{listing.title}</span>
-                                                        {isHighPriority && <Pill label="High Priority" variant="destructive" size="xs" className="shrink-0" />}
+                                                    <div className={cn("flex items-center gap-3", NAME_COLUMN_WIDTH)}>
+                                                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
+                                                            <Image
+                                                                src={listing.imageSrc[0] || "/assets/listing-image-default.png"}
+                                                                alt={listing.title}
+                                                                fill
+                                                                sizes="48px"
+                                                                className="object-cover"
+                                                            />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <div className="truncate text-sm font-semibold text-foreground" title={listing.title}>{listing.title}</div>
+                                                            {isHighPriority && <Pill label="High Priority" variant="destructive" size="xs" className="mt-1" />}
+                                                        </div>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-sm text-muted-foreground">{listing.locationValue}</TableCell>
@@ -1038,8 +1133,8 @@ export default function AdminListingsClient({
                     visibleListings.length === 0 && !isNavigating ? (
                         <EmptyTable
                             icon={FiShield}
-                            label="No listings in this view"
-                            description="Change the status filter to review another queue."
+                            label={hasFilters ? "No listings match these filters" : "No listings in this view"}
+                            description={hasFilters ? "Try another name or city, or clear the filters." : "Change the status filter to review another queue."}
                         />
                     ) : (
                         <Table
@@ -1051,7 +1146,7 @@ export default function AdminListingsClient({
                                     pageSizeOptions={[10, 20, 50]}
                                     onPageSizeChange={(newSize) => navigate(viewMode, status, 1, newSize)}
                                     label="listings"
-                                    hrefForPage={(nextPage, nextSize) => `/admin/dashboard/listings?view=${viewMode}&status=${status}&page=${nextPage}&pageSize=${nextSize || pageData.pageSize}`}
+                                    hrefForPage={(nextPage, nextSize) => listingsHref(viewMode, status, nextPage, nextSize || pageData.pageSize, filters)}
                                     onPageChange={(nextPage) => navigate(viewMode, status, nextPage, pageData.pageSize)}
                                 />
                             }

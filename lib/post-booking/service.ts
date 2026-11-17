@@ -6,6 +6,7 @@ import { checkExtensionSlot, loadDayAvailability, parseTimeToMinutes } from "@/l
 import { checkExtensionWindow, dateKeyOf } from "@/lib/booking/dayAvailability";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { scheduleQstashJob } from "@/lib/cron/qstash";
+import { deliverableEmail } from "@/lib/email/placeholder";
 import { UserFacingError } from "@/lib/errors";
 import { InvoiceService } from "@/lib/invoice/service";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
@@ -338,7 +339,7 @@ export class PostBookingService {
         return_url: `${appUrl}/api/payments/cashfree/return?tid={transaction_id}`,
         notify_url: `${appUrl}/api/payments/cashfree/webhook`,
         customer_name: reservation.user.name || "Customer",
-        customer_email: reservation.user.email || undefined,
+        customer_email: deliverableEmail(reservation.user.email) || undefined,
         customer_phone: customerPhone,
         expires_at: expiresAt,
       });
@@ -480,7 +481,7 @@ export class PostBookingService {
         return_url: `${appUrl}/api/payments/cashfree/return?tid={transaction_id}`,
         notify_url: `${appUrl}/api/payments/cashfree/webhook`,
         customer_name: reservation.user.name || "Customer",
-        customer_email: reservation.user.email || undefined,
+        customer_email: deliverableEmail(reservation.user.email) || undefined,
         customer_phone: customerPhone,
         expires_at: new Date(Date.now() + ADDITIONAL_CHARGE_EXPIRY_MS),
       });

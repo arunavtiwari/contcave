@@ -1,5 +1,6 @@
 import { Attachment, EmailParams, MailerSend, Recipient, Sender } from "mailersend";
 
+import { isPlaceholderEmail } from "@/lib/email/placeholder";
 import { isExternalDeliveryDisabled } from "@/lib/notifications/external-delivery";
 
 export type AttachmentInput = {
@@ -38,6 +39,11 @@ export async function sendEmail({
 
     if (!toEmail) {
         throw new Error("Email recipient is missing");
+    }
+
+    // Offline customers recorded without an email; callers should already skip these.
+    if (isPlaceholderEmail(toEmail)) {
+        throw new Error("Customer has no email on file");
     }
 
     if (!apiKey) {

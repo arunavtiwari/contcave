@@ -3,6 +3,7 @@ import { PaymentVoucher, PaymentVoucherType, Prisma } from "@prisma/client";
 import { isE2eEffectDisabled } from "@/lib/e2e-guards";
 import { escapeEmailHtml } from "@/lib/email/html";
 import { AttachmentInput, sendEmail } from "@/lib/email/mailer";
+import { deliverableEmail } from "@/lib/email/placeholder";
 import prisma from "@/lib/prismadb";
 import { readPrivateDocument, uploadPrivateDocument } from "@/lib/storage/privateDocuments";
 import { withTransientRetry } from "@/lib/transient-retry";
@@ -338,7 +339,7 @@ export class PaymentVoucherService {
       voucherType,
       issuedAt,
       bookingId: transaction.reservation.bookingId,
-      customerName: transaction.user.name || transaction.user.email || "Customer",
+      customerName: transaction.user.name || deliverableEmail(transaction.user.email) || "Customer",
       studioName: transaction.reservation.listing.title,
       bookingDate: transaction.reservation.startDate,
       bookingTime: formatBookingTime(transaction.reservation.startTime, transaction.reservation.endTime),
@@ -400,7 +401,7 @@ export class PaymentVoucherService {
       }
       return await this.retryVoucherEmail(voucher.id);
     }
-    if (!voucher.user.email) {
+    if (!deliverableEmail(voucher.user.email)) {
       return await prisma.paymentVoucher.update({
         where: { id: voucher.id },
         data: { status: "DELIVERY_BLOCKED", emailError: "Recipient email is missing" },
@@ -439,7 +440,7 @@ export class PaymentVoucherService {
       const attachment = await downloadVoucherAttachment(voucher);
       if (!attachment) throw new Error("Receipt/refund attachment unavailable");
       await sendEmail({
-        toEmail: voucher.user.email,
+        toEmail: voucher.user.email as string,
         toName: voucher.user.name || "",
         subject: `Your ContCave ${voucher.voucherType === "REFUND_VOUCHER" ? "refund voucher" : "payment receipt"} ${voucher.voucherNumber}`,
         html: voucherEmailHtml(voucher, voucher.user.name),

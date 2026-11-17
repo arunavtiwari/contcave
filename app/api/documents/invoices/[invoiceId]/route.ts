@@ -4,7 +4,7 @@ import prisma from "@/lib/prismadb";
 import { readPrivateDocument, safeDownloadName } from "@/lib/storage/privateDocuments";
 import { UserRole } from "@/types/user";
 
-export async function GET(_request: Request, props: { params: Promise<{ invoiceId?: string }> }) {
+export async function GET(request: Request, props: { params: Promise<{ invoiceId?: string }> }) {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser?.id) return createErrorResponse("Authentication required", 401);
@@ -48,7 +48,8 @@ export async function GET(_request: Request, props: { params: Promise<{ invoiceI
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${filename}"`,
+        // ?download=1 saves the PDF instead of opening it in the browser.
+        "Content-Disposition": `${new URL(request.url).searchParams.get("download") === "1" ? "attachment" : "inline"}; filename="${filename}"`,
         "Cache-Control": "private, no-cache, no-store, must-revalidate",
       },
     });

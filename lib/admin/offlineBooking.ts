@@ -4,8 +4,10 @@ import { PaymentDetails, Prisma } from "@prisma/client";
 
 import { getGstStateCodeFromStateName, isValidGstStateCode } from "@/constants/gstStateCodes";
 import { parseTimeToMinutes } from "@/lib/availability";
+import { offlinePlaceholderEmail } from "@/lib/email/placeholder";
 import { UserFacingError } from "@/lib/errors";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
+import { computePayoutBreakdown, financialYearStart, type PayoutBreakdown } from "@/lib/payout/breakdown";
 import { type GstOwner, gstOwnerFor } from "@/lib/payout/utils";
 import { addGst } from "@/lib/pricing";
 import prisma from "@/lib/prismadb";
@@ -65,14 +67,22 @@ export interface AdminStudioOption {
   additionalSetPricingType: "FIXED" | "HOURLY" | null;
   sets: AdminStudioSetOption[];
   packages: AdminStudioPackageOption[];
+  /** Ex-GST value booked through ContCave for this studio's owner so far this FY (TDS thresholds). */
+  ownerFyGrossSoFar: number;
 }
 
 export interface OfflineBookingCreationResult {
   bookingId: string;
   reservationId: string;
   invoiceNumber?: string;
+  /** Private document route for the invoice PDF, when one was generated. */
+  invoiceId?: string;
   emailSent: boolean;
   whatsappSent: boolean;
+  /** False when no customer email was given, so the invoice must be downloaded and shared. */
+  customerEmailProvided: boolean;
+  customerPhoneProvided: boolean;
+  payoutBreakdown: PayoutBreakdown;
 }
 
 const NOT_ARCHIVED: Prisma.ListingWhereInput = {
@@ -200,6 +210,7 @@ export async function getAdminStudioForOfflineBooking(
   if (!l) return null;
 
   const payment = decryptOwnerPayment(l.user?.paymentDetails);
+  const ownerFyGrossSoFar = await getOwnerFyGrossSoFar(l.user?.id || "").catch(() => 0);
   const decryptedGstin = payment?.gstin || "";
   const bankIfsc = payment?.ifscCode || "";
   const bankAccountLast4 = payment?.accountNumber ? payment.accountNumber.slice(-4) : "";
@@ -241,7 +252,28 @@ export async function getAdminStudioForOfflineBooking(
       requiredSetCount: pkg.requiredSetCount,
       fixedAddOn: pkg.fixedAddOn,
     })),
+    ownerFyGrossSoFar,
   };
+}
+
+/**
+ * Ex-GST value of paid bookings (and extensions) at this owner's studios since 1 April. Used for
+ * the TDS thresholds, which are per studio owner, not per listing. Amounts are stored GST-inclusive.
+ */
+export async function getOwnerFyGrossSoFar(ownerId: string): Promise<number> {
+  if (!ownerId) return 0;
+  const listings = await prisma.listing.findMany({ where: { userId: ownerId }, select: { id: true } });
+  if (listings.length === 0) return 0;
+  const sum = await prisma.transaction.aggregate({
+    _sum: { amount: true },
+    where: {
+      listingId: { in: listings.map((l) => l.id) },
+      status: "SUCCESS",
+      purpose: { in: ["BASE_BOOKING", "EXTENSION"] },
+      createdAt: { gte: financialYearStart() },
+    },
+  });
+  return Math.round(((sum._sum.amount ?? 0) / 1.18) * 100) / 100;
 }
 
 function buildSlotRows(params: {
@@ -304,14 +336,15 @@ export async function createOfflineBooking(
   // 1. Resolve Studio Listing from Platform
   const listing = await prisma.listing.findUnique({
     where: { id: data.listingId },
-    include: { user: { select: { paymentDetails: { select: { companyName: true, gstin: true, gstinIV: true } } } } },
+    include: { user: { select: { id: true, paymentDetails: { select: { companyName: true, gstin: true, gstinIV: true } } } } },
   });
 
   if (!listing) {
     throw new UserFacingError("Selected studio was not found on the platform. Please select a valid studio.");
   }
 
-  const gstOwnedBy = gstOwnerFor(decryptOwnerPayment(listing.user?.paymentDetails));
+  const ownerPayment = decryptOwnerPayment(listing.user?.paymentDetails);
+  const gstOwnedBy = gstOwnerFor(ownerPayment);
 
   const actualLoc = listing.actualLocation as Record<string, unknown> | null;
   const studioAddress = typeof actualLoc?.display_name === "string"
@@ -337,28 +370,33 @@ export async function createOfflineBooking(
     listing.propertyStateCode = effectiveStateCode;
   }
 
-  // 2. Resolve Customer User
-  const customerEmail = data.customerEmail.toLowerCase().trim();
-  let customer = await prisma.user.findUnique({
-    where: { email: customerEmail },
-  });
+  // 2. Resolve Customer User. Contact details are optional: without an email the customer gets
+  // an undeliverable placeholder (User.email is uniquely indexed, so it can't be left empty for
+  // more than one user), and every send path skips it.
+  const customerName = data.customerName?.trim() || "";
+  const customerPhone = data.customerPhone?.trim() || "";
+  const providedEmail = data.customerEmail?.toLowerCase().trim() || "";
+
+  let customer = providedEmail
+    ? await prisma.user.findUnique({ where: { email: providedEmail } })
+    : null;
 
   if (!customer) {
     customer = await prisma.user.create({
       data: {
-        email: customerEmail,
-        name: data.customerName.trim(),
-        phone: data.customerPhone.trim(),
+        email: providedEmail || offlinePlaceholderEmail(),
+        name: customerName || "Offline customer",
+        phone: customerPhone || undefined,
         role: UserRole.CUSTOMER,
-        phone_verified: true,
-        email_verified: true,
+        phone_verified: Boolean(customerPhone),
+        email_verified: Boolean(providedEmail),
       },
     });
   } else {
     // Update name or phone if missing
     const updates: Prisma.UserUpdateInput = {};
-    if (!customer.name && data.customerName.trim()) updates.name = data.customerName.trim();
-    if (!customer.phone && data.customerPhone.trim()) updates.phone = data.customerPhone.trim();
+    if (!customer.name && customerName) updates.name = customerName;
+    if (!customer.phone && customerPhone) updates.phone = customerPhone;
     if (Object.keys(updates).length > 0) {
       customer = await prisma.user.update({
         where: { id: customer.id },
@@ -373,7 +411,7 @@ export async function createOfflineBooking(
 
   if (data.customerGst) {
     const normalizedGstin = data.customerGst.toUpperCase().trim();
-    const companyName = data.customerCompanyName?.trim() || data.customerName.trim();
+    const companyName = data.customerCompanyName?.trim() || customerName || "Customer";
     const billingAddress = data.customerBillingAddress?.trim() || studioAddress;
 
     let billing = await prisma.billingDetails.findFirst({
@@ -428,6 +466,25 @@ export async function createOfflineBooking(
   // The agreed price is pre-GST, like listed studio rates; GST goes on top exactly as at online checkout.
   const { total: totalWithGst } = addGst(data.price);
 
+  // The payout record for this booking. Offline bookings store ₹0 / "done" on the transaction so
+  // the automatic split never touches them; this breakdown is the record of what the studio is
+  // owed and what we owe (commission invoice, commission GST, TCS/TDS).
+  const studioGstin = ownerPayment?.gstin?.trim().toUpperCase() || data.studioGst?.trim().toUpperCase() || null;
+  const payoutBreakdown = computePayoutBreakdown({
+    baseValue: data.price,
+    studioGstin,
+    propertyStateCode: effectiveStateCode,
+    nonGstModel: data.nonGstModel,
+    studioPan: data.studioPan,
+    studioHasNoPan: data.studioHasNoPan,
+    fyGrossSoFar: await getOwnerFyGrossSoFar(listing.user?.id || listing.userId),
+    commissionPct: data.commissionPercent / 100,
+    customStudioPrice: data.customStudioPrice,
+  });
+  if (payoutBreakdown.blockedReason) {
+    throw new UserFacingError(payoutBreakdown.blockedReason);
+  }
+
   const reservationData: Prisma.ReservationUncheckedCreateInput = {
     bookingId,
     userId: customer.id,
@@ -455,6 +512,7 @@ export async function createOfflineBooking(
       paymentMadeVia: data.paymentMadeVia,
       paymentTerms: data.paymentTerms,
       internalNotes: data.internalNotes || undefined,
+      payoutBreakdown,
       createdOfflineBy: adminUser.email || adminUser.name || "Admin",
       createdOfflineAt: new Date().toISOString(),
     },
@@ -492,8 +550,8 @@ export async function createOfflineBooking(
           status: "SUCCESS",
           purpose: "BASE_BOOKING",
           paymentMethod: data.paymentMadeVia,
-          customerEmail: data.customerEmail,
-          customerPhone: data.customerPhone,
+          customerEmail: providedEmail || undefined,
+          customerPhone: customerPhone || undefined,
           description: `Offline Booking - ${data.paymentMadeVia} (${data.paymentTerms})`,
           payoutDoneAt: new Date(),
           payoutSplitAt: new Date(),
@@ -508,6 +566,7 @@ export async function createOfflineBooking(
             paymentMadeVia: data.paymentMadeVia,
             paymentTerms: data.paymentTerms,
             internalNotes: data.internalNotes,
+            payoutBreakdown,
           },
         },
       });
@@ -526,6 +585,7 @@ export async function createOfflineBooking(
 
   // 7. Trigger standard booking confirmation side effects (Invoice generation, Customer email with PDF, Host email, WhatsApp notifications, Calendar sync)
   let invoiceNumber: string | undefined;
+  let invoiceId: string | undefined;
   let emailSent = false;
   let whatsappSent = false;
 
@@ -535,11 +595,12 @@ export async function createOfflineBooking(
     // Read generated invoice
     const inv = await prisma.invoice.findFirst({
       where: { transactionId: transaction.id },
-      select: { invoiceNumber: true, emailSentAt: true, status: true },
+      select: { id: true, invoiceNumber: true, invoiceUrl: true, emailSentAt: true, status: true },
       orderBy: { createdAt: "desc" },
     });
     if (inv) {
       invoiceNumber = inv.invoiceNumber;
+      invoiceId = inv.invoiceUrl ? inv.id : undefined;
       emailSent = Boolean(inv.emailSentAt || inv.status === "EMAIL_SENT");
     }
 
@@ -556,7 +617,11 @@ export async function createOfflineBooking(
     bookingId,
     reservationId: reservation.id,
     invoiceNumber,
+    invoiceId,
     emailSent,
     whatsappSent,
+    customerEmailProvided: Boolean(providedEmail),
+    customerPhoneProvided: Boolean(customerPhone),
+    payoutBreakdown,
   };
 }
