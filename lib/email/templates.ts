@@ -5,6 +5,30 @@ import { AttachmentInput, sendEmail } from "./mailer";
 
 const formatInr = formatINR;
 
+/** Links for a booking made without logging in (guest checkout). */
+export type GuestEmailAccess = {
+    /** Booking status page that works without logging in. */
+    bookingUrl: string;
+    /** Only for accounts created at checkout, which have no password yet. */
+    setPasswordUrl?: string | null;
+};
+
+function guestAccessBlock(access: GuestEmailAccess) {
+    const button = (label: string, url: string, primary: boolean) =>
+        `<a href="${escapeEmailHtml(url)}" style="${primary ? "background:#111827;color:#ffffff;" : "background:#ffffff;color:#111827;border:1px solid #d1d5db;"}padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block;margin:4px 8px 4px 0;">${escapeEmailHtml(label)}</a>`;
+    return `
+                  <div style="margin:28px 0 0;padding:16px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;">
+                    <p style="margin:0 0 8px;font-weight:600;color:#111827;">You booked as a guest</p>
+                    <p style="margin:0 0 12px;font-size:14px;">${escapeEmailHtml(
+                        access.setPasswordUrl
+                            ? "Keep this email to check your booking. Set a password to manage bookings and chat with the studio from your ContCave account. The set-password link works for 7 days."
+                            : "Keep this email to check your booking. This email already has a ContCave account: log in to see the booking in your dashboard."
+                    )}</p>
+                    ${button("View your booking", access.bookingUrl, true)}
+                    ${access.setPasswordUrl ? button("Set a password", access.setPasswordUrl, false) : ""}
+                  </div>`;
+}
+
 function buildReservationEmailHtml(input: {
     greetingName: string;
     intro: string;
@@ -19,6 +43,7 @@ function buildReservationEmailHtml(input: {
     studioLocation?: string;
     nextSteps?: string[];
     cta?: { label: string; url: string };
+    guestAccess?: GuestEmailAccess;
 }) {
     const hasAddons = Boolean(input.addons?.trim());
     const detailRows = [
@@ -79,6 +104,7 @@ function buildReservationEmailHtml(input: {
                 `
                         : ""
                 }
+                ${input.guestAccess ? guestAccessBlock(input.guestAccess) : ""}
                 <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
                 <p style="font-size:13px;color:#9ca3af;line-height:1.6;margin:0;">ContCave by Arkanet Ventures LLP.</p>
               </td>
@@ -274,6 +300,7 @@ export async function sendReservationConfirmationCustomer(input: {
     templateId?: string;
     bookingId?: string;
     attachments: AttachmentInput[];
+    guestAccess?: GuestEmailAccess;
 }) {
     await sendEmail({
         toEmail: input.toEmail,
@@ -293,6 +320,7 @@ export async function sendReservationConfirmationCustomer(input: {
                 "Review the studio's guidelines for parking, access, and equipment use.",
                 "Arrive at least 15 minutes before your booking time.",
             ],
+            guestAccess: input.guestAccess,
         }),
         attachments: input.attachments,
     });
@@ -347,6 +375,7 @@ export async function sendReservationReceivedCustomer(input: {
     studioLocation: string;
     bookingId?: string;
     attachments: AttachmentInput[];
+    guestAccess?: GuestEmailAccess;
 }) {
     await sendEmail({
         toEmail: input.toEmail,
@@ -364,8 +393,11 @@ export async function sendReservationReceivedCustomer(input: {
             studioLocation: input.studioLocation,
             nextSteps: [
                 "We will notify you as soon as the studio owner approves your booking.",
-                "You can track this request from your bookings dashboard.",
+                input.guestAccess
+                    ? "You can track this request with the View your booking link below."
+                    : "You can track this request from your bookings dashboard.",
             ],
+            guestAccess: input.guestAccess,
         }),
         attachments: input.attachments,
     });

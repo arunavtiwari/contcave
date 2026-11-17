@@ -3,6 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import prisma from "@/lib/prismadb";
 import { getValidatedBaseUrl } from "@/lib/utils";
+
+/** Guest checkouts carry a signed access token (`g`) that the status page needs. */
+function guestAccessSuffix(req: NextRequest): string {
+  const token = new URL(req.url).searchParams.get("g");
+  return token && /^[A-Za-z0-9_-]{20,100}$/.test(token) ? `&g=${encodeURIComponent(token)}` : "";
+}
 import { UserRole } from "@/types/user";
 
 export const dynamic = "force-dynamic";
@@ -87,7 +93,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(new URL(fallback, appUrl), 303);
   }
 
-  const redirectUrl = `${appUrl}/payments/cashfree/return?tid=${encodeURIComponent(tid)}`;
+  const redirectUrl = `${appUrl}/payments/cashfree/return?tid=${encodeURIComponent(tid)}${guestAccessSuffix(req)}`;
   return NextResponse.redirect(redirectUrl, 303);
 }
 
@@ -100,6 +106,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL(fallback, appUrl), 307);
   }
 
-  const redirectUrl = `${appUrl}/payments/cashfree/return?tid=${encodeURIComponent(tid)}`;
+  const redirectUrl = `${appUrl}/payments/cashfree/return?tid=${encodeURIComponent(tid)}${guestAccessSuffix(req)}`;
   return NextResponse.redirect(redirectUrl, 307);
 }

@@ -23,10 +23,25 @@ export type ShootDetails = {
   shootType?: string;
 };
 
+/** Booking without logging in: the details that identify the guest. */
+export type GuestCheckoutDetails = {
+  name: string;
+  phone: string;
+  email: string;
+  /** GST billing typed at checkout (guests have no saved billing records). */
+  billing: GSTDetails | null;
+};
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 type BookingSummaryModalProps = {
   isOpen: boolean;
   onCloseAction: () => void;
-  onConfirmAction: (billingDetailId: string | null, shootDetails: ShootDetails) => void;
+  onConfirmAction: (billingDetailId: string | null, shootDetails: ShootDetails, guest?: GuestCheckoutDetails) => void;
+  /** Not logged in: collect name, phone and email instead of using an account. */
+  isGuest?: boolean;
+  /** Switch to logging in instead of booking as a guest. */
+  onLoginAction?: () => void;
   maximumPax?: number | null;
   finalTotal: number;
   bookingFee: number;
@@ -53,7 +68,13 @@ export default function BookingSummaryModal({
   instantBooking,
   contcaveNote,
   maximumPax,
+  isGuest = false,
+  onLoginAction,
 }: BookingSummaryModalProps) {
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestErrors, setGuestErrors] = useState<{ name?: string; phone?: string; email?: string }>({});
   const [pax, setPax] = useState("");
   const [shootType, setShootType] = useState("");
   const [paxError, setPaxError] = useState<string | null>(null);
@@ -62,7 +83,23 @@ export default function BookingSummaryModal({
   const [gstError, setGstError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const validateGuest = (): GuestCheckoutDetails | null => {
+    const name = guestName.trim();
+    const phone = guestPhone.replace(/\D/g, "").slice(-10);
+    const email = guestEmail.trim().toLowerCase();
+    const errors: typeof guestErrors = {};
+    if (name.length < 2) errors.name = "Enter your name.";
+    if (!/^[6-9]\d{9}$/.test(phone)) errors.phone = "Enter a valid 10-digit mobile number.";
+    if (!EMAIL_PATTERN.test(email)) errors.email = "Enter a valid email address.";
+    setGuestErrors(errors);
+    if (Object.keys(errors).length > 0) return null;
+    return { name, phone, email, billing: null };
+  };
+
   const handleConfirm = async () => {
+    const guest = isGuest ? validateGuest() : null;
+    if (isGuest && !guest) return;
+
     const paxCount = Number(pax);
     if (!Number.isInteger(paxCount) || paxCount < 1) {
       setPaxError("Enter the number of people in the shoot.");
@@ -82,6 +119,14 @@ export default function BookingSummaryModal({
 
       if (!check.success) {
         setGstError(check.error.issues[0].message);
+        setSaving(false);
+        return;
+      }
+
+      // Guests have no account session to save billing to; it's sent with the payment instead.
+      if (guest) {
+        setGstDetailsAction({ ...gstDetails });
+        onConfirmAction(null, shootDetails, { ...guest, billing: { ...gstDetails } });
         setSaving(false);
         return;
       }
@@ -112,7 +157,7 @@ export default function BookingSummaryModal({
         setSaving(false);
       }
     } else {
-      onConfirmAction(null, shootDetails);
+      onConfirmAction(null, shootDetails, guest ?? undefined);
       setSaving(false);
     }
   };
@@ -147,6 +192,60 @@ export default function BookingSummaryModal({
           <p>{formatINR(finalTotal)}</p>
         </div>
       </div>
+
+      {isGuest && (
+        <div className="space-y-4" data-testid="guest-checkout-details">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="text-sm font-semibold text-foreground">Your details</p>
+            {onLoginAction && (
+              <button type="button" onClick={onLoginAction} className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">
+                Have an account? Log in
+              </button>
+            )}
+          </div>
+          <Input
+            id="guestName"
+            label="Full name"
+            required
+            autoComplete="name"
+            maxLength={100}
+            value={guestName}
+            error={guestErrors.name}
+            onChange={(e) => { setGuestName(e.target.value); setGuestErrors((prev) => ({ ...prev, name: undefined })); }}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              id="guestPhone"
+              label="Mobile number"
+              required
+              type="tel"
+              inputMode="numeric"
+              autoComplete="tel"
+              maxLength={14}
+              placeholder="9876543210"
+              value={guestPhone}
+              error={guestErrors.phone}
+              onChange={(e) => { setGuestPhone(e.target.value); setGuestErrors((prev) => ({ ...prev, phone: undefined })); }}
+            />
+            <Input
+              id="guestEmail"
+              label="Email"
+              required
+              type="email"
+              autoComplete="email"
+              maxLength={255}
+              placeholder="you@example.com"
+              value={guestEmail}
+              error={guestErrors.email}
+              onChange={(e) => { setGuestEmail(e.target.value); setGuestErrors((prev) => ({ ...prev, email: undefined })); }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            No account needed. We&apos;ll send your confirmation and invoice to this email, with a link to view your booking.
+          </p>
+          <hr className="border-border/40" />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input

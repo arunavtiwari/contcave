@@ -14,7 +14,7 @@ import { FaBolt } from "react-icons/fa";
 import { updateUser } from "@/app/actions/updateUser";
 import Calendar from "@/components/inputs/Calendar";
 import TimeSlotPicker from "@/components/inputs/TimeSlotPicker";
-import BookingSummaryModal, { type ShootDetails } from "@/components/modals/BookingSummaryModal";
+import BookingSummaryModal, { type GuestCheckoutDetails, type ShootDetails } from "@/components/modals/BookingSummaryModal";
 import PhoneModal from "@/components/modals/PhoneModal";
 import Button from "@/components/ui/Button";
 import Heading from "@/components/ui/Heading";
@@ -379,7 +379,7 @@ export default function ListingReservation({
   }, [phoneInput, trackingStudio]);
 
   const startPayment = useCallback(
-    async (controller: AbortController, billingDetailId: string | null, shootDetails: ShootDetails) => {
+    async (controller: AbortController, billingDetailId: string | null, shootDetails: ShootDetails, guest?: GuestCheckoutDetails) => {
       if (!listingId || !selectedDate || !localTimes.start || !localTimes.end)
         return;
       const startDateStr = formatLocalYmd(selectedDate);
@@ -395,6 +395,10 @@ export default function ListingReservation({
         billingDetailId?: string | null;
         pax: number;
         shootType?: string;
+        customerName?: string;
+        customerPhone?: string;
+        customerEmail?: string;
+        guestBilling?: { companyName: string; gstin: string; billingAddress: string } | null;
         setIds?: string[];
         setPackageId?: string | null;
         pricingSnapshot?: unknown;
@@ -416,6 +420,14 @@ export default function ListingReservation({
         billingDetailId,
         pax: shootDetails.pax,
         shootType: shootDetails.shootType,
+        ...(guest
+          ? {
+            customerName: guest.name,
+            customerPhone: guest.phone,
+            customerEmail: guest.email,
+            guestBilling: guest.billing,
+          }
+          : {}),
       };
 
       if (selectedPackage) {
@@ -440,7 +452,7 @@ export default function ListingReservation({
       });
       const j = (await res.json().catch(() => ({}))) as {
         success?: boolean;
-        data?: { tId?: string; paymentSessionId?: string; mode?: "sandbox" | "production" };
+        data?: { tId?: string; paymentSessionId?: string; mode?: "sandbox" | "production"; guestAccess?: string };
         message?: string;
         error?: string;
       };
@@ -463,7 +475,10 @@ export default function ListingReservation({
         if (!simulated.ok) {
           throw new Error(simulatedJson.error || simulatedJson.message || "Failed to simulate payment");
         }
-        window.location.assign(`/payments/cashfree/return?tid=${encodeURIComponent(tId)}`);
+        const guestAccess = j?.data?.guestAccess;
+        window.location.assign(
+          `/payments/cashfree/return?tid=${encodeURIComponent(tId)}${guestAccess ? `&g=${encodeURIComponent(guestAccess)}` : ""}`
+        );
         return;
       }
 
@@ -492,10 +507,6 @@ export default function ListingReservation({
 
   const handleReserve = useCallback(() => {
     if (!ready) return;
-    if (!isAuthenticated) {
-      uiStore.onOpen("login");
-      return;
-    }
     if (trackingStudio) {
       trackBeginCheckout({
         studio: trackingStudio,
@@ -504,7 +515,8 @@ export default function ListingReservation({
         bookingType: instantBooking ? "instant" : "approval",
       });
     }
-    if (!ensurePhone()) {
+    // Guests enter name, phone and email in the summary step instead of logging in.
+    if (isAuthenticated && !ensurePhone()) {
       // Only customers without a saved phone number see the personal-details step.
       if (trackingStudio) trackCheckoutStep({ step: "personal_details", studio: trackingStudio });
       return;
@@ -512,9 +524,9 @@ export default function ListingReservation({
     if (trackingStudio) trackCheckoutStep({ step: "review_booking", studio: trackingStudio });
 
     setShowSummaryModal(true);
-  }, [ready, isAuthenticated, uiStore, ensurePhone, trackingStudio, computedTotal, gstAmount, instantBooking]);
+  }, [ready, isAuthenticated, ensurePhone, trackingStudio, computedTotal, gstAmount, instantBooking]);
 
-  const handleConfirmModal = useCallback((billingDetailId: string | null, shootDetails: ShootDetails) => {
+  const handleConfirmModal = useCallback((billingDetailId: string | null, shootDetails: ShootDetails, guest?: GuestCheckoutDetails) => {
     setShowSummaryModal(false);
     setIsPaying(true);
     if (trackingStudio) {
@@ -529,7 +541,7 @@ export default function ListingReservation({
     const controller = new AbortController();
     inflight.current = controller;
 
-    startPayment(controller, billingDetailId, shootDetails).catch((e) => {
+    startPayment(controller, billingDetailId, shootDetails, guest).catch((e) => {
       if (mountedRef.current && e?.name !== "AbortError") {
         setErr(e?.message || "Payment initiation failed. Please try again.");
         setIsPaying(false);
@@ -722,6 +734,11 @@ export default function ListingReservation({
         instantBooking={instantBooking}
         contcaveNote={contcaveNote}
         maximumPax={maximumPax}
+        isGuest={!isAuthenticated}
+        onLoginAction={() => {
+          setShowSummaryModal(false);
+          uiStore.onOpen("login");
+        }}
       />
     </section>
   );

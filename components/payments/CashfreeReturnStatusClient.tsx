@@ -37,6 +37,21 @@ interface CashfreeReturnStatusClientProps {
   initialStatus: string;
   initialReservation: SerializedReservation | null;
   initialPurpose: string | null;
+  /** Signed guest-checkout token; lets the page poll without a login. */
+  access?: string | null;
+  /** Booked without logging in: dashboard links don't apply. */
+  isGuest?: boolean;
+}
+
+/** Guests have no dashboard session, so they get this in place of "view bookings". */
+function GuestNote() {
+  return (
+    <p className="rounded-lg border border-border bg-muted/40 p-4 text-left text-sm text-muted-foreground">
+      We&apos;ve emailed your booking details. To manage your bookings and chat with the studio, use{" "}
+      <span className="font-medium text-foreground">Set a password</span> in that email, or log in if you already have a ContCave account with this email.
+      Keep the email: its <span className="font-medium text-foreground">View your booking</span> link brings you back to this page.
+    </p>
+  );
 }
 
 export default function CashfreeReturnStatusClient({
@@ -45,6 +60,8 @@ export default function CashfreeReturnStatusClient({
   initialStatus,
   initialReservation,
   initialPurpose,
+  access = null,
+  isGuest = false,
 }: CashfreeReturnStatusClientProps) {
   const [status, setStatus] = useState<string>(initialStatus);
   const [reservation, setReservation] = useState<SerializedReservation | null>(initialReservation);
@@ -81,7 +98,7 @@ export default function CashfreeReturnStatusClient({
     const poll = async () => {
       attempts++;
       try {
-        const res = await getTransaction({ tid });
+        const res = await getTransaction({ tid, access });
         if (cancelled) return;
         if (res) {
           const currentStatus = res.status;
@@ -121,7 +138,7 @@ export default function CashfreeReturnStatusClient({
       cancelled = true;
       if (timeout) clearTimeout(timeout);
     };
-  }, [status, tid]);
+  }, [status, tid, access]);
 
   const inr = { format: formatINR };
   
@@ -179,7 +196,7 @@ export default function CashfreeReturnStatusClient({
           </div>
           <div className="w-full max-w-sm flex flex-col gap-3">
             <Button label="REFRESH STATUS" onClick={() => window.location.reload()} className="w-full" />
-            <Button label="VIEW BOOKINGS" href="/dashboard/bookings" variant="outline" className="w-full" />
+            {!isGuest && <Button label="VIEW BOOKINGS" href="/dashboard/bookings" variant="outline" className="w-full" />}
           </div>
         </div>
       </main>
@@ -191,8 +208,12 @@ export default function CashfreeReturnStatusClient({
       <main className="min-h-[calc(100vh-5rem)] w-full max-w-3xl mx-auto px-4 py-8 sm:px-6 sm:py-10 flex items-center justify-center">
         <div className="w-full rounded-xl border border-border bg-card p-8 flex flex-col items-center space-y-6 text-center">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Payment refunded</h2>
-          <p className="text-muted-foreground max-w-md mx-auto">This payment has been refunded. You can review the booking and payment status in your dashboard.</p>
-          <Button label="VIEW BOOKINGS" href="/dashboard/bookings" className="w-full max-w-sm" />
+          <p className="text-muted-foreground max-w-md mx-auto">
+            This payment has been refunded.{isGuest ? "" : " You can review the booking and payment status in your dashboard."}
+          </p>
+          {isGuest
+            ? <Button label="EXPLORE STUDIOS" href="/studios" className="w-full max-w-sm" />
+            : <Button label="VIEW BOOKINGS" href="/dashboard/bookings" className="w-full max-w-sm" />}
         </div>
       </main>
     );
@@ -273,14 +294,25 @@ export default function CashfreeReturnStatusClient({
               <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted-foreground">
                 <li>The studio owner has been notified and will review your request shortly.</li>
                 <li>You'll receive the tax invoice only after the studio approves your booking.</li>
-                <li>You can check the real-time status under your dashboard's bookings tab.</li>
+                <li>
+                  {isGuest
+                    ? "We'll email you when the studio responds, and the link in your email shows the latest status."
+                    : "You can check the real-time status under your dashboard's bookings tab."}
+                </li>
               </ul>
             </div>
           )}
 
-          <div className="pt-2">
-            <Button label="GO TO BOOKINGS" href="/dashboard/bookings" className="w-full" />
-          </div>
+          {isGuest ? (
+            <div className="space-y-3 pt-2">
+              <GuestNote />
+              <Button label="EXPLORE STUDIOS" href="/studios" variant="outline" className="w-full" />
+            </div>
+          ) : (
+            <div className="pt-2">
+              <Button label="GO TO BOOKINGS" href="/dashboard/bookings" className="w-full" />
+            </div>
+          )}
         </motion.div>
       </main>
     );
@@ -318,7 +350,7 @@ export default function CashfreeReturnStatusClient({
           </div>
           <div className="w-full max-w-sm pt-4 flex flex-col gap-3">
             <Button label="RETRY BOOKING" href={listingHref} className="w-full" />
-            <Button label="VIEW DASHBOARD" href="/dashboard/bookings" variant="outline" className="w-full" />
+            {!isGuest && <Button label="VIEW DASHBOARD" href="/dashboard/bookings" variant="outline" className="w-full" />}
           </div>
         </motion.div>
       </main>

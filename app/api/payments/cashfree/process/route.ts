@@ -6,6 +6,8 @@ import getCurrentUser from "@/app/actions/getCurrentUser";
 import { GST_RATE } from "@/constants/gst";
 import { createErrorResponse, createSuccessResponse, handleRouteError } from "@/lib/api-utils";
 import { checkBookingSlot, parseTimeToMinutes } from "@/lib/availability";
+import { GUEST_ACCESS_PARAM, guestBookingToken } from "@/lib/booking/guestAccess";
+import { type GuestBuyer, resolveGuestBuyer } from "@/lib/booking/guestCheckout";
 import { cfCreateOrder } from "@/lib/cashfree/cashfree";
 import { getClientIp } from "@/lib/http/requestMeta";
 import { bookableAddons } from "@/lib/listing/equipment";
@@ -102,13 +104,44 @@ export async function POST(req: NextRequest) {
         }
         const data = parsed.data;
 
-        const currentUser = await getCurrentUser();
-        if (!currentUser?.id) {
-            return createErrorResponse("Unauthorized", 401);
+        const sessionUser = await getCurrentUser();
+        const clientIp = getClientIp(req.headers);
+
+        // Guest checkout: no session, so the details typed at checkout identify the buyer.
+        let guest: GuestBuyer | null = null;
+        if (!sessionUser?.id) {
+            const guestName = data.customerName?.trim() || "";
+            const guestEmail = data.customerEmail?.trim() || "";
+            if (guestName.length < 2) return createErrorResponse("Please enter your name.", 400);
+            if (!guestEmail) return createErrorResponse("Please enter your email address.", 400);
+            if (!normalizePhone(data.customerPhone)) {
+                return createErrorResponse("A valid 10-digit phone number is required (e.g., 9876543210).", 400);
+            }
+
+            const guestLimit = rateLimit({ key: `payment-order:guest:${clientIp}`, limit: 6, windowMs: 10 * 60_000 });
+            if (!guestLimit.allowed) {
+                const response = createErrorResponse("Too many payment attempts. Please wait and try again.", 429);
+                response.headers.set("Retry-After", formatRetryAfterMs(guestLimit.resetAt));
+                return response;
+            }
+
+            guest = await resolveGuestBuyer({
+                name: guestName,
+                email: guestEmail,
+                phone: normalizePhone(data.customerPhone)!,
+                billing: data.guestBilling ?? null,
+            });
         }
 
+        const currentUser = guest ?? {
+            id: sessionUser!.id,
+            name: sessionUser!.name ?? null,
+            email: sessionUser!.email ?? null,
+            phone: sessionUser!.phone ?? null,
+        };
+
         const paymentLimit = rateLimit({
-            key: `payment-order:${currentUser.id}:${getClientIp(req.headers)}`,
+            key: `payment-order:${currentUser.id}:${clientIp}`,
             limit: 10,
             windowMs: 60_000,
         });
@@ -138,6 +171,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (listing.userId === currentUser.id) {
+            if (guest) return createErrorResponse("This email belongs to the studio owner. Owners can't book their own studio.", 400);
             return createErrorResponse("You cannot book your own listing", 403);
         }
 
@@ -313,10 +347,11 @@ export async function POST(req: NextRequest) {
             return createErrorResponse("Amount exceeds maximum limit", 400);
         }
 
-        const billingRecord = data.billingDetailId
+        const billingDetailId = guest ? guest.billingDetailId : data.billingDetailId;
+        const billingRecord = billingDetailId
             ? await prisma.billingDetails.findFirst({
                 where: {
-                    id: data.billingDetailId,
+                    id: billingDetailId,
                     userId: currentUser.id,
                 },
                 select: {
@@ -328,7 +363,7 @@ export async function POST(req: NextRequest) {
             })
             : null;
 
-        if (data.billingDetailId && !billingRecord) {
+        if (billingDetailId && !billingRecord) {
             return createErrorResponse("Billing details were not found for this account", 400);
         }
 
@@ -370,7 +405,8 @@ export async function POST(req: NextRequest) {
                 tId: existingTxn.cfTxnRef,
                 paymentSessionId: existingTxn.cfPaymentSessionId,
                 mode,
-                reused: true
+                reused: true,
+                guestAccess: guest && existingTxn.cfTxnRef ? guestBookingToken(existingTxn.cfTxnRef) : undefined
             });
         }
 
@@ -415,6 +451,7 @@ export async function POST(req: NextRequest) {
                     setPackageId: data.setPackageId || null,
                     pax,
                     shootType,
+                    ...(guest ? { guestCheckout: { accountCreated: guest.accountCreated } } : {}),
                     pricingSnapshot: pricingBreakdown || {
                         durationMinutes,
                         hourlyRate: Number(listing.price),
@@ -436,6 +473,7 @@ export async function POST(req: NextRequest) {
                         paymentSessionId: concurrentTxn.cfPaymentSessionId,
                         mode,
                         reused: true,
+                        guestAccess: guest && concurrentTxn.cfTxnRef ? guestBookingToken(concurrentTxn.cfTxnRef) : undefined,
                     });
                 }
                 return createErrorResponse("Payment initialization is already in progress. Please wait a moment and try again.", 409);
@@ -463,7 +501,10 @@ export async function POST(req: NextRequest) {
                     transaction_id: tId,
                     order_amount: amount,
                     customer_id: txn.userId,
-                    return_url: `${appUrl}/api/payments/cashfree/return?tid={transaction_id}`,
+                    // Guests aren't signed in, so their return link carries a signed access token.
+                    return_url: guest
+                        ? `${appUrl}/api/payments/cashfree/return?tid={transaction_id}&${GUEST_ACCESS_PARAM}=${guestBookingToken(tId)}`
+                        : `${appUrl}/api/payments/cashfree/return?tid={transaction_id}`,
                     notify_url: `${appUrl}/api/payments/cashfree/webhook`,
                     customer_name: customerName,
                     customer_email: customerEmail || undefined,
@@ -494,6 +535,7 @@ export async function POST(req: NextRequest) {
             tId,
             paymentSessionId: payment_session_id,
             mode,
+            guestAccess: guest ? guestBookingToken(tId) : undefined,
         });
     } catch (err: unknown) {
         if (err && typeof err === 'object' && 'name' in err && err.name === "ZodError") {

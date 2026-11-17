@@ -11,12 +11,29 @@ export function buildWhatsAppUrl(message?: string): string {
     return encoded ? `https://wa.me/${num}?text=${encoded}` : `https://wa.me/${num}`;
 }
 
-export function curatedEnquiryMessage(studioName: string, area: string): string {
-    return `Hi ContCave, I'm interested in ${studioName} in ${area}. Could you share pricing details and availability?`;
+/** Appends the studio page link, so the team can open the listing straight from the chat. */
+const withStudioLink = (message: string, studioUrl?: string | null) =>
+    studioUrl ? `${message}\n\n${studioUrl}` : message;
+
+export function curatedEnquiryMessage(studioName: string, area: string, studioUrl?: string | null): string {
+    return withStudioLink(
+        `Hi ContCave, I'm interested in ${studioName} in ${area}. Could you share pricing details and availability?`,
+        studioUrl
+    );
 }
 
-export function equipmentRequestMessage(studioName: string, itemName: string): string {
-    return `Hi ContCave, I'm looking at ${studioName}. Is the ${itemName} available on request, and what would it cost?`;
+export function equipmentRequestMessage(studioName: string, itemName: string, studioUrl?: string | null): string {
+    return withStudioLink(
+        `Hi ContCave, I'm looking at ${studioName}. Is the ${itemName} available on request, and what would it cost?`,
+        studioUrl
+    );
+}
+
+/** The floating button's message; on a studio page it names the page so the team has context. */
+export function generalEnquiryMessage(studioUrl?: string | null): string {
+    return studioUrl
+        ? `Hi ContCave, I have a question about this studio:\n\n${studioUrl}`
+        : GENERAL_ENQUIRY_MESSAGE;
 }
 
 export function previewLinkExpiredMessage(studioName: string): string {

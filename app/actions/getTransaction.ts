@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { resolveBookingViewerId } from "@/lib/booking/guestAccess";
 import { PostBookingService } from "@/lib/post-booking/service";
 import prisma from "@/lib/prismadb";
 import { ReservationService } from "@/lib/reservation/service";
@@ -85,12 +86,15 @@ async function findClientTransaction(transactionId: string, userId: string) {
   };
 }
 
-export default async function getTransaction({ tid }: { tid: string }) {
+export default async function getTransaction({ tid, access }: { tid: string; access?: string | null }) {
   const parsed = transactionReferenceSchema.safeParse(tid);
   if (!parsed.success) return null;
 
-  const currentUser = await getCurrentUser();
-  if (!currentUser?.id) return null;
+  // Guest checkouts have no session; a signed token for this payment grants read access instead.
+  const sessionUser = await getCurrentUser();
+  const viewerId = await resolveBookingViewerId(parsed.data, access, sessionUser?.id);
+  if (!viewerId) return null;
+  const currentUser = { id: viewerId };
 
   const txn = await prisma.transaction.findFirst({
     where: {

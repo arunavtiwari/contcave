@@ -3,10 +3,13 @@
 import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
+import { resolveBookingViewerId } from "@/lib/booking/guestAccess";
 import prisma from "@/lib/prismadb";
 
 interface IParams {
   tid: string;
+  /** Signed guest-checkout token, for bookings made without logging in. */
+  access?: string | null;
 }
 
 const transactionReferenceSchema = z.string().trim().min(1).max(200);
@@ -17,8 +20,10 @@ export default async function getReservation(params: IParams) {
   const tid = parsed.data;
 
   try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser?.id) return null;
+    const sessionUser = await getCurrentUser();
+    const viewerId = await resolveBookingViewerId(tid, params?.access, sessionUser?.id);
+    if (!viewerId) return null;
+    const currentUser = { id: viewerId };
 
     const reservation = await prisma.reservation.findFirst({
       where: {

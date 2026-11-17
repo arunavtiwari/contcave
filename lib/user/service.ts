@@ -150,7 +150,9 @@ export class UserService {
             data: {
                 hashedPassword,
                 resetToken: null,
-                resetTokenExpiry: null
+                resetTokenExpiry: null,
+                // The token arrived by email, so using it proves the address is theirs.
+                email_verified: true,
             }
         });
 

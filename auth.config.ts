@@ -61,7 +61,10 @@ export const authConfig = {
                 return true;
             }
 
-            const isProtected = PROTECTED_ROUTES.some(route => matchesRoute(pathname, route));
+            // The payment status page also serves guest checkouts, which have no session; it
+            // checks access itself (session owner or a signed guest token).
+            const isGuestStatusPage = pathname === '/payments/cashfree/return';
+            const isProtected = !isGuestStatusPage && PROTECTED_ROUTES.some(route => matchesRoute(pathname, route));
 
             if (isProtected) {
                 const isAdminRoute = ADMIN_ROUTES.some(route => matchesRoute(pathname, route));

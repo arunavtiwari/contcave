@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { TIME_SLOTS } from "@/constants/timeSlots";
+import { billingSchema } from "@/schemas/billing";
 
 export const toNum = (v: unknown) => (typeof v === "string" ? Number(v) : v);
 export const trimStr = (v: unknown) => (typeof v === "string" ? v.trim() : v);
@@ -58,5 +59,10 @@ export const processPaymentSchema = z.object({
     setPackageId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid package ID").nullable().optional(),
     pax: z.preprocess(toNum, z.number().int("Number of people must be a whole number").min(1, "At least 1 person is required").max(1000)).optional(),
     shootType: z.preprocess(trimStr, z.string().max(100, "Shoot type is too long").optional()),
+    /** Guest checkout only: GST details to invoice against (no saved billing record yet). */
+    guestBilling: billingSchema
+        .pick({ companyName: true, gstin: true, billingAddress: true })
+        .nullable()
+        .optional(),
 });
 

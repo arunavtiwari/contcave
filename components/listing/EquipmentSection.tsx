@@ -5,6 +5,7 @@ import type { IconType } from "react-icons";
 import { FiBox, FiCamera, FiChevronDown, FiImage, FiMic, FiPackage, FiSun, FiTool, FiUmbrella, FiUsers } from "react-icons/fi";
 
 import Pill from "@/components/ui/Pill";
+import { useStudioPageUrl } from "@/hooks/useStudioPageUrl";
 import {
     addonIdFor,
     EQUIPMENT_CATEGORY_LABELS,
@@ -196,6 +197,7 @@ function EquipmentStatus({
     onQtyChange: (next: number) => void;
     disabled?: boolean;
 }) {
+    const studioUrl = useStudioPageUrl();
     if (item.pricing === "included") {
         return <Pill label={includedLabel} variant="success" size="xs" className="shrink-0" />;
     }
@@ -203,7 +205,7 @@ function EquipmentStatus({
     if (item.pricing === "on_request") {
         return (
             <a
-                href={buildWhatsAppUrl(equipmentRequestMessage(studioName, item.name))}
+                href={buildWhatsAppUrl(equipmentRequestMessage(studioName, item.name, studioUrl))}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-tracking-source="equipment_on_request"

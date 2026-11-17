@@ -1,3 +1,4 @@
+import getCurrentUser from "@/app/actions/getCurrentUser";
 import getReservation from "@/app/actions/getReservation";
 import getTransaction from "@/app/actions/getTransaction";
 
@@ -22,8 +23,13 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
         );
     }
 
-    const transaction = await getTransaction({ tid }).catch(() => null);
-    const reservation = transaction?.reservation ?? (await getReservation({ tid }).catch(() => null));
+    // Guest checkouts (no account login) carry a signed token for this payment.
+    const access = pickFirst(searchParams.g) || null;
+    const sessionUser = await getCurrentUser().catch(() => null);
+    const isGuest = Boolean(access) && !sessionUser;
+
+    const transaction = await getTransaction({ tid, access }).catch(() => null);
+    const reservation = transaction?.reservation ?? (await getReservation({ tid, access }).catch(() => null));
 
     const txStatus = String(transaction?.status ?? "PENDING").toUpperCase();
     const listingId =
@@ -42,6 +48,8 @@ export default async function CashfreeReturnStatus({ searchParams }: { searchPar
             initialStatus={txStatus}
             initialReservation={serializedReservation}
             initialPurpose={transaction?.purpose ?? null}
+            access={access}
+            isGuest={isGuest}
         />
     );
 }

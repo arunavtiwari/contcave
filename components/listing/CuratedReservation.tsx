@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { IoLogoWhatsapp } from "react-icons/io";
 
 import { trackEnquiryAction } from "@/app/actions/listingActions";
+import { useStudioPageUrl } from "@/hooks/useStudioPageUrl";
 import { cn } from "@/lib/utils";
 import { buildWhatsAppUrl, curatedEnquiryMessage } from "@/lib/whatsapp/urls";
 
@@ -37,7 +38,8 @@ export default function CuratedReservation({
 }: CuratedReservationProps) {
     const [, startTransition] = useTransition();
 
-    const waUrl = buildWhatsAppUrl(curatedEnquiryMessage(studioName, area));
+    const studioUrl = useStudioPageUrl();
+    const waUrl = buildWhatsAppUrl(curatedEnquiryMessage(studioName, area, studioUrl));
 
     function handleEnquiry() {
         startTransition(() => {

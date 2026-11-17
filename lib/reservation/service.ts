@@ -1,11 +1,14 @@
 import { Prisma, ReservationStatus } from "@prisma/client";
+import crypto from "crypto";
 
 import { checkBookingSlot, parseTimeToMinutes } from "@/lib/availability";
+import { guestBookingUrl, readGuestCheckoutMeta } from "@/lib/booking/guestAccess";
 import { ensureCalendarEventForUser } from "@/lib/calendar/createEvent";
 import { cfCreateRefund } from "@/lib/cashfree/cashfree";
 import { scheduleQstashJob } from "@/lib/cron/qstash";
 import { deliverableEmail } from "@/lib/email/placeholder";
 import {
+    type GuestEmailAccess,
     sendReservationCancelledOwner,
     sendReservationConfirmationCustomer,
     sendReservationConfirmationOwner,
@@ -24,7 +27,8 @@ import { isReservationSlotUniqueConflict, LISTING_WIDE_SLOT_ID } from "@/lib/res
 import { hasSessionEnded } from "@/lib/reservation/status";
 import { formatReservationDate, parseReservationEndTimeForDate, parseReservationTimeForDate } from "@/lib/reservation/time";
 import { asEndOfDayMinutes } from "@/lib/scheduling";
-import { generateBookingId } from "@/lib/utils";
+import { UserService } from "@/lib/user/service";
+import { generateBookingId, getValidatedBaseUrl } from "@/lib/utils";
 import { WhatsappService } from "@/lib/whatsapp/service";
 import { Addon } from "@/types/addon";
 import { safeListing } from "@/types/listing";
@@ -314,6 +318,28 @@ async function ensureCalendarForReservation(resv: FullReservationPayload, studio
         endIso: endAt.toISOString(),
     });
 }
+
+/**
+ * Links for the confirmation email of a booking made without logging in: a status page that works
+ * without a session, plus a set-password link when checkout created the account (no password yet).
+ */
+async function guestEmailAccessFor(
+    txn: { metadata: unknown; cfTxnRef: string | null } | undefined,
+    user: { id: string; hashedPassword: string | null }
+): Promise<GuestEmailAccess | undefined> {
+    const guest = readGuestCheckoutMeta(txn?.metadata);
+    if (!guest || !txn?.cfTxnRef) return undefined;
+
+    let setPasswordUrl: string | null = null;
+    if (guest.accountCreated && !user.hashedPassword) {
+        const token = crypto.randomBytes(32).toString("hex");
+        await UserService.createResetToken(user.id, token, new Date(Date.now() + GUEST_SET_PASSWORD_TTL_MS));
+        setPasswordUrl = `${getValidatedBaseUrl()}/reset-password?token=${token}`;
+    }
+    return { bookingUrl: guestBookingUrl(txn.cfTxnRef), setPasswordUrl };
+}
+
+const GUEST_SET_PASSWORD_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export class ReservationService {
     private static async refundSuccessfulReservationTransactions(reservationId: string, note: string, refundIdPrefix: string) {
@@ -736,6 +762,7 @@ export class ReservationService {
                             addons,
                             studioLocation: location,
                             attachments: [attachment],
+                            guestAccess: await guestEmailAccessFor(txn, resv.user),
                         });
                         await markDocumentEmailSent(document);
                     } catch (error) {
