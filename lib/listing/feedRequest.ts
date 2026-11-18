@@ -23,10 +23,11 @@ export function landingOf(searchParams: SearchParams): FeedLanding | null {
     return { place, category: typeof category === "string" && category ? category : null };
 }
 
-/** Appends a page, dropping studios already shown (ranking ties can shift between requests). */
-export function appendUnique<T extends { id: string }>(shown: T[], next: T[]): T[] {
+/** Adds a page before or after the studios shown, dropping repeats (ranking ties can shift between requests). */
+export function mergeUnique<T extends { id: string }>(shown: T[], next: T[], at: "start" | "end"): T[] {
     const seen = new Set(shown.map((item) => item.id));
-    return [...shown, ...next.filter((item) => !seen.has(item.id))];
+    const fresh = next.filter((item) => !seen.has(item.id));
+    return at === "start" ? [...fresh, ...shown] : [...shown, ...fresh];
 }
 
 /** The page whose first card has scrolled past `line`; `starts` are each loaded page's first-card tops, in order. */

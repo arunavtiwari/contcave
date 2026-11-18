@@ -1,14 +1,12 @@
-import { redirect } from "next/navigation";
 
 import getAmenities from "@/app/actions/getAmenities";
-import getCurrentUser from "@/app/actions/getCurrentUser";
 import CreateCuratedListingForm from "@/components/admin/CreateCuratedListingForm";
+import { requireAdminPage } from "@/lib/admin/guard";
 
 export const metadata = { title: "Create Curated Listing" };
 
 export default async function CreateCuratedListingPage() {
-    const user = await getCurrentUser();
-    if (!user || user.role !== "ADMIN") redirect("/admin");
+    await requireAdminPage("listings.manage");
 
     const amenities = await getAmenities();
 

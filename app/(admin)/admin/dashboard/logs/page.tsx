@@ -1,8 +1,6 @@
-import { redirect } from "next/navigation";
 import React, { Suspense } from "react";
 
 import { getAdminJobLogs } from "@/app/actions/adminJobLogActions";
-import getCurrentUser from "@/app/actions/getCurrentUser";
 import AdminJobLogsClient from "@/components/admin/AdminJobLogsClient";
 import Skeleton from "@/components/ui/Skeleton";
 import { StatCardSkeleton } from "@/components/ui/StatCard";
@@ -15,7 +13,7 @@ import {
   TableRow,
   TableSkeletonRows,
 } from "@/components/ui/Table";
-import { isAdmin } from "@/lib/user/permissions";
+import { requireAdminPage } from "@/lib/admin/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -113,9 +111,7 @@ export default async function AdminJobLogsPage({
 }: {
   searchParams: Promise<{ page?: string; pageSize?: string; jobName?: string; status?: string }>;
 }) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect("/admin");
-  if (!isAdmin(currentUser.role)) redirect("/");
+  await requireAdminPage("logs.view");
 
   const { page, pageSize, jobName = "ALL", status = "ALL" } = await searchParams;
   const currentPage = Number(page) || 1;

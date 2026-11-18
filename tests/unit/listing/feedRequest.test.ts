@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { appendUnique, feedRequestPath, landingOf, pageAtLine } from "@/lib/listing/feedRequest";
+import { feedRequestPath, landingOf, mergeUnique, pageAtLine } from "@/lib/listing/feedRequest";
 import { searchParamsOf } from "@/lib/pagination";
 
 describe("feedRequestPath", () => {
@@ -30,10 +30,15 @@ describe("landingOf", () => {
     });
 });
 
-describe("appendUnique", () => {
+describe("mergeUnique", () => {
+    const shown = [{ id: "a" }, { id: "b" }];
+
     it("adds the next page without repeating studios already shown", () => {
-        const shown = [{ id: "a" }, { id: "b" }];
-        expect(appendUnique(shown, [{ id: "b" }, { id: "c" }])).toEqual([{ id: "a" }, { id: "b" }, { id: "c" }]);
+        expect(mergeUnique(shown, [{ id: "b" }, { id: "c" }], "end")).toEqual([{ id: "a" }, { id: "b" }, { id: "c" }]);
+    });
+
+    it("adds an earlier page in front", () => {
+        expect(mergeUnique(shown, [{ id: "z" }, { id: "a" }], "start")).toEqual([{ id: "z" }, { id: "a" }, { id: "b" }]);
     });
 });
 

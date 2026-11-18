@@ -1,8 +1,6 @@
-import { redirect } from "next/navigation";
 import React, { Suspense } from "react";
 
 import { type AdminOwnerTab, getAdminOwnersOperations } from "@/app/actions/adminOwnerActions";
-import getCurrentUser from "@/app/actions/getCurrentUser";
 import AdminOwnersClient from "@/components/admin/AdminOwnersClient";
 import Skeleton from "@/components/ui/Skeleton";
 import { StatCardSkeleton } from "@/components/ui/StatCard";
@@ -15,7 +13,7 @@ import {
   TableRow,
   TableSkeletonRows,
 } from "@/components/ui/Table";
-import { isAdmin } from "@/lib/user/permissions";
+import { requireAdminPage } from "@/lib/admin/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -101,9 +99,7 @@ export default async function AdminOwnersPage({
 }: {
   searchParams: Promise<{ page?: string; tab?: string; pageSize?: string; q?: string }>;
 }) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect("/admin");
-  if (!isAdmin(currentUser.role)) redirect("/");
+  await requireAdminPage("owners.manage");
 
   const { page, tab: requestedTab, pageSize, q: search } = await searchParams;
 

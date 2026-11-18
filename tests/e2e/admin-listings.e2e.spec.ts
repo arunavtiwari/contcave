@@ -6,10 +6,9 @@ import {
   createUserFixture,
   prisma,
 } from "./support/db";
-import { getE2EConnectionEnv } from "./support/env";
 import { installServerOnlyStub } from "./support/server-only-stub";
 import { expect, test } from "./support/test";
-import { gotoApp } from "./support/ui";
+import { loginAdmin } from "./support/ui";
 
 installServerOnlyStub();
 
@@ -19,29 +18,6 @@ function previewLinks() {
   return require("../../lib/listing/preview") as typeof import("../../lib/listing/preview");
 }
 
-function adminBaseUrl() {
-  const base = new URL(getE2EConnectionEnv().baseUrl);
-  if (base.hostname === "localhost" || base.hostname === "127.0.0.1") {
-    base.hostname = `admin.${base.hostname}`;
-    return base.toString().replace(/\/$/, "");
-  }
-
-  if (base.hostname.startsWith("staging.")) {
-    base.hostname = base.hostname.replace(/^staging\./, "staging.admin.");
-    return base.toString().replace(/\/$/, "");
-  }
-
-  base.hostname = `admin.${base.hostname}`;
-  return base.toString().replace(/\/$/, "");
-}
-
-async function loginAdmin(page: Page, email: string, password: string) {
-  await gotoApp(page, `${adminBaseUrl()}/admin`);
-  await page.getByLabel(/email address/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
-  await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/admin\/dashboard\/listings/, { timeout: 60_000 });
-}
 
 function reviewButtonFor(page: Page, listingTitle: string) {
   return page.locator(`button[aria-label="Open listing details: ${listingTitle}"]`).first();

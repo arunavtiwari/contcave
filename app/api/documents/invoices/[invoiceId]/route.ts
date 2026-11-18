@@ -1,8 +1,7 @@
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createErrorResponse, handleRouteError } from "@/lib/api-utils";
 import prisma from "@/lib/prismadb";
-import { readPrivateDocument, safeDownloadName } from "@/lib/storage/privateDocuments";
-import { UserRole } from "@/types/user";
+import { canReadBookingDocument, DOCUMENT_PARTIES, privatePdfResponse } from "@/lib/storage/privatePdfResponse";
 
 export async function GET(request: Request, props: { params: Promise<{ invoiceId?: string }> }) {
   try {
@@ -11,48 +10,15 @@ export async function GET(request: Request, props: { params: Promise<{ invoiceId
     const { invoiceId } = await props.params;
     if (!invoiceId || !/^[a-f\d]{24}$/i.test(invoiceId)) return createErrorResponse("Invalid invoice ID", 400);
 
-    const invoice = await prisma.invoice.findUnique({
+    const document = await prisma.invoice.findUnique({
       where: { id: invoiceId },
-      select: {
-        userId: true,
-        invoiceNumber: true,
-        invoiceUrl: true,
-        reservation: {
-          select: {
-            userId: true,
-            listing: {
-              select: {
-                userId: true,
-              },
-            },
-          },
-        },
-      },
+      select: { ...DOCUMENT_PARTIES, invoiceNumber: true, invoiceUrl: true },
     });
-    const allowed = invoice && (
-      currentUser.role === UserRole.ADMIN
-      || invoice.userId === currentUser.id
-      || invoice.reservation?.userId === currentUser.id
-      || invoice.reservation?.listing?.userId === currentUser.id
-    );
-    if (!allowed || !invoice.invoiceUrl) return createErrorResponse("Invoice not found", 404);
-
-    if (invoice.invoiceUrl.startsWith("http://") || invoice.invoiceUrl.startsWith("https://")) {
-      return Response.redirect(invoice.invoiceUrl, 302);
+    if (!canReadBookingDocument(currentUser, document) || !document?.invoiceUrl) {
+      return createErrorResponse("Invoice not found", 404);
     }
 
-    const buffer = await readPrivateDocument(invoice.invoiceUrl);
-    const filename = `${safeDownloadName(invoice.invoiceNumber)}.pdf`;
-
-    return new Response(new Uint8Array(buffer), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        // ?download=1 saves the PDF instead of opening it in the browser.
-        "Content-Disposition": `${new URL(request.url).searchParams.get("download") === "1" ? "attachment" : "inline"}; filename="${filename}"`,
-        "Cache-Control": "private, no-cache, no-store, must-revalidate",
-      },
-    });
+    return await privatePdfResponse(request, document.invoiceUrl, document.invoiceNumber);
   } catch (error) {
     return handleRouteError(error, "GET private invoice");
   }

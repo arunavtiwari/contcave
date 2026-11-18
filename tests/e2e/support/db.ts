@@ -250,8 +250,8 @@ export async function createActiveListingFixture(ownerId: string, suffix: string
   return listing;
 }
 
-export async function createAdminUserFixture(suffix: string) {
-  const account = qaAccount("owner", `admin-${suffix}`);
+export async function createStaffUserFixture(role: "ADMIN" | "FINANCE", suffix: string) {
+  const account = qaAccount("owner", `${role.toLowerCase()}-${suffix}`);
   const hashedPassword = await bcrypt.hash(account.password, 12);
 
   const user = await prisma.user.create({
@@ -260,7 +260,7 @@ export async function createAdminUserFixture(suffix: string) {
       name: account.name,
       phone: account.phone,
       hashedPassword,
-      role: "ADMIN",
+      role,
       email_verified: true,
       phone_verified: true,
       aadhaar_verified: true,
@@ -270,13 +270,47 @@ export async function createAdminUserFixture(suffix: string) {
       verified_at: new Date(),
       bank_verified_name: account.name,
       aadhaar_last4: "4321",
-      aadhaar_ref_id: `aadhaar-ref-${suffix}`,
-      verified_via: ["e2e_admin_fixture"],
+      aadhaar_ref_id: `aadhaar-ref-${role}-${suffix}`,
+      verified_via: ["e2e_staff_fixture"],
     },
   });
 
   trackCreated("user", user.id);
   return { account, user };
+}
+
+export const createAdminUserFixture = (suffix: string) => createStaffUserFixture("ADMIN", suffix);
+
+/** An invoice and a receipt voucher for a guest, pointing at an external PDF so no storage is needed. */
+export async function createGuestDocumentsFixture(guestId: string, suffix: string) {
+  const state = readRunState();
+  const pdfUrl = "https://example.com/contcave-e2e.pdf";
+  const invoice = await prisma.invoice.create({
+    data: {
+      invoiceNumber: `${state.runId}-INV-${suffix}`,
+      userId: guestId,
+      amount: 1000,
+      totalAmount: 1180,
+      invoiceUrl: pdfUrl,
+    },
+  });
+  trackCreated("invoice", invoice.id);
+
+  const voucher = await prisma.paymentVoucher.create({
+    data: {
+      voucherNumber: `${state.runId}-RV-${suffix}`,
+      userId: guestId,
+      amount: 1180,
+      voucherUrl: pdfUrl,
+      voucherType: "RECEIPT_VOUCHER",
+      financialYear: "2026-27",
+      sequence: 1,
+      idempotencyKey: `${state.runId}-voucher-${suffix}`,
+    },
+  });
+  trackCreated("voucher", voucher.id);
+
+  return { invoice, voucher, pdfUrl };
 }
 
 export async function createReviewListingFixture(params: {

@@ -1,7 +1,7 @@
 import { expect, Page } from "@playwright/test";
 
 import { QAAccount } from "./db";
-import { getE2EEnv } from "./env";
+import { getE2EConnectionEnv, getE2EEnv } from "./env";
 import { sampleImage, samplePdf, sampleSignature } from "./files";
 
 async function seedCookieConsent(page: Page) {
@@ -405,4 +405,25 @@ export async function completeCashfreeCheckout(page: Page) {
   if (returnedUrl.pathname === "/" && returnedUrl.searchParams.has("tid")) {
     await gotoApp(page, `/payments/cashfree/return?tid=${encodeURIComponent(returnedUrl.searchParams.get("tid") || "")}`);
   }
+}
+
+/** The admin panel lives on the admin. subdomain of whichever environment the suite targets. */
+export function adminBaseUrl() {
+  const base = new URL(getE2EConnectionEnv().baseUrl);
+  if (base.hostname === "localhost" || base.hostname === "127.0.0.1") {
+    base.hostname = `admin.${base.hostname}`;
+  } else if (base.hostname.startsWith("staging.")) {
+    base.hostname = base.hostname.replace(/^staging\./, "staging.admin.");
+  } else {
+    base.hostname = `admin.${base.hostname}`;
+  }
+  return base.toString().replace(/\/$/, "");
+}
+
+export async function loginAdmin(page: Page, email: string, password: string, landing = /\/admin\/dashboard\/listings/) {
+  await gotoApp(page, `${adminBaseUrl()}/admin`);
+  await page.getByLabel(/email address/i).fill(email);
+  await page.getByLabel(/password/i).fill(password);
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(landing, { timeout: 60_000 });
 }

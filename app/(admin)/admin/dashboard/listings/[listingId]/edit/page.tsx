@@ -1,16 +1,15 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 
 import getAddons from "@/app/actions/getAddons";
 import getAmenities from "@/app/actions/getAmenities";
-import getCurrentUser from "@/app/actions/getCurrentUser";
 import getListingById from "@/app/actions/getListingById";
 import PropertyClient from "@/components/property/PropertyClient";
 import { NavTabs } from "@/components/ui/Tabs";
 import { adminEditListingHref } from "@/constants/adminNav";
 import { MAIN_SIDEBAR_ITEMS } from "@/constants/navigation";
-import { isAdmin } from "@/lib/user/permissions";
+import { requireAdminPage } from "@/lib/admin/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +29,7 @@ export default async function AdminEditListingPage({
     params: Promise<Params>;
     searchParams: Promise<SearchParams>;
 }) {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) redirect("/admin");
-    if (!isAdmin(currentUser.role)) redirect("/");
+    await requireAdminPage("listings.manage");
 
     const [{ listingId }, { tab }] = await Promise.all([params, searchParams]);
     const [listing, amenitiesData, addonsData] = await Promise.all([

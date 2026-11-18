@@ -4,8 +4,9 @@ import { InvoiceDocumentType, InvoiceStatus, PaymentVoucherStatus, PaymentVouche
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createAction } from "@/lib/actions-utils";
+import { type AdminBookingTab, bookingTabFor } from "@/lib/admin/bookingTabs";
+import { requirePermission } from "@/lib/admin/guard";
 import {
   createOfflineBooking,
   getAdminStudioForOfflineBooking,
@@ -16,12 +17,11 @@ import { InvoiceService } from "@/lib/invoice/service";
 import { PaymentVoucherService } from "@/lib/payment-voucher/service";
 import { PayoutService } from "@/lib/payout/service";
 import prisma from "@/lib/prismadb";
-import { isAdmin } from "@/lib/user/permissions";
+import { rolesWith } from "@/lib/user/permissions";
 import { createAdminOfflineBookingSchema } from "@/schemas/offlineBooking";
-import { UserRole } from "@/types/user";
 
 type AdminGstModel = "GST_STUDIO_AGENT" | "NON_GST_PRINCIPAL" | "UNKNOWN";
-export type AdminBookingTab = "bookings" | "ownerInvoices" | "vouchers" | "payouts" | "failures" | "audit";
+export type { AdminBookingTab } from "@/lib/admin/bookingTabs";
 
 /**
  * Everything the booking drawer shows and the table does not. Kept out of the list
@@ -246,10 +246,7 @@ async function getInvoiceCounts(): Promise<InvoiceCounts> {
 export async function getAdminBookingOperations(
   params: { page?: number; pageSize?: number; tab?: AdminBookingTab } = {}
 ) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !isAdmin(currentUser.role)) {
-    throw new Error("Unauthorized");
-  }
+  const currentUser = await requirePermission("bookings.view");
 
   const page = typeof params.page === "number" && Number.isFinite(params.page)
     ? Math.max(1, Math.floor(params.page))
@@ -257,7 +254,7 @@ export async function getAdminBookingOperations(
   const pageSize = typeof params.pageSize === "number" && Number.isFinite(params.pageSize)
     ? Math.min(100, Math.max(10, Math.floor(params.pageSize)))
     : 20;
-  const tab = params.tab || "bookings";
+  const tab = bookingTabFor(currentUser.role, params.tab);
   const invoiceWhere = tab === "ownerInvoices" ? ownerInvoiceWhere : visibleFailureWhere;
   const skip = (page - 1) * pageSize;
 
@@ -536,7 +533,7 @@ export async function getAdminBookingOperations(
  */
 export const getAdminBookingDetailAction = createAction(
   z.object({ reservationId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid booking ID") }),
-  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  { requireAuth: true, allowedRoles: rolesWith("bookings.view") },
   async ({ reservationId }): Promise<AdminBookingDetail> => {
     const reservation = await prisma.reservation.findUnique({
       where: { id: reservationId },
@@ -706,7 +703,7 @@ export const markPayoutPaidManuallyAction = createAction(
     transactionId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid transaction ID"),
     reference: z.string().trim().max(120).optional(),
   }),
-  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  { requireAuth: true, allowedRoles: rolesWith("bookings.manage") },
   async ({ transactionId, reference }, { user }) => {
     const result = await PayoutService.markPaidManually({ transactionId, adminId: user.id, reference });
     revalidatePath("/admin/dashboard/bookings");
@@ -716,7 +713,7 @@ export const markPayoutPaidManuallyAction = createAction(
 
 export const retryAdminInvoiceEmailAction = createAction(
   z.object({ invoiceId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid invoice ID") }),
-  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  { requireAuth: true, allowedRoles: rolesWith("bookings.manage") },
   async ({ invoiceId }) => {
     const invoice = await InvoiceService.retryFailedInvoiceEmail(invoiceId);
     return { invoiceId: invoice.id, status: invoice.status };
@@ -725,7 +722,7 @@ export const retryAdminInvoiceEmailAction = createAction(
 
 export const retryAdminVoucherEmailAction = createAction(
   z.object({ voucherId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid voucher ID") }),
-  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  { requireAuth: true, allowedRoles: rolesWith("bookings.manage") },
   async ({ voucherId }) => {
     const voucher = await PaymentVoucherService.retryVoucherEmail(voucherId);
     return { voucherId: voucher.id, status: voucher.status };
@@ -734,7 +731,7 @@ export const retryAdminVoucherEmailAction = createAction(
 
 export const createAdminOfflineBookingAction = createAction(
   createAdminOfflineBookingSchema,
-  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  { requireAuth: true, allowedRoles: rolesWith("bookings.manage") },
   async (data, { user }) => {
     const result = await createOfflineBooking(data, user);
     revalidatePath("/admin/dashboard/bookings");
@@ -745,7 +742,7 @@ export const createAdminOfflineBookingAction = createAction(
 
 export const getAdminStudiosForOfflineBookingAction = createAction(
   z.object({}),
-  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  { requireAuth: true, allowedRoles: rolesWith("bookings.manage") },
   async () => {
     return await getAdminStudiosForOfflineBooking();
   }
@@ -754,7 +751,7 @@ export const getAdminStudiosForOfflineBookingAction = createAction(
 /** Loads sets, packages and host payout details for the one studio an admin picked. */
 export const getAdminStudioForOfflineBookingAction = createAction(
   z.object({ listingId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid studio ID") }),
-  { requireAuth: true, allowedRoles: [UserRole.ADMIN] },
+  { requireAuth: true, allowedRoles: rolesWith("bookings.manage") },
   async ({ listingId }) => {
     const studio = await getAdminStudioForOfflineBooking(listingId);
     if (!studio) throw new UserFacingError("Studio not found", 404);

@@ -142,16 +142,37 @@ export function getEmailVerificationCodeTemplate(
   </html>`;
 }
 
-export function getResetPasswordTemplate(
+export type PasswordLinkPurpose = "reset" | "invite";
+
+export const PASSWORD_LINK_COPY = {
+    reset: {
+        subject: "Reset your password",
+        intro: "We received a request to reset your password. Click the button below to choose a new one:",
+        expires: "This link expires in one hour.",
+        button: "Reset Password",
+        footer: "If you didn't request this, you can safely ignore this email.",
+    },
+    invite: {
+        subject: "Set up your ContCave staff account",
+        intro: "You've been given access to the ContCave admin panel. Click the button below to choose your password, then sign in at the admin login:",
+        expires: "This link expires in three days.",
+        button: "Set Password",
+        footer: "If you weren't expecting this, you can safely ignore this email.",
+    },
+} as const satisfies Record<PasswordLinkPurpose, Record<string, string>>;
+
+export function getPasswordLinkTemplate(
     name: string,
-    resetUrl: string,
+    linkUrl: string,
+    purpose: PasswordLinkPurpose,
 ): string {
+    const copy = PASSWORD_LINK_COPY[purpose];
     return `
   <!DOCTYPE html>
   <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Reset Your Password</title>
+    <title>${copy.subject}</title>
   </head>
   <body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;">
     <table width="100%" cellpadding="0" cellspacing="0">
@@ -164,15 +185,15 @@ export function getResetPasswordTemplate(
                   <img src="${getValidatedBaseUrl()}/assets/logo.png" alt="ContCave" style="height:36px;width:auto;display:block;" />
                 </div>
                 <p>Hi ${escapeEmailHtml(name || "there")},</p>
-                <p>We received a request to reset your password. Click the button below to choose a new one:</p>
-                <p style="font-size:14px;color:#6b7280;">This link expires in one hour.</p>
+                <p>${copy.intro}</p>
+                <p style="font-size:14px;color:#6b7280;">${copy.expires}</p>
                 <div style="text-align:center;margin:32px 0;">
-                    <a href="${escapeEmailHtml(resetUrl)}" 
+                    <a href="${escapeEmailHtml(linkUrl)}" 
                      style="background:#000000;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block;">
-                    Reset Password
+                    ${copy.button}
                   </a>
                 </div>
-                <p style="font-size:14px;color:#6b7280;">If you didn't request this, you can safely ignore this email.</p>
+                <p style="font-size:14px;color:#6b7280;">${copy.footer}</p>
                 <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
                 <p style="font-size:13px;color:#9ca3af;margin:0;">ContCave by Arkanet Ventures LLP.</p>
               </td>

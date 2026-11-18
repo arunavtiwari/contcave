@@ -36,6 +36,7 @@ import {
 } from "@/schemas/listing";
 import { Addon } from "@/types/addon";
 import { ActualLocation, FullListing, ListingBlockData, type StudioFeedItem, type StudioFeedPage } from "@/types/listing";
+import type { UserRole } from "@/types/user";
 
 import { DEFAULT_BROWSE_SORT } from "./browseSort";
 import {
@@ -1550,7 +1551,7 @@ export class ListingService {
 
     static async findById(
         listingId: string,
-        viewer?: { id: string; role: "CUSTOMER" | "OWNER" | "ADMIN" }
+        viewer?: { id: string; role: UserRole }
     ): Promise<FullListing | null> {
         const isObjectId = /^[0-9a-fA-F]{24}$/.test(listingId);
         const include = { user: true, packages: true, sets: { orderBy: [{ price: "asc" as const }, { position: "asc" as const }] }, blocks: true };

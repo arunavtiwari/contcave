@@ -46,7 +46,17 @@ app/
   api/               # API Routes for webhooks, Cashfree payments, uploads, Ably auth
 ```
 
-Middleware in `auth.config.ts` enforces route protection. `PROTECTED_ROUTES` requires auth; `ADMIN_ROUTES` requires `role === ADMIN`.
+Middleware in `auth.config.ts` enforces route protection. `PROTECTED_ROUTES` requires auth; `ADMIN_ROUTES` requires a staff role (`ADMIN` or `FINANCE`).
+
+## Admin permissions
+
+Staff access is permission-based, from one map in `lib/user/permissions.ts`: `ADMIN` holds every permission, `FINANCE` holds `bookings.view` and `documents.view` (read-only bookings, owner invoices, receipts and payouts, plus PDF downloads). Never compare roles directly for admin features:
+
+- Pages: `await requireAdminPage("permission")` from `lib/admin/guard.ts` (redirects to the user's own admin home).
+- Server functions: `requirePermission("permission")`; actions: `createAction(schema, { requireAuth: true, allowedRoles: rolesWith("permission") }, ...)`.
+- Navigation and booking tabs filter by permission (`constants/adminNav.ts`, `lib/admin/bookingTabs.ts`).
+
+Admins manage staff at `/admin/dashboard/users`: adding a finance or admin user emails a set-password link (`sendPasswordLink` in `lib/user/passwordLink.ts`). An admin can't change their own role, the last admin can't be removed, and studio owners can't be made finance.
 
 ## Server Action pattern
 
@@ -80,7 +90,7 @@ Prisma models are never passed to client components directly. Use the "safe" var
 - `safeListing` — from `types/listing.ts`; omits `addons`, `packages`, `operationalDays/Hours`, `actualLocation`
 - `SafeReservation` — from `types/reservation.ts`
 
-Three roles: `CUSTOMER` | `OWNER` | `ADMIN` (defined in both Prisma enum and `types/user.ts`).
+Four roles: `CUSTOMER` | `OWNER` | `ADMIN` | `FINANCE` (defined in both Prisma enum and `types/user.ts`).
 
 ## Encryption
 
@@ -125,6 +135,7 @@ The listing card is composed from three sub-components in `components/listing/`:
 
 ## Things to know
 
+- Prisma's `contains` on MongoDB runs as an unescaped regex: wrap user search terms with `containsText()` from `lib/db/textSearch.ts`, or `+`, `.` and `(` break matches.
 - `lib/prismadb.ts` is `server-only` and uses a global singleton to survive hot reloads in dev. Never import it from client components.
 - `jsdom` and `isomorphic-dompurify` are in `serverExternalPackages` (`next.config.ts`) to avoid an ESM/CJS conflict at runtime — do not remove this.
 - `Calendar.tsx` (FullCalendar) is only used in the host dashboard's `SyncCalendarTab`; it is not in the public listing page bundle.

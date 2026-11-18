@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 
 import { signIn } from "@/auth";
+import { adminHomeFor } from "@/constants/adminNav";
 import prisma from "@/lib/prismadb";
-import { isAdmin } from "@/lib/user/permissions";
+import { isStaff } from "@/lib/user/permissions";
 
 export async function loginAdmin(prevState: unknown, formData: FormData) {
     const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -20,7 +21,7 @@ export async function loginAdmin(prevState: unknown, formData: FormData) {
         select: { role: true },
     });
 
-    if (!isAdmin(dbUser?.role)) {
+    if (!dbUser || !isStaff(dbUser.role)) {
         return { error: "Invalid email or password." };
     }
 
@@ -49,5 +50,5 @@ export async function loginAdmin(prevState: unknown, formData: FormData) {
         throw error;
     }
 
-    redirect("/admin/dashboard/listings");
+    redirect(adminHomeFor(dbUser.role));
 }

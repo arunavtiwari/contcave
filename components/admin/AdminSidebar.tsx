@@ -7,10 +7,11 @@ import React from "react";
 import { LuLogOut } from "react-icons/lu";
 
 import { logoutAdmin } from "@/app/actions/logoutAdmin";
-import { NAV_ITEMS } from "@/constants/adminNav";
+import { adminHomeFor, navItemsFor } from "@/constants/adminNav";
 import { cn } from "@/lib/utils";
+import type { UserRole } from "@/types/user";
 
-const AdminSidebar: React.FC = React.memo(() => {
+const AdminSidebar = React.memo(function AdminSidebar({ role }: { role: UserRole }) {
     const pathname = usePathname();
 
     const handleLogout = async () => {
@@ -22,7 +23,7 @@ const AdminSidebar: React.FC = React.memo(() => {
             {/* Header */}
             <div className="flex h-14 items-center justify-between border-b border-border/80 px-4">
                 <Link
-                    href="/admin/dashboard/listings"
+                    href={adminHomeFor(role)}
                     className="flex items-center gap-2 rounded-lg transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                     <Image
@@ -35,7 +36,7 @@ const AdminSidebar: React.FC = React.memo(() => {
                     />
                 </Link>
                 <span className="rounded-md border border-border/60 bg-muted/60 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Admin
+                    {role === "FINANCE" ? "Finance" : "Admin"}
                 </span>
             </div>
 
@@ -46,7 +47,7 @@ const AdminSidebar: React.FC = React.memo(() => {
                         Platform
                     </div>
                     <ul className="space-y-1">
-                        {NAV_ITEMS.map((item) => {
+                        {navItemsFor(role).map((item) => {
                             const Icon = item.icon;
                             const isActive = pathname === item.href;
 

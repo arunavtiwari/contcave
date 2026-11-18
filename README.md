@@ -22,7 +22,8 @@ Contcave is a marketplace platform for discovering and booking creative studios.
 Contcave connects creative professionals with hosts who manage creative spaces.
 - **Hosts (Owners)**: List creative studios with detailed hourly pricing, packages, add-ons, availability slots, and payment split configurations.
 - **Guests (Customers)**: Discover spaces, filter by category/location, query availability, initiate bookings, make real-time payments, and communicate with hosts.
-- **Admins**: Oversee reviews, check reservations, confirm verified host status, and manage platform integrations.
+- **Admins**: Oversee reviews, check reservations, confirm verified host status, manage staff accounts and platform integrations.
+- **Finance staff**: Read-only access to bookings, owner invoices, receipts and payouts in the admin panel, with PDF downloads.
 
 ---
 
@@ -121,7 +122,7 @@ Here are the primary commands configured in `package.json`:
 ## Database Schema
 
 We use Prisma with MongoDB. Important structures include:
-- **User**: Holds primary authentication, user profiles, and roles (`CUSTOMER` | `OWNER` | `ADMIN`).
+- **User**: Holds primary authentication, user profiles, and roles (`CUSTOMER` | `OWNER` | `ADMIN` | `FINANCE`).
 - **Listing**: The core studio space listing (pax, area size, hourly rate, packages, availability).
 - **Reservation**: Active booking instances linking customers to listings (includes payment states, price breakdowns, dates).
 - **Review**: Studio ratings and customer descriptions.

@@ -1,15 +1,14 @@
 "use server";
 
-import crypto from "crypto";
 import { headers } from "next/headers";
 
 import { createAction } from "@/lib/actions-utils";
 import { sendEmail } from "@/lib/email/mailer";
-import { getCustomerOnboardingTemplate, getResetPasswordTemplate } from "@/lib/email/templates";
+import { getCustomerOnboardingTemplate } from "@/lib/email/templates";
 import { UserFacingError } from "@/lib/errors";
 import { rateLimitRequest } from "@/lib/security/rateLimit";
+import { sendPasswordLink } from "@/lib/user/passwordLink";
 import { UserService } from "@/lib/user/service";
-import { getValidatedBaseUrl } from "@/lib/utils";
 import { ownerRegisterSchema, registerSchema, resetPasswordSchema } from "@/schemas/auth";
 import { emailVerificationSchema } from "@/schemas/verification";
 import { UserRole } from "@/types/user";
@@ -97,26 +96,7 @@ export const requestPasswordResetAction = createAction(
             return { message: "If an account exists, a reset email has been sent." };
         }
 
-        const resetBaseUrl = getValidatedBaseUrl();
-        const resetToken = crypto.randomBytes(32).toString("hex");
-        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
-
-        await UserService.createResetToken(user.id, resetToken, resetTokenExpiry);
-
-        const resetUrl = `${resetBaseUrl}/reset-password?token=${resetToken}`;
-
-        try {
-            const html = getResetPasswordTemplate(user.name || "User", resetUrl);
-            await sendEmail({
-                toEmail: user.email,
-                toName: user.name || "User",
-                subject: "Reset your password",
-                html,
-            });
-        } catch (error) {
-            await UserService.clearResetToken(user.id).catch(() => { });
-            console.error("[PasswordResetAction] Failed to send reset email", error);
-        }
+        await sendPasswordLink({ id: user.id, name: user.name, email: user.email }, "reset");
 
         return { message: "If an account exists, a reset email has been sent." };
     }

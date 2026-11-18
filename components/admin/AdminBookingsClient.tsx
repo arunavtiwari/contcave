@@ -38,9 +38,11 @@ import {
   TableSkeletonRows,
 } from "@/components/ui/Table";
 import Tooltip from "@/components/ui/Tooltip";
+import { type AdminBookingTab, bookingTabsFor } from "@/lib/admin/bookingTabs";
 import { downloadCsv } from "@/lib/csv";
 import type { PayoutBreakdown } from "@/lib/payout/breakdown";
 import { cn, formatINR, formatISTDate, formatISTDateTime } from "@/lib/utils";
+import type { UserRole } from "@/types/user";
 
 // Form-heavy and only reachable behind a button, so its bundle stays out of the initial
 // page load rather than shipping with every bookings table render.
@@ -64,18 +66,26 @@ type Props = {
   failures: AdminInvoiceRow[];
   payouts: AdminPayoutRow[];
   audits: AdminAuditRow[];
+  role: UserRole;
+  /** Retry emails, mark payouts paid and create bookings; finance staff only view. */
+  canManage: boolean;
 };
 
-type Tab = "bookings" | "ownerInvoices" | "vouchers" | "payouts" | "failures" | "audit";
+type Tab = AdminBookingTab;
 
-const TABS: Array<{ key: Tab; label: string }> = [
-  { key: "bookings", label: "Bookings" },
-  { key: "ownerInvoices", label: "Owner Invoices" },
-  { key: "vouchers", label: "Receipts & Refunds" },
-  { key: "payouts", label: "Payouts" },
-  { key: "failures", label: "Failures" },
-  { key: "audit", label: "Document Audit" },
-];
+function DownloadPdfButton({ href, label, size }: { href: string; label: string; size?: "sm" }) {
+  return (
+    <Button
+      href={`${href}?download=1`}
+      icon={FiDownload}
+      isIconOnly
+      outline
+      size={size}
+      aria-label={`Download ${label} PDF`}
+      tooltip={`Download ${label} PDF`}
+    />
+  );
+}
 
 function statusVariant(status: string) {
   if (["SUCCESS", "EMAIL_SENT", "STORED", "GENERATED"].includes(status)) return "success";
@@ -427,17 +437,7 @@ function BookingDetailModal({
                           tooltip="View invoice PDF"
                         />
                       ) : null}
-                      {booking.customerInvoiceUrl ? (
-                        <Button
-                          href={`${booking.customerInvoiceUrl}?download=1`}
-                          icon={FiDownload}
-                          isIconOnly
-                          outline
-                          size="sm"
-                          aria-label="Download invoice PDF"
-                          tooltip="Download invoice PDF"
-                        />
-                      ) : null}
+                      {booking.customerInvoiceUrl ? <DownloadPdfButton href={booking.customerInvoiceUrl} label="invoice" size="sm" /> : null}
                     </div>
                   ) : <CompactPill label="Pending" variant="warning" />}
                 />
@@ -626,6 +626,8 @@ export default function AdminBookingsClient({
   failures,
   payouts,
   audits,
+  role,
+  canManage,
 }: Props) {
   const router = useRouter();
   const [data, setData] = useState({
@@ -854,13 +856,15 @@ export default function AdminBookingsClient({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end gap-3">
-        <Button
-          label="Create Booking"
-          icon={FiPlus}
-          fit
-          size="sm"
-          onClick={() => setIsCreateOfflineBookingModalOpen(true)}
-        />
+        {canManage && (
+          <Button
+            label="Create Booking"
+            icon={FiPlus}
+            fit
+            size="sm"
+            onClick={() => setIsCreateOfflineBookingModalOpen(true)}
+          />
+        )}
         <Button
           label="Export CSV"
           icon={FiDownload}
@@ -885,7 +889,7 @@ export default function AdminBookingsClient({
         activeId={optimisticTab}
         ariaLabel="Booking operations views"
         onSelect={(nextTab) => navigateTab(nextTab as Tab, 1, data.operationPageSize)}
-        items={TABS.map((item) => ({
+        items={bookingTabsFor(role).map((item) => ({
           id: item.key,
           label: item.label,
           count: data.tabCounts[item.key],
@@ -963,16 +967,7 @@ export default function AdminBookingsClient({
                               }
                             />
                           ) : null}
-                          {booking.customerInvoiceUrl ? (
-                            <Button
-                              href={`${booking.customerInvoiceUrl}?download=1`}
-                              icon={FiDownload}
-                              isIconOnly
-                              outline
-                              aria-label="Download customer invoice"
-                              tooltip="Download invoice"
-                            />
-                          ) : null}
+                          {booking.customerInvoiceUrl ? <DownloadPdfButton href={booking.customerInvoiceUrl} label="customer invoice" /> : null}
                           <Button
                             icon={FiExternalLink}
                             isIconOnly
@@ -1051,7 +1046,8 @@ export default function AdminBookingsClient({
                               tooltip="View PDF"
                             />
                           ) : null}
-                          <Button
+                          {invoice.invoiceUrl ? <DownloadPdfButton href={invoice.invoiceUrl} label="invoice" /> : null}
+                          {canManage && <Button
                             icon={FiRefreshCw}
                             isIconOnly
                             outline
@@ -1060,7 +1056,7 @@ export default function AdminBookingsClient({
                             loading={isPending && pendingInvoiceId === invoice.id}
                             disabled={retryDisabled}
                             onClick={() => retryInvoice(invoice.id)}
-                          />
+                          />}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1131,7 +1127,8 @@ export default function AdminBookingsClient({
                               tooltip="View PDF"
                             />
                           ) : null}
-                          <Button
+                          {voucher.voucherUrl ? <DownloadPdfButton href={voucher.voucherUrl} label="receipt/refund" /> : null}
+                          {canManage && <Button
                             icon={FiRefreshCw}
                             isIconOnly
                             outline
@@ -1140,7 +1137,7 @@ export default function AdminBookingsClient({
                             loading={isPending && pendingVoucherId === voucher.id}
                             disabled={retryDisabled}
                             onClick={() => retryVoucher(voucher.id)}
-                          />
+                          />}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1187,7 +1184,7 @@ export default function AdminBookingsClient({
                     <TableCell className="text-center">
                       <div className="flex flex-col items-center gap-1.5">
                         <CompactPill label={payout.payoutDoneAt ? "Done" : payout.payoutSplitAt ? "Split" : "Pending"} variant={payout.payoutDoneAt ? "success" : "warning"} />
-                        {!payout.payoutDoneAt && !payout.payoutSplitAt && payout.status === "SUCCESS" && (
+                        {canManage && !payout.payoutDoneAt && !payout.payoutSplitAt && payout.status === "SUCCESS" && (
                           <button
                             type="button"
                             onClick={() => { setManualPayout(payout); setManualPayoutReference(""); }}

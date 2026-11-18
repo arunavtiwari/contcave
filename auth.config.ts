@@ -1,5 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 
+import { isStaff } from "@/lib/user/permissions";
 import { UserRole } from "@/types/user";
 
 const PROTECTED_ROUTES = [
@@ -76,8 +77,8 @@ export const authConfig = {
                     return false;
                 }
 
-                // Admin routes require the ADMIN role in addition to being logged in
-                if (isAdminRoute && auth?.user?.role !== 'ADMIN') {
+                // Admin routes need a staff role; each page then checks its own permission.
+                if (isAdminRoute && !isStaff(auth?.user?.role)) {
                     logSecurityEvent('unauthorized_access', {
                         path: pathname,
                         user: auth.user?.email || auth.user?.id,

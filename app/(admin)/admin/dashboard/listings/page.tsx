@@ -1,11 +1,9 @@
-import { redirect } from "next/navigation";
 import React, { Suspense } from "react";
 
-import getCurrentUser from "@/app/actions/getCurrentUser";
 import { getAdminListingReviewPage } from "@/app/actions/listingActions";
 import AdminListingsClient from "@/components/admin/AdminListingsClient";
 import { AdminListingsPageSkeleton } from "@/components/admin/AdminListingSkeletonRows";
-import { isAdmin } from "@/lib/user/permissions";
+import { requireAdminPage } from "@/lib/admin/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -39,9 +37,7 @@ async function ListingsData({
 }
 
 export default async function AdminListingsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) redirect("/admin");
-    if (!isAdmin(currentUser.role)) redirect("/");
+    await requireAdminPage("listings.manage");
 
     const params = await searchParams;
     const selectedStatus = ["ALL", "PENDING", "VERIFIED", "REJECTED"].includes(params.status || "")

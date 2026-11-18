@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
 import getCurrentUser from '@/app/actions/getCurrentUser';
-import { isAdmin } from '@/lib/user/permissions';
+import { adminHomeFor } from '@/constants/adminNav';
+import { isStaff } from '@/lib/user/permissions';
 
 import LoginForm from './LoginForm';
 
@@ -18,8 +19,8 @@ export const metadata: Metadata = {
 export default async function AdminLoginPage() {
     const currentUser = await getCurrentUser();
 
-    if (currentUser && isAdmin(currentUser.role)) {
-        redirect('/admin/dashboard/listings');
+    if (currentUser && isStaff(currentUser.role)) {
+        redirect(adminHomeFor(currentUser.role));
     }
 
     return <LoginForm />;

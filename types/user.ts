@@ -1,10 +1,11 @@
 import type { User } from "@prisma/client";
 
-export type UserRole = "CUSTOMER" | "OWNER" | "ADMIN";
+export type UserRole = "CUSTOMER" | "OWNER" | "ADMIN" | "FINANCE";
 export const UserRole = {
     CUSTOMER: "CUSTOMER",
     OWNER: "OWNER",
     ADMIN: "ADMIN",
+    FINANCE: "FINANCE",
 } as const;
 
 export type SafeUser = Omit<

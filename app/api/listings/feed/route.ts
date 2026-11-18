@@ -13,7 +13,6 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = searchParamsOf(request.nextUrl.searchParams);
     const page = pageFromParams(searchParams);
-    if (page === 1) return createErrorResponse("page must be 2 or more", 400);
 
     const landing = landingOf(searchParams);
     const route = landing ? await loadPlaceRoute(landing.place, landing.category) : null;

@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import getCurrentUser from "@/app/actions/getCurrentUser";
 import { createAction } from "@/lib/actions-utils";
+import { containsText } from "@/lib/db/textSearch";
 import { listingShareLink } from "@/lib/listing/preview";
 import { decryptPaymentDetailsInternal } from "@/lib/payment-details";
 import prisma from "@/lib/prismadb";
@@ -296,7 +297,7 @@ export async function getAdminOwnersOperations(params: {
 
   let searchWhere: Prisma.UserWhereInput | null = null;
   if (search) {
-    const insensitive = { contains: search, mode: "insensitive" as const };
+    const insensitive = containsText(search);
     const [listingMatches, gstinOwnerIds] = await Promise.all([
       prisma.listing.findMany({
         // Matches the studios shown against the owner, which excludes archived ones.

@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import React, { Suspense } from "react";
 
-import { type AdminBookingTab, getAdminBookingOperations } from "@/app/actions/adminBookingActions";
-import getCurrentUser from "@/app/actions/getCurrentUser";
+import { getAdminBookingOperations } from "@/app/actions/adminBookingActions";
 import AdminBookingsClient from "@/components/admin/AdminBookingsClient";
 import Skeleton from "@/components/ui/Skeleton";
 import { StatCardSkeleton } from "@/components/ui/StatCard";
@@ -15,22 +14,16 @@ import {
   TableRow,
   TableSkeletonRows,
 } from "@/components/ui/Table";
-import { isAdmin } from "@/lib/user/permissions";
+import { type AdminBookingTab, bookingTabFor } from "@/lib/admin/bookingTabs";
+import { requireAdminPage } from "@/lib/admin/guard";
+import { can } from "@/lib/user/permissions";
+import type { UserRole } from "@/types/user";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Bookings",
 };
-
-const ADMIN_BOOKING_TABS = new Set<AdminBookingTab>([
-  "bookings",
-  "ownerInvoices",
-  "vouchers",
-  "payouts",
-  "failures",
-  "audit",
-]);
 
 function BookingsSkeleton() {
   return (
@@ -89,13 +82,15 @@ async function BookingsData({
   tab,
   page,
   pageSize,
+  role,
 }: {
   tab: AdminBookingTab;
   page: number;
   pageSize: number;
+  role: UserRole;
 }) {
   const data = await getAdminBookingOperations({ tab, page, pageSize });
-  return <AdminBookingsClient {...data} />;
+  return <AdminBookingsClient {...data} role={role} canManage={can(role, "bookings.manage")} />;
 }
 
 export default async function AdminBookingsPage({
@@ -103,24 +98,20 @@ export default async function AdminBookingsPage({
 }: {
   searchParams: Promise<{ page?: string; tab?: string; pageSize?: string }>;
 }) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect("/admin");
-  if (!isAdmin(currentUser.role)) redirect("/");
+  const currentUser = await requireAdminPage("bookings.view");
 
   const { page, tab: requestedTab, pageSize } = await searchParams;
   if (requestedTab === "jobLogs") {
     redirect("/admin/dashboard/logs");
   }
-  const tab = ADMIN_BOOKING_TABS.has(requestedTab as AdminBookingTab)
-    ? (requestedTab as AdminBookingTab)
-    : "bookings";
+  const tab = bookingTabFor(currentUser.role, requestedTab);
 
   const currentPage = Number(page) || 1;
   const currentPageSize = Number(pageSize) || 10;
 
   return (
     <Suspense fallback={<BookingsSkeleton />}>
-      <BookingsData tab={tab} page={currentPage} pageSize={currentPageSize} />
+      <BookingsData tab={tab} page={currentPage} pageSize={currentPageSize} role={currentUser.role} />
     </Suspense>
   );
 }

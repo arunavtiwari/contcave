@@ -10,7 +10,8 @@ All email logic is centralized in `lib/email/templates.ts`. We utilize a **Premi
 | :--- | :--- | :--- | :--- |
 | **Guest Onboarding** | `getCustomerOnboardingTemplate` | HTML String | Guest |
 | **Host Onboarding** | `getHostOnboardingTemplate` | HTML String | Host |
-| **Password Reset** | `getResetPasswordTemplate` | HTML String | User |
+| **Password Reset** | `getPasswordLinkTemplate(..., "reset")` | HTML String | User |
+| **Staff Invite** | `getPasswordLinkTemplate(..., "invite")` | HTML String | New finance/admin user |
 | **Reservation Confirmation (Guest)** | `sendReservationConfirmationCustomer` | HTML String | Guest |
 | **Reservation Confirmation (Host)** | `sendReservationConfirmationOwner` | HTML String | Host |
 | **Reservation Request Received (Guest)** | `sendReservationReceivedCustomer` | HTML String | Guest |
