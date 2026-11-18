@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import ListingFeed from "@/components/listing/ListingFeed";
 import { type BrowseSort } from "@/lib/listing/browseSort";
-import { type FeedLanding, feedRequestPath, mergeUnique, pageAtLine } from "@/lib/listing/feedRequest";
+import { appendUnique, type FeedLanding, feedRequestPath, pageAtLine } from "@/lib/listing/feedRequest";
 import { type FeedAnchor, readFeedSnapshot, writeFeedSnapshot } from "@/lib/listing/feedSnapshot";
 import { pagePath, type SearchParams } from "@/lib/pagination";
 import type { StudioFeedItem, StudioFeedPage } from "@/types/listing";
@@ -22,7 +22,6 @@ type Props = {
   nearLabel?: string;
 };
 
-type Direction = "earlier" | "later";
 type LoadedPage = { page: number; firstId: string };
 type Status = "idle" | "loading" | "error";
 
@@ -78,43 +77,37 @@ function useInView(onVisible: () => void, enabled: boolean, margin = PREFETCH_MA
 }
 
 /**
- * Studios load as the visitor scrolls, both ways, and the address bar follows the page in view.
- * Every page is still its own server-rendered URL: the rel=prev/next links stay in the HTML for
- * crawlers, visually hidden, so nothing but studios shows on screen.
+ * More studios load as the visitor scrolls down, and the address bar follows the page in view.
+ * Loading is forward-only: nothing is ever inserted above what the visitor is reading, so the page
+ * never jumps. A visitor who opens ?page=3 starts there; earlier pages stay one rel=prev link away
+ * for crawlers, and Back restores the full list from the saved snapshot.
  */
 export default function InfiniteFeed({ feed, page, path, searchParams, landing, order, currentUser, nearLabel }: Props) {
   const [items, setItems] = useState(feed.items);
   const [loaded, setLoaded] = useState<LoadedPage[]>(() => (feed.items[0] ? [{ page, firstId: feed.items[0].id }] : []));
   const [totalPages, setTotalPages] = useState(feed.totalPages);
   const [status, setStatus] = useState<Status>("idle");
-  const [hasScrolled, setHasScrolled] = useState(false);
   const loadingRef = useRef(false);
   const gridRef = useRef<HTMLDivElement>(null);
-  const heightBeforePrepend = useRef<number | null>(null);
   const [restoreAnchor, setRestoreAnchor] = useState<FeedAnchor | null>(null);
   const isRestoring = restoreAnchor !== null;
   const feedKey = `${pagePath(path, 1, searchParams)}|${landing?.place ?? ""}|${landing?.category ?? ""}`;
 
   const firstPage = loaded[0]?.page ?? page;
   const lastPage = loaded.at(-1)?.page ?? page;
-  const hasEarlier = firstPage > 1;
   const hasLater = lastPage < totalPages;
 
-  const load = useCallback(async (direction: Direction) => {
-    const target = direction === "earlier" ? firstPage - 1 : lastPage + 1;
-    if (loadingRef.current || target < 1 || target > totalPages) return;
+  const loadLater = useCallback(async () => {
+    const target = lastPage + 1;
+    if (loadingRef.current || target > totalPages) return;
     loadingRef.current = true;
     setStatus("loading");
     try {
       const next = await fetchFeedPage(feedRequestPath(target, searchParams, landing));
       const first = next.items[0];
-      if (direction === "earlier") heightBeforePrepend.current = document.documentElement.scrollHeight;
-      setItems((shown) => mergeUnique(shown, next.items, direction === "earlier" ? "start" : "end"));
-      if (first) {
-        const entry = { page: target, firstId: first.id };
-        setLoaded((pages) => (direction === "earlier" ? [entry, ...pages] : [...pages, entry]));
-      }
-      setTotalPages(first || direction === "earlier" ? next.totalPages : lastPage);
+      setItems((shown) => appendUnique(shown, next.items));
+      if (first) setLoaded((pages) => [...pages, { page: target, firstId: first.id }]);
+      setTotalPages(first ? next.totalPages : lastPage);
       setStatus("idle");
     } catch (error) {
       console.error("Failed to load studios", error);
@@ -122,14 +115,9 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
     } finally {
       loadingRef.current = false;
     }
-  }, [firstPage, lastPage, totalPages, searchParams, landing]);
+  }, [lastPage, totalPages, searchParams, landing]);
 
-  const loadLater = useCallback(() => void load("later"), [load]);
-  const loadEarlier = useCallback(() => void load("earlier"), [load]);
-  // Earlier pages wait for the visitor to scroll, so landing on ?page=3 doesn't pull in pages 1-2 at once.
-  const canLoad = status === "idle" && !isRestoring;
-  const topRef = useInView(loadEarlier, canLoad && hasEarlier && hasScrolled, "200px 0px");
-  const bottomRef = useInView(loadLater, canLoad && hasLater);
+  const bottomRef = useInView(loadLater, status === "idle" && !isRestoring && hasLater);
 
   // Coming back from a studio: show the studios that were loaded and return to the same spot, once.
   useEffect(() => {
@@ -140,10 +128,8 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
     setItems(snapshot.items);
     setLoaded(snapshot.loaded);
     setTotalPages(snapshot.totalPages);
-    setHasScrolled(true);
   }, [feedKey]);
 
-  // Studios added above the viewport push the page down; scroll by the same amount so nothing jumps.
   // Returning to the saved card: wait until it's rendered, then hold it in place for a few frames
   // (the browser's own scroll restoration and late layout can move the page), and let go the
   // moment the visitor scrolls.
@@ -170,13 +156,6 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
     const timer = window.setTimeout(() => setRestoreAnchor(null), RESTORE_GIVE_UP_MS);
     return () => window.clearTimeout(timer);
   }, [restoreAnchor]);
-
-  // Studios added above the viewport push the page down; scroll by the same amount so nothing jumps.
-  useLayoutEffect(() => {
-    if (heightBeforePrepend.current === null) return;
-    window.scrollBy(0, document.documentElement.scrollHeight - heightBeforePrepend.current);
-    heightBeforePrepend.current = null;
-  }, [items]);
 
   // The latest feed state and position, kept in refs so the save on leaving doesn't read the next
   // page's URL or scroll (the feed unmounts after navigation has already moved on).
@@ -231,7 +210,6 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
       positionRef.current = { url: currentUrl(), anchor: topCard(grid) };
     };
     const onScroll = () => {
-      setHasScrolled(true);
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(syncUrl);
     };
@@ -243,14 +221,11 @@ export default function InfiniteFeed({ feed, page, path, searchParams, landing, 
   }, [loaded, page, path, searchParams]);
 
   return (
-    <div className="[overflow-anchor:none]">
-      {hasEarlier && (
-        <>
-          <a href={pagePath(path, firstPage - 1, searchParams)} rel="prev" className="sr-only">
-            Earlier studios
-          </a>
-          <div ref={topRef} aria-hidden="true" />
-        </>
+    <div>
+      {firstPage > 1 && (
+        <a href={pagePath(path, firstPage - 1, searchParams)} rel="prev" className="sr-only">
+          Earlier studios
+        </a>
       )}
 
       <div

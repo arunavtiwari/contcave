@@ -70,22 +70,18 @@ for (const viewport of VIEWPORTS) {
       expect(await returned.evaluate((element) => element.getBoundingClientRect().top)).toBeLessThan(topBefore + 120);
     });
 
-    test("opens partway through and loads earlier studios when scrolling up", async ({ page }) => {
+    test("opens partway through without loading anything above the visitor", async ({ page }) => {
       test.skip((await feedPageCount(page)) < 2, "Needs at least two pages of studios in the test database");
       await gotoApp(page, "/studios?page=2");
-      await expect(cards(page).first()).toBeVisible();
+      await expect(cards(page)).toHaveCount(PAGE_SIZE);
       const firstOfPageTwo = await cards(page).first().getAttribute("data-feed-id");
       await expect(page.getByRole("link", { name: "Earlier studios" })).toHaveAttribute("href", "/studios");
 
-      await page.evaluate(() => window.scrollBy(0, 200));
+      // Scrolling up never inserts studios above, so nothing jumps under the visitor.
+      await page.evaluate(() => window.scrollBy(0, 400));
       await page.evaluate(() => window.scrollTo(0, 0));
-      await expect.poll(() => cards(page).count(), { timeout: 30_000 }).toBeGreaterThanOrEqual(PAGE_SIZE * 2);
-
-      // The studios the visitor was looking at stay on screen after earlier ones are added above.
-      const anchor = page.locator(`[data-feed-id="${firstOfPageTwo}"]`);
-      const top = await anchor.evaluate((element) => element.getBoundingClientRect().top);
-      expect(top).toBeGreaterThan(-200);
-      expect(top).toBeLessThan(viewport.height);
+      await page.waitForTimeout(1_500);
+      await expect(cards(page).first()).toHaveAttribute("data-feed-id", firstOfPageTwo ?? "");
     });
   });
 }
