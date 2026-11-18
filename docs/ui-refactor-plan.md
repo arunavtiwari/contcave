@@ -10,7 +10,7 @@ Look and behaviour stay the same for users unless a step below says otherwise. T
 
 ## Ground rules
 
-- **Read first.** Read `AGENTS.md` and the installed Next.js docs in `node_modules/next/dist/docs/`. Tailwind is v4 (`@import "tailwindcss"` and `@theme` in `styles/globals.css`); there is no `tailwind.config`.
+- **Read first.** Read `CLAUDE.md` and the installed Next.js docs in `node_modules/next/dist/docs/`. Tailwind is v4 (`@import "tailwindcss"` and `@theme` in `styles/globals.css`); there is no `tailwind.config`.
 - **Check before building.** Run `ls components/ui` and grep for existing behaviour before writing any component. One shared component per job; no near-copies.
 - **Keep the look.** Restyle each shadcn component to match the current one (colours, radius, spacing). Never add shadows to new surfaces; keep existing glass surfaces glassy. Don't add `prefers-reduced-motion` handling (owner decision).
 - **One component per PR,** in the order below. Each PR migrates every usage of that component, deletes the old one, and passes all checks.
@@ -80,7 +80,7 @@ Look and behaviour stay the same for users unless a step below says otherwise. T
 
 - Remove any dependency no longer used (framer-motion stays if other animations use it).
 - `rg "components/modals/Modal\"|ui/Tooltip\"|fixed inset-0"` should only show the new components.
-- Update `AGENTS.md` with a short "UI components" section: shadcn/Radix in `components/ui`, and "check `components/ui` before building any UI".
+- Update `CLAUDE.md` with a short "UI components" section: shadcn/Radix in `components/ui`, and "check `components/ui` before building any UI".
 
 ## Definition of done
 
